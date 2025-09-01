@@ -1,7 +1,7 @@
 import * as React from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { TbCircleArrowUpRight } from "react-icons/tb"
+import { CircleArrowRight } from "lucide-react"
 
 import { CounselorCard, type Counselor } from "./CounselorCard";
 import { Button } from "@/components/ui/button"; 
@@ -15,25 +15,32 @@ const counselors: Counselor[] = [
     verified: true,
   },
   {
-    name: "Dr. Sumant Ghai",
-    description: "Engineering",
+    name: "Dr. Priya Sharma",
+    description: "Medical Science",
     experience: "12+ Yrs",
     imageUrl: "/imageCounselor.jpg", 
     verified: true,
   },
   {
-    name: "Dr. Sumant Ghai",
-    description: "Engineering",
+    name: "Dr. Rajesh Kumar",
+    description: "Business & Management",
     experience: "10+ Yrs",
     imageUrl: "/imageCounselor.jpg", 
     verified: true,
   },
   {
-    name: "Dr. Sumant Ghai",
-    description: "Engineering",
+    name: "Dr. Anita Singh",
+    description: "Computer Science",
     experience: "9+ Yrs",
     imageUrl: "/imageCounselor.jpg", 
     verified: false,
+  },
+  {
+    name: "Dr. Vikram Patel",
+    description: "Law & Legal Studies",
+    experience: "15+ Yrs",
+    imageUrl: "/imageCounselor.jpg", 
+    verified: true,
   },
 ];
 
@@ -42,6 +49,11 @@ export function CounselorSection() {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "start",
+    slidesToScroll: 1,
+    breakpoints: {
+      '(min-width: 768px)': { slidesToScroll: 2 },
+      '(min-width: 1024px)': { slidesToScroll: 3 }
+    }
   });
 
   const scrollPrev = React.useCallback(() => {
@@ -53,45 +65,64 @@ export function CounselorSection() {
   }, [emblaApi]);
 
   return (
-    <section className="w-full py-12 px-4 bg-[#F5F5F7]">
-      <div className="max-w-5xl mx-auto px-4 -mt-5">
-      <div className="mb-8 flex items-center justify-between">
-        <h2 className="text-2xl md:text-2xl font-bold">
-          Get Started Today - <span className="text-[#FA660F]">Book An Appointment Now</span>
-        </h2>
-        <Button variant="outline" className="font-bold border-black" >
-          Explore All <TbCircleArrowUpRight className="size-6"/>
-        </Button>
-      </div>
-      
-
-      <div className="relative -mt-3">
-        <div className="overflow-hidden" ref={emblaRef}>
-          <div className="flex -ml-6">
-            {counselors.map((counselor, index) => (
-                <div
-                key={index}
-                className="min-w-0 flex-shrink-0 flex-grow-0 basis-full pl-6 sm:basis-1/2 md:basis-1/3"
-              >
-                <CounselorCard key={index} counselor={counselor} />
-                </div>
-            ))}
+    <section className="w-full py-16 px-4 bg-gradient-to-b from-[#F5F5F7] to-[#EEEEF0]">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
+              Get Started Today - <br className="sm:hidden" />
+              <span className="text-[#FA660F]">Book An Appointment Now</span>
+            </h2>
+            <p className="text-gray-600 mt-2 text-sm sm:text-base">
+              Connect with verified counselors and get personalized guidance
+            </p>
           </div>
+          <Button 
+            variant="outline" 
+            className="font-semibold border-2 border-[#FA660F] text-[#FA660F] hover:bg-[#FA660F] hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
+          >
+            Explore All <CircleArrowRight className="size-5 ml-2"/>
+          </Button>
         </div>
 
-        <button
-          className="group absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-lg transition-all hover:scale-110 hover:bg-[#FA660F]"
-          onClick={scrollPrev}
-        >
-          <ChevronLeft className="h-5 w-5 text-gray-800 transition-colors group-hover:text-white" />
-        </button>
-        <button
-          className="group absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-lg transition-all hover:scale-110 hover:bg-[#FA660F]"
-          onClick={scrollNext}
-        >
-          <ChevronRight className="h-5 w-5 text-gray-800 transition-colors group-hover:text-white" />
-        </button>
-      </div>
+        <div className="relative">
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex -ml-4 sm:-ml-6">
+              {counselors.map((counselor, index) => (
+                <div
+                  key={index}
+                  className="min-w-0 flex-shrink-0 flex-grow-0 basis-[85%] pl-4 sm:pl-6 sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                >
+                  <CounselorCard counselor={counselor} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <button
+            className="group absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-xl transition-all hover:scale-110 hover:bg-[#FA660F] hidden sm:block z-10"
+            onClick={scrollPrev}
+            aria-label="Previous counselor"
+          >
+            <ChevronLeft className="h-6 w-6 text-gray-800 transition-colors group-hover:text-white" />
+          </button>
+          <button
+            className="group absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-xl transition-all hover:scale-110 hover:bg-[#FA660F] hidden sm:block z-10"
+            onClick={scrollNext}
+            aria-label="Next counselor"
+          >
+            <ChevronRight className="h-6 w-6 text-gray-800 transition-colors group-hover:text-white" />
+          </button>
+        </div>
+
+        <div className="flex justify-center mt-8 gap-2 sm:hidden">
+          {counselors.map((_, index) => (
+            <div
+              key={index}
+              className="w-2 h-2 rounded-full bg-gray-300 transition-colors duration-200"
+            />
+          ))}
+        </div>
       </div>
     </section>
   );
