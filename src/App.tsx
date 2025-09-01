@@ -1,7 +1,26 @@
+import { Navbar } from "./components/Header";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./components/ui/card";
+
+
 export default function App(){
   return(
-    <div className="flex items-center justify-center h-screen">
-      <h1 className="text-2xl font-extralight text-purple-900">This is procounsel website updated</h1>
+    <div>
+         <Navbar/>
+         <Card className="w-full max-w-xl">
+          <CardHeader>
+            <CardTitle>
+              anything
+            </CardTitle>
+           
+          </CardHeader>
+           <CardContent>
+              <p>my content</p>
+            </CardContent>
+
+            <CardFooter>
+              <p>card footer</p>
+            </CardFooter>
+         </Card>
     </div>
   )
 }
