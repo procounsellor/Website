@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { SearchBar } from "./Searchbar";
 import { Button } from "./ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Search } from "lucide-react";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [heroSearchVisible, setHeroSearchVisible] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => {
@@ -67,16 +68,29 @@ export default function Header() {
             </Button>
           </nav>
 
-          <button
-            className="md:hidden p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? (
-              <X className="w-6 h-6 text-gray-700" />
-            ) : (
-              <Menu className="w-6 h-6 text-gray-700" />
+          <div className="flex items-center gap-2 md:hidden">
+            {/* Mobile Search Icon - shows when hero search is not visible */}
+            {scrolled && !heroSearchVisible && (
+              <button
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                onClick={() => setMobileSearchOpen(true)}
+                aria-label="Open search"
+              >
+                <Search className="w-5 h-5 text-gray-700" />
+              </button>
             )}
-          </button>
+            
+            <button
+              className="p-2"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? (
+                <X className="w-6 h-6 text-gray-700" />
+              ) : (
+                <Menu className="w-6 h-6 text-gray-700" />
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -94,6 +108,34 @@ export default function Header() {
               >
                 Login/Sign Up
               </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Search Overlay */}
+      {mobileSearchOpen && (
+        <div className="fixed inset-0 z-50 bg-white/95 backdrop-blur-md md:hidden">
+          <div className="pt-20 px-6">
+            <div className="flex items-center gap-4 mb-4">
+              <button
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                onClick={() => setMobileSearchOpen(false)}
+                aria-label="Close search"
+              >
+                <X className="w-6 h-6 text-gray-700" />
+              </button>
+              <h2 className="text-lg font-semibold text-gray-900">Search</h2>
+            </div>
+            <div className="w-full">
+              <SearchBar 
+                onSearch={(q) => {
+                  console.log(q);
+                  setMobileSearchOpen(false);
+                }} 
+                showBackdrop={false}
+                autoFocus={true}
+              />
             </div>
           </div>
         </div>

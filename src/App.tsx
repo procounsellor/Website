@@ -1,14 +1,19 @@
-import { CounselorSection } from "./components/CounselorSection";
-import Header from "./components/Header";
-import Hero from "./components/Hero";
-
+import Header from './components/Header'
+import { BrowserRouter } from 'react-router-dom'
+import AppRoutes from './routes/AppRoutes'
+import { CourseExamSection } from './components/CourseExamSection'
+import { ExamSection } from './components/ExamSection'
+import { CollegeSection } from './components/CollegeSection'
 
 export default function App(){
   return(
-    <div>
-      <Header/>
-      <Hero/>
-      <CounselorSection/>
-    </div>
+    <BrowserRouter>
+          <Header/>
+          <AppRoutes/>
+          <CourseExamSection/>
+          <ExamSection/>
+          <CollegeSection/>
+         
+    </BrowserRouter>
   )
 }

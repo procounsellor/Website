@@ -3,50 +3,53 @@ import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CircleArrowRight } from "lucide-react"
+import { CollegeCard, type College } from "./CollegeCard";
+import { Button } from "@/components/ui/button";
 
-import { CounselorCard, type Counselor } from "./CounselorCard";
-import { Button } from "@/components/ui/button"; 
-
-const counselors: Counselor[] = [
+const colleges: College[] = [
   {
-    name: "Dr. Sumant Ghai",
-    description: "Engineering",
-    experience: "8+ Yrs",
-    imageUrl: "/imageCounselor.jpg", 
-    verified: true,
+    name: "Indian Institute of Technology Delhi",
+    courseCount: "24 Courses",
+    location: "New Delhi",
+    imageUrl: "/imageCounselor.jpg",
+    badge: "TOP",
   },
   {
-    name: "Dr. Priya Sharma",
-    description: "Medical Science",
-    experience: "12+ Yrs",
-    imageUrl: "/imageCounselor.jpg", 
-    verified: true,
+    name: "Indian Institute of Science",
+    courseCount: "18 Courses", 
+    location: "Bangalore",
+    imageUrl: "/imageCounselor.jpg",
+    badge: "FEATURED",
   },
   {
-    name: "Dr. Rajesh Kumar",
-    description: "Business & Management",
-    experience: "10+ Yrs",
-    imageUrl: "/imageCounselor.jpg", 
-    verified: true,
+    name: "All India Institute of Medical Sciences",
+    courseCount: "12 Courses",
+    location: "New Delhi", 
+    imageUrl: "/imageCounselor.jpg",
+    badge: "TOP",
   },
   {
-    name: "Dr. Anita Singh",
-    description: "Computer Science",
-    experience: "9+ Yrs",
-    imageUrl: "/imageCounselor.jpg", 
-    verified: false,
+    name: "Indian Institute of Management Ahmedabad",
+    courseCount: "8 Courses",
+    location: "Ahmedabad",
+    imageUrl: "/imageCounselor.jpg",
   },
   {
-    name: "Dr. Vikram Patel",
-    description: "Law & Legal Studies",
-    experience: "15+ Yrs",
-    imageUrl: "/imageCounselor.jpg", 
-    verified: true,
+    name: "Indian Statistical Institute",
+    courseCount: "15 Courses",
+    location: "Kolkata",
+    imageUrl: "/imageCounselor.jpg",
   },
+  {
+    name: "National Law School of India University",
+    courseCount: "6 Courses",
+    location: "Bangalore", 
+    imageUrl: "/imageCounselor.jpg",
+    badge: "FEATURED",
+  }
 ];
 
-
-export function CounselorSection() {
+export function CollegeSection() {
   const autoplay = React.useRef(
     Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true })
   );
@@ -54,7 +57,7 @@ export function CounselorSection() {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "start",
-    slidesToScroll: 1, 
+    slidesToScroll: 1, // Always scroll one card at a time
     breakpoints: {
       '(min-width: 768px)': { slidesToScroll: 1 },
       '(min-width: 1024px)': { slidesToScroll: 1 }
@@ -69,24 +72,28 @@ export function CounselorSection() {
     if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
 
+  const handleCollegeClick = (college: College) => {
+    // You can update this later to navigate to college page
+    console.log(`Clicked on ${college.name}`);
+    if (college.href) {
+      window.location.href = college.href;
+    }
+  };
+
   return (
     <section 
       className="w-full py-16 px-4"
       style={{
-        background: '#F5F5F7',
-        minHeight: '589px'
+        background: '#FFFFFF',
+        minHeight: '633px'
       }}
     >
       <div className="max-w-7xl mx-auto">
         <div className="mb-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
-              Get Started Today - <br className="sm:hidden" />
-              <span className="text-[#FA660F]">Book An Appointment Now</span>
+              Colleges
             </h2>
-            <p className="text-gray-600 mt-2 text-sm sm:text-base">
-              Connect with verified counselors and get personalized guidance
-            </p>
           </div>
           <Button 
             variant="outline" 
@@ -99,12 +106,15 @@ export function CounselorSection() {
         <div className="relative">
           <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex -ml-4 sm:-ml-6">
-              {counselors.map((counselor, index) => (
+              {colleges.map((college, index) => (
                 <div
                   key={index}
                   className="min-w-0 flex-shrink-0 flex-grow-0 basis-[85%] pl-4 sm:pl-6 sm:basis-1/2 lg:basis-1/3 flex justify-center"
                 >
-                  <CounselorCard counselor={counselor} />
+                  <CollegeCard 
+                    college={college}
+                    onClick={() => handleCollegeClick(college)}
+                  />
                 </div>
               ))}
             </div>
@@ -113,21 +123,21 @@ export function CounselorSection() {
           <button
             className="group absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-xl transition-all hover:scale-110 hover:bg-[#FA660F] hidden sm:block z-10"
             onClick={scrollPrev}
-            aria-label="Previous counselor"
+            aria-label="Previous college"
           >
             <ChevronLeft className="h-6 w-6 text-gray-800 transition-colors group-hover:text-white" />
           </button>
           <button
             className="group absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-xl transition-all hover:scale-110 hover:bg-[#FA660F] hidden sm:block z-10"
             onClick={scrollNext}
-            aria-label="Next counselor"
+            aria-label="Next college"
           >
             <ChevronRight className="h-6 w-6 text-gray-800 transition-colors group-hover:text-white" />
           </button>
         </div>
 
         <div className="flex justify-center mt-8 gap-2 sm:hidden">
-          {counselors.map((_, index) => (
+          {colleges.map((_, index) => (
             <div
               key={index}
               className="w-2 h-2 rounded-full bg-gray-300 transition-colors duration-200"

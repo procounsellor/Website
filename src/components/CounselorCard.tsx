@@ -23,19 +23,70 @@ type CounselorCardProps = {
 
 export function CounselorCard({ counselor }: CounselorCardProps) {
   return (  
-    <Card className="group flex h-full w-full flex-col p-4 rounded-3xl cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 hover:scale-[1.02] bg-white">
-      <div className="overflow-hidden rounded-2xl mb-4">
+    <Card 
+      className="group flex flex-col cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 hover:scale-[1.02] bg-white mx-auto"
+      style={{
+        width: '100%',
+        maxWidth: '380px',
+        height: 'auto',
+        minHeight: '451px',
+        borderRadius: '24px',
+        border: '1px solid #EFEFEF',
+        boxShadow: '0px 0px 4px 0px #2323231F',
+        background: '#FFFFFF',
+        opacity: 1,
+        boxSizing: 'border-box',
+        padding: 0
+      }}
+    >
+      {/* Image container with exact positioning */}
+      <div 
+        className="relative overflow-hidden px-4 sm:px-0"
+        style={{
+          width: '100%',
+          maxWidth: '351px',
+          height: 'auto',
+          aspectRatio: '351/299',
+          borderRadius: '20px',
+          opacity: 1,
+          margin: '14px auto 0 auto', // 14px top margin, centered horizontally
+          position: 'relative'
+        }}
+      >
         <img
           src={counselor.imageUrl}
           alt={`Photo of ${counselor.name}`}
-          className="aspect-square w-full object-cover rounded-2xl transition-transform duration-300 group-hover:scale-110"
+          className="w-full h-full object-cover"
+          style={{
+            borderRadius: '20px'
+          }}
         />
       </div>
 
-      <div className="flex flex-col gap-3 flex-grow">
-        <CardHeader className="p-0 gap-1">
-          <CardTitle className="font-semibold text-xl lg:text-2xl text-[#343C6A] tracking-wider leading-tight">{counselor.name}</CardTitle>
-          <CardDescription className="text-[#718EBF] text-base lg:text-lg tracking-wider">{counselor.description}</CardDescription>
+      {/* Content container */}
+      <div className="flex flex-col gap-3 flex-grow px-4 py-3">
+        <CardHeader className="p-0 gap-1 text-center">
+          <CardTitle 
+            className="font-medium text-[#343C6A] leading-tight"
+            style={{
+              maxWidth: '235px',
+              height: 'auto',
+              minHeight: '35px',
+              fontFamily: 'Montserrat',
+              fontWeight: '500',
+              fontSize: 'clamp(20px, 5vw, 28px)',
+              lineHeight: '125%',
+              textAlign: 'center',
+              opacity: 1,
+              margin: '0 auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            {counselor.name}
+          </CardTitle>
+          <CardDescription className="text-[#718EBF] text-base lg:text-lg tracking-wider text-center">{counselor.description}</CardDescription>
         </CardHeader>
         
         <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />

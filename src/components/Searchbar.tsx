@@ -7,6 +7,7 @@ type SearchBarProps = {
   className?: string;
   debounceTime?: number;
   showBackdrop?: boolean;
+  autoFocus?: boolean;
 };
 
 export function SearchBar({
@@ -15,6 +16,7 @@ export function SearchBar({
   className = "",
   debounceTime = 500,
   showBackdrop = false,
+  autoFocus = false,
 }: SearchBarProps) {
   const [query, setQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -27,6 +29,12 @@ export function SearchBar({
 
     return () => clearTimeout(handler);
   }, [query, onSearch, debounceTime]);
+
+  useEffect(() => {
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [autoFocus]);
 
   return (
     <>

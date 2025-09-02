@@ -18,3 +18,12 @@ export type FloatingIcon = {
   currentY: number;
   size: number;
 }
+
+export type CatalogCardProps = {
+  imageSrc: string;
+  title: string;
+  ctaLabel: string;
+  badge: string;
+  meta: string;
+  submeta: string;
+}

@@ -1,28 +1,34 @@
 import { useRef, useEffect } from 'react';
 import { SearchBar } from './Searchbar';
+import {
+  avatar1, avatar2, avatar3, avatar4, avatar5, avatar6,
+  avatar7, avatar8, avatar9, avatar10, avatar11,
+  icon1, icon2, icon3, icon4, icon5, icon6,
+  icon7, icon8, icon9, icon10
+} from '../assets';
 
 const elements = [
-  { src: "/avatars/1.svg", x: 350, y: 20, size: 71, type: 'profile' },
-  { src: "/avatars/2.svg", x: 66, y: 63, size: 72, type: 'profile' },
-  { src: "/avatars/3.svg", x: 231, y: 167, size: 72, type: 'profile' },
-  { src: "/avatars/4.svg", x: 10, y: 294, size: 81, type: 'profile' }, 
-  { src: "/avatars/5.svg", x: 128, y: 416, size: 71, type: 'profile' },
-  { src: "/avatars/6.svg", x: 332, y: 476, size: 96, type: 'profile' },
-  { src: "/avatars/7.svg", x: 1014, y: 469, size: 69, type: 'profile' },
-  { src: "/avatars/8.svg", x: 1198, y: 277, size: 64, type: 'profile' },
-  { src: "/avatars/9.svg", x: 1071, y: 101, size: 75, type: 'profile' },
-  { src: "/avatars/10.svg", x: 1311, y: 429, size: 93, type: 'profile' },
-  { src: "/avatars/11.svg", x: 1350, y: 30, size: 103, type: 'profile' }, 
-  { src: "/icons/1.svg", x: 168, y: 120, size: 50, type: 'icon' },
-  { src: "/icons/2.svg", x: 41, y: 208, size: 50, type: 'icon' },
-  { src: "/icons/3.svg", x: 203, y: 340, size: 30, type: 'icon' },
-  { src: "/icons/4.svg", x: 327, y: 402, size: 50, type: 'icon' },
-  { src: "/icons/5.svg", x: 87, y: 504, size: 30, type: 'icon' },
-  { src: "/icons/6.svg", x: 1092, y: 405, size: 48, type: 'icon' },
-  { src: "/icons/7.svg", x: 1251, y: 479, size: 50, type: 'icon' },
-  { src: "/icons/8.svg", x: 1368, y: 321, size: 40, type: 'icon' },
-  { src: "/icons/9.svg", x: 1275, y: 114, size: 50, type: 'icon' },
-  { src: "/icons/10.svg", x: 1147, y: 58, size: 40, type: 'icon' },
+  { src: avatar1, x: 350, y: 20, size: 71, type: 'profile' },
+  { src: avatar2, x: 66, y: 63, size: 72, type: 'profile' },
+  { src: avatar3, x: 231, y: 167, size: 72, type: 'profile' },
+  { src: avatar4, x: 10, y: 294, size: 81, type: 'profile' }, 
+  { src: avatar5, x: 128, y: 416, size: 71, type: 'profile' },
+  { src: avatar6, x: 332, y: 476, size: 96, type: 'profile' },
+  { src: avatar7, x: 1014, y: 469, size: 69, type: 'profile' },
+  { src: avatar8, x: 1198, y: 277, size: 64, type: 'profile' },
+  { src: avatar9, x: 1071, y: 101, size: 75, type: 'profile' },
+  { src: avatar10, x: 1311, y: 429, size: 93, type: 'profile' },
+  { src: avatar11, x: 1350, y: 30, size: 103, type: 'profile' }, 
+  { src: icon1, x: 168, y: 120, size: 50, type: 'icon' },
+  { src: icon2, x: 41, y: 208, size: 50, type: 'icon' },
+  { src: icon3, x: 203, y: 340, size: 30, type: 'icon' },
+  { src: icon4, x: 327, y: 402, size: 50, type: 'icon' },
+  { src: icon5, x: 87, y: 504, size: 30, type: 'icon' },
+  { src: icon6, x: 1092, y: 405, size: 48, type: 'icon' },
+  { src: icon7, x: 1251, y: 479, size: 50, type: 'icon' },
+  { src: icon8, x: 1368, y: 321, size: 40, type: 'icon' },
+  { src: icon9, x: 1275, y: 114, size: 50, type: 'icon' },
+  { src: icon10, x: 1147, y: 58, size: 40, type: 'icon' },
 ];
 
 const DESIGN_WIDTH = 1444;
