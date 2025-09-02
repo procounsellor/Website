@@ -1,3 +1,4 @@
+import { AllCounselorSection } from "./components/AllCounselorSection";
 import { CounselorSection } from "./components/CounselorSection";
 import Header from "./components/Header";
 import Hero from "./components/Hero";
@@ -9,6 +10,7 @@ export default function App(){
       <Header/>
       <Hero/>
       <CounselorSection/>
+      <AllCounselorSection/>
     </div>
   )
 }
