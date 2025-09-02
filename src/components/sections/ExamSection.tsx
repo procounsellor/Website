@@ -3,50 +3,70 @@ import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CircleArrowRight } from "lucide-react"
+import { CatalogCard } from "../cards/CourseExamCard";
+import { Button } from "@/components/ui/button";
 
-import { CounselorCard, type Counselor } from "./CounselorCard";
-import { Button } from "@/components/ui/button"; 
-
-const counselors: Counselor[] = [
-  {
-    name: "Dr. Sumant Ghai",
-    description: "Engineering",
-    experience: "8+ Yrs",
-    imageUrl: "/imageCounselor.jpg", 
-    verified: true,
-  },
-  {
-    name: "Dr. Priya Sharma",
-    description: "Medical Science",
-    experience: "12+ Yrs",
-    imageUrl: "/imageCounselor.jpg", 
-    verified: true,
-  },
-  {
-    name: "Dr. Rajesh Kumar",
-    description: "Business & Management",
-    experience: "10+ Yrs",
-    imageUrl: "/imageCounselor.jpg", 
-    verified: true,
-  },
-  {
-    name: "Dr. Anita Singh",
-    description: "Computer Science",
-    experience: "9+ Yrs",
-    imageUrl: "/imageCounselor.jpg", 
-    verified: false,
-  },
-  {
-    name: "Dr. Vikram Patel",
-    description: "Law & Legal Studies",
-    experience: "15+ Yrs",
-    imageUrl: "/imageCounselor.jpg", 
-    verified: true,
-  },
-];
+export type CatalogCardProps = {
+  imageSrc: string;
+  imageAlt: string;
+  title: string;
+  ctaLabel: string;
+  href?: string;
+  badge?: string; 
+  meta?: string; 
+  submeta?: string; 
+  className?: string;
+};
 
 
-export function CounselorSection() {
+const mockdata:CatalogCardProps[] = [
+    {
+        imageSrc:'/imageCounselor.jpg',
+        imageAlt:'Engineering Exam',
+        ctaLabel:'View Exam',
+        title:'JEE Main & Advanced Preparation',
+        badge:'UG',
+    },
+     {
+        imageSrc:'/imageCounselor.jpg',
+        imageAlt:'Medical Exam',
+        ctaLabel:'View Exam',
+        title:'NEET & AIIMS Entrance Preparation',
+        badge:'UG',
+    },
+     {
+        imageSrc:'/imageCounselor.jpg',
+        imageAlt:'Management Exam',
+        ctaLabel:'View Exam',
+        title:'CAT & XAT MBA Entrance',
+        badge:'PG',
+    },
+     {
+        imageSrc:'/imageCounselor.jpg',
+        imageAlt:'Law Exam',
+        ctaLabel:'View Exam',
+        title:'CLAT & LSAT Law Entrance',
+        badge:'UG',
+    },
+     {
+        imageSrc:'/imageCounselor.jpg',
+        imageAlt:'Civil Services Exam',
+        ctaLabel:'View Exam',
+        title:'UPSC & State PSC Preparation',
+        badge:'GOV',
+    },
+     {
+        imageSrc:'/imageCounselor.jpg',
+        imageAlt:'Banking Exam',
+        ctaLabel:'View Exam',
+        title:'SBI & IBPS Banking Exams',
+        badge:'GOV',
+    }
+]
+
+
+
+export function ExamSection() {
   const autoplay = React.useRef(
     Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true })
   );
@@ -54,7 +74,7 @@ export function CounselorSection() {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "start",
-    slidesToScroll: 1, 
+    slidesToScroll: 1,
     breakpoints: {
       '(min-width: 768px)': { slidesToScroll: 1 },
       '(min-width: 1024px)': { slidesToScroll: 1 }
@@ -81,12 +101,8 @@ export function CounselorSection() {
         <div className="mb-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
-              Get Started Today - <br className="sm:hidden" />
-              <span className="text-[#FA660F]">Book An Appointment Now</span>
+              Exams
             </h2>
-            <p className="text-gray-600 mt-2 text-sm sm:text-base">
-              Connect with verified counselors and get personalized guidance
-            </p>
           </div>
           <Button 
             variant="outline" 
@@ -99,12 +115,18 @@ export function CounselorSection() {
         <div className="relative">
           <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex -ml-4 sm:-ml-6">
-              {counselors.map((counselor, index) => (
+              {mockdata.map((data, index) => (
                 <div
                   key={index}
-                  className="min-w-0 flex-shrink-0 flex-grow-0 basis-[85%] pl-4 sm:pl-6 sm:basis-1/2 lg:basis-1/3 flex justify-center"
+                  className="min-w-0 flex-shrink-0 flex-grow-0 basis-[85%] pl-4 sm:pl-6 sm:basis-[48%] md:basis-[32%] lg:basis-[30%] xl:basis-[28%] flex justify-center"
                 >
-                  <CounselorCard counselor={counselor} />
+                  <CatalogCard
+                  imageAlt={data.imageAlt}
+                  imageSrc={data.imageSrc}
+                  title={data.title}
+                  badge={data.badge}
+                  ctaLabel={data.ctaLabel}
+                  />
                 </div>
               ))}
             </div>
@@ -113,21 +135,21 @@ export function CounselorSection() {
           <button
             className="group absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-xl transition-all hover:scale-110 hover:bg-[#FA660F] hidden sm:block z-10"
             onClick={scrollPrev}
-            aria-label="Previous counselor"
+            aria-label="Previous exam"
           >
             <ChevronLeft className="h-6 w-6 text-gray-800 transition-colors group-hover:text-white" />
           </button>
           <button
             className="group absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-xl transition-all hover:scale-110 hover:bg-[#FA660F] hidden sm:block z-10"
             onClick={scrollNext}
-            aria-label="Next counselor"
+            aria-label="Next exam"
           >
             <ChevronRight className="h-6 w-6 text-gray-800 transition-colors group-hover:text-white" />
           </button>
         </div>
 
         <div className="flex justify-center mt-8 gap-2 sm:hidden">
-          {counselors.map((_, index) => (
+          {mockdata.map((_data, index) => (
             <div
               key={index}
               className="w-2 h-2 rounded-full bg-gray-300 transition-colors duration-200"

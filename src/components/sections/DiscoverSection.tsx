@@ -1,4 +1,4 @@
-import { DiscoverCard, type DiscoverCardData } from "./DiscoverCard";
+import { DiscoverCard, type DiscoverCardData } from "../cards/DiscoverCard";
 
 const discoverItems: DiscoverCardData[] = [
   {
@@ -40,7 +40,7 @@ export function DiscoverSection(){
         className="w-full py-8 px-4"
         style={{background: "linear-gradient(180deg, rgba(236,128,61,0.1) 0%, rgba(236,128,61,0.02) 100%)"}}
         >
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <h2 className="text-3xl lg:text-4xl font-bold text-black mb-8">
           Discover
         </h2>

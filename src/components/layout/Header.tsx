@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { SearchBar } from "./Searchbar";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import { Menu, X, Search } from "lucide-react";
 
 export default function Header() {
@@ -69,7 +69,6 @@ export default function Header() {
           </nav>
 
           <div className="flex items-center gap-2 md:hidden">
-            {/* Mobile Search Icon - shows when hero search is not visible */}
             {scrolled && !heroSearchVisible && (
               <button
                 className="p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -113,7 +112,6 @@ export default function Header() {
         </div>
       )}
 
-      {/* Mobile Search Overlay */}
       {mobileSearchOpen && (
         <div className="fixed inset-0 z-50 bg-white/95 backdrop-blur-md md:hidden">
           <div className="pt-20 px-6">

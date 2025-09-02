@@ -27,9 +27,9 @@ export function CounselorCard({ counselor }: CounselorCardProps) {
       className="group flex flex-col cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 hover:scale-[1.02] bg-white mx-auto"
       style={{
         width: '100%',
-        maxWidth: '380px',
+        maxWidth: '320px', // Reduced from 380px
         height: 'auto',
-        minHeight: '451px',
+        minHeight: '380px', // Reduced from 451px
         borderRadius: '24px',
         border: '1px solid #EFEFEF',
         boxShadow: '0px 0px 4px 0px #2323231F',
@@ -44,12 +44,12 @@ export function CounselorCard({ counselor }: CounselorCardProps) {
         className="relative overflow-hidden px-4 sm:px-0"
         style={{
           width: '100%',
-          maxWidth: '351px',
+          maxWidth: '290px', // Reduced from 351px
           height: 'auto',
-          aspectRatio: '351/299',
+          aspectRatio: '290/240', // Adjusted aspect ratio
           borderRadius: '20px',
           opacity: 1,
-          margin: '14px auto 0 auto', // 14px top margin, centered horizontally
+          margin: '12px auto 0 auto', // Reduced top margin
           position: 'relative'
         }}
       >
@@ -69,12 +69,12 @@ export function CounselorCard({ counselor }: CounselorCardProps) {
           <CardTitle 
             className="font-medium text-[#343C6A] leading-tight"
             style={{
-              maxWidth: '235px',
+              maxWidth: '200px', // Reduced from 235px
               height: 'auto',
-              minHeight: '35px',
+              minHeight: '28px', // Reduced from 35px
               fontFamily: 'Montserrat',
               fontWeight: '500',
-              fontSize: 'clamp(20px, 5vw, 28px)',
+              fontSize: 'clamp(18px, 4vw, 24px)', // Reduced from 28px max
               lineHeight: '125%',
               textAlign: 'center',
               opacity: 1,

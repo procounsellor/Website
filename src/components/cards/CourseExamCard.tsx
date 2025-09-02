@@ -29,9 +29,9 @@ export function CatalogCard({
       )}
       style={{
         width: '100%',
-        maxWidth: '380px',
+        maxWidth: '320px', // Reduced from 380px
         height: 'auto',
-        minHeight: '451px',
+        minHeight: '380px', // Reduced from 451px
         borderRadius: '21.51px',
         background: '#FFFFFF',
         boxShadow: '0px 0px 4px 0px #23232340',
@@ -45,12 +45,12 @@ export function CatalogCard({
         className="relative overflow-hidden px-4 sm:px-0"
         style={{
           width: '100%',
-          maxWidth: '349px',
+          maxWidth: '290px', // Reduced from 349px
           height: 'auto',
-          aspectRatio: '349/299',
+          aspectRatio: '290/240', // Adjusted aspect ratio
           borderRadius: '20px',
           opacity: 1,
-          margin: '14px auto 0 auto', // 14px top margin, centered horizontally
+          margin: '12px auto 0 auto', // Reduced top margin
           position: 'relative'
         }}
       >
@@ -82,11 +82,11 @@ export function CatalogCard({
           className="font-medium mb-2" 
           style={{
             fontFamily: 'Montserrat',
-            fontSize: 'clamp(20px, 5vw, 28px)',
+            fontSize: 'clamp(18px, 4vw, 24px)', // Reduced from 28px max
             fontWeight: '500',
             lineHeight: '125%',
             textAlign: 'center',
-            margin: '0 0 12px 0',
+            margin: '0 0 8px 0', // Reduced margin
             color: '#343C6A'
           }}
         >
@@ -97,11 +97,11 @@ export function CatalogCard({
           className="hover:opacity-80 transition-all"
           style={{
             fontFamily: 'Montserrat',
-            fontSize: 'clamp(18px, 4vw, 24px)',
+            fontSize: 'clamp(16px, 3vw, 20px)', // Reduced from 24px max
             fontWeight: '400',
             textDecoration: 'underline',
-            maxWidth: '151px',
-            height: '30px',
+            maxWidth: '120px', // Reduced from 151px
+            height: '24px', // Reduced from 30px
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

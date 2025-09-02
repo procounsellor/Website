@@ -1,80 +1,65 @@
 import * as React from "react";
 import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CircleArrowRight } from "lucide-react"
-import { CatalogCard } from "./CourseExamCard";
-import { Button } from "@/components/ui/button";
 
-export type CatalogCardProps = {
-  imageSrc: string;
-  imageAlt: string;
-  title: string;
-  ctaLabel: string;
-  href?: string;
-  badge?: string; // e.g., "UG", "PG"
-  meta?: string; // e.g., "24 Courses"
-  submeta?: string; // e.g., "Hyderabad"
-  className?: string;
-};
+import { CounselorCard, type Counselor } from "../cards/CounselorCard";
+import { Button } from "@/components/ui/button"; 
 
-
-const mockdata:CatalogCardProps[] = [
-    {
-        imageSrc:'/imageCounselor.jpg',
-        imageAlt:'Engineering Course',
-        ctaLabel:'View Course',
-        title:'Complete Engineering Fundamentals',
-        badge:'UG',
-    },
-     {
-        imageSrc:'/imageCounselor.jpg',
-        imageAlt:'Medical Course',
-        ctaLabel:'View Course',
-        title:'Medical Science and Research Methods',
-        badge:'PG',
-    },
-     {
-        imageSrc:'/imageCounselor.jpg',
-        imageAlt:'Business Course',
-        ctaLabel:'View Course',
-        title:'Business Administration and Management',
-        badge:'MBA',
-    },
-     {
-        imageSrc:'/imageCounselor.jpg',
-        imageAlt:'Computer Science Course',
-        ctaLabel:'View Course',
-        title:'Computer Science and Programming',
-        badge:'UG',
-    },
-     {
-        imageSrc:'/imageCounselor.jpg',
-        imageAlt:'Law Course',
-        ctaLabel:'View Course',
-        title:'Legal Studies and Constitutional Law',
-        badge:'LLB',
-    },
-     {
-        imageSrc:'/imageCounselor.jpg',
-        imageAlt:'Arts Course',
-        ctaLabel:'View Course',
-        title:'Liberal Arts and Humanities',
-        badge:'BA',
-    }
-]
+const counselors: Counselor[] = [
+  {
+    name: "Dr. Sumant Ghai",
+    description: "Engineering",
+    experience: "8+ Yrs",
+    imageUrl: "/imageCounselor.jpg", 
+    verified: true,
+  },
+  {
+    name: "Dr. Priya Sharma",
+    description: "Medical Science",
+    experience: "12+ Yrs",
+    imageUrl: "/imageCounselor.jpg", 
+    verified: true,
+  },
+  {
+    name: "Dr. Rajesh Kumar",
+    description: "Business & Management",
+    experience: "10+ Yrs",
+    imageUrl: "/imageCounselor.jpg", 
+    verified: true,
+  },
+  {
+    name: "Dr. Anita Singh",
+    description: "Computer Science",
+    experience: "9+ Yrs",
+    imageUrl: "/imageCounselor.jpg", 
+    verified: false,
+  },
+  {
+    name: "Dr. Vikram Patel",
+    description: "Law & Legal Studies",
+    experience: "15+ Yrs",
+    imageUrl: "/imageCounselor.jpg", 
+    verified: true,
+  },
+];
 
 
+export function CounselorSection() {
+  const autoplay = React.useRef(
+    Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true })
+  );
 
-export function CourseExamSection() {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "start",
-    slidesToScroll: 1,
+    slidesToScroll: 1, 
     breakpoints: {
-      '(min-width: 768px)': { slidesToScroll: 2 },
-      '(min-width: 1024px)': { slidesToScroll: 3 }
+      '(min-width: 768px)': { slidesToScroll: 1 },
+      '(min-width: 1024px)': { slidesToScroll: 1 }
     }
-  });
+  }, [autoplay.current]);
 
   const scrollPrev = React.useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev();
@@ -88,16 +73,20 @@ export function CourseExamSection() {
     <section 
       className="w-full py-16 px-4"
       style={{
-        background: '#FFFFFF',
+        background: '#F5F5F7',
         minHeight: '589px'
       }}
     >
       <div className="max-w-7xl mx-auto">
-        <div className="mb-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-          <div>
+        <div className="mb-12 flex flex-col sm:flex-row items-center sm:items-center justify-between gap-6">
+          <div className="text-center sm:text-left">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
-              Courses
+              Get Started Today - <br className="sm:hidden" />
+              <span className="text-[#FA660F]">Book An Appointment Now</span>
             </h2>
+            <p className="text-gray-600 mt-2 text-sm sm:text-base">
+              Connect with verified counselors and get personalized guidance
+            </p>
           </div>
           <Button 
             variant="outline" 
@@ -110,18 +99,12 @@ export function CourseExamSection() {
         <div className="relative">
           <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex -ml-4 sm:-ml-6">
-              {mockdata.map((data, index) => (
+              {counselors.map((counselor, index) => (
                 <div
                   key={index}
-                  className="min-w-0 flex-shrink-0 flex-grow-0 basis-[85%] pl-4 sm:pl-6 sm:basis-1/2 lg:basis-1/3 flex justify-center"
+                  className="min-w-0 flex-shrink-0 flex-grow-0 basis-[85%] pl-4 sm:pl-6 sm:basis-[48%] md:basis-[32%] lg:basis-[30%] xl:basis-[28%] flex justify-center"
                 >
-                  <CatalogCard
-                  imageAlt={data.imageAlt}
-                  imageSrc={data.imageSrc}
-                  title={data.title}
-                  badge={data.badge}
-                  ctaLabel={data.ctaLabel}
-                  />
+                  <CounselorCard counselor={counselor} />
                 </div>
               ))}
             </div>
@@ -144,7 +127,7 @@ export function CourseExamSection() {
         </div>
 
         <div className="flex justify-center mt-8 gap-2 sm:hidden">
-          {mockdata.map((_data, index) => (
+          {counselors.map((_, index) => (
             <div
               key={index}
               className="w-2 h-2 rounded-full bg-gray-300 transition-colors duration-200"

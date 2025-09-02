@@ -5,7 +5,7 @@ import {
   avatar7, avatar8, avatar9, avatar10, avatar11,
   icon1, icon2, icon3, icon4, icon5, icon6,
   icon7, icon8, icon9, icon10
-} from '../assets';
+} from '../../assets';
 
 const elements = [
   { src: avatar1, x: 350, y: 20, size: 71, type: 'profile' },

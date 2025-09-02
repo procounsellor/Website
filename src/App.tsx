@@ -1,14 +1,10 @@
-import { CounselorSection } from "./components/CounselorSection";
-import Header from "./components/Header";
-import Hero from "./components/Hero";
-
+import { BrowserRouter } from "react-router-dom";
+import AppRoutes from "./routes/AppRoutes";
 
 export default function App(){
   return(
-    <div>
-      <Header/>
-      <Hero/>
-      <CounselorSection/>
-    </div>
+    <BrowserRouter>
+     <AppRoutes/>
+    </BrowserRouter>
   )
 }

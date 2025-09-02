@@ -1,75 +1,68 @@
 import * as React from "react";
 import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { CircleArrowRight } from "lucide-react";
+import { CircleArrowRight } from "lucide-react"
+import { CollegeCard, type College } from "../cards/CollegeCard";
+import { Button } from "@/components/ui/button";
 
-import { AllCounselorCards, type AllCounselor } from "./AllCounselorCards";
-import { Button } from "@/components/ui/button"; 
-
-const counselors: AllCounselor[] = [
+const colleges: College[] = [
   {
-    name: "Dr. Sumant Ghai",
-    description: "Engineering",
-    experience: "8+ Yrs",
+    name: "Indian Institute of Technology Delhi",
+    courseCount: "24 Courses",
+    location: "New Delhi",
     imageUrl: "/imageCounselor.jpg",
-    location: "Mumbai, Maharashtra",
-    rating: 4.0,
-    reviews: 12,
-    rate: "1000 ProCoins/Hour",
+    badge: "TOP",
   },
   {
-    name: "Dr. Sumant Ghai",
-    description: "Engineering",
-    experience: "8+ Yrs",
+    name: "Indian Institute of Science",
+    courseCount: "18 Courses", 
+    location: "Bangalore",
     imageUrl: "/imageCounselor.jpg",
-    location: "Mumbai, Maharashtra",
-    rating: 4.0,
-    reviews: 12,
-    rate: "1000 ProCoins/Hour",
+    badge: "FEATURED",
   },
   {
-    name: "Dr. Sumant Ghai",
-    description: "Engineering",
-    experience: "8+ Yrs",
+    name: "All India Institute of Medical Sciences",
+    courseCount: "12 Courses",
+    location: "New Delhi", 
     imageUrl: "/imageCounselor.jpg",
-    location: "Mumbai, Maharashtra",
-    rating: 4.0,
-    reviews: 12,
-    rate: "1000 ProCoins/Hour",
+    badge: "TOP",
   },
   {
-    name: "Dr. Sumant Ghai",
-    description: "Engineering",
-    experience: "8+ Yrs",
+    name: "Indian Institute of Management Ahmedabad",
+    courseCount: "8 Courses",
+    location: "Ahmedabad",
     imageUrl: "/imageCounselor.jpg",
-    location: "Mumbai, Maharashtra",
-    rating: 4.0,
-    reviews: 12,
-    rate: "1000 ProCoins/Hour",
   },
   {
-    name: "Dr. Sumant Ghai",
-    description: "Engineering",
-    experience: "8+ Yrs",
+    name: "Indian Statistical Institute",
+    courseCount: "15 Courses",
+    location: "Kolkata",
     imageUrl: "/imageCounselor.jpg",
-    location: "Mumbai, Maharashtra",
-    rating: 4.0,
-    reviews: 12,
-    rate: "1000 ProCoins/Hour",
   },
+  {
+    name: "National Law School of India University",
+    courseCount: "6 Courses",
+    location: "Bangalore", 
+    imageUrl: "/imageCounselor.jpg",
+    badge: "FEATURED",
+  }
 ];
 
+export function CollegeSection() {
+  const autoplay = React.useRef(
+    Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true })
+  );
 
-export function AllCounselorSection() {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "start",
-    slidesToScroll: 1,
+    slidesToScroll: 1, 
     breakpoints: {
-      '(min-width: 768px)': { slidesToScroll: 2 },
-      '(min-width: 1024px)': { slidesToScroll: 3 }
+      '(min-width: 768px)': { slidesToScroll: 1 },
+      '(min-width: 1024px)': { slidesToScroll: 1 }
     }
-  });
+  }, [autoplay.current]);
 
   const scrollPrev = React.useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev();
@@ -79,13 +72,26 @@ export function AllCounselorSection() {
     if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
 
+  const handleCollegeClick = (college: College) => {
+    console.log(`Clicked on ${college.name}`);
+    if (college.href) {
+      window.location.href = college.href;
+    }
+  };
+
   return (
-    <section className="w-full py-16 px-4  bg-gradient-to-b from-[#F5F5F7] to-[#EEEEF0]">
+    <section 
+      className="w-full py-16 px-4"
+      style={{
+        background: '#FFFFFF',
+        minHeight: '633px'
+      }}
+    >
       <div className="max-w-7xl mx-auto">
         <div className="mb-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
-              Counsellors
+              Colleges
             </h2>
           </div>
           <Button 
@@ -99,12 +105,15 @@ export function AllCounselorSection() {
         <div className="relative">
           <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex -ml-4 sm:-ml-6">
-              {counselors.map((counselor, index) => (
+              {colleges.map((college, index) => (
                 <div
                   key={index}
-                  className="min-w-0 flex-shrink-0 flex-grow-0 basis-[85%] pl-4 sm:pl-6 sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                  className="min-w-0 flex-shrink-0 flex-grow-0 basis-[85%] pl-4 sm:pl-6 sm:basis-[48%] md:basis-[32%] lg:basis-[30%] xl:basis-[28%] flex justify-center"
                 >
-                  <AllCounselorCards counselor={counselor} />
+                  <CollegeCard 
+                    college={college}
+                    onClick={() => handleCollegeClick(college)}
+                  />
                 </div>
               ))}
             </div>
@@ -113,21 +122,21 @@ export function AllCounselorSection() {
           <button
             className="group absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-xl transition-all hover:scale-110 hover:bg-[#FA660F] hidden sm:block z-10"
             onClick={scrollPrev}
-            aria-label="Previous counselor"
+            aria-label="Previous college"
           >
             <ChevronLeft className="h-6 w-6 text-gray-800 transition-colors group-hover:text-white" />
           </button>
           <button
             className="group absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-xl transition-all hover:scale-110 hover:bg-[#FA660F] hidden sm:block z-10"
             onClick={scrollNext}
-            aria-label="Next counselor"
+            aria-label="Next college"
           >
             <ChevronRight className="h-6 w-6 text-gray-800 transition-colors group-hover:text-white" />
           </button>
         </div>
 
         <div className="flex justify-center mt-8 gap-2 sm:hidden">
-          {counselors.map((_, index) => (
+          {colleges.map((_, index) => (
             <div
               key={index}
               className="w-2 h-2 rounded-full bg-gray-300 transition-colors duration-200"
