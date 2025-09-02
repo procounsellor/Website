@@ -1,5 +1,6 @@
 import { AllCounselorSection } from "./components/AllCounselorSection";
 import { CounselorSection } from "./components/CounselorSection";
+import { DiscoverSection } from "./components/DiscoverSection";
 import Header from "./components/Header";
 import Hero from "./components/Hero";
 
@@ -9,8 +10,7 @@ export default function App(){
     <div>
       <Header/>
       <Hero/>
-      <CounselorSection/>
-      <AllCounselorSection/>
+      <CounselorSection/
     </div>
   )
 }
