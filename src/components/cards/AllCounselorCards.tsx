@@ -9,6 +9,7 @@ import {  Star, MapPin } from "lucide-react";
 import { TbBriefcase2 } from "react-icons/tb";
 
 export type AllCounselor = {
+  id: string;
   name: string;
   description: string;
   experience: string;
@@ -30,7 +31,7 @@ export function AllCounselorCards({ counselor }: CounselorCardProps) {
         width: '100%',
         maxWidth: '320px',
         height: 'auto',
-        minHeight: '420px', // Slightly taller than other cards due to more content
+        minHeight: '420px', 
         borderRadius: '24px',
         border: '1px solid #EFEFEF',
         boxShadow: '0px 0px 4px 0px #2323231F',
@@ -43,8 +44,10 @@ export function AllCounselorCards({ counselor }: CounselorCardProps) {
       <div className="overflow-hidden rounded-2xl mb-3"
         style={{
           width: '100%',
+          maxWidth: '290px',
           height: 'auto',
-          aspectRatio: '1/1', // Square aspect ratio for counselor photos
+          aspectRatio: '290/240', 
+          margin: '0 auto'
         }}
       >
         <img
@@ -59,7 +62,7 @@ export function AllCounselorCards({ counselor }: CounselorCardProps) {
           <CardTitle 
             className="font-semibold text-[#343C6A] leading-tight"
             style={{
-              fontSize: 'clamp(16px, 3vw, 20px)', // Responsive font size
+              fontSize: 'clamp(16px, 3vw, 20px)', 
               lineHeight: '1.2',
               marginBottom: '4px'
             }}
@@ -92,7 +95,9 @@ export function AllCounselorCards({ counselor }: CounselorCardProps) {
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 text-yellow-500">
               <Star className="h-3 w-3 fill-current" />
-              <span className="text-[#343C6A] font-medium text-xs">{counselor.rating.toFixed(1)}</span>
+              <span className="text-[#343C6A] font-medium text-xs">
+                {counselor.rating > 0 ? counselor.rating.toFixed(1) : 'No rating'}
+              </span>
             </div>
             <span className="text-gray-500 text-xs">|</span>
             <span className="text-[#343C6A] font-medium text-xs">{counselor.reviews}</span>
@@ -118,8 +123,14 @@ export function AllCounselorCards({ counselor }: CounselorCardProps) {
                 fontSize: 'clamp(14px, 3vw, 18px)'
               }}
             >
-              {counselor.rate.split('/')[0]}
-              <span className="text-black text-xs font-bold">/Hour</span>
+              {counselor.rate === 'N/A' ? (
+                <span className="text-gray-500 text-sm">N/A</span>
+              ) : (
+                <>
+                  {counselor.rate.split(' ')[0]} {counselor.rate.split(' ')[1]}
+                  <span className="text-black text-xs font-bold">/Year</span>
+                </>
+              )}
             </span>
           </div>
         </CardFooter>

@@ -3,53 +3,13 @@ import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CircleArrowRight } from "lucide-react"
-import { CollegeCard, type College } from "../cards/CollegeCard";
+import { CollegeCard } from "../cards/CollegeCard";
 import { Button } from "@/components/ui/button";
-
-const colleges: College[] = [
-  {
-    name: "Indian Institute of Technology Delhi",
-    courseCount: "24 Courses",
-    location: "New Delhi",
-    imageUrl: "/imageCounselor.jpg",
-    badge: "TOP",
-  },
-  {
-    name: "Indian Institute of Science",
-    courseCount: "18 Courses", 
-    location: "Bangalore",
-    imageUrl: "/imageCounselor.jpg",
-    badge: "FEATURED",
-  },
-  {
-    name: "All India Institute of Medical Sciences",
-    courseCount: "12 Courses",
-    location: "New Delhi", 
-    imageUrl: "/imageCounselor.jpg",
-    badge: "TOP",
-  },
-  {
-    name: "Indian Institute of Management Ahmedabad",
-    courseCount: "8 Courses",
-    location: "Ahmedabad",
-    imageUrl: "/imageCounselor.jpg",
-  },
-  {
-    name: "Indian Statistical Institute",
-    courseCount: "15 Courses",
-    location: "Kolkata",
-    imageUrl: "/imageCounselor.jpg",
-  },
-  {
-    name: "National Law School of India University",
-    courseCount: "6 Courses",
-    location: "Bangalore", 
-    imageUrl: "/imageCounselor.jpg",
-    badge: "FEATURED",
-  }
-];
+import { useColleges } from "../../hooks/useColleges";
 
 export function CollegeSection() {
+  const { colleges, loading, error } = useColleges(25); 
+  
   const autoplay = React.useRef(
     Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true })
   );
@@ -72,12 +32,51 @@ export function CollegeSection() {
     if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
 
-  const handleCollegeClick = (college: College) => {
-    console.log(`Clicked on ${college.name}`);
-    if (college.href) {
-      window.location.href = college.href;
-    }
+  const handleCollegeClick = (collegeId: string) => {
+    console.log('College clicked:', collegeId);
+    // TODO: Navigate to college details page
   };
+
+  if (loading) {
+    return (
+      <section 
+        className="w-full py-16 px-4"
+        style={{
+          background: '#FFFFFF',
+          minHeight: '633px'
+        }}
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FA660F] mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading colleges...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section 
+        className="w-full py-16 px-4"
+        style={{
+          background: '#FFFFFF',
+          minHeight: '633px'
+        }}
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <p className="text-red-600">Error loading colleges: {error}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section 
@@ -102,43 +101,53 @@ export function CollegeSection() {
           </Button>
         </div>
 
-        <div className="relative">
-          <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex -ml-4 sm:-ml-6">
-              {colleges.map((college, index) => (
-                <div
-                  key={index}
-                  className="min-w-0 flex-shrink-0 flex-grow-0 basis-[85%] pl-4 sm:pl-6 sm:basis-[48%] md:basis-[32%] lg:basis-[30%] xl:basis-[28%] flex justify-center"
-                >
-                  <CollegeCard 
-                    college={college}
-                    onClick={() => handleCollegeClick(college)}
-                  />
-                </div>
-              ))}
+        {colleges.length > 0 ? (
+          <div className="relative">
+            <div className="overflow-hidden" ref={emblaRef}>
+              <div className="flex -ml-4 sm:-ml-6">
+                {colleges.map((college) => (
+                  <div
+                    key={college.id}
+                    className="min-w-0 flex-shrink-0 flex-grow-0 basis-[85%] pl-4 sm:pl-6 sm:basis-[48%] md:basis-[32%] lg:basis-[30%] xl:basis-[28%] flex justify-center"
+                  >
+                    <CollegeCard 
+                      collegeName={college.name}
+                      city={college.city}
+                      state={college.state}
+                      logoUrl={college.logoUrl}
+                      type={college.type}
+                      onClick={() => handleCollegeClick(college.id)}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <button
-            className="group absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-xl transition-all hover:scale-110 hover:bg-[#FA660F] hidden sm:block z-10"
-            onClick={scrollPrev}
-            aria-label="Previous college"
-          >
-            <ChevronLeft className="h-6 w-6 text-gray-800 transition-colors group-hover:text-white" />
-          </button>
-          <button
-            className="group absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-xl transition-all hover:scale-110 hover:bg-[#FA660F] hidden sm:block z-10"
-            onClick={scrollNext}
-            aria-label="Next college"
-          >
-            <ChevronRight className="h-6 w-6 text-gray-800 transition-colors group-hover:text-white" />
-          </button>
-        </div>
+            <button
+              className="group absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-xl transition-all hover:scale-110 hover:bg-[#FA660F] hidden sm:block z-10"
+              onClick={scrollPrev}
+              aria-label="Previous college"
+            >
+              <ChevronLeft className="h-6 w-6 text-gray-800 transition-colors group-hover:text-white" />
+            </button>
+            <button
+              className="group absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-xl transition-all hover:scale-110 hover:bg-[#FA660F] hidden sm:block z-10"
+              onClick={scrollNext}
+              aria-label="Next college"
+            >
+              <ChevronRight className="h-6 w-6 text-gray-800 transition-colors group-hover:text-white" />
+            </button>
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-600">No colleges available</p>
+          </div>
+        )}
 
         <div className="flex justify-center mt-8 gap-2 sm:hidden">
-          {colleges.map((_, index) => (
+          {colleges.slice(0, 5).map((college) => (
             <div
-              key={index}
+              key={college.id}
               className="w-2 h-2 rounded-full bg-gray-300 transition-colors duration-200"
             />
           ))}

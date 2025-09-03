@@ -4,68 +4,11 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CircleArrowRight } from "lucide-react"
 import { CatalogCard } from "../cards/CourseExamCard";
 import { Button } from "@/components/ui/button";
-
-export type CatalogCardProps = {
-  imageSrc: string;
-  imageAlt: string;
-  title: string;
-  ctaLabel: string;
-  href?: string;
-  badge?: string; 
-  meta?: string;
-  submeta?: string; 
-  className?: string;
-};
-
-
-const mockdata:CatalogCardProps[] = [
-    {
-        imageSrc:'/imageCounselor.jpg',
-        imageAlt:'Engineering Course',
-        ctaLabel:'View Course',
-        title:'Complete Engineering Fundamentals',
-        badge:'UG',
-    },
-     {
-        imageSrc:'/imageCounselor.jpg',
-        imageAlt:'Medical Course',
-        ctaLabel:'View Course',
-        title:'Medical Science and Research Methods',
-        badge:'PG',
-    },
-     {
-        imageSrc:'/imageCounselor.jpg',
-        imageAlt:'Business Course',
-        ctaLabel:'View Course',
-        title:'Business Administration and Management',
-        badge:'MBA',
-    },
-     {
-        imageSrc:'/imageCounselor.jpg',
-        imageAlt:'Computer Science Course',
-        ctaLabel:'View Course',
-        title:'Computer Science and Programming',
-        badge:'UG',
-    },
-     {
-        imageSrc:'/imageCounselor.jpg',
-        imageAlt:'Law Course',
-        ctaLabel:'View Course',
-        title:'Legal Studies and Constitutional Law',
-        badge:'LLB',
-    },
-     {
-        imageSrc:'/imageCounselor.jpg',
-        imageAlt:'Arts Course',
-        ctaLabel:'View Course',
-        title:'Liberal Arts and Humanities',
-        badge:'BA',
-    }
-]
-
-
+import { useCourses } from "../../hooks/useCourses";
 
 export function CourseExamSection() {
+  const { courses, loading, error } = useCourses(20); // Limit to 20 courses
+  
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "start",
@@ -83,6 +26,52 @@ export function CourseExamSection() {
   const scrollNext = React.useCallback(() => {
     if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
+
+  const handleCourseClick = (courseId: string) => {
+    console.log('Course clicked:', courseId);
+    // TODO: Navigate to course details page
+  };
+
+  if (loading) {
+    return (
+      <section 
+        className="w-full py-16 px-4"
+        style={{
+          background: '#FFFFFF',
+          minHeight: '589px'
+        }}
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FA660F] mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading courses...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section 
+        className="w-full py-16 px-4"
+        style={{
+          background: '#FFFFFF',
+          minHeight: '589px'
+        }}
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <p className="text-red-600">Error loading courses: {error}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section 
@@ -107,46 +96,54 @@ export function CourseExamSection() {
           </Button>
         </div>
 
-        <div className="relative">
-          <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex -ml-4 sm:-ml-6">
-              {mockdata.map((data, index) => (
-                <div
-                  key={index}
-                  className="min-w-0 flex-shrink-0 flex-grow-0 basis-[85%] pl-4 sm:pl-6 sm:basis-[48%] md:basis-[32%] lg:basis-[30%] xl:basis-[28%] flex justify-center"
-                >
-                  <CatalogCard
-                  imageAlt={data.imageAlt}
-                  imageSrc={data.imageSrc}
-                  title={data.title}
-                  badge={data.badge}
-                  ctaLabel={data.ctaLabel}
-                  />
-                </div>
-              ))}
+        {courses.length > 0 ? (
+          <div className="relative">
+            <div className="overflow-hidden" ref={emblaRef}>
+              <div className="flex -ml-4 sm:-ml-6">
+                {courses.map((course) => (
+                  <div
+                    key={course.id}
+                    className="min-w-0 flex-shrink-0 flex-grow-0 basis-[85%] pl-4 sm:pl-6 sm:basis-[48%] md:basis-[32%] lg:basis-[30%] xl:basis-[28%] flex justify-center"
+                  >
+                    <div onClick={() => handleCourseClick(course.id)}>
+                      <CatalogCard
+                        imageAlt={`${course.name} course`}
+                        imageSrc={course.photoUrl || course.iconUrl || "/discover-courses.jpg"}
+                        title={course.name}
+                        badge={course.type}
+                        ctaLabel="View Course"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <button
-            className="group absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-xl transition-all hover:scale-110 hover:bg-[#FA660F] hidden sm:block z-10"
-            onClick={scrollPrev}
-            aria-label="Previous counselor"
-          >
-            <ChevronLeft className="h-6 w-6 text-gray-800 transition-colors group-hover:text-white" />
-          </button>
-          <button
-            className="group absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-xl transition-all hover:scale-110 hover:bg-[#FA660F] hidden sm:block z-10"
-            onClick={scrollNext}
-            aria-label="Next counselor"
-          >
-            <ChevronRight className="h-6 w-6 text-gray-800 transition-colors group-hover:text-white" />
-          </button>
-        </div>
+            <button
+              className="group absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-xl transition-all hover:scale-110 hover:bg-[#FA660F] hidden sm:block z-10"
+              onClick={scrollPrev}
+              aria-label="Previous course"
+            >
+              <ChevronLeft className="h-6 w-6 text-gray-800 transition-colors group-hover:text-white" />
+            </button>
+            <button
+              className="group absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-xl transition-all hover:scale-110 hover:bg-[#FA660F] hidden sm:block z-10"
+              onClick={scrollNext}
+              aria-label="Next course"
+            >
+              <ChevronRight className="h-6 w-6 text-gray-800 transition-colors group-hover:text-white" />
+            </button>
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-600">No courses available</p>
+          </div>
+        )}
 
         <div className="flex justify-center mt-8 gap-2 sm:hidden">
-          {mockdata.map((_data, index) => (
+          {courses.slice(0, 5).map((course) => (
             <div
-              key={index}
+              key={course.id}
               className="w-2 h-2 rounded-full bg-gray-300 transition-colors duration-200"
             />
           ))}

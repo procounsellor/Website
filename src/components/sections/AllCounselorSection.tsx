@@ -4,64 +4,15 @@ import Autoplay from "embla-carousel-autoplay";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CircleArrowRight } from "lucide-react";
 
-import { AllCounselorCards, type AllCounselor } from "../cards/AllCounselorCards";
-import { Button } from "@/components/ui/button"; 
-
-const counselors: AllCounselor[] = [
-  {
-    name: "Dr. Sumant Ghai",
-    description: "Engineering",
-    experience: "8+ Yrs",
-    imageUrl: "/imageCounselor.jpg",
-    location: "Mumbai, Maharashtra",
-    rating: 4.0,
-    reviews: 12,
-    rate: "1000 ProCoins/Hour",
-  },
-  {
-    name: "Dr. Sumant Ghai",
-    description: "Engineering",
-    experience: "8+ Yrs",
-    imageUrl: "/imageCounselor.jpg",
-    location: "Mumbai, Maharashtra",
-    rating: 4.0,
-    reviews: 12,
-    rate: "1000 ProCoins/Hour",
-  },
-  {
-    name: "Dr. Sumant Ghai",
-    description: "Engineering",
-    experience: "8+ Yrs",
-    imageUrl: "/imageCounselor.jpg",
-    location: "Mumbai, Maharashtra",
-    rating: 4.0,
-    reviews: 12,
-    rate: "1000 ProCoins/Hour",
-  },
-  {
-    name: "Dr. Sumant Ghai",
-    description: "Engineering",
-    experience: "8+ Yrs",
-    imageUrl: "/imageCounselor.jpg",
-    location: "Mumbai, Maharashtra",
-    rating: 4.0,
-    reviews: 12,
-    rate: "1000 ProCoins/Hour",
-  },
-  {
-    name: "Dr. Sumant Ghai",
-    description: "Engineering",
-    experience: "8+ Yrs",
-    imageUrl: "/imageCounselor.jpg",
-    location: "Mumbai, Maharashtra",
-    rating: 4.0,
-    reviews: 12,
-    rate: "1000 ProCoins/Hour",
-  },
-];
-
+import { AllCounselorCards } from "../cards/AllCounselorCards";
+import { Button } from "@/components/ui/button";
+import { useAllCounselors } from "../../hooks/useCounselors";
+import { AllCounselorCardSkeleton } from "../skeletons/CounselorSkeletons";
 
 export function AllCounselorSection() {
+  // Fetch counselors from API (limit to 20 for the carousel)
+  const { data: counselors, loading, error, refetch } = useAllCounselors(20);
+
   const autoplay = React.useRef(
     Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true })
   );
@@ -83,6 +34,92 @@ export function AllCounselorSection() {
   const scrollNext = React.useCallback(() => {
     if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <section 
+        className="w-full py-16 px-4"
+        style={{
+          background: '#F5F5F7',
+          minHeight: '589px'
+        }}
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
+                Counsellors
+              </h2>
+            </div>
+            <Button 
+              variant="outline" 
+              className="font-semibold border-2 border-[#FA660F] text-[#FA660F] hover:bg-[#FA660F] hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
+            >
+              Explore All <CircleArrowRight className="size-5 ml-2"/>
+            </Button>
+          </div>
+
+          <div className="relative">
+            <div className="overflow-hidden">
+              <div className="flex -ml-4 sm:-ml-6">
+                {[...Array(20)].map((_, index) => (
+                  <div
+                    key={index}
+                    className="min-w-0 flex-shrink-0 flex-grow-0 basis-[85%] pl-4 sm:pl-6 sm:basis-[48%] md:basis-[32%] lg:basis-[30%] xl:basis-[28%] flex justify-center"
+                  >
+                    <AllCounselorCardSkeleton />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <section 
+        className="w-full py-16 px-4"
+        style={{
+          background: '#F5F5F7',
+          minHeight: '589px'
+        }}
+      >
+        <div className="max-w-7xl mx-auto flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">{error}</p>
+            <Button 
+              onClick={refetch} 
+              className="bg-[#FA660F] hover:bg-[#e55a0d]"
+            >
+              Try Again
+            </Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // No data state
+  if (!counselors || counselors.length === 0) {
+    return (
+      <section 
+        className="w-full py-16 px-4"
+        style={{
+          background: '#F5F5F7',
+          minHeight: '589px'
+        }}
+      >
+        <div className="max-w-7xl mx-auto flex items-center justify-center">
+          <p className="text-gray-600">No counselors available at the moment.</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section 
@@ -110,9 +147,9 @@ export function AllCounselorSection() {
         <div className="relative">
           <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex -ml-4 sm:-ml-6">
-              {counselors.map((counselor, index) => (
+              {counselors.map((counselor) => (
                 <div
-                  key={index}
+                  key={counselor.id}
                   className="min-w-0 flex-shrink-0 flex-grow-0 basis-[85%] pl-4 sm:pl-6 sm:basis-[48%] md:basis-[32%] lg:basis-[30%] xl:basis-[28%] flex justify-center"
                 >
                   <AllCounselorCards counselor={counselor} />

@@ -1,4 +1,5 @@
 import { Header } from "@/components";
+import Footer from "@/components/layout/Footer";
 import { Outlet } from "react-router-dom";
 
 export default function MainLayout(){
@@ -13,7 +14,7 @@ export default function MainLayout(){
            </main>
 
            <footer>
-            <p>This is procounsel @2025</p>
+            <Footer/>
            </footer>
 
         </div>

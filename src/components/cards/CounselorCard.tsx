@@ -7,15 +7,9 @@ import {
 } from "@/components/ui/card";
 import { CircleCheckBig } from "lucide-react";
 import { TbBriefcase2 } from "react-icons/tb";
+import type { Counselor } from "@/types";
 
 
-export type Counselor = {
-  name: string;
-  description: string;
-  experience: string;
-  imageUrl: string;
-  verified: boolean;
-};
 
 type CounselorCardProps = {
   counselor: Counselor;
@@ -27,9 +21,9 @@ export function CounselorCard({ counselor }: CounselorCardProps) {
       className="group flex flex-col cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 hover:scale-[1.02] bg-white mx-auto"
       style={{
         width: '100%',
-        maxWidth: '320px', // Reduced from 380px
+        maxWidth: '320px',
         height: 'auto',
-        minHeight: '380px', // Reduced from 451px
+        minHeight: '380px', 
         borderRadius: '24px',
         border: '1px solid #EFEFEF',
         boxShadow: '0px 0px 4px 0px #2323231F',
@@ -39,17 +33,16 @@ export function CounselorCard({ counselor }: CounselorCardProps) {
         padding: 0
       }}
     >
-      {/* Image container with exact positioning */}
       <div 
         className="relative overflow-hidden px-4 sm:px-0"
         style={{
           width: '100%',
-          maxWidth: '290px', // Reduced from 351px
+          maxWidth: '290px',
           height: 'auto',
-          aspectRatio: '290/240', // Adjusted aspect ratio
+          aspectRatio: '290/240', 
           borderRadius: '20px',
           opacity: 1,
-          margin: '12px auto 0 auto', // Reduced top margin
+          margin: '12px auto 0 auto', 
           position: 'relative'
         }}
       >
@@ -60,21 +53,25 @@ export function CounselorCard({ counselor }: CounselorCardProps) {
           style={{
             borderRadius: '20px'
           }}
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = "/imageCounselor.jpg";
+          }}
         />
       </div>
 
-      {/* Content container */}
+
       <div className="flex flex-col gap-3 flex-grow px-4 py-3">
         <CardHeader className="p-0 gap-1 text-center">
           <CardTitle 
             className="font-medium text-[#343C6A] leading-tight"
             style={{
-              maxWidth: '200px', // Reduced from 235px
+              maxWidth: '200px',
               height: 'auto',
-              minHeight: '28px', // Reduced from 35px
+              minHeight: '28px', 
               fontFamily: 'Montserrat',
               fontWeight: '500',
-              fontSize: 'clamp(18px, 4vw, 24px)', // Reduced from 28px max
+              fontSize: 'clamp(18px, 4vw, 24px)',
               lineHeight: '125%',
               textAlign: 'center',
               opacity: 1,

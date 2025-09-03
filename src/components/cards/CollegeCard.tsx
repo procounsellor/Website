@@ -4,33 +4,56 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-export type College = {
-  name: string;
-  courseCount: string; // e.g., "24 Courses"
-  location: string; // e.g., "Hyderabad"
-  imageUrl: string;
-  badge?: string; // e.g., "TOP", "FEATURED"
-  href?: string; // Link to college page
-};
-
-type CollegeCardProps = {
-  college: College;
+export type CollegeCardProps = {
+  collegeName: string;
+  city: string;
+  state: string;
+  logoUrl: string;
+  type: string;
   className?: string;
   onClick?: () => void;
 };
 
-export function CollegeCard({ college, className, onClick }: CollegeCardProps) {
+export function CollegeCard({
+  collegeName,
+  city,
+  state,
+  logoUrl,
+  type,
+  className,
+  onClick,
+}: CollegeCardProps) {
+  const getTypeColor = () => {
+    return 'bg-[#2C2C2C] hover:bg-[#E55A0E] text-white';
+  };
+
+  const getTypeLabel = (collegeType: string) => {
+    switch (collegeType.toLowerCase()) {
+      case 'govt':
+        return 'Government';
+      case 'pvt':
+        return 'Private';
+      case 'private':
+        return 'Private';
+      case 'deemed':
+        return 'Deemed';
+      default:
+        return collegeType;
+    }
+  };
+
   return (
     <Card 
       className={cn(
         "group flex flex-col cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 hover:scale-[1.02] bg-white mx-auto",
         className
       )}
+      onClick={onClick}
       style={{
         width: '100%',
-        maxWidth: '320px', // Reduced from 380px
+        maxWidth: '320px',
         height: 'auto',
-        minHeight: '380px', // Reduced from 451px
+        minHeight: '380px',
         borderRadius: '21.51px',
         background: '#FFFFFF',
         boxShadow: '0px 0px 4px 0px #23232340',
@@ -38,99 +61,99 @@ export function CollegeCard({ college, className, onClick }: CollegeCardProps) {
         boxSizing: 'border-box',
         padding: 0
       }}
-      onClick={onClick}
     >
-      {/* Image container with exact positioning */}
       <div 
-        className="relative overflow-hidden px-4 sm:px-0"
+        className="relative overflow-hidden px-4 sm:px-0 flex items-center justify-center bg-gray-50"
         style={{
           width: '100%',
-          maxWidth: '290px', // Reduced from 349px
-          height: 'auto',
-          aspectRatio: '290/240', // Adjusted aspect ratio
+          maxWidth: '290px',
+          height: '200px',
           borderRadius: '20px',
           opacity: 1,
-          margin: '12px auto 0 auto', // Reduced top margin
+          margin: '12px auto 0 auto',
           position: 'relative'
         }}
       >
         <img
-          src={college.imageUrl || "/imageCounselor.jpg"}
-          alt={`${college.name} campus`}
-          className="w-full h-full object-cover"
+          src={logoUrl || "/logo.svg"}
+          alt={`${collegeName} logo`}
+          className="max-w-full max-h-full object-contain"
           style={{
-            borderRadius: '20px'
+            borderRadius: '20px',
+            maxWidth: '100%',
+            maxHeight: '100%',
+            width: 'auto',
+            height: 'auto'
+          }}
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = "/logo.svg";
           }}
         />
-        {college.badge && (
-          <Badge 
-            className="absolute right-6 top-2 sm:right-3 sm:top-3 bg-[#2C2C2C] hover:bg-[#E55A0E] text-white text-xs font-medium z-10"
-          >
-            {college.badge}
-          </Badge>
-        )}
+        <Badge 
+          className={`absolute right-6 top-2 sm:right-3 sm:top-3 ${getTypeColor()} text-white text-xs font-medium z-10`}
+        >
+          {getTypeLabel(type)}
+        </Badge>
       </div>
 
-      {/* Content container */}
       <div 
-        className="flex flex-col items-center text-center flex-1 justify-center"
+        className="flex flex-col items-center text-center flex-1 justify-between"
         style={{ 
-          padding: '20px 14px 14px 14px' // More space from image, equal sides and bottom
+          padding: '20px 14px 14px 14px'
         }}
       >
-        <h3 
-          className="font-medium mb-2" 
-          style={{
-            fontFamily: 'Montserrat',
-            fontSize: 'clamp(18px, 4vw, 24px)', // Reduced from 28px max
-            fontWeight: '500',
-            lineHeight: '125%',
-            textAlign: 'center',
-            margin: '0 0 8px 0', // Reduced margin
-            color: '#343C6A'
-          }}
-        >
-          {college.name}
-        </h3>
+        <div>
+          <h3 
+            className="font-medium mb-2" 
+            style={{
+              fontFamily: 'Montserrat',
+              fontSize: 'clamp(16px, 3.5vw, 20px)',
+              fontWeight: '500',
+              lineHeight: '125%',
+              textAlign: 'center',
+              margin: '0 0 8px 0',
+              color: '#343C6A'
+            }}
+          >
+            {collegeName}
+          </h3>
+          <p 
+            className="text-gray-600 mb-4"
+            style={{
+              fontFamily: 'Montserrat',
+              fontSize: 'clamp(12px, 2.5vw, 14px)',
+              fontWeight: '400',
+              textAlign: 'center',
+              margin: '0 0 16px 0',
+            }}
+          >
+            {city}, {state}
+          </p>
+        </div>
         
-        {/* Course Count with exact Figma specs */}
-        <div 
-          className="hover:opacity-80 transition-all mb-2"
-          style={{
-            width: '110px', // Reduced from 133px
-            height: '24px', // Reduced from 30px
-            fontFamily: 'Montserrat',
-            fontSize: 'clamp(16px, 3vw, 20px)', // Reduced from 24px max
-            fontWeight: '500',
-            lineHeight: '125%',
-            textDecoration: 'underline',
-            textDecorationStyle: 'solid',
-            color: '#718EBF',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
+        <a 
+          href="#"
+          className="hover:opacity-80 transition-all"
+          onClick={(e) => {
+            e.preventDefault();
+            onClick?.();
           }}
-        >
-          {college.courseCount}
-        </div>
-
-        {/* Location with exact Figma specs */}
-        <div 
           style={{
-            width: '110px', // Reduced from 133px
-            height: '24px', // Reduced from 30px
             fontFamily: 'Montserrat',
-            fontSize: 'clamp(16px, 3vw, 20px)', // Reduced from 24px max
+            fontSize: 'clamp(14px, 2.5vw, 16px)',
             fontWeight: '400',
-            lineHeight: '125%',
-            color: '#718EBF',
+            textDecoration: 'underline',
+            maxWidth: '120px',
+            height: '24px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            color: '#718EBF'
           }}
         >
-          {college.location}
-        </div>
+          View College
+        </a>
       </div>
     </Card>
   );

@@ -27,3 +27,12 @@ export type CatalogCardProps = {
   meta: string;
   submeta: string;
 }
+
+export type Counselor = {
+  id: string; 
+  name: string;
+  description: string;
+  experience: string;
+  imageUrl: string;
+  verified: boolean;
+};
