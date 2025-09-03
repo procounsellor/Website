@@ -7,6 +7,7 @@ import {
   ExamSection,
   Hero 
 } from "@/components";
+import AppInstallCard from "@/components/cards/AppInstallCard";
 
 export default function Home(){
     return (
@@ -18,6 +19,7 @@ export default function Home(){
         <CourseExamSection/>
         <ExamSection/>
         <CollegeSection/>
+        <AppInstallCard/>
         </>
     );
 }
