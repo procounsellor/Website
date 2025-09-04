@@ -132,3 +132,19 @@
 body {
   font-family: var(--font-montserrat);
 }
+
+.otp-no-glow [data-state="focused"],
+.otp-no-glow [data-state="focused"]::before,
+.otp-no-glow [data-state="focused"]::after,
+.otp-no-glow input:focus,
+.otp-no-glow input:focus-visible,
+.otp-no-glow input::-moz-focus-inner {
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  outline: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  filter: none !important;
+  background-image: none !important;
+  background: transparent !important;
+}
