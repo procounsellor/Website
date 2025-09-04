@@ -8,6 +8,7 @@ import {
   Hero 
 } from "@/components";
 import AppInstallCard from "@/components/cards/AppInstallCard";
+// import Login from "./Login";
 
 export default function Home(){
     return (
@@ -20,6 +21,8 @@ export default function Home(){
         <ExamSection/>
         <CollegeSection/>
         <AppInstallCard/>
+        {/* <Login/> */}
+
         </>
     );
 }

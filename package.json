@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
+    "dev:network": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -33,7 +34,8 @@
     "shadcn": "^3.0.0",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.12",
-    "tsparticles": "^3.9.1"
+    "tsparticles": "^3.9.1",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
