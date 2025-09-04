@@ -10,6 +10,15 @@ import icon8 from './8.svg';
 import icon9 from './9.svg';
 import icon10 from './10.svg';
 
+// Footer icons
+import locationIcon from './location-icon.svg';
+import phoneIcon from './phone-icon.svg';
+import emailIcon from './email-icon.svg';
+import linkedinIcon from './linkedin-gradient.svg';
+import facebookIcon from './facebook-gradient.svg';
+import instagramIcon from './instagram-gradient.svg';
+import twitterIcon from './twitter-gradient.svg';
+
 export {
   icon1,
   icon2,
@@ -21,4 +30,11 @@ export {
   icon8,
   icon9,
   icon10,
+  locationIcon,
+  phoneIcon,
+  emailIcon,
+  linkedinIcon,
+  facebookIcon,
+  instagramIcon,
+  twitterIcon,
 };
