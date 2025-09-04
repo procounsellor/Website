@@ -30,7 +30,7 @@ export function CatalogCard({
     <Card
       className={cn(
         "group flex flex-col cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:scale-[1.01] bg-white",
-        "w-full sm:w-[320px] rounded-2xl border border-gray-200 shadow-sm",
+        "w-[280px] sm:w-[320px] rounded-2xl border border-gray-200 shadow-sm mx-auto",
         className
       )}
     >
@@ -56,7 +56,14 @@ export function CatalogCard({
 
       <div className="flex flex-col items-center text-center flex-grow px-4 py-4 gap-3">
         <h3
-          className="font-medium text-[#343C6A] leading-tight text-lg sm:text-xl md:text-2xl"
+          className="font-medium text-[#343C6A] leading-tight text-lg sm:text-xl md:text-2xl h-[3.5rem] flex items-center justify-center overflow-hidden"
+          style={{
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            textOverflow: 'ellipsis'
+          }}
+          title={title}
         >
           {title}
         </h3>

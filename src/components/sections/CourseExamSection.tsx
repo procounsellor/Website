@@ -103,7 +103,7 @@ export function CourseExamSection() {
                 {courses.map((course) => (
                   <div
                     key={course.id}
-                    className="min-w-0 flex-shrink-0 flex-grow-0 basis-[85%] pl-4 sm:pl-6 sm:basis-[48%] md:basis-[32%] lg:basis-[30%] xl:basis-[28%] flex justify-center"
+                    className="min-w-0 flex-shrink-0 flex-grow-0 basis-[300px] pl-4 sm:pl-6 sm:basis-[340px] md:basis-[340px] lg:basis-[340px] xl:basis-[340px] flex justify-center"
                   >
                     <div onClick={() => handleCourseClick(course.id)}>
                       <CatalogCard

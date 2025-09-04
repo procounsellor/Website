@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { SearchBar } from "./Searchbar";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Search } from "lucide-react";
+import { Menu, X, Search, UserCircle2Icon } from "lucide-react";
+import { useAuthStore } from "@/store/AuthStore";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [heroSearchVisible, setHeroSearchVisible] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const {toggleLogin,isAuthenticated} = useAuthStore()
 
   useEffect(() => {
     const onScroll = () => {
@@ -60,12 +62,17 @@ export default function Header() {
           </div>
 
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium shrink-0">
-            <Button
+           {isAuthenticated? (<UserCircle2Icon className="w-11 h-11 text-gray-400"/>
+           
+          ): <Button
               className="py-4 px-3 flex items-center h-10 rounded-lg font-semibold border-[#FA660F] text-[#FA660F] hover:bg-[#FA660F] hover:text-white"
               variant={"outline"}
+              onClick={toggleLogin}
             >
               Login/Sign Up
             </Button>
+           
+           }
           </nav>
 
           <div className="flex items-center gap-2 md:hidden">

@@ -5,11 +5,14 @@ import {
   CourseExamSection,
   DiscoverSection,
   ExamSection,
-  Hero 
+  Hero, 
+  LoginCard
 } from "@/components";
 import AppInstallCard from "@/components/cards/AppInstallCard";
+import { useAuthStore } from "@/store/AuthStore";
 
 export default function Home(){
+  const {isLoginToggle}= useAuthStore()
     return (
         <>
         <Hero/>
@@ -20,6 +23,7 @@ export default function Home(){
         <ExamSection/>
         <CollegeSection/>
         <AppInstallCard/>
+        {isLoginToggle && <LoginCard/>}
         </>
     );
 }
