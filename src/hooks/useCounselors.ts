@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { counselorApi } from '../api/counselorService';
-import type { Counselor, AllCounselor, CounsellorApiResponse } from '../types/counselor';
+import { academicApi } from '@/api/academic';
+import type { Counselor, AllCounselor, CounsellorApiResponse } from '@/types/academic';
 
 
 function transformCounselorData(apiData: CounsellorApiResponse): Counselor {
@@ -69,7 +69,7 @@ export function useCounselors(limit?: number) {
         setLoading(true);
         setError(null);
         
-        const apiData = await counselorApi.getAllCounsellors();
+        const apiData = await academicApi.getCounsellors();
         const transformedData = apiData.map(transformCounselorData);
         
  
@@ -101,7 +101,7 @@ export function useAllCounselors(limit?: number) {
         setLoading(true);
         setError(null);
         
-        const apiData = await counselorApi.getAllCounsellors();
+        const apiData = await academicApi.getCounsellors();
         const transformedData = apiData.map(transformAllCounselorData);
         
     

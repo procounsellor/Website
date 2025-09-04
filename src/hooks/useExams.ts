@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { academicApi } from '../api/counselorService';
+import { academicApi } from '../api/academic';
 import type { ExamApiResponse, Exam } from '../types/academic';
 
 export const useExams = (limit?: number) => {
@@ -11,7 +11,7 @@ export const useExams = (limit?: number) => {
     const fetchExams = async () => {
       try {
         setLoading(true);
-        const data = await academicApi.getAllExams();
+        const data = await academicApi.getExams();
         const transformedExams: Exam[] = data.map((exam: ExamApiResponse) => ({
           id: exam.examId,
           name: exam.examName,

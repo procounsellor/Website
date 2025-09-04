@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { academicApi } from '../api/counselorService';
-import type { CollegeApiResponse, College } from '../types/academic';
+import { academicApi } from '@/api/academic';
+import type { CollegeApiResponse, College } from '@/types/academic';
 
 export const useColleges = (limit?: number) => {
   const [colleges, setColleges] = useState<College[]>([]);
@@ -11,7 +11,7 @@ export const useColleges = (limit?: number) => {
     const fetchColleges = async () => {
       try {
         setLoading(true);
-        const data = await academicApi.getAllColleges();
+        const data = await academicApi.getColleges();
         
         const transformedColleges: College[] = data.map((college: CollegeApiResponse) => ({
           id: college.collegeId,

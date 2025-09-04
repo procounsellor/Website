@@ -10,7 +10,7 @@ import { useAllCounselors } from "../../hooks/useCounselors";
 import { AllCounselorCardSkeleton } from "../skeletons/CounselorSkeletons";
 
 export function AllCounselorSection() {
-  // Fetch counselors from API (limit to 20 for the carousel)
+  
   const { data: counselors, loading, error, refetch } = useAllCounselors(20);
 
   const autoplay = React.useRef(

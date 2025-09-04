@@ -34,7 +34,7 @@ export default function Header() {
           ${scrolled ? "bg-white/80 backdrop-blur-md shadow" : "bg-transparent"}
         `}
       >
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+        <div className="w-full mx-auto px-6 py-3 flex items-center justify-between">
           <a className="flex items-center space-x-2 shrink-0" href="#">
             <img
               src="/logo.svg"
