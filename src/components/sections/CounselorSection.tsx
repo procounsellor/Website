@@ -11,7 +11,7 @@ import { CounselorCardSkeleton } from "../skeletons/CounselorSkeletons";
 
 
 export function CounselorSection() {
-  const { data: counselors, loading, error, refetch } = useCounselors(15);
+  const { data: counselors, loading, error, refetch } = useCounselors(6);
 
   const autoplay = React.useRef(
     Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true })

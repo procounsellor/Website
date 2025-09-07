@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { academicApi } from '../api/academic';
 import type { CourseApiResponse, Course } from '../types/academic';
 
+
 export const useCourses = (limit?: number) => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,10 +24,8 @@ export const useCourses = (limit?: number) => {
           popularity: course.popularityCount,
           iconUrl: course.courseIconUrl
         }));
-
-        const sortedCourses = transformedCourses.sort((a, b) => b.popularity - a.popularity);
     
-        const finalCourses = limit ? sortedCourses.slice(0, limit) : sortedCourses;
+        const finalCourses = limit ? transformedCourses.slice(0, limit) : transformedCourses;
         
         setCourses(finalCourses);
       } catch (err) {

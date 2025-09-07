@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useColleges } from "../../hooks/useColleges";
 
 export function CollegeSection() {
-  const { colleges, loading, error } = useColleges(25); 
+  const { colleges, loading, error } = useColleges(6); 
   
   const autoplay = React.useRef(
     Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true })

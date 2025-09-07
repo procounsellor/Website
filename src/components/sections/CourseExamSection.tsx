@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useCourses } from "../../hooks/useCourses";
 
 export function CourseExamSection() {
-  const { courses, loading, error } = useCourses(20); // Limit to 20 courses
+  const { courses, loading, error } = useCourses(6); 
   
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,

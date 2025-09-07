@@ -11,7 +11,7 @@ import { AllCounselorCardSkeleton } from "../skeletons/CounselorSkeletons";
 
 export function AllCounselorSection() {
   
-  const { data: counselors, loading, error, refetch } = useAllCounselors(20);
+  const { data: counselors, loading, error, refetch } = useAllCounselors(6);
 
   const autoplay = React.useRef(
     Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true })
@@ -35,7 +35,6 @@ export function AllCounselorSection() {
     if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
 
-  // Loading state
   if (loading) {
     return (
       <section 
@@ -79,7 +78,7 @@ export function AllCounselorSection() {
     );
   }
 
-  // Error state
+ 
   if (error) {
     return (
       <section 
@@ -104,7 +103,7 @@ export function AllCounselorSection() {
     );
   }
 
-  // No data state
+
   if (!counselors || counselors.length === 0) {
     return (
       <section 
