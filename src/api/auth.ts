@@ -16,13 +16,14 @@ export async function  sendOtp(phone:string) {
             throw new Error(`HTTP ${response.status}: Failed to send otp`)
         }
 
-        const data = await response.json()
+
+        const data = await response.text()
         console.log('Send otp response:', data)
 
         return data
 
     }catch(error){
-        console.error(error)
+        console.error('Send OTP Error:', error)
         throw(error)
     }
     
@@ -39,6 +40,23 @@ export async function verifyOtp(phone: string, otp: string) {
 
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: OTP verification failed`)
+        }
+
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type')
+        if (!contentType || !contentType.includes('application/json')) {
+            const textResponse = await response.text()
+            console.log('Text response:', textResponse)
+            
+            // Handle text responses (could be success or error messages)
+            if (textResponse.toLowerCase().includes('success') || textResponse.toLowerCase().includes('verified')) {
+                return {
+                    type: 'success',
+                    message: textResponse
+                }
+            }
+            
+            throw new Error('Server returned error: ' + textResponse)
         }
 
         const data = await response.json()
