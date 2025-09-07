@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useExams } from "../../hooks/useExams";
 
 export function ExamSection() {
-  const { exams, loading, error } = useExams(15); // Limit to 15 exams
+  const { exams, loading, error } = useExams(6); 
   
   const autoplay = React.useRef(
     Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true })

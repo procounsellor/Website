@@ -2,6 +2,10 @@ import { API_CONFIG } from "./config";
 import type { CollegeApiResponse, ExamApiResponse, CourseApiResponse, CounsellorApiResponse } from "../types/academic";
 
 async function fetcher<T>(endpoint: string): Promise<T> {
+  if (!API_CONFIG.baseUrl) {
+    throw new Error('API base URL not configured. Please check environment variables.');
+  }
+  
   const res = await fetch(`${API_CONFIG.baseUrl}${endpoint}`,{
     headers:{
         'Accept':'application/json'
