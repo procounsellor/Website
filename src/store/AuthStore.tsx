@@ -1,23 +1,25 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { sendOtp, verifyOtp } from "@/api/auth"; 
+import { checkUrl, sendOtp, verifyOtp } from "@/api/auth"; 
 
 type AuthState = {
-  user: null | { id: string };
+  userId:string | null;
   isAuthenticated: boolean;
   isLoginToggle: boolean;
   toggleLogin: () => void;
   sendOtp: (phone: string) => Promise<void>;
   verifyOtp: (phone: string, otp: string) => Promise<void>;
   logout: () => void;
+  userExist:boolean
 };
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      user: null,
+      userId: null,
       isAuthenticated: false,
       isLoginToggle: false,
+      userExist:false,
 
       toggleLogin: () =>
         set((state) => ({ isLoginToggle: !state.isLoginToggle })),
@@ -27,20 +29,24 @@ export const useAuthStore = create<AuthState>()(
       },
 
       verifyOtp: async (phone: string, otp: string) => {
-        await verifyOtp(phone, otp);
+        const data = await verifyOtp(phone, otp);
         set({
-          user: { id: phone },
+          userId:phone,
+          isLoginToggle:false,
           isAuthenticated: true,
-          isLoginToggle: false,
         });
+        sessionStorage.setItem('phone', phone)
+        sessionStorage.setItem('jwt', data.jwtToken)
+        const res = await checkUrl(phone, data.jwt)
+        set({userExist:res , isLoginToggle:res})
       },
 
       logout: () => {
-        set({ user: null, isAuthenticated: false, isLoginToggle: false });
+        set({ userId: null, isAuthenticated: false, isLoginToggle: false });
       },
     }),
     {
-      name: "auth-storage", 
+      name: "user", 
       storage: createJSONStorage(() => sessionStorage),
     }
   )

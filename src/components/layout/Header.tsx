@@ -9,7 +9,7 @@ export default function Header() {
   const [heroSearchVisible, setHeroSearchVisible] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
-  const {toggleLogin,isAuthenticated} = useAuthStore()
+  const {toggleLogin,isAuthenticated, logout} = useAuthStore()
 
   useEffect(() => {
     const onScroll = () => {
@@ -62,7 +62,7 @@ export default function Header() {
           </div>
 
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium shrink-0">
-           {isAuthenticated? (<UserCircle2Icon className="w-11 h-11 text-gray-400"/>
+           {isAuthenticated? (<button onClick={logout}><UserCircle2Icon className="w-11 h-11 text-gray-400"/></button>
            
           ): <Button
               className="py-4 px-3 flex items-center h-10 rounded-lg font-semibold border-[#FA660F] text-[#FA660F] hover:bg-[#FA660F] hover:text-white"

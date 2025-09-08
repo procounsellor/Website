@@ -141,3 +141,25 @@ export interface AllCounselor {
   reviews: number;
   rate: string;
 }
+
+export interface CousrseApiLogin{
+  courseId:string
+  name:string
+  image:string
+  description:string
+  duration:string
+  tagline:string
+  popularityCount:number
+}
+
+export interface StatesApiResponse{
+  stateId:string
+  name:string
+  image:string
+  popularityCount:28
+}
+
+export interface PatchUser{
+    userInterestedStateOfCounsellors: string [],
+    interestedCourse:string | null
+}
