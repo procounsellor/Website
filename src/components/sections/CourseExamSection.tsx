@@ -108,7 +108,7 @@ export function CourseExamSection() {
                     <div onClick={() => handleCourseClick(course.id)}>
                       <CatalogCard
                         imageAlt={`${course.name} course`}
-                        imageSrc={course.photoUrl || course.iconUrl || "/discover-courses.jpg"}
+                        imageSrc={ course.iconUrl || "/discover-courses.jpg"}
                         title={course.name}
                         badge={course.type}
                         ctaLabel="View Course"
