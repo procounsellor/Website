@@ -24,6 +24,8 @@ export const useCourses = (limit?: number) => {
           popularity: course.popularityCount,
           iconUrl: course.courseIconUrl
         }));
+
+        console.log(transformedCourses)
     
         const finalCourses = limit ? transformedCourses.slice(0, limit) : transformedCourses;
         
