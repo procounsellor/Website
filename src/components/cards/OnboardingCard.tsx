@@ -1,16 +1,41 @@
 
 import { useState, useEffect } from 'react';
 import { Search, Check , ChevronLeft } from 'lucide-react';
-import { useCourses } from '@/hooks/useCourses';
+import { getSates,getCoursesOnborading, updateUser } from '@/api/auth';
 import toast, { Toaster } from 'react-hot-toast';
+import type { CousrseApiLogin, StatesApiResponse } from '@/types';
+import { useAuthStore } from '@/store/AuthStore';
+
 
 interface SelectCourseStepProps {
   selectedCourseId: string | null;
-  onCourseSelect: (courseId: string) => void;
+  onCourseSelect: (name: string) => void;
 }
 
+
+
 const SelectCourseStep = ({ selectedCourseId, onCourseSelect }: SelectCourseStepProps) => {
-  const { courses, loading, error } = useCourses();
+ 
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [courses, setCourses] = useState<CousrseApiLogin[]>([])
+
+  useEffect(()=>{
+    const fetchCourses = async () => {
+      try{
+        setLoading(true)
+        const CourseData = await getCoursesOnborading()
+         setCourses(CourseData)
+      }catch(error){
+        setError(error instanceof Error ? error.message : 'Failed to fetch Courses')
+      }finally{
+        setLoading(false)
+      }
+    }
+    fetchCourses()
+  }, [])
+
+
 
   const getCardStyle = (id: string) => {
     return selectedCourseId === id
@@ -55,17 +80,17 @@ const SelectCourseStep = ({ selectedCourseId, onCourseSelect }: SelectCourseStep
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {courses.map((course) => (
             <button
-              key={course.id}
-              onClick={() => onCourseSelect(course.id)}
-              className={`transform rounded-xl border p-5 text-center transition-all duration-200 ${getCardStyle(course.id)}`}
+              key={course.courseId}
+              onClick={() => onCourseSelect(course.name)}
+              className={`transform rounded-xl border p-5 text-center transition-all duration-200 ${getCardStyle(course.courseId)}`}
             >
-              <img src={course.iconUrl} alt={`${course.name} icon`} className="mb-4 h-24 w-24 object-contain mx-auto" />
-              <h3 className={`text-lg font-bold ${getTextStyle(course.id, 'primary')}`}>{course.name}</h3>
-              <p className={`text-sm ${getTextStyle(course.id, 'secondary')}`}>
-                {course.duration} &bull; {course.type}
+              <img src={`/${course.image}`} alt={`${course.name} icon`} className="mb-4 h-24 w-24 object-contain mx-auto" />
+              <h3 className={`text-lg font-bold ${getTextStyle(course.courseId, 'primary')}`}>{course.name}</h3>
+              <p className={`text-sm ${getTextStyle(course.courseId, 'secondary')}`}>
+                {course.duration}
               </p>
-              <p className={`mt-2 text-sm ${getTextStyle(course.id, 'secondary')}`}>
-                Build innovative solutions and shape your future
+              <p className={`mt-2 text-sm ${getTextStyle(course.courseId, 'secondary')}`}>
+                {course.tagline}
               </p>
             </button>
           ))}
@@ -75,17 +100,8 @@ const SelectCourseStep = ({ selectedCourseId, onCourseSelect }: SelectCourseStep
   );
 };
 
-const statesData = [
-  { name: 'Delhi', icon: '/delhi.png' },
-  { name: 'Maharashtra', icon: '/maharashtra.png' },
-  { name: 'Arunachal Pradesh', icon: '/arunachal.png' },
-  { name: 'Telangana', icon: '/delhi.png' },
-  { name: 'Karnataka', icon: '/maharashtra.png' },
-  { name: 'Tamil Nadu', icon: '/arunachal.png' },
-  { name: 'Andhra Pradesh', icon: '/delhi.png' },
-  { name: 'Uttar Pradesh', icon: '/maharashtra.png' },
-  { name: 'West Bengal', icon: '/arunachal.png' },
-];
+
+
 
 interface SelectStatesStepProps {
   selectedStates: string[];
@@ -95,6 +111,22 @@ interface SelectStatesStepProps {
 }
 
 const SelectStatesStep = ({ selectedStates, onStateSelect, onBack, onSubmit }: SelectStatesStepProps) => {
+
+  const [states, setStates]=useState<StatesApiResponse[]>([])
+
+  
+  useEffect(()=>{
+    const fetchCourses = async () => {
+      try{
+        const StatesData = await getSates()
+         setStates(StatesData)
+      }catch(error){
+        throw(error instanceof Error ? error.message : 'Failed to fetch Courses')
+      }
+    }
+    fetchCourses()
+  }, [])
+
   const isSelected = (name: string) => selectedStates.includes(name);
 
   return (
@@ -124,7 +156,7 @@ const SelectStatesStep = ({ selectedStates, onStateSelect, onBack, onSubmit }: S
 
       <div className="flex-1 overflow-y-auto -mr-4 pr-4">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {statesData.map((state) => (
+          {states.map((state) => (
             <button
               key={state.name}
               onClick={() => onStateSelect(state.name)}
@@ -132,7 +164,7 @@ const SelectStatesStep = ({ selectedStates, onStateSelect, onBack, onSubmit }: S
                 isSelected(state.name) ? 'border-transparent bg-[#13097D] text-white' : 'bg-white hover:shadow-lg'
               }`}
             >
-              <img src={state.icon} alt={`${state.name} icon`} className="mb-3 h-12 w-12 object-contain mx-auto" />
+              <img src={state.image} alt={`${state.name} icon`} className="mb-3 h-12 w-12 object-contain mx-auto" />
               <h3 className="font-semibold">{state.name}</h3>
               <div
                 className={`absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded border-2 ${
@@ -163,8 +195,10 @@ const SelectStatesStep = ({ selectedStates, onStateSelect, onBack, onSubmit }: S
 
 const OnboardingCard = () => {
   const [step, setStep] = useState(1);
-  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const [selectedCourseName, setSelectedCourseName] = useState<string | null>(null);
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
+  const {toggleLogin, userId} = useAuthStore()
+  const token = sessionStorage.getItem('jwt')
 
   useEffect(() => {
     document.body.classList.add('overflow-hidden');
@@ -174,8 +208,8 @@ const OnboardingCard = () => {
   }, []);
 
 
-  const handleCourseSelect = (courseId: string) => {
-    setSelectedCourseId(courseId);
+  const handleCourseSelect = (name: string) => {
+    setSelectedCourseName(name);
     setTimeout(() => setStep(2), 300); 
   };
 
@@ -191,9 +225,28 @@ const OnboardingCard = () => {
     }
   }
 
-  const handleSubmit = () => {
-    console.log('Submitting Data:', { courseId: selectedCourseId, states: selectedStates });
-    toast.success('Preferences saved successfully!');
+  const payload = {
+    userInterestedStateOfCounsellors: selectedStates,
+    interestedCourse:selectedCourseName
+  }
+
+  const handleSubmit = async() => {
+    try{
+      console.log('Submitting preferences...', payload); // Debug log
+      await updateUser(userId, payload, token)
+      toast.success('Preferences saved successfully!');
+      
+      // Delay closing the modal to allow toast to show
+      setTimeout(() => {
+        toggleLogin()
+      }, 2000);
+      
+    }catch(err){
+      console.error('Update user error:', err); // Debug log
+      const error = err instanceof Error ? err.message : 'Failed to update preferences'
+      toast.error(error)
+    }
+   
   };
 
   return (
@@ -205,14 +258,30 @@ const OnboardingCard = () => {
           style: {
             background: '#363636',
             color: '#fff',
+            zIndex: 9999,
           },
+          success: {
+            style: {
+              background: '#10B981',
+              color: '#fff',
+            },
+          },
+          error: {
+            style: {
+              background: '#EF4444',
+              color: '#fff',
+            },
+          },
+        }}
+        containerStyle={{
+          zIndex: 9999,
         }}
       />
     <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="w-full max-w-4xl rounded-2xl bg-[#F5F7FA] p-6 md:p-8 shadow-lg flex flex-col max-h-[90vh] h-full">
         {step === 1 && (
           <SelectCourseStep
-            selectedCourseId={selectedCourseId}
+            selectedCourseId={selectedCourseName}
             onCourseSelect={handleCourseSelect}
           />
         )}

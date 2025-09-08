@@ -13,7 +13,7 @@ import { useAuthStore } from "@/store/AuthStore";
 import OnboardingCard from '@/components/cards/OnboardingCard'; 
 
 export default function Home(){
-  const {isLoginToggle}= useAuthStore()
+  const {isLoginToggle, isAuthenticated, userExist}= useAuthStore()
     return (
         <>
         <Hero/>
@@ -24,10 +24,8 @@ export default function Home(){
         <ExamSection/>
         <CollegeSection/>
         <AppInstallCard/>
-        {/*
         {isLoginToggle && <LoginCard/>}
-        */}
-        <OnboardingCard/>
+        {isAuthenticated && userExist && isLoginToggle &&  <OnboardingCard/>}
         </>
     );
 }

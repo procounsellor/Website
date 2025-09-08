@@ -1,3 +1,4 @@
+import type { PatchUser } from '@/types'
 import {API_CONFIG} from './config'
 
 const baseUrl = API_CONFIG.baseUrl
@@ -66,5 +67,94 @@ export async function verifyOtp(phone: string, otp: string) {
     } catch (error) {
         console.error('Verify OTP Error:', error)
         throw error
+    }
+}
+
+export async function getSates(){
+    try{
+        const response = await fetch(`${baseUrl}//api/courseAndState/all-states`, {
+            headers:{
+               Accept:'application/json' 
+            }
+        })
+
+        if(!response.ok){
+            throw new Error(`HTTP error ${response.status} : Failed to fetch states`)
+        }
+
+        const data = await response.json()
+
+        return data
+    }catch(error){
+        console.error(error)
+        throw(error)
+    }
+}
+
+export async function getCoursesOnborading(){
+    try{
+        const response = await fetch(`${baseUrl}/api/courseAndState/all-courses`,
+            {
+                headers:{
+                    Accept:'application/json'
+                }
+            }
+        )
+
+        if(!response.ok){
+            throw new Error(`HTTP error ${response.status} : ${response.statusText} : Failed to fetch courses`)
+        }
+
+        const data = await response.json()
+
+        return data 
+    }catch(error){
+        console.error(error)
+        throw(error)
+    }
+}
+
+export async function updateUser(id:string | null, payload:PatchUser, token:string | null){
+    try{
+        const response = await fetch(`${baseUrl}/api/user/${id}`, {
+            method:'PATCH',
+            headers:{
+                Accept:'application/json',
+                'Content-Type':'application/json',
+                Authorization:`Bearer ${token}`
+            },
+            body:JSON.stringify(payload)
+        })
+
+        if(!response.ok){
+            throw new Error(`${response.statusText} : failed to update user`)
+        }
+        const data= await response.json()
+        return data 
+    }catch(err){
+        console.error(err)
+        throw(err)
+    }
+}
+
+
+export async function checkUrl(phone:string , token:string){
+
+    try{
+        const response = await fetch(`${baseUrl}/api/auth/isUserDetailsNull?userId=${phone}`, {
+        headers:{
+            Accept:'application/json',
+            Authorization:`Bearer ${token}`
+        }
+    })
+
+    if(!response.ok){
+        throw new Error(`${response.statusText}: ${response.status}`)
+    }
+    const res = await response.json()
+    return res
+    }catch(error){
+        console.error(error)
+        throw(error)
     }
 }

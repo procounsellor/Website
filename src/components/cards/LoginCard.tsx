@@ -75,7 +75,7 @@ const LoginCard: React.FC = () => {
     
     try {
       await verifyOtp(phone, otp);
-      toast.success('Login successful!');
+      toast.success('Verification successful!');
     } catch {
       setHasError(true);
       toast.error('Invalid OTP, please try again');
