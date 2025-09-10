@@ -32,7 +32,6 @@ export const useAuthStore = create<AuthState>()(
         const data = await verifyOtp(phone, otp);
         set({
           userId:phone,
-          isLoginToggle:false,
           isAuthenticated: true,
         });
         sessionStorage.setItem('phone', phone)
