@@ -29,13 +29,12 @@ export function CatalogCard({
   return (
     <Card
       className={cn(
-        "group flex flex-col cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:scale-[1.01] bg-white",
-        "w-[280px] sm:w-[320px] rounded-2xl border border-gray-200 shadow-sm mx-auto",
+        "group flex h-full flex-col cursor-pointer p-4 transition-all duration-300 hover:shadow-md hover:-translate-y-1 bg-white",
+        "w-full rounded-2xl border border-gray-200 shadow-sm",
         className
       )}
     >
-
-      <div className="relative w-full px-3 pt-3">
+      <div className="relative w-full">
         <div className="relative w-full aspect-[290/240] rounded-xl overflow-hidden">
           <img
             src={imageError ? "/discover-courses.jpg" : (imageSrc || "/discover-courses.jpg")}
@@ -53,10 +52,9 @@ export function CatalogCard({
         </div>
       </div>
 
-
-      <div className="flex flex-col items-center text-center flex-grow px-4 py-4 gap-3">
+      <div className="flex flex-col items-center text-center flex-grow gap-2">
         <h3
-          className="font-medium text-[#343C6A] leading-tight text-lg sm:text-xl md:text-2xl h-[3.5rem] flex items-center justify-center overflow-hidden"
+          className="font-medium text-[#343C6A] leading-tight text-lg sm:text-xl h-16 flex items-center justify-center overflow-hidden"
           style={{
             display: '-webkit-box',
             WebkitLineClamp: 2,
