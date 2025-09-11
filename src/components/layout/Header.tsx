@@ -24,7 +24,7 @@ export default function Header(){
 
 
   return (
-    <header className={`fixed inset-0 w-full transition-all z-50 ${scrolled ? "bg-white/80 backdrop-blur-md shadow":"bg-transparent"}`}>
+    <header className={`fixed top-0 left-0 right-0 z-50 ${scrolled ? "bg-white/80 backdrop-blur-md shadow":"bg-transparent"}`}>
       <div className="flex h-14 md:h-20 items-center justify-between px-5 lg:px-20 bg-white">
 
         <div className="Logo flex">

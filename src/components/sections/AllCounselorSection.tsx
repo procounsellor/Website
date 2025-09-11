@@ -8,8 +8,10 @@ import { AllCounselorCards } from "../cards/AllCounselorCards";
 import { Button } from "@/components/ui/button";
 import { useAllCounselors } from "../../hooks/useCounselors";
 import { AllCounselorCardSkeleton } from "../skeletons/CounselorSkeletons";
+import { useNavigate } from "react-router-dom";
 
 export function AllCounselorSection() {
+  const navigate = useNavigate();
   const { data: counselors, loading, error, refetch } = useAllCounselors(6);
 
   const autoplay = React.useRef(
@@ -58,6 +60,7 @@ export function AllCounselorSection() {
             <Button 
               variant="outline" 
               className="font-semibold border-2 border-black/50 text-black/80 hover:bg-black hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
+              onClick={() => navigate('/counselors')}
             >
               Explore All <CircleArrowRight className="size-5 ml-2"/>
             </Button>
@@ -135,6 +138,7 @@ export function AllCounselorSection() {
             <Button 
               variant="link" 
               className="font-semibold text-black/80 hover:text-black transition-all duration-300 text-base"
+              onClick={() => navigate('/counselors')}
             >
               Explore All <CircleArrowRight className="size-5"/>
             </Button>
