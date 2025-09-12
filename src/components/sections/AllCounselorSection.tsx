@@ -7,8 +7,10 @@ import { AllCounselorCards } from "../cards/AllCounselorCards";
 import { Button } from "@/components/ui/button";
 import { useAllCounselors } from "../../hooks/useCounselors";
 import { AllCounselorCardSkeleton } from "../skeletons/CounselorSkeletons";
+import { useNavigate } from "react-router-dom";
 
 export function AllCounselorSection() {
+  const navigate = useNavigate();
   const { data: counselors, loading, error, refetch } = useAllCounselors(6);
 
   const autoplay = React.useRef(
@@ -57,6 +59,7 @@ export function AllCounselorSection() {
             <Button 
               variant="outline" 
               className="font-semibold border-2 border-black/50 text-black/80 hover:bg-black hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
+              onClick={() => navigate('/counselors')}
             >
               See All <img src="/seeAll.svg" className="h-6"/>
             </Button>
@@ -132,7 +135,8 @@ export function AllCounselorSection() {
               Counsellors
             </h2>
             <a className="flex gap-2 lg:hidden">See All <img src="/seeAll.svg" className="h-5"/></a>
-            <Button 
+
+             <Button 
               variant="outline" 
               className="hidden lg:flex font-semibold border-2 border-black/50 text-black/80 hover:bg-black hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
             >
