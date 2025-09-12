@@ -52,9 +52,14 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    font-family: 'Montserrat', sans-serif;
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Montserrat', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, textarea, label {
+    font-family: 'Montserrat', sans-serif;
   }
 }
 
@@ -130,7 +135,7 @@
 
 
 body {
-  font-family: var(--font-montserrat);
+  font-family: 'Montserrat', sans-serif;
 }
 
 .otp-no-glow [data-state="focused"],

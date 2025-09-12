@@ -43,12 +43,12 @@ export function CollegeCard({
   return (
     <Card 
       className={cn(
-        "group flex h-full w-full flex-col cursor-pointer p-4 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-white shadow-md rounded-2xl",
+        "group flex h-full w-full flex-col cursor-pointer p-4 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-white shadow-md rounded-2xl lg:rounded-[24px] lg:w-[380px] lg:h-[451px]",
         className
       )}
       onClick={onClick}
     >
-      <div className="relative mb-3 w-full overflow-hidden rounded-xl bg-gray-50 aspect-[3/2] flex items-center justify-center">
+      <div className="relative mb-3 w-full overflow-hidden rounded-xl lg:rounded-[20px] bg-gray-50 aspect-[3/2] lg:aspect-auto lg:w-[351px] lg:h-[299px] flex items-center justify-center">
         <img
           src={logoUrl || "/logo.svg"}
           alt={`${collegeName} logo`}

@@ -30,12 +30,12 @@ export function CatalogCard({
     <Card
       className={cn(
         "group flex h-full flex-col cursor-pointer p-4 transition-all duration-300 hover:shadow-md hover:-translate-y-1 bg-white",
-        "w-full rounded-2xl border border-gray-200 shadow-sm",
+        "w-full rounded-2xl lg:rounded-[24px] border border-gray-200 shadow-sm lg:w-[380px] lg:h-[451px]",
         className
       )}
     >
       <div className="relative w-full">
-        <div className="relative w-full aspect-[290/240] rounded-xl overflow-hidden">
+        <div className="relative w-full aspect-[290/240] lg:aspect-auto lg:w-[351px] lg:h-[299px] rounded-xl lg:rounded-[20px] overflow-hidden">
           <img
             src={imageError ? "/discover-courses.jpg" : (imageSrc || "/discover-courses.jpg")}
             alt={imageAlt}
