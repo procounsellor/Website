@@ -4,7 +4,11 @@ import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { CatalogCard } from "../cards/CourseExamCard";
 import { Button } from "@/components/ui/button";
-import { useCourses } from "../../hooks/useCourses";export function CourseExamSection() {
+import { useCourses } from "../../hooks/useCourses";
+import { useNavigate } from "react-router-dom";
+
+export function CourseExamSection() {
+  const navigate = useNavigate();
   const { courses, loading, error } = useCourses(6);
   const autoplay = React.useRef(
     Autoplay({ delay: 3000, stopOnInteraction: true, stopOnMouseEnter: true })
@@ -95,6 +99,7 @@ import { useCourses } from "../../hooks/useCourses";export function CourseExamSe
           <Button 
             variant="outline" 
             className="hidden lg:flex font-semibold border-2 border-black/50 text-black/80 hover:bg-black hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
+            onClick={() => navigate("/courses")}
           >
             See All <img src="/seeAll.svg" className="h-6"/>
           </Button>

@@ -5,8 +5,10 @@ import Autoplay from "embla-carousel-autoplay";
 import { CollegeCard } from "../cards/CollegeCard";
 import { Button } from "@/components/ui/button";
 import { useColleges } from "../../hooks/useColleges";
+import { useNavigate } from "react-router-dom";
 
 export function CollegeSection() {
+  const navigate = useNavigate();
   const { colleges, loading, error } = useColleges(6); 
   
   const autoplay = React.useRef(
@@ -79,6 +81,7 @@ export function CollegeSection() {
             <Button 
               variant="outline" 
               className="hidden lg:flex font-semibold border-2 border-black/50 text-black/80 hover:bg-black hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
+              onClick={() => navigate('/colleges')}
             >
               See All <img src="/seeAll.svg" className="h-6"/>
             </Button>

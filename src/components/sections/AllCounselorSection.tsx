@@ -139,6 +139,7 @@ export function AllCounselorSection() {
              <Button 
               variant="outline" 
               className="hidden lg:flex font-semibold border-2 border-black/50 text-black/80 hover:bg-black hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
+              onClick={() => navigate('/counselors')}
             >
               See All <img src="/seeAll.svg" className="h-6"/>
             </Button>
