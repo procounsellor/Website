@@ -8,10 +8,8 @@ const Hero = () => {
     const searchBar = searchBarRef.current;
     if (!searchBar) return;
 
-    // Create intersection observer to detect when hero search bar is out of view
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // Dispatch custom event to inform header about search bar visibility
         window.dispatchEvent(
           new CustomEvent('heroSearchBarVisibility', {
             detail: { isVisible: entry.isIntersecting }
@@ -19,8 +17,8 @@ const Hero = () => {
         );
       },
       {
-        threshold: 0.3, // Trigger when 30% of search bar is visible
-        rootMargin: '-80px 0px 0px 0px' // Account for header height
+        threshold: 0.3, 
+        rootMargin: '-80px 0px 0px 0px' 
       }
     );
 
