@@ -7,6 +7,18 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Prevent body scroll from being hidden when Radix Select is open */
+body[data-scroll-locked] {
+  overflow: auto !important;
+  padding-right: 0 !important;
+}
+
+/* Ensure select content doesn't cause layout shifts */
+[data-radix-select-content] {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
 
 @theme {
   --font-montserrat: 'Montserrat', sans-serif;
@@ -136,6 +148,7 @@
 
 body {
   font-family: 'Montserrat', sans-serif;
+  scrollbar-gutter: stable;
 }
 
 .otp-no-glow [data-state="focused"],

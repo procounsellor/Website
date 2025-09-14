@@ -150,7 +150,7 @@ export function AllCounselorSection() {
             <div className="flex gap-3 px-3 lg:px-6 lg:gap-6">
               {counselors.map((counselor) => (
                 <div
-                  key={counselor.id}
+                  key={counselor.counsellorId}
                   className="flex-shrink-0 w-[170px] lg:w-[380px]"
                 >
                   <AllCounselorCard counselor={counselor} />

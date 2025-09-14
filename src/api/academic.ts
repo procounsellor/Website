@@ -1,5 +1,5 @@
 import { API_CONFIG } from "./config";
-import type { CollegeApiResponse, ExamApiResponse, CourseApiResponse, CounsellorApiResponse } from "../types/academic";
+import type { CollegeApiResponse, ExamApiResponse, CourseApiResponse, CounsellorApiResponse, AllCounselor } from "../types/academic";
 
 async function fetcher<T>(endpoint: string): Promise<T> {
   if (!API_CONFIG.baseUrl) {
@@ -20,4 +20,5 @@ export const academicApi = {
   getExams: () => fetcher<ExamApiResponse[]>(API_CONFIG.endpoints.getExams),
   getCourses: () => fetcher<CourseApiResponse[]>(API_CONFIG.endpoints.getCourses),
   getCounsellors: () => fetcher<CounsellorApiResponse[]>(API_CONFIG.endpoints.getCounsellors),
+  getAllCounsellors: () => fetcher<AllCounselor[]>(API_CONFIG.endpoints.getCounsellors), // Use same endpoint but expect new format
 };

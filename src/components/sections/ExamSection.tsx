@@ -89,35 +89,6 @@ export function ExamSection() {
           </Button>
         </div>
 
-        {/* {exams.length > 0 ? (
-          <div className="relative">
-            <div className="overflow-hidden" ref={emblaRef}>
-              <div className="flex gap-3 px-3 sm:gap-4 lg:px-6 lg:gap-6">
-                {exams.map((exam) => (
-                  <div
-                    key={exam.id}
-                    className="flex-shrink-0 w-[170px] lg:w-[380px]"
-                  >
-                    <div onClick={() => handleExamClick(exam.id)}>
-                      <AcademicCard
-                        imageAlt={`${exam.name} exam`}
-                        imageSrc={exam.bannerUrl || exam.iconUrl || "/discover-exam.jpg"}
-                        title={exam.name}
-                        badge={exam.level}
-                        ctaLabel="View Exam"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-600">No exams available</p>
-          </div>
-        )} */}
-
         <div className="relative mt-2 lg:mt-8">
           <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex gap-3 px-3 lg:px-6 lg:gap-6">

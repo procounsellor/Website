@@ -3,6 +3,7 @@ import { useAuthStore } from "@/store/AuthStore";
 import { Button } from "../ui";
 import { User2, Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Header(){
     const {toggleLogin,isAuthenticated, logout} = useAuthStore()
@@ -10,6 +11,7 @@ export default function Header(){
     const [showHeaderSearch, setShowHeaderSearch] = useState(false)
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
     const searchBarRef = useRef(null)
+    const navigate = useNavigate()
 
     useEffect(() => {
         const onScroll = () => {
@@ -45,7 +47,7 @@ export default function Header(){
         <img src="/logo.svg" alt="procounsel_logo" 
         className="h-7 w-7 md:w-11 md:h-12"
         />
-        <div className="flex flex-col leading-tight pl-[9px]">
+        <div className="flex flex-col leading-tight pl-[9px]" onClick={() => navigate('/')}>
            <h1 className="text-[#232323] font-semibold text-sm md:text-xl">ProCounsel</h1>
             <span className="font-normal text-[#858585] text-[8px] md:text-[10px]">By CatalystAI</span>
         </div>
@@ -122,4 +124,3 @@ export default function Header(){
   )
 }
   
-
