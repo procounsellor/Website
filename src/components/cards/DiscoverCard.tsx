@@ -26,7 +26,7 @@ export function DiscoverCard({ card, hFull }: DiscoverCardProps){
         <img
           src={card.imageUrl}
           alt={card.title}
-          className={`w-full h-full rounded-lg object-cover object-top transition-transform duration-300 group-hover:scale-102 ${
+          className={`w-full h-full rounded-lg object-cover object-top transition-transform duration-300 group-hover:scale-100 ${
             isVertical ? "aspect-[16/9]" : "aspect-[4/3]"
           }`}
         />

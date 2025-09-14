@@ -7,6 +7,18 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Prevent body scroll from being hidden when Radix Select is open */
+body[data-scroll-locked] {
+  overflow: auto !important;
+  padding-right: 0 !important;
+}
+
+/* Ensure select content doesn't cause layout shifts */
+[data-radix-select-content] {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
 
 @theme {
   --font-montserrat: 'Montserrat', sans-serif;
@@ -52,9 +64,14 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    font-family: 'Montserrat', sans-serif;
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Montserrat', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, textarea, label {
+    font-family: 'Montserrat', sans-serif;
   }
 }
 
@@ -130,7 +147,8 @@
 
 
 body {
-  font-family: var(--font-montserrat);
+  font-family: 'Montserrat', sans-serif;
+  scrollbar-gutter: stable;
 }
 
 .otp-no-glow [data-state="focused"],

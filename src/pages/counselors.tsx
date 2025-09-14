@@ -1,0 +1,756 @@
+import { CounselorCard, type CounselorCardData } from "@/components/cards/CounselorListingCard";
+import { useAllCounselors } from "@/hooks/useCounselors";
+import type { AllCounselor } from "@/types/academic";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectGroup, SelectLabel } from "@/components/ui/select";
+import { ChevronDown, ChevronRight, Search, X } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+
+function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
+  const firstName = apiCounselor.firstName || 'Unknown';
+  const lastName = apiCounselor.lastName || 'Counselor';
+  const fullName = `${firstName} ${lastName}`;
+  
+  // Handle image URL - if null, generate avatar
+  const imageUrl = apiCounselor.photoUrlSmall || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=6B7280&color=ffffff&size=400`;
+  
+  // Map working days from full names to short names
+  const dayMapping: Record<string, string> = {
+    'Monday': 'Mon',
+    'Tuesday': 'Tue', 
+    'Wednesday': 'Wed',
+    'Thursday': 'Thu',
+    'Friday': 'Fri',
+    'Saturday': 'Sat',
+    'Sunday': 'Sun'
+  };
+  
+  const workingDays = apiCounselor.workingDays || [];
+  const availability = workingDays.map(day => dayMapping[day] || day);
+  
+  // Use languagesKnow from API
+  const languages = apiCounselor.languagesKnow || ['English'];
+  
+  // Create specialization from experience and languages
+  const experience = apiCounselor.experience || '0';
+  const experienceText = experience && experience !== '0' ? `${experience} Years Experience` : 'Entry Level';
+  const languageText = languages.slice(0, 2).join(' | ');
+  const specialization = [experienceText, languageText].filter(Boolean).join(' • ') || 'General Counselor';
+  
+  // Use ratePerYear from API for pricing
+  const baseRate = apiCounselor.ratePerYear || 5000;
+  
+  // Use city field for location
+  const location = apiCounselor.city || "Location not specified";
+  
+  // Use rating and numberOfRatings from API
+  const rating = apiCounselor.rating || 4.0;
+  const reviews = parseInt(apiCounselor.numberOfRatings || "0");
+  
+  return {
+    id: apiCounselor.counsellorId || `temp-${Date.now()}`,
+    name: fullName,
+    imageUrl: imageUrl,
+    rating: rating,
+    reviews: reviews,
+    verified: true,
+    specialization: specialization,
+    location: location,
+    languages: languages,
+    availability: availability.length > 0 ? availability : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+    pricing: {
+      plus: baseRate,
+      pro: baseRate * 2,
+      elite: baseRate * 5,
+    },
+  };
+}
+
+export default function CounselorListingPage() {
+  const { data: counselors, loading, error } = useAllCounselors();
+
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
+  const [filterCount, setFilterCount] = useState(0)
+  const [selected, setSelected] = useState<string[]>([])
+  const [selectedSort, setSelectedSort] = useState("popularity")
+  const [citySearch, setCitySearch] = useState("")
+
+  // Filter states
+  const [experienceFilters, setExperienceFilters] = useState<string[]>([])
+  const [languageFilters, setLanguageFilters] = useState<string[]>([])
+  const [cityFilters, setCityFilters] = useState<string[]>([])
+  const [minPrice, setMinPrice] = useState("")
+  const [maxPrice, setMaxPrice] = useState("")
+
+  // Toggle states for each section
+  const [experienceToggle, setExperienceToggle] = useState(false)
+  const [languageToggle, setLanguageToggle] = useState(false)
+  const [cityToggle, setCityToggle] = useState(false)
+  const [priceToggle, setPriceToggle] = useState(false)
+  const [workingDaysToggle, setWorkingDaysToggle] = useState(false)
+
+
+  const sortTypes = [
+    {label:'Popularity', value:'popularity'},
+    {label:'Price: Low-High', value:'price-low'},
+    {label:'Price: High-Low', value:'price-high'}
+  ]
+
+  const experienceOptions = [
+    { id: 'entry', label: 'Entry Level', description: '0-1 years' },
+    { id: 'junior', label: 'Junior Level', description: '1-3 years' },
+    { id: 'senior', label: 'Senior Level', description: '3+ years' }
+  ]
+
+  // Dynamic filter options based on actual API data
+  const languageOptions = useMemo(() => {
+    if (!counselors) return ['Hindi', 'English', 'Marathi', 'Kannada', 'Telugu', 'Tamil']
+    const allLanguages = counselors.flatMap(c => c.languagesKnow || [])
+    return [...new Set(allLanguages)].sort()
+  }, [counselors])
+  
+  const cityOptions = useMemo(() => {
+    if (!counselors) return ['Greater Noida', 'Delhi', 'Mumbai', 'Bangalore', 'Chennai', 'Pune']
+    const allCities = counselors.map(c => c.city).filter(Boolean) as string[]
+    return [...new Set(allCities)].sort()
+  }, [counselors])
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+  // Update filter count whenever filters change
+  useEffect(() => {
+    const count = experienceFilters.length + 
+                  languageFilters.length + 
+                  cityFilters.length + 
+                  selected.length + 
+                  (minPrice ? 1 : 0) + 
+                  (maxPrice ? 1 : 0)
+    setFilterCount(count)
+  }, [experienceFilters, languageFilters, cityFilters, selected, minPrice, maxPrice])
+
+  // Filter helper functions
+  const toggleExperienceFilter = (experience: string) => {
+    setExperienceFilters(prev => 
+      prev.includes(experience) 
+        ? prev.filter(e => e !== experience)
+        : [...prev, experience]
+    )
+  }
+
+  const toggleLanguageFilter = (language: string) => {
+    setLanguageFilters(prev => 
+      prev.includes(language) 
+        ? prev.filter(l => l !== language)
+        : [...prev, language]
+    )
+  }
+
+  const toggleCityFilter = (city: string) => {
+    setCityFilters(prev => 
+      prev.includes(city) 
+        ? prev.filter(c => c !== city)
+        : [...prev, city]
+    )
+  }
+
+  const toggleDay = (day: string) => {
+    setSelected(prev => 
+      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+    )
+  }
+
+  const clearAllFilters = () => {
+    setExperienceFilters([])
+    setLanguageFilters([])
+    setCityFilters([])
+    setSelected([])
+    setMinPrice("")
+    setMaxPrice("")
+    setCitySearch("")
+  }
+
+  // Apply filters and sorting
+  const getFilteredAndSortedCounselors = () => {
+    if (!counselors) return []
+
+    const filtered = counselors.filter(counselor => {
+      // Experience filter
+      if (experienceFilters.length > 0) {
+        const experience = parseInt(counselor.experience || '0')
+        const matchesExperience = experienceFilters.some(filter => {
+          if (filter === 'entry') return experience >= 0 && experience <= 1
+          if (filter === 'junior') return experience > 1 && experience <= 3
+          if (filter === 'senior') return experience > 3
+          return false
+        })
+        if (!matchesExperience) return false
+      }
+
+      // Language filter - use languagesKnow field
+      if (languageFilters.length > 0) {
+        const counselorLanguages = counselor.languagesKnow || ['English']
+        if (!languageFilters.some(lang => counselorLanguages.includes(lang))) return false
+      }
+
+      // City filter - use city field
+      if (cityFilters.length > 0) {
+        const counselorCity = counselor.city || ''
+        if (!cityFilters.includes(counselorCity) && counselorCity !== '') return false
+      }
+
+      // Price filter - use ratePerYear field
+      const counselorRate = counselor.ratePerYear || 5000
+      if (minPrice && counselorRate < parseInt(minPrice)) return false
+      if (maxPrice && counselorRate > parseInt(maxPrice)) return false
+
+      // Working days filter
+      if (selected.length > 0) {
+        const counselorDays = counselor.workingDays || []
+        const dayMapping: Record<string, string> = {
+          'Mon': 'Monday', 'Tue': 'Tuesday', 'Wed': 'Wednesday',
+          'Thu': 'Thursday', 'Fri': 'Friday', 'Sat': 'Saturday', 'Sun': 'Sunday'
+        }
+        
+        const selectedFullDays = selected.map(day => dayMapping[day] || day)
+        if (!selectedFullDays.some(day => counselorDays.includes(day))) return false
+      }
+
+      return true
+    })
+
+    // Apply sorting
+    const sorted = [...filtered]
+    switch (selectedSort) {
+      case 'price-low':
+        sorted.sort((a, b) => ((a.rating || 0) * 1000 + 2000) - ((b.rating || 0) * 1000 + 2000))
+        break
+      case 'price-high':
+        sorted.sort((a, b) => ((b.rating || 0) * 1000 + 2000) - ((a.rating || 0) * 1000 + 2000))
+        break
+      case 'popularity':
+      default:
+        sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0))
+        break
+    }
+
+    return sorted
+  }
+
+
+
+
+
+  const renderContent = () => {
+    if (loading) {
+      return <div className="text-center text-gray-500">Loading counselors...</div>;
+    }
+
+    if (error) {
+      return <div className="text-center text-red-500">Error: {error}</div>;
+    }
+
+    const filteredCounselors = getFilteredAndSortedCounselors()
+
+    if (filteredCounselors.length === 0) {
+      return <p>No counselors found matching your filters.</p>;
+    }
+
+    return (
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {filteredCounselors.map((counselor) => (
+          <CounselorCard
+            key={counselor.counsellorId}
+            counselor={adaptApiDataToCardData(counselor)}
+          />
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <div className="bg-gray-50 pt-20 min-h-screen overflow-x-auto">
+      <main className="container mx-auto px-4 py-4">
+        <div className=" grid grid-cols-1 gap-8 lg:grid-cols-4">
+          <aside className="flex lg:block">
+            <div className="flex justify-center gap-6 items-center px-4 h-14 w-full sm:hidden">
+              <div className="text-[#13097D] text-[16px] flex items-center gap-2">
+                <img src="./filter.svg" alt="filter_icon" className="w-6 h-6" />
+                <button onClick={() => setMobileFilterOpen(true)}>
+                  Sort & Filters
+                  {filterCount > 0 && (
+                    <span className="ml-2 bg-[#13097D] text-white text-xs px-2 py-1 rounded-full">
+                      {filterCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+
+          {/* Mobile Filter Modal */}
+          {mobileFilterOpen && (
+            <div className="fixed inset-0 z-50 bg-gray-50 sm:hidden">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-[#232323]">Sort & Filters</h2>
+                <button
+                  onClick={() => setMobileFilterOpen(false)}
+                  className="p-2 rounded-full hover:bg-gray-100"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-4 pb-20">
+                {/* Sort Section - Moved to front */}
+                <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px] mb-3">
+                  <h3 className="text-[#242645] font-medium">Sort By</h3>
+                  <Select value={selectedSort} onValueChange={setSelectedSort}>
+                    <SelectTrigger className="w-full h-[44px] border border-[#efefef] bg-white rounded-[8px] px-3">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {sortTypes.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-4">
+                {/* Experience Filter */}
+                <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
+                  <div className="flex justify-between text-[#242645]">
+                    <p>Experience</p>
+                    <button onClick={() => setExperienceToggle(!experienceToggle)}>
+                      {experienceToggle ? <ChevronDown className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
+                    </button>
+                  </div>
+                  {experienceToggle && (
+                    <div className="flex flex-col gap-[16px] text-[#232323]">
+                      <hr className="h-px"/>
+                      {experienceOptions.map((option) => (
+                        <div key={option.id} className="flex gap-2 items-center">
+                          <input
+                            type="checkbox"
+                            checked={experienceFilters.includes(option.id)}
+                            onChange={() => toggleExperienceFilter(option.id)}
+                            className="w-5 h-5"
+                          />
+                          <p className="flex flex-col font-medium text-[14px]">
+                            {option.label} 
+                            <span className="font-normal text-[12px]">{option.description}</span>
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Languages Filter */}
+                <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
+                  <div className="flex justify-between text-[#242645]">
+                    <p>Languages</p>
+                    <button onClick={() => setLanguageToggle(!languageToggle)}>
+                      {languageToggle ? <ChevronDown className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
+                    </button>
+                  </div>
+                  {languageToggle && (
+                    <div className="flex flex-col gap-[16px] text-[#232323]">
+                      <hr className="h-px"/>
+                      {languageOptions.map((language) => (
+                        <div key={language} className="flex gap-2 items-center">
+                          <input
+                            type="checkbox"
+                            checked={languageFilters.includes(language)}
+                            onChange={() => toggleLanguageFilter(language)}
+                            className="w-5 h-5"
+                          />
+                          <p className="font-medium text-[14px]">{language}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* City Filter */}
+                <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
+                  <div className="flex justify-between text-[#242645]">
+                    <p>City</p>
+                    <button onClick={() => setCityToggle(!cityToggle)}>
+                      {cityToggle ? <ChevronDown className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
+                    </button>
+                  </div>
+                  {cityToggle && (
+                    <div className="flex flex-col gap-[16px] text-[#232323]">
+                      <hr className="h-px"/>
+                      <div className="flex items-center gap-2 px-3 rounded-md w-full h-[40px] border border-[#efefef] bg-white">
+                        <Search size={15} className="text-[#343C6A]"/>
+                        <input
+                          type="text"
+                          placeholder="Search Cities"
+                          value={citySearch}
+                          onChange={(e) => setCitySearch(e.target.value)}
+                          className="w-full h-full text-sm outline-none bg-transparent placeholder:text-[#232323]"
+                        />
+                      </div>
+                      {cityOptions
+                        .filter(city => city && city.toLowerCase().includes(citySearch.toLowerCase()))
+                        .map((city) => (
+                        <div key={city} className="flex gap-2 items-center">
+                          <input
+                            type="checkbox"
+                            checked={cityFilters.includes(city)}
+                            onChange={() => toggleCityFilter(city)}
+                            className="w-5 h-5"
+                          />
+                          <p className="font-medium text-[14px]">{city}</p>
+                        </div>
+                      ))}
+                      <hr className="h-px"/>
+                      <p className="font-normal text-[14px]">{cityOptions.length} Cities</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Price Filter */}
+                <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
+                  <div className="flex justify-between text-[#242645]">
+                    <p>Price</p>
+                    <button onClick={() => setPriceToggle(!priceToggle)}>
+                      {priceToggle ? <ChevronDown className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
+                    </button>
+                  </div>
+                  {priceToggle && (
+                    <div className="flex flex-col gap-[16px] text-[#232323]">
+                      <hr className="h-px"/>
+                      <div className="flex gap-3">
+                        <div className="flex flex-col gap-2">
+                          <p className="font-medium text-[14px]">Min Price</p>
+                          <div className="rounded-[12px] flex-1 h-[36px] border border-[#efefef] bg-white">
+                            <input 
+                              type="text" 
+                              placeholder="100"
+                              value={minPrice}
+                              onChange={(e) => setMinPrice(e.target.value)}
+                              className="px-3 w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold" 
+                            />
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <p className="text-[14px] font-medium">Max Price</p>
+                          <div className="rounded-[12px] flex-1 h-[36px] border border-[#efefef] bg-white">
+                            <input 
+                              type="text" 
+                              placeholder="10000"
+                              value={maxPrice}
+                              onChange={(e) => setMaxPrice(e.target.value)}
+                              className="px-3 w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold" 
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Working Days Filter */}
+                <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
+                  <div className="flex justify-between text-[#242645]">
+                    <p>Working Days</p>
+                    <button onClick={() => setWorkingDaysToggle(!workingDaysToggle)}>
+                      {workingDaysToggle ? <ChevronDown className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
+                    </button>
+                  </div>
+                  {workingDaysToggle && (
+                    <div className="flex flex-col gap-[16px] text-[#232323]">
+                      <hr className="h-px"/>
+                      <div className="flex flex-wrap gap-[10px]">
+                        {days.map((day) => {
+                          const isSelected = selected.includes(day);
+                          return (
+                            <button
+                              key={day}
+                              onClick={() => toggleDay(day)}
+                              className={`cursor-pointer px-2.5 py-2 rounded-[10px] border text-sm font-medium transition-colors ${
+                                isSelected
+                                  ? "bg-[#232323] text-white border-[#232323]"
+                                  : "bg-white text-[#232323] border-[#E6E6E6] hover:bg-gray-100"
+                              }`}
+                            >
+                              {day}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+                <div className="flex gap-3">
+                  <button
+                    onClick={clearAllFilters}
+                    className="flex-1 py-3 border border-gray-300 rounded-lg text-center font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    Clear All
+                  </button>
+                  <button
+                    onClick={() => setMobileFilterOpen(false)}
+                    className="flex-1 py-3 bg-[#13097D] text-white rounded-lg text-center font-medium hover:bg-[#13097D]/90"
+                  >
+                    Apply ({filterCount})
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Desktop filter section */}
+          <div className={`${mobileFilterOpen? 'flex': 'hidden'} lg:flex flex-col gap-6`}>
+
+            <div className="flex justify-between w-full h-full max-w-[312px] max-h-[88px] 
+            p-5 bg-white border-[1px] border-[#E6E6E6] rounded-[8px]"
+            >
+              <h2 className="flex gap-2">
+                <img src="./filter.svg" alt="filter_icon" 
+                className="w-6 h-6 text-[#13097D]"
+                />
+                Filters
+              </h2>
+              <div className="bg-[#13097D] text-white w-7 h-7 flex items-center justify-center rounded-[4px]">{filterCount}</div>
+            </div>
+
+            <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px]">
+             <div className="flex justify-between text-[#242645]">
+              <p>Experience</p>
+              {experienceToggle?<ChevronDown className="w-6 h-6" onClick={() => setExperienceToggle(!experienceToggle)}/>
+              : <ChevronRight className="w-6 h-6" onClick={() => setExperienceToggle(!experienceToggle)}/>}
+             </div>
+
+             {experienceToggle && 
+             <div className="flex flex-col gap-[16px] text-[#232323]">
+              <hr  className="h-px"/>
+              {experienceOptions.map((option) => (
+                <div key={option.id} className="flex gap-2 items-center">
+                  <input 
+                    type="checkbox" 
+                    checked={experienceFilters.includes(option.id)}
+                    onChange={() => toggleExperienceFilter(option.id)}
+                    className="w-5 h-5"
+                  />
+                  <p className="flex flex-col font-medium text-[14px]">
+                    {option.label} 
+                    <span className="font-normal text-[12px]">{option.description}</span>
+                  </p>
+                </div>
+              ))}
+             </div>
+             }
+            </div>
+
+            {/* languages */}
+            <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px]">
+             <div className="flex justify-between text-[#242645]">
+              <p>Languages</p>
+              {languageToggle?<ChevronDown className="w-6 h-6" onClick={() => setLanguageToggle(!languageToggle)}/>
+              : <ChevronRight className="w-6 h-6" onClick={() => setLanguageToggle(!languageToggle)}/>}
+             </div>
+
+             {languageToggle && 
+             <div className="flex flex-col gap-[16px] text-[#232323]">
+              <hr  className="h-px"/>
+              {languageOptions.map((language) => (
+                <div key={language} className="flex gap-2 items-center">
+                  <input 
+                    type="checkbox" 
+                    checked={languageFilters.includes(language)}
+                    onChange={() => toggleLanguageFilter(language)}
+                    className="w-5 h-5"
+                  />
+                  <p className="font-medium text-[14px]">{language}</p>
+                </div>
+              ))}
+             </div>
+             }
+            </div>
+
+            {/* city  */}
+            <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px]">
+             <div className="flex justify-between text-[#242645]">
+              <p>City</p>
+              {cityToggle?<ChevronDown className="w-6 h-6" onClick={() => setCityToggle(!cityToggle)}/>
+              : <ChevronRight className="w-6 h-6" onClick={() => setCityToggle(!cityToggle)}/>}
+             </div>
+
+             {cityToggle && 
+             <div className="flex flex-col gap-[16px] text-[#232323]">
+              <hr  className="h-px"/>
+
+              <div className="flex items-center gap-2 px-3 rounded-md w-[272px] h-[40px] border border-[#efefef] bg-white">
+              <Search size={15} className="text-[#343C6A]"/>
+                <input
+                type="text"
+                placeholder="Search Cities"
+                value={citySearch}
+                onChange={(e) => setCitySearch(e.target.value)}
+                className="w-full h-full text-sm outline-none bg-transparent placeholder:text-[#232323] "
+                />
+              </div>
+              {cityOptions
+                .filter(city => city && city.toLowerCase().includes(citySearch.toLowerCase()))
+                .map((city) => (
+                <div key={city} className="flex gap-2 items-center">
+                  <input 
+                    type="checkbox" 
+                    checked={cityFilters.includes(city)}
+                    onChange={() => toggleCityFilter(city)}
+                    className="w-5 h-5"
+                  />
+                  <p className="font-medium text-[14px]">{city}</p>
+                </div>
+              ))}
+
+              <hr className="h-px"/>
+              <p className="font-normal text-[14px]">{cityOptions.length} Cities</p>
+             </div>
+             }
+            </div>
+
+            {/* price based */}
+            <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px]">
+             <div className="flex justify-between text-[#242645]">
+              <p>Price</p>
+              {priceToggle?<ChevronDown className="w-6 h-6" onClick={() => setPriceToggle(!priceToggle)}/>
+              : <ChevronRight className="w-6 h-6" onClick={() => setPriceToggle(!priceToggle)}/>}
+             </div>
+
+             {priceToggle && 
+             <div className="flex flex-col gap-[16px] text-[#232323]">
+              <hr  className="h-px"/>
+
+              <div className="flex gap-3">
+               <div className="flex flex-col gap-2">
+                <p className="font-medium text-[14px]">Min Price</p>
+                <div className="rounded-[12px] w-[128px] h-[36px] border border-[#efefef] bg-white">
+                  <input 
+                  type="text" 
+                  placeholder="100"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  className=" px-3 w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold" 
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <p className="text-[14px] font-medium">Max Price</p>
+                <div className="rounded-[12px] w-[128px] h-[36px] border border-[#efefef] bg-white">
+                  <input 
+                  type="text" 
+                  placeholder="10000"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  className="px-3 w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold" 
+                  />
+                </div>
+              </div>
+              </div>
+             </div>
+             }
+            </div>
+
+            {/* working days */}
+            <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px]">
+             <div className="flex justify-between text-[#242645]">
+              <p>Working Days</p>
+              {workingDaysToggle?<ChevronDown className="w-6 h-6" onClick={() => setWorkingDaysToggle(!workingDaysToggle)}/>
+              : <ChevronRight className="w-6 h-6" onClick={() => setWorkingDaysToggle(!workingDaysToggle)}/>}
+             </div>
+
+             {workingDaysToggle && 
+             <div className="flex flex-col gap-[16px] text-[#232323]">
+              <hr  className="h-px"/>
+
+             <div className="flex flex-wrap gap-[10px]">
+                {days.map((day) => {
+                  const isSelected = selected.includes(day);
+                  return (
+                    <div
+                      key={day}
+                      onClick={() => toggleDay(day)}
+                      className={`cursor-pointer px-2.5 py-2 rounded-[10px] border text-sm font-medium transition-colors ${
+                        isSelected
+                          ? "bg-[#232323] text-white border-[#232323]"
+                          : "bg-white text-[#232323] border-[#E6E6E6] hover:bg-gray-100"
+                      }`}
+                    >
+                      {day}
+                    </div>
+                  );
+                })}
+              </div>
+
+             </div>
+             }
+            </div>
+            
+            {/* Clear all button for desktop */}
+            <button
+              onClick={clearAllFilters}
+              className="w-full max-w-[312px] py-3 border border-gray-300 rounded-lg text-center font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Clear All Filters
+            </button>
+          </div>
+          </aside>
+          <section className="col-span-1 lg:col-span-3">
+            <div className="flex justify-between">
+              <h1 className="flex flex-col gap-2 mb-6 text-[16px] text-2xl font-bold">Lorem ipsum dolor sit amet.
+              <span className="text-[#8C8CA1] font-medium text-[14px] lg:text-[20px]">Filter counselor based on your needs.</span>
+            </h1>
+
+            {/* Desktop Sort - Hidden on mobile */}
+            <div className="hidden sm:flex items-center gap-3">
+              <p className="font-medium text-[16px] text-[#525055]">Sort By:</p>
+
+              <Select value={selectedSort} onValueChange={setSelectedSort}>
+                <SelectTrigger className="w-[220px] h-[44px] border border-[#efefef] bg-white rounded-[8px] px-3 text-[16px] text-[#333] justify-between">
+                  <SelectValue placeholder="Popularity" className="text-[#525055] text-[16px]"/>
+                </SelectTrigger>
+
+                <SelectContent
+                  className="w-[220px] bg-white border border-[#efefef] rounded-[8px] shadow-lg z-[100] max-h-[200px] overflow-y-auto"
+                  position="popper"
+                  sideOffset={4}
+                >
+                  <SelectGroup>
+                    <SelectLabel className="px-3 py-1 text-xs text-gray-400">
+                      Sort Options
+                    </SelectLabel>
+                    {sortTypes.map((type) => (
+                      <SelectItem
+                        key={type.value}
+                        value={type.value} 
+                        className="flex justify-between items-center gap-6 px-3 py-2 text-[16px] text-[#525055] cursor-pointer focus:bg-gray-100 hover:bg-gray-50"
+                      >
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+            </div>
+            {renderContent()}
+          </section>
+        </div>
+      </main>
+    </div>
+  );
+}

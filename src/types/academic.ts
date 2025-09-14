@@ -131,15 +131,20 @@ export interface Counselor {
 
 
 export interface AllCounselor {
-  id: string;
-  name: string;
-  description: string;
-  experience: string;
-  imageUrl: string;
-  location: string;
-  rating: number;
-  reviews: number;
-  rate: string;
+  counsellorId: string;
+  firstName: string;
+  lastName: string;
+  photoUrlSmall?: string | null;
+  rating?: number | null;
+  ratePerYear?: number | null;
+  experience?: string | null;
+  languagesKnow?: string[];
+  city?: string;
+  workingDays?: string[];
+  plan?: string | null;
+  subscriptionMode?: string | null;
+  numberOfRatings?: string;
+  states?: string[];
 }
 
 export interface CousrseApiLogin{

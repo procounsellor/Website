@@ -15,45 +15,29 @@ function transformCounselorData(apiData: CounsellorApiResponse): Counselor {
   return {
     id: apiData.counsellorId,
     name: fullName,
-    description: `${specialization} • ${apiData.city}`,
+    description: specialization,
     experience: experience,
     imageUrl: imageUrl,
     verified: true,
   };
 }
 
-function transformAllCounselorData(apiData: CounsellorApiResponse): AllCounselor {
-  const fullName = `${apiData.firstName} ${apiData.lastName}`;
-  const specialization = apiData.languagesKnow.slice(0, 2).join(', ');
-  const experience = apiData.experience ? 
-    (apiData.experience.includes('year') ? apiData.experience : `${apiData.experience} Yrs`) : 
-    'N/A';
-  
-
-  const imageUrl = apiData.photoUrlSmall || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=6B7280&color=ffffff&size=400`;
-  
- 
-  const formatRate = (ratePerYear: number | null) => {
-   
-    console.log(`Rate for ${fullName}:`, ratePerYear);
-    
-    if (ratePerYear === null || ratePerYear === undefined) {
-      return 'N/A';
-    }
-  
-    return `${Math.round(ratePerYear)} ProCoins`;
-  };
-  
+function transformAllCounselorData(apiData: AllCounselor): AllCounselor {
   return {
-    id: apiData.counsellorId,
-    name: fullName,
-    description: specialization,
-    experience: experience,
-    imageUrl: imageUrl,
-    location: `${apiData.city}`,
+    counsellorId: apiData.counsellorId,
+    firstName: apiData.firstName,
+    lastName: apiData.lastName,
+    photoUrlSmall: apiData.photoUrlSmall || null,
     rating: apiData.rating || 0,
-    reviews: parseInt(apiData.numberOfRatings) || 0,
-    rate: formatRate(apiData.ratePerYear),
+    ratePerYear: apiData.ratePerYear || 0,
+    experience: apiData.experience || "0",
+    languagesKnow: apiData.languagesKnow || [],
+    city: apiData.city || "",
+    workingDays: apiData.workingDays || [],
+    plan: apiData.plan || null,
+    subscriptionMode: apiData.subscriptionMode || null,
+    numberOfRatings: apiData.numberOfRatings || "0",
+    states: apiData.states || []
   };
 }
 
@@ -101,10 +85,9 @@ export function useAllCounselors(limit?: number) {
         setLoading(true);
         setError(null);
         
-        const apiData = await academicApi.getCounsellors();
+        const apiData = await academicApi.getAllCounsellors();
         const transformedData = apiData.map(transformAllCounselorData);
         
-    
         const finalData = limit ? transformedData.slice(0, limit) : transformedData;
         
         setData(finalData);

@@ -1,40 +1,45 @@
 import * as React from "react";
+import type { EmblaCarouselType } from 'embla-carousel';
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { CircleArrowRight } from "lucide-react";
 
-import { AllCounselorCards } from "../cards/AllCounselorCards";
+import { AllCounselorCard } from "../homecards/AllCounselorCard";
 import { Button } from "@/components/ui/button";
 import { useAllCounselors } from "../../hooks/useCounselors";
 import { AllCounselorCardSkeleton } from "../skeletons/CounselorSkeletons";
+import { useNavigate } from "react-router-dom";
 
 export function AllCounselorSection() {
-  
+  const navigate = useNavigate();
   const { data: counselors, loading, error, refetch } = useAllCounselors(6);
 
   const autoplay = React.useRef(
-    Autoplay({ delay: 4000, stopOnInteraction: true, stopOnMouseEnter: true })
+    Autoplay({ delay: 3000, stopOnInteraction: true, stopOnMouseEnter: true })
   );
 
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    loop: true,
-    align: "start",
-    slidesToScroll: 1, 
-    breakpoints: {
-      '(min-width: 768px)': { slidesToScroll: 1 },
-      '(min-width: 1024px)': { slidesToScroll: 1 }
-    }
-  }, [autoplay.current]);
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    {
+      loop: true,
+      align: "start",
+      slidesToScroll: 1,
+    },
+    [autoplay.current]
+  );
+  
+  const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const updateSelectedIndex = React.useCallback((emblaApi: EmblaCarouselType) => {
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, []);
 
-  const scrollPrev = React.useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev();
-  }, [emblaApi]);
-
-  const scrollNext = React.useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
-  }, [emblaApi]);
-
+  React.useEffect(() => {
+    if (!emblaApi) return;
+    emblaApi.on("select", updateSelectedIndex);
+    
+    return () => {
+      emblaApi.off("select", updateSelectedIndex);
+    };
+  }, [emblaApi, updateSelectedIndex]);
+    
   if (loading) {
     return (
       <section 
@@ -53,19 +58,20 @@ export function AllCounselorSection() {
             </div>
             <Button 
               variant="outline" 
-              className="font-semibold border-2 border-[#FA660F] text-[#FA660F] hover:bg-[#FA660F] hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
+              className="font-semibold border-2 border-black/50 text-black/80 hover:bg-black hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
+              onClick={() => navigate('/counselors')}
             >
-              Explore All <CircleArrowRight className="size-5 ml-2"/>
+              See All <img src="/seeAll.svg" className="h-6"/>
             </Button>
           </div>
 
           <div className="relative">
             <div className="overflow-hidden">
-              <div className="flex -ml-4 sm:-ml-6">
-                {[...Array(20)].map((_, index) => (
+              <div className="flex -ml-4">
+                {[...Array(6)].map((_, index) => (
                   <div
                     key={index}
-                    className="min-w-0 flex-shrink-0 flex-grow-0 basis-[85%] pl-4 sm:pl-6 sm:basis-[48%] md:basis-[32%] lg:basis-[30%] xl:basis-[28%] flex justify-center"
+                    className="min-w-0 flex-shrink-0 flex-grow-0 basis-[54%] pl-4 sm:basis-[48%] md:basis-[35%] lg:basis-[30%]"
                   >
                     <AllCounselorCardSkeleton />
                   </div>
@@ -78,7 +84,6 @@ export function AllCounselorSection() {
     );
   }
 
- 
   if (error) {
     return (
       <section 
@@ -103,9 +108,8 @@ export function AllCounselorSection() {
     );
   }
 
-
   if (!counselors || counselors.length === 0) {
-    return (
+     return (
       <section 
         className="w-full py-16 px-4"
         style={{
@@ -121,63 +125,51 @@ export function AllCounselorSection() {
   }
 
   return (
-    <section 
-      className="w-full py-16 px-4"
-      style={{
-        background: '#F5F5F7',
-        minHeight: '589px'
-      }}
+    <section
+      className="w-full py-6"
+      style={{ background: "#F5F5F7" }}
     >
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-          <div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
+      <div className="max-w-[1192px] mx-auto pl-5  lg:px-0">
+        <div className="mb-8 flex items-center pr-5 justify-between">
+            <h2 className="font-semibold text-[16px] lg:text-[28px]">
               Counsellors
             </h2>
-          </div>
-          <Button 
-            variant="outline" 
-            className="font-semibold border-2 border-[#FA660F] text-[#FA660F] hover:bg-[#FA660F] hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
-          >
-            Explore All <CircleArrowRight className="size-5 ml-2"/>
-          </Button>
+            <a className="flex gap-2 lg:hidden cursor-pointer" onClick={() => navigate('/counselors')}>See All <img src="/seeAll.svg" className="h-5"/></a>
+
+             <Button 
+              variant="outline" 
+              className="group hidden lg:flex hover:cursor-pointer font-semibold border-2 border-black/50 text-black/80 hover:bg-black hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
+              onClick={() => navigate('/counselors')}
+            >
+              See All <img src="/seeAll.svg" className="h-6 ml-2 group-hover:filter group-hover:invert"/>
+            </Button>
         </div>
 
         <div className="relative">
           <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex -ml-4 sm:-ml-6">
+            <div className="flex gap-3 px-3 lg:px-6 lg:gap-6">
               {counselors.map((counselor) => (
                 <div
-                  key={counselor.id}
-                  className="min-w-0 flex-shrink-0 flex-grow-0 basis-[85%] pl-4 sm:pl-6 sm:basis-[48%] md:basis-[32%] lg:basis-[30%] xl:basis-[28%] flex justify-center"
+                  key={counselor.counsellorId}
+                  className="flex-shrink-0 w-[170px] lg:w-[380px]"
                 >
-                  <AllCounselorCards counselor={counselor} />
+                  <AllCounselorCard counselor={counselor} />
                 </div>
               ))}
             </div>
           </div>
-
-          <button
-            className="group absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-xl transition-all hover:scale-110 hover:bg-[#FA660F] hidden sm:block z-10"
-            onClick={scrollPrev}
-            aria-label="Previous counselor"
-          >
-            <ChevronLeft className="h-6 w-6 text-gray-800 transition-colors group-hover:text-white" />
-          </button>
-          <button
-            className="group absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-3 shadow-xl transition-all hover:scale-110 hover:bg-[#FA660F] hidden sm:block z-10"
-            onClick={scrollNext}
-            aria-label="Next counselor"
-          >
-            <ChevronRight className="h-6 w-6 text-gray-800 transition-colors group-hover:text-white" />
-          </button>
         </div>
 
-        <div className="flex justify-center mt-8 gap-2 sm:hidden">
-          {counselors.map((_, index) => (
-            <div
+        {/* LoginCard-style 3 dots pattern */}
+        <div className="flex justify-center mt-8 gap-2">
+          {Array.from({ length: Math.min(3, Math.ceil(Math.min(6, counselors.length) / 2)) }, (_, index) => (
+            <button
               key={index}
-              className="w-2 h-2 rounded-full bg-gray-300 transition-colors duration-200"
+              onClick={() => emblaApi && emblaApi.scrollTo(index * 2)}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                Math.floor(selectedIndex / 2) === index ? 'w-6 bg-[#13097D]' : 'w-2 bg-gray-400'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>

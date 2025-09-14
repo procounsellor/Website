@@ -2,7 +2,7 @@ import {
   AllCounselorSection,
   CollegeSection, 
   CounselorSection,
-  CourseExamSection,
+  CourseSection,
   DiscoverSection,
   ExamSection,
   Hero, 
@@ -20,7 +20,7 @@ export default function Home(){
         <CounselorSection/>
         <DiscoverSection/>
         <AllCounselorSection/>
-        <CourseExamSection/>
+        <CourseSection/>
         <ExamSection/>
         <CollegeSection/>
         <AppInstallCard/>

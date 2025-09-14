@@ -1,11 +1,5 @@
-import {
-  Card,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import {  Star, MapPin } from "lucide-react";
+import { Card, CardFooter } from "@/components/ui/card";
+import { Star, MapPin } from "lucide-react";
 import { TbBriefcase2 } from "react-icons/tb";
 
 export type AllCounselor = {
@@ -24,103 +18,58 @@ type CounselorCardProps = {
   counselor: AllCounselor;
 };
 
-export function AllCounselorCards({ counselor }: CounselorCardProps) {
-  return (  
-    <Card className="group flex flex-col cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 hover:scale-[1.02] bg-white mx-auto"
-      style={{
-        width: '100%',
-        maxWidth: '320px',
-        height: 'auto',
-        minHeight: '420px', 
-        borderRadius: '24px',
-        border: '1px solid #EFEFEF',
-        boxShadow: '0px 0px 4px 0px #2323231F',
-        background: '#FFFFFF',
-        opacity: 1,
-        boxSizing: 'border-box',
-        padding: '16px'
-      }}
-    >
-      <div className="overflow-hidden rounded-2xl mb-3"
-        style={{
-          width: '100%',
-          maxWidth: '290px',
-          height: 'auto',
-          aspectRatio: '290/240', 
-          margin: '0 auto'
-        }}
-      >
+export function AllCounselorCards({ counselor }: CounselorCardProps){
+  return (
+    <Card className="group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-2xl bg-white p-4 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+      <div className="relative -mb-2 w-full overflow-hidden rounded-xl aspect-[290/240] lg:aspect-auto lg:max-w-[351px] lg:h-[299px] lg:rounded-[20px] lg:mx-auto">
         <img
           src={counselor.imageUrl}
           alt={`Photo of ${counselor.name}`}
-          className="w-full h-full object-cover rounded-2xl transition-transform duration-300 group-hover:scale-110"
+          className="h-full w-full object-cover transition-transform duration-300 "
         />
       </div>
 
-      <div className="flex flex-col gap-2 flex-grow">
-        <CardHeader className="p-0 gap-1">
-          <CardTitle 
-            className="font-semibold text-[#343C6A] leading-tight"
-            style={{
-              fontSize: 'clamp(16px, 3vw, 20px)', 
-              lineHeight: '1.2',
-              marginBottom: '4px'
-            }}
-          >
+      <div className="flex flex-grow flex-col justify-between gap-3">
+        <div>
+          <h3 className="truncate font-medium text-[14px] leading-[125%] text-center lg:text-[24px] lg:leading-[125%] text-[#343C6A]" style={{fontFamily: 'Montserrat', fontWeight: '500'}}>
             {counselor.name}
-          </CardTitle>
-          <CardDescription 
-            className="text-[#718EBF]"
-            style={{
-              fontSize: 'clamp(14px, 2.5vw, 16px)',
-              lineHeight: '1.3',
-              marginBottom: '4px'
-            }}
-          >
+          </h3>
+          <p className="truncate text-[12px] leading-[125%] text-center lg:text-xl lg:leading-[125%] text-[#718EBF]" style={{fontFamily: 'Montserrat', fontWeight: '500'}}>
             {counselor.description}
-          </CardDescription>
-          <div className="flex items-center gap-1 text-[#718EBF] mb-2">
-            <MapPin className="h-3 w-3" />
-            <span 
-              style={{
-                fontSize: 'clamp(12px, 2vw, 14px)'
-              }}
-            >
-              {counselor.location}
-            </span>
-          </div>
-        </CardHeader>
-        
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 text-yellow-500">
-              <Star className="h-3 w-3 fill-current" />
-              <span className="text-[#343C6A] font-medium text-xs">
-                {counselor.rating > 0 ? counselor.rating.toFixed(1) : 'No rating'}
-              </span>
-            </div>
-            <span className="text-gray-500 text-xs">|</span>
-            <span className="text-[#343C6A] font-medium text-xs">{counselor.reviews}</span>
-            <div className="flex items-center gap-1 text-[#4471FF] ml-2">
-              <TbBriefcase2 className="h-3 w-3" />
-              <span className="text-[#343C6A] font-medium text-xs">{counselor.experience}</span>
-            </div>
+          </p>
+          <div className="flex items-center justify-center mt-1 gap-1 lg:gap-1.5 text-xs text-[#718EBF] truncate pt-1">
+            <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+            <span className="text-[12px] lg:text-[18px] lg:leading-[125%]" style={{fontFamily: 'Montserrat', fontWeight: '400'}}>{counselor.location}</span>
           </div>
         </div>
 
-        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent my-2" />
+        <div className="flex items-center justify-between text-sm font-medium text-gray-700 gap-1 lg:gap-2">
+          <div className="flex items-center gap-1 lg:gap-1.5 text-gray-800">
+            <Star className="h-4 w-4 fill-yellow-400 text-yellow-500"/>
+            <span className="font-semibold text-[12px] lg:text-[18px] lg:leading-[125%]" style={{fontFamily: 'Montserrat', fontWeight: '400'}}>{counselor.rating.toFixed(1)}</span>
+            <span className="text-[10px] lg:text-[18px] lg:leading-[125%] text-gray-400" style={{fontFamily: 'Montserrat', fontWeight: '400'}}>({counselor.reviews})</span>
+          </div>
+
+          <div className="flex items-center gap-1 lg:gap-1.5 text-blue-600">
+            <TbBriefcase2 className="h-4 w-4" />
+            <span className="text-[12px] lg:text-[18px] lg:leading-[125%]" style={{fontFamily: 'Montserrat', fontWeight: '400'}}>{counselor.experience}</span>
+          </div>
+        </div>
+
+        <div className="h-px bg-gray-200 -mb-4"/>
         
-        <CardFooter className="flex p-0 items-center">
+        <CardFooter className="flex p-0 pt-3 -mb-2 items-center">
           <div className="flex items-center gap-2 w-full">
-            <img 
+            <img
               src="/Procoin.jpg"
-              alt="ProCoins icon" 
-              className="h-8 w-8" 
+              alt="ProCoins icon"
+              className="h-8 w-8"
             />
-            <span 
-              className="text-black font-semibold"
+            <span
+              className="text-black font-semibold whitespace-nowrap text-[14px] lg:text-[18px] lg:leading-[100%]"
               style={{
-                fontSize: 'clamp(14px, 3vw, 18px)'
+                fontFamily: 'Montserrat',
+                fontWeight: '600'
               }}
             >
               {counselor.rate === 'N/A' ? (
