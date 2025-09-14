@@ -25,7 +25,7 @@ export function AllCounselorCards({ counselor }: CounselorCardProps){
         <img
           src={counselor.imageUrl}
           alt={`Photo of ${counselor.name}`}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+          className="h-full w-full object-cover transition-transform duration-300 "
         />
       </div>
 
@@ -34,7 +34,7 @@ export function AllCounselorCards({ counselor }: CounselorCardProps){
           <h3 className="truncate font-medium text-[14px] leading-[125%] text-center lg:text-[24px] lg:leading-[125%] text-[#343C6A]" style={{fontFamily: 'Montserrat', fontWeight: '500'}}>
             {counselor.name}
           </h3>
-          <p className="truncate text-[12px] leading-[125%] text-center lg:text-[28px] lg:leading-[125%] text-[#718EBF]" style={{fontFamily: 'Montserrat', fontWeight: '500'}}>
+          <p className="truncate text-[12px] leading-[125%] text-center lg:text-xl lg:leading-[125%] text-[#718EBF]" style={{fontFamily: 'Montserrat', fontWeight: '500'}}>
             {counselor.description}
           </p>
           <div className="flex items-center justify-center mt-1 gap-1 lg:gap-1.5 text-xs text-[#718EBF] truncate pt-1">

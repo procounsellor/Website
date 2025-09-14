@@ -1,10 +1,32 @@
-import { useRef} from 'react';
+import { useRef, useEffect } from 'react';
 import { SearchBar } from './Searchbar';
-
 
 const Hero = () => {
   const searchBarRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const searchBar = searchBarRef.current;
+    if (!searchBar) return;
+
+    // Create intersection observer to detect when hero search bar is out of view
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Dispatch custom event to inform header about search bar visibility
+        window.dispatchEvent(
+          new CustomEvent('heroSearchBarVisibility', {
+            detail: { isVisible: entry.isIntersecting }
+          })
+        );
+      },
+      {
+        threshold: 0.3, // Trigger when 30% of search bar is visible
+        rootMargin: '-80px 0px 0px 0px' // Account for header height
+      }
+    );
+
+    observer.observe(searchBar);
+    return () => observer.disconnect();
+  }, []);
 
   return (
      <section className='w-full h-64 lg:h-[592px] mt-[52px] lg:mt-20'>

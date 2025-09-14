@@ -3,7 +3,7 @@ import type { EmblaCarouselType } from 'embla-carousel';
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 
-import { AllCounselorCards } from "../cards/AllCounselorCards";
+import { AllCounselorCard } from "../homecards/AllCounselorCard";
 import { Button } from "@/components/ui/button";
 import { useAllCounselors } from "../../hooks/useCounselors";
 import { AllCounselorCardSkeleton } from "../skeletons/CounselorSkeletons";
@@ -21,7 +21,7 @@ export function AllCounselorSection() {
     {
       loop: true,
       align: "start",
-      slidesToScroll: 2, // Always 2 cards on both mobile and desktop
+      slidesToScroll: 1,
     },
     [autoplay.current]
   );
@@ -126,33 +126,34 @@ export function AllCounselorSection() {
 
   return (
     <section
-      className="w-full py-6 px-4"
+      className="w-full py-6"
       style={{ background: "#F5F5F7" }}
     >
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8 flex items-center justify-between">
+      <div className="max-w-[1192px] mx-auto pl-5  lg:px-0">
+        <div className="mb-8 flex items-center pr-5 justify-between">
             <h2 className="font-semibold text-[16px] lg:text-[28px]">
               Counsellors
             </h2>
-            <a className="flex gap-2 lg:hidden">See All <img src="/seeAll.svg" className="h-5"/></a>
+            <a className="flex gap-2 lg:hidden cursor-pointer" onClick={() => navigate('/counselors')}>See All <img src="/seeAll.svg" className="h-5"/></a>
 
              <Button 
               variant="outline" 
-              className="hidden lg:flex font-semibold border-2 border-black/50 text-black/80 hover:bg-black hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
+              className="group hidden lg:flex hover:cursor-pointer font-semibold border-2 border-black/50 text-black/80 hover:bg-black hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
+              onClick={() => navigate('/counselors')}
             >
-              See All <img src="/seeAll.svg" className="h-6"/>
+              See All <img src="/seeAll.svg" className="h-6 ml-2 group-hover:filter group-hover:invert"/>
             </Button>
         </div>
 
         <div className="relative">
-          <div className="overflow-hidden -mx-2" ref={emblaRef}>
-            <div className="flex">
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex gap-3 px-3 lg:px-6 lg:gap-6">
               {counselors.map((counselor) => (
                 <div
                   key={counselor.id}
-                  className="min-w-0 flex-shrink-0 flex-grow-0 basis-[54%] px-2 sm:basis-[48%] md:basis-[35%] lg:basis-[30%]"
+                  className="flex-shrink-0 w-[170px] lg:w-[380px]"
                 >
-                  <AllCounselorCards counselor={counselor} />
+                  <AllCounselorCard counselor={counselor} />
                 </div>
               ))}
             </div>

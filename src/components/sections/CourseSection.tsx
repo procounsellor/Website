@@ -2,10 +2,19 @@ import * as React from "react";
 import type { EmblaCarouselType } from 'embla-carousel';
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
-import { CatalogCard } from "../cards/CourseExamCard";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useCourses } from "../../hooks/useCourses";export function CourseExamSection() {
+import { useCourses } from "../../hooks/useCourses";
+import { AcademicCard } from "../homecards";
+
+
+
+
+
+
+export function CourseSection() {
   const { courses, loading, error } = useCourses(6);
+  const navigate = useNavigate();
   const autoplay = React.useRef(
     Autoplay({ delay: 3000, stopOnInteraction: true, stopOnMouseEnter: true })
   );
@@ -14,7 +23,7 @@ import { useCourses } from "../../hooks/useCourses";export function CourseExamSe
     {
       loop: true,
       align: "start",
-      slidesToScroll: 2, // Always 2 cards on both mobile and desktop
+      slidesToScroll: 1,
     },
     [autoplay.current] 
   );
@@ -83,51 +92,44 @@ import { useCourses } from "../../hooks/useCourses";export function CourseExamSe
 
   return (
     <section
-      className="w-full py-6 px-4"
+      className="w-full py-6"
       style={{ background: "#FFFFFF" }}
     >
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8 flex items-center justify-between">
+      <div className="max-w-[1192px] mx-auto pl-5  lg:px-0">
+        <div className="mb-8 flex items-center pr-5 justify-between">
           <h2 className="font-semibold text-[16px] lg:text-[28px]">
             Courses
           </h2>
-          <a className="flex gap-2 lg:hidden">See All <img src="/seeAll.svg" className="h-5"/></a>
+          <a className="flex gap-2 lg:hidden cursor-pointer" onClick={() => navigate('/courses')}>See All <img src="/seeAll.svg" className="h-5"/></a>
           <Button 
             variant="outline" 
-            className="hidden lg:flex font-semibold border-2 border-black/50 text-black/80 hover:bg-black hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
+            className="group hidden lg:flex hover:cursor-pointer font-semibold border-2 border-black/50 text-black/80 hover:bg-black hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
+            onClick={() => navigate('/courses')}
           >
-            See All <img src="/seeAll.svg" className="h-6"/>
+            See All <img src="/seeAll.svg" className="h-6 ml-2 group-hover:filter group-hover:invert"/>
           </Button>
         </div>
 
-        {courses.length > 0 ? (
-          <div className="relative">
-            <div className="overflow-hidden -mx-2" ref={emblaRef}>
-              <div className="flex">
-                {courses.map((course) => (
-                  <div
-                    key={course.id}
-                    className="min-w-0 flex-shrink-0 flex-grow-0 basis-[54%] px-2 sm:basis-[48%] md:basis-[35%] lg:basis-[30%]"
-                  >
-                    <div onClick={() => handleCourseClick(course.id)}>
-                      <CatalogCard
-                        imageAlt={`${course.name} course`}
-                        imageSrc={course.iconUrl || "/discover-courses.jpg"}
-                        title={course.name}
-                        badge={course.type}
-                        ctaLabel="View Course"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+        <div className="relative mt-2 lg:mt-8">
+          <div className="overflow-hidden overflow-y-visible" ref={emblaRef}>
+            <div className="flex gap-3 px-3 lg:px-6 lg:gap-6 py-1">
+              {courses.map((course)=>(
+                <div key={course.id}
+                className="flex-shrink-0 w-[170px] lg:w-[380px]"
+                onClick={()=> handleCourseClick(course.id)}
+                >
+                  <AcademicCard
+                  imageAlt={course.name}
+                  imageSrc={course.photoUrl || course.iconUrl}
+                  title={course.name}
+                  badge={course.level}
+                  ctaLabel="View Course"
+                  />
+                </div>
+              ))}
             </div>
           </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-600">No courses available</p>
-          </div>
-        )}
+        </div>
         {/* LoginCard-style 3 dots pattern */}
         <div className="flex justify-center mt-8 gap-2">
           {Array.from({ length: Math.min(3, Math.ceil(Math.min(6, courses.length) / 2)) }, (_, index) => (

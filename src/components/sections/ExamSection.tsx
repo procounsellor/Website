@@ -2,12 +2,14 @@ import * as React from "react";
 import type { EmblaCarouselType } from 'embla-carousel';
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
-import { CatalogCard } from "../cards/CourseExamCard";
+import { useNavigate } from "react-router-dom";
+import { AcademicCard } from "../homecards/AcademicCard";
 import { Button } from "@/components/ui/button";
 import { useExams } from "../../hooks/useExams";
 
 export function ExamSection() {
   const { exams, loading, error } = useExams(6); 
+  const navigate = useNavigate();
   
   const autoplay = React.useRef(
     Autoplay({ delay: 3000, stopOnInteraction: true, stopOnMouseEnter: true })
@@ -16,7 +18,7 @@ export function ExamSection() {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "start",
-    slidesToScroll: 2, // Always 2 cards on both mobile and desktop
+    slidesToScroll: 1,
   }, [autoplay.current]);
 
   const [selectedIndex, setSelectedIndex] = React.useState(0);
@@ -71,32 +73,33 @@ export function ExamSection() {
   }
 
   return (
-    <section className="w-full bg-[#F5F5F7] py-6 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8 flex items-center justify-between">
+    <section className="w-full bg-[#F5F5F7] py-6">
+      <div className="max-w-[1192px] mx-auto pl-5  lg:px-0">
+        <div className="mb-8 flex items-center pr-5 justify-between">
           <h2 className="font-semibold text-[16px] lg:text-[28px]">
             Exams
           </h2>
-          <a className="flex gap-2 lg:hidden">See All <img src="/seeAll.svg" className="h-5"/></a>
+          <a className="flex gap-2 lg:hidden cursor-pointer" onClick={() => navigate('/exams')}>See All <img src="/seeAll.svg" className="h-5"/></a>
           <Button 
             variant="outline" 
-            className="hidden lg:flex font-semibold border-2 border-black/50 text-black/80 hover:bg-black hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
+            className="group hidden lg:flex hover:cursor-pointer font-semibold border-2 border-black/50 text-black/80 hover:bg-black hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
+            onClick={() => navigate('/exams')}
           >
-            See All <img src="/seeAll.svg" className="h-6"/>
+            See All <img src="/seeAll.svg" className="h-6 ml-2 group-hover:filter group-hover:invert"/>
           </Button>
         </div>
 
-        {exams.length > 0 ? (
+        {/* {exams.length > 0 ? (
           <div className="relative">
-            <div className="overflow-hidden -mx-2" ref={emblaRef}>
-              <div className="flex">
+            <div className="overflow-hidden" ref={emblaRef}>
+              <div className="flex gap-3 px-3 sm:gap-4 lg:px-6 lg:gap-6">
                 {exams.map((exam) => (
                   <div
                     key={exam.id}
-                    className="min-w-0 flex-shrink-0 flex-grow-0 basis-[54%] px-2 sm:basis-[48%] md:basis-[35%] lg:basis-[30%]"
+                    className="flex-shrink-0 w-[170px] lg:w-[380px]"
                   >
                     <div onClick={() => handleExamClick(exam.id)}>
-                      <CatalogCard
+                      <AcademicCard
                         imageAlt={`${exam.name} exam`}
                         imageSrc={exam.bannerUrl || exam.iconUrl || "/discover-exam.jpg"}
                         title={exam.name}
@@ -113,7 +116,28 @@ export function ExamSection() {
           <div className="text-center py-12">
             <p className="text-gray-600">No exams available</p>
           </div>
-        )}
+        )} */}
+
+        <div className="relative mt-2 lg:mt-8">
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex gap-3 px-3 lg:px-6 lg:gap-6">
+              {exams.map((exam)=>(
+                <div key={exam.id}
+                className="flex-shrink-0 w-[170px] lg:w-[380px]"
+                onClick={()=> handleExamClick(exam.id)}
+                >
+                  <AcademicCard
+                  imageAlt={exam.name}
+                  imageSrc={exam.bannerUrl || exam.iconUrl}
+                  title={exam.name}
+                  badge={exam.level}
+                  ctaLabel="View Exam"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
         {/* LoginCard-style 3 dots pattern */}
         <div className="flex justify-center mt-8 gap-2">
           {Array.from({ length: Math.min(3, Math.ceil(Math.min(6, exams.length) / 2)) }, (_, index) => (

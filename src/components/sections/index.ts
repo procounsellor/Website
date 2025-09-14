@@ -2,6 +2,6 @@
 export { AllCounselorSection } from './AllCounselorSection';
 export { CollegeSection } from './CollegeSection';
 export { CounselorSection } from './CounselorSection';
-export { CourseExamSection } from './CourseExamSection';
+export { CourseSection } from './CourseSection';
 export { DiscoverSection } from './DiscoverSection';
 export { ExamSection } from './ExamSection';

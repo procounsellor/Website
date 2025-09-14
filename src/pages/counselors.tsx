@@ -52,7 +52,7 @@ export default function CounselorListingPage() {
   return (
     <div className="bg-gray-50 pt-20">
       <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+        <div className=" grid grid-cols-1 gap-8 lg:grid-cols-4">
           <aside className="hidden lg:block">
             {/* filter component comes here */}
             <div className="rounded-lg bg-white p-4 shadow">
