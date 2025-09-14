@@ -24,12 +24,12 @@ type CounselorCardProps = {
 
 export function CounselorCard({ counselor }: CounselorCardProps) {
   return (
-    <div className="flex w-full max-w-sm flex-col overflow-hidden rounded-lg cursor-pointer border border-gray-200 bg-white shadow-sm">
+    <div className="flex w-full max-w-sm flex-col overflow-hidden rounded-lg cursor-pointer border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg">
       <div className="relative">
         <img
           src={counselor.imageUrl}
           alt={`Photo of ${counselor.name}`}
-          className="h-54 w-full object-cover"
+          className="h-60 w-full object-contain"
         />
 
         <div className="absolute left-4 top-4 flex h-[38px] w-auto items-center justify-center gap-1.5 rounded-full bg-[#0C111F57] px-3 py-1 text-sm text-white shadow-[inset_7px_0px_20px_0px_rgba(255,255,255,0.15)]">
