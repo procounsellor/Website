@@ -4,6 +4,7 @@ import type { Exam } from "@/types/academic";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { ChevronDown, ChevronRight, Search, X } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
+import Pagination from "@/components/ui/Pagination";
 
 function adaptApiDataToCardData(apiExam: Exam): ExamCardData {
   return {
@@ -17,6 +18,8 @@ function adaptApiDataToCardData(apiExam: Exam): ExamCardData {
 
 export default function ExamsListingPage() {
   const { exams, loading, error } = useExams();
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 9;
 
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
@@ -86,6 +89,10 @@ export default function ExamsListingPage() {
     })
     return [...new Set(normalizedTypes)].sort()
   }, [exams])
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [levelFilters, typeFilters, examFilters]);
 
   useEffect(() => {
     const count = levelFilters.length + typeFilters.length + examFilters.length
@@ -267,15 +274,28 @@ export default function ExamsListingPage() {
       return <p>No exams found matching your filters.</p>;
     }
 
+    const totalPages = Math.ceil(filteredExams.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const paginatedExams = filteredExams.slice(startIndex, endIndex);
+
     return (
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {filteredExams.map((exam) => (
-          <ExamCard
-            key={exam.id}
-            exam={adaptApiDataToCardData(exam)}
-          />
-        ))}
-      </div>
+      <>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {paginatedExams.map((exam) => (
+            <ExamCard
+              key={exam.id}
+              exam={adaptApiDataToCardData(exam)}
+            />
+          ))}
+        </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </>
     );
   };
 

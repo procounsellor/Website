@@ -4,6 +4,7 @@ import type { Course } from "@/types/academic";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { ChevronDown, ChevronRight, Search, X } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
+import Pagination from "@/components/ui/Pagination";
 
 function adaptApiDataToCardData(apiCourse: Course): CourseCardData {
   return {
@@ -17,6 +18,8 @@ function adaptApiDataToCardData(apiCourse: Course): CourseCardData {
 
 export default function CoursesListingPage() {
   const { courses, loading, error } = useCourses();
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 9;
 
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
@@ -80,6 +83,10 @@ export default function CoursesListingPage() {
     const allCourses = courses.map(c => c.name).filter(Boolean) as string[]
     return [...new Set(allCourses)].sort()
   }, [courses])
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [durationFilters, typeFilters, levelFilters, courseFilters]);
 
   useEffect(() => {
     const count = durationFilters.length + typeFilters.length + levelFilters.length + courseFilters.length
@@ -199,15 +206,28 @@ export default function CoursesListingPage() {
       return <p>No courses found matching your filters.</p>;
     }
 
+    const totalPages = Math.ceil(filteredCourses.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const paginatedCourses = filteredCourses.slice(startIndex, endIndex);
+
     return (
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {filteredCourses.map((course) => (
-          <CourseCard
-            key={course.id}
-            course={adaptApiDataToCardData(course)}
-          />
-        ))}
-      </div>
+      <>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {paginatedCourses.map((course) => (
+            <CourseCard
+              key={course.id}
+              course={adaptApiDataToCardData(course)}
+            />
+          ))}
+        </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </>
     );
   };
 

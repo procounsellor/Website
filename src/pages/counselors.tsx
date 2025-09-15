@@ -4,6 +4,7 @@ import type { AllCounselor } from "@/types/academic";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { ChevronDown, ChevronRight, Search, X } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
+import Pagination from "@/components/ui/Pagination";
 
 function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
   const firstName = apiCounselor.firstName || 'Unknown';
@@ -64,6 +65,8 @@ function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
 
 export default function CounselorListingPage() {
   const { data: counselors, loading, error } = useAllCounselors();
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 9;
 
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
@@ -119,7 +122,8 @@ export default function CounselorListingPage() {
                   selected.length + 
                   (minPrice ? 1 : 0) + 
                   (maxPrice ? 1 : 0)
-    setFilterCount(count)
+    setFilterCount(count);
+    setCurrentPage(1);
   }, [experienceFilters, languageFilters, cityFilters, selected, minPrice, maxPrice])
 
   const toggleExperienceFilter = (experience: string) => {
@@ -246,16 +250,28 @@ export default function CounselorListingPage() {
       return <p>No counselors found matching your filters.</p>;
     }
 
+    const totalPages = Math.ceil(filteredCounselors.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const paginatedCounselors = filteredCounselors.slice(startIndex, endIndex);
+
     return (
+    <>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {filteredCounselors.map((counselor) => (
+        {paginatedCounselors.map((counselor) => (
           <CounselorCard
             key={counselor.counsellorId}
             counselor={adaptApiDataToCardData(counselor)}
           />
         ))}
       </div>
-    );
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
+    </>
+  );
   };
 
   return (

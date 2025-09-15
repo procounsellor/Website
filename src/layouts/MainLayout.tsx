@@ -1,8 +1,12 @@
 import { Header } from "@/components";
 import Footer from "@/components/layout/Footer";
 import { Outlet } from "react-router-dom";
+import { LoginCard } from "@/components/cards/LoginCard";
+import OnboardingCard from "@/components/cards/OnboardingCard";
+import { useAuthStore } from "@/store/AuthStore";
 
 export default function MainLayout(){
+  const { isLoginToggle, isAuthenticated, userExist } = useAuthStore();
     return (
         <div>
            <nav>
@@ -16,6 +20,9 @@ export default function MainLayout(){
            <footer>
             <Footer/>
            </footer>
+           {isLoginToggle && <LoginCard/>}
+           {isAuthenticated && userExist && isLoginToggle &&  <OnboardingCard/>}
+
 
         </div>
     );
