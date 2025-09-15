@@ -10,10 +10,9 @@ function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
   const lastName = apiCounselor.lastName || 'Counselor';
   const fullName = `${firstName} ${lastName}`;
   
-  // Handle image URL - if null, generate avatar
   const imageUrl = apiCounselor.photoUrlSmall || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=6B7280&color=ffffff&size=400`;
   
-  // Map working days from full names to short names
+
   const dayMapping: Record<string, string> = {
     'Monday': 'Mon',
     'Tuesday': 'Tue', 
@@ -27,22 +26,20 @@ function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
   const workingDays = apiCounselor.workingDays || [];
   const availability = workingDays.map(day => dayMapping[day] || day);
   
-  // Use languagesKnow from API
+
   const languages = apiCounselor.languagesKnow || ['English'];
   
-  // Create specialization from experience and languages
+
   const experience = apiCounselor.experience || '0';
   const experienceText = experience && experience !== '0' ? `${experience} Years Experience` : 'Entry Level';
   const languageText = languages.slice(0, 2).join(' | ');
   const specialization = [experienceText, languageText].filter(Boolean).join(' • ') || 'General Counselor';
-  
-  // Use ratePerYear from API for pricing
+
   const baseRate = apiCounselor.ratePerYear || 5000;
   
-  // Use city field for location
+
   const location = apiCounselor.city || "Location not specified";
   
-  // Use rating and numberOfRatings from API
   const rating = apiCounselor.rating || 4.0;
   const reviews = parseInt(apiCounselor.numberOfRatings || "0");
   
@@ -74,14 +71,14 @@ export default function CounselorListingPage() {
   const [selectedSort, setSelectedSort] = useState("popularity")
   const [citySearch, setCitySearch] = useState("")
 
-  // Filter states
+
   const [experienceFilters, setExperienceFilters] = useState<string[]>([])
   const [languageFilters, setLanguageFilters] = useState<string[]>([])
   const [cityFilters, setCityFilters] = useState<string[]>([])
   const [minPrice, setMinPrice] = useState("")
   const [maxPrice, setMaxPrice] = useState("")
 
-  // Toggle states for each section
+
   const [experienceToggle, setExperienceToggle] = useState(false)
   const [languageToggle, setLanguageToggle] = useState(false)
   const [cityToggle, setCityToggle] = useState(false)
@@ -101,7 +98,6 @@ export default function CounselorListingPage() {
     { id: 'senior', label: 'Senior Level', description: '3+ years' }
   ]
 
-  // Dynamic filter options based on actual API data
   const languageOptions = useMemo(() => {
     if (!counselors) return ['Hindi', 'English', 'Marathi', 'Kannada', 'Telugu', 'Tamil']
     const allLanguages = counselors.flatMap(c => c.languagesKnow || [])
@@ -115,7 +111,7 @@ export default function CounselorListingPage() {
   }, [counselors])
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-  // Update filter count whenever filters change
+
   useEffect(() => {
     const count = experienceFilters.length + 
                   languageFilters.length + 
@@ -126,7 +122,6 @@ export default function CounselorListingPage() {
     setFilterCount(count)
   }, [experienceFilters, languageFilters, cityFilters, selected, minPrice, maxPrice])
 
-  // Filter helper functions
   const toggleExperienceFilter = (experience: string) => {
     setExperienceFilters(prev => 
       prev.includes(experience) 
@@ -167,12 +162,11 @@ export default function CounselorListingPage() {
     setCitySearch("")
   }
 
-  // Apply filters and sorting
+
   const getFilteredAndSortedCounselors = () => {
     if (!counselors) return []
 
     const filtered = counselors.filter(counselor => {
-      // Experience filter
       if (experienceFilters.length > 0) {
         const experience = parseInt(counselor.experience || '0')
         const matchesExperience = experienceFilters.some(filter => {
@@ -184,24 +178,24 @@ export default function CounselorListingPage() {
         if (!matchesExperience) return false
       }
 
-      // Language filter - use languagesKnow field
+     
       if (languageFilters.length > 0) {
         const counselorLanguages = counselor.languagesKnow || ['English']
         if (!languageFilters.some(lang => counselorLanguages.includes(lang))) return false
       }
 
-      // City filter - use city field
+  
       if (cityFilters.length > 0) {
         const counselorCity = counselor.city || ''
         if (!cityFilters.includes(counselorCity) && counselorCity !== '') return false
       }
 
-      // Price filter - use ratePerYear field
+
       const counselorRate = counselor.ratePerYear || 5000
       if (minPrice && counselorRate < parseInt(minPrice)) return false
       if (maxPrice && counselorRate > parseInt(maxPrice)) return false
 
-      // Working days filter
+
       if (selected.length > 0) {
         const counselorDays = counselor.workingDays || []
         const dayMapping: Record<string, string> = {
@@ -216,7 +210,6 @@ export default function CounselorListingPage() {
       return true
     })
 
-    // Apply sorting
     const sorted = [...filtered]
     switch (selectedSort) {
       case 'price-low':
@@ -284,10 +277,10 @@ export default function CounselorListingPage() {
               </div>
             </div>
 
-          {/* Mobile Filter Modal */}
+          
           {mobileFilterOpen && (
             <div className="fixed inset-0 z-50 bg-gray-50 sm:hidden">
-              {/* Header */}
+              
               <div className="flex items-center justify-between p-4 border-b border-gray-200">
                 <h2 className="text-lg font-semibold text-[#232323]">Sort & Filters</h2>
                 <button
@@ -298,9 +291,9 @@ export default function CounselorListingPage() {
                 </button>
               </div>
 
-              {/* Content */}
+              
               <div className="flex-1 overflow-y-auto p-4 pb-20">
-                {/* Sort Section - Moved to front */}
+                
                 <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px] mb-3">
                   <h3 className="text-[#242645] font-medium">Sort By</h3>
                   <Select value={selectedSort} onValueChange={setSelectedSort}>
@@ -320,7 +313,7 @@ export default function CounselorListingPage() {
                 </div>
 
                 <div className="space-y-4">
-                {/* Experience Filter */}
+                
                 <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
                   <div className="flex justify-between text-[#242645]">
                     <p>Experience</p>
@@ -331,7 +324,7 @@ export default function CounselorListingPage() {
                   {experienceToggle && (
                     <div className="flex flex-col gap-[16px] text-[#232323]">
                       <hr className="h-px"/>
-                      {experienceOptions.map((option) => (
+                      {experienceOptions.slice(0, 7).map((option) => (
                         <div key={option.id} className="flex gap-2 items-center">
                           <input
                             type="checkbox"
@@ -349,7 +342,7 @@ export default function CounselorListingPage() {
                   )}
                 </div>
 
-                {/* Languages Filter */}
+                
                 <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
                   <div className="flex justify-between text-[#242645]">
                     <p>Languages</p>
@@ -360,7 +353,7 @@ export default function CounselorListingPage() {
                   {languageToggle && (
                     <div className="flex flex-col gap-[16px] text-[#232323]">
                       <hr className="h-px"/>
-                      {languageOptions.map((language) => (
+                      {languageOptions.slice(0, 7).map((language) => (
                         <div key={language} className="flex gap-2 items-center">
                           <input
                             type="checkbox"
@@ -375,7 +368,7 @@ export default function CounselorListingPage() {
                   )}
                 </div>
 
-                {/* City Filter */}
+                
                 <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
                   <div className="flex justify-between text-[#242645]">
                     <p>City</p>
@@ -398,6 +391,7 @@ export default function CounselorListingPage() {
                       </div>
                       {cityOptions
                         .filter(city => city && city.toLowerCase().includes(citySearch.toLowerCase()))
+                        .slice(0, citySearch ? cityOptions.length : 7)
                         .map((city) => (
                         <div key={city} className="flex gap-2 items-center">
                           <input
@@ -411,11 +405,14 @@ export default function CounselorListingPage() {
                       ))}
                       <hr className="h-px"/>
                       <p className="font-normal text-[14px]">{cityOptions.length} Cities</p>
+                      {!citySearch && cityOptions.length > 7 && (
+                        <p className="font-normal text-[12px] text-gray-500">Search to see more options</p>
+                      )}
                     </div>
                   )}
                 </div>
 
-                {/* Price Filter */}
+                
                 <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
                   <div className="flex justify-between text-[#242645]">
                     <p>Price</p>
@@ -456,7 +453,7 @@ export default function CounselorListingPage() {
                   )}
                 </div>
 
-                {/* Working Days Filter */}
+                
                 <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
                   <div className="flex justify-between text-[#242645]">
                     <p>Working Days</p>
@@ -491,7 +488,7 @@ export default function CounselorListingPage() {
                 </div>
               </div>
 
-              {/* Footer */}
+              
               <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
                 <div className="flex gap-3">
                   <button
@@ -511,7 +508,7 @@ export default function CounselorListingPage() {
             </div>
           )}
 
-          {/* Desktop filter section */}
+          
           <div className={`${mobileFilterOpen? 'flex': 'hidden'} lg:flex flex-col gap-6`}>
 
             <div className="flex justify-between w-full h-full max-w-[312px] max-h-[88px] 
@@ -536,7 +533,7 @@ export default function CounselorListingPage() {
              {experienceToggle && 
              <div className="flex flex-col gap-[16px] text-[#232323]">
               <hr  className="h-px"/>
-              {experienceOptions.map((option) => (
+              {experienceOptions.slice(0, 7).map((option) => (
                 <div key={option.id} className="flex gap-2 items-center">
                   <input 
                     type="checkbox" 
@@ -554,7 +551,7 @@ export default function CounselorListingPage() {
              }
             </div>
 
-            {/* languages */}
+            
             <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px]">
              <div className="flex justify-between text-[#242645]">
               <p>Languages</p>
@@ -565,7 +562,7 @@ export default function CounselorListingPage() {
              {languageToggle && 
              <div className="flex flex-col gap-[16px] text-[#232323]">
               <hr  className="h-px"/>
-              {languageOptions.map((language) => (
+              {languageOptions.slice(0, 7).map((language) => (
                 <div key={language} className="flex gap-2 items-center">
                   <input 
                     type="checkbox" 
@@ -580,7 +577,7 @@ export default function CounselorListingPage() {
              }
             </div>
 
-            {/* city  */}
+            
             <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px]">
              <div className="flex justify-between text-[#242645]">
               <p>City</p>
@@ -604,6 +601,7 @@ export default function CounselorListingPage() {
               </div>
               {cityOptions
                 .filter(city => city && city.toLowerCase().includes(citySearch.toLowerCase()))
+                .slice(0, citySearch ? cityOptions.length : 7)
                 .map((city) => (
                 <div key={city} className="flex gap-2 items-center">
                   <input 
@@ -618,11 +616,14 @@ export default function CounselorListingPage() {
 
               <hr className="h-px"/>
               <p className="font-normal text-[14px]">{cityOptions.length} Cities</p>
+              {!citySearch && cityOptions.length > 7 && (
+                <p className="font-normal text-[12px] text-gray-500">Search to see more options</p>
+              )}
              </div>
              }
             </div>
 
-            {/* price based */}
+            
             <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px]">
              <div className="flex justify-between text-[#242645]">
               <p>Price</p>
@@ -665,7 +666,7 @@ export default function CounselorListingPage() {
              }
             </div>
 
-            {/* working days */}
+            
             <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px]">
              <div className="flex justify-between text-[#242645]">
               <p>Working Days</p>
@@ -700,7 +701,7 @@ export default function CounselorListingPage() {
              }
             </div>
             
-            {/* Clear all button for desktop */}
+            
             <button
               onClick={clearAllFilters}
               className="w-full max-w-[312px] py-3 border border-gray-300 rounded-lg text-center font-medium text-gray-700 hover:bg-gray-50"
@@ -715,7 +716,7 @@ export default function CounselorListingPage() {
               <span className="text-[#8C8CA1] font-medium text-[14px] lg:text-[20px]">Filter counselor based on your needs.</span>
             </h1>
 
-            {/* Desktop Sort - Hidden on mobile */}
+            
             <div className="hidden sm:flex items-center gap-3">
               <p className="font-medium text-[16px] text-[#525055]">Sort By:</p>
 

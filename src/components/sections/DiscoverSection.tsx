@@ -1,5 +1,6 @@
 import { DiscoverCard, type DiscoverCardData } from "../cards/DiscoverCard";
 import { Badge } from "../ui";
+import { useNavigate } from "react-router-dom";
 
 const discoverItems: DiscoverCardData[] = [
   {
@@ -35,6 +36,27 @@ const discoverItems: DiscoverCardData[] = [
 export function DiscoverSection(){
   const firstItem = discoverItems[0];
   const otherItems = discoverItems.slice(1);
+  const navigate = useNavigate();
+
+  const handleDiscoverClick = (tag: string) => {
+    switch(tag.toLowerCase()) {
+      case 'counsellors':
+      case 'counselors':
+        navigate('/counselors');
+        break;
+      case 'colleges':
+        navigate('/colleges');
+        break;
+      case 'exams':
+        navigate('/exams');
+        break;
+      case 'courses':
+        navigate('/courses');
+        break;
+      default:
+        break;
+    }
+  };
 
   return(
     <section 
@@ -48,7 +70,10 @@ export function DiscoverSection(){
 
         {/* Mobile Layout - Your hardcoded version */}
         <div className="grid grid-cols-1 gap-3 lg:hidden">
-          <div className=" w-[335px] h-[99px] flex bg-[#FFFFFF] items-center rounded-[12px] gap-3 ">
+          <div 
+            className="w-[335px] h-[99px] flex bg-[#FFFFFF] items-center rounded-[12px] gap-3 cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => handleDiscoverClick('counselors')}
+          >
                 <img src="/discover-imageCounselor2.jpg" alt="counselor_discover" 
                 className="w-[98px] h-[91px] rounded-[12px] pl-1"
               />
@@ -61,7 +86,10 @@ export function DiscoverSection(){
               </div>
           </div>
 
-           <div className="h-[99px] flex justify-between bg-[#FFFFFF] rounded-[12px] p-0.5">
+           <div 
+             className="h-[99px] flex justify-between bg-[#FFFFFF] rounded-[12px] p-0.5 cursor-pointer hover:shadow-lg transition-shadow"
+             onClick={() => handleDiscoverClick('colleges')}
+           >
                 <div className="max-w-[198px] pl-2.5 ">
                 <Badge
                 className="text-[#13097D] bg-[#E7F0F9] px-2 py-0.5"
@@ -75,7 +103,10 @@ export function DiscoverSection(){
               />
           </div>
 
-          <div className="h-[99px] flex bg-[#FFFFFF] items-center rounded-[12px] gap-3">
+          <div 
+            className="h-[99px] flex bg-[#FFFFFF] items-center rounded-[12px] gap-3 cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => handleDiscoverClick('courses')}
+          >
               <img src="/discover-courses.jpg" alt="counselor_discover" 
                 className="w-[98px] h-[91px] rounded-[12px] pl-1"
               />
@@ -88,7 +119,10 @@ export function DiscoverSection(){
               </div>
           </div>
 
-          <div className="h-[99px] flex justify-between bg-[#FFFFFF] rounded-[12px] ">
+          <div 
+            className="h-[99px] flex justify-between bg-[#FFFFFF] rounded-[12px] cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => handleDiscoverClick('exams')}
+          >
                <div className="max-w-[198px]">
                 <Badge
                 className="text-[#13097D] bg-[#E7F0F9] py-0.5 px-2"
@@ -104,10 +138,18 @@ export function DiscoverSection(){
 
 
         <div className="hidden lg:grid lg:grid-cols-2 gap-4">
-          <DiscoverCard card={firstItem} hFull />
+          <DiscoverCard 
+            card={firstItem} 
+            hFull 
+            onClick={() => handleDiscoverClick(firstItem.tag)}
+          />
           <div className="flex flex-col gap-3">
             {otherItems.map((item, index) => (
-              <DiscoverCard key={index} card={item} />
+              <DiscoverCard 
+                key={index} 
+                card={item} 
+                onClick={() => handleDiscoverClick(item.tag)}
+              />
             ))}
           </div>
         </div>

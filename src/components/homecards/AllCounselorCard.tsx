@@ -26,6 +26,10 @@ export function AllCounselorCard({ counselor }: CounselorCardProps){
        src={imageUrl}
        alt={fullName}
        className="w-[146px] lg:w-[351px] h-[124px] lg:h-[299px] object-cover rounded-[4px] lg:rounded-[20px]"
+       onError={(e)=>{
+        e.currentTarget.onerror = null
+        e.currentTarget.src =`https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=6B7280&color=ffffff&size=400`
+       }}
        />
 
        <div>

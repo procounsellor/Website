@@ -11,16 +11,19 @@ export type DiscoverCardData = {
 type DiscoverCardProps = {
   card: DiscoverCardData;
   hFull?: boolean;
+  onClick?: () => void;
 };
 
-export function DiscoverCard({ card, hFull }: DiscoverCardProps){
+export function DiscoverCard({ card, hFull, onClick }: DiscoverCardProps){
   const isVertical = card.layout === "vertical";
   const cardFlexDirection = card.layout === "image-left" ? "sm:flex-row-reverse" : "sm:flex-row";
 
   return(
-    <Card className={`group p-2 sm:p-3 rounded-xl cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col ${
+    <Card 
+      className={`group p-2 sm:p-3 rounded-xl cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col ${
         !isVertical ? cardFlexDirection + " sm:items-center" : ""
       } ${hFull ? "h-full" : ""}`}
+      onClick={onClick}
     >
       <div className={`${isVertical ? "w-full mb-2" : "sm:w-1/3 flex-shrink-0 mb-2 sm:mb-0 sm:pl-2"}`}>
         <img
