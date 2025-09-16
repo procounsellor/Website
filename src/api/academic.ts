@@ -21,4 +21,5 @@ export const academicApi = {
   getCourses: () => fetcher<CourseApiResponse[]>(API_CONFIG.endpoints.getCourses),
   getCounsellors: () => fetcher<CounsellorApiResponse[]>(API_CONFIG.endpoints.getCounsellors),
   getAllCounsellors: () => fetcher<AllCounselor[]>(API_CONFIG.endpoints.getCounsellors), // Use same endpoint but expect new format
+  getCounselorById: (id: string) => fetcher<AllCounselor>(`${API_CONFIG.endpoints.getCounsellorById}?counsellorId=${id}`),
 };

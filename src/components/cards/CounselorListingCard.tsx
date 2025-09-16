@@ -1,4 +1,5 @@
 import { StarIcon, Bookmark, BadgeCheck, Briefcase, MapPin, Languages } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export type CounselorCardData = {
   id: string;
@@ -24,6 +25,7 @@ type CounselorCardProps = {
 
 export function CounselorCard({ counselor }: CounselorCardProps) {
   return (
+    <Link to={`/counselors/${counselor.id}`} className="flex h-full">
     <div className="flex w-full max-w-sm flex-col overflow-hidden rounded-lg cursor-pointer border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg">
       <div className="relative">
         <img
@@ -98,5 +100,6 @@ export function CounselorCard({ counselor }: CounselorCardProps) {
         </button>
       </div>
     </div>
+    </Link>
   );
 }

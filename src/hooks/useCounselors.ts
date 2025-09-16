@@ -104,3 +104,42 @@ export function useAllCounselors(limit?: number) {
 
   return { data, loading, error, refetch: () => window.location.reload() };
 }
+
+export function useCounselorById(counsellorId: string) {
+  const [counselor, setCounselor] = useState<AllCounselor | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!counsellorId) {
+        setLoading(false);
+        setError("Counselor ID is not provided.");
+        return;
+    };
+
+    const fetchCounselor = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const apiData = await academicApi.getCounselorById(counsellorId);
+        if (apiData) {
+            const transformedData = transformAllCounselorData(apiData);
+            setCounselor(transformedData);
+        } else {
+            setError('Counselor not found.');
+        }
+
+      } catch (err) {
+        console.error('Error fetching counselor:', err);
+        setError('Failed to load counselor data. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCounselor();
+  }, [counsellorId]);
+
+  return { counselor, loading, error };
+}
