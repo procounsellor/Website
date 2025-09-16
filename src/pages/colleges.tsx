@@ -4,6 +4,7 @@ import type { College } from "@/types/academic";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { ChevronDown, ChevronRight, Search, X } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
+import Pagination from "@/components/ui/Pagination";
 
 function adaptApiDataToCardData(apiCollege: College): CollegeCardData {
   return {
@@ -17,6 +18,8 @@ function adaptApiDataToCardData(apiCollege: College): CollegeCardData {
 
 export default function CollegesListingPage() {
   const { colleges, loading, error } = useColleges();
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 9;
 
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
@@ -57,6 +60,10 @@ export default function CollegesListingPage() {
     const allTypes = colleges.map(c => c.type).filter(Boolean) as string[]
     return [...new Set(allTypes)].sort()
   }, [colleges])
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [cityFilters, stateFilters, typeFilters]);
 
   useEffect(() => {
     const count = cityFilters.length + stateFilters.length + typeFilters.length
@@ -152,15 +159,28 @@ export default function CollegesListingPage() {
       return <p>No colleges found matching your filters.</p>;
     }
 
+    const totalPages = Math.ceil(filteredColleges.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const paginatedColleges = filteredColleges.slice(startIndex, endIndex);
+
     return (
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {filteredColleges.map((college) => (
-          <CollegeCard
-            key={college.id}
-            college={adaptApiDataToCardData(college)}
-          />
-        ))}
-      </div>
+      <>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {paginatedColleges.map((college) => (
+            <CollegeCard
+              key={college.id}
+              college={adaptApiDataToCardData(college)}
+            />
+          ))}
+        </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </>
     );
   };
 
