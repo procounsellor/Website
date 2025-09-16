@@ -19,12 +19,16 @@ export function CounselorCard({ counselor }: CounselorCardProps) {
     lg:h-[451px] p-3 transition-all duration-300 hover:translate-y-1 hover:shadow:xl
      bg-white shadow-[0px_0px_4px_0px_#23232340] rounded-[12px] lg:rounded-3xl"
      >
-  <img
-  src={imageUrl}
-  alt={fullName}
-  className="w-full max-w-[146px] lg:max-w-[351px] h-[124px] lg:h-[299px] object-cover rounded-[4px]
-  lg:rounded-[20px]"
-   />
+      <img
+      src={imageUrl}
+      alt={fullName}
+      className="w-full max-w-[146px] lg:max-w-[351px] h-[124px] lg:h-[299px] object-cover rounded-[4px]
+      lg:rounded-[20px]"
+      onError={(e)=>{
+        e.currentTarget.onerror = null
+        e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=6B7280&color=ffffff&size=400`
+      }}
+      />
 
        <div className="flex flex-col">
   <h1 className="text-[14px] lg:text-[28px] font-medium text-[#343C6A]">

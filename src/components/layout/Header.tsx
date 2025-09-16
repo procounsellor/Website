@@ -1,9 +1,9 @@
-import { SearchBar } from "./Searchbar";
+import { GlobalSearchBar } from "./GlobalSearchBar";
 import { useAuthStore } from "@/store/AuthStore";
 import { Button } from "../ui";
 import { User2, Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Header(){
     const {toggleLogin,isAuthenticated, logout} = useAuthStore()
@@ -12,6 +12,10 @@ export default function Header(){
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
     const searchBarRef = useRef(null)
     const navigate = useNavigate()
+    const location = useLocation()
+
+    // Check if we're on the home page
+    const isHomePage = location.pathname === '/'
 
     useEffect(() => {
         const onScroll = () => {
@@ -20,17 +24,26 @@ export default function Header(){
         };
 
         const handleHeroSearchBarVisibility = (event: CustomEvent) => {
-            setShowHeaderSearch(!event.detail.isVisible);
+            // Only show header search based on hero visibility if we're on home page
+            if (isHomePage) {
+                setShowHeaderSearch(!event.detail.isVisible);
+            }
         };
 
         window.addEventListener("scroll", onScroll);
-        window.addEventListener("heroSearchBarVisibility", handleHeroSearchBarVisibility as EventListener);
+        
+        if (isHomePage) {
+            window.addEventListener("heroSearchBarVisibility", handleHeroSearchBarVisibility as EventListener);
+        } else {
+            // Always show search on non-home pages
+            setShowHeaderSearch(true);
+        }
         
         return () => {
             window.removeEventListener("scroll", onScroll);
             window.removeEventListener("heroSearchBarVisibility", handleHeroSearchBarVisibility as EventListener);
         };
-    }, []);
+    }, [isHomePage]);
 
 
 
@@ -62,7 +75,7 @@ export default function Header(){
             : "opacity-0 -translate-y-6 scale-95 pointer-events-none"
         }`}
       >
-        <SearchBar onSearch={(query) => console.log('Search query:', query)} showBackdrop={true} />
+        <GlobalSearchBar showBackdrop={true} />
       </div>
 
       <div className="flex items-center gap-3">
@@ -109,13 +122,11 @@ export default function Header(){
           </button>
         </div>
         <div className="p-4">
-          <SearchBar 
-            onSearch={(query) => {
-              console.log('Mobile search query:', query);
-            }} 
+          <GlobalSearchBar 
             showBackdrop={false}
             autoFocus={true}
             className="text-[#F5F5F7]"
+            onClose={() => setMobileSearchOpen(false)}
           />
         </div>
       </div>
