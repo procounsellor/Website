@@ -2,7 +2,7 @@ import * as React from "react";
 import type { EmblaCarouselType } from "embla-carousel";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 import { CounselorCard } from "../homecards/CounselorCard";
 import { Button } from "@/components/ui/button";
@@ -87,7 +87,9 @@ export function CounselorSection() {
           counselors?.map((counselor) => (
             <div key={counselor.counsellorId}
             className="flex-shrink-0 w-[170px] lg:w-[282px] ">
-              <CounselorCard counselor={counselor}/>
+              <Link to={`/counselors/${counselor.counsellorId}`} className="block">
+                <CounselorCard counselor={counselor}/>
+              </Link>
             </div>
           ))
           }

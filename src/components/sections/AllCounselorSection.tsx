@@ -7,7 +7,7 @@ import { AllCounselorCard } from "../homecards/AllCounselorCard";
 import { Button } from "@/components/ui/button";
 import { useAllCounselors } from "../../hooks/useCounselors";
 import { AllCounselorCardSkeleton } from "../skeletons/CounselorSkeletons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 export function AllCounselorSection() {
   const navigate = useNavigate();
@@ -153,7 +153,9 @@ export function AllCounselorSection() {
                   key={counselor.counsellorId}
                   className="flex-shrink-0 w-[170px] lg:w-[282px]"
                 >
-                  <AllCounselorCard counselor={counselor} />
+                  <Link to={`/counselors/${counselor.counsellorId}`} className="block">
+                    <AllCounselorCard counselor={counselor} />
+                  </Link>
                 </div>
               ))}
             </div>
