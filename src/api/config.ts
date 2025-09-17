@@ -3,6 +3,7 @@ export const API_CONFIG = {
   authUrl: import.meta.env.VITE_API_AUTH_URL,
   endpoints: {
     getCounsellors: '/api/shared/getAllCounsellors',
+    getCounsellorById: '/api/shared/getCounsellorById',
     getExams: '/api/exams/all',
     getCourses: '/api/courses/all',
     getColleges: '/api/colleges/all',
