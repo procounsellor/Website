@@ -63,7 +63,7 @@ export function DiscoverSection(){
         className="w-full py-8"
         style={{background: "linear-gradient(180deg, rgba(236,128,61,0.1) 0%, rgba(236,128,61,0.02) 100%)"}}
         >
-      <div className="max-w-[1192px] mx-auto pl-5 pr-5 lg:px-0">
+      <div className="max-w-[1200px] mx-auto pl-5 pr-5 lg:px-0">
         <h2 className="text-3xl lg:text-4xl font-bold text-black mb-8">
           Discover
         </h2>

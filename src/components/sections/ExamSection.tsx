@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useExams } from "../../hooks/useExams";
 
 export function ExamSection() {
-  const { exams, loading, error } = useExams(6); 
+  const { exams, loading, error } = useExams(8); 
   const navigate = useNavigate();
   
   const autoplay = React.useRef(
@@ -74,7 +74,7 @@ export function ExamSection() {
 
   return (
     <section className="w-full bg-[#F5F5F7] py-6">
-      <div className="max-w-[1192px] mx-auto pl-5  lg:px-0">
+      <div className="max-w-[1200px] mx-auto pl-5  lg:px-0">
         <div className="mb-8 flex items-center pr-5 justify-between">
           <h2 className="font-semibold text-[16px] lg:text-[28px]">
             Exams
@@ -95,7 +95,7 @@ export function ExamSection() {
             <div className="flex gap-3 px-3 lg:px-6 lg:gap-6">
               {exams.map((exam)=>(
                 <div key={exam.id}
-                className="flex-shrink-0 w-[170px] lg:w-[380px]"
+                className="flex-shrink-0 w-[170px] lg:w-[282px]"
                 onClick={()=> handleExamClick(exam.id)}
                 >
                   <AcademicCard
@@ -110,18 +110,23 @@ export function ExamSection() {
             </div>
           </div>
         </div>
-        {/* LoginCard-style 3 dots pattern */}
-        <div className="flex justify-center mt-8 gap-2">
-          {Array.from({ length: Math.min(3, Math.ceil(Math.min(6, exams.length) / 2)) }, (_, index) => (
-            <button
-              key={index}
-              onClick={() => emblaApi && emblaApi.scrollTo(index * 2)}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                Math.floor(selectedIndex / 2) === index ? 'w-6 bg-[#13097D]' : 'w-2 bg-gray-400'
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
+
+        <div className="flex justify-center mt-6 gap-2">
+          {Array.from(
+            { length: Math.ceil((exams?.length || 0) / 2) },
+            (_, index) => (
+              <button
+                key={index}
+                onClick={() => emblaApi && emblaApi.scrollTo(index * 2)}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  Math.floor(selectedIndex / 2) === index
+                    ? "w-6 bg-[#13097D]"
+                    : "w-2 bg-gray-400"
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            )
+          )}
         </div>
       </div>
     </section>

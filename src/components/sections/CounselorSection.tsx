@@ -10,7 +10,7 @@ import { useAllCounselors } from "../../hooks/useCounselors";
 import { AllCounselorCardSkeleton } from "../skeletons/CounselorSkeletons";
 
 export function CounselorSection() {
-  const { data: counselors = [], loading } = useAllCounselors(6);
+  const { data: counselors = [], loading } = useAllCounselors(8);
   const navigate = useNavigate();
 
   const autoplay = React.useRef(
@@ -42,7 +42,7 @@ export function CounselorSection() {
 
   return (
     <section className="bg-[#F5F5F7] py-6">
-      <div className="max-w-[1192px] mx-auto pl-5 lg:px-0">
+      <div className="max-w-[1200px] mx-auto pl-5 lg:px-0">
         <div className="flex justify-between items-center pr-5">
           <p className="font-semibold text-[16px] lg:text-[28px]">
             Get Started Today
@@ -76,7 +76,7 @@ export function CounselorSection() {
 
 
         <div className="relative mt-8">
-          <div className="overflow-hidden" ref={emblaRef}>
+          <div className="overflow-x-hidden" ref={emblaRef}>
           <div className="flex px-3 gap-3 lg:gap-6 lg:px-6 ">
           {loading ?
           [...Array(6)].map((_, idx )=>(
@@ -86,7 +86,7 @@ export function CounselorSection() {
           )):
           counselors?.map((counselor) => (
             <div key={counselor.counsellorId}
-            className="flex-shrink-0 w-[170px] lg:w-[380px] ">
+            className="flex-shrink-0 w-[170px] lg:w-[282px] ">
               <CounselorCard counselor={counselor}/>
             </div>
           ))
