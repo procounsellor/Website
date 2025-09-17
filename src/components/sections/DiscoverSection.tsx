@@ -15,21 +15,21 @@ const discoverItems: DiscoverCardData[] = [
     title: "Explore top colleges and universities",
     description: "Discover institutions that match your career goals.",
     imageUrl: "/discover-iit-roorkee.jpg",
-    layout: "image-right",
+    layout: "image-left",
   },
   {
     tag: "Exams",
     title: "Prepare for your upcoming entrance exams",
     description: "Access resources and strategies to top your exams.",
     imageUrl: "/discover-exam.jpg",
-    layout: "image-left",
+    layout: "image-right",
   },
   {
     tag: "Courses",
     title: "Discover courses that align with your passion",
     description: "Browse a wide range of courses to skill up and advance.",
     imageUrl: "/discover-courses.jpg",
-    layout: "image-right",
+    layout: "image-left",
   },
 ]
 
@@ -63,15 +63,15 @@ export function DiscoverSection(){
         className="w-full py-8"
         style={{background: "linear-gradient(180deg, rgba(236,128,61,0.1) 0%, rgba(236,128,61,0.02) 100%)"}}
         >
-      <div className="max-w-[1192px] mx-auto pl-5 pr-5 lg:px-0">
-        <h2 className="text-3xl lg:text-4xl font-bold text-black mb-8">
+      <div className="max-w-[1200px] mx-auto px-5 lg:rounded-[20px] lg:p-10 lg:px-10">
+        <h2 className="text-3xl lg:text-2xl font-semibold text-black mb-8">
           Discover
         </h2>
 
         {/* Mobile Layout - Your hardcoded version */}
         <div className="grid grid-cols-1 gap-3 lg:hidden">
           <div 
-            className="w-[335px] h-[99px] flex bg-[#FFFFFF] items-center rounded-[12px] gap-3 cursor-pointer hover:shadow-lg transition-shadow"
+            className="w-full h-[99px] flex bg-[#FFFFFF] items-center rounded-[12px] gap-3 cursor-pointer hover:shadow-lg transition-shadow"
             onClick={() => handleDiscoverClick('counselors')}
           >
                 <img src="/discover-imageCounselor2.jpg" alt="counselor_discover" 
@@ -137,13 +137,15 @@ export function DiscoverSection(){
         </div>
 
 
-        <div className="hidden lg:grid lg:grid-cols-2 gap-4">
-          <DiscoverCard 
-            card={firstItem} 
-            hFull 
-            onClick={() => handleDiscoverClick(firstItem.tag)}
-          />
-          <div className="flex flex-col gap-3">
+        <div className="hidden lg:grid lg:grid-cols-5 gap-8">
+          <div className="lg:col-span-2">
+            <DiscoverCard 
+              card={firstItem} 
+              hFull
+              onClick={() => handleDiscoverClick(firstItem.tag)}
+            />
+          </div>
+          <div className="lg:col-span-3 flex flex-col gap-4 justify-between">
             {otherItems.map((item, index) => (
               <DiscoverCard 
                 key={index} 
