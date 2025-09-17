@@ -13,7 +13,7 @@ import { AcademicCard } from "../homecards";
 
 
 export function CourseSection() {
-  const { courses, loading, error } = useCourses(6);
+  const { courses, loading, error } = useCourses(8);
   const navigate = useNavigate();
   const autoplay = React.useRef(
     Autoplay({ delay: 3000, stopOnInteraction: true, stopOnMouseEnter: true })
@@ -58,7 +58,7 @@ export function CourseSection() {
           minHeight: '589px'
         }}
       >
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-[1200px] mx-auto">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FA660F] mx-auto mb-4"></div>
@@ -95,7 +95,7 @@ export function CourseSection() {
       className="w-full py-6"
       style={{ background: "#FFFFFF" }}
     >
-      <div className="max-w-[1192px] mx-auto pl-5  lg:px-0">
+      <div className="max-w-[1200px] mx-auto pl-5  lg:px-0">
         <div className="mb-8 flex items-center pr-5 justify-between">
           <h2 className="font-semibold text-[16px] lg:text-[28px]">
             Courses
@@ -115,7 +115,7 @@ export function CourseSection() {
             <div className="flex gap-3 px-3 lg:px-6 lg:gap-6 py-1">
               {courses.map((course)=>(
                 <div key={course.id}
-                className="flex-shrink-0 w-[170px] lg:w-[380px]"
+                className="flex-shrink-0 w-[170px] lg:w-[282px]"
                 onClick={()=> handleCourseClick(course.id)}
                 >
                   <AcademicCard
@@ -130,18 +130,23 @@ export function CourseSection() {
             </div>
           </div>
         </div>
-        {/* LoginCard-style 3 dots pattern */}
-        <div className="flex justify-center mt-8 gap-2">
-          {Array.from({ length: Math.min(3, Math.ceil(Math.min(6, courses.length) / 2)) }, (_, index) => (
-            <button
-              key={index}
-              onClick={() => emblaApi && emblaApi.scrollTo(index * 2)}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                Math.floor(selectedIndex / 2) === index ? 'w-6 bg-[#13097D]' : 'w-2 bg-gray-400'
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
+
+        <div className="flex justify-center mt-6 gap-2">
+          {Array.from(
+            { length: Math.ceil((courses?.length || 0) / 2) },
+            (_, index) => (
+              <button
+                key={index}
+                onClick={() => emblaApi && emblaApi.scrollTo(index * 2)}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  Math.floor(selectedIndex / 2) === index
+                    ? "w-6 bg-[#13097D]"
+                    : "w-2 bg-gray-400"
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            )
+          )}
         </div>
       </div>
     </section>
