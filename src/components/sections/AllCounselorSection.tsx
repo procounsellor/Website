@@ -7,11 +7,11 @@ import { AllCounselorCard } from "../homecards/AllCounselorCard";
 import { Button } from "@/components/ui/button";
 import { useAllCounselors } from "../../hooks/useCounselors";
 import { AllCounselorCardSkeleton } from "../skeletons/CounselorSkeletons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 export function AllCounselorSection() {
   const navigate = useNavigate();
-  const { data: counselors, loading, error, refetch } = useAllCounselors(6);
+  const { data: counselors, loading, error, refetch } = useAllCounselors(8);
 
   const autoplay = React.useRef(
     Autoplay({ delay: 3000, stopOnInteraction: true, stopOnMouseEnter: true })
@@ -49,7 +49,7 @@ export function AllCounselorSection() {
           minHeight: '589px'
         }}
       >
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-[1200px] mx-auto">
           <div className="mb-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
@@ -93,7 +93,7 @@ export function AllCounselorSection() {
           minHeight: '589px'
         }}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-center">
+        <div className="max-w-[1200px] mx-auto flex items-center justify-center">
           <div className="text-center">
             <p className="text-red-600 mb-4">{error}</p>
             <Button 
@@ -129,7 +129,7 @@ export function AllCounselorSection() {
       className="w-full py-6"
       style={{ background: "#F5F5F7" }}
     >
-      <div className="max-w-[1192px] mx-auto pl-5  lg:px-0">
+      <div className="max-w-[1200px] mx-auto pl-5  lg:px-0">
         <div className="mb-8 flex items-center pr-5 justify-between">
             <h2 className="font-semibold text-[16px] lg:text-[28px]">
               Counsellors
@@ -151,28 +151,37 @@ export function AllCounselorSection() {
               {counselors.map((counselor) => (
                 <div
                   key={counselor.counsellorId}
-                  className="flex-shrink-0 w-[170px] lg:w-[380px]"
+                  className="flex-shrink-0 w-[170px] lg:w-[282px]"
                 >
-                  <AllCounselorCard counselor={counselor} />
+                  <Link to={`/counselors/${counselor.counsellorId}`} className="block">
+                    <AllCounselorCard counselor={counselor} />
+                  </Link>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* LoginCard-style 3 dots pattern */}
-        <div className="flex justify-center mt-8 gap-2">
-          {Array.from({ length: Math.min(3, Math.ceil(Math.min(6, counselors.length) / 2)) }, (_, index) => (
-            <button
-              key={index}
-              onClick={() => emblaApi && emblaApi.scrollTo(index * 2)}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                Math.floor(selectedIndex / 2) === index ? 'w-6 bg-[#13097D]' : 'w-2 bg-gray-400'
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
+
+        <div className="flex justify-center mt-6 gap-2">
+          {Array.from(
+            { length: Math.ceil((counselors?.length || 0) / 2) },
+            (_, index) => (
+              <button
+                key={index}
+                onClick={() => emblaApi && emblaApi.scrollTo(index * 2)}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  Math.floor(selectedIndex / 2) === index
+                    ? "w-6 bg-[#13097D]"
+                    : "w-2 bg-gray-400"
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            )
+          )}
         </div>
+
+
       </div>
     </section>
   );
