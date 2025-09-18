@@ -16,7 +16,7 @@ export function CounselorCard({ counselor }: CounselorCardProps) {
   return (
     <div 
     className="flex flex-col gap-3  w-[170px] lg:w-[282px] h-[222px]
-    lg:h-[366px] p-[10px] transition-all duration-300  hover:shadow-2xl
+    lg:h-[366px] p-[10px] transition-all duration-300  hover:shadow-lg
      bg-white shadow-[0px_0px_4px_0px_#23232340] rounded-[12px] lg:rounded-[20px]"
      >
   <img

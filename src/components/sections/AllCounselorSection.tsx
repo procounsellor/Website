@@ -146,7 +146,7 @@ export function AllCounselorSection() {
         </div>
 
         <div className="relative">
-          <div className="overflow-hidden" ref={emblaRef}>
+          <div className="overflow-x-hidden py-4 px-0.5" ref={emblaRef}>
             <div className="flex gap-3 px-3 lg:px-6 lg:gap-6">
               {counselors.map((counselor) => (
                 <div

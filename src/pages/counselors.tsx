@@ -126,6 +126,10 @@ export default function CounselorListingPage() {
     setCurrentPage(1);
   }, [experienceFilters, languageFilters, cityFilters, selected, minPrice, maxPrice])
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPage]);
+
   const toggleExperienceFilter = (experience: string) => {
     setExperienceFilters(prev => 
       prev.includes(experience) 

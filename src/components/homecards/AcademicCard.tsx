@@ -28,7 +28,7 @@ export function AcademicCard({
       className={`flex flex-col justify-start items-center w-[170px] lg:w-[282px]  bg-white ${mh? mh : 'h-[222px]'}
       ${dh? dh :'lg:h-[353px]'}
       shadow-[0px_0px_4px_0px_#23232340] rounded-[12px] lg:rounded-[20px] transition-all duration-300 
-      hover:shadow-xl p-[10px] gap-3 relative overflow-hidden`}
+      hover:shadow-lg p-[10px] gap-3 relative overflow-hidden`}
     >
       <div className="relative w-[146px] lg:w-[262px] h-[139px] lg:h-[248px] flex-shrink-0">
         <img

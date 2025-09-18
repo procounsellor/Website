@@ -76,7 +76,7 @@ export function CounselorSection() {
 
 
         <div className="relative mt-8">
-          <div className="overflow-x-hidden" ref={emblaRef}>
+          <div className="overflow-x-hidden px-0.5 py-4" ref={emblaRef}>
           <div className="flex px-3 gap-3 lg:gap-6 lg:px-6 ">
           {loading ?
           [...Array(6)].map((_, idx )=>(

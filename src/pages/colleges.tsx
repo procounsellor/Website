@@ -70,6 +70,10 @@ export default function CollegesListingPage() {
     setFilterCount(count)
   }, [cityFilters, stateFilters, typeFilters])
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPage]);
+
   const toggleCityFilter = (city: string) => {
     setCityFilters(prev => 
       prev.includes(city) 
