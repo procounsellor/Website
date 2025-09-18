@@ -19,7 +19,7 @@ export function AllCounselorCard({ counselor }: CounselorCardProps){
 
   return (
     <div
-    className="flex flex-col w-[170px] lg:w-[282px] h-[267px] lg:h-[444px] bg-white shadow-[0px_0px_4px _px_#23232340] rounded-[12px] 
+    className="flex flex-col w-[170px] lg:w-[282px] h-[267px] lg:h-[444px] hover:shadow-lg transition-all duration-300 bg-white shadow-[0px_0px_4px _px_#23232340] rounded-[12px] 
     lg:rounded-[20px] p-[10px] gap-1"
     >
       <img

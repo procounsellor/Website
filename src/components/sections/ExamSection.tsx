@@ -91,7 +91,7 @@ export function ExamSection() {
 
 
         <div className="relative mt-2 lg:mt-8">
-          <div className="overflow-hidden" ref={emblaRef}>
+          <div className="overflow-x-hidden px-0.5 py-4" ref={emblaRef}>
             <div className="flex gap-3 px-3 lg:px-6 lg:gap-6">
               {exams.map((exam)=>(
                 <div key={exam.id}

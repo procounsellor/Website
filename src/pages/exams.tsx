@@ -99,6 +99,10 @@ export default function ExamsListingPage() {
     setFilterCount(count)
   }, [levelFilters, typeFilters, examFilters])
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPage]);
+
   const toggleLevelFilter = (level: string) => {
     setLevelFilters(prev => 
       prev.includes(level) 
