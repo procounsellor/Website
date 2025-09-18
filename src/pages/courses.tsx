@@ -93,6 +93,10 @@ export default function CoursesListingPage() {
     setFilterCount(count)
   }, [durationFilters, typeFilters, levelFilters, courseFilters])
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPage]);
+
   const toggleDurationFilter = (duration: string) => {
     setDurationFilters(prev => 
       prev.includes(duration) 
