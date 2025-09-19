@@ -226,6 +226,24 @@ export interface Timestamp {
   nanos: number;
 }
 
+// Slot system types
+export interface TimeSlot {
+  time: string;
+  available: boolean;
+  slotId?: string;
+}
+
+export interface SlotSection {
+  title: string;
+  slots: TimeSlot[];
+}
+
+export interface CounselorNonAvailability {
+  // Add properties based on API response structure
+  // This will be updated once we know the exact response format
+  [key: string]: unknown;
+}
+
 
 export interface Counselor {
   id: string;

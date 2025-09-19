@@ -4,6 +4,8 @@ export const API_CONFIG = {
   endpoints: {
     getCounsellors: '/api/shared/getAllCounsellors',
     getCounsellorById: '/api/shared/getCounsellorById',
+    getCounsellorNonAvailability: '/api/user/counsellorNonAvailability',
+    bookAppointment: '/api/user/book',
     getExams: '/api/exams/all',
     getCourses: '/api/courses/all',
     getColleges: '/api/colleges/all',
