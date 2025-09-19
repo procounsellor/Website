@@ -16,7 +16,12 @@ export function CourseSection() {
   const { courses, loading, error } = useCourses(8);
   const navigate = useNavigate();
   const autoplay = React.useRef(
-    Autoplay({ delay: 3000, stopOnInteraction: true, stopOnMouseEnter: true })
+    Autoplay({ 
+      delay: 3000, 
+      stopOnInteraction: false, 
+      stopOnMouseEnter: true,
+      stopOnLastSnap: false
+    })
   );
 
   const [emblaRef, emblaApi] = useEmblaCarousel(

@@ -1,6 +1,22 @@
 import { Flame } from 'lucide-react';
+import { useState, type JSX } from 'react';
+import AppointmentCard from '../appointment-cards/AppointmentCard';
+import type { CounselorDetails } from '@/types/academic';
 
-export function FreeCareerAssessmentCard() {
+interface Props{
+  counselor: CounselorDetails
+}
+
+export function FreeCareerAssessmentCard({counselor}:Props):JSX.Element {
+  const [booking, setBooking] = useState(false)
+
+ if(booking){
+  return <div>
+    <AppointmentCard counselor={counselor}/>
+  </div>
+ }
+
+  
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 text-center">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
@@ -10,7 +26,7 @@ export function FreeCareerAssessmentCard() {
             </span>
         </div>
         <p className="text-[#232323] mt-1 font-medium text-sm text-left">30-minute discovery session</p>
-        <button className="mt-4 w-full bg-[#FA660F] text-white font-semibold py-2.5 rounded-lg hover:bg-orange-600 transition-colors">
+        <button onClick={()=>setBooking(true)} className="mt-4 w-full bg-[#FA660F] text-white font-semibold py-2.5 rounded-lg hover:bg-orange-600 transition-colors">
             Book Appointment Now
         </button>
         <p className="text-xs text-[#3537B4] mt-2">Discover the approach to a brighter future</p>

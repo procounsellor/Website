@@ -119,6 +119,113 @@ export interface CounsellorApiResponse {
   numberOfRatings: string;
 }
 
+// Comprehensive type for detailed counselor data (getCounselorById)
+export interface CounselorDetails {
+  userName: string;
+  role: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  description: string;
+  email: string;
+  walletAmount: number;
+  transactions: Transaction[];
+  bankDetails: unknown | null;
+  photoUrl: string;
+  photoUrlSmall: string;
+  password: string;
+  organisationName: string;
+  experience: string;
+  activityLog: ActivityLog[];
+  callHistory: unknown | null;
+  stateOfCounsellor: string[];
+  chatIdsCreatedForCounsellor: ChatId[];
+  ratePerYear: number;
+  plusAmount: number;
+  proAmount: number;
+  eliteAmount: number;
+  ratePerMinute: number | null;
+  expertise: string[];
+  noOfClients: number | null;
+  noOfFollowers: number | null;
+  clients: Client[];
+  followerIds: string[] | null;
+  rating: number;
+  languagesKnow: string[];
+  reviewIds: string[];
+  minuteSpendOnCall: number | null;
+  minuteSpendOnVideoCall: number | null;
+  state: string | null;
+  fcmToken: string;
+  voipToken: string | null;
+  platform: string;
+  currectCallUUID: string | null;
+  workingDays: string[];
+  officeStartTime: string;
+  officeEndTime: string;
+  fullOfficeAddress: OfficeAddress;
+  phoneOtpVerified: boolean;
+  emailOtpVerified: boolean;
+  appointmentIds: string[];
+  notesForCounsellorRelatedToUser: Record<string, unknown> | null;
+  plusSeats: string;
+  proSeats: string;
+  eliteSeats: string;
+  dateCreated: Timestamp | null;
+  lastDateAndTimeModified: Timestamp;
+  lastLoginDateAndTime: Timestamp;
+  verified: boolean;
+}
+
+export interface Transaction {
+  type: string;
+  amount: number;
+  timestamp: number;
+  description: string;
+  paymentId: string;
+  counsellorId: string;
+  userId: string;
+  method: string;
+  status: string;
+}
+
+export interface ActivityLog {
+  activity: string;
+  timestamp: Timestamp;
+  id: string;
+  photo: string | null;
+  activityType: string;
+  activitySenderId: string;
+  activitySenderRole: string;
+}
+
+export interface ChatId {
+  user1: string;
+  user2: string;
+  chatId: string;
+}
+
+export interface Client {
+  userId: string;
+  plan: string;
+  subscriptionMode: string;
+}
+
+export interface OfficeAddress {
+  role: string | null;
+  officeNameFloorBuildingAndArea: string | null;
+  city: string;
+  state: string | null;
+  pinCode: string | null;
+  latCoordinate: number | null;
+  longCoordinate: number | null;
+}
+
+export interface Timestamp {
+  seconds: number;
+  nanos: number;
+}
+
 
 export interface Counselor {
   id: string;
