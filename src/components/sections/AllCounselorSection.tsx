@@ -14,7 +14,12 @@ export function AllCounselorSection() {
   const { data: counselors, loading, error, refetch } = useAllCounselors(8);
 
   const autoplay = React.useRef(
-    Autoplay({ delay: 3000, stopOnInteraction: true, stopOnMouseEnter: true })
+    Autoplay({ 
+      delay: 3000, 
+      stopOnInteraction: false, 
+      stopOnMouseEnter: true,
+      stopOnLastSnap: false
+    })
   );
 
   const [emblaRef, emblaApi] = useEmblaCarousel(

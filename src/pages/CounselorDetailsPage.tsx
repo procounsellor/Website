@@ -46,7 +46,7 @@ export default function CounselorDetailsPage() {
 
         {/* Right Column */}
         <div className="lg:col-span-1 flex flex-col gap-8">
-          <FreeCareerAssessmentCard />
+          <FreeCareerAssessmentCard  counselor={counselor}/>
           <FeaturedCollegesCard />
         </div>
 

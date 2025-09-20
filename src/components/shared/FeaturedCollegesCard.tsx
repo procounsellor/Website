@@ -7,7 +7,7 @@ function CollegeItem({ name, courses, city, logoUrl }: { name: string; courses: 
                 <img src={logoUrl} alt={name} className="w-34 h-30 object-cover rounded-xl" />
                 <span className="absolute top-2 right-2 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded-full">UG</span>
             </div>
-            <div className="flex flex-col text-center justify-center">
+            <div className="flex flex-col text-left justify-center">
                 <h4 className="font-semibold text-[#343C6A] leading-tight mb-1">{name}</h4>
                 <a href="#" className="text-sm text-[#718EBF] mt-1 underline mb-1">{courses} Courses</a>
                 <p className="text-sm text-[#232323] mb-1">{city}</p>

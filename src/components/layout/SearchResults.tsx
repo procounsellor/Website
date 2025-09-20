@@ -26,8 +26,31 @@ export function SearchResults({ onResultClick }: SearchResultsProps) {
   const navigate = useNavigate();
 
   const handleResultClick = (result: SearchResult) => {
-    const baseRoute = result.type === 'counselor' ? '/counselors' : `/${result.type}s`;
-    navigate(baseRoute);
+    // Navigate to detail pages with specific IDs
+    switch(result.type) {
+      case 'counselor': {
+        navigate(`/counselors/${result.id}`);
+        break;
+      }
+      case 'college': {
+        navigate(`/colleges/${result.id}`);
+        break;
+      }
+      case 'course': {
+        navigate(`/courses/${result.id}`);
+        break;
+      }
+      case 'exam': {
+        navigate(`/exams/${result.id}`);
+        break;
+      }
+      default: {
+        // Fallback to listing page
+        const baseRoute = result.type === 'counselor' ? '/counselors' : `/${result.type}s`;
+        navigate(baseRoute);
+        break;
+      }
+    }
     onResultClick?.();
   };
 

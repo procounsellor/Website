@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { SearchBar } from './Searchbar';
+import { GlobalSearchBar } from './GlobalSearchBar';
 
 const Hero = () => {
   const searchBarRef = useRef<HTMLDivElement>(null);
@@ -42,7 +42,7 @@ const Hero = () => {
 
           </div>
           <div ref={searchBarRef} className='w-full max-w-56 lg:max-w-lg text-[8px] lg:text-[16px] font-medium lg:font'>
-            <SearchBar onSearch={(query)=>console.log(query)}/>
+            <GlobalSearchBar showBackdrop={true} />
           </div>
         </div>
 

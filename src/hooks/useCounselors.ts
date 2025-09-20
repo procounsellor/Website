@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { academicApi } from '@/api/academic';
-import type { Counselor, AllCounselor, CounsellorApiResponse } from '@/types/academic';
+import type { Counselor, AllCounselor, CounsellorApiResponse, CounselorDetails } from '@/types/academic';
 
 
 function transformCounselorData(apiData: CounsellorApiResponse): Counselor {
@@ -106,7 +106,7 @@ export function useAllCounselors(limit?: number) {
 }
 
 export function useCounselorById(counsellorId: string) {
-  const [counselor, setCounselor] = useState<AllCounselor | null>(null);
+  const [counselor, setCounselor] = useState<CounselorDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -124,8 +124,7 @@ export function useCounselorById(counsellorId: string) {
 
         const apiData = await academicApi.getCounselorById(counsellorId);
         if (apiData) {
-            const transformedData = transformAllCounselorData(apiData);
-            setCounselor(transformedData);
+            setCounselor(apiData);
         } else {
             setError('Counselor not found.');
         }

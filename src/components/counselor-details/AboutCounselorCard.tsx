@@ -1,15 +1,15 @@
-import type { AllCounselor } from '@/types/academic';
+import type { CounselorDetails } from '@/types/academic';
 import { Star } from 'lucide-react';
 
 type Props = {
-  counselor: AllCounselor;
+  counselor: CounselorDetails;
 };
 
 const specializations = [ "Career Guidance", "College Admission", "Study Abroad", "Profile Building", "Exam Strategy", "Interview Prep" ];
 
 export function AboutCounselorCard({ counselor }: Props) {
   const rating = counselor.rating || 0;
-  const reviewCount = parseInt(counselor.numberOfRatings || '0');
+  const reviewCount = counselor.reviewIds?.length || 0;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
@@ -21,15 +21,15 @@ export function AboutCounselorCard({ counselor }: Props) {
                 <span className="text-xs text-yellow-700">({reviewCount})</span>
             </div>
         </div>
-        <p className="text-[#718EBF] mt-2">From XYZ Organisation, {counselor.city} Office</p>
+        <p className="text-[#718EBF] mt-2">From {counselor.organisationName}, {counselor.fullOfficeAddress?.city || 'Location'} Office</p>
         <p className="mt-4 text-[#232323] font-medium leading-relaxed">
-            Lorem ipsum dolor sit amet consectetur. Lectus q uam egestas ut odio. Condimentum rutrum a tempor netus volutpat. Duis laoreet commodo venena. This is placeholder text about the counselor's background and expertise.
+            {counselor.description || 'Lorem ipsum dolor sit amet consectetur. Lectus quam egestas ut odio. Condimentum rutrum a tempor netus volutpat. Duis laoreet commodo venena. This is placeholder text about the counselor\'s background and expertise.'}
         </p>
 
         <div className="mt-6 bg-[#F5F5F5] p-4 rounded-lg">
             <h3 className="font-semibold text-[#343C6A]">Career Specialisation</h3>
             <div className="flex flex-wrap gap-2 mt-3">
-                {specializations.map(spec => (
+                {(counselor.expertise.length > 0 ? counselor.expertise : specializations).map(spec => (
                     <span key={spec} className="px-3 py-1 text-sm font-medium bg-white text-[#343C6A] border border-gray-200 rounded-md">
                         {spec}
                     </span>

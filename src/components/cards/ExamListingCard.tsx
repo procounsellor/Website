@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export type ExamCardData = {
   id: string;
   name: string;
@@ -12,6 +14,7 @@ type ExamCardProps = {
 
 export function ExamCard({ exam }: ExamCardProps) {
   return (
+    <Link to={`/exams/${exam.id}`} className="flex h-full">
     <div className="flex w-full max-w-sm flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg">
       <div className="relative">
         <img
@@ -38,5 +41,6 @@ export function ExamCard({ exam }: ExamCardProps) {
         </div>
       </div>
     </div>
+    </Link>
   );
 }

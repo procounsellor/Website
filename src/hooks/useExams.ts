@@ -40,3 +40,28 @@ export const useExams = (limit?: number) => {
 
   return { exams, loading, error };
 };
+
+export const useExamById = (examId: string) => {
+  const [exam, setExam] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!examId) return;
+    const fetchExam = async () => {
+      try {
+        setLoading(true);
+        const data = await academicApi.getExamById(examId);
+        setExam(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch exam details');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExam();
+  }, [examId]);
+
+  return { exam, loading, error };
+};
