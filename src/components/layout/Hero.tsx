@@ -38,7 +38,7 @@ const Hero = () => {
               <br/>
                 meets <span className='text-[#FF660F]'>guidance</span>
             </h1>
-            <p className='font-medium text-[6px] lg:text-[16px] pb-3 '>Lorem ipsum dolor sit amet consectetur. Senectus arcu cras at risus a tortor ut quam in.</p>
+            <p className='font-medium text-[6px] lg:text-[16px] pb-3 '>Find trusted guidance, personalised course matches, and clear admissions support to help you choose the right path.</p>
 
           </div>
           <div ref={searchBarRef} className='w-full max-w-56 lg:max-w-lg text-[8px] lg:text-[16px] font-medium lg:font'>

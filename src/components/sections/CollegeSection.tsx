@@ -103,7 +103,7 @@ export function CollegeSection() {
                   badge={college.type}
                   ctaLabel="View College"
                   city={college.city}
-                  mh="h-230px"
+                  mh="h-[230px]"
                   dh="h-[382px]"
                   />
                 </div>

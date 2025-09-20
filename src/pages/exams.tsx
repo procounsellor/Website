@@ -12,7 +12,7 @@ function adaptApiDataToCardData(apiExam: Exam): ExamCardData {
     name: apiExam.name,
     imageUrl: apiExam.iconUrl, 
     level: apiExam.level,
-    description: "Lorem Ipsum", 
+    description: "Official exam details, syllabus and important dates where available.", 
   };
 }
 
@@ -595,9 +595,9 @@ export default function ExamsListingPage() {
 
           <section className="col-span-1 lg:col-span-3">
             <div className="flex justify-between">
-              <h1 className="flex flex-col gap-2 mb-6 text-[16px] text-2xl font-bold">Lorem ipsum dolor sit amet.
-                <span className="text-[#8C8CA1] font-medium text-[14px] lg:text-[20px]">Filter exams based on your needs.</span>
-              </h1>
+              <h1 className="flex flex-col gap-2 mb-6 text-[16px] text-2xl font-bold">Explore entrance exams across India.
+                  <span className="text-[#8C8CA1] font-medium text-[14px] lg:text-[20px]">Compare levels, types and preparation resources to plan effectively.</span>
+                </h1>
 
               
               <div className="hidden sm:flex items-center gap-3">

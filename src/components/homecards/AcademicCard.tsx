@@ -25,12 +25,12 @@ export function AcademicCard({
 }: CatalogCardProps) {
   return (
     <div
-      className={`flex flex-col justify-start items-center w-[170px] lg:w-[282px]  bg-white ${mh? mh : 'h-[222px]'}
+      className={`flex flex-col justify-start items-center w-[170px] lg:w-[282px] bg-white ${mh? mh : 'h-[222px]'}
       ${dh? dh :'lg:h-[353px]'}
       shadow-[0px_0px_4px_0px_#23232340] rounded-[12px] lg:rounded-[20px] transition-all duration-300 
-      hover:shadow-lg p-[10px] gap-3 relative overflow-hidden`}
+      hover:shadow-lg p-[10px] gap-2 relative overflow-hidden`}
     >
-      <div className="relative w-[146px] lg:w-[262px] h-[139px] lg:h-[248px] flex-shrink-0">
+      <div className={`relative w-[146px] lg:w-[262px] flex-shrink-0 ${mh ? 'h-[120px]' : 'h-[139px]'} lg:h-[248px]`}>
         <img
           src={imageSrc}
           alt={imageAlt}
@@ -39,28 +39,23 @@ export function AcademicCard({
         {badge && <Badge className="absolute top-1 right-1">{badge}</Badge>}
       </div>
 
-      <div className="relative w-full text-center">
+      <div className="relative w-full text-center flex-1 flex flex-col justify-center">
         <p className="font-medium text-[14px] lg:text-[20px] text-[#343C6A] line-clamp-1">
           {title}
         </p>
 
-        {/* <div className="absolute inset-0 bg-black bg-opacity-70 text-white flex items-center justify-center text-sm lg:text-2xl
-                        text-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2">
-          {title}
-        </div> */}
+        {ctaLabel && (
+          <div className="font-medium text-[#718EBF] lg:text-[18px] text-xs underline mt-1">
+            {ctaLabel}
+          </div>
+        )}
+
+        {city && (
+          <div className="text-[#232323] text-[12px] lg:text-[18px] mt-1">
+            {city}
+          </div>
+        )}
       </div>
-
-      {ctaLabel && (
-        <div className="font-medium text-[#718EBF] lg:text-[18px] text-xs underline">
-          {ctaLabel}
-        </div>
-      )}
-
-      {city && (
-        <div className="text-[#232323] text-[12px] lg:text-[18px] mb-1">
-          {city}
-        </div>
-      )}
     </div>
   );
 }
