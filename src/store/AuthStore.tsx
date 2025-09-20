@@ -34,8 +34,8 @@ export const useAuthStore = create<AuthState>()(
           userId:phone,
           isAuthenticated: true,
         });
-        sessionStorage.setItem('phone', phone)
-        sessionStorage.setItem('jwt', data.jwtToken)
+        localStorage.setItem('phone', phone)
+        localStorage.setItem('jwt', data.jwtToken)
         const res = await checkUrl(phone, data.jwt)
         set({userExist:res , isLoginToggle:res})
       },
@@ -46,7 +46,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "user", 
-      storage: createJSONStorage(() => sessionStorage),
+  storage: createJSONStorage(() => localStorage),
     }
   )
 );

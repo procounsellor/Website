@@ -198,7 +198,7 @@ const OnboardingCard = () => {
   const [selectedCourseName, setSelectedCourseName] = useState<string | null>(null);
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
   const {toggleLogin, userId} = useAuthStore()
-  const token = sessionStorage.getItem('jwt')
+  const token = localStorage.getItem('jwt')
 
   useEffect(() => {
     document.body.classList.add('overflow-hidden');

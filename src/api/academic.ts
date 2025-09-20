@@ -39,7 +39,7 @@ export const academicApi = {
   getAllCounsellors: () => fetcher<AllCounselor[]>(API_CONFIG.endpoints.getCounsellors), // Use same endpoint but expect new format
   getCounselorById: (id: string) => fetcher<CounselorDetails>(`${API_CONFIG.endpoints.getCounsellorById}?counsellorId=${id}`),
   getCounselorNonAvailability: async (userId: string, counsellorId: string) => {
-    const token = sessionStorage.getItem('jwt');
+  const token = localStorage.getItem('jwt');
     if (!token) {
       throw new Error('Authentication token not found');
     }
@@ -58,7 +58,7 @@ export const academicApi = {
   },
   
   bookAppointment: async (bookingData: BookingRequest): Promise<BookingResponse> => {
-    const token = sessionStorage.getItem('jwt');
+  const token = localStorage.getItem('jwt');
     if (!token) {
       throw new Error('Authentication token not found');
     }

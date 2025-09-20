@@ -19,7 +19,7 @@ const AfterNoonSlots: FC<Props> = ({ slots, selectedSlot = null, onSelectSlot = 
           <span className="bg-[#343c6a] h-6 w-6 p-0.5 rounded-md">
             <img src="/afterNoon.svg" alt="" className="w-5 h-5" />
           </span>
-          AfterNoon Slots
+          Afternoon Slots
         </p>
         <button onClick={onToggle}>
           {isOpen ? (
@@ -40,7 +40,7 @@ const AfterNoonSlots: FC<Props> = ({ slots, selectedSlot = null, onSelectSlot = 
                 <label
                   key={u}
                   htmlFor={id}
-                  className={`w-[190px] py-3 px-4 flex items-center gap-3 justify-center text-[14px] rounded-[12px] transition-colors duration-150 ${disabled ? 'bg-red-200 text-[#6b0b0b] cursor-not-allowed' : 'bg-[#f5f5f5] text-[rgba(35,35,35,0.8)] cursor-pointer [&:has(input:checked)]:bg-[#3537b4] [&:has(input:checked)]:text-white'}`}
+                  className={`w-[190px] py-3 px-4 flex items-center gap-3 justify-center text-[14px] text-[#232323]/50 rounded-[12px] transition-colors duration-150 ${disabled ? 'bg-[#ee1c1f]/10 cursor-not-allowed' : 'bg-[#f5f5f5] text-[rgba(35,35,35,0.8)] cursor-pointer [&:has(input:checked)]:bg-[#3537b4] [&:has(input:checked)]:text-white'}`}
                 >
                   <input
                     type="radio"

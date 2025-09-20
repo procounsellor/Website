@@ -6,7 +6,7 @@ import CoursesListingPage from "@/pages/courses";
 import ExamsListingPage from "@/pages/exams";
 import { Routes, Route } from "react-router-dom";
 import CounselorDetailsPage from "@/pages/CounselorDetailsPage";
-import BookingConfirmationPage from '@/pages/BookingConfirmationPage';
+
 
 // Placeholder components for detail pages
 const ExamDetail = () => <div className="p-8 text-center">Exam Detail Page - Coming Soon</div>;
@@ -23,7 +23,6 @@ export default function AppRoutes(){
             <Route path="/counselors" element={<CounselorListingPage/>} />
             {/*<Route path="/counselors/:id" element={<CounselorDetail/>} /> */}
             <Route path="/counselors/:id" element={<CounselorDetailsPage/>} />
-            <Route path="/booking/confirmation" element={<BookingConfirmationPage/>} />
             <Route path="/courses" element={<CoursesListingPage/>} />
             <Route path="/courses/:id" element={<CourseDetail/>} />
             <Route path="/colleges" element={<CollegesListingPage />} />

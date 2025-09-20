@@ -17,7 +17,6 @@ function Calendar({
   buttonVariant = "ghost",
   formatters,
   components,
-  // custom prop: function to indicate fully-unavailable days
   isDayUnavailable,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
@@ -26,14 +25,13 @@ function Calendar({
 }) {
   const defaultClassNames = getDefaultClassNames()
 
-  // Local DayButton that considers the DayPicker's fromDate/toDate range
   const LocalDayButton = ({ className, day, modifiers, ...dprops }: React.ComponentProps<typeof DayButton>) => {
     const ref = React.useRef<HTMLButtonElement>(null)
     React.useEffect(() => {
       if (modifiers.focused) ref.current?.focus()
     }, [modifiers.focused])
 
-  // determine out-of-range based on parent props
+
   const dpProps = props as React.ComponentProps<typeof DayPicker>
   const from = dpProps.fromDate as Date | undefined
   const to = dpProps.toDate as Date | undefined
@@ -42,7 +40,6 @@ function Calendar({
 
     const isDisabled = !!modifiers.disabled || outOfRange
 
-    // determine visual availability for in-range days
     const unavailable = (!outOfRange && typeof isDayUnavailable === 'function' && isDayUnavailable(day.date));
     const availableInRange = (!outOfRange && !unavailable && !isDisabled);
 
@@ -62,11 +59,11 @@ function Calendar({
         data-range-start={modifiers.range_start}
         data-range-end={modifiers.range_end}
         data-range-middle={modifiers.range_middle}
-        // keep button relative so the small indicator can be absolutely positioned
+       
         className={cn(
           "relative data-[selected-single=true]:bg-[#343C6A] data-[selected-single=true]:text-white data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 dark:hover:text-accent-foreground flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70",
           defaultClassNames.day,
-          // when disabled (out of range) style - muted text only
+    
           isDisabled && "text-[#ACACAC] pointer-events-none opacity-80",
           className
         )}
@@ -80,7 +77,7 @@ function Calendar({
             aria-hidden
             className={cn(
               "absolute -top-1 right-1 h-2 w-2 rounded-full ring-1 ring-white",
-              unavailable ? "bg-red-100" : "bg-green-100"
+              unavailable ? "bg-red-200" : "bg-green-200"
             )}
           />
         )}

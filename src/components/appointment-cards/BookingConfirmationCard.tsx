@@ -1,176 +1,151 @@
-import { CheckCircle, X, Calendar, Clock, User } from "lucide-react";
-import { Button } from "../ui";
-import { createPortal } from "react-dom";
-import { useEffect } from "react";
+import { X } from "lucide-react";
 
-interface BookingConfirmationCardProps {
-  isOpen: boolean;
+interface Props {
+  counselorName?: string;
+  appointmentDate?: string; // expected YYYY-MM-DD
+  appointmentTime?: string; // expected HH:MM (24h)
   onClose?: () => void;
-  bookingDetails: {
-    counselorName: string;
-    counselorPhoto?: string;
-    appointmentDate: string;
-    appointmentTime: string;
-    appointmentId?: string;
-  };
 }
 
-const BookingConfirmationCard: React.FC<BookingConfirmationCardProps> = ({
-  isOpen,
-  onClose,
-  bookingDetails
-}) => {
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
+function formatDate(iso?: string) {
+  if (!iso) return '03 Sept, 2025';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+}
 
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
+function formatTime(hhmm?: string) {
+  if (!hhmm) return '10:30-11:00 AM';
+  const parts = hhmm.split(':').map((p) => parseInt(p, 10));
+  if (parts.length < 1 || isNaN(parts[0])) return hhmm;
+  const hours = parts[0];
+  const minutes = parts[1] || 0;
+  
+  // Format start time in 24-hour format
+  const startTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  
+  // Add 30 minutes for end time
+  const endMinutes = minutes + 30;
+  const endHours = hours + Math.floor(endMinutes / 60);
+  const finalMinutes = endMinutes % 60;
+  const endTime = `${endHours.toString().padStart(2, '0')}:${finalMinutes.toString().padStart(2, '0')}`;
+  
+  // Determine AM/PM based on the end time
+  const ampm = endHours >= 12 ? 'PM' : 'AM';
+  
+  return `${startTime}-${endTime} ${ampm}`;
+}
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+export default function BookingConfirmationCard({ counselorName = 'Ashutosh Kumar', appointmentDate, appointmentTime, onClose }: Props){
 
-  if (!isOpen) return null;
-
-  return createPortal(
-    <div>
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #CBD5E0;
-          border-radius: 2px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #A0AEC0;
-        }
-      `}</style>
-      
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div 
-          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-          onClick={onClose}
-        />
-        
-        {/* Close button */}
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-[#718EBF] hover:text-[#343C6A] transition-colors z-10"
+  return (
+    <div className="fixed inset-0  bg-[#232323]/50 backdrop-blur-sm flex items-center justify-center p-4 z-100" onClick={() => onClose?.()}>
+      <div onClick={(e) => e.stopPropagation()} className="bg-[#F5F7FA] w-full flex flex-col max-w-[747px] max-h-[667px] rounded-[16px] relative p-[42px] pb-[86px] gap-6 overflow-y-auto custom-scrollbar">
+        <style>{`
+          .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+          .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+          .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 8px; }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #CBD5E0; }
+          .custom-scrollbar::-webkit-scrollbar-corner { background: transparent; }
+          .custom-scrollbar { 
+            border-radius: 16px;
+            -webkit-mask: linear-gradient(white 0 0);
+            mask: linear-gradient(white 0 0);
+          }
+        `}</style>
+        <div className="flex items-center gap-2 text-[#343C6A]">
+          <p className="text-2xl font-semibold">Appointment Confirmation</p>
+            <button 
+            onClick={() => onClose?.()}
+            className="absolute top-4 right-4 z-10 p-1.5 rounded-full transition-colors duration-200 hover:bg-black group"
           >
-            <X className="w-5 h-5" />
+            <X className="h-5 w-5 text-gray-500 transition-colors duration-200 group-hover:text-white" />
           </button>
-        )}
-        
-        <div className="bg-white w-[500px] max-h-[600px] p-6 rounded-2xl shadow-xl relative z-10">
-          {/* Success Header */}
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-              <CheckCircle className="w-8 h-8 text-green-600" />
-            </div>
-            <h1 className="text-2xl font-bold text-[#343C6A] mb-2">
-              Booking Confirmed!
-            </h1>
-            <p className="text-[#718EBF]">
-              Your appointment has been successfully scheduled
-            </p>
-          </div>
-
-          {/* Appointment Details */}
-          <div className="bg-gray-50 rounded-xl p-4 mb-6">
-            <h2 className="text-lg font-semibold text-[#343C6A] mb-4">
-              Appointment Details
-            </h2>
-            
-            <div className="space-y-3">
-              {/* Counselor Info */}
-              <div className="flex items-center space-x-3">
-                <User className="w-5 h-5 text-[#718EBF]" />
-                <div className="flex items-center space-x-3">
-                  {bookingDetails.counselorPhoto && (
-                    <img
-                      src={bookingDetails.counselorPhoto}
-                      alt={bookingDetails.counselorName}
-                      className="w-8 h-8 rounded-full"
-                    />
-                  )}
-                  <div>
-                    <p className="text-sm text-[#718EBF]">Counselor</p>
-                    <p className="font-medium text-[#343C6A]">{bookingDetails.counselorName}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Date */}
-              <div className="flex items-center space-x-3">
-                <Calendar className="w-5 h-5 text-[#718EBF]" />
-                <div>
-                  <p className="text-sm text-[#718EBF]">Date</p>
-                  <p className="font-medium text-[#343C6A]">{formatDate(bookingDetails.appointmentDate)}</p>
-                </div>
-              </div>
-
-              {/* Time */}
-              <div className="flex items-center space-x-3">
-                <Clock className="w-5 h-5 text-[#718EBF]" />
-                <div>
-                  <p className="text-sm text-[#718EBF]">Time</p>
-                  <p className="font-medium text-[#343C6A]">{bookingDetails.appointmentTime}</p>
-                </div>
-              </div>
-
-              {/* Appointment ID if available */}
-              {bookingDetails.appointmentId && (
-                <div className="bg-white rounded-lg p-3">
-                  <p className="text-sm text-[#718EBF]">Appointment ID</p>
-                  <p className="font-mono text-sm font-medium text-[#343C6A]">
-                    {bookingDetails.appointmentId}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Important Notes */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <h3 className="font-medium text-blue-900 mb-2">Important Notes:</h3>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Join 5 minutes before scheduled time</li>
-              <li>• Confirmation email will be sent shortly</li>
-              <li>• Reschedule 24 hours in advance if needed</li>
-            </ul>
-          </div>
-
-          {/* Action Button */}
-          <div className="flex justify-center">
-            <Button
-              onClick={onClose}
-              className="px-8 py-3 bg-[#3537B4] hover:bg-[#2c2e96] text-white rounded-lg"
-            >
-              Got It!
-            </Button>
-          </div>
         </div>
-      </div>
-    </div>,
-    document.body
-  );
-};
 
-export default BookingConfirmationCard;
+
+
+        <div className="flex flex-col items-center gap-6">
+          <div className="flex flex-col items-center max-w-[450px] gap-4">
+          <img src="/greentick.svg" alt="" className="w-[62px] h-[62px]"/>
+          <h1 className="text-2xl text-[#3537b4] font-semibold">Appointment Confirmed</h1>
+          <p className="text-[16px] text-[#718ebf] font-medium text-center">Thank you for booking! Your subscription has been activated.</p>
+        </div>
+
+        <div className="flex flex-col gap-4 bg-white w-[482px] h-[331px] border-[1px] border-[#f5f5f5] rounded-[12px] p-4">
+
+          <div className="flex gap-2 items-center">
+            <img src="/discover-imageCounselor2.jpg" alt="" className="w-16 h-16 rounded-[10px]" />
+            <p className="flex flex-col gap-0 text-[18px] text-[#343c6a] font-semibold">Counselling Session<span className="text-[16px] text-[#718ebf] font-medium">with {counselorName}</span></p>
+          </div>
+
+          <div className="flex justify-between bg-[#f5f5f5] w-[450px] h-[66px] items-center px-10 rounded-[12px]">
+
+            <div className="flex gap-2 h-10.5 items-center">
+              <div className="bg-[#c3f9d966]/40 h-8 w-8 flex items-center justify-center rounded-full">
+              <img src="/calander.svg" alt="" className="h-[22px] w-[22px]"/>
+              </div>
+              <p className="flex flex-col text-[#8C8CA1] font-normal text-[14px]">Date <span className="text-[#232323] text-[16px] font-medium">{formatDate(appointmentDate)}</span></p>
+            </div>
+
+            <div className="flex gap-2 h-10.5 items-center">
+              <div className="bg-[#C3F9D966]/40 h-8 w-8 flex items-center justify-center rounded-full">
+              <img src="/calander.svg" alt="" className="h-[22px] w-[22px]"/>
+
+              </div>
+              <p className="flex flex-col text-[#8c8ca1] text-[14px] font-normal">Timing <span className="text-[#232323] text-[16px] font-medium">{formatTime(appointmentTime)}</span></p>
+            </div>
+
+          </div>
+
+            <div className="flex w-[450px] h-[117px] rounded-[12px] justify-start p-4 bg-[#F9FAFC] border border-[#f5f5f5] ">
+
+              <p className="flex flex-col gap-2 text-[#343c6a] font-semibold text-[18px]">
+                Session Details
+                <span className="flex items-center gap-2 text-[#718ebf] text-[16px] font-normal">
+                  <img src="/clock.svg" alt="clock" className="h-5 w-5" />
+                  Duration: 30 Minutes
+
+                </span>
+                <span className="flex items-center gap-2 text-[#718ebf] text-[16px] font-normal">
+                  <img src="/map.svg" alt="map" className="w-5 h-5"/>
+                  Format: In-Person
+                </span>
+              </p>
+            </div>
+
+        </div>
+
+        <div className="flex flex-col gap-4 items-center">
+
+          <div className="bg-[#ffffff] shadow-[#232323]/15 w-14 h-[56px] flex justify-center items-center rounded-[12px]">
+          <img src="/text.svg" alt="text" className="w-10 h-10" />
+          </div>
+
+          <p className="flex flex-col items-center gap-2 text-[#232323] font-semibold text-[16px]">Need Help
+            <span className="text-[#718ebf] text-[14px] font-medium">Our team is here to assist you any questions</span>
+          </p>
+
+          <div className="flex justify-between gap-10">
+
+            <div className="flex gap-2 items-center">
+              <img src="/phone.svg" alt="phone" className="h-10 w-10" />
+              7893453245
+            </div>
+
+            <div className="flex gap-2 items-center">
+              <img src="/email.png" alt="email" className="h-7 w-7" />
+              support@procounsel.co.in
+            </div>
+
+
+          </div>
+
+        </div>
+
+        </div>
+
+      </div>
+    </div>
+  );
+}
