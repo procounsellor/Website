@@ -38,7 +38,7 @@ export function CounselorCard({ counselor }: CounselorCardProps) {
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#FFB700]">
                 <StarIcon className="h-4 w-4 text-white" fill="white" />
             </div>
-            <span className="font-semibold whitespace-nowrap">{counselor.rating.toFixed(1)} | {counselor.reviews}</span>
+            <span className="font-semibold whitespace-nowrap">{counselor.rating.toFixed(1)}</span>
         </div>
         <button
           aria-label="Save counselor"
