@@ -41,9 +41,6 @@ export default function ExamDetailsPage() {
               <div className="py-6">
                 {activeTab === 'Info' && (
                   <div className="flex flex-col gap-6">
-                    <InfoCard title="Exam Overview">
-                      <p className="text-gray-600">{exam.description || 'No overview available.'}</p>
-                    </InfoCard>
 
                     <ExamStatsCard examData={exam} />
 
@@ -66,12 +63,16 @@ export default function ExamDetailsPage() {
                     <InfoCard title="Application Fees">
                       <div className="flex gap-8">
                         <div>
-                          <p className="text-[#232323]">General/OBC</p>
-                          <p className="font-semibold text-[#718EBF]">₹{exam.fees?.general || "mockprice"}</p>
+                          <p className="text-[#232323]">General</p>
+                          <p className="font-semibold text-[#718EBF]">₹{exam.applicationFees?.general || "NA"}</p>
+                        </div>
+                        <div>
+                          <p className='text-[#232323]'>OBC</p>
+                          <p className='font-semibold text-[#718ebf]'>₹{exam.applicationFees?.obc || "NA"}</p>
                         </div>
                         <div>
                           <p className="text-[#232323]">SC/ST</p>
-                          <p className="font-semibold text-[#718EBF]">₹{exam.fees?.sc_st || "mockprice"}</p>
+                          <p className="font-semibold text-[#718EBF]">₹{exam.applicationFees?.sc_st || "NA"}</p>
                         </div>
                       </div>
                     </InfoCard>
@@ -91,7 +92,7 @@ export default function ExamDetailsPage() {
                         </div>
                         <div>
                           <p className="text-xs text-[#9D9FA1]">Website</p>
-                          <a href="#" className="text-[#2F3032] hover:underline">{exam.website || 'www.procounsel.co.in'}</a>
+                          <a href="#" className="text-[#2F3032] hover:underline">{exam.officialWebsite || 'NA'}</a>
                         </div>
                       </div>
                     </InfoCard>
@@ -116,7 +117,7 @@ export default function ExamDetailsPage() {
                   </div>
                 )}
                 {activeTab === 'Courses' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 gap-3 lg:gap-6">
                     {coursesLoading && <p>Loading courses...</p>}
                     {coursesError && <p className="text-red-500">{coursesError}</p>}
                     {courses.map((course) => (
@@ -136,7 +137,7 @@ export default function ExamDetailsPage() {
             </div>
           </div>
 
-          <div className="lg:col-span-1 flex flex-col gap-8">
+          <div className="hidden lg:col-span-1 lg:flex flex-col gap-8">
             <SimilarExamsCard />
             <FeaturedCollegesCard />
           </div>

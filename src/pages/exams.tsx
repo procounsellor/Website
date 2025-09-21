@@ -17,9 +17,10 @@ function adaptApiDataToCardData(apiExam: Exam): ExamCardData {
 }
 
 export default function ExamsListingPage() {
+  const ismobile = window.matchMedia("(max:width:1024px)")
   const { exams, loading, error } = useExams();
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 9;
+  const ITEMS_PER_PAGE = ismobile?8:9;
 
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
@@ -285,7 +286,7 @@ export default function ExamsListingPage() {
 
     return (
       <>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {paginatedExams.map((exam) => (
             <ExamCard
               key={exam.id}

@@ -3,7 +3,7 @@ type ExamInfoTabsProps = {
   setActiveTab: (tab: string) => void;
 };
 
-const tabs = ["Info", "Top Accepting Colleges", "Courses"];
+const tabs = ["Info", "Courses", "FAQs"];
 
 export function ExamInfoTabs({ activeTab, setActiveTab }: ExamInfoTabsProps) {
   return (

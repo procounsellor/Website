@@ -14,31 +14,23 @@ type ExamCardProps = {
 
 export function ExamCard({ exam }: ExamCardProps) {
   return (
-    <Link to={`/exams/${exam.id}`} className="flex h-full">
-    <div className="flex w-full max-w-sm flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg">
+    <Link to={`/exams/${exam.id}`} className="flex lg:h-full">
+    <div className="flex w-full max-w-sm p-3 lg:p-0 flex-col overflow-hidden rounded-[12px] lg:rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg">
       <div className="relative">
         <img
           src={exam.imageUrl}
           alt={`Image for ${exam.name}`}
-          className="h-50 w-full object-contain"
+          className="rounded-[12px] h-[87px] lg:h-50 w-full object-cover lg:object-contain"
         />
         <span className="absolute right-3 top-3 rounded-md bg-black/50 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
           {exam.level}
         </span>
       </div>
 
-      <div className="flex flex-grow flex-col p-4">
-        <h3 className="text-lg font-bold text-[#343C6A]">{exam.name}</h3>
-        <p className="mb-2 text-sm text-[#343C6A]">{exam.description}</p>
+      <div className="flex flex-grow items-center gap-0.5 flex-col pt-4 lg:p-4">
+        <h3 className=" text-xs lg:text-lg font-medium lg:font-bold text-[#343C6A]">{exam.name}</h3>
+        <p className="mb-2 text-sm text-[#343C6A] text-center">{exam.description}</p>
 
-        <div className="mt-auto border-t border-gray-100 pt-3 text-center">
-          <a
-            href="#"
-            className="text-sm font-semibold underline text-[#718EBF] hover:text-blue-800"
-          >
-            View Exam
-          </a>
-        </div>
       </div>
     </div>
     </Link>
