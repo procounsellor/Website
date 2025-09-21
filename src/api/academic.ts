@@ -34,6 +34,7 @@ async function fetcher<T>(endpoint: string): Promise<T> {
 export const academicApi = {
   getColleges: () => fetcher<CollegeApiResponse[]>(API_CONFIG.endpoints.getColleges),
   getExams: () => fetcher<ExamApiResponse[]>(API_CONFIG.endpoints.getExams),
+  getExamById: (id: string) => fetcher<any>(`/api/exams/getExamById?examId=${id}`),
   getCourses: () => fetcher<CourseApiResponse[]>(API_CONFIG.endpoints.getCourses),
   getCounsellors: () => fetcher<CounsellorApiResponse[]>(API_CONFIG.endpoints.getCounsellors),
   getAllCounsellors: () => fetcher<AllCounselor[]>(API_CONFIG.endpoints.getCounsellors), // Use same endpoint but expect new format
