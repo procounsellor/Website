@@ -84,17 +84,17 @@ export function CounselorCard({ counselor }: CounselorCardProps) {
       </div>
       
       <div className="mt-auto flex items-center justify-center gap-3 p-4 pt-0">
-        <button className="flex h-[50px] flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border border-transparent bg-gradient-to-r from-[rgba(222,237,255,0.4)] to-[rgba(126,136,211,0.4)] shadow-sm transition-all duration-200 hover:border-[#4B65B5] hover:shadow-md hover:-translate-y-0.5">
+        <button className="flex h-[50px] flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border border-transparent bg-gradient-to-r from-[rgba(222,237,255,0.4)] to-[rgba(126,136,211,0.4)] shadow-sm transition-all duration-200">
           <span className="font-semibold text-sm text-[#1447E7]">Plus</span>
           <span className="text-[#1447E7] text-sm">₹{counselor.pricing.plus.toLocaleString("en-IN")}</span>
         </button>
 
-        <button className="flex h-[50px] flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border border-transparent bg-gradient-to-r from-[rgba(244,232,255,0.4)] to-[rgba(250,244,255,0.4)] shadow-sm transition-all duration-200 hover:border-[#8A4DBF] hover:shadow-md hover:-translate-y-0.5">
+        <button className="flex h-[50px] flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border border-transparent bg-gradient-to-r from-[rgba(244,232,255,0.4)] to-[rgba(250,244,255,0.4)] shadow-sm transition-all duration-200">
           <span className="font-semibold text-[#8200DA] text-sm">Pro</span>
           <span className="text-[#8200DA] text-sm">₹{counselor.pricing.pro.toLocaleString("en-IN")}</span>
         </button>
 
-        <button className="flex h-[50px] flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border border-transparent bg-gradient-to-r from-[rgba(255,245,206,0.4)] to-[rgba(255,250,230,0.4)] shadow-sm transition-all duration-200 hover:border-[#D4AF37] hover:shadow-md hover:-translate-y-0.5">
+        <button className="flex h-[50px] flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border border-transparent bg-gradient-to-r from-[rgba(255,245,206,0.4)] to-[rgba(255,250,230,0.4)] shadow-sm transition-all duration-200">
           <span className="font-semibold text-[#B94C00] text-sm">Elite</span>
           <span className="text-[#B94C00] text-sm">₹{counselor.pricing.elite.toLocaleString("en-IN")}</span>
         </button>

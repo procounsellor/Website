@@ -44,8 +44,8 @@ export function ExamSection() {
 
 
   const handleExamClick = (examId: string) => {
-    console.log('Exam clicked:', examId);
-    // TODO: Navigate to exam details page
+    // console.log('Exam clicked:', examId);
+    navigate(`/exams/${examId}`);
   };
 
   if (loading) {

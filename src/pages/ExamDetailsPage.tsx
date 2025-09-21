@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useExamById } from '@/hooks/useExams';
-import { useColleges } from '@/hooks/useColleges';
 import { useCourses } from '@/hooks/useCourses';
 
 import { ExamHeroCard } from '@/components/exam-details/ExamHeroCard';
@@ -12,13 +11,18 @@ import { ExamDetailGridCard } from '@/components/exam-details/ExamDetailGridCard
 import { ExamStatsCard } from '@/components/exam-details/ExamStatsCard';
 import { InfoCard } from '@/components/exam-details/InfoCard';
 import { Globe } from 'lucide-react';
+import { FaqItem } from '@/components/exam-details/FaqItem';
 
 export default function ExamDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const { exam, loading, error } = useExamById(id || '');
   const [activeTab, setActiveTab] = useState('Info');
-  const { colleges, loading: collegesLoading, error: collegesError } = useColleges(4);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const { courses, loading: coursesLoading, error: coursesError } = useCourses(4);
+
+  const handleFaqToggle = (index: number) => {
+    setOpenFaqIndex(openFaqIndex === index ? null : index);
+  };
 
   if (loading) return <div className="flex h-screen items-center justify-center">Loading Exam...</div>;
   if (error) return <div className="flex h-screen items-center justify-center text-red-500">{error}</div>;
@@ -99,23 +103,6 @@ export default function ExamDetailsPage() {
 
                   </div>
                 )}
-                {activeTab === 'Top Accepting Colleges' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {collegesLoading && <p>Loading colleges...</p>}
-                    {collegesError && <p className="text-red-500">{collegesError}</p>}
-                    {colleges.map((college) => (
-                      <ExamDetailGridCard
-                        key={college.id}
-                        imageSrc={college.logoUrl}
-                        imageAlt={college.name}
-                        title={college.name}
-                        ctaLabel={`${college.coursesOffered?.length || 0} Courses`}
-                        subtitle={college.city}
-                        badge={college.type}
-                      />
-                    ))}
-                  </div>
-                )}
                 {activeTab === 'Courses' && (
                   <div className="grid grid-cols-2 gap-3 lg:gap-6">
                     {coursesLoading && <p>Loading courses...</p>}
@@ -131,6 +118,23 @@ export default function ExamDetailsPage() {
                         badge={course.level}
                       />
                     ))}
+                  </div>
+                )}
+                {activeTab === 'FAQs' && (
+                  <div>
+                    {exam.faqs && exam.faqs.length > 0 ? (
+                      exam.faqs.map((faq: { question: string; answer: string }, index: number) => (
+                        <FaqItem
+                          key={index}
+                          question={faq.question}
+                          answer={faq.answer}
+                          isOpen={openFaqIndex === index}
+                          onToggle={() => handleFaqToggle(index)}
+                        />
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-center">No FAQs available for this exam.</p>
+                    )}
                   </div>
                 )}
               </div>
