@@ -40,7 +40,7 @@ export function AcademicCard({
       </div>
 
       <div className="relative w-full text-center flex-1 flex flex-col justify-center">
-        <p className="font-medium text-[14px] lg:text-[20px] text-[#343C6A] line-clamp-1">
+        <p className="font-medium text-[14px] lg:text-[20px] text-[#242645] line-clamp-1">
           {title}
         </p>
 
@@ -51,7 +51,7 @@ export function AcademicCard({
         )}
 
         {city && (
-          <div className="text-[#232323] text-[12px] lg:text-[18px] mt-1">
+          <div className="text-[#242645] text-[12px] lg:text-[18px] mt-1">
             {city}
           </div>
         )}
