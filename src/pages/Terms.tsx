@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
