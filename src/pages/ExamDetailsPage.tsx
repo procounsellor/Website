@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useExamById } from '@/hooks/useExams';
-import { useColleges } from '@/hooks/useColleges';
 import { useCourses } from '@/hooks/useCourses';
 
 import { ExamHeroCard } from '@/components/exam-details/ExamHeroCard';
@@ -12,13 +11,18 @@ import { ExamDetailGridCard } from '@/components/exam-details/ExamDetailGridCard
 import { ExamStatsCard } from '@/components/exam-details/ExamStatsCard';
 import { InfoCard } from '@/components/exam-details/InfoCard';
 import { Globe } from 'lucide-react';
+import { FaqItem } from '@/components/exam-details/FaqItem';
 
 export default function ExamDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const { exam, loading, error } = useExamById(id || '');
   const [activeTab, setActiveTab] = useState('Info');
-  const { colleges, loading: collegesLoading, error: collegesError } = useColleges(4);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const { courses, loading: coursesLoading, error: coursesError } = useCourses(4);
+
+  const handleFaqToggle = (index: number) => {
+    setOpenFaqIndex(openFaqIndex === index ? null : index);
+  };
 
   if (loading) return <div className="flex h-screen items-center justify-center">Loading Exam...</div>;
   if (error) return <div className="flex h-screen items-center justify-center text-red-500">{error}</div>;
@@ -41,9 +45,6 @@ export default function ExamDetailsPage() {
               <div className="py-6">
                 {activeTab === 'Info' && (
                   <div className="flex flex-col gap-6">
-                    <InfoCard title="Exam Overview">
-                      <p className="text-gray-600">{exam.description || 'No overview available.'}</p>
-                    </InfoCard>
 
                     <ExamStatsCard examData={exam} />
 
@@ -66,12 +67,16 @@ export default function ExamDetailsPage() {
                     <InfoCard title="Application Fees">
                       <div className="flex gap-8">
                         <div>
-                          <p className="text-[#232323]">General/OBC</p>
-                          <p className="font-semibold text-[#718EBF]">₹{exam.fees?.general || "mockprice"}</p>
+                          <p className="text-[#232323]">General</p>
+                          <p className="font-semibold text-[#718EBF]">₹{exam.applicationFees?.general || "NA"}</p>
+                        </div>
+                        <div>
+                          <p className='text-[#232323]'>OBC</p>
+                          <p className='font-semibold text-[#718ebf]'>₹{exam.applicationFees?.obc || "NA"}</p>
                         </div>
                         <div>
                           <p className="text-[#232323]">SC/ST</p>
-                          <p className="font-semibold text-[#718EBF]">₹{exam.fees?.sc_st || "mockprice"}</p>
+                          <p className="font-semibold text-[#718EBF]">₹{exam.applicationFees?.sc_st || "NA"}</p>
                         </div>
                       </div>
                     </InfoCard>
@@ -91,32 +96,15 @@ export default function ExamDetailsPage() {
                         </div>
                         <div>
                           <p className="text-xs text-[#9D9FA1]">Website</p>
-                          <a href="#" className="text-[#2F3032] hover:underline">{exam.website || 'www.procounsel.co.in'}</a>
+                          <a href="#" className="text-[#2F3032] hover:underline">{exam.officialWebsite || 'NA'}</a>
                         </div>
                       </div>
                     </InfoCard>
 
                   </div>
                 )}
-                {activeTab === 'Top Accepting Colleges' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {collegesLoading && <p>Loading colleges...</p>}
-                    {collegesError && <p className="text-red-500">{collegesError}</p>}
-                    {colleges.map((college) => (
-                      <ExamDetailGridCard
-                        key={college.id}
-                        imageSrc={college.logoUrl}
-                        imageAlt={college.name}
-                        title={college.name}
-                        ctaLabel={`${college.coursesOffered?.length || 0} Courses`}
-                        subtitle={college.city}
-                        badge={college.type}
-                      />
-                    ))}
-                  </div>
-                )}
                 {activeTab === 'Courses' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 gap-3 lg:gap-6">
                     {coursesLoading && <p>Loading courses...</p>}
                     {coursesError && <p className="text-red-500">{coursesError}</p>}
                     {courses.map((course) => (
@@ -132,11 +120,28 @@ export default function ExamDetailsPage() {
                     ))}
                   </div>
                 )}
+                {activeTab === 'FAQs' && (
+                  <div>
+                    {exam.faqs && exam.faqs.length > 0 ? (
+                      exam.faqs.map((faq: { question: string; answer: string }, index: number) => (
+                        <FaqItem
+                          key={index}
+                          question={faq.question}
+                          answer={faq.answer}
+                          isOpen={openFaqIndex === index}
+                          onToggle={() => handleFaqToggle(index)}
+                        />
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-center">No FAQs available for this exam.</p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
-          <div className="lg:col-span-1 flex flex-col gap-8">
+          <div className="hidden lg:col-span-1 lg:flex flex-col gap-8">
             <SimilarExamsCard />
             <FeaturedCollegesCard />
           </div>

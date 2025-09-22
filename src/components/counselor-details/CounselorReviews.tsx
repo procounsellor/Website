@@ -52,7 +52,7 @@ const StarRating = ({
 };
 
 const mockReviews = [
-    { name: 'Rahul Singh', time: '1 week ago', rating: 5, text: 'Lorem ipsum dolor sit amet consectetur. Lectus q uam egestas ut odio. Condimentum rutrum a tempor netus volutpat. Duis laoreet commodo venena.' },
+  { name: 'Rahul Singh', time: '1 week ago', rating: 5, text: 'Very insightful session — explained admission options clearly and suggested practical next steps that I could follow.' },
     { name: 'Priya Sharma', time: '2 weeks ago', rating: 4, text: 'Very helpful and provided clear guidance for my career path. Highly recommended!' },
 ];
 

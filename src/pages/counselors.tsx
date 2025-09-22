@@ -732,9 +732,9 @@ export default function CounselorListingPage() {
           </aside>
           <section className="col-span-1 lg:col-span-3">
             <div className="flex justify-between">
-              <h1 className="flex flex-col gap-2 mb-6 text-[16px] text-2xl font-bold">Lorem ipsum dolor sit amet.
-              <span className="text-[#8C8CA1] font-medium text-[14px] lg:text-[20px]">Filter counselor based on your needs.</span>
-            </h1>
+              <h1 className="flex flex-col gap-2 mb-6 text-[16px] text-2xl font-bold">Find experienced education counsellors.
+                <span className="text-[#8C8CA1] font-medium text-[14px] lg:text-[20px]">Filter by expertise, language, availability, and pricing.</span>
+              </h1>
 
             
             <div className="hidden sm:flex items-center gap-3">

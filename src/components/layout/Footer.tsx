@@ -46,7 +46,7 @@ export default function Footer() {
               </div>
               <div className="flex items-center gap-3">
                 <img src={emailIcon} alt="Email" className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
-                <a href="mailto:hr@procounsel.co.in" className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:underline break-all sm:break-normal">hr@procounsel.co.in</a>
+                <a href="mailto:support@procounsel.co.in" className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:underline break-all sm:break-normal">support@procounsel.co.in</a>
               </div>
             </div>
           </div>
@@ -55,12 +55,24 @@ export default function Footer() {
             <div className="md:h-[270px] flex flex-col">
               <h4 className="mb-4 sm:mb-6 font-montserrat font-medium text-lg sm:text-xl leading-none text-[#180033]">Useful Links</h4>
               <ul className="space-y-3 sm:space-y-6 flex-1">
-                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors cursor-pointer" >Colleges</li>
-                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors cursor-pointer" >Courses</li>
-                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors cursor-pointer" >Exams</li>
-                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors cursor-pointer" >About Us</li>
-                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors cursor-pointer" >Contact</li>
-                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors cursor-pointer" >Add College</li>
+                <li>
+                  <Link to="/colleges" className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Colleges</Link>
+                </li>
+                <li>
+                  <Link to="/courses" className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Courses</Link>
+                </li>
+                <li>
+                  <Link to="/exams" className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Exams</Link>
+                </li>
+                <li>
+                  <Link to="/about" className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">About Us</Link>
+                </li>
+                <li>
+                  <Link to="/contact" className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Contact</Link>
+                </li>
+                <li>
+                  <Link to="/add-college" className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Add College</Link>
+                </li>
               </ul>
             </div>
           </div>
@@ -86,7 +98,7 @@ export default function Footer() {
               <ul className="space-y-3 sm:space-y-6 flex-1">
                 <li className="flex items-center gap-3">
                   <img src={linkedinIcon} alt="LinkedIn" className="h-6 w-6 sm:h-7 sm:w-7 flex-shrink-0" />
-                  <a href="#" aria-label="LinkedIn" className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">LinkedIn</a>
+                  <a href="https://www.linkedin.com/company/procounsel-by-catalystai/posts/?feedView=all" target="_blank" aria-label="LinkedIn" className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">LinkedIn</a>
                 </li>
                 <li className="flex items-center gap-3">
                   <img src={facebookIcon} alt="Facebook" className="h-6 w-6 sm:h-7 sm:w-7 flex-shrink-0" />
@@ -94,7 +106,7 @@ export default function Footer() {
                 </li>
                 <li className="flex items-center gap-3">
                   <img src={instagramIcon} alt="Instagram" className="h-6 w-6 sm:h-7 sm:w-7 flex-shrink-0" />
-                  <a href="#" aria-label="Instagram" className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Instagram</a>
+                  <a href="https://www.instagram.com/procounsel.co.in?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" aria-label="Instagram" className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Instagram</a>
                 </li>
                 <li className="flex items-center gap-3">
                   <img src={twitterIcon} alt="Twitter" className="h-6 w-6 sm:h-7 sm:w-7 flex-shrink-0" />
@@ -107,7 +119,7 @@ export default function Footer() {
 
         <div className="mt-4 sm:mt-6 border-t border-[#6C696933] pt-4 sm:pt-6 flex flex-col gap-3 sm:gap-4 md:flex-row md:items-start md:justify-between">
           <div className="flex flex-col gap-2 text-center md:text-left">
-            <p className="font-montserrat font-medium text-xs sm:text-sm leading-none text-[#180033]">© 2025 CATALYST TECHNOLOGY PRIVATE LIMITED. All rights reserved.</p>
+            <p className="font-montserrat font-medium text-xs sm:text-sm leading-none text-[#180033]">© 2025 CATALYSTAI TECHNOLOGY PRIVATE LIMITED. All rights reserved.</p>
             <p className="font-montserrat font-normal text-xs leading-none text-[#180033]">ProCounsel™ is a trademark of CATALYSTAI TECHNOLOGY PRIVATE LIMITED.</p>
           </div>
           <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 sm:gap-4 md:mt-0">

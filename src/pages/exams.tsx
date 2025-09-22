@@ -12,14 +12,15 @@ function adaptApiDataToCardData(apiExam: Exam): ExamCardData {
     name: apiExam.name,
     imageUrl: apiExam.iconUrl, 
     level: apiExam.level,
-    description: "Lorem Ipsum", 
+    description: "Official exam details, syllabus and important dates where available.", 
   };
 }
 
 export default function ExamsListingPage() {
+  const ismobile = window.matchMedia("(max:width:1024px)")
   const { exams, loading, error } = useExams();
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 9;
+  const ITEMS_PER_PAGE = ismobile?8:9;
 
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
@@ -285,7 +286,7 @@ export default function ExamsListingPage() {
 
     return (
       <>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {paginatedExams.map((exam) => (
             <ExamCard
               key={exam.id}
@@ -595,9 +596,9 @@ export default function ExamsListingPage() {
 
           <section className="col-span-1 lg:col-span-3">
             <div className="flex justify-between">
-              <h1 className="flex flex-col gap-2 mb-6 text-[16px] text-2xl font-bold">Lorem ipsum dolor sit amet.
-                <span className="text-[#8C8CA1] font-medium text-[14px] lg:text-[20px]">Filter exams based on your needs.</span>
-              </h1>
+              <h1 className="flex flex-col gap-2 mb-6 text-[16px] text-2xl font-bold">Explore entrance exams across India.
+                  <span className="text-[#8C8CA1] font-medium text-[14px] lg:text-[20px]">Compare levels, types and preparation resources to plan effectively.</span>
+                </h1>
 
               
               <div className="hidden sm:flex items-center gap-3">

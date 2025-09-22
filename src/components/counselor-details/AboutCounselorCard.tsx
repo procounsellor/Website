@@ -23,7 +23,7 @@ export function AboutCounselorCard({ counselor }: Props) {
         </div>
         <p className="text-[#718EBF] mt-2">From {counselor.organisationName}, {counselor.fullOfficeAddress?.city || 'Location'} Office</p>
         <p className="mt-4 text-[#232323] font-medium leading-relaxed">
-            {counselor.description || 'Lorem ipsum dolor sit amet consectetur. Lectus quam egestas ut odio. Condimentum rutrum a tempor netus volutpat. Duis laoreet commodo venena. This is placeholder text about the counselor\'s background and expertise.'}
+            {counselor.description || 'Experienced education counsellor with a strong track record helping students choose suitable colleges and programs. Specialises in entrance strategy, profile building, and admission planning.'}
         </p>
 
         <div className="mt-6 bg-[#F5F5F5] p-4 rounded-lg">
