@@ -7,7 +7,7 @@ export default function ContactPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 pointer-events-none"></div>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(59,130,246,0.05),transparent_50%)] pointer-events-none"></div>
 
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12">
         {/* Hero Section */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
@@ -33,13 +33,13 @@ export default function ContactPage() {
             <div className="space-y-1 mb-4">
               <a 
                 href="tel:7004789484" 
-                className="block text-green-600 hover:text-green-700 font-medium transition-colors"
+                className="block text-green-600 hover:text-green-700 font-medium transition-colors cursor-pointer"
               >
                 +91 7004789484
               </a>
               <a 
                 href="tel:9470988669" 
-                className="block text-green-600 hover:text-green-700 font-medium transition-colors"
+                className="block text-green-600 hover:text-green-700 font-medium transition-colors cursor-pointer"
               >
                 +91 9470988669
               </a>
@@ -57,7 +57,7 @@ export default function ContactPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Email Us</h3>
             <a 
               href="mailto:hr@procounsel.co.in" 
-              className="text-blue-600 hover:text-blue-700 font-medium transition-colors block mb-4"
+              className="text-blue-600 hover:text-blue-700 font-medium transition-colors block mb-4 cursor-pointer"
             >
               support@procounsel.co.in
             </a>
@@ -77,7 +77,7 @@ export default function ContactPage() {
                 href="https://www.instagram.com/procounsel.co.in/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center hover:scale-105 transition-transform"
+                className="w-10 h-10 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
               >
                 <Instagram className="w-5 h-5 text-white" />
               </a>
@@ -85,7 +85,7 @@ export default function ContactPage() {
                 href="https://www.linkedin.com/company/procounsel-by-catalystai/posts/?feedView=all"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center hover:scale-105 transition-transform"
+                className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
               >
                 <Linkedin className="w-5 h-5 text-white" />
               </a>
@@ -140,14 +140,14 @@ export default function ContactPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a 
               href="tel:7004789484"
-              className="bg-white text-blue-600 font-semibold py-3 px-8 rounded-lg hover:bg-gray-100 transition-colors inline-flex items-center justify-center gap-2"
+              className="bg-white text-blue-600 font-semibold py-3 px-8 rounded-lg hover:bg-gray-100 transition-colors inline-flex items-center justify-center gap-2 cursor-pointer"
             >
               <Phone className="w-5 h-5" />
               Call Now: +91 7004789484
             </a>
             <a 
               href="mailto:hr@procounsel.co.in"
-              className="bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg hover:bg-blue-800 transition-colors inline-flex items-center justify-center gap-2"
+              className="bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg hover:bg-blue-800 transition-colors inline-flex items-center justify-center gap-2 cursor-pointer"
             >
               <Mail className="w-5 h-5" />
               Send Email

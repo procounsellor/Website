@@ -20,7 +20,7 @@ export function AllCounselorCard({ counselor }: CounselorCardProps){
   return (
     <div
     className="flex flex-col w-[170px] lg:w-[282px] h-[267px] lg:h-[444px] hover:shadow-lg transition-all duration-300 bg-white shadow-[0px_0px_4px _px_#23232340] rounded-[12px] 
-    lg:rounded-[20px] p-[10px] gap-1"
+    lg:rounded-[20px] p-[10px]"
     >
       <img
        src={imageUrl}
@@ -32,36 +32,38 @@ export function AllCounselorCard({ counselor }: CounselorCardProps){
        }}
        />
 
-       <div>
-        <div className="text-[#343C6A] text-[14px] lg:text-[20px] font-medium lg:font-semibold">
+       <div className="mt-2 mb-1">
+        <div className="text-[#242645] text-[14px] lg:text-[20px] font-medium lg:font-semibold">
           {fullName}
         </div>
 
-        <div className=" flex flex-col text-[#718EBF] text-[12px] lg:text-[18px] font-medium">
+        <div className=" flex flex-col text-[#8C8CA1] text-[12px] lg:text-[18px] font-medium ">
           {description}
           <span>{location}</span>
         </div>
 
-        <div className="border-t-[1px] border-b-[1px] lg:border-t-0 py-2">
-          <div className="flex items-center justify-between lg:justify-start lg:gap-3 text-[#3D3D3D] text-[12px] lg:text-[16px] font-medium">
+        <div className="my-1">
+          <div className="flex items-center justify-between lg:justify-start lg:gap-3 text-[#696969] text-[12px] lg:text-[16px] font-medium">
             <span className="flex gap-2 lg:gap">
-              <Star className="w-4 h-4 lg:w-6 lg:h-6 text-[#FFD700] " fill="currentColor"/>
+              <Star className="w-4 h-4 lg:w-5 lg:h-5 text-[#FFD700] " fill="currentColor"/>
             {rating} | {reviews}
             </span>
             <span className="flex gap-2">
-              <TbBriefcase2 className="w-4 h-4 lg:w-6 lg:h-6 text-[#4471FF]"/>
+              <TbBriefcase2 className="w-4 h-4 lg:w-5 lg:h-5 text-[#4471FF]"/>
               {experience}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 py-[6px]">
+        <hr className="flex justify-center h-px text-[#f5f5f5]" />
+
+        <div className="flex items-center gap-2 mt-2">
           <img 
           src='./Procoin.jpg' 
           alt="procoin_icon" 
           className="w-[18px] h-[18px] lg:w-11 lg:h-11"
           />
-          <span className="text-[12px] lg:font-semibold text-[#232323] text-center">{rateText}<span>/Hour</span></span>
+          <span className="text-[12px] lg:font-semibold text-[#343c6a] text-center">{rateText}<span>/Hour</span></span>
         </div>
       
 
