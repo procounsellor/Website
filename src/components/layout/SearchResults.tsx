@@ -26,10 +26,9 @@ export function SearchResults({ onResultClick }: SearchResultsProps) {
   const navigate = useNavigate();
 
   const handleResultClick = (result: SearchResult) => {
-    // Navigate to detail pages with specific IDs
     switch(result.type) {
       case 'counselor': {
-        navigate(`/counselors/${result.id}`);
+        navigate('/counselors/profile', { state: { id: result.id } });
         break;
       }
       case 'college': {
@@ -45,7 +44,6 @@ export function SearchResults({ onResultClick }: SearchResultsProps) {
         break;
       }
       default: {
-        // Fallback to listing page
         const baseRoute = result.type === 'counselor' ? '/counselors' : `/${result.type}s`;
         navigate(baseRoute);
         break;

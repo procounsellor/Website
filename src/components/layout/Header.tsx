@@ -5,6 +5,7 @@ import { User2, Search, X, LogOut, LayoutDashboard } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
+import SmartImage from "@/components/ui/SmartImage";
 
 export default function Header(){
     const {toggleLogin,isAuthenticated, logout} = useAuthStore()
@@ -76,18 +77,21 @@ export default function Header(){
 
   return (
     <>
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out ${
+    <header className={`fixed top-0 left-0 right-0 z-50 border border-[#d6d6d6] shadow-xs transition-all duration-300 ease-out ${
         scrolled 
-          ? "bg-white/85 backdrop-blur-xl border-b border-black/10 shadow-lg shadow-black/5" 
+          ? "bg-white/85 backdrop-blur-xl  shadow-lg shadow-black/5" 
           : "bg-transparent"
       }`}>
       <div className="flex h-14 md:h-20 items-center justify-between px-5 lg:px-20">
 
         <div className="Logo flex">
-        <img src="/logo.svg" alt="procounsel_logo" 
-        className="h-7 w-7 md:w-11 md:h-12"
+        <SmartImage src="/logo.svg" alt="procounsel_logo" 
+          className="h-7 w-7 md:w-11 md:h-12"
+          width={44}
+          height={44}
+          priority
         />
-        <div className="flex flex-col leading-tight pl-[9px]" onClick={() => navigate('/')}>
+        <div className="flex flex-col leading-tight pl-[9px] hover:cursor-pointer" onClick={() => navigate('/')}>
            <h1 className="text-[#232323] font-semibold text-sm md:text-xl">ProCounsel</h1>
             <span className="font-normal text-[#858585] text-[8px] md:text-[10px]">By CatalystAI</span>
         </div>

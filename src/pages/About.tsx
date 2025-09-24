@@ -3,7 +3,7 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Add top padding for header spacing */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-22 pb-12">
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 lg:p-12">
           
           {/* Simple Header */}
