@@ -1,0 +1,100 @@
+import { useState, useEffect } from 'react';
+import { useAuthStore } from '@/store/AuthStore';
+import { getUserProfile } from '@/api/user';
+import type { User } from '@/types/user';
+import ProfileHeader from '@/components/student-dashboard/ProfileHeader';
+import MyInfoTab from '@/components/student-dashboard/MyInfoTab';
+import AppointmentsTab from '@/components/student-dashboard/AppointmentsTab';
+import { Loader2 } from 'lucide-react';
+
+const TABS = ['My Info', 'Appointments', 'Counsellors', 'Favourite Colleges', 'Transaction', 'Reviews'];
+
+const StudentDashboardPage: React.FC = () => {
+  const { userId } = useAuthStore();
+  const token = localStorage.getItem('jwt');
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('My Info');
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!userId || !token) {
+        setError('You must be logged in to view this page.');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const userData = await getUserProfile(userId, token);
+        setUser(userData);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [userId, token]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <Loader2 className="w-12 h-12 animate-spin text-blue-800" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-20 text-red-500 bg-red-50 rounded-lg m-8">
+        <h2 className="text-xl font-semibold">Error</h2>
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <div className="text-center py-20">No user data found.</div>;
+  }
+
+  return (
+    <div className="bg-[#F5F5F7] min-h-screen p-4 md:p-8 pt-14 md:pt-20">
+      <div className="max-w-7xl mx-auto">
+        <ProfileHeader user={user} />
+
+        <div className="border-b border-gray-200 mb-6">
+          <nav className="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
+            {TABS.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`${
+                  activeTab === tab
+                    ? 'border-[#13097D] text-[#13097D]'
+                    : 'border-transparent text-[#8C8CA1] hover:text-gray-700 hover:border-gray-300'
+                } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors`}
+              >
+                {tab}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        <div>
+          {activeTab === 'My Info'  && <MyInfoTab user={user} />}
+          {activeTab === 'Appointments' && <AppointmentsTab />}
+          {activeTab !== 'My Info' && activeTab !== 'Appointments' && (
+            <div className="text-center py-16 bg-white rounded-xl shadow-md">
+              <h3 className="text-lg font-semibold text-gray-700">Coming Soon</h3>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default StudentDashboardPage;

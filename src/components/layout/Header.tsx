@@ -1,15 +1,18 @@
 import { GlobalSearchBar } from "./GlobalSearchBar";
 import { useAuthStore } from "@/store/AuthStore";
 import { Button } from "../ui";
-import { User2, Search, X } from "lucide-react";
+import { User2, Search, X, LogOut, LayoutDashboard } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function Header(){
     const {toggleLogin,isAuthenticated, logout} = useAuthStore()
     const [scrolled, setScrolled] = useState(false)
     const [showHeaderSearch, setShowHeaderSearch] = useState(false)
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
     const searchBarRef = useRef(null)
     const navigate = useNavigate()
     const location = useLocation()
@@ -44,6 +47,30 @@ export default function Header(){
             window.removeEventListener("heroSearchBarVisibility", handleHeroSearchBarVisibility as EventListener);
         };
     }, [isHomePage]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        if (isDropdownOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isDropdownOpen]);
+
+    // const handleProfileClick = () => {
+    //     navigate('/dashboard/student');
+    // };
+    const handleLogout = () => {
+        logout();
+        setIsDropdownOpen(false);
+        navigate('/');
+        toast.success('Logged out successfully!');
+    };
 
 
 
@@ -93,7 +120,37 @@ export default function Header(){
 
         <div className="btn">
          {isAuthenticated ? (
-          <div onClick={logout}><User2 className="h-6 w-6"/></div>
+          <>
+            <button 
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)} 
+              className="p-2 rounded-full hover:bg-gray-200 transition-colors" 
+              aria-label="Open user menu"
+            >
+              <User2 className="h-6 w-6 text-gray-700" />
+            </button>
+                                    
+            {isDropdownOpen && (
+              <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50 py-1 border border-gray-200">
+                <button
+                  onClick={() => {
+                    navigate('/dashboard/student');
+                    setIsDropdownOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  <LayoutDashboard size={16} />
+                  <span>Profile</span>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                >
+                  <LogOut size={16} />
+                  <span>Logout</span>
+                </button>
+              </div>
+            )}
+          </>
          ):(
            <Button
           variant={"outline"}

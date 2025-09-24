@@ -12,6 +12,7 @@ import PrivacyPolicyPage from "@/pages/PrivacyPolicy";
 import TermsPage from "@/pages/Terms";
 import SitemapPage from "@/pages/Sitemap";
 import AddCollegePage from "@/pages/AddCollege";
+import StudentDashboardPage from "@/pages/StudentDashboardPage";
 
 
 
@@ -40,6 +41,7 @@ export default function AppRoutes(){
             <Route path="/sitemap" element={<SitemapPage/>} />
             <Route path="/add-college" element={<AddCollegePage/>} />
             <Route path="/exams/:id" element={<ExamDetailsPage />} />
+            <Route path="/dashboard/student" element={<StudentDashboardPage />} />
 
          </Route>
           </Routes>
