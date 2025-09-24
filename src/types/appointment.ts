@@ -8,6 +8,6 @@ export interface Appointment {
   startTime: string;
   endTime: string;
   mode: string;
-  status: 'upcoming' | 'completed' | 'cancelled';
+  status: 'booked' | 'rescheduled' | 'completed' | 'cancelled';
   counsellorFCMToken: string;
 }
