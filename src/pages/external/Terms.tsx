@@ -1,8 +1,8 @@
-export default function TermsPage() {
+export default function ExternalTermsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Add top padding for header spacing */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-22 pb-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12">
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 lg:p-12">
           
           {/* Simple Header */}
@@ -186,12 +186,6 @@ export default function TermsPage() {
                 <li>Outstanding ProCoins will be settled as per withdrawal terms.</li>
                 <li>Upon termination, you must stop representing any association with ProCounsel.</li>
               </ul>
-
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">10. Non-Solicitation</h3>
-              <p className="text-gray-700 mb-6">
-                You may not directly or indirectly solicit, contact, or provide services to ProCounsel students outside the platform for 
-                <strong> 1 year after termination</strong>.
-              </p>
             </section>
 
             {/* GENERAL TERMS */}
@@ -202,10 +196,7 @@ export default function TermsPage() {
               </div>
 
               <h3 className="text-2xl font-bold text-gray-800 mb-4">1. Privacy</h3>
-              <p className="text-gray-700 mb-6">
-                We collect and use your personal information in accordance with our <strong>Privacy Policy</strong>. 
-                By using the App, you consent to such collection and usage.
-              </p>
+              <p className="text-gray-700 mb-6">We collect and use your personal information in accordance with our <strong>Privacy Policy</strong>. By using the App, you consent to such collection and usage.</p>
 
               <h3 className="text-2xl font-bold text-gray-800 mb-4">2. Limitations of Liability</h3>
               <ul className="list-disc pl-6 text-gray-700 mb-6 space-y-2">
@@ -245,9 +236,7 @@ export default function TermsPage() {
             {/* Contact Information */}
             <section className="mb-8">
               <h3 className="text-2xl font-bold text-gray-800 mb-4">Contact Information</h3>
-              <p className="text-gray-700 mb-4">
-                If you have any questions about these Terms, please contact us:
-              </p>
+              <p className="text-gray-700 mb-4">If you have any questions about these Terms, please contact us:</p>
               <div className="bg-gray-50 p-6 rounded-lg">
                 <p className="text-gray-700 mb-2"><strong>Email:</strong> hr@procounsel.co.in</p>
                 <p className="text-gray-700 mb-2"><strong>Phone:</strong> 7004789484, 9470988669</p>
@@ -264,9 +253,7 @@ export default function TermsPage() {
                   liability, and governing law.
                 </p>
               </div>
-              <p className="text-sm text-gray-600 italic mt-4">
-                These Terms &amp; Conditions are effective as of 20th August, 2025, and apply to all users of the ProCounsel platform.
-              </p>
+              <p className="text-sm text-gray-600 italic mt-4">These Terms &amp; Conditions are effective as of 20th August, 2025, and apply to all users of the ProCounsel platform.</p>
             </div>
           </div>
         </div>

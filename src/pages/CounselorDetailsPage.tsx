@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { useCounselorById } from '@/hooks/useCounselors';
 
 import { CounselorProfileCard } from '@/components/counselor-details/CounselorProfileCard';
@@ -9,13 +9,16 @@ import { FeaturedCollegesCard } from '@/components/shared/FeaturedCollegesCard';
 
 
 export default function CounselorDetailsPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id: paramId } = useParams<{ id: string }>();
+  const location = useLocation();
+  type LocationState = { id?: string } | undefined;
+  const state = location.state as LocationState;
+  const computedId = paramId || state?.id;
+  const { counselor, loading, error } = useCounselorById(computedId ?? '');
 
-  if (!id) {
+  if (!computedId) {
     return <div className="p-8 text-center text-red-500">Error: Counselor ID is missing.</div>;
   }
-  
-  const { counselor, loading, error } = useCounselorById(id);
 
   if (loading) {
     return <div className="flex h-screen items-center justify-center">Loading Counselor Profile...</div>;

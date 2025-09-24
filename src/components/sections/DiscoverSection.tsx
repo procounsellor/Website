@@ -1,6 +1,7 @@
 import { DiscoverCard, type DiscoverCardData } from "../cards/DiscoverCard";
 import { Badge } from "../ui";
 import { useNavigate } from "react-router-dom";
+import SmartImage from "@/components/ui/SmartImage";
 
 const discoverItems: DiscoverCardData[] = [
   {
@@ -74,9 +75,11 @@ export function DiscoverSection(){
             className="w-full h-[99px] flex bg-[#FFFFFF] items-center rounded-[12px] gap-3 cursor-pointer hover:shadow-lg transition-shadow"
             onClick={() => handleDiscoverClick('counselors')}
           >
-                <img src="/discover-imageCounselor2.jpg" alt="counselor_discover" 
-                className="w-[98px] h-[91px] rounded-[12px] pl-1"
-              />
+                <SmartImage src="/discover-imageCounselor2.jpg" alt="counselor_discover"
+                  className="w-[98px] h-[91px] rounded-[12px] pl-1 object-cover"
+                  width={98}
+                  height={91}
+                />
               <div className="max-w-[198px] ">
                 <Badge
                 className="text-[#13097D] bg-[#E7F0F9] text-[11px] px-2 py-0.5"
@@ -98,8 +101,10 @@ export function DiscoverSection(){
                    <p className="font-normal text-xs">Discover institutions that match your career goals.</p>
               </div>
 
-              <img src="/discover-iit-roorkee.jpg" alt="counselor_discover" 
-                className="w-[98px] h-[91px] rounded-[12px]"
+              <SmartImage src="/discover-iit-roorkee.jpg" alt="counselor_discover"
+                className="w-[98px] h-[91px] rounded-[12px] object-cover"
+                width={98}
+                height={91}
               />
           </div>
 
@@ -107,8 +112,10 @@ export function DiscoverSection(){
             className="h-[99px] flex bg-[#FFFFFF] items-center rounded-[12px] gap-3 cursor-pointer hover:shadow-lg transition-shadow"
             onClick={() => handleDiscoverClick('courses')}
           >
-              <img src="/discover-courses.jpg" alt="counselor_discover" 
-                className="w-[98px] h-[91px] rounded-[12px] pl-1"
+              <SmartImage src="/discover-courses.jpg" alt="counselor_discover"
+                className="w-[98px] h-[91px] rounded-[12px] pl-1 object-cover"
+                width={98}
+                height={91}
               />
               <div className="max-w-[198px]">
                 <Badge
@@ -130,8 +137,10 @@ export function DiscoverSection(){
                    <p className="font-semibold text-xs">Prepare for your upcoming entrance exams</p>
                    <p className="font-normal text-xs">Access resources and strategies to top your exams.</p>
               </div>
-                <img src="/discover-exam.jpg" alt="counselor_discover" 
-                className="w-[98px] h-[91px] rounded-[12px]"
+                <SmartImage src="/discover-exam.jpg" alt="counselor_discover"
+                className="w-[98px] h-[91px] rounded-[12px] object-cover"
+                width={98}
+                height={91}
               />
           </div>
         </div>

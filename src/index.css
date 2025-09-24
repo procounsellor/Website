@@ -151,6 +151,21 @@ body {
   scrollbar-gutter: stable;
 }
 
+/* Shimmer animation for improved skeleton placeholders */
+.animate-shimmer {
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
 .otp-no-glow [data-state="focused"],
 .otp-no-glow [data-state="focused"]::before,
 .otp-no-glow [data-state="focused"]::after,

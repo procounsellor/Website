@@ -1,29 +1,22 @@
-export default function PrivacyPolicyPage() {
+export default function ExternalPrivacyPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Add top padding for header spacing */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-22 pb-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12">
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 lg:p-12">
-          
-          {/* Simple Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Privacy Policy</h1>
             <p className="text-lg text-gray-600">Last Updated: 20th August, 2025</p>
-            <p className="text-sm text-gray-500 mt-2">
-              ProCounsel - A product of CATALYSTAI TECHNOLOGY PRIVATE LIMITED
-            </p>
+            <p className="text-sm text-gray-500 mt-2">ProCounsel - A product of CATALYSTAI TECHNOLOGY PRIVATE LIMITED</p>
           </div>
-          
+
           <div className="prose max-w-none">
+            {/* Copy of the existing privacy policy content */}
             <p className="text-lg text-gray-700 mb-8">
-              This Privacy Policy explains how <strong>CATALYSTAI TECHNOLOGY PRIVATE LIMITED</strong> (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) 
-              collects, uses, and protects your personal information when you use the ProCounsel platform, mobile application, 
-              and related services (collectively, the &quot;App&quot;).
+              This Privacy Policy explains how <strong>CATALYSTAI TECHNOLOGY PRIVATE LIMITED</strong> (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) collects, uses, and protects your personal information when you use the ProCounsel platform, mobile application, and related services (collectively, the &quot;App&quot;).
             </p>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">1. Information We Collect</h2>
-              
               <h3 className="text-xl font-semibold text-gray-700 mb-3">Personal Information</h3>
               <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-1">
                 <li>Name, email address, and phone number</li>
@@ -31,7 +24,6 @@ export default function PrivacyPolicyPage() {
                 <li>Profile information and preferences</li>
                 <li>Communication data and chat messages within the platform</li>
               </ul>
-
               <h3 className="text-xl font-semibold text-gray-700 mb-3">Usage Information</h3>
               <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-1">
                 <li>App usage patterns and interaction data</li>
@@ -43,7 +35,6 @@ export default function PrivacyPolicyPage() {
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">2. How We Use Your Information</h2>
-              
               <h3 className="text-xl font-semibold text-gray-700 mb-3">For Students</h3>
               <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-1">
                 <li>Provide personalized college and course recommendations</li>
@@ -64,9 +55,7 @@ export default function PrivacyPolicyPage() {
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">3. Information Sharing</h2>
-              <p className="text-gray-700 mb-4">
-                We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:
-              </p>
+              <p className="text-gray-700 mb-4">We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:</p>
               <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-1">
                 <li><strong>With Counsellors:</strong> Basic profile information when you book appointments or subscribe to their services</li>
                 <li><strong>Service Providers:</strong> Trusted third-party services that help us operate the platform (payment processing, hosting, analytics)</li>
@@ -77,9 +66,7 @@ export default function PrivacyPolicyPage() {
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">4. Data Security</h2>
-              <p className="text-gray-700 mb-4">
-                We implement industry-standard security measures to protect your personal information:
-              </p>
+              <p className="text-gray-700 mb-4">We implement industry-standard security measures to protect your personal information:</p>
               <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-1">
                 <li>Encrypted data transmission using SSL/TLS protocols</li>
                 <li>Secure payment processing through Razorpay (we do not store payment card details)</li>
@@ -103,60 +90,38 @@ export default function PrivacyPolicyPage() {
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">6. Cookies and Tracking</h2>
-              <p className="text-gray-700 mb-4">
-                We use cookies and similar technologies to enhance your experience:
-              </p>
+              <p className="text-gray-700 mb-4">We use cookies and similar technologies to enhance your experience:</p>
               <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-1">
                 <li><strong>Essential Cookies:</strong> Required for basic platform functionality</li>
                 <li><strong>Analytics Cookies:</strong> Help us understand usage patterns and improve our services</li>
                 <li><strong>Preference Cookies:</strong> Remember your settings and preferences</li>
               </ul>
-              <p className="text-gray-700 mb-4">
-                You can control cookie settings through your browser preferences.
-              </p>
+              <p className="text-gray-700 mb-4">You can control cookie settings through your browser preferences.</p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">7. Children&apos;s Privacy</h2>
-              <p className="text-gray-700 mb-4">
-                Our services are primarily intended for users 18 years and older. Users under 18 should use our platform 
-                under parental or guardian supervision. We do not knowingly collect personal information from children 
-                under 13 without appropriate consent.
-              </p>
+              <p className="text-gray-700 mb-4">Our services are primarily intended for users 18 years and older. Users under 18 should use our platform under parental or guardian supervision. We do not knowingly collect personal information from children under 13 without appropriate consent.</p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">8. Data Retention</h2>
-              <p className="text-gray-700 mb-4">
-                We retain your personal information for as long as necessary to provide our services and comply with 
-                legal obligations. When you delete your account, we will remove your personal information within 
-                30 days, except where retention is required by law.
-              </p>
+              <p className="text-gray-700 mb-4">We retain your personal information for as long as necessary to provide our services and comply with legal obligations. When you delete your account, we will remove your personal information within 30 days, except where retention is required by law.</p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">9. International Data Transfers</h2>
-              <p className="text-gray-700 mb-4">
-                Your information may be transferred to and processed in countries other than your own. We ensure 
-                appropriate safeguards are in place to protect your personal information in accordance with this 
-                Privacy Policy.
-              </p>
+              <p className="text-gray-700 mb-4">Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place to protect your personal information in accordance with this Privacy Policy.</p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">10. Updates to This Policy</h2>
-              <p className="text-gray-700 mb-4">
-                We may update this Privacy Policy from time to time. We will notify you of any material changes 
-                through the App or via email. Your continued use of our services after such changes constitutes 
-                acceptance of the updated policy.
-              </p>
+              <p className="text-gray-700 mb-4">We may update this Privacy Policy from time to time. We will notify you of any material changes through the App or via email. Your continued use of our services after such changes constitutes acceptance of the updated policy.</p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">11. Contact Us</h2>
-              <p className="text-gray-700 mb-4">
-                If you have any questions about this Privacy Policy or our data practices, please contact us:
-              </p>
+              <p className="text-gray-700 mb-4">If you have any questions about this Privacy Policy or our data practices, please contact us:</p>
               <div className="bg-gray-50 p-6 rounded-lg">
                 <p className="text-gray-700 mb-2"><strong>Email:</strong> hr@procounsel.co.in</p>
                 <p className="text-gray-700 mb-2"><strong>Phone:</strong> 7004789484, 9470988669</p>
@@ -165,9 +130,7 @@ export default function PrivacyPolicyPage() {
             </section>
 
             <div className="border-t border-gray-200 pt-6 mt-8">
-              <p className="text-sm text-gray-600 italic">
-                This Privacy Policy is effective as of 20th August, 2025, and applies to all users of the ProCounsel platform.
-              </p>
+              <p className="text-sm text-gray-600 italic">This Privacy Policy is effective as of 20th August, 2025, and applies to all users of the ProCounsel platform.</p>
             </div>
           </div>
         </div>

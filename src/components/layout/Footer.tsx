@@ -56,22 +56,22 @@ export default function Footer() {
               <h4 className="mb-4 sm:mb-6 font-montserrat font-medium text-lg sm:text-xl leading-none text-[#180033]">Useful Links</h4>
               <ul className="space-y-3 sm:space-y-6 flex-1">
                 <li>
-                  <Link to="/colleges" className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Colleges</Link>
+                  <a href="/colleges" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Colleges</a>
                 </li>
                 <li>
-                  <Link to="/courses" className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Courses</Link>
+                  <a href="/courses" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Courses</a>
                 </li>
                 <li>
-                  <Link to="/exams" className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Exams</Link>
+                  <a href="/exams" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Exams</a>
                 </li>
                 <li>
-                  <Link to="/about" className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">About Us</Link>
+                  <a href="/about" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">About Us</a>
                 </li>
                 <li>
-                  <Link to="/contact" className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Contact</Link>
+                  <a href="/contact" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Contact</a>
                 </li>
                 <li>
-                  <Link to="/add-college" className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Add College</Link>
+                  <a href="/add-college" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Add College</a>
                 </li>
               </ul>
             </div>
