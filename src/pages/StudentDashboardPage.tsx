@@ -6,6 +6,7 @@ import ProfileHeader from '@/components/student-dashboard/ProfileHeader';
 import MyInfoTab from '@/components/student-dashboard/MyInfoTab';
 import AppointmentsTab from '@/components/student-dashboard/AppointmentsTab';
 import { Loader2 } from 'lucide-react';
+import CounsellorsTab from '@/components/student-dashboard/CounsellorsTab';
 
 const TABS = ['My Info', 'Appointments', 'Counsellors', 'Favourite Colleges', 'Transaction', 'Reviews'];
 
@@ -20,7 +21,6 @@ const StudentDashboardPage: React.FC = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!userId || !token) {
-        setError('You must be logged in to view this page.');
         setLoading(false);
         return;
       }
@@ -57,7 +57,11 @@ const StudentDashboardPage: React.FC = () => {
   }
 
   if (!user) {
-    return <div className="text-center py-20">No user data found.</div>;
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <Loader2 className="w-12 h-12 animate-spin text-blue-800" />
+      </div>
+    );
   }
 
   return (
@@ -86,7 +90,8 @@ const StudentDashboardPage: React.FC = () => {
         <div>
           {activeTab === 'My Info'  && <MyInfoTab user={user} />}
           {activeTab === 'Appointments' && <AppointmentsTab />}
-          {activeTab !== 'My Info' && activeTab !== 'Appointments' && (
+          {activeTab === 'Counsellors' && <CounsellorsTab />}
+          {activeTab !== 'My Info' && activeTab !== 'Appointments' && activeTab !== 'Counsellors' && (
             <div className="text-center py-16 bg-white rounded-xl shadow-md">
               <h3 className="text-lg font-semibold text-gray-700">Coming Soon</h3>
             </div>
