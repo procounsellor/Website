@@ -9,6 +9,8 @@ import PrivacyPolicyPage from "@/pages/PrivacyPolicy";
 import TermsPage from "@/pages/Terms";
 import SitemapPage from "@/pages/Sitemap";
 import AddCollegePage from "@/pages/AddCollege";
+import StudentDashboardPage from "@/pages/StudentDashboardPage";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import ExternalPrivacyPage from "@/pages/external/Privacy";
 import ExternalTermsPage from "@/pages/external/Terms";
 const CollegesListingPage = lazy(() => import('@/pages/colleges'));
@@ -18,6 +20,7 @@ const ExamsListingPage = lazy(() => import('@/pages/exams'));
 const CounselorDetailsPage = lazy(() => import('@/pages/CounselorDetailsPage'));
 const ExamDetailsPage = lazy(() => import('@/pages/ExamDetailsPage'));
 const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
+
 
 
 
@@ -47,7 +50,14 @@ export default function AppRoutes(){
                                 <Route path="/sitemap" element={<SitemapPage/>} />
                                 <Route path="/add-college" element={<AddCollegePage/>} />
                                 <Route path="/exams/:id" element={<ExamDetailsPage />} />
-                                <Route path="/dashboard/student" element={<StudentDashboardPage />} />
+                                <Route 
+                path="/dashboard/student" 
+                element={
+                    <ProtectedRoute>
+                        <StudentDashboardPage />
+                    </ProtectedRoute>
+                } 
+            />
 
                          </Route>
                      </Routes>
