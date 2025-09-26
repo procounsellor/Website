@@ -17,7 +17,7 @@ export function DashboardCounselorCard({ counselor }: CounselorCardProps){
       <img
        src={imageUrl}
        alt={fullName}
-       className="w-full h-40 object-cover rounded-lg mb-3"
+       className="w-full aspect-square object-cover rounded-lg mb-3"
        onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`; }}
       />
       <div className="flex flex-col">

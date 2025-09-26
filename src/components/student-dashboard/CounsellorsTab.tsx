@@ -6,45 +6,59 @@ import { getFavouriteCounsellors, getSubscribedCounsellors } from '@/api/counsel
 import { AllCounselorCardSkeleton } from '@/components/skeletons/CounselorSkeletons';
 import { DashboardCounselorCard } from './DashboardCounselorCard';
 
-type CounsellorFilter = 'Favourite' | 'Subscribed';
+type CounsellorFilter = 'Subscribed' | 'Favourite';
 
 const CounsellorsTab: React.FC = () => {
   const { userId } = useAuthStore();
   const token = localStorage.getItem('jwt');
 
-  const [activeFilter, setActiveFilter] = useState<CounsellorFilter>('Favourite');
+  const [activeFilter, setActiveFilter] = useState<CounsellorFilter>('Subscribed');
   const [favouriteCounsellors, setFavouriteCounsellors] = useState<Counsellor[]>([]);
   const [subscribedCounsellors, setSubscribedCounsellors] = useState<Counsellor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [subscribedError, setSubscribedError] = useState<string | null>(null);
+  const [favouriteError, setFavouriteError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCounsellors = async () => {
       if (!userId || !token) {
-        setError("User not authenticated.");
+        setSubscribedError("User not authenticated.");
+        setFavouriteError("User not authenticated.");
         setLoading(false);
         return;
       }
-      try {
-        setLoading(true);
-        const [favourites, subscribed] = await Promise.all([
-          getFavouriteCounsellors(userId, token),
-          getSubscribedCounsellors(userId, token),
-        ]);
-        setFavouriteCounsellors(favourites);
-        setSubscribedCounsellors(subscribed);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch counsellors.');
-      } finally {
-        setLoading(false);
+      setLoading(true);
+      const results = await Promise.allSettled([
+        getSubscribedCounsellors(userId, token),
+        getFavouriteCounsellors(userId, token),
+      ]);
+
+      if (results[0].status === 'fulfilled') {
+        setSubscribedCounsellors(results[0].value);
+      } else {
+        console.error("Failed to fetch subscribed counsellors:", results[0].reason);
+        setSubscribedError('Could not load subscribed counsellors.');
       }
+
+      // Handle Favourite Counsellors result
+      if (results[1].status === 'fulfilled') {
+        setFavouriteCounsellors(results[1].value);
+      } else {
+        console.error("Failed to fetch favourite counsellors:", results[1].reason);
+        setFavouriteError('Could not load favourite counsellors.');
+      }
+      
+      setLoading(false);
+      // -- FIX ENDS HERE --
     };
+      
 
     fetchCounsellors();
   }, [userId, token]);
 
-  const TABS: CounsellorFilter[] = ['Favourite', 'Subscribed'];
-  const counsellorsToDisplay = activeFilter === 'Favourite' ? favouriteCounsellors : subscribedCounsellors;
+  const TABS: CounsellorFilter[] = ['Subscribed', 'Favourite'];
+  const counsellorsToDisplay = activeFilter === 'Subscribed' ? subscribedCounsellors : favouriteCounsellors;
+  const currentError = activeFilter === 'Subscribed' ? subscribedError : favouriteError;
 
   const renderContent = () => {
     if (loading) {
@@ -55,11 +69,11 @@ const CounsellorsTab: React.FC = () => {
       );
     }
 
-    if (error) {
+    if (currentError) {
       return (
         <div className="text-center py-16 bg-white rounded-xl border border-red-200">
           <h3 className="text-lg font-semibold text-red-600">Error</h3>
-          <p className="text-gray-500 mt-2">{error}</p>
+          <p className="text-gray-500 mt-2">{currentError}</p>
         </div>
       );
     }
