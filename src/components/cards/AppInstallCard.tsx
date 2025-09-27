@@ -24,14 +24,18 @@ const AppInstallCard = () => {
               </div>
               <MdOutlineFileDownload className="h-5 w-5 text-[#13097D] ml-2"/>
             </a>
-            <button className="flex items-center justify-center gap-3 px-5 py-3 bg-white border border-gray-200 rounded-lg shadow-sm cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg">
+            <a
+            href="https://apps.apple.com/app/procounsel/id6752525886"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-3 px-5 py-3 bg-white border border-gray-200 rounded-lg shadow-sm cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg">
               <img src="/appstore.png" alt="App Store" className="h-6" />
               <div className="text-left text-[#13097D]">
                 <p className="text-xs">Get it on</p>
                 <p className="text-md font-semibold">App Store</p>
               </div>
               <MdOutlineFileDownload className="h-5 w-5 text-[#13097D] ml-2"/>
-            </button>
+            </a>
           </div>
 
 

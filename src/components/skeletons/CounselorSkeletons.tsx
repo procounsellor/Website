@@ -1,112 +1,69 @@
+import type { ReactElement } from 'react';
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function CounselorCardSkeleton() {
+export function CounselorCardSkeleton(): ReactElement {
   return (
-    <Card 
-      className="group flex flex-col bg-white mx-auto w-full"
-      style={{
-        maxWidth: '320px',
-        height: 'auto',
-        minHeight: '451px',
-        borderRadius: '21.51px',
-        background: '#FFFFFF',
-        boxShadow: '0px 0px 4px 0px #23232340',
-        opacity: 1,
-        boxSizing: 'border-box',
-        padding: 0
-      }}
+    <Card
+      className="flex flex-col w-[170px] lg:w-[282px] h-[221px] lg:h-[366px] p-[10px] transition-all duration-300 hover:shadow-lg bg-white shadow-[0px_0px_4px_0px_#23232340] rounded-[12px] lg:rounded-[20px]"
+      style={{ boxSizing: 'border-box' }}
     >
-      <div 
-        className="relative overflow-hidden mx-auto mt-5"
-        style={{
-          width: '90%',
-          maxWidth: '349px',
-          height: 'auto',
-          aspectRatio: '349/289',
-          borderRadius: '20px',
-          opacity: 1,
-        }}
-      >
-        <Skeleton className="w-full h-full rounded-[20px]" />
+      {/* Image shimmer - match actual image size used in the real card */}
+      <div className="overflow-hidden w-full max-w-[150px] lg:max-w-[262px] h-[124px] lg:h-[248px] rounded-[10px] bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 animate-shimmer">
+        <Skeleton className="w-full h-full rounded-[10px] bg-gray-200/80" />
       </div>
 
-      <div 
-        className="flex flex-col items-center text-center flex-1 justify-center px-4"
-        style={{ 
-          padding: '30px 14px 14px 14px'
-        }}
-      >
+      <div className="flex flex-col mt-2">
+        <Skeleton className="h-4 lg:h-6 w-32 lg:w-44 mb-1 bg-gray-200/80" />
 
-        <Skeleton className="h-6 sm:h-7 w-32 sm:w-40 mb-3" />
-        
+        <Skeleton className="h-3 lg:h-4 w-24 lg:w-36 mb-2 bg-gray-200/80" />
 
-        <Skeleton className="h-4 sm:h-5 w-24 sm:w-32 mb-4" />
-        
-        <div className="flex items-center justify-between w-full max-w-[200px]">
-          <Skeleton className="h-3 sm:h-4 w-12 sm:w-16" />
-          <Skeleton className="h-5 sm:h-6 w-12 sm:w-16 rounded-full" />
+        <div className="flex justify-between text-xs lg:text-[16px] mt-2">
+          <div className="flex gap-x-1 lg:gap-2 text-[#7EE655]">
+            <Skeleton className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-gray-200/80" />
+            <Skeleton className="w-14 lg:w-20 h-3 bg-gray-200/80" />
+          </div>
+          <div className="flex gap-x-1 lg:gap-2">
+            <Skeleton className="w-4 h-4 lg:w-5 lg:h-5 bg-gray-200/80" />
+            <Skeleton className="w-20 lg:w-28 h-3 bg-gray-200/80" />
+          </div>
         </div>
       </div>
     </Card>
   );
 }
 
-export function AllCounselorCardSkeleton() {
+export function AllCounselorCardSkeleton(): ReactElement {
   return (
-    <Card 
-      className="group flex flex-col bg-white mx-auto w-full"
-      style={{
-        maxWidth: '320px',
-        height: 'auto',
-        minHeight: '420px',
-        borderRadius: '24px',
-        border: '1px solid #EFEFEF',
-        boxShadow: '0px 0px 4px 0px #2323231F',
-        background: '#FFFFFF',
-        opacity: 1,
-        boxSizing: 'border-box',
-        padding: '16px'
-      }}
+    <Card
+      className="flex flex-col w-[170px] lg:w-[282px] h-[267px] lg:h-[444px] hover:shadow-lg transition-all duration-300 bg-white shadow-[0px_0px_4px_0px_#23232340] rounded-[12px] lg:rounded-[20px] p-[10px]"
+      style={{ boxSizing: 'border-box' }}
     >
-      <div className="overflow-hidden rounded-2xl mb-3 w-full"
-        style={{
-          height: 'auto',
-          aspectRatio: '1/1',
-        }}
-      >
-        <Skeleton className="w-full h-full rounded-2xl" />
+      {/* Image shimmer - match the SmartImage size used in AllCounselorCard */}
+      <div className="overflow-hidden w-[150px] lg:w-[262px] h-[124px] lg:h-[248px] rounded-[10px] bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 animate-shimmer">
+        <Skeleton className="w-full h-full rounded-[10px] bg-gray-200/80" />
       </div>
-      <div className="flex flex-col gap-2 flex-grow">
-        <Skeleton className="h-5 sm:h-6 w-28 sm:w-36 mb-1" />
-        
-        <Skeleton className="h-3 sm:h-4 w-20 sm:w-28 mb-1" />
-        
-        <div className="flex items-center gap-1 mb-2">
-          <Skeleton className="h-3 w-3 rounded" />
-          <Skeleton className="h-3 w-20 sm:w-24" />
+
+      <div className="mt-2 mb-1">
+        <Skeleton className="h-4 lg:h-6 w-48 lg:w-64 mb-2 bg-gray-200/80" />
+
+        <div className="flex flex-col text-[#8C8CA1] text-[12px] lg:text-[18px] font-medium">
+          <Skeleton className="h-3 lg:h-4 w-36 lg:w-48 mb-1 bg-gray-200/80" />
+          <Skeleton className="h-3 lg:h-4 w-28 lg:w-40 bg-gray-200/80" />
         </div>
-        
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-            <div className="flex items-center gap-1">
-              <Skeleton className="h-3 w-3 rounded" />
-              <Skeleton className="h-3 w-4 sm:w-6" />
-            </div>
-            <Skeleton className="h-3 w-3 sm:w-4" />
-            <Skeleton className="h-3 w-4 sm:w-6" />
-            <div className="flex items-center gap-1">
-              <Skeleton className="h-3 w-3 rounded" />
-              <Skeleton className="h-3 w-6 sm:w-8" />
-            </div>
+
+        <div className="my-1">
+          <div className="flex items-center justify-between lg:justify-start lg:gap-3 text-[#696969] text-[12px] lg:text-[16px] font-medium">
+            <Skeleton className="h-4 lg:h-5 w-24 lg:w-32 bg-gray-200/80" />
+            <Skeleton className="h-4 lg:h-5 w-28 lg:w-36 bg-gray-200/80" />
           </div>
         </div>
 
         <div className="h-px bg-gray-200 my-2" />
-        
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-6 sm:h-8 w-6 sm:w-8 rounded" />
-          <Skeleton className="h-3 sm:h-4 w-20 sm:w-24" />
+
+        <div className="flex items-center gap-2 mt-2">
+          <Skeleton className="h-6 lg:h-11 w-6 lg:w-11 rounded bg-gray-200/80" />
+          <Skeleton className="h-3 lg:h-4 w-28 lg:w-40 bg-gray-200/80" />
         </div>
       </div>
     </Card>

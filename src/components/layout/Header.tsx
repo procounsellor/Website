@@ -1,15 +1,19 @@
 import { GlobalSearchBar } from "./GlobalSearchBar";
 import { useAuthStore } from "@/store/AuthStore";
 import { Button } from "../ui";
-import { User2, Search, X } from "lucide-react";
+import { User2, Search, X, LogOut, LayoutDashboard } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import toast from "react-hot-toast";
+import SmartImage from "@/components/ui/SmartImage";
 
 export default function Header(){
     const {toggleLogin,isAuthenticated, logout} = useAuthStore()
     const [scrolled, setScrolled] = useState(false)
     const [showHeaderSearch, setShowHeaderSearch] = useState(false)
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
     const searchBarRef = useRef(null)
     const navigate = useNavigate()
     const location = useLocation()
@@ -45,22 +49,49 @@ export default function Header(){
         };
     }, [isHomePage]);
 
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        if (isDropdownOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isDropdownOpen]);
+
+    // const handleProfileClick = () => {
+    //     navigate('/dashboard/student');
+    // };
+    const handleLogout = () => {
+        logout();
+        setIsDropdownOpen(false);
+        navigate('/');
+        toast.success('Logged out successfully!');
+    };
+
 
 
   return (
     <>
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out ${
+    <header className={`fixed top-0 left-0 right-0 z-50 border border-[#d6d6d6] shadow-xs transition-all duration-300 ease-out ${
         scrolled 
-          ? "bg-white/85 backdrop-blur-xl border-b border-black/10 shadow-lg shadow-black/5" 
+          ? "bg-white/85 backdrop-blur-xl  shadow-lg shadow-black/5" 
           : "bg-transparent"
       }`}>
       <div className="flex h-14 md:h-20 items-center justify-between px-5 lg:px-20">
 
         <div className="Logo flex">
-        <img src="/logo.svg" alt="procounsel_logo" 
-        className="h-7 w-7 md:w-11 md:h-12"
+        <SmartImage src="/logo.svg" alt="procounsel_logo" 
+          className="h-7 w-7 md:w-11 md:h-12"
+          width={44}
+          height={44}
+          priority
         />
-        <div className="flex flex-col leading-tight pl-[9px]" onClick={() => navigate('/')}>
+        <div className="flex flex-col leading-tight pl-[9px] hover:cursor-pointer" onClick={() => navigate('/')}>
            <h1 className="text-[#232323] font-semibold text-sm md:text-xl">ProCounsel</h1>
             <span className="font-normal text-[#858585] text-[8px] md:text-[10px]">By CatalystAI</span>
         </div>
@@ -93,7 +124,37 @@ export default function Header(){
 
         <div className="btn">
          {isAuthenticated ? (
-          <div onClick={logout}><User2 className="h-6 w-6"/></div>
+          <>
+            <button 
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)} 
+              className="p-2 rounded-full hover:bg-gray-200 transition-colors" 
+              aria-label="Open user menu"
+            >
+              <User2 className="h-6 w-6 text-gray-700" />
+            </button>
+                                    
+            {isDropdownOpen && (
+              <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50 py-1 border border-gray-200">
+                <button
+                  onClick={() => {
+                    navigate('/dashboard/student');
+                    setIsDropdownOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  <LayoutDashboard size={16} />
+                  <span>Profile</span>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                >
+                  <LogOut size={16} />
+                  <span>Logout</span>
+                </button>
+              </div>
+            )}
+          </>
          ):(
            <Button
           variant={"outline"}
