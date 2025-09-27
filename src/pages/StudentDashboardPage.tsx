@@ -7,8 +7,10 @@ import MyInfoTab from '@/components/student-dashboard/MyInfoTab';
 import AppointmentsTab from '@/components/student-dashboard/AppointmentsTab';
 import { Loader2 } from 'lucide-react';
 import CounsellorsTab from '@/components/student-dashboard/CounsellorsTab';
+import TransactionsTab from '@/components/student-dashboard/TransactionsTab';
+import ReviewsTab from '@/components/student-dashboard/ReviewsTab';
 
-const TABS = ['My Info', 'Appointments', 'Counsellors', 'Favourite Colleges', 'Transaction', 'Reviews'];
+const TABS = ['My Info', 'Appointments', 'Counsellors', 'Transactions', 'Reviews'];
 
 const StudentDashboardPage: React.FC = () => {
   const { userId } = useAuthStore();
@@ -91,11 +93,8 @@ const StudentDashboardPage: React.FC = () => {
           {activeTab === 'My Info'  && <MyInfoTab user={user} />}
           {activeTab === 'Appointments' && <AppointmentsTab />}
           {activeTab === 'Counsellors' && <CounsellorsTab />}
-          {activeTab !== 'My Info' && activeTab !== 'Appointments' && activeTab !== 'Counsellors' && (
-            <div className="text-center py-16 bg-white rounded-xl shadow-md">
-              <h3 className="text-lg font-semibold text-gray-700">Coming Soon</h3>
-            </div>
-          )}
+          {activeTab === 'Transactions' && <TransactionsTab transactions={user.transactions} />}
+          {activeTab === 'Reviews' && <ReviewsTab />}
         </div>
       </div>
     </div>

@@ -9,7 +9,6 @@ import PrivacyPolicyPage from "@/pages/PrivacyPolicy";
 import TermsPage from "@/pages/Terms";
 import SitemapPage from "@/pages/Sitemap";
 import AddCollegePage from "@/pages/AddCollege";
-import StudentDashboardPage from "@/pages/StudentDashboardPage";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import ExternalPrivacyPage from "@/pages/external/Privacy";
 import ExternalTermsPage from "@/pages/external/Terms";
