@@ -1,6 +1,7 @@
 export const API_CONFIG = {
   baseUrl: import.meta.env.VITE_API_BASE_URL,
   authUrl: import.meta.env.VITE_API_AUTH_URL,
+  chatbotUrl: import.meta.env.VITE_CHATBOT_API_URL,
   endpoints: {
     getCounsellors: '/api/shared/getAllCounsellors',
     getCounsellorById: '/api/shared/getCounsellorById',
