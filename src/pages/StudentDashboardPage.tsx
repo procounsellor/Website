@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuthStore } from '@/store/AuthStore';
 import { getUserProfile } from '@/api/user';
 import type { User } from '@/types/user';
@@ -9,6 +9,8 @@ import { Loader2 } from 'lucide-react';
 import CounsellorsTab from '@/components/student-dashboard/CounsellorsTab';
 import TransactionsTab from '@/components/student-dashboard/TransactionsTab';
 import ReviewsTab from '@/components/student-dashboard/ReviewsTab';
+import EditProfileModal from '@/components/student-dashboard/EditProfileModal';
+import EditPreferencesModal from '@/components/student-dashboard/EditPreferencesModal';
 
 const TABS = ['My Info', 'Appointments', 'Counsellors', 'Transactions', 'Reviews'];
 
@@ -19,27 +21,37 @@ const StudentDashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('My Info');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [prefsEditMode, setPrefsEditMode] = useState<'course' | 'states' | null>(null);
+
+  const handleOpenPrefsModal = (mode: 'course' | 'states') => {
+    setPrefsEditMode(mode);
+  };
+
+  const fetchUserProfile = useCallback(async () => {
+    if (!userId || !token) {
+      setLoading(false);
+      return;
+    }
+    try {
+      const userData = await getUserProfile(userId, token);
+      setUser(userData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+    } finally {
+      if (loading) setLoading(false);
+    }
+  }, [userId, token]);
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!userId || !token) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const userData = await getUserProfile(userId, token);
-        setUser(userData);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUserProfile();
-  }, [userId, token]);
+  }, [fetchUserProfile]);
+
+  const handleClosePrefsModal = () => {
+    setPrefsEditMode(null);
+    fetchUserProfile();
+  };
+
 
   if (loading) {
     return (
@@ -61,7 +73,7 @@ const StudentDashboardPage: React.FC = () => {
   if (!user) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-50">
-        <Loader2 className="w-12 h-12 animate-spin text-blue-800" />
+        <p>No user data found</p>
       </div>
     );
   }
@@ -69,7 +81,7 @@ const StudentDashboardPage: React.FC = () => {
   return (
     <div className="bg-[#F5F5F7] min-h-screen p-4 md:p-8 pt-14 md:pt-20">
       <div className="max-w-7xl mx-auto">
-        <ProfileHeader user={user} />
+        <ProfileHeader user={user} onEditClick={() => setIsEditModalOpen(true)} />
 
         <div className="border-b border-gray-200 mb-6">
           <nav className="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
@@ -90,13 +102,30 @@ const StudentDashboardPage: React.FC = () => {
         </div>
 
         <div>
-          {activeTab === 'My Info'  && <MyInfoTab user={user} />}
+          {activeTab === 'My Info'  && <MyInfoTab 
+                user={user} 
+                onEditCourse={() => handleOpenPrefsModal('course')}
+                onEditStates={() => handleOpenPrefsModal('states')}
+                />}
           {activeTab === 'Appointments' && <AppointmentsTab />}
           {activeTab === 'Counsellors' && <CounsellorsTab />}
           {activeTab === 'Transactions' && <TransactionsTab transactions={user.transactions} />}
           {activeTab === 'Reviews' && <ReviewsTab />}
         </div>
       </div>
+      <EditProfileModal 
+        key={user.email}
+        user={user}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+      />
+      {prefsEditMode && (
+        <EditPreferencesModal
+          mode={prefsEditMode}
+          currentUser={user}
+          onClose={handleClosePrefsModal}
+        />
+      )}
     </div>
   );
 };

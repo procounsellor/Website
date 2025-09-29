@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, ChevronDown } from 'lucide-react';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import CustomOTP from '../ui/custom-otp';
 import { useAuthStore } from '@/store/AuthStore';
 import { useNavigate } from 'react-router-dom';
@@ -64,9 +64,9 @@ const LoginCard: React.FC = () => {
       await sendOtp(phone);
       setCurrentStep('otp');
       setResendTimer(60);
-      toast.success('OTP sent successfully!');
+      toast.success('OTP sent successfully!', { duration: 3000 });
     } catch {
-      toast.error('Failed to send OTP');
+      toast.error('Failed to send OTP', { duration: 3000 });
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +78,7 @@ const LoginCard: React.FC = () => {
     
     try {
       await verifyOtp(phone, otp);
-      toast.success('Verification successful!');
+      toast.success('Verification successful!', { duration: 3000 });
       const token = localStorage.getItem('jwt');
       if (token) {
         const isProfileIncomplete = await checkUrl(phone, token);
@@ -93,7 +93,7 @@ const LoginCard: React.FC = () => {
       }
     } catch {
       setHasError(true);
-      toast.error('Invalid OTP, please try again');
+      toast.error('Invalid OTP, please try again', { duration: 3000 });
       setIsLoading(false);
     }
   };
@@ -110,9 +110,9 @@ const LoginCard: React.FC = () => {
       await sendOtp(phone);
       setResendTimer(60);
       setHasError(false);
-      toast.success('OTP resent successfully!');
+      toast.success('OTP resent successfully!', { duration: 3000 });
     } catch {
-      toast.error('Failed to resend OTP');
+      toast.error('Failed to resend OTP', { duration: 3000 });
     } finally {
       setIsLoading(false);
     }
@@ -120,16 +120,6 @@ const LoginCard: React.FC = () => {
 
   return (
     <>
-      <Toaster 
-        position="top-center"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#363636',
-            color: '#fff',
-          },
-        }}
-      />
       <div className="fixed inset-0 bg-white/30 backdrop-blur-none md:backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div className="bg-white rounded-2xl shadow-xl flex w-full max-w-5xl md:max-h-[90vh] relative overflow-hidden">
           <button 

@@ -37,4 +37,11 @@ export interface User {
   photoSmall: string | null;
   userInterestedStateOfCounsellors: string[] | null;
   interestedCourse: string | null;
+  subscribedCounsellors: Subscription[] | null;
+}
+
+export interface Subscription {
+  counsellorId: string;
+  plan: string;
+  subscriptionMode: string;
 }

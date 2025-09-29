@@ -6,6 +6,10 @@ import { AboutCounselorCard } from '@/components/counselor-details/AboutCounselo
 import { CounselorReviews } from '@/components/counselor-details/CounselorReviews';
 import { FreeCareerAssessmentCard } from '@/components/shared/FreeCareerAssessmentCard';
 import { FeaturedCollegesCard } from '@/components/shared/FeaturedCollegesCard';
+import { useState, useEffect } from 'react';
+import { useAuthStore } from '@/store/AuthStore';
+import { getSubscribedCounsellors, getReviewsByCounselorId } from '@/api/counsellor';
+import type { CounselorReview } from '@/types/counselorReview';
 
 
 export default function CounselorDetailsPage() {
@@ -15,12 +19,58 @@ export default function CounselorDetailsPage() {
   const state = location.state as LocationState;
   const computedId = paramId || state?.id;
   const { counselor, loading, error } = useCounselorById(computedId ?? '');
+  const { userId } = useAuthStore();
+  const token = localStorage.getItem('jwt');
+
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [reviews, setReviews] = useState<CounselorReview[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
+
+  useEffect(() => {
+    if (!computedId || !userId || !token) {
+      setLoadingData(false);
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        setLoadingData(true);
+        const results = await Promise.allSettled([
+          getSubscribedCounsellors(userId, token),
+          getReviewsByCounselorId(userId, computedId, token)
+        ]);
+        
+        if (results[0].status === 'fulfilled') {
+          const subscribedList = results[0].value;
+          const subscriptionCheck = subscribedList.some(c => c.counsellorId === computedId);
+          setIsSubscribed(subscriptionCheck);
+        } else {
+          console.error("Failed to fetch subscription status:", results[0].reason);
+        }
+
+        if (results[1].status === 'fulfilled') {
+          const fetchedReviews = results[1].value;
+          setReviews(fetchedReviews);
+        } else {
+          console.error("Failed to fetch reviews (this may be expected if none exist):", results[1].reason);
+          setReviews([]);
+        }
+
+      } catch (err) {
+        console.error("An unexpected error occurred in fetchData:", err);
+      } finally {
+        setLoadingData(false);
+      }
+    };
+
+    fetchData();
+  }, [userId, token, computedId]);
 
   if (!computedId) {
     return <div className="p-8 text-center text-red-500">Error: Counselor ID is missing.</div>;
   }
 
-  if (loading) {
+  if (loading || loadingData) {
     return <div className="flex h-screen items-center justify-center">Loading Counselor Profile...</div>;
   }
 
@@ -44,7 +94,11 @@ export default function CounselorDetailsPage() {
         <div className="lg:col-span-2 flex flex-col gap-8">
           <CounselorProfileCard counselor={counselor} />
           <AboutCounselorCard counselor={counselor} />
-          <CounselorReviews />
+          <CounselorReviews 
+              reviews={reviews}
+              isSubscribed={isSubscribed}
+              counsellorId={computedId} 
+            />
         </div>
 
         {/* Right Column */}

@@ -9,7 +9,7 @@ const specializations = [ "Career Guidance", "College Admission", "Study Abroad"
 
 export function AboutCounselorCard({ counselor }: Props) {
   const rating = counselor.rating || 0;
-  const reviewCount = counselor.reviewIds?.length || 0;
+//   const reviewCount = counselor.reviewIds?.length || 0;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
@@ -18,7 +18,7 @@ export function AboutCounselorCard({ counselor }: Props) {
             <div className="flex items-center gap-1 text-yellow-500 px-2 py-1 rounded-full">
                 <Star className="w-4 h-4 fill-current" />
                 <span className="font-bold text-sm">{rating.toFixed(1)}</span>
-                <span className="text-xs text-yellow-700">({reviewCount})</span>
+                {/* <span className="text-xs text-yellow-700">({reviewCount})</span> */}
             </div>
         </div>
         <p className="text-[#718EBF] mt-2">From {counselor.organisationName}, {counselor.fullOfficeAddress?.city || 'Location'} Office</p>

@@ -6,9 +6,11 @@ import { useMemo } from 'react';
 
 interface MyInfoTabProps {
   user: User;
+  onEditCourse: () => void;
+  onEditStates: () => void;
 }
 
-const MyInfoTab: React.FC<MyInfoTabProps> = ({ user }) => {
+const MyInfoTab: React.FC<MyInfoTabProps> = ({ user, onEditCourse, onEditStates }) => {
   const calculatedBalance = useMemo(() => {
     if (!user.transactions || !Array.isArray(user.transactions)) {
       return 0;
@@ -26,11 +28,11 @@ const MyInfoTab: React.FC<MyInfoTabProps> = ({ user }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 flex flex-col gap-6">
-        <InfoCard icon={<GraduationCap />} title="Preferred Course" onEdit={() => {}}>
+        <InfoCard icon={<GraduationCap />} title="Preferred Course" onEdit={onEditCourse}>
           <p className="text-[#8C8CA1] font-medium">{user.interestedCourse || 'Not specified'}</p>
         </InfoCard>
         
-        <InfoCard icon={<MapPin />} title="Preferred States" onEdit={() => {}}>
+        <InfoCard icon={<MapPin />} title="Preferred States" onEdit={onEditStates}>
           {user.userInterestedStateOfCounsellors && user.userInterestedStateOfCounsellors.length > 0 ? (
             <ul className="space-y-2">
               {user.userInterestedStateOfCounsellors.map((state) => (

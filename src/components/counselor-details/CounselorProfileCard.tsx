@@ -7,17 +7,33 @@ type Props = {
 
 export function CounselorProfileCard({ counselor }: Props) {
   const fullName = `${counselor.firstName} ${counselor.lastName}`;
-  const imageUrl = counselor.photoUrlSmall || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=E0E7FF&color=4F46E5&size=128`;
+  const imageUrl =
+    counselor.photoUrlSmall ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+      fullName
+    )}&background=E0E7FF&color=4F46E5&size=128`;
+
+  // ✅ Safely format subscription amounts
+  const formatAmount = (amount: number | null | undefined) => {
+    if (amount == null) return 'N/A';
+    return `₹${amount.toLocaleString('en-IN')}`;
+  };
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row gap-6">
-        <img src={imageUrl} alt={fullName} className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-white shadow-md mx-auto sm:mx-0" />
+        <img
+          src={imageUrl}
+          alt={fullName}
+          className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-white shadow-md mx-auto sm:mx-0"
+        />
         <div className="flex-1 text-center sm:text-left">
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-2xl font-bold text-[#343C6A]">{fullName}</h1>
-              <p className="text-md text-[#718EBF] mt-1">{counselor.fullOfficeAddress?.city || "Location not specified"}</p>
+              <p className="text-md text-[#718EBF] mt-1">
+                {counselor.fullOfficeAddress?.city || 'Location not specified'}
+              </p>
             </div>
             <button className="p-2 text-blue-600 hover:text-blue-800">
               <Bookmark className="w-6 h-6" />
@@ -28,7 +44,9 @@ export function CounselorProfileCard({ counselor }: Props) {
             <div className="flex items-center gap-3">
               <Briefcase className="w-8 h-8 text-blue-500" />
               <div>
-                <span className="font-semibold block">{counselor.experience || 'N/A'} Years</span>
+                <span className="font-semibold block">
+                  {counselor.experience || 'N/A'} Years
+                </span>
                 <span className="text-sm text-gray-500">of experience</span>
               </div>
             </div>
@@ -37,36 +55,53 @@ export function CounselorProfileCard({ counselor }: Props) {
               <Languages className="w-8 h-8 text-blue-500" />
               <div>
                 <span className="font-semibold block">Languages Known</span>
-                <span className="text-sm text-gray-500">{counselor.languagesKnow?.join(', ') || 'English'}</span>
+                <span className="text-sm text-gray-500">
+                  {counselor.languagesKnow?.join(', ') || 'English'}
+                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
+
       <hr className="my-6 border-gray-200" />
+
       <div className="mt-6">
         <h3 className="font-semibold text-gray-700">Subscription Plans</h3>
         <div className="mt-3 flex flex-col sm:flex-row gap-3">
-            <button className="flex h-[50px] flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border border-transparent bg-gradient-to-r from-[rgba(222,237,255,0.4)] to-[rgba(126,136,211,0.4)] shadow-sm transition-all duration-200">
-              <span className="font-semibold text-sm text-[#1447E7]">Plus</span>
-              <span className="text-[#1447E7] text-sm font-bold">₹{counselor.plusAmount.toLocaleString("en-IN")}</span>
-            </button>
-            <button className="flex h-[50px] flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border border-transparent bg-gradient-to-r from-[rgba(244,232,255,0.4)] to-[rgba(250,244,255,0.4)] shadow-sm transition-all duration-200">
-              <span className="font-semibold text-[#8200DA] text-sm">Pro</span>
-              <span className="text-[#8200DA] text-sm font-bold">₹{counselor.proAmount.toLocaleString("en-IN")}</span>
-            </button>
-            <button className="flex h-[50px] flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border border-transparent bg-gradient-to-r from-[rgba(255,245,206,0.4)] to-[rgba(255,250,230,0.4)] shadow-sm transition-all duration-200">
-              <span className="font-semibold text-[#B94C00] text-sm">Elite</span>
-              <span className="text-[#B94C00] text-sm font-bold">₹{counselor.eliteAmount.toLocaleString("en-IN")}</span>
-            </button>
+          <button className="flex h-[50px] flex-1 flex-col items-center justify-center rounded-xl border border-transparent bg-gradient-to-r from-[rgba(222,237,255,0.4)] to-[rgba(126,136,211,0.4)] shadow-sm transition-all duration-200">
+            <span className="font-semibold text-sm text-[#1447E7]">Plus</span>
+            <span className="text-[#1447E7] text-sm font-bold">
+              {formatAmount(counselor.plusAmount)}
+            </span>
+          </button>
+          <button className="flex h-[50px] flex-1 flex-col items-center justify-center rounded-xl border border-transparent bg-gradient-to-r from-[rgba(244,232,255,0.4)] to-[rgba(250,244,255,0.4)] shadow-sm transition-all duration-200">
+            <span className="font-semibold text-[#8200DA] text-sm">Pro</span>
+            <span className="text-[#8200DA] text-sm font-bold">
+              {formatAmount(counselor.proAmount)}
+            </span>
+          </button>
+          <button className="flex h-[50px] flex-1 flex-col items-center justify-center rounded-xl border border-transparent bg-gradient-to-r from-[rgba(255,245,206,0.4)] to-[rgba(255,250,230,0.4)] shadow-sm transition-all duration-200">
+            <span className="font-semibold text-[#B94C00] text-sm">Elite</span>
+            <span className="text-[#B94C00] text-sm font-bold">
+              {formatAmount(counselor.eliteAmount)}
+            </span>
+          </button>
         </div>
       </div>
+
       <div className="mt-6 flex flex-col sm:flex-row gap-3 items-center">
-        <button disabled className="w-full sm:w-auto flex items-center justify-center border gap-2 px-14 py-3 text-[#B2B9C5] bg-[#F9FAFC] rounded-lg cursor-not-allowed">
-          <Lock className="w-4 h-4 text-[#B2B9C5]"/> Chat
+        <button
+          disabled
+          className="w-full sm:w-auto flex items-center justify-center border gap-2 px-14 py-3 text-[#B2B9C5] bg-[#F9FAFC] rounded-lg cursor-not-allowed"
+        >
+          <Lock className="w-4 h-4 text-[#B2B9C5]" /> Chat
         </button>
-        <button disabled className="w-full sm:w-auto flex items-center justify-center border gap-2 px-14 py-3 text-[#B2B9C5] bg-[#F9FAFC] rounded-lg cursor-not-allowed">
-          <Lock className="w-4 h-4 text-[#B2B9C5]"/> Call
+        <button
+          disabled
+          className="w-full sm:w-auto flex items-center justify-center border gap-2 px-14 py-3 text-[#B2B9C5] bg-[#F9FAFC] rounded-lg cursor-not-allowed"
+        >
+          <Lock className="w-4 h-4 text-[#B2B9C5]" /> Call
         </button>
         <button className="w-full sm:flex-1 bg-[#3537B4] text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
           Subscribe Now
