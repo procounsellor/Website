@@ -72,7 +72,7 @@ const StudentDashboardPage: React.FC = () => {
         <ProfileHeader user={user} />
 
         <div className="border-b border-gray-200 mb-6">
-          <nav className="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
+          <nav className="-mb-px flex space-x-6 overflow-x-auto scrollbar-hide" aria-label="Tabs">
             {TABS.map((tab) => (
               <button
                 key={tab}
@@ -81,7 +81,7 @@ const StudentDashboardPage: React.FC = () => {
                   activeTab === tab
                     ? 'border-[#13097D] text-[#13097D]'
                     : 'border-transparent text-[#8C8CA1] hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors`}
+                } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors flex-shrink-0`}
               >
                 {tab}
               </button>
