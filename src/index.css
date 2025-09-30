@@ -151,6 +151,16 @@ body {
   scrollbar-gutter: stable;
 }
 
+/* Hide scrollbars but keep scrolling functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
 /* Shimmer animation for improved skeleton placeholders */
 .animate-shimmer {
   background-size: 200% 100%;

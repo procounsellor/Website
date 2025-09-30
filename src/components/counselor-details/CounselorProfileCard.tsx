@@ -1,11 +1,35 @@
 import type { CounselorDetails } from '@/types/academic';
 import { Bookmark, Briefcase, Languages, Lock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { isManualSubscriptionRequest } from '@/api/counsellor';
 
 type Props = {
   counselor: CounselorDetails;
 };
 
 export function CounselorProfileCard({ counselor }: Props) {
+  const userId = localStorage.getItem('phone')
+  const navigate = useNavigate()
+  const [pendingApproval, setPendingApproval] = useState(false)
+
+  useEffect(() => {
+    async function checkManual() {
+      if (!userId || !counselor?.userName) return;
+      try {
+        const res = await isManualSubscriptionRequest(userId, counselor.userName);
+        if (res) {
+          setPendingApproval(Boolean(res.pendingApproval));
+        }
+      } catch (err) {
+        console.error('Manual subscription check failed', err);
+      } finally {
+        // 
+      }
+    }
+
+    checkManual();
+  }, [userId, counselor?.userName]);
   const fullName = `${counselor.firstName} ${counselor.lastName}`;
   const imageUrl =
     counselor.photoUrlSmall ||
@@ -18,6 +42,7 @@ export function CounselorProfileCard({ counselor }: Props) {
     if (amount == null) return 'N/A';
     return `₹${amount.toLocaleString('en-IN')}`;
   };
+
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
@@ -89,13 +114,9 @@ export function CounselorProfileCard({ counselor }: Props) {
           </button>
         </div>
       </div>
-
-      <div className="mt-6 flex flex-col sm:flex-row gap-3 items-center">
-        <button
-          disabled
-          className="w-full sm:w-auto flex items-center justify-center border gap-2 px-14 py-3 text-[#B2B9C5] bg-[#F9FAFC] rounded-lg cursor-not-allowed"
-        >
-          <Lock className="w-4 h-4 text-[#B2B9C5]" /> Chat
+        <div className="mt-6 flex flex-col sm:flex-row gap-3 items-center">
+        <button disabled className="w-full sm:w-auto flex items-center justify-center border gap-2 px-14 py-3 text-[#B2B9C5] bg-[#F9FAFC] rounded-lg cursor-not-allowed">
+          <Lock className="w-4 h-4 text-[#B2B9C5]"/> Chat
         </button>
         <button
           disabled
@@ -103,8 +124,13 @@ export function CounselorProfileCard({ counselor }: Props) {
         >
           <Lock className="w-4 h-4 text-[#B2B9C5]" /> Call
         </button>
-        <button className="w-full sm:flex-1 bg-[#3537B4] text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
-          Subscribe Now
+        <button
+          onClick={() => navigate('/subscribe', { state: { counselorId: counselor.userName, userId: userId, counselor: counselor } })}
+          disabled={pendingApproval}
+          aria-disabled={pendingApproval}
+          className={`w-full sm:flex-1 font-semibold py-3 px-6 rounded-lg transition-colors ${pendingApproval ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : 'bg-[#3537B4] text-white hover:bg-blue-700'}`}
+        >
+          {pendingApproval ? 'Request Pending' : 'Subscribe Now'}
         </button>
       </div>
       <p className="mt-3 text-xs text-center text-[#232323] flex items-center justify-center gap-1">
