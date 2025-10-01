@@ -1,27 +1,42 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
 import { X, SquarePen } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface EditProfileModalProps {
   user: User;
   isOpen: boolean;
   onClose: () => void;
+  onUpdate: (updatedData: { firstName: string; lastName: string; email: string }) => Promise<void>;
 }
 
-const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClose }) => {
+const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClose, onUpdate }) => {
   const [firstName, setFirstName] = useState(user.firstName);
   const [lastName, setLastName] = useState(user.lastName);
   const [email, setEmail] = useState(user.email);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.firstName);
+      setLastName(user.lastName);
+      setEmail(user.email);
+    }
+  }, [user]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const updatedData = { firstName, lastName, email };
-    console.log("Submitting updated profile data:", updatedData);
+    setIsSubmitting(true);
     
-    // --- TODO: API Call ---
-    // API endpoint to update the user's profile.
-    
-    onClose();
+    try {
+      await onUpdate({ firstName, lastName, email });
+      toast.success('Profile updated successfully!');
+      onClose();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'An unknown error occurred.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -89,9 +104,10 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
           <div className="pt-4 text-center">
              <button 
                 type="submit"
+                disabled={isSubmitting}
                 className="w-[50%] h-12 bg-[#FA660F] text-white font-semibold text-base rounded-xl hover:bg-orange-600 transition-colors"
               >
-                Update Profile
+                {isSubmitting ? 'Updating...' : 'Update Profile'}
              </button>
           </div>
         </form>

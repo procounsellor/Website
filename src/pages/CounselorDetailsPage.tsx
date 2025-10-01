@@ -10,6 +10,13 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/AuthStore';
 import { getSubscribedCounsellors, getReviewsByCounselorId } from '@/api/counsellor';
 import type { CounselorReview } from '@/types/counselorReview';
+import type { SubscribedCounsellor } from '@/types/user';
+
+type ApiSubscribedCounselor = {
+  counsellorId: string;
+  plan: string | null;
+  subscriptionMode: string | null;
+};
 
 
 export default function CounselorDetailsPage() {
@@ -22,7 +29,7 @@ export default function CounselorDetailsPage() {
   const { userId } = useAuthStore();
   const token = localStorage.getItem('jwt');
 
-  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscriptionDetails, setSubscriptionDetails] = useState<SubscribedCounsellor | null>(null);
   const [reviews, setReviews] = useState<CounselorReview[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
@@ -41,9 +48,20 @@ export default function CounselorDetailsPage() {
         ]);
         
         if (results[0].status === 'fulfilled') {
-          const subscribedList = results[0].value;
-          const subscriptionCheck = subscribedList.some(c => c.counsellorId === computedId);
-          setIsSubscribed(subscriptionCheck);
+          const subscribedList: ApiSubscribedCounselor[] = results[0].value;
+          
+          const currentApiSubscription = subscribedList.find(c => c.counsellorId === computedId);
+          if (currentApiSubscription && currentApiSubscription.plan) {
+            const formattedSubscription: SubscribedCounsellor = {
+              counsellorId: currentApiSubscription.counsellorId,
+              plan: currentApiSubscription.plan,
+              subscriptionMode: currentApiSubscription.subscriptionMode ?? "unknown",
+            };
+            setSubscriptionDetails(formattedSubscription);
+          }
+            else {
+            setSubscriptionDetails(null);
+          }
         } else {
           console.error("Failed to fetch subscription status:", results[0].reason);
         }
@@ -92,11 +110,11 @@ export default function CounselorDetailsPage() {
         
         {/* Left Column */}
         <div className="lg:col-span-2 flex flex-col gap-8">
-          <CounselorProfileCard counselor={counselor} />
+          <CounselorProfileCard counselor={counselor} subscription={subscriptionDetails} />
           <AboutCounselorCard counselor={counselor} />
           <CounselorReviews 
               reviews={reviews}
-              isSubscribed={isSubscribed}
+              isSubscribed={!!subscriptionDetails}
               counsellorId={computedId} 
             />
         </div>

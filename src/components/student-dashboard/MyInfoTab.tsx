@@ -8,9 +8,10 @@ interface MyInfoTabProps {
   user: User;
   onEditCourse: () => void;
   onEditStates: () => void;
+  onAddFunds: () => void;
 }
 
-const MyInfoTab: React.FC<MyInfoTabProps> = ({ user, onEditCourse, onEditStates }) => {
+const MyInfoTab: React.FC<MyInfoTabProps> = ({ user, onEditCourse, onEditStates, onAddFunds }) => {
   const calculatedBalance = useMemo(() => {
     if (!user.transactions || !Array.isArray(user.transactions)) {
       return 0;
@@ -48,7 +49,8 @@ const MyInfoTab: React.FC<MyInfoTabProps> = ({ user, onEditCourse, onEditStates 
       <div className="lg:col-span-1">
           <WalletCard 
             balance={calculatedBalance} 
-            transactions={user.transactions} 
+            transactions={user.transactions}
+            onAddFunds={onAddFunds}
           />
       </div>
     </div>
