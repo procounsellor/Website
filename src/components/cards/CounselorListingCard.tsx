@@ -42,7 +42,7 @@ export function CounselorCard({ counselor }: CounselorCardProps) {
         </div>
         <button
           aria-label="Save counselor"
-          className="absolute right-4 top-4 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/30 backdrop-blur-md transition-colors hover:bg-white/50"
+          className="absolute right-4 top-4 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-black/30 backdrop-blur-md transition-colors hover:bg-black/50"
         >
           <Bookmark className="h-4 w-4 text-white" />
         </button>

@@ -85,3 +85,9 @@ export interface User {
   lastLoginDateAndTime?: TimestampObject | null;
   [key: string]: unknown;
 }
+
+export interface Subscription {
+  counsellorId: string;
+  plan: string;
+  subscriptionMode: string;
+}

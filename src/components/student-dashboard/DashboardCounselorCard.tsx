@@ -27,18 +27,18 @@ export function DashboardCounselorCard({ counselor }: CounselorCardProps){
         <div className="flex items-center text-sm text-gray-600 gap-4 my-2">
             <span className="flex items-center gap-1">
                 <Star className="w-4 h-4 text-yellow-500" fill="currentColor"/>
-                {counselor.rating} | {counselor.numberOfRatings}
+                {counselor.rating ?? 'N/A'} | {counselor.numberOfRatings}
             </span>
             <span className="flex items-center gap-1">
                 <TbBriefcase2 className="w-4 h-4 text-blue-500"/>
-                {counselor.experience}+ Yrs
+                {counselor.experience ?? 'N/A'}+ Yrs
             </span>
         </div>
         <hr className="my-1"/>
         <div className="flex items-center gap-2 mt-1">
           <img src='/Procoin.jpg' alt="procoin_icon" className="w-6 h-6"/>
           <span className="text-sm font-semibold text-[#343c6a]">
-            {counselor.ratePerYear.toLocaleString('en-IN')} ProCoins/Hour
+            {counselor.ratePerYear?.toLocaleString('en-IN') ?? 'N/A'} ProCoins/Hour
           </span>
         </div>
       </div>

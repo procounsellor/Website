@@ -20,7 +20,7 @@ export function DiscoverCard({ card, hFull, onClick }: DiscoverCardProps){
 
   return(
     <Card 
-      className={`p-3 sm:p-3 rounded-[20px] cursor-pointer flex flex-col border border-[#EFEFEF] shadow-[0px_0px_25px_0px_rgba(35,35,35,0.12)] transition-all duration-300 hover:-translate-y-1 ${
+      className={`p-3 sm:p-3 rounded-[20px] cursor-pointer flex flex-col border border-[#EFEFEF] shadow-[0px_0px_25px_0px_rgba(35,35,35,0.12)] transition-all duration-300 hover:shadow-lg ${
         !isVertical ? cardFlexDirection + " sm:items-center h-[183px]" : ""
       } ${hFull ? "h-full" : ""}`}
       onClick={onClick}

@@ -7,6 +7,7 @@ import type { CounselorDetails } from "@/types";
 import { useAuthStore } from "@/store/AuthStore";
 import { useNavigate } from "react-router-dom";
 import { transferAmount, subscribeCounselor, manualPaymentApproval } from "@/api/wallet";
+import toast from 'react-hot-toast';
 
 type PlansResponse = {
   benefits?: Array<any>;
@@ -55,12 +56,15 @@ export default function PlansDrawer({
       console.error("Missing counselor or user identifier for payment");
       return;
     }
+
+    const toastId = toast.loading('Processing your subscription...');
     try {
       // transfer pro coins from user to counsellor
       const transferRes = await transferAmount(counselor.userName, user.userName, priceNum);
       // expect API to return an object with success flag or status
       if (!transferRes || (transferRes as any).status === false) {
         console.error('Transfer failed', transferRes);
+        toast.error('Payment transfer failed. Please try again.', { id: toastId });
         return;
       }
 
@@ -70,11 +74,15 @@ export default function PlansDrawer({
 
       // refresh cached user (wallet amount will be decreased)
       await refreshUser(true);
+      toast.success('Subscription successful! Redirecting...', { id: toastId });
 
-      // close drawer and optionally navigate or show success
-      onClose();
+      setTimeout(() => {
+        navigate(`/counselors/profile`, { state: { id: counselor.userName } });
+        onClose();
+      }, 1500);
     } catch (err) {
       console.error('Subscription flow failed', err);
+      toast.error('Subscription failed. Please try again.', { id: toastId });
     }
   }
 

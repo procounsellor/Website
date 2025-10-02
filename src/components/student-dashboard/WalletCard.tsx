@@ -5,6 +5,7 @@ import type { Transaction } from '@/types/user';
 interface WalletCardProps {
   balance: number;
   transactions: Transaction[];
+  onAddFunds: () => void;
 }
 
 const formatCurrency = (amount: number) => {
@@ -15,7 +16,7 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-const WalletCard: React.FC<WalletCardProps> = ({ balance, transactions }) => {
+const WalletCard: React.FC<WalletCardProps> = ({ balance, transactions, onAddFunds }) => {
   
   const { totalCredit, totalDebit } = useMemo(() => {
   if (!Array.isArray(transactions)) {
@@ -58,7 +59,9 @@ const WalletCard: React.FC<WalletCardProps> = ({ balance, transactions }) => {
         </div>
       </div>
 
-      <button className="w-full py-2.5 px-4 bg-white border border-[#13097D] rounded-lg text-[#242645] font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2">
+      <button 
+        onClick={onAddFunds}
+        className="w-full py-2.5 px-4 bg-white border border-[#13097D] rounded-lg text-[#242645] font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2">
         <Plus size={22} />
         Add funds
       </button>
