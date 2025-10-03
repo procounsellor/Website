@@ -10,11 +10,10 @@ import Chatbot from "@/components/chatbot/Chatbot";
 import { MessageSquare } from "lucide-react";
 import { useVoiceChatStore } from "@/store/VoiceChatStore";
 import VoiceChat from "@/components/chatbot/VoiceChat";
-import { Mic } from "lucide-react"; 
 export default function MainLayout(){
   const { isLoginToggle, isAuthenticated, userExist } = useAuthStore();
     const { isChatbotOpen, toggleChatbot } = useChatStore();
-   const { isVoiceChatOpen, toggleVoiceChat } = useVoiceChatStore();
+   const { isVoiceChatOpen} = useVoiceChatStore();
     return (
         <div>
            <nav>
