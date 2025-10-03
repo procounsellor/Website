@@ -19,11 +19,13 @@ export interface CounsellorFromAPI {
 export interface AskResponse {
   answer: string;
   counsellors: CounsellorFromAPI[];
+  followup?: string;
 }
 
 interface FrontendMessage {
   text: string;
   isUser: boolean;
+  followup?: string;
 }
 // ... (rest of your existing api.ts code) ...
 
@@ -33,8 +35,10 @@ interface FrontendMessage {
 export const askQuestion = async (question: string, history: FrontendMessage[]): Promise<AskResponse> => {
   // Format the history to match what the Python backend expects ({ role, content })
   const formattedHistory = history.map(msg => ({
+    
     role: msg.isUser ? 'user' : 'assistant',
-    content: msg.text,
+    content: msg.text + " "+msg.followup,
+    
   }));
 
   const response = await axios.post<AskResponse>(
@@ -43,6 +47,8 @@ export const askQuestion = async (question: string, history: FrontendMessage[]):
   );
   return response.data;
 };
+
+
 
 // The translator function remains the same
 export const transformCounselorData = (apiCounselor: CounsellorFromAPI): AllCounselor => {

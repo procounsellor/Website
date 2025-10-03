@@ -32,6 +32,7 @@ const WelcomeMessage = () => (
     </div>
 );
 
+
 export default function Chatbot() {
   const { messages, loading, sendMessage, toggleChatbot } = useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -52,7 +53,6 @@ export default function Chatbot() {
         </button>
       </header>
       
-      {/* THIS IS THE FIX: Added padding-bottom to make space for the footer */}
       <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-8 md:pb-8">
         <div className="max-w-3xl mx-auto w-full space-y-6">
             {messages.length === 0 && !loading && <WelcomeMessage />}
@@ -62,12 +62,16 @@ export default function Chatbot() {
                 {msg.counsellors && msg.counsellors.length > 0 && (
                     <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 animate-in fade-in-50 duration-500">
                     {(msg.counsellors as AllCounselor[]).map((c) => (
-                        <Link className="w-fit" to={`/counselors/${c.counsellorId}`} key={c.counsellorId} onClick={toggleChatbot}>
+                        <Link className="w-fit"  to="/counselors/profile" state={{ id: c.counsellorId }} key={c.counsellorId} onClick={toggleChatbot}>
                             <ChatbotCounselorCard counselor={c} />
                         </Link>
                     ))}
                     </div>
                 )}
+                
+              
+              <div className="pt-1">{msg.followup}</div>
+            
                 </div>
             ))}
             {loading && <TypingIndicator />}

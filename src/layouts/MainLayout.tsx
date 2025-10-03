@@ -49,12 +49,12 @@ export default function MainLayout(){
       </button>
 
       {isChatbotOpen && <Chatbot />}
-      <button
+      {/* <button
         onClick={toggleVoiceChat}
         
       >
         <Mic size={32} />
-      </button>
+      </button> */}
 
       {/* Render the voice chat UI when open */}
       {isVoiceChatOpen && <VoiceChat />}
