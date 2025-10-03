@@ -94,7 +94,7 @@ const CounsellorsTab: React.FC = () => {
             key={counsellor.counsellorId} 
             className="border border-gray-200 rounded-2xl p-2.5 transition-shadow hover:shadow-lg"
           >
-          <Link to={`/counselors/${counsellor.counsellorId}`} key={counsellor.counsellorId}>
+          <Link to="/counselors/profile" state={{ id: counsellor.counsellorId }} key={counsellor.counsellorId}>
             <DashboardCounselorCard counselor={counsellor as any} />
           </Link>
           </div>

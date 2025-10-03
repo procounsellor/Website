@@ -4,12 +4,14 @@ import { useAuthStore } from '@/store/AuthStore';
 import { getUserAppointments, getUpcomingAppointments } from '@/api/appointment';
 import AppointmentCard from './AppointmentCard';
 import { Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 type AppointmentFilter = 'All' | 'Upcoming' | 'Completed' | 'Cancelled';
 
 const AppointmentsTab: React.FC = () => {
   const { userId } = useAuthStore();
   const token = localStorage.getItem('jwt');
+  const navigate = useNavigate();
   
   const [allAppointments, setAllAppointments] = useState<Appointment[]>([]);
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
@@ -102,7 +104,11 @@ const AppointmentsTab: React.FC = () => {
       {filteredAppointments.length > 0 ? (
         <div className="divide-y divide-gray-200">
           {filteredAppointments.map((appointment) => (
-            <AppointmentCard key={appointment.appointmentId} appointment={appointment} />
+            <AppointmentCard 
+              key={appointment.appointmentId} 
+              appointment={appointment} 
+              onClick={() => navigate('/counselors/profile', { state: { id: appointment.counsellorId } })}
+            />
           ))}
         </div>
       ) : (
