@@ -6,6 +6,7 @@ export interface Message {
   text: string;
   isUser: boolean;
   counsellors?: AllCounselor[];
+  followup?: string;
 }
 
 type ChatState = {
@@ -26,7 +27,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   sendMessage: async (question: string) => {
-    const userMessage: Message = { text: question, isUser: true };
+    const userMessage: Message = { text: question, isUser: true};
     
     // Get the current conversation history *before* adding the new user message
     const currentHistory = get().messages;
@@ -39,13 +40,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
     try {
       // Pass the history to the askQuestion function
       const response = await askQuestion(question, currentHistory);
-      
       const transformedCounsellors = response.counsellors.map(transformCounselorData);
-
       const botMessage: Message = {
         text: response.answer,
         isUser: false,
         counsellors: transformedCounsellors,
+        followup: response.followup,
       };
 
       set((state) => ({

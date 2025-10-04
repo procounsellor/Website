@@ -6,6 +6,7 @@ export interface VoiceMessage {
   text: string;
   isUser: boolean;
   counsellors?: AllCounselor[];
+  followup?: string;
 }
 
 type VoiceChatState = {
@@ -55,7 +56,7 @@ export const useVoiceChatStore = create<VoiceChatState>((set, get) => ({
     set((state) => ({ messages: [...state.messages, userMessage] }));
 
     const currentHistory = get().messages.map((msg) => ({
-      text: msg.text,
+      text: msg.text+ ""+ msg.followup,
       isUser: msg.isUser,
     }));
 
@@ -68,6 +69,7 @@ export const useVoiceChatStore = create<VoiceChatState>((set, get) => ({
         text: response.answer,
         isUser: false,
         counsellors: transformedCounsellors,
+        followup: response.followup,
       };
 
       set((state) => ({ messages: [...state.messages, botMessage] }));
@@ -75,7 +77,7 @@ export const useVoiceChatStore = create<VoiceChatState>((set, get) => ({
       const audioResponse = await fetch(`${API_CONFIG.chatbotUrl}/synthesize`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: response.answer }),
+        body: JSON.stringify({ text: response.answer + ""+ response.followup}),
       });
 
       if (audioResponse.ok) {
