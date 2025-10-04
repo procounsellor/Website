@@ -12,6 +12,9 @@ import AddCollegePage from "@/pages/AddCollege";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import ExternalPrivacyPage from "@/pages/external/Privacy";
 import ExternalTermsPage from "@/pages/external/Terms";
+import { Toaster } from 'react-hot-toast';
+import { SubscriptionPage } from '@/pages/SubscriptionPage';
+import RechargeWallet from '@/pages/RechargeWallet';
 const CollegesListingPage = lazy(() => import('@/pages/colleges'));
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const CoursesListingPage = lazy(() => import('@/pages/courses'));
@@ -28,6 +31,17 @@ const CourseDetail = () => <div className="p-8 text-center">Course overview comi
 
 export default function AppRoutes(){
     return(
+        <>
+        <Toaster 
+                position="top-center"
+                toastOptions={{
+                    duration: 4000,
+                    style: {
+                        background: '#363636',
+                        color: '#fff',
+                    },
+                }}
+            />
                  <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
                      <Routes>
                         <Route path="/privacy1" element={<ExternalPrivacyPage/>} />
@@ -49,17 +63,14 @@ export default function AppRoutes(){
                                 <Route path="/sitemap" element={<SitemapPage/>} />
                                 <Route path="/add-college" element={<AddCollegePage/>} />
                                 <Route path="/exams/:id" element={<ExamDetailsPage />} />
-                                <Route 
-                path="/dashboard/student" 
-                element={
-                    <ProtectedRoute>
-                        <StudentDashboardPage />
-                    </ProtectedRoute>
-                } 
-            />
-
+                                <Route element={<ProtectedRoute/>}>
+                                <Route path='/dashboard/student' element={<StudentDashboardPage/>}/>
+                                <Route path='/subscribe' element={<SubscriptionPage/>}/>
+                                <Route path='/wallet' element={<RechargeWallet/>}/>
+                                </Route>
                          </Route>
                      </Routes>
                  </Suspense>
+        </>
     );
 }

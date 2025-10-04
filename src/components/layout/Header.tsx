@@ -70,13 +70,17 @@ export default function Header(){
         logout();
         setIsDropdownOpen(false);
         navigate('/');
-        toast.success('Logged out successfully!');
+        toast.success('Logged out successfully!', { duration: 3000 });
     };
 
+    useEffect(() => {
+    setIsDropdownOpen(false);
+}, [location.pathname]);
 
 
   return (
     <>
+    
     <header className={`fixed top-0 left-0 right-0 z-50 border border-[#d6d6d6] shadow-xs transition-all duration-300 ease-out ${
         scrolled 
           ? "bg-white/85 backdrop-blur-xl  shadow-lg shadow-black/5" 
@@ -84,7 +88,7 @@ export default function Header(){
       }`}>
       <div className="flex h-14 md:h-20 items-center justify-between px-5 lg:px-20">
 
-        <div className="Logo flex">
+        <div className="Logo flex cursor-pointer" onClick={() => navigate('/')}>
         <SmartImage src="/logo.svg" alt="procounsel_logo" 
           className="h-7 w-7 md:w-11 md:h-12"
           width={44}
@@ -103,7 +107,7 @@ export default function Header(){
         className={`hidden md:block w-full max-w-lg transition-all duration-700 ease-out ${
           showHeaderSearch 
             ? "opacity-100 translate-y-0 scale-100" 
-            : "opacity-0 -translate-y-6 scale-95 pointer-events-none"
+            : "opacity-0 translate-y-6 scale-95 pointer-events-none"
         }`}
       >
         <GlobalSearchBar showBackdrop={true} />
@@ -134,7 +138,10 @@ export default function Header(){
             </button>
                                     
             {isDropdownOpen && (
-              <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50 py-1 border border-gray-200">
+              
+              <div 
+              ref={dropdownRef}
+              className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50 py-1 border border-gray-200">
                 <button
                   onClick={() => {
                     navigate('/dashboard/student');

@@ -36,7 +36,7 @@ export default function Footer() {
               <div className="flex items-start gap-3">
                 <img src={locationIcon} alt="Location" className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0 mt-0.5" />
                 <p className="font-montserrat font-normal text-sm sm:text-base leading-tight text-[#180033] max-w-full sm:max-w-[280px]">
-                  Office No. 327, 3rd Floor, Ceras Imperium Rise, MIDC Phase 2, Main Road,
+                  Office No. 327, 3rd Floor, Geras Imperium Rise, MIDC Phase 2, Main Road,
                   Near Ceras Imperium Rise Plaza, Hinjawadi, Pune, Maharashtra - 411057
                 </p>
               </div>

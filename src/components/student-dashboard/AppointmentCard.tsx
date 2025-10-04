@@ -3,6 +3,7 @@ import type { Appointment } from '@/types/appointment';
 
 interface AppointmentCardProps {
   appointment: Appointment;
+  onClick?: () => void;
 }
 
 const formatDate = (dateString: string) => {
@@ -25,20 +26,20 @@ const formatTime = (time: string) => {
     }).format(date);
 };
 
-const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment }) => {
+const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onClick }) => {
   const { counsellorFullName, counsellorPhootoSmall, date, startTime, endTime, status } = appointment;
 
   const getStatusContent = (currentStatus: Appointment['status']) => {
-    const baseButtonClasses = "px-4 py-2 text-sm font-semibold rounded-lg transition-colors";
+    // const baseButtonClasses = "px-4 py-2 text-sm font-semibold rounded-lg transition-colors";
     const statusChipClasses = "px-3 py-1 text-sm font-semibold rounded-full whitespace-nowrap";
 
     switch (currentStatus) {
         case 'completed':
             return (
                 <>
-                    <button className={`${baseButtonClasses} bg-[#655E95] text-white hover:bg-indigo-800`}>
+                    {/* <button className={`${baseButtonClasses} bg-[#655E95] text-white hover:bg-indigo-800`}>
                         Rate Now
-                    </button>
+                    </button> */}
                     <div className={`${statusChipClasses} bg-[#28A7451A] text-[#28A745]`}>
                         Completed
                     </div>
@@ -47,9 +48,9 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment }) => {
         case 'cancelled':
             return (
                 <>
-                    <button className={`${baseButtonClasses} bg-[#655E95] text-white hover:bg-indigo-800`}>
+                    {/* <button className={`${baseButtonClasses} bg-[#655E95] text-white hover:bg-indigo-800`}>
                         Re-Book
-                    </button>
+                    </button> */}
                     <div className={`${statusChipClasses} bg-[#EE1C1F1A] text-[#EE1C1F]`}>
                         Cancelled
                     </div>
@@ -65,7 +66,9 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment }) => {
   }
 
   return (
-    <div className="py-6">
+    <div className="py-6 cursor-pointer transition-colors rounded-lg -mx-6 px-6"
+        onClick={onClick}
+    >
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
             <div className="md:col-span-4 flex items-center gap-4">
                 <div className="w-20 h-20 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
@@ -94,7 +97,9 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment }) => {
 
             <div className="md:col-span-4 flex items-center justify-end gap-4">
                 {getStatusContent(status)}
-                <button className="text-gray-400 hover:text-gray-700">
+                <button className="text-gray-400 p-2 rounded-full"
+                    onClick={(e) => e.stopPropagation()}
+                >
                     <MoreVertical size={24} />
                 </button>
             </div>

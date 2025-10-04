@@ -3,9 +3,10 @@ import { SquarePen } from 'lucide-react';
 
 interface ProfileHeaderProps {
   user: User;
+  onEditClick: () => void;
 }
 
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user }) => {
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user,onEditClick }) => {
   const studentType = user.interestedCourse ? `${user.interestedCourse} Student` : 'Student';
 
   return (
@@ -38,7 +39,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user }) => {
           </div>
 
           <div className="w-full md:w-auto mt-4 md:mt-0 pt-9 self-end md:self-auto">
-            <button className="w-full md:w-auto flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-[#343C6A] rounded-xl text-[#343C6A] font-medium text-base hover:bg-gray-100 transition-colors shadow-sm">
+            <button 
+            onClick={onEditClick}
+            className="w-full md:w-auto flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-[#343C6A] rounded-xl text-[#343C6A] font-medium text-base hover:bg-gray-100 transition-colors shadow-sm">
               <SquarePen size={18} />
               <span>Edit Profile</span>
             </button>

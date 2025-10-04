@@ -1,12 +1,11 @@
 import { useAuthStore } from "@/store/AuthStore";
 import { useEffect, useRef } from "react";
 import { Loader2 } from "lucide-react";
+import { Outlet } from "react-router-dom";
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-}
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+
+const ProtectedRoute = () => {
   const { isAuthenticated, toggleLogin } = useAuthStore();
   const hasTriggeredLoginModal = useRef(false);
 
@@ -18,7 +17,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }, [isAuthenticated, toggleLogin]);
 
   if (isAuthenticated) {
-    return <>{children}</>;
+    return <><Outlet/></>;
   }
 
   return (
