@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface SpeechRecognition extends EventTarget {
   continuous: boolean;
   interimResults: boolean;
@@ -18,13 +19,13 @@ interface SpeechRecognitionEvent extends Event {
 }
 
 // This tells TypeScript that a SpeechRecognition constructor exists
-declare var SpeechRecognition: {
+declare const SpeechRecognition: {
   prototype: SpeechRecognition;
   new(): SpeechRecognition;
 };
 
 // This does the same for the webkit-prefixed version for older browsers
-declare var webkitSpeechRecognition: {
+declare const webkitSpeechRecognition: {
   prototype: SpeechRecognition;
   new(): SpeechRecognition;
 };

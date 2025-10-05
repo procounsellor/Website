@@ -40,12 +40,12 @@ export default function BookingConfirmationCard({ counselorName = 'Ashutosh Kuma
 
   return (
     <div 
-      className="fixed inset-0 bg-[#232323]/50 backdrop-blur-sm flex items-center justify-center p-4 z-100 animate-in fade-in duration-300" 
+      className="fixed inset-0 bg-[#232323]/50 backdrop-blur-sm flex items-center justify-center p-4 z-100" 
       onClick={() => onClose?.()}
     >
       <div 
         onClick={(e) => e.stopPropagation()} 
-        className="bg-[#F5F7FA] w-full flex flex-col max-w-[747px] max-h-[667px] rounded-[16px] relative p-[42px] pb-[86px] gap-6 overflow-y-auto custom-scrollbar animate-in slide-in-from-bottom-4 zoom-in-95 duration-500 ease-out"
+        className="bg-[#F5F7FA] w-full flex flex-col max-w-[747px] max-h-[667px] rounded-[16px] relative p-[42px] pb-[86px] gap-6 overflow-y-auto custom-scrollbar"
       >
         <style>{`
           .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -59,45 +59,45 @@ export default function BookingConfirmationCard({ counselorName = 'Ashutosh Kuma
             mask: linear-gradient(white 0 0);
           }
         `}</style>
-        <div className="flex items-center gap-2 text-[#343C6A] animate-in slide-in-from-top-2 duration-700 delay-200">
+        <div className="flex items-center gap-2 text-[#343C6A]">
           <p className="text-2xl font-semibold">Appointment Confirmation</p>
             <button 
             onClick={() => onClose?.()}
-            className="absolute top-4 right-4 z-10 p-1.5 rounded-full transition-colors duration-200 hover:bg-black group"
+            className="absolute top-4 right-4 z-10 p-1.5 rounded-full hover:bg-black group"
           >
-            <X className="h-5 w-5 text-gray-500 transition-colors duration-200 group-hover:text-white" />
+            <X className="h-5 w-5 text-gray-500 group-hover:text-white" />
           </button>
         </div>
 
 
 
-        <div className="flex flex-col items-center gap-6 animate-in slide-in-from-bottom-4 duration-700 delay-300">
+        <div className="flex flex-col items-center gap-6">
           <div className="flex flex-col items-center max-w-[450px] gap-4">
           <div className="animate-bounce">
             <img src="/greentick.svg" alt="" className="w-[62px] h-[62px] animate-pulse"/>
           </div>
-          <h1 className="text-2xl text-[#3537b4] font-semibold animate-in slide-in-from-bottom-2 duration-500 delay-500">Appointment Confirmed</h1>
-          <p className="text-[16px] text-[#718ebf] font-medium text-center animate-in fade-in duration-500 delay-700">Thank you for booking! Your subscription has been activated.</p>
+          <h1 className="text-2xl text-[#3537b4] font-semibold">Appointment Confirmed</h1>
+          <p className="text-[16px] text-[#718ebf] font-medium text-center">Thank you for booking! Your subscription has been activated.</p>
         </div>
 
-        <div className="flex flex-col gap-4 bg-white w-[482px] h-[331px] border-[1px] border-[#f5f5f5] rounded-[12px] p-4 animate-in slide-in-from-right-4 duration-600 delay-400 hover:shadow-lg transition-shadow">
+        <div className="flex flex-col gap-4 bg-white w-[482px] h-[331px] border-[1px] border-[#f5f5f5] rounded-[12px] p-4">
 
-          <div className="flex gap-2 items-center animate-in slide-in-from-left-2 duration-500 delay-600">
-            <img src="/discover-imageCounselor2.jpg" alt="Counselor" className="w-16 h-16 rounded-[10px] animate-in zoom-in-95 duration-300 delay-800" />
+          <div className="flex gap-2 items-center">
+            <img src="/discover-imageCounselor2.jpg" alt="Counselor" className="w-16 h-16 rounded-[10px]" />
             <p className="flex flex-col gap-0 text-[18px] text-[#343c6a] font-semibold">Counselling Session<span className="text-[16px] text-[#718ebf] font-medium">with {counselorName}</span></p>
           </div>
 
-          <div className="flex justify-between bg-[#f5f5f5] w-[450px] h-[66px] items-center px-10 rounded-[12px] animate-in slide-in-from-bottom-2 duration-500 delay-700">
+          <div className="flex justify-between bg-[#f5f5f5] w-[450px] h-[66px] items-center px-10 rounded-[12px]">
 
-            <div className="flex gap-2 h-10.5 items-center hover:scale-105 transition-transform duration-200">
-              <div className="bg-[#c3f9d966]/40 h-8 w-8 flex items-center justify-center rounded-full animate-pulse">
+            <div className="flex gap-2 h-10.5 items-center">
+              <div className="bg-[#c3f9d966]/40 h-8 w-8 flex items-center justify-center rounded-full">
               <img src="/calander.svg" alt="" className="h-[22px] w-[22px]"/>
               </div>
               <p className="flex flex-col text-[#8C8CA1] font-normal text-[14px]">Date <span className="text-[#232323] text-[16px] font-medium">{formatDate(appointmentDate)}</span></p>
             </div>
 
-            <div className="flex gap-2 h-10.5 items-center hover:scale-105 transition-transform duration-200">
-              <div className="bg-[#C3F9D966]/40 h-8 w-8 flex items-center justify-center rounded-full animate-pulse">
+            <div className="flex gap-2 h-10.5 items-center">
+              <div className="bg-[#C3F9D966]/40 h-8 w-8 flex items-center justify-center rounded-full">
               <img src="/calander.svg" alt="" className="h-[22px] w-[22px]"/>
 
               </div>
@@ -106,7 +106,7 @@ export default function BookingConfirmationCard({ counselorName = 'Ashutosh Kuma
 
           </div>
 
-            <div className="flex w-[450px] h-[117px] rounded-[12px] justify-start p-4 bg-[#F9FAFC] border border-[#f5f5f5] animate-in slide-in-from-bottom-2 duration-500 delay-800 hover:bg-[#F5F7FA] transition-colors">
+            <div className="flex w-[450px] h-[117px] rounded-[12px] justify-start p-4 bg-[#F9FAFC] border border-[#f5f5f5]">
 
               <p className="flex flex-col gap-2 text-[#343c6a] font-semibold text-[18px]">
                 Session Details
@@ -124,9 +124,9 @@ export default function BookingConfirmationCard({ counselorName = 'Ashutosh Kuma
 
         </div>
 
-        <div className="flex flex-col gap-4 items-center animate-in slide-in-from-bottom-4 duration-600 delay-900">
+        <div className="flex flex-col gap-4 items-center">
 
-          <div className="bg-[#ffffff] shadow-[#232323]/15 w-14 h-[56px] flex justify-center items-center rounded-[12px] animate-in zoom-in-95 duration-300 delay-1000 hover:scale-110 transition-transform">
+          <div className="bg-[#ffffff] shadow-[#232323]/15 w-14 h-[56px] flex justify-center items-center rounded-[12px]">
           <img src="/text.svg" alt="text" className="w-10 h-10" />
           </div>
 
@@ -136,12 +136,12 @@ export default function BookingConfirmationCard({ counselorName = 'Ashutosh Kuma
 
           <div className="flex justify-between gap-10">
 
-            <div className="flex gap-2 items-center hover:scale-105 transition-transform duration-200">
+            <div className="flex gap-2 items-center">
               <img src="/phone.svg" alt="phone" className="h-10 w-10" />
               7893453245
             </div>
 
-            <div className="flex gap-2 items-center hover:scale-105 transition-transform duration-200">
+            <div className="flex gap-2 items-center">
               <img src="/email.png" alt="email" className="h-7 w-7" />
               support@procounsel.co.in
             </div>
