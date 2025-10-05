@@ -24,7 +24,7 @@ export default function MainLayout(){
             <Outlet/>
            </main>
 
-           <footer>
+           <footer className="bottom-0 left-0 right-0">
             <Footer/>
            </footer>
            {isLoginToggle && <LoginCard/>}

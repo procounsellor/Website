@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isManualSubscriptionRequest } from '@/api/counsellor';
 import type { SubscribedCounsellor } from '@/types/user';
+import { useAuthStore } from '@/store/AuthStore';
 
 type Props = {
   counselor: CounselorDetails;
@@ -14,6 +15,7 @@ export function CounselorProfileCard({ counselor, subscription }: Props) {
   const userId = localStorage.getItem('phone');
   const navigate = useNavigate();
   const [pendingApproval, setPendingApproval] = useState(false);
+  const {isAuthenticated, toggleLogin} = useAuthStore()
 
   useEffect(() => {
     if (!subscription && userId && counselor?.userName) {
@@ -103,7 +105,7 @@ export function CounselorProfileCard({ counselor, subscription }: Props) {
             {/* </a> */}
             {upgradePlan ? (
               <button
-                onClick={() => navigate('/subscribe', { state: { counselorId: counselor.userName, userId: userId, counselor: counselor } })}
+                onClick={() => isAuthenticated ? navigate('/subscribe', { state: { counselorId: counselor.userName, userId: userId, counselor: counselor }}):toggleLogin()}
                 className="w-full sm:flex-1 font-semibold py-3 px-6 rounded-lg text-[#3537B4] border-2 border-[#3537B4] hover:bg-blue-50 flex items-center justify-center gap-2"
               >
                 <Zap className="w-5 h-5 text-orange-500" /> Upgrade to <span className="capitalize">{upgradePlan}</span> Plan
@@ -129,7 +131,7 @@ export function CounselorProfileCard({ counselor, subscription }: Props) {
             <button disabled className="w-full sm:w-auto flex items-center justify-center border gap-2 px-14 py-3 text-[#B2B9C5] bg-[#F9FAFC] rounded-lg cursor-not-allowed"><Lock className="w-4 h-4 text-[#B2B9C5]"/> Chat</button>
             <button disabled className="w-full sm:w-auto flex items-center justify-center border gap-2 px-14 py-3 text-[#B2B9C5] bg-[#F9FAFC] rounded-lg cursor-not-allowed"><Lock className="w-4 h-4 text-[#B2B9C5]" /> Call</button>
             <button
-              onClick={() => navigate('/subscribe', { state: { counselorId: counselor.userName, userId: userId, counselor: counselor } })}
+              onClick={() =>isAuthenticated ? navigate('/subscribe', { state: { counselorId: counselor.userName, userId: userId, counselor: counselor } }):toggleLogin()}
               disabled={pendingApproval}
               aria-disabled={pendingApproval}
               className={`w-full sm:flex-1 font-semibold py-3 px-6 rounded-lg transition-colors ${pendingApproval ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : 'bg-[#3537B4] text-white hover:bg-blue-700'}`}
