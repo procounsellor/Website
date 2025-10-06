@@ -10,11 +10,10 @@ import Chatbot from "@/components/chatbot/Chatbot";
 import { MessageSquare } from "lucide-react";
 import { useVoiceChatStore } from "@/store/VoiceChatStore";
 import VoiceChat from "@/components/chatbot/VoiceChat";
-import { Mic } from "lucide-react"; 
 export default function MainLayout(){
   const { isLoginToggle, isAuthenticated, userExist } = useAuthStore();
     const { isChatbotOpen, toggleChatbot } = useChatStore();
-   const { isVoiceChatOpen, toggleVoiceChat } = useVoiceChatStore();
+   const { isVoiceChatOpen} = useVoiceChatStore();
     return (
         <div>
            <nav>
@@ -25,7 +24,7 @@ export default function MainLayout(){
             <Outlet/>
            </main>
 
-           <footer>
+           <footer className="bottom-0 left-0 right-0">
             <Footer/>
            </footer>
            {isLoginToggle && <LoginCard/>}
@@ -49,12 +48,12 @@ export default function MainLayout(){
       </button>
 
       {isChatbotOpen && <Chatbot />}
-      <button
+      {/* <button
         onClick={toggleVoiceChat}
         
       >
         <Mic size={32} />
-      </button>
+      </button> */}
 
       {/* Render the voice chat UI when open */}
       {isVoiceChatOpen && <VoiceChat />}

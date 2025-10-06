@@ -1,10 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { useVoiceChatStore } from '@/store/VoiceChatStore';
-import { Mic, PhoneOff, Share2 } from 'lucide-react';
+import { Mic, PhoneOff} from 'lucide-react';
+import { motion } from 'framer-motion'; // ✨ NEW: Import framer-motion
 
-// --- Helper Hook for Voice Visualization ---
+// --- Predefined color palettes for the visualizer ---
+const colorPalettes = [
+  { from: 'from-sky-400', to: 'to-blue-600', radial: 'from-blue-300/50' },
+  { from: 'from-purple-400', to: 'to-indigo-600', radial: 'from-indigo-300/50' },
+];
+
+
+// --- Helper Hook for Voice Visualization (Unchanged) ---
 const useVoiceVisualizer = (isListening: boolean) => {
   const [volume, setVolume] = useState(0);
+  // ... (rest of the hook is unchanged)
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
@@ -12,17 +21,14 @@ const useVoiceVisualizer = (isListening: boolean) => {
   const animationFrameRef = useRef<number>(0);
 
   useEffect(() => {
-    // FIX #2: Ensure this code only runs in the browser
-    if (typeof window === 'undefined') {
-      return;
-    }
+    if (typeof window === 'undefined') return;
 
     const setupAudio = async () => {
       if (isListening) {
         try {
           const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
           if (!AudioContext) {
-            console.warn("AudioContext is not supported in this browser.");
+            console.warn('AudioContext is not supported in this browser.');
             return;
           }
           const context = new AudioContext();
@@ -30,13 +36,13 @@ const useVoiceVisualizer = (isListening: boolean) => {
 
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
           streamRef.current = stream;
-          
+
           const source = context.createMediaStreamSource(stream);
           sourceRef.current = source;
           const analyser = context.createAnalyser();
           analyser.fftSize = 512;
           analyserRef.current = analyser;
-          
+
           source.connect(analyser);
 
           const dataArray = new Uint8Array(analyser.frequencyBinCount);
@@ -49,9 +55,8 @@ const useVoiceVisualizer = (isListening: boolean) => {
             animationFrameRef.current = requestAnimationFrame(draw);
           };
           draw();
-
         } catch (err) {
-          console.error("Error setting up audio visualizer:", err);
+          console.error('Error setting up audio visualizer:', err);
         }
       }
     };
@@ -61,11 +66,9 @@ const useVoiceVisualizer = (isListening: boolean) => {
     return () => {
       cancelAnimationFrame(animationFrameRef.current);
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
-      if (sourceRef.current) {
-        sourceRef.current.disconnect();
-      }
+      if (sourceRef.current) sourceRef.current.disconnect();
       if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close();
       }
@@ -76,27 +79,66 @@ const useVoiceVisualizer = (isListening: boolean) => {
 };
 
 
-// --- The Visualizer Component ---
-const VoiceVisualizer = ({ volume }: { volume: number }) => {
-  const scale = 1 + volume * 0.1;
+// --- ✨ MODIFIED: The Visualizer now has a "breathing" animation when speaking ---
+const VoiceVisualizer = ({
+  volume,
+  isSpeaking = false,
+  palette,
+}: {
+  volume: number;
+  isSpeaking?: boolean;
+  palette: { from: string; to: string; radial: string };
+}) => {
+  const baseScale = 1 + volume * 0.1;
+
   return (
-    <div 
-      className="relative w-56 h-56 md:w-64 md:h-64 rounded-full overflow-hidden transition-transform duration-100 ease-out"
-      style={{ transform: `scale(${scale})` }}
+    <motion.div
+      className="relative w-56 h-56 md:w-64 md:h-64 rounded-full overflow-hidden"
+      aria-hidden
+      // ✨ Animate the scale property
+      animate={{ scale: isSpeaking ? [1.1, 1.18, 1.1] : baseScale }}
+      // ✨ Define the transition for the animation
+      transition={{
+        duration: isSpeaking ? 1.5 : 0.2,
+        repeat: isSpeaking ? Infinity : 0,
+        ease: 'easeInOut',
+      }}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-sky-400 to-blue-600"></div>
-      <div className="absolute inset-0 rounded-full bg-white/10 blur-xl"></div>
-      <div 
-        className="absolute w-[300%] h-[300%] -left-full -top-full animate-[spin_18s_linear_infinite] bg-gradient-radial from-white/60 via-white/20 to-transparent" 
+      <div className={`absolute inset-0 bg-gradient-to-br ${palette.from} ${palette.to} transition-opacity duration-500 ${isSpeaking ? 'opacity-95' : 'opacity-100'}`} />
+      
+      {/* ✨ Animate the blur for a nice secondary effect */}
+      <motion.div
+        className="absolute inset-0 rounded-full bg-white/10"
+        animate={{ backdropFilter: isSpeaking ? 'blur(16px)' : 'blur(24px)' }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', repeatType: 'reverse' }}
       />
-      <div 
-        className="absolute w-[200%] h-[200%] -left-1/2 -top-1/2 animate-[spin_12s_linear_infinite] opacity-70 bg-gradient-radial from-blue-300/50 via-blue-400/20 to-transparent" 
+      
+      <div
+        className={`absolute w-[300%] h-[300%] -left-full -top-full bg-gradient-radial from-white/60 via-white/20 to-transparent ${
+          isSpeaking ? 'animate-[spin_8s_linear_infinite] opacity-90' : 'animate-[spin_18s_linear_infinite]'
+        }`}
       />
-    </div>
+      <div
+        className={`absolute w-[200%] h-[200%] -left-1/2 -top-1/2 bg-gradient-radial ${palette.radial} via-blue-400/20 to-transparent ${
+          isSpeaking ? 'animate-[spin_6s_linear_infinite] opacity-90' : 'animate-[spin_12s_linear_infinite] opacity-70'
+        }`}
+      />
+    </motion.div>
   );
 };
 
-// --- Main VoiceChat Component ---
+
+// --- Small animated dots for "thinking" ---
+const ThinkingDots = () => (
+  <span className="inline-flex items-center space-x-1">
+    <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-pulse" />
+    <span style={{ animationDelay: '200ms' }} className="w-1.5 h-1.5 bg-white/70 rounded-full animate-pulse" />
+    <span style={{ animationDelay: '400ms' }} className="w-1.5 h-1.5 bg-white/70 rounded-full animate-pulse" />
+  </span>
+);
+
+
+// --- Main VoiceChat Component (Unchanged from previous version) ---
 const isSpeechRecognitionSupported =
   typeof window !== 'undefined' && ('SpeechRecognition' in window || (window as any).webkitSpeechRecognition);
 
@@ -114,6 +156,9 @@ export default function VoiceChat() {
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const volume = useVoiceVisualizer(isListening);
+  
+  const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
+  const [palette, setPalette] = useState(colorPalettes[0]);
 
   useEffect(() => {
     if (!isSpeechRecognitionSupported) return;
@@ -121,91 +166,125 @@ export default function VoiceChat() {
     const SpeechRecognitionAPI = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognitionAPI();
     recognitionRef.current = recognition;
-
     recognition.continuous = false;
     recognition.interimResults = false;
     recognition.lang = 'en-IN';
 
     recognition.onstart = startListening;
-    recognition.onend = () => {
-        stopListening(); 
-    };
-    
-   
+    recognition.onend = stopListening;
 
-    recognition.onresult = (event) => {
+    recognition.onresult = async (event: SpeechRecognitionEvent) => {
       const transcript = event.results[0][0].transcript.trim();
       if (transcript) {
-        processUserTranscript(transcript);
+        setIsAwaitingResponse(true);
+        try {
+          await processUserTranscript(transcript);
+        } catch (err) {
+          console.error('Error processing transcript:', err);
+          setIsAwaitingResponse(false);
+        }
       }
+    };
+    
+
+    recognition.onerror = (ev: any) => {
+      console.warn('Speech recognition error', ev);
+      stopListening();
     };
 
     return () => {
-      recognition.stop();
+      try {
+        recognition.stop();
+      } catch (e) { /* ignore */ }
     };
   }, [processUserTranscript, startListening, stopListening]);
-
+  
   useEffect(() => {
+    if (isSpeaking) {
+      setIsAwaitingResponse(false);
+      setPalette(colorPalettes[Math.floor(Math.random() * colorPalettes.length)]);
+    }
+    if (!isVoiceChatOpen) {
+      setIsAwaitingResponse(false);
+    }
+  }, [isSpeaking, isVoiceChatOpen]);
+
+  const startRecognitionSafely = () => {
     const recognition = recognitionRef.current;
     if (!recognition) return;
-
-    if (isVoiceChatOpen) {
-      if (isSpeaking) {
-        recognition.stop();
-      } else {
-        try {
-          recognition.start();
-        } catch (e) {
-          // Ignores error if it's already started
-        }
-      }
-    } else {
-      recognition.stop();
-    }
-  }, [isVoiceChatOpen, isSpeaking]);
+    try {
+      recognition.start();
+    } catch (e) { /* ignore */ }
+  };
 
   const handleMicClick = () => {
+    const recognition = recognitionRef.current;
+
     if (isSpeaking) {
       stopSpeaking();
-    } else if (isListening) {
-      recognitionRef.current?.stop();
+      setTimeout(() => {
+        startRecognitionSafely();
+      }, 250);
+      return;
+    }
+
+    if (isListening) {
+      recognition?.stop();
     } else {
-        recognitionRef.current?.start();
+      startRecognitionSafely();
     }
   };
 
   return (
     <div className="fixed inset-0 bg-[#202124] z-[200] flex flex-col items-center justify-center p-6 animate-in fade-in-20">
-      
-      <button className="absolute top-6 right-6 text-gray-400 hover:text-white transition-colors">
-        <Share2 size={24} />
-      </button>
+
+      <div className="absolute top-9 left-1/2 -translate-x-1/2 flex items-center gap-3">
+  {isListening && (
+    <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-sm text-white">
+      <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+      <span>Listening</span>
+    </div>
+  )}
+  {isAwaitingResponse && (
+    <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-sm text-white">
+      <span>Thinking</span>
+      <ThinkingDots />
+    </div>
+  )}
+  {isSpeaking && (
+    <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-sm text-white">
+      <span>Speaking</span>
+    </div>
+  )}
+</div>
+
 
       <div className="flex-grow flex items-center justify-center">
-        <VoiceVisualizer volume={isSpeaking ? 0.1 : volume} />
+        <VoiceVisualizer
+          volume={isSpeaking ? 0.1 : volume}
+          isSpeaking={isSpeaking}
+          palette={palette}
+        />
       </div>
 
       <div className="w-full flex justify-center items-center gap-6 flex-shrink-0 pt-8">
-        <button 
+        <button
           onClick={handleMicClick}
           className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 text-white ${
-              isListening ? 'bg-red-600 shadow-lg shadow-red-500/30' : 'bg-white/10 hover:bg-white/20'
+            isListening ? 'bg-red-600 shadow-lg shadow-red-500/30' : 'bg-white/10 hover:bg-white/20'
           }`}
-          aria-label={isListening ? "Stop listening" : "Start listening"}
+          aria-label={isListening ? 'Stop listening' : 'Start listening'}
         >
-          <Mic size={28}/>
+          <Mic size={28} />
         </button>
-        <button 
-          onClick={toggleVoiceChat} 
+
+        <button
+          onClick={toggleVoiceChat}
           className="w-16 h-16 rounded-full flex items-center justify-center bg-[#ea4335] hover:bg-[#d93025] transition-colors text-white"
           aria-label="End call"
         >
-          <PhoneOff size={28}/>
+          <PhoneOff size={28} />
         </button>
-      </div>
-
-      <div className="absolute bottom-6 right-6 w-9 h-9 flex items-center justify-center bg-teal-500 rounded-full font-bold text-white text-lg select-none">
-        G
       </div>
     </div>
   );

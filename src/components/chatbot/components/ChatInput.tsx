@@ -123,7 +123,7 @@ export default function ChatInput({ onSend }: ChatInputProps) {
                     }
                   }}
                   className="flex-grow w-full pl-8 pr-28 py-5 bg-transparent text-gray-900 placeholder-gray-500 rounded-full focus:outline-none text-lg font-medium"
-                  placeholder={isListening ? "🎤 Listening..." : "Ask me anything..."}
+                  placeholder={isListening ? "Listening..." : "Ask me anything..."}
                 />
 
                 {/* END main input container */}

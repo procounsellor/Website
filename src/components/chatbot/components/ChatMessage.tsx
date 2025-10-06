@@ -15,7 +15,7 @@ export default function ChatMessage({ text, isUser }: ChatMessageProps) {
             : "bg-gray-200 text-gray-800 rounded-bl-none"
         }`}
       >
-        <p className="whitespace-pre-wrap">{text}</p>
+        <p className="whitespace-pre-wrap text-left break-words">{text}</p>
       </div>
     </div>
   );

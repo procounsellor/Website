@@ -15,6 +15,7 @@ import ExternalTermsPage from "@/pages/external/Terms";
 import { Toaster } from 'react-hot-toast';
 import { SubscriptionPage } from '@/pages/SubscriptionPage';
 import RechargeWallet from '@/pages/RechargeWallet';
+import CounselorDashboard from '@/pages/CounselorDashboard';
 const CollegesListingPage = lazy(() => import('@/pages/colleges'));
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const CoursesListingPage = lazy(() => import('@/pages/courses'));
@@ -50,7 +51,6 @@ export default function AppRoutes(){
                                 <Route path="/" element={<Home/>}/>
                                 <Route path="/counselors" element={<CounselorListingPage/>} />
                                 <Route path="/counselors/profile" element={<CounselorDetailsPage/>} />
-                                <Route path="/counselors/:id" element={<CounselorDetailsPage/>} />
                                 <Route path="/courses" element={<CoursesListingPage/>} />
                                 <Route path="/courses/:id" element={<CourseDetail/>} />
                                 <Route path="/colleges" element={<CollegesListingPage />} />
@@ -63,9 +63,10 @@ export default function AppRoutes(){
                                 <Route path="/sitemap" element={<SitemapPage/>} />
                                 <Route path="/add-college" element={<AddCollegePage/>} />
                                 <Route path="/exams/:id" element={<ExamDetailsPage />} />
+                                <Route path='/subscribe' element={<SubscriptionPage/>}/>
+                                <Route path='/counselor-dashboard' element={<CounselorDashboard/>}/>
                                 <Route element={<ProtectedRoute/>}>
                                 <Route path='/dashboard/student' element={<StudentDashboardPage/>}/>
-                                <Route path='/subscribe' element={<SubscriptionPage/>}/>
                                 <Route path='/wallet' element={<RechargeWallet/>}/>
                                 </Route>
                          </Route>
