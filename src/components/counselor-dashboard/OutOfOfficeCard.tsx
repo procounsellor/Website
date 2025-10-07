@@ -38,7 +38,7 @@ export function OutOfOfficeCard({ outOfOffice }: OutOfOfficeCardProps) {
         return `${displayHour}:${minutes} ${ampm}`;
     };
 
-    return <div className="bg-white h-[188px] w-[400px] border border-[#EFEFEF] rounded-[16px] p-4">
+    return <div className="bg-white h-[188px] w-[400px] border border-[#EFEFEF] shadow-md rounded-[16px] p-4">
         <div className="flex justify-between">
             <div
                 style={{

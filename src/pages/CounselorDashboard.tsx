@@ -158,12 +158,12 @@ export default function CounselorDashboard() {
           <div className="mt-4">
             <hr className="w-[311px] bg-[#f5f5f7] h-px" />
           </div>
-          <div className="flex justify-between mt-4">
-            <div className="flex gap-2">
+          <div onClick={() => setDrawerOpen(true)}  className="flex cursor-pointer justify-between mt-4">
+            <div  className="flex gap-2">
               <img src="/cup.svg" alt="" />
               <h1 className="text-[16px] text-[#13097D] font-semibold">Add Out of Office</h1>
             </div>
-            <ChevronRight size={24} className="text-[#13097D] cursor-pointer" onClick={() => setDrawerOpen(true)} />
+            <ChevronRight size={24} className="text-[#13097D] cursor-pointer"/>
           </div>
         </div>
 
