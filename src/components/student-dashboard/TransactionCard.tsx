@@ -5,9 +5,16 @@ interface TransactionCardProps {
   transaction: Transaction;
 }
 
-const formatDate = (timestamp: number) => {
+const formatDate = (timestamp: number, short = false) => {
   if (!timestamp) return 'Invalid Date';
   const date = new Date(timestamp);
+  if (short) {
+    return new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: '2-digit',
+    }).format(date).replace(/ /g, ' ');
+  }
   return new Intl.DateTimeFormat('en-GB', {
     day: '2-digit',
     month: 'short',
@@ -33,49 +40,87 @@ const truncateText = (text: string | null | undefined, maxLength: number) => {
 
 const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
   const isFailed = transaction.status?.toLowerCase() === 'failed';
+  const isDebit = transaction.type === 'debit' && !isFailed;
 
   const getTransactionDetails = () => {
+    let mobileLine1 = '';
+    let mobileLine2 = '';
+
+    let desktopTitle = '';
+    let desktopDescription = '';
+    let amountColor = 'text-gray-800';
+    let icon;
+
     if (isFailed) {
-      return {
-        icon: <XCircle className="w-12 h-12 text-[#EE1C1F] bg-[#EE1C1F26] rounded-full p-2 flex-shrink-0" />,
-        title: 'Payment Failed',
-        description: transaction.description?.startsWith('Payment was unsuccessful') 
-            ? 'Wallet Recharge'
-            : transaction.description,
-        amountColor: 'text-[#EE1C1F]',
-      };
+      icon = <XCircle className="w-10 h-10 text-[#EE1C1F] sm:w-12 sm:h-12 bg-[#EE1C1F26] rounded-full p-1.5 sm:p-2 flex-shrink-0" />;
+      amountColor = 'text-[#EE1C1F]';
+      
+      mobileLine1 = 'Payment Failed';
+      mobileLine2 = transaction.description || 'Proconsel';
+
+      desktopTitle = 'Payment Failed';
+      desktopDescription = 'Proconsel';
+
+    } else if (transaction.type === 'credit') {
+      icon = <ArrowDownCircle className="w-10 h-10 text-[#28A745] sm:w-12 sm:h-12 bg-[#28A74526] rounded-full p-1.5 sm:p-2 flex-shrink-0" />;
+      amountColor = 'text-[#28A745]';
+
+      mobileLine1 = 'Funds Added From';
+      mobileLine2 = 'Bank';
+
+      desktopTitle = 'Funds Added From';
+      desktopDescription = 'Bank';
+
+    } else {
+      icon = <ArrowUpCircle className="w-10 h-10 text-blue-500 sm:w-12 sm:h-12 bg-blue-50 rounded-full p-1.5 sm:p-2 flex-shrink-0" />;
+      mobileLine1 = 'Paid to';
+      mobileLine2 = (transaction.description || '').replace(/^Paid to /i, '');
+      desktopTitle = transaction.description || 'Paid to Proconsel';
+      desktopDescription = 'Proconsel';
     }
-    if (transaction.type === 'credit') {
-      return {
-        icon: <ArrowDownCircle className="w-12 h-12 text-[#28A745] bg-[#28A74526] rounded-full p-2 flex-shrink-0" />,
-        title: 'Funds Added',
-        description: transaction.description,
-        amountColor: 'text-[#28A745]',
-      };
-    }
-    return {
-      icon: <ArrowUpCircle className="w-12 h-12 text-blue-500 bg-blue-50 rounded-full p-2 flex-shrink-0" />,
-      title: 'Paid To',
-      description: transaction.description,
-      amountColor: 'text-gray-800',
-    };
+
+    return { icon, amountColor, mobileLine1, mobileLine2, desktopTitle, desktopDescription };
   };
 
-  const { icon, title, description, amountColor } = getTransactionDetails();
+  const { icon, amountColor, mobileLine1, mobileLine2, desktopTitle, desktopDescription } = getTransactionDetails();
 
   return (
-    <div className="py-6">
-      <div className="flex items-center gap-4 w-full">
-        <div className="flex items-center gap-4 w-[40%] flex-shrink-0">
+    <>
+      {/*mobile view*/}
+      <div className="sm:hidden bg-white p-3 rounded-xl border border-[#EFEFEF] flex items-center justify-between h-[74px]">
+        <div className="flex items-center gap-3 overflow-hidden">
           {icon}
-          <div className="flex-grow overflow-hidden">
-            <h4 className="font-semibold text-lg text-[#242645]">{title}</h4>
-            <p className="text-base font-medium text-[#8C8CA1] truncate" title={description || ''}>
-                {description || 'No description'}
+          <div>
+            <p className="font-medium text-xs text-[#718EBF]">{mobileLine1}</p>
+            <p className="font-medium text-sm text-[#232323] truncate">{mobileLine2}</p>
+            <p className="font-medium text-xs text-[#718EBF] mt-1">
+              Transaction ID: {truncateText(transaction.paymentId, 8)}
             </p>
           </div>
         </div>
 
+        <div className="flex flex-col items-end flex-shrink-0">
+          <p className={`font-medium text-base ${amountColor}`}>
+            {isDebit ? '-' : ''}
+            {formatCurrency(transaction.amount)}
+          </p>
+          <p className="font-medium text-xs text-[#718EBF] leading-tight mt-0.5">
+            {formatDate(transaction.timestamp, true)}
+          </p>
+        </div>
+      </div>
+
+      {/*desktop view*/}
+      <div className="hidden sm:flex items-center gap-4 w-full py-6">
+        <div className="flex items-center gap-4 w-[40%] flex-shrink-0">
+          {icon}
+          <div className="flex-grow overflow-hidden">
+            <h4 className="font-semibold text-lg text-[#242645]">{desktopTitle}</h4>
+            <p className="text-base font-medium text-[#8C8CA1] truncate" title={desktopDescription || ''}>
+                {desktopDescription || 'No description'}
+            </p>
+          </div>
+        </div>
         <div className="flex items-center gap-8 w-[40%]">
           <div className="w-1/2">
             <p className="text-sm font-semibold text-[#8C8CA1] mb-1">Transaction ID</p>
@@ -88,18 +133,17 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
             <p className="font-medium text-base text-[#242645] whitespace-nowrap">{formatDate(transaction.timestamp)}</p>
           </div>
         </div>
-
         <div className="flex justify-end w-[20%]">
              <div>
                 <p className="text-sm font-semibold text-[#8C8CA1] mb-1 text-right">Amount</p>
                 <p className={`font-semibold text-lg ${amountColor}`}>
-                    {transaction.type === 'debit' && !isFailed ? '-' : ''}
+                    {isDebit ? '-' : ''}
                     {formatCurrency(transaction.amount)}
                 </p>
             </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

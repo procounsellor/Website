@@ -97,10 +97,10 @@ export default function CounselorDetailsPage() {
   }
 
   return (
-    <div className="bg-gray-50 pt-28 pb-8 px-4">
+    <div className="bg-gray-50 pt-20 md:pt-28 pb-8 px-4">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-      <div className="max-w-7xl mx-auto mb-6">
+      <div className="max-w-7xl mx-auto mb-6 hidden md:block">
         <h1 className="text-2xl font-bold text-gray-800">Counselor Profile</h1>
         <p className="text-gray-500">Discover their expertise and find the right guidance for your future</p>
       </div>
