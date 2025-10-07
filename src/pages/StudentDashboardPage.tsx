@@ -147,7 +147,7 @@ const StudentDashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="bg-[#F5F5F7] min-h-screen p-4 md:p-8 pt-14 md:pt-20">
+    <div className="bg-[#F5F5F7] min-h-screen p-4 md:p-8 pt-15 md:pt-20">
       <div className="max-w-7xl mx-auto">
         <ProfileHeader user={user} onEditClick={() => setIsEditModalOpen(true)} />
 
@@ -161,7 +161,7 @@ const StudentDashboardPage: React.FC = () => {
                   activeTab === tab
                     ? 'border-[#13097D] text-[#13097D]'
                     : 'border-transparent text-[#8C8CA1] hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors flex-shrink-0`}
+                } whitespace-nowrap py-3 px-2 border-b-[3px] font-semibold text-[12px] md:text-sm transition-colors flex-shrink-0`}
               >
                 {tab}
               </button>

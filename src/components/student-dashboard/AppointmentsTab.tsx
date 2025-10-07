@@ -39,7 +39,8 @@ const AppointmentsTab: React.FC = () => {
         setAllAppointments(allData);
         setUpcomingAppointments(upcomingData);
 
-      } catch (err) {
+      } catch (err)
+ {
         setError(err instanceof Error ? err.message : 'Failed to fetch appointments.');
       } finally {
         setLoading(false);
@@ -83,26 +84,27 @@ const AppointmentsTab: React.FC = () => {
   }
 
   return (
-    <div className="bg-white p-6 rounded-2xl border border-[#EFEFEF]">
-      <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-6">
-        {TABS.map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveFilter(tab)}
-            className={`px-4 py-2 text-base font-medium rounded-full transition-colors duration-200 ${
-              activeFilter === tab 
-              ? 'bg-[#E8E7F2] text-[#13097D]' 
-              : 'bg-transparent text-[#13097D]'
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+    <div className="md:bg-white md:p-6 md:rounded-2xl md:border md:border-[#EFEFEF]">
+      <div className="bg-white p-4 rounded-2xl border border-[#EFEFEF] mb-4 md:bg-transparent md:p-0 md:border-none md:mb-6">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+          {TABS.map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveFilter(tab)}
+              className={`px-4 py-2 text-sm md:text-base font-medium rounded-full transition-colors duration-200 ${
+                activeFilter === tab 
+                ? 'bg-[#E8E7F2] text-[#13097D]' 
+                : 'bg-transparent text-[#8C8CA1] md:text-[#13097D] hover:text-[#13097D]'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
       </div>
-
-      <div className='-mt-6'>
+      
       {filteredAppointments.length > 0 ? (
-        <div className="divide-y divide-gray-200">
+        <div className="flex flex-col gap-4 md:block md:gap-0 md:divide-y md:divide-gray-200 md:-mt-6">
           {filteredAppointments.map((appointment) => (
             <AppointmentCard 
               key={appointment.appointmentId} 
@@ -112,12 +114,11 @@ const AppointmentsTab: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div className="text-center py-16">
+        <div className="text-center py-16 bg-white rounded-xl">
           <h3 className="text-lg font-semibold text-gray-700">No Appointments Found</h3>
           <p className="text-gray-500 mt-2">There are no {activeFilter.toLowerCase()} appointments.</p>
         </div>
       )}
-      </div>
     </div>
   );
 };
