@@ -1,11 +1,18 @@
 import { getAllAppointments, getOutOfOffice } from "@/api/counselor-Dashboard";
 import CustomCalendar from "@/components/Calendar";
-import OutOfOfficeDrawer from "@/components/counselor-dashboard/OutOfOfficeDrawer";
-import AppointmentPopup from "@/components/counselor-dashboard/AppointmentPopup";
+import { 
+  OutOfOfficeDrawer, 
+  AppointmentPopup, 
+  OutOfOfficeCard,
+  MyEarningsTab,
+  ClientsTab,
+  ReviewsTab
+} from "@/components/counselor-dashboard";
 import type { GroupedAppointments, OutOfOffice, Appointment } from "@/types/appointments";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { OutOfOfficeCard } from "@/components/counselor-dashboard/OutOfOfficeCard";
+
+type MainTab = 'calendar' | 'earnings' | 'appointments' | 'reviews' | 'clients';
 
 export default function CounselorDashboard() {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -16,6 +23,7 @@ export default function CounselorDashboard() {
     data: Appointment;
     position: { x: number; y: number; centerY: number };
   } | null>(null);
+  const [mainTab, setMainTab] = useState<MainTab>('calendar');
   
   const GRID_CONFIG = {
     visibleDays: 4,
@@ -129,21 +137,45 @@ export default function CounselorDashboard() {
 
       <div>
         <ul className="flex gap-6 text-[16px] font-semibold text-[#8C8CA1]">
-          <li className="text-[#13097D] flex flex-col items-center">
+          <li 
+            onClick={() => setMainTab('calendar')}
+            className={`cursor-pointer flex flex-col items-center ${mainTab === 'calendar' ? 'text-[#13097D]' : ''}`}
+          >
             My Calendar
-            <div className="h-[3px] w-[128px] bg-[#13097D] rounded-t-[2px]"></div>
+            {mainTab === 'calendar' && <div className="h-[3px] w-[128px] bg-[#13097D] rounded-t-[2px]"></div>}
           </li>
-          <li>My Earnings</li>
-          <li>Appointments</li>
-          <li>Reviews</li>
-          <li>Clients</li>
+          <li 
+            onClick={() => setMainTab('earnings')}
+            className={`cursor-pointer ${mainTab === 'earnings' ? 'text-[#13097D]' : ''}`}
+          >
+            My Earnings
+          </li>
+          <li 
+            onClick={() => setMainTab('appointments')}
+            className={`cursor-pointer ${mainTab === 'appointments' ? 'text-[#13097D]' : ''}`}
+          >
+            Appointments
+          </li>
+          <li 
+            onClick={() => setMainTab('reviews')}
+            className={`cursor-pointer ${mainTab === 'reviews' ? 'text-[#13097D]' : ''}`}
+          >
+            Reviews
+          </li>
+          <li 
+            onClick={() => setMainTab('clients')}
+            className={`cursor-pointer ${mainTab === 'clients' ? 'text-[#13097D]' : ''}`}
+          >
+            Clients
+          </li>
         </ul>
         <hr className="w-[1200px] bg-[#E5E5E5] h-px mb-5" />
       </div>
 
-      <div className="w-[1221px] bg-white h-[658px] rounded-[16px] grid grid-cols-[351px_870px] border border-[#EFEFEF]">
-        <div className="border-r border-r-[#EDEDED] p-4 flex flex-col">
-          <h1 className="font-semiBold text-[20px] text-[#13097D] mb-2">Calendar</h1>
+      {mainTab === 'calendar' && (
+        <div className="w-[1221px] bg-white h-[658px] rounded-[16px] grid grid-cols-[351px_870px] border border-[#EFEFEF]">
+          <div className="border-r border-r-[#EDEDED] p-4 flex flex-col">
+            <h1 className="font-semiBold text-[20px] text-[#13097D] mb-2">Calendar</h1>
           <div className="flex-shrink-0">
             <CustomCalendar value={selectedDate} onChange={(date: Date) => {
               setSelectedDate(date);
@@ -158,12 +190,12 @@ export default function CounselorDashboard() {
           <div className="mt-4">
             <hr className="w-[311px] bg-[#f5f5f7] h-px" />
           </div>
-          <div onClick={() => setDrawerOpen(true)}  className="flex cursor-pointer justify-between mt-4">
-            <div  className="flex gap-2">
+          <div className="flex justify-between mt-4">
+            <div className="flex gap-2">
               <img src="/cup.svg" alt="" />
               <h1 className="text-[16px] text-[#13097D] font-semibold">Add Out of Office</h1>
             </div>
-            <ChevronRight size={24} className="text-[#13097D] cursor-pointer"/>
+            <ChevronRight size={24} className="text-[#13097D] cursor-pointer" onClick={() => setDrawerOpen(true)} />
           </div>
         </div>
 
@@ -349,6 +381,32 @@ export default function CounselorDashboard() {
           </div>
         </div>
       </div>
+      )}
+
+      {mainTab === 'earnings' && (
+        <div className="w-[1221px]">
+          <MyEarningsTab />
+        </div>
+      )}
+
+      {mainTab === 'clients' && (
+        <div className="w-[1221px]">
+          <ClientsTab />
+        </div>
+      )}
+
+      {mainTab === 'reviews' && (
+        <div className="w-[1221px]">
+          <ReviewsTab />
+        </div>
+      )}
+
+      {mainTab === 'appointments' && (
+        <div className="w-[1221px] bg-white rounded-[16px] border border-[#EFEFEF] p-6">
+          <h2 className="text-xl font-semibold text-[#13097D]">Appointments</h2>
+          <p className="text-[#718EBF] mt-2">Appointments tab coming soon...</p>
+        </div>
+      )}
 
       <OutOfOfficeDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} counselor={"id_here"} />
 
