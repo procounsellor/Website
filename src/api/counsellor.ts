@@ -165,10 +165,11 @@ const formatTimeAgo = (timestamp: { seconds: number; nanos: number }): string =>
   return 'just now';
 };
 
-export const getReviewsForCounselor = async (counsellorId: string, token: string): Promise<ReviewReceived[]> => {
+export const getReviewsForCounselor = async (counsellorId: string): Promise<ReviewReceived[]> => {
     const response = await fetch(`${baseUrl}/api/counsellor/getAllReviewsReceivedByCounsellor?counsellorId=${counsellorId}`, {
         headers: {
-            'Authorization': `Bearer ${token}`
+            Accept: 'application/json',
+            authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI5NDcwOTg4NjY5IiwiaWF0IjoxNzUxNjYwNDE4LCJleHAiOjE3ODMxOTY0MTh9.MtEeXnjSTrh3DFFYc-F6aUO9F8BdH7PgcXPE4uYThu4'
         }
     });
 

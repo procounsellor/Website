@@ -37,3 +37,34 @@ export type OutOfOffice = {
     nanos: number;
   };
 };
+
+export interface OutOfOfficePayload {
+  counsellorId: string;
+  reason: string;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+};
+
+export type CounselorAppointment = {
+  appointmentId: string;
+  userId: string;
+  counsellorId: string;
+  userFullName: string;
+  userPhootoSmall: string;
+  userCourse: string;         
+  date: string;
+  startTime: string;
+  endTime: string;
+  mode: "offline" | "online";
+  status: "booked" | "rescheduled" | "cancelled" | "completed";
+  userFCMToken: string;
+};
+
+export interface CancelAppointmentPayload {
+  userId: string;
+  appointmentId: string;
+  receiverFcmToken: string | null;
+  reason: string;
+}

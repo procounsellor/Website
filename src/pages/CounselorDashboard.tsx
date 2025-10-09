@@ -11,8 +11,17 @@ import {
 import type { GroupedAppointments, OutOfOffice, Appointment } from "@/types/appointments";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import AppointmentsTab from "@/components/counselor-dashboard/AppointmentsTab";
 
 type MainTab = 'calendar' | 'earnings' | 'appointments' | 'reviews' | 'clients';
+
+const TABS: { key: MainTab, name: string }[] = [
+    { key: 'calendar', name: 'My Calendar' },
+    { key: 'earnings', name: 'My Earnings' },
+    { key: 'appointments', name: 'Appointments' },
+    { key: 'reviews', name: 'Reviews' },
+    { key: 'clients', name: 'Clients' },
+];
 
 export default function CounselorDashboard() {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -41,20 +50,20 @@ export default function CounselorDashboard() {
   const [activeTab, setActiveTab] = useState<'meetings' | 'other'>('meetings');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [fetchedAppointments, fetchedOutOfOffice] = await Promise.all([
-          getAllAppointments("9470988669"),
-          getOutOfOffice("9470988669")
-        ]);
-        setAppointments(fetchedAppointments ?? {});
-        setOutOfOfficeData(fetchedOutOfOffice ?? []);
-      } catch (err) {
-        console.error(err);
-      }
+  const fetchData = async () => {
+    try {
+      const [fetchedAppointments, fetchedOutOfOffice] = await Promise.all([
+        getAllAppointments("9470988669"),
+        getOutOfOffice("9470988669")
+      ]);
+      setAppointments(fetchedAppointments ?? {});
+      setOutOfOfficeData(fetchedOutOfOffice ?? []);
+    } catch (err) {
+      console.error(err);
     }
+  };
 
+  useEffect(() => {
     const HOUR = Array.from({ length: 12 }, (_, i) => 9 + i);
     setHours(HOUR);
 
@@ -119,10 +128,10 @@ export default function CounselorDashboard() {
   });
 
   return (
-    <div className="w-full bg-[#F5F5F7] px-32 mt-20 flex flex-col items-center pb-20">
-      <div className="w-[1200px] flex justify-between items-center py-7">
+    <div className="w-full bg-[#F5F5F7] px-4 md:px-8 lg:px-16 xl:px-32 mt-20 flex flex-col items-center">
+      <div className="w-full max-w-[1200px] flex justify-between items-center py-7">
         <div className="flex items-center gap-4">
-          <img src="/counselor.png" alt="" />
+          <img src="/counselor.png" alt="Counselor" />
           <h1 className="flex flex-col gap-2 font-semibold text-2xl text-[#343C6A]">
             Ashutosh Kumar
             <span className="text-[#718EBF] text-lg font-medium">
@@ -135,286 +144,253 @@ export default function CounselorDashboard() {
         </button>
       </div>
 
-      <div>
-        <ul className="flex gap-6 text-[16px] font-semibold text-[#8C8CA1]">
-          <li 
-            onClick={() => setMainTab('calendar')}
-            className={`cursor-pointer flex flex-col items-center ${mainTab === 'calendar' ? 'text-[#13097D]' : ''}`}
-          >
-            My Calendar
-            {mainTab === 'calendar' && <div className="h-[3px] w-[128px] bg-[#13097D] rounded-t-[2px]"></div>}
-          </li>
-          <li 
-            onClick={() => setMainTab('earnings')}
-            className={`cursor-pointer ${mainTab === 'earnings' ? 'text-[#13097D]' : ''}`}
-          >
-            My Earnings
-          </li>
-          <li 
-            onClick={() => setMainTab('appointments')}
-            className={`cursor-pointer ${mainTab === 'appointments' ? 'text-[#13097D]' : ''}`}
-          >
-            Appointments
-          </li>
-          <li 
-            onClick={() => setMainTab('reviews')}
-            className={`cursor-pointer ${mainTab === 'reviews' ? 'text-[#13097D]' : ''}`}
-          >
-            Reviews
-          </li>
-          <li 
-            onClick={() => setMainTab('clients')}
-            className={`cursor-pointer ${mainTab === 'clients' ? 'text-[#13097D]' : ''}`}
-          >
-            Clients
-          </li>
-        </ul>
-        <hr className="w-[1200px] bg-[#E5E5E5] h-px mb-5" />
-      </div>
-
-      {mainTab === 'calendar' && (
-        <div className="w-[1221px] bg-white h-[658px] rounded-[16px] grid grid-cols-[351px_870px] border border-[#EFEFEF]">
-          <div className="border-r border-r-[#EDEDED] p-4 flex flex-col">
-            <h1 className="font-semiBold text-[20px] text-[#13097D] mb-2">Calendar</h1>
-          <div className="flex-shrink-0">
-            <CustomCalendar value={selectedDate} onChange={(date: Date) => {
-              setSelectedDate(date);
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              const selected = new Date(date);
-              selected.setHours(0, 0, 0, 0);
-              const diffDays = Math.floor((selected.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-              setCurrentDateOffset(diffDays);
-            }} />
-          </div>
-          <div className="mt-4">
-            <hr className="w-[311px] bg-[#f5f5f7] h-px" />
-          </div>
-          <div className="flex justify-between mt-4">
-            <div className="flex gap-2">
-              <img src="/cup.svg" alt="" />
-              <h1 className="text-[16px] text-[#13097D] font-semibold">Add Out of Office</h1>
-            </div>
-            <ChevronRight size={24} className="text-[#13097D] cursor-pointer" onClick={() => setDrawerOpen(true)} />
-          </div>
-        </div>
-
-        <div className="flex flex-col overflow-hidden">
-          <div className="flex py-4 px-4 items-center gap-6 flex-shrink-0">
-            <h1 className="text-[#13097D] font-semibold text-[16px]">{getDateLabel()}</h1>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={goToPreviousDay}
-                className="p-1.5 rounded-lg hover:bg-[#F9FAFB] transition-colors cursor-pointer"
-              >
-                <ChevronLeft size={18} className="text-[#718EBF]" />
-              </button>
-              <button
-                onClick={goToNextDay}
-                className="p-1.5 rounded-lg hover:bg-[#F9FAFB] transition-colors cursor-pointer"
-              >
-                <ChevronRight size={18} className="text-[#ff660a]" />
-              </button>
-            </div>
-            
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setActiveTab('meetings')}
-                className={`px-4 py-2 text-sm font-medium transition-all relative ${
-                  activeTab === 'meetings'
-                    ? 'text-[#13097D]'
-                    : 'text-[#718EBF] hover:text-[#343C6A]'
-                }`}
-              >
-                Meetings
-                {activeTab === 'meetings' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#13097D]" />
-                )}
-              </button>
-              <button
-                onClick={() => setActiveTab('other')}
-                className={`px-4 py-2 text-sm font-medium transition-all relative ${
-                  activeTab === 'other'
-                    ? 'text-[#13097D]'
-                    : 'text-[#718EBF] hover:text-[#343C6A]'
-                }`}
-              >
-                Out of office
-                {activeTab === 'other' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#13097D]" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto overflow-x-auto scrollbar-hide">
-            {activeTab === 'meetings' ? (
-              <>
-                <div 
-                  className="border-b border-[#EDEDED]" 
-                  style={{ marginRight: '16px' }}
-                />
-                
-                <div className="flex" style={{ paddingRight: '16px' }}>
-                <div 
-                  className="border-r border-[#EDEDED] flex-shrink-0"
-                  style={{ width: GRID_CONFIG.timeColumnWidth }}
+      <div className="w-full max-w-[1200px]">
+        <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                {TABS.map((tab) => (
+                <button
+                    key={tab.key}
+                    onClick={() => setMainTab(tab.key)}
+                    className={`${
+                    mainTab === tab.key
+                        ? 'border-[#13097D] text-[#13097D]'
+                        : 'border-transparent text-[#8C8CA1] hover:text-gray-700 hover:border-gray-300'
+                    } whitespace-nowrap py-4 px-1 border-b-2 font-semibold text-lg transition-colors`}
                 >
-                  <div style={{ height: GRID_CONFIG.headerHeight }} className="border-b border-[#EDEDED]"></div>
-                  {hours.map((h) => {
-                    const hourKey = h.toString().padStart(2, "0") + ":00";
-                    const rowHeight = GRID_CONFIG.slotHeight * Math.max(1, maxApptsPerHour[hourKey]);
-                    return (
-                      <div
-                        key={h}
-                        className="border-b border-[#EDEDED] relative text-xs text-[#13097D] font-medium flex items-start justify-end"
-                        style={{ height: rowHeight, paddingRight: '18px', paddingTop: '25px' }}
-                      >
-                        {formatTime24(h)}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {visibleDates.map((date, dateIndex) => (
-                  <div 
-                    key={date} 
-                    className="flex-1 border-l border-[#EDEDED]"
-                    style={{ minWidth: GRID_CONFIG.dayColumnMinWidth }}
-                  >
-                    <div 
-                      className={`border-b border-[#EDEDED] flex flex-col items-center justify-center ${dateIndex === 0 ? 'bg-[#13097D1A]' : ''}`}
-                      style={{ height: GRID_CONFIG.headerHeight }}
-                    >
-                      <span className="text-xs text-[#718EBF] font-medium">
-                        {new Date(date).toLocaleDateString("en-US", { weekday: "short" })}
-                      </span>
-                      <span className="text-base font-medium text-[#13097D]">
-                        {new Date(date).toLocaleDateString("en-US", { day: "2-digit" })}
-                      </span>
-                    </div>
-
-                    {hours.map((h) => {
-                      const hourKey = h.toString().padStart(2, "0") + ":00";
-                      const appts = appointments[date]?.[hourKey] || [];
-                      const rowHeight = GRID_CONFIG.slotHeight * Math.max(1, maxApptsPerHour[hourKey]);
-
-                      return (
-                        <div 
-                          key={h} 
-                          className="relative border-b border-[#EDEDED]" 
-                          style={{ height: rowHeight }}
-                        >
-                          {appts.map((a, i) => (
-                            <div 
-                              key={a.appointmentId} 
-                              className="relative" 
-                              style={{ height: GRID_CONFIG.slotHeight }}
-                            >
-                              {i > 0 && dateIndex === 0 && (
-                                <div 
-                                  className="absolute top-0 z-10" 
-                                  style={{ 
-                                    left: -GRID_CONFIG.timeColumnWidth,
-                                    width: `calc(${GRID_CONFIG.timeColumnWidth}px + ${GRID_CONFIG.dayColumnMinWidth * visibleDates.length}px + 16px)`,
-                                    borderTop: '2px dashed #EDEDED',
-                                    backgroundImage: 'repeating-linear-gradient(to right, #EDEDED 0px, #EDEDED 14px, transparent 14px, transparent 28px)',
-                                    backgroundSize: '28px 2px',
-                                    backgroundPosition: 'top',
-                                    backgroundRepeat: 'repeat-x',
-                                    height: '2px',
-                                  }}
-                                />
-                              )}
-                              
-                              <div 
-                                onClick={(e) => {
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  setSelectedAppointment({
-                                    data: a,
-                                    position: {
-                                      x: rect.left,
-                                      y: rect.top,
-                                      centerY: rect.top + rect.height / 2,
-                                    }
-                                  });
-                                }}
-                                className="absolute bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col justify-center px-4 cursor-pointer hover:shadow-md transition-shadow"
-                                style={{
-                                  width: GRID_CONFIG.appointmentWidth,
-                                  height: GRID_CONFIG.appointmentHeight,
-                                  left: GRID_CONFIG.appointmentPaddingHorizontal,
-                                  top: GRID_CONFIG.appointmentPaddingVertical,
-                                  border: '1px solid #3537B4',
-                                  borderLeft: '6px solid #3537B4',
-                                  borderRadius: '16px',
-                                }}
-                              >
-                                <div className="text-sm font-medium text-black truncate">
-                                  {a.userFullName}
-                                </div>
-                                <div className="text-xs font-normal text-[#718EBF] mt-0.5">
-                                  {a.userCourse}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      );
-                    })}
-                  </div>
+                    {tab.name}
+                </button>
                 ))}
-              </div>
-              </>
-            ) : (
-              <div className="p-4 space-y-4 max-h-[calc(4*120px)] overflow-y-auto scrollbar-hide">
-                {outOfOfficeData.slice(0, 4).map((ooo) => (
-                  <OutOfOfficeCard key={ooo.id} outOfOffice={ooo} />
-                ))}
-                {outOfOfficeData.length === 0 && (
-                  <div className="text-center text-[#6C6969] text-sm py-8">
-                    No out of office periods scheduled
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+            </nav>
         </div>
       </div>
-      )}
 
-      {mainTab === 'earnings' && (
-        <div className="w-[1221px]">
-          <MyEarningsTab />
+      <div className="w-full max-w-[1200px] mt-8 mb-16">
+        <div>
+          {mainTab === 'calendar' && (
+              <div className="w-[1221px] bg-white h-[658px] rounded-[16px] grid grid-cols-[351px_870px] border border-[#EFEFEF]">
+                  <div className="border-r border-r-[#EDEDED] p-4 flex flex-col">
+                      <h1 className="font-semiBold text-[20px] text-[#13097D] mb-2">Calendar</h1>
+                      <div className="flex-shrink-0">
+                          <CustomCalendar value={selectedDate} onChange={(date: Date) => {
+                          setSelectedDate(date);
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          const selected = new Date(date);
+                          selected.setHours(0, 0, 0, 0);
+                          const diffDays = Math.floor((selected.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                          setCurrentDateOffset(diffDays);
+                          }} />
+                      </div>
+                      <div className="mt-4">
+                          <hr className="w-[311px] bg-[#f5f5f7] h-px" />
+                      </div>
+                      <div className="flex justify-between mt-4">
+                          <div className="flex gap-2">
+                          <img src="/cup.svg" alt="" />
+                          <h1 className="text-[16px] text-[#13097D] font-semibold">Add Out of Office</h1>
+                          </div>
+                          <ChevronRight size={24} className="text-[#13097D] cursor-pointer" onClick={() => setDrawerOpen(true)} />
+                      </div>
+                  </div>
+
+                  <div className="flex flex-col overflow-hidden">
+                      <div className="flex py-4 px-4 items-center gap-6 flex-shrink-0">
+                          <h1 className="text-[#13097D] font-semibold text-[16px]">{getDateLabel()}</h1>
+                          <div className="flex items-center gap-2">
+                          <button
+                              onClick={goToPreviousDay}
+                              className="p-1.5 rounded-lg hover:bg-[#F9FAFB] transition-colors cursor-pointer"
+                          >
+                              <ChevronLeft size={18} className="text-[#718EBF]" />
+                          </button>
+                          <button
+                              onClick={goToNextDay}
+                              className="p-1.5 rounded-lg hover:bg-[#F9FAFB] transition-colors cursor-pointer"
+                          >
+                              <ChevronRight size={18} className="text-[#ff660a]" />
+                          </button>
+                          </div>
+                          
+                          <div className="flex items-center gap-1">
+                          <button
+                              onClick={() => setActiveTab('meetings')}
+                              className={`px-4 py-2 text-sm font-medium transition-all relative ${
+                              activeTab === 'meetings'
+                                  ? 'text-[#13097D]'
+                                  : 'text-[#718EBF] hover:text-[#343C6A]'
+                              }`}
+                          >
+                              Meetings
+                              {activeTab === 'meetings' && (
+                              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#13097D]" />
+                              )}
+                          </button>
+                          <button
+                              onClick={() => setActiveTab('other')}
+                              className={`px-4 py-2 text-sm font-medium transition-all relative ${
+                              activeTab === 'other'
+                                  ? 'text-[#13097D]'
+                                  : 'text-[#718EBF] hover:text-[#343C6A]'
+                              }`}
+                          >
+                              Out of office
+                              {activeTab === 'other' && (
+                              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#13097D]" />
+                              )}
+                          </button>
+                          </div>
+                      </div>
+
+                      <div className="flex-1 overflow-y-auto overflow-x-auto scrollbar-hide">
+                          {activeTab === 'meetings' ? (
+                          <>
+                              <div 
+                              className="border-b border-[#EDEDED]" 
+                              style={{ marginRight: '16px' }}
+                              />
+                              
+                              <div className="flex" style={{ paddingRight: '16px' }}>
+                              <div 
+                              className="border-r border-[#EDEDED] flex-shrink-0"
+                              style={{ width: GRID_CONFIG.timeColumnWidth }}
+                              >
+                              <div style={{ height: GRID_CONFIG.headerHeight }} className="border-b border-[#EDEDED]"></div>
+                              {hours.map((h) => {
+                                  const hourKey = h.toString().padStart(2, "0") + ":00";
+                                  const rowHeight = GRID_CONFIG.slotHeight * Math.max(1, maxApptsPerHour[hourKey]);
+                                  return (
+                                  <div
+                                      key={h}
+                                      className="border-b border-[#EDEDED] relative text-xs text-[#13097D] font-medium flex items-start justify-end"
+                                      style={{ height: rowHeight, paddingRight: '18px', paddingTop: '25px' }}
+                                  >
+                                      {formatTime24(h)}
+                                  </div>
+                                  );
+                              })}
+                              </div>
+
+                              {visibleDates.map((date, dateIndex) => (
+                              <div 
+                                  key={date} 
+                                  className="flex-1 border-l border-[#EDEDED]"
+                                  style={{ minWidth: GRID_CONFIG.dayColumnMinWidth }}
+                              >
+                                  <div 
+                                  className={`border-b border-[#EDEDED] flex flex-col items-center justify-center ${dateIndex === 0 ? 'bg-[#13097D1A]' : ''}`}
+                                  style={{ height: GRID_CONFIG.headerHeight }}
+                                  >
+                                  <span className="text-xs text-[#718EBF] font-medium">
+                                      {new Date(date).toLocaleDateString("en-US", { weekday: "short" })}
+                                  </span>
+                                  <span className="text-base font-medium text-[#13097D]">
+                                      {new Date(date).toLocaleDateString("en-US", { day: "2-digit" })}
+                                  </span>
+                                  </div>
+
+                                  {hours.map((h) => {
+                                  const hourKey = h.toString().padStart(2, "0") + ":00";
+                                  const appts = appointments[date]?.[hourKey] || [];
+                                  const rowHeight = GRID_CONFIG.slotHeight * Math.max(1, maxApptsPerHour[hourKey]);
+
+                                  return (
+                                      <div 
+                                      key={h} 
+                                      className="relative border-b border-[#EDEDED]" 
+                                      style={{ height: rowHeight }}
+                                      >
+                                      {appts.map((a, i) => (
+                                          <div 
+                                          key={a.appointmentId} 
+                                          className="relative" 
+                                          style={{ height: GRID_CONFIG.slotHeight }}
+                                          >
+                                          {i > 0 && dateIndex === 0 && (
+                                              <div 
+                                              className="absolute top-0 z-10" 
+                                              style={{ 
+                                                  left: -GRID_CONFIG.timeColumnWidth,
+                                                  width: `calc(${GRID_CONFIG.timeColumnWidth}px + ${GRID_CONFIG.dayColumnMinWidth * visibleDates.length}px + 16px)`,
+                                                  borderTop: '2px dashed #EDEDED',
+                                                  backgroundImage: 'repeating-linear-gradient(to right, #EDEDED 0px, #EDEDED 14px, transparent 14px, transparent 28px)',
+                                                  backgroundSize: '28px 2px',
+                                                  backgroundPosition: 'top',
+                                                  backgroundRepeat: 'repeat-x',
+                                                  height: '2px',
+                                              }}
+                                              />
+                                          )}
+                                          
+                                          <div 
+                                              onClick={(e) => {
+                                              const rect = e.currentTarget.getBoundingClientRect();
+                                              setSelectedAppointment({
+                                                  data: a,
+                                                  position: {
+                                                  x: rect.left,
+                                                  y: rect.top,
+                                                  centerY: rect.top + rect.height / 2,
+                                                  }
+                                              });
+                                              }}
+                                              className="absolute bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col justify-center px-4 cursor-pointer hover:shadow-md transition-shadow"
+                                              style={{
+                                              width: GRID_CONFIG.appointmentWidth,
+                                              height: GRID_CONFIG.appointmentHeight,
+                                              left: GRID_CONFIG.appointmentPaddingHorizontal,
+                                              top: GRID_CONFIG.appointmentPaddingVertical,
+                                              border: '1px solid #3537B4',
+                                              borderLeft: '6px solid #3537B4',
+                                              borderRadius: '16px',
+                                              }}
+                                          >
+                                              <div className="text-sm font-medium text-black truncate">
+                                              {a.userFullName}
+                                              </div>
+                                              <div className="text-xs font-normal text-[#718EBF] mt-0.5">
+                                              {a.userCourse}
+                                              </div>
+                                          </div>
+                                          </div>
+                                      ))}
+                                      </div>
+                                  );
+                                  })}
+                              </div>
+                              ))}
+                          </div>
+                          </>
+                          ) : (
+                          <div className="p-4 grid grid-cols-2 gap-4">
+                              {outOfOfficeData.map((ooo) => (
+                              <OutOfOfficeCard key={ooo.id} outOfOffice={ooo} />
+                              ))}
+                              {outOfOfficeData.length === 0 && (
+                              <div className="text-center text-[#6C6969] text-sm py-8">
+                                  No out of office periods scheduled
+                              </div>
+                              )}
+                          </div>
+                          )}
+                      </div>
+                  </div>
+              </div>
+          )}
+          {mainTab === 'earnings' && <MyEarningsTab />}
+          {mainTab === 'appointments' && <AppointmentsTab />}
+          {mainTab === 'reviews' && <ReviewsTab />}
+          {mainTab === 'clients' && <ClientsTab />}
         </div>
-      )}
+      </div>
 
-      {mainTab === 'clients' && (
-        <div className="w-[1221px]">
-          <ClientsTab />
-        </div>
-      )}
-
-      {mainTab === 'reviews' && (
-        <div className="w-[1221px]">
-          <ReviewsTab />
-        </div>
-      )}
-
-      {mainTab === 'appointments' && (
-        <div className="w-[1221px] bg-white rounded-[16px] border border-[#EFEFEF] p-6">
-          <h2 className="text-xl font-semibold text-[#13097D]">Appointments</h2>
-          <p className="text-[#718EBF] mt-2">Appointments tab coming soon...</p>
-        </div>
-      )}
-
-      <OutOfOfficeDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} counselor={"id_here"} />
+      <OutOfOfficeDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       {selectedAppointment && (
         <AppointmentPopup 
           appointment={selectedAppointment.data}
           position={selectedAppointment.position}
           onClose={() => setSelectedAppointment(null)}
+          onAppointmentUpdate={fetchData}
         />
       )}
     </div>
