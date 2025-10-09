@@ -1,15 +1,28 @@
 import { X } from "lucide-react";
+import { useState } from "react";
 
 interface DeleteAppointmentModalProps {
   userName: string;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (reason: string) => void; 
 }
 
 export default function DeleteAppointmentModal({
   onClose,
   onConfirm,
 }: DeleteAppointmentModalProps) {
+  const [reason, setReason] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleConfirm = () => {
+    if (!reason.trim()) {
+      alert("Please provide a reason for cancellation.");
+      return;
+    }
+    setIsDeleting(true);
+    onConfirm(reason);
+  };
+
   return (
     <>
       <div
@@ -18,10 +31,10 @@ export default function DeleteAppointmentModal({
       />
 
       <div
-        className="fixed bg-white rounded-[16px] shadow-lg z-[70] p-5"
+        className="fixed bg-white rounded-[16px] shadow-lg z-[70] p-5 flex flex-col"
         style={{
           width: "580px",
-          height: "208px",
+          height: "auto",
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
@@ -30,7 +43,7 @@ export default function DeleteAppointmentModal({
       >
         <div className="flex justify-between">
           <div className="text-[20px] font-semibold text-[#343C6A]">
-            Delete Meeting
+            Cancel Meeting
           </div>
           <button
             onClick={onClose}
@@ -40,24 +53,31 @@ export default function DeleteAppointmentModal({
           </button>
         </div>
 
-        <div className="mt-4 mb-[60px]">
-          <p className="text-[#232323] text-[16px] font-medium">
-            Are you sure you want to delete this meeting?
+        <div className="mt-4">
+          <p className="text-[#232323] text-[16px] font-medium mb-2">
+            Are you sure you want to cancel this meeting? Please provide a reason below.
           </p>
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="e.g., I am not feeling well"
+            className="w-full h-24 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#FA660F] focus:outline-none"
+          />
         </div>
 
-        <div className="flex justify-end gap-4">
+        <div className="flex justify-end gap-4 mt-auto pt-4">
           <button
-            onClick={onConfirm}
-            className="px-6 py-2 bg-[#FA660F] text-white rounded-lg font-medium hover:bg-[#e55d0e] transition-colors"
+            onClick={handleConfirm}
+            disabled={!reason.trim() || isDeleting}
+            className="px-6 py-2 bg-[#FA660F] text-white rounded-lg font-medium hover:bg-[#e55d0e] transition-colors disabled:bg-orange-300 disabled:cursor-not-allowed"
           >
-            Delete
+            {isDeleting ? "Cancelling..." : "Confirm Cancellation"}
           </button>
           <button
             onClick={onClose}
             className="px-6 py-2 border border-[#FA660F] text-[#FA660F] rounded-lg font-medium hover:bg-[#FA660F]/5 transition-colors"
           >
-            Cancel
+            Back
           </button>
         </div>
       </div>

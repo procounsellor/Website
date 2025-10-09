@@ -33,8 +33,8 @@ const AppointmentsTab: React.FC = () => {
           getUpcomingAppointments(userId, token)
         ]);
         
-        allData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        upcomingData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        // allData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        // upcomingData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
         setAllAppointments(allData);
         setUpcomingAppointments(upcomingData);

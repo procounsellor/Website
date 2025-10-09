@@ -1,11 +1,13 @@
 import { X } from "lucide-react";
 import { Input } from "../ui";
-import { Textarea } from "../ui/textarea";
 import { useState, useRef, useEffect } from "react";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { Dayjs } from "dayjs";
+import { setOutOfOffice } from "@/api/counselor-Dashboard";
+// import { useAuthStore } from "@/store/AuthStore";
+import toast from "react-hot-toast";
 
 export default function OutOfOfficeDrawer({
   open,
@@ -15,8 +17,13 @@ export default function OutOfOfficeDrawer({
   onClose: () => void;
   counselor?: string;
 }) {
+  // const { userId } = useAuthStore();
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
+  const [startTime, setStartTime] = useState('09:00');
+  const [endTime, setEndTime] = useState('18:00');
+  const [reason, setReason] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showStartCalendar, setShowStartCalendar] = useState(false);
   const [showEndCalendar, setShowEndCalendar] = useState(false);
   const startCalendarRef = useRef<HTMLDivElement>(null);
@@ -46,6 +53,39 @@ export default function OutOfOfficeDrawer({
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [showStartCalendar, showEndCalendar]);
+
+  const handleSubmit = async () => {
+    const counselorId = '9470988669';
+
+    if (!startDate || !endDate || !startTime || !endTime || !reason.trim()) {
+        toast.error("Please fill in all fields before scheduling.");
+        return;
+    }
+
+    const payload = {
+        counsellorId: counselorId,
+        reason,
+        startDate: startDate.format('YYYY-MM-DD'),
+        endDate: endDate.format('YYYY-MM-DD'),
+        startTime: startTime,
+        endTime: endTime,
+    };
+
+    setIsSubmitting(true);
+    try {
+        await setOutOfOffice(payload);
+        setStartDate(null);
+        setEndDate(null);
+        setReason("");
+        onClose();
+    } catch (error) {
+        console.error("Submission failed");
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
+
+  const isFormIncomplete = !startDate || !endDate || !startTime || !endTime || !reason.trim();
 
   if(!open) return null
 
@@ -193,18 +233,54 @@ export default function OutOfOfficeDrawer({
             </div>
 
             <div className="flex flex-col gap-2">
-                <label className="label" htmlFor="reason">Reason (optional)</label>
-                <Input type="text" placeholder="unwell"/>
+                <label className="label" htmlFor="times">Time</label>
+                <div className="flex gap-4">
+                    <div className="w-[182px]">
+                        <Input 
+                            type="time" 
+                            value={startTime}
+                            onChange={(e) => setStartTime(e.target.value)}
+                        />
+                    </div>
+                    <div className="w-[182px]">
+                        <Input 
+                            type="time" 
+                            value={endTime}
+                            onChange={(e) => setEndTime(e.target.value)}
+                        />
+                    </div>
+                </div>
             </div>
 
             <div className="flex flex-col gap-2">
-                <label htmlFor="auto">Auto-Reply Message</label>
-                <Textarea placeholder="unwell" className="h-[83px]"/>
+                <label className="label" htmlFor="reason">Reason </label>
+                <Input 
+                    type="text" 
+                    placeholder="e.g., Annual vacation"
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                />
             </div>
 
+            {/* <div className="flex flex-col gap-2">
+                <label htmlFor="auto">Auto-Reply Message</label>
+                <Textarea placeholder="unwell" className="h-[83px]"/>
+            </div> */}
+
             <div className="flex gap-4">
-               <button className="w-[182px] h-[42px] border border-[#FA660F] text-[#FA660F] font-semibold text-[14px] rounded-[12px]">Cancel</button>
-               <button className="w-[182px] h-[42px] bg-[#FA660F] text-white font-semibold text-[14px] rounded-[12px]">Schedule Now</button>
+               <button 
+                  onClick={onClose}
+                  className="w-[182px] h-[42px] border border-[#FA660F] text-[#FA660F] font-semibold text-[14px] rounded-[12px]"
+                >
+                    Cancel
+                </button>
+               <button 
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || isFormIncomplete}
+                  className="w-[182px] h-[42px] bg-[#FA660F] text-white font-semibold text-[14px] rounded-[12px] disabled:bg-orange-300 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? 'Scheduling...' : 'Schedule Now'}
+               </button>
             </div>
           </div>
         </div>

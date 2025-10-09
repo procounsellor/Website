@@ -1,13 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import ClientCard from './ClientCard';
-import type { Client } from '@/types/client';
-
-const initialMyClients: Client[] = [
-  { id: '1', name: 'Subhash Ghai', imageUrl: '/profile1.jpg', course: 'Engineering Student', preferredStates: ['Maharashtra', 'Kerala', 'Tamil Nadu', 'Karnataka'] },
-  { id: '2', name: 'Priya Sharma', imageUrl: '/profile2.jpg', course: 'Medical Student', preferredStates: ['Delhi', 'Uttar Pradesh'] },
-  { id: '3', name: 'Amit Singh', imageUrl: '/profile1.jpg', course: 'Commerce Student', preferredStates: ['Gujarat', 'Rajasthan'] },
-];
+import type { Client, ApiClient } from '@/types/client';
+import { getSubscribedClients } from '@/api/counselor-Dashboard';
 
 const initialPendingRequests: Client[] = [
     { id: '4', name: 'Sumant Kumar', imageUrl: '/profile1.jpg', course: 'Engineering Student', preferredStates: ['Maharashtra', 'Kerala', 'Tamil Nadu', 'Karnataka', 'Uttar Pradesh'] },
@@ -19,10 +14,32 @@ type SubTab = 'My Clients' | 'Pending Request';
 export default function ClientsTab() {
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('My Clients');
   
-  const [myClients, setMyClients] = useState<Client[]>(initialMyClients);
+  const [myClients, setMyClients] = useState<Client[]>([]);
   const [pendingRequests, setPendingRequests] = useState<Client[]>(initialPendingRequests);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const TABS: SubTab[] = ['My Clients', 'Pending Request'];
+
+  useEffect(() => {
+    const fetchClients = async () => {
+      setIsLoading(true);
+      const counselorId = '9470988669';
+      const apiClients = await getSubscribedClients(counselorId);
+
+      const formattedClients: Client[] = apiClients.map((apiClient: ApiClient) => ({
+        id: apiClient.userId,
+        name: `${apiClient.firstName} ${apiClient.lastName}`,
+        imageUrl: apiClient.photoSmall || '/default-profile.png',
+        course: apiClient.course,
+        preferredStates: apiClient.userInterestedStateOfCounsellors,
+      }));
+
+      setMyClients(formattedClients);
+      setIsLoading(false);
+    };
+
+    fetchClients();
+  }, []);
 
   const handleAccept = (clientId: string, clientName: string) => {
     const clientToMove = pendingRequests.find(p => p.id === clientId);
@@ -57,9 +74,13 @@ export default function ClientsTab() {
       </div>
 
       <div className="divide-y divide-gray-200 -mt-5">
-        {activeSubTab === 'My Clients' && myClients.map(client => (
-          <ClientCard key={client.id} client={client} variant="client" />
-        ))}
+        {activeSubTab === 'My Clients' && (
+          isLoading 
+            ? <div className="text-center py-10">Loading clients...</div>
+            : myClients.map(client => (
+                <ClientCard key={client.id} client={client} variant="client" />
+              ))
+        )}
 
         {activeSubTab === 'Pending Request' && pendingRequests.map(client => (
           <ClientCard 

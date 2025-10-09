@@ -2,14 +2,16 @@ import type { Appointment } from "../../types/appointments"
 import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { DeleteAppointmentModal, RescheduleAppointmentModal } from "./modals";
+import { cancelAppointment } from "@/api/counselor-Dashboard";
 
 interface AppointmentPopupProps {
   appointment: Appointment;
   position: { x: number; y: number; centerY: number };
   onClose: () => void;
+  onAppointmentUpdate: () => void;
 }
 
-export default function AppointmentPopup({ appointment, position, onClose }: AppointmentPopupProps) {
+export default function AppointmentPopup({ appointment, position, onClose, onAppointmentUpdate }: AppointmentPopupProps) {
   const popupRef = useRef<HTMLDivElement>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
@@ -52,6 +54,22 @@ export default function AppointmentPopup({ appointment, position, onClose }: App
     const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
     
     return `${dateStr} - ${displayHour}:${minutes} ${ampm}`;
+  };
+
+  const handleCancelConfirm = async (reason: string) => {
+    try {
+      await cancelAppointment({
+        userId: '9470988669',
+        appointmentId: appointment.appointmentId,
+        receiverFcmToken: appointment.userFCMToken,
+        reason: reason,
+      });
+      onAppointmentUpdate();
+      setShowDeleteModal(false);
+      onClose();
+    } catch (error) {
+      console.error("Failed to cancel appointment from popup");
+    }
   };
 
   return (
@@ -98,12 +116,12 @@ export default function AppointmentPopup({ appointment, position, onClose }: App
         </div>
 
         <div className="flex gap-6 text-[14px] font-semibold text-[#13097D]">
-            <button 
+            {/* <button 
               onClick={() => setShowRescheduleModal(true)}
               className="flex items-center cursor-pointer justify-center border border-[#13097D] rounded-[12px] gap-1 py-2 px-6"
             >
               <img src="/clock3.svg" alt="" />Reschedule
-            </button>
+            </button> */}
             <button 
               onClick={() => setShowDeleteModal(true)}
               className="flex items-center cursor-pointer justify-center border border-[#13097D] rounded-[12px] gap-1 py-1 px-6"
@@ -131,10 +149,7 @@ export default function AppointmentPopup({ appointment, position, onClose }: App
         <DeleteAppointmentModal
           userName={appointment.userFullName}
           onClose={() => setShowDeleteModal(false)}
-          onConfirm={() => {
-            setShowDeleteModal(false);
-            onClose();
-          }}
+          onConfirm={handleCancelConfirm}
         />
       )}
         
