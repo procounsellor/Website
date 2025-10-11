@@ -12,6 +12,7 @@ import type { GroupedAppointments, OutOfOffice, Appointment } from "@/types/appo
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import AppointmentsTab from "@/components/counselor-dashboard/AppointmentsTab";
+import CounselorProfile from "@/components/counselor-dashboard/CounselorProfile";
 
 type MainTab = 'calendar' | 'earnings' | 'appointments' | 'reviews' | 'clients';
 
@@ -28,6 +29,7 @@ export default function CounselorDashboard() {
   const [hours, setHours] = useState<number[]>([]);
   const [appointments, setAppointments] = useState<GroupedAppointments>({});
   const [outOfOfficeData, setOutOfOfficeData] = useState<OutOfOffice[]>([]);
+  const [isProfileModalOpen, setProfileModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<{
     data: Appointment;
     position: { x: number; y: number; centerY: number };
@@ -128,8 +130,8 @@ export default function CounselorDashboard() {
   });
 
   return (
-    <div className="w-full bg-[#F5F5F7] px-4 md:px-8 lg:px-16 xl:px-32 mt-20 flex flex-col items-center">
-      <div className="w-full max-w-[1200px] flex justify-between items-center py-7">
+    <div className="w-full bg-[#F5F5F7] px-4 sm:px-6 lg:px-8 mt-16 sm:mt-20 flex flex-col items-center">
+      <div className="w-full max-w-[1200px] flex flex-col md:flex-row md:justify-between md:items-center justify-between items-center gap-4 py-7">
         <div className="flex items-center gap-4">
           <img src="/counselor.png" alt="Counselor" />
           <h1 className="flex flex-col gap-2 font-semibold text-2xl text-[#343C6A]">
@@ -139,14 +141,17 @@ export default function CounselorDashboard() {
             </span>
           </h1>
         </div>
-        <button className="h-full bg-white py-2.5 px-4 border border-[#343c6a] rounded-[12px] text-[16px] font-medium">
+        <button 
+        onClick={() => setProfileModalOpen(true)}
+        className="h-full bg-white py-2.5 px-4 border border-[#343c6a] rounded-[12px] text-[16px] font-medium">
           View profile
         </button>
       </div>
 
       <div className="w-full max-w-[1200px]">
         <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+          <div className="overflow-x-auto scrollbar-hide">
+            <nav className="flex space-x-4 sm:space-x-8 -mb-px" aria-label="Tabs">
                 {TABS.map((tab) => (
                 <button
                     key={tab.key}
@@ -161,14 +166,15 @@ export default function CounselorDashboard() {
                 </button>
                 ))}
             </nav>
+            </div>
         </div>
       </div>
 
       <div className="w-full max-w-[1200px] mt-8 mb-16">
         <div>
           {mainTab === 'calendar' && (
-              <div className="w-[1221px] bg-white h-[658px] rounded-[16px] grid grid-cols-[351px_870px] border border-[#EFEFEF]">
-                  <div className="border-r border-r-[#EDEDED] p-4 flex flex-col">
+              <div className="w-full bg-white h-auto rounded-[16px] grid grid-cols-1 lg:grid-cols-[351px_1fr] border border-[#EFEFEF]">
+                  <div className="border-b lg:border-b-0 lg:border-r border-[#EDEDED] p-4 flex flex-col">
                       <h1 className="font-semiBold text-[20px] text-[#13097D] mb-2">Calendar</h1>
                       <div className="flex-shrink-0">
                           <CustomCalendar value={selectedDate} onChange={(date: Date) => {
@@ -391,6 +397,14 @@ export default function CounselorDashboard() {
           position={selectedAppointment.position}
           onClose={() => setSelectedAppointment(null)}
           onAppointmentUpdate={fetchData}
+        />
+      )}
+
+      {isProfileModalOpen && (
+        <CounselorProfile 
+          isOpen={isProfileModalOpen}
+          onClose={() => setProfileModalOpen(false)}
+          counsellorId="9470988669"
         />
       )}
     </div>
