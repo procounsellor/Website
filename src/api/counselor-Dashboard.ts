@@ -1,6 +1,7 @@
 import { API_CONFIG } from './config';
 import type { Appointment, GroupedAppointments, OutOfOfficePayload, CounselorAppointment, CancelAppointmentPayload } from '@/types/appointments';
 import type { ApiClient } from '@/types/client';
+import type { CounselorProfileData } from '@/types/counselorProfile';
 import toast from 'react-hot-toast';
 
 const { baseUrl } = API_CONFIG;
@@ -159,5 +160,76 @@ export async function getSubscribedClients(counsellorId: string): Promise<ApiCli
     console.error("Get Subscribed Clients Error:", error);
     toast.error("Could not load your clients.");
     return [];
+  }
+}
+
+export async function getPendingRequests(counsellorId: string): Promise<ApiClient[]> {
+  try {
+    const response = await fetch(`${baseUrl}/api/counsellor/getManualSubscriptionRequestByCounsellorId?counsellorId=${counsellorId}`, {
+      headers: {
+        'Accept': 'application/json',
+        authorization: `Bearer ${temp}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch pending requests');
+    }
+    
+    const data: ApiClient[] = await response.json();
+    return data;
+
+  } catch (error) {
+    console.error("Get Pending Requests Error:", error);
+    toast.error("Could not load pending requests.");
+    return [];
+  }
+}
+
+export async function respondToSubscriptionRequest(requestId: string, action: 'completed' | 'rejected') {
+  try {
+    const response = await fetch(`${baseUrl}/api/counsellor/respondToManualSubscriptionRequest?manualSubscriptionRequestId=${requestId}&action=${action}`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        authorization: `Bearer ${temp}`
+      },
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || `Failed to respond to request.`);
+    }
+    
+    return result;
+
+  } catch (error) {
+    console.error("Respond to Request Error:", error);
+    toast.error(error instanceof Error ? error.message : 'An unknown error occurred.');
+    throw error;
+  }
+}
+
+export async function getCounselorProfileById(counsellorId: string): Promise<CounselorProfileData | null> {
+  try {
+    const response = await fetch(`${baseUrl}/api/counsellor/getCounsellorById?counsellorId=${counsellorId}`, {
+      headers: {
+        'Accept': 'application/json',
+        authorization: `Bearer ${temp}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch counselor profile');
+    }
+    
+    const data: CounselorProfileData = await response.json();
+    return data;
+
+  } catch (error) {
+    console.error("Get Counselor Profile Error:", error);
+    toast.error("Could not load counselor profile.");
+    return null;
   }
 }

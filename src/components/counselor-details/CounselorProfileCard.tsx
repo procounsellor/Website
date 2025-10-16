@@ -183,7 +183,15 @@ export function CounselorProfileCard({ counselor, subscription }: Props) {
                 </a>
               {upgradePlan ? (
                 <button
-                  onClick={() => navigate('/subscribe', { state: { counselorId: counselor.userName, userId: userId, counselor: counselor } })}
+                  onClick={() => navigate('/subscribe', { 
+                  state: { 
+                    counselorId: counselor.userName, 
+                    userId: userId, 
+                    counselor: counselor,
+                    isUpgrade: true,
+                    currentPlan: subscription
+                  } 
+                })}
                   className="w-full sm:flex-1 font-semibold py-3 px-6 rounded-lg text-[#3537B4] border-2 border-[#3537B4] hover:bg-blue-50 flex items-center justify-center gap-2"
                 >
                   <Zap className="w-5 h-5 text-orange-500" /> Upgrade to <span className="capitalize">{upgradePlan}</span> Plan

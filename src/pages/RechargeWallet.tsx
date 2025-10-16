@@ -1,6 +1,6 @@
 import { useAuthStore } from "@/store/AuthStore"
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import startRecharge from "@/api/wallet"
 import AddFundsPanel from "@/components/student-dashboard/AddFundsPanel"
 
@@ -15,6 +15,8 @@ export default function RechargeWallet() {
   const user = useAuthStore(state => state.user)
   const refreshUser = useAuthStore(state => state.refreshUser)
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnState = location.state;
   
   const [displayBalance, setDisplayBalance] = useState<number | undefined>(user?.walletAmount ?? undefined);
   const [isPanelOpen, setPanelOpen] = useState(false);
@@ -55,7 +57,11 @@ export default function RechargeWallet() {
           } catch (err) {
             console.error('Failed to refresh user balance after payment.', err);
           } finally {
-            handlePanelClose();
+            if (returnState?.returnTo && returnState?.returnState) {
+              navigate(returnState.returnTo, { state: returnState.returnState });
+            } else {
+              handlePanelClose();
+            }
           }
         },
         modal: {

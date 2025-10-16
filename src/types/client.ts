@@ -6,6 +6,7 @@ export interface ApiClient {
     userInterestedStateOfCounsellors: string[];
     photoSmall: string | null;
     plan: string;
+    manualSubscriptionRequestId?: string; 
 }
 
 export interface Client {
@@ -14,4 +15,5 @@ export interface Client {
   imageUrl: string;
   course: string;
   preferredStates: string[];
+  manualSubscriptionRequestId?: string;
 }

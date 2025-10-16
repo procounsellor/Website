@@ -50,21 +50,25 @@ export default function AppointmentsTab() {
   const TABS: AppointmentFilter[] = ['All', 'Upcoming', 'Completed', 'Cancelled'];
 
   return (
-    <div className="bg-white p-6 rounded-2xl border border-[#EFEFEF]">
-      <div className="flex items-center gap-4 mb-6">
-        {TABS.map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveFilter(tab)}
-            className={`px-4 py-2 text-base font-medium rounded-full transition-colors duration-200 ${
-              activeFilter === tab 
-              ? 'bg-[#E8E7F2] text-[#13097D]' 
-              : 'bg-transparent text-gray-500 hover:text-gray-800'
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+    <div className="md:bg-white md:p-6 md:rounded-2xl md:border md:border-[#EFEFEF]">
+      <div className="bg-white p-4 rounded-2xl border border-[#EFEFEF] mb-4 md:bg-transparent md:p-0 md:border-none md:mb-6">
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-2 sm:gap-4 w-max">
+            {TABS.map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveFilter(tab)}
+                className={`px-4 py-2 text-sm md:text-base font-medium rounded-full transition-colors duration-200 whitespace-nowrap ${
+                  activeFilter === tab 
+                  ? 'bg-[#E8E7F2] text-[#13097D]' 
+                  : 'bg-transparent text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {loading ? (
@@ -72,11 +76,13 @@ export default function AppointmentsTab() {
       ) : error ? (
         <div className="text-center py-16 text-red-500">{error}</div>
       ) : (
-        <div className="divide-y divide-gray-200">
+        <div className="flex flex-col gap-4 md:block md:gap-0 md:divide-y md:divide-gray-200">
           {filteredAppointments.length > 0 ? (
             filteredAppointments.map(app => <AppointmentCard key={app.appointmentId} appointment={app} />)
           ) : (
-            <div className="text-center py-16 text-gray-500">No {activeFilter.toLowerCase()} appointments found.</div>
+            <div className="text-center py-16 text-gray-500 bg-white rounded-2xl">
+                No {activeFilter.toLowerCase()} appointments found.
+            </div>
           )}
         </div>
       )}

@@ -28,13 +28,13 @@ const getStatusContent = (currentStatus: CounselorAppointment['status']) => {
     const statusChipClasses = "px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap";
     switch (currentStatus) {
         case 'completed':
-            return <div className={`${statusChipClasses} bg-green-100 text-green-700`}>Completed</div>;
+            return <div className={`${statusChipClasses} bg-green-100 text-[#28A745]`}>Completed</div>;
         case 'cancelled':
-            return <div className={`${statusChipClasses} bg-red-100 text-red-700`}>Cancelled</div>;
+            return <div className={`${statusChipClasses} bg-red-100 text-[#EE1C1F]`}>Cancelled</div>;
         case 'booked':
         case 'rescheduled':
         default:
-            return <div className={`${statusChipClasses} bg-blue-100 text-blue-700`}>Upcoming</div>;
+            return <div className={`${statusChipClasses} bg-[#E8E7F2] text-[#13097D]`}>Upcoming</div>;
     }
 };
 
@@ -45,7 +45,7 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
     <>
       <div className="block md:hidden bg-white border border-gray-200 rounded-2xl p-4 space-y-4 shadow-sm">
         <div className="flex justify-between items-center">
-          <p className="text-sm font-medium text-gray-500">Appointment with</p>
+          <p className="text-sm font-medium text-[#343C6A]">Appointment with</p>
           <div className="flex items-center gap-2">
             {getStatusContent(status)}
             <button className="text-gray-400" onClick={(e) => e.stopPropagation()}>
@@ -63,19 +63,19 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
             />
           </div>
           <div>
-            <h4 className="font-semibold text-base text-[#242645]">{userFullName}</h4>
-            <p className="text-sm font-medium text-gray-500">{userCourse}</p>
+            <h4 className="font-semibold text-base text-[#343C6A]">{userFullName}</h4>
+            <p className="text-sm font-medium text-[#718EBF]">{userCourse}</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 border-t border-dashed pt-4">
+        <div className="grid grid-cols-2 gap-4 border-t border-gray-200 pt-4">
           <div className="flex items-center gap-2">
             <div className="bg-gray-100 p-1.5 rounded-xl">
               <Calendar className="text-gray-500" size={16} />
             </div>
             <div>
               <p className="text-xs text-gray-500">Date</p>
-              <p className="text-sm font-medium text-gray-800">{formatDate(date)}</p>
+              <p className="text-xs font-medium text-gray-800">{formatDate(date)}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -84,7 +84,7 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
             </div>
             <div>
               <p className="text-xs text-gray-500">Time</p>
-              <p className="text-sm font-medium text-gray-800 text-nowrap">{`${formatTime(startTime)} - ${formatTime(endTime)}`}</p>
+              <p className="text-xs font-medium text-gray-800">{`${formatTime(startTime)} - ${formatTime(endTime)}`}</p>
             </div>
           </div>
         </div>
