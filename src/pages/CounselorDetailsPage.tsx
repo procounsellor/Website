@@ -8,7 +8,8 @@ import { FreeCareerAssessmentCard } from '@/components/shared/FreeCareerAssessme
 import { FeaturedCollegesCard } from '@/components/shared/FeaturedCollegesCard';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/AuthStore';
-import { getSubscribedCounsellors, getReviewsByCounselorId } from '@/api/counsellor';
+import { getSubscribedCounsellors, getReviewsByCounselorId, addFav } from '@/api/counsellor';
+import toast from 'react-hot-toast';
 import type { CounselorReview } from '@/types/counselorReview';
 import type { SubscribedCounsellor } from '@/types/user';
 
@@ -26,12 +27,21 @@ export default function CounselorDetailsPage() {
   const state = location.state as LocationState;
   const computedId = paramId || state?.id;
   const { counselor, loading, error } = useCounselorById(computedId ?? '');
-  const { userId } = useAuthStore();
+  const { user, userId, refreshUser } = useAuthStore();
   const token = localStorage.getItem('jwt');
 
   const [subscriptionDetails, setSubscriptionDetails] = useState<SubscribedCounsellor | null>(null);
   const [reviews, setReviews] = useState<CounselorReview[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [isFavourite, setIsFavourite] = useState(false);
+  const [isTogglingFavourite, setIsTogglingFavourite] = useState(false);
+
+  useEffect(() => {
+    if (user && computedId) {
+      const favIds = user.favouriteCounsellorIds || [];
+      setIsFavourite(favIds.includes(computedId));
+    }
+  }, [user, computedId]);
 
   useEffect(() => {
     if (!computedId || !userId || !token) {
@@ -84,6 +94,27 @@ export default function CounselorDetailsPage() {
     fetchData();
   }, [userId, token, computedId]);
 
+  const handleToggleFavourite = async () => {
+    if (!userId || !computedId || !token) {
+      toast.error("You must be logged in to add favourites.");
+      return;
+    }
+
+    setIsTogglingFavourite(true);
+    setIsFavourite(prevState => !prevState); 
+
+    try {
+      await addFav(userId, computedId);
+      await refreshUser(true); 
+      toast.success("Favourite status updated!");
+    } catch (err) {
+      setIsFavourite(prevState => !prevState); 
+      toast.error("Could not update favourite status.");
+    } finally {
+      setIsTogglingFavourite(false);
+    }
+  };
+
   if (!computedId) {
     return <div className="p-8 text-center text-red-500">Error: Counselor ID is missing.</div>;
   }
@@ -110,7 +141,13 @@ export default function CounselorDetailsPage() {
         
         {/* Left Column */}
         <div className="lg:col-span-2 flex flex-col gap-8">
-          <CounselorProfileCard counselor={counselor} subscription={subscriptionDetails} />
+          <CounselorProfileCard 
+            counselor={counselor} 
+            subscription={subscriptionDetails} 
+            isFavourite={isFavourite}
+            onToggleFavourite={handleToggleFavourite}
+            isTogglingFavourite={isTogglingFavourite}  
+          />
           <AboutCounselorCard counselor={counselor} />
           <CounselorReviews 
               reviews={reviews}
@@ -121,7 +158,7 @@ export default function CounselorDetailsPage() {
 
         {/* Right Column */}
         <div className="lg:col-span-1 flex flex-col gap-8">
-          <FreeCareerAssessmentCard  counselor={counselor}/>
+          <FreeCareerAssessmentCard  counselor={counselor} user={user}/>
           <FeaturedCollegesCard />
         </div>
 

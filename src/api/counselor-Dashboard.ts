@@ -2,6 +2,7 @@ import { API_CONFIG } from './config';
 import type { Appointment, GroupedAppointments, OutOfOfficePayload, CounselorAppointment, CancelAppointmentPayload } from '@/types/appointments';
 import type { ApiClient } from '@/types/client';
 import type { CounselorProfileData } from '@/types/counselorProfile';
+import type { EarningsData } from '@/types/earnings';
 import toast from 'react-hot-toast';
 
 const { baseUrl } = API_CONFIG;
@@ -230,6 +231,29 @@ export async function getCounselorProfileById(counsellorId: string): Promise<Cou
   } catch (error) {
     console.error("Get Counselor Profile Error:", error);
     toast.error("Could not load counselor profile.");
+    return null;
+  }
+}
+
+export async function getEarnings(counsellorId: string): Promise<EarningsData | null> {
+  try {
+    const response = await fetch(`${baseUrl}/api/counsellor/earnings/totalPayout?counsellorId=${counsellorId}`, {
+      headers: {
+        'Accept': 'application/json',
+        authorization: `Bearer ${temp}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch earnings data');
+    }
+    
+    const data: EarningsData = await response.json();
+    return data;
+
+  } catch (error) {
+    console.error("Get Earnings Data Error:", error);
+    toast.error("Could not load your earnings data.");
     return null;
   }
 }

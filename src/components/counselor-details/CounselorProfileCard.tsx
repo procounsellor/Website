@@ -9,9 +9,12 @@ import { useAuthStore } from '@/store/AuthStore';
 type Props = {
   counselor: CounselorDetails;
   subscription: SubscribedCounsellor | null;
+  isFavourite: boolean;
+  onToggleFavourite: () => void;
+  isTogglingFavourite: boolean;
 };
 
-export function CounselorProfileCard({ counselor, subscription }: Props) {
+export function CounselorProfileCard({ counselor, subscription, isFavourite, onToggleFavourite, isTogglingFavourite }: Props) {
   const userId = localStorage.getItem('phone');
   const navigate = useNavigate();
   const [pendingApproval, setPendingApproval] = useState(false);
@@ -45,6 +48,17 @@ export function CounselorProfileCard({ counselor, subscription }: Props) {
 
   const upgradePlan = getUpgradePlan();
 
+  const BookmarkButton = ({ className = "" }) => (
+    <button 
+      onClick={onToggleFavourite} 
+      disabled={isTogglingFavourite}
+      className={`p-1 text-blue-600 disabled:opacity-50 ${className}`}
+      aria-label="Toggle favourite"
+    >
+      <Bookmark className={`w-5 h-5 transition-colors ${isFavourite ? 'fill-current text-blue-600' : 'text-gray-400'}`} />
+    </button>
+  );
+
   return (
     <>
       {/*Mobile view*/}
@@ -57,7 +71,7 @@ export function CounselorProfileCard({ counselor, subscription }: Props) {
                 <h1 className="text-sm font-semibold text-[#343C6A]">{`Mr. ${fullName}`}</h1>
                 <p className="text-xs text-[#718EBF] mt-1">{`${counselor.organisationName}, ${counselor.fullOfficeAddress?.city}`}</p>
               </div>
-              <button className="p-1 text-blue-600"><Bookmark className="w-5 h-5" /></button>
+              <BookmarkButton />
             </div>
           </div>
         </div>
@@ -138,7 +152,7 @@ export function CounselorProfileCard({ counselor, subscription }: Props) {
                 <h1 className="text-2xl font-bold text-[#343C6A]">{fullName}</h1>
                 <p className="text-md text-[#718EBF] mt-1">{counselor.fullOfficeAddress?.city || 'Location not specified'}</p>
               </div>
-              <button className="p-2 text-blue-600 hover:text-blue-800"><Bookmark className="w-6 h-6" /></button>
+              <BookmarkButton className="p-2" />
             </div>
             <div className="mt-4 flex items-center justify-center sm:justify-start gap-x-8 gap-y-4 text-gray-700">
               <div className="flex items-center gap-3">

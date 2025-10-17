@@ -10,7 +10,9 @@ type AuthState = {
   isAuthenticated: boolean;
   isLoginToggle: boolean;
   userExist: boolean;
+  isCounselorSignupOpen: boolean;
   toggleLogin: () => void;
+  toggleCounselorSignup: () => void;
   setUser: (user: User | null) => void;
   sendOtp: (phone: string) => Promise<void>;
   verifyOtp: (phone: string, otp: string) => Promise<void>;
@@ -26,19 +28,22 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoginToggle: false,
       userExist: false,
+      isCounselorSignupOpen: false,
 
       toggleLogin: () => set((state) => ({ isLoginToggle: !state.isLoginToggle })),
+      
+      toggleCounselorSignup: () => set((state) => ({ isCounselorSignupOpen: !state.isCounselorSignupOpen })),
 
       setUser: (user) => set({ user, userId: user ? (user.userName ?? null) : null }),
 
       refreshUser: async (force = false) => {
         const getter = get as () => AuthState;
         const state = getter();
-  const uid = state.userId ?? (typeof window !== 'undefined' ? localStorage.getItem('phone') : null);
-  const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null;
-  if (!uid || !token) return null;
+        const uid = state.userId ?? (typeof window !== 'undefined' ? localStorage.getItem('phone') : null);
+        const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null;
+        if (!uid || !token) return null;
 
-  if (!force && state.user) return state.user;
+        if (!force && state.user) return state.user;
 
         try {
           const user = await getUserProfile(uid, token);
