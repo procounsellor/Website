@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { askQuestion, transformCounselorData } from "@/components/chatbot/api";
+import { askQuestion, transformCounselorData } from "@/api/chatbot";
 import type { AllCounselor } from "@/types/academic";
 
 export interface Message {
@@ -15,6 +15,8 @@ type ChatState = {
   loading: boolean;
   toggleChatbot: () => void;
   sendMessage: (question: string) => Promise<void>;
+  loadMessages: (messages: Message[]) => void;
+  clearMessages: () => void;
 };
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -24,6 +26,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   toggleChatbot: () => {
     set((state) => ({ isChatbotOpen: !state.isChatbotOpen }));
+  },
+
+  loadMessages: (messages: Message[]) => {
+    set({ messages });
+  },
+
+  clearMessages: () => {
+    set({ messages: [] });
   },
 
   sendMessage: async (question: string) => {

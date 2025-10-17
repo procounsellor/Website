@@ -26,22 +26,23 @@ const MyInfoTab: React.FC<MyInfoTabProps> = ({ user, onEditCourse, onEditStates,
       return acc;
     }, 0);
   }, [user.transactions]);
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 flex flex-col gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+      <div className="lg:col-span-2 flex flex-col gap-4 md:gap-6">
         <InfoCard icon={<GraduationCap />} title="Preferred Course" onEdit={onEditCourse}>
-          <p className="text-[#8C8CA1] font-medium">{user.interestedCourse || 'Not specified'}</p>
+          <p className="text-sm md:text-base font-medium text-[#8C8CA1]">{user.interestedCourse || 'Not specified'}</p>
         </InfoCard>
         
         <InfoCard icon={<MapPin />} title="Preferred States" onEdit={onEditStates}>
           {user.userInterestedStateOfCounsellors && user.userInterestedStateOfCounsellors.length > 0 ? (
-            <ul className="space-y-2">
+            <ul className="space-y-1 md:space-y-2">
               {user.userInterestedStateOfCounsellors.map((state) => (
-                <li key={state} className="text-[#8C8CA1] font-medium">{state}</li>
+                <li key={state} className="text-sm md:text-base font-medium text-[#8C8CA1]">{state}</li>
               ))}
             </ul>
           ) : (
-            <p className="text-[#8C8CA1] font-medium">No preferred states selected.</p>
+            <p className="text-sm md:text-base font-medium text-[#8C8CA1]">No preferred states selected.</p>
           )}
         </InfoCard>
       </div>

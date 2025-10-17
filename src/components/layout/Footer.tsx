@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useAuthStore } from "@/store/AuthStore";
 import { 
   locationIcon, 
   phoneIcon, 
@@ -10,6 +11,7 @@ import {
 } from "@/assets/icons";
 
 export default function Footer() {
+  const toggleCounselorSignup = useAuthStore((state) => state.toggleCounselorSignup);
   return (
     <footer className="bg-gradient-to-b from-[#FCEDE3] to-[#F5C3A3] text-slate-700">
       <div className="mx-auto max-w-[1440px] px-4 sm:px-8 md:px-16 lg:px-[125px] py-6 sm:py-10">
@@ -72,6 +74,14 @@ export default function Footer() {
                 </li>
                 <li>
                   <a href="/counselor-dashboard" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Add College</a>
+                </li>
+                <li>
+                  <button 
+                    onClick={toggleCounselorSignup} 
+                    className="block cursor-pointer font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors text-left w-full"
+                  >
+                    Become a Counselor?
+                  </button>
                 </li>
               </ul>
             </div>

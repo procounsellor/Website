@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { askQuestion, transformCounselorData } from "@/components/chatbot/api";
+import { askQuestion, transformCounselorData } from "@/api/chatbot";
 import type { AllCounselor } from "@/types/academic";
 import { API_CONFIG } from "@/api/config";
 export interface VoiceMessage {

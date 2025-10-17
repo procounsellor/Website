@@ -84,7 +84,7 @@ const LoginCard: React.FC = () => {
         const isProfileIncomplete = await checkUrl(phone, token);
         setIsLoading(false);
         if (isProfileIncomplete) {
-          navigate('/onboarding');
+          navigate('/');
         } else {
           navigate('/dashboard/student');
         }

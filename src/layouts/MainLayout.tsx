@@ -10,6 +10,7 @@ import Chatbot from "@/components/chatbot/Chatbot";
 import { MessageSquare } from "lucide-react";
 import { useVoiceChatStore } from "@/store/VoiceChatStore";
 import VoiceChat from "@/components/chatbot/VoiceChat";
+import InfoModal from "@/components/counselor-signup/InfoModal";
 export default function MainLayout(){
   const { isLoginToggle, isAuthenticated, userExist } = useAuthStore();
     const { isChatbotOpen, toggleChatbot } = useChatStore();
@@ -28,6 +29,7 @@ export default function MainLayout(){
             <Footer/>
            </footer>
            {isLoginToggle && <LoginCard/>}
+           <InfoModal />
            {isAuthenticated && userExist && isLoginToggle &&  <OnboardingCard/>}
             <Toaster
               position="top-center"

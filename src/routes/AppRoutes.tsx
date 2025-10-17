@@ -16,6 +16,7 @@ import { Toaster } from 'react-hot-toast';
 import { SubscriptionPage } from '@/pages/SubscriptionPage';
 import RechargeWallet from '@/pages/RechargeWallet';
 import CounselorDashboard from '@/pages/CounselorDashboard';
+import CounselorSignupPage from '@/pages/CounselorSignupPage';
 const CollegesListingPage = lazy(() => import('@/pages/colleges'));
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const CoursesListingPage = lazy(() => import('@/pages/courses'));
@@ -47,6 +48,7 @@ export default function AppRoutes(){
                      <Routes>
                         <Route path="/privacy1" element={<ExternalPrivacyPage/>} />
                         <Route path="/term1" element={<ExternalTermsPage/>} />
+                        <Route path="/counselor-signup" element={<CounselorSignupPage />} />
                         <Route element={<MainLayout/>}>
                                 <Route path="/" element={<Home/>}/>
                                 <Route path="/counselors" element={<CounselorListingPage/>} />

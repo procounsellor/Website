@@ -65,3 +65,40 @@ export async function updateUserProfile(
     throw error;
   }
 }
+export async function uploadUserPhoto(
+  userId: string,
+  photo: File,
+  token: string
+): Promise<{ photoUrl: string }> {
+  const formData = new FormData();
+  formData.append('photo', photo);
+
+  try {
+    const response = await fetch(`${baseUrl}/api/user/uploadPhoto?userId=${userId}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`HTTP ${response.status}: Failed to upload photo. Server responded with: ${errorBody}`);
+    }
+
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const data = await response.json();
+      return data;
+    } else {
+      const responseText = await response.text();
+      console.log('Photo upload successful, but the server sent a non-JSON response:', responseText);
+      return { photoUrl: '' };
+    }
+
+  } catch (error) {
+    console.error('Upload User Photo Error:', error);
+    throw error;
+  }
+}

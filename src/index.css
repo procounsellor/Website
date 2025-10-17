@@ -1,6 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
 @tailwind utilities;
+
+/* Hide scrollbar but keep scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -190,4 +200,98 @@ body {
   filter: none !important;
   background-image: none !important;
   background: transparent !important;
+}
+
+.label{
+  @apply text-[16px] text-[#232323] font-semibold;
+}
+
+/* MUI Date Pickers Day styling */
+/* Filled orange for today */
+.MuiPickersDay-root.MuiPickersDay-today {
+  background-color: #FA660F !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Selected day: transparent background, orange border */
+.MuiPickersDay-root.Mui-selected {
+  background-color: transparent !important;
+  color: #FA660F !important;
+  border: 1px solid #FA660F !important;
+  box-shadow: none !important;
+}
+
+/* Ensure selected style overrides today when both classes present */
+.MuiPickersDay-root.Mui-selected.MuiPickersDay-today {
+  /* When today is selected, show the filled today style (no border) */
+  background-color: #FA660F !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Hover/focus states */
+.MuiPickersDay-root:hover {
+  background-color: rgba(250,102,15,0.06);
+}
+.MuiPickersDay-root.Mui-selected:hover {
+  background-color: rgba(250,102,15,0.04) !important;
+}
+
+/* Keep hover for selected-today as filled */
+.MuiPickersDay-root.Mui-selected.MuiPickersDay-today:hover {
+  background-color: #e15500 !important;
+}
+
+/* Remove focus ring or outline on today cell */
+.MuiPickersDay-root.MuiPickersDay-today.Mui-focusVisible,
+.MuiPickersDay-root.MuiPickersDay-today:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Keep day size unchanged; adjust border radius if needed */
+.MuiPickersDay-root {
+  box-sizing: border-box;
+}
+
+/* Scope calendar header styling to our calendar wrapper */
+/* Header and nav colors intentionally left to theme/default to avoid affecting weekday labels and nav icons. */
+
+/* Selected month button styling (scoped to our calendar) */
+/* Target common class names used by MUI month picker implementations */
+.proc-calendar .MuiMonthPicker-root .MuiButton-root.Mui-selected,
+.proc-calendar .MuiPickersMonth-root.Mui-selected,
+.proc-calendar .MuiPickersMonth-monthButton.Mui-selected,
+.proc-calendar .MuiMonthPicker-root button.Mui-selected {
+  /* Make selected month have an orange filled background and white text */
+  background-color: #FA660F !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 6px !important;
+}
+
+/* Hover for selected month */
+.proc-calendar .MuiMonthPicker-root .MuiButton-root.Mui-selected:hover,
+.proc-calendar .MuiPickersMonth-root.Mui-selected:hover,
+.proc-calendar .MuiPickersMonth-monthButton.Mui-selected:hover,
+.proc-calendar .MuiMonthPicker-root button.Mui-selected:hover {
+  background-color: #e15500 !important;
+  color: #ffffff !important;
+}
+
+/* Restore: strictly target the month-picker grid selected button only */
+.proc-calendar .MuiPickersMonth-root .Mui-selected,
+.proc-calendar .MuiMonthPicker-root .Mui-selected,
+.proc-calendar .MuiPickersMonth-monthButton.Mui-selected,
+.proc-calendar .MuiMonthPicker-root button.Mui-selected {
+  background-color: #FA660F !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: none !important;
 }
