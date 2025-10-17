@@ -1,14 +1,17 @@
-import { Flame } from 'lucide-react';
+// import { Flame } from 'lucide-react';
 import { useState, type JSX } from 'react';
 import AppointmentCard from '../appointment-cards/AppointmentCard';
 import type { CounselorDetails } from '@/types/academic';
 import { useAuthStore } from '@/store/AuthStore';
+import type { User } from '@/types/user';
+import toast from 'react-hot-toast';
 
 interface Props{
-  counselor: CounselorDetails
+  counselor: CounselorDetails;
+  user: User | null;
 }
 
-export function FreeCareerAssessmentCard({counselor}:Props):JSX.Element {
+export function FreeCareerAssessmentCard({counselor, user}:Props):JSX.Element {
   const [booking, setBooking] = useState(false);
   const { isAuthenticated, toggleLogin } = useAuthStore();
 
@@ -17,10 +20,13 @@ export function FreeCareerAssessmentCard({counselor}:Props):JSX.Element {
     if (!isAuthenticated) {
       console.log('User not authenticated, triggering login');
       toggleLogin();
-    } else {
-      console.log('User authenticated, opening booking modal');
-      setBooking(true);
+      return;
+    } 
+    if (!user?.firstName || !user?.email) {
+      toast.error("Please complete your profile before booking an appointment.");
+      return;
     }
+    setBooking(true);
   };
 
   if(booking){
@@ -32,7 +38,11 @@ export function FreeCareerAssessmentCard({counselor}:Props):JSX.Element {
         <div className="flex justify-between items-center gap-2">
             <h3 className="text-base md:text-lg font-semibold md:font-bold text-[#343C6A]">Free Career Assessment</h3>
             <span className="flex-shrink-0 flex items-center gap-1 bg-[#FFF9D9] text-gray-700 text-xs font-semibold px-2 py-1 rounded-full">
-                <Flame className="w-3 h-3 text-[#FFB70E]" /> Trending
+                <img 
+                  src="/flame.gif" 
+                  alt="Flame animation" 
+                  className="w-5 h-5"
+                /> Trending
             </span>
         </div>
         <p className="text-gray-600 mt-1 font-medium text-sm">30-minute discovery session</p>

@@ -59,6 +59,14 @@ const StudentDashboardPage: React.FC = () => {
     fetchUserProfile();
   }, [fetchUserProfile]);
 
+  useEffect(() => {
+    if (user && !loading) {
+      if (!user.firstName || !user.email) {
+        setIsEditModalOpen(true);
+      }
+    }
+  }, [user, loading]);
+
   const handleUpdateProfile = async (updatedData: { firstName: string; lastName: string; email: string }) => {
     if (!userId || !token) {
       throw new Error("User ID is missing. Please log in again.");
@@ -188,6 +196,7 @@ const StudentDashboardPage: React.FC = () => {
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onUpdate={handleUpdateProfile}
+        onUploadComplete={fetchUserProfile}
       />
       {prefsEditMode && (
         <EditPreferencesModal
