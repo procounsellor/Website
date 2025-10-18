@@ -1,13 +1,23 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import ClientCard from './ClientCard';
-import type { Client, ApiClient } from '@/types/client';
+import type { Client, ApiClient, ApiPendingRequest } from '@/types/client';
+import type { User } from '@/types/user';
 import { getSubscribedClients, getPendingRequests, respondToSubscriptionRequest } from '@/api/counselor-Dashboard';
 import { Loader2, Search } from 'lucide-react';
 
 type SubTab = 'My Clients' | 'Pending Request';
 
-export default function ClientsTab() {
+interface Props {
+  user: User;
+  token: string;
+}
+
+function isPendingRequest(client: any): client is ApiPendingRequest {
+    return 'userFullName' in client;
+}
+
+export default function ClientsTab({ user, token }: Props) {
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('My Clients');
   
   const [myClients, setMyClients] = useState<Client[]>([]);
@@ -18,44 +28,57 @@ export default function ClientsTab() {
 
   const TABS: SubTab[] = ['My Clients', 'Pending Request'];
 
-  const formatApiClients = (apiClients: ApiClient[]): Client[] => {
-    return apiClients.map((apiClient: ApiClient) => ({
-        id: apiClient.userId,
-        name: `${apiClient.firstName} ${apiClient.lastName}`,
-        imageUrl: apiClient.photoSmall || `https://ui-avatars.com/api/?name=${apiClient.firstName}+${apiClient.lastName}`,
-        course: apiClient.course,
-        preferredStates: apiClient.userInterestedStateOfCounsellors,
-        manualSubscriptionRequestId: apiClient.manualSubscriptionRequestId,
-    }));
+  const formatClients = (apiData: (ApiClient | ApiPendingRequest)[]): Client[] => {
+    return apiData.map((item) => {
+        if (isPendingRequest(item)) {
+            return {
+                id: item.userId,
+                name: item.userFullName,
+                imageUrl: item.userSmallPhotoUrl || `https://ui-avatars.com/api/?name=${item.userFullName}`,
+                course: item.userInterestedCourse,
+                preferredStates: [],
+                manualSubscriptionRequestId: item.manualSubscriptionRequestId,
+            };
+        } else {
+            return {
+                id: item.userId,
+                name: `${item.firstName} ${item.lastName}`,
+                imageUrl: item.photoSmall || `https://ui-avatars.com/api/?name=${item.firstName}+${item.lastName}`,
+                course: item.course,
+                preferredStates: item.userInterestedStateOfCounsellors || [],
+                manualSubscriptionRequestId: item.manualSubscriptionRequestId,
+            };
+        }
+    });
   };
 
   const fetchClients = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const counselorId = '9470988669';
-      const apiClients = await getSubscribedClients(counselorId);
-      setMyClients(formatApiClients(apiClients));
+      const counselorId = user.userName;
+      const apiClients = await getSubscribedClients(counselorId, token);
+      setMyClients(formatClients(apiClients));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load clients.");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user, token]);
 
   const fetchPendingRequests = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const counselorId = '9470988669';
-      const apiPending = await getPendingRequests(counselorId);
-      setPendingRequests(formatApiClients(apiPending));
+      const counselorId = user.userName;
+      const apiPending = await getPendingRequests(counselorId, token);
+      setPendingRequests(formatClients(apiPending));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load pending requests.");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user, token]);
 
 
   useEffect(() => {
@@ -72,7 +95,7 @@ export default function ClientsTab() {
     if (!client.manualSubscriptionRequestId) return toast.error("Request ID is missing.");
     setIsResponding(client.id);
     try {
-      await respondToSubscriptionRequest(client.manualSubscriptionRequestId, 'completed');
+      await respondToSubscriptionRequest(client.manualSubscriptionRequestId, 'completed', token);
       setMyClients(prevClients => [client, ...prevClients]);
       setPendingRequests(prevRequests => prevRequests.filter(p => p.id !== client.id));
       toast.success(`Subscription request from ${client.name} accepted.`);
@@ -86,7 +109,7 @@ export default function ClientsTab() {
     if (!client.manualSubscriptionRequestId) return toast.error("Request ID is missing.");
     setIsResponding(client.id);
     try {
-      await respondToSubscriptionRequest(client.manualSubscriptionRequestId, 'rejected');
+      await respondToSubscriptionRequest(client.manualSubscriptionRequestId, 'rejected', token);
       setPendingRequests(prevRequests => prevRequests.filter(p => p.id !== client.id));
       toast.error(`Subscription request from ${client.name} rejected.`);
     } catch (error) {

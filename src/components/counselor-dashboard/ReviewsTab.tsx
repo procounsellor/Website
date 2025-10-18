@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Star, Loader2 } from 'lucide-react';
-import { useAuthStore } from '@/store/AuthStore';
 import type { ReviewReceived } from '@/types/counselorDashboard';
-import { getReviewsForCounselor } from '@/api/counsellor';
+import { getReviewsForCounselor } from '@/api/counselor-Dashboard';
+import type { User } from '@/types/user';
 import ReviewCard from './ReviewCard';
 
 const StarRatingSummary = ({ rating }: { rating: number }) => (
@@ -17,15 +17,19 @@ const StarRatingSummary = ({ rating }: { rating: number }) => (
     </div>
 );
 
-export default function ReviewsTab() {
-  const { userId } = useAuthStore();
+interface Props {
+  user: User;
+  token: string;
+}
+
+export default function ReviewsTab({ user, token }: Props) {
   const [reviews, setReviews] = useState<ReviewReceived[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchReviews = useCallback(async () => {
-    const counselorId = '9470988669'; 
-    if (!counselorId) {
+    const counselorId = user.userName; 
+    if (!counselorId|| !token) {
       setError("Counselor ID not found.");
       setLoading(false);
       return;
@@ -34,14 +38,14 @@ export default function ReviewsTab() {
     try {
       setLoading(true);
       setError(null);
-      const fetchedReviews = await getReviewsForCounselor(counselorId);
+      const fetchedReviews = await getReviewsForCounselor(counselorId, token);
       setReviews(fetchedReviews);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load reviews.");
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [user, token]);
 
   useEffect(() => {
     fetchReviews();

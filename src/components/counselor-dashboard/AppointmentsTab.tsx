@@ -1,33 +1,38 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Loader2 } from 'lucide-react';
-import { useAuthStore } from '@/store/AuthStore';
 import { getCounselorAppointments } from '@/api/counselor-Dashboard';
 import type { CounselorAppointment } from '@/types/appointments';
+import type { User } from '@/types/user';
 import AppointmentCard from './AppointmentCard';
 
 type AppointmentFilter = 'All' | 'Upcoming' | 'Completed' | 'Cancelled';
 
-export default function AppointmentsTab() {
-  const { userId } = useAuthStore();
+interface Props {
+  user: User;
+  token: string;
+}
+
+export default function AppointmentsTab({ user, token }: Props) {
   const [appointments, setAppointments] = useState<CounselorAppointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<AppointmentFilter>('All');
 
   const fetchAppointments = useCallback(async () => {
-    const counselorId = '9470988669';
+    const counselorId = user.userName;
+    if (!counselorId || !token) return;
+
     try {
       setLoading(true);
       setError(null);
-      const data = await getCounselorAppointments(counselorId);
-      // data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      const data = await getCounselorAppointments(counselorId, token); // Pass token
       setAppointments(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load appointments.');
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [user, token]);
 
   useEffect(() => {
     fetchAppointments();

@@ -3,15 +3,18 @@ import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { DeleteAppointmentModal, RescheduleAppointmentModal } from "./modals";
 import { cancelAppointment } from "@/api/counselor-Dashboard";
+import type { User } from '@/types/user';
 
 interface AppointmentPopupProps {
   appointment: Appointment;
   position: { x: number; y: number; centerY: number };
   onClose: () => void;
   onAppointmentUpdate: () => void;
+  user: User;
+  token: string;
 }
 
-export default function AppointmentPopup({ appointment, position, onClose, onAppointmentUpdate }: AppointmentPopupProps) {
+export default function AppointmentPopup({ appointment, position, onClose, onAppointmentUpdate, user, token }: AppointmentPopupProps) {
   const popupRef = useRef<HTMLDivElement>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
@@ -57,13 +60,15 @@ export default function AppointmentPopup({ appointment, position, onClose, onApp
   };
 
   const handleCancelConfirm = async (reason: string) => {
+    const userId = user.userName;
     try {
-      await cancelAppointment({
-        userId: '9470988669',
+      const payload = {
+        userId: userId,
         appointmentId: appointment.appointmentId,
         receiverFcmToken: appointment.userFCMToken,
         reason: reason,
-      });
+      };
+      await cancelAppointment(payload, token);
       onAppointmentUpdate();
       setShowDeleteModal(false);
       onClose();

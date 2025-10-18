@@ -8,6 +8,13 @@ export interface ApiClient {
     plan: string;
     manualSubscriptionRequestId?: string; 
 }
+export interface ApiPendingRequest {
+  manualSubscriptionRequestId: string;
+  userId: string;
+  userFullName: string;
+  userSmallPhotoUrl: string | null;
+  userInterestedCourse: string;
+}
 
 export interface Client {
   id: string;

@@ -3,8 +3,9 @@ import { Bookmark, Briefcase, Languages, Lock, CheckCircle, MessageSquare, Phone
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isManualSubscriptionRequest } from '@/api/counsellor';
-import type { SubscribedCounsellor } from '@/types/user';
+import type { SubscribedCounsellor, User } from '@/types/user';
 import { useAuthStore } from '@/store/AuthStore';
+import toast from 'react-hot-toast';
 
 type Props = {
   counselor: CounselorDetails;
@@ -12,9 +13,10 @@ type Props = {
   isFavourite: boolean;
   onToggleFavourite: () => void;
   isTogglingFavourite: boolean;
+  user: User | null;
 };
 
-export function CounselorProfileCard({ counselor, subscription, isFavourite, onToggleFavourite, isTogglingFavourite }: Props) {
+export function CounselorProfileCard({ counselor, subscription, isFavourite, onToggleFavourite, isTogglingFavourite, user }: Props) {
   const userId = localStorage.getItem('phone');
   const navigate = useNavigate();
   const [pendingApproval, setPendingApproval] = useState(false);
@@ -27,6 +29,26 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
         .catch(err => console.error('Manual subscription check failed', err));
     }
   }, [subscription, userId, counselor?.userName]);
+
+  const handleSubscribeClick = (isUpgrade = false) => {
+    if (!isAuthenticated) {
+      toggleLogin();
+      return;
+    }
+    if (!user?.firstName || !user?.email) {
+      toast.error("Please complete your profile before subscribing.");
+      return;
+    }
+    navigate('/subscribe', { 
+      state: { 
+        counselorId: counselor.userName, 
+        userId: userId, 
+        counselor: counselor,
+        isUpgrade: isUpgrade,
+        ...(isUpgrade && { currentPlan: subscription })
+      } 
+    });
+  };
 
   const fullName = `${counselor.firstName} ${counselor.lastName}`;
   const imageUrl = counselor.photoUrlSmall || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=E0E7FF&color=4F46E5&size=128`;
@@ -110,7 +132,7 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
             </div>
             {upgradePlan && (
                 <button
-                  onClick={() => isAuthenticated ? navigate('/subscribe', { state: { counselorId: counselor.userName, userId: userId, counselor: counselor }}) : toggleLogin()}
+                  onClick={() => handleSubscribeClick(true)}
                   className="w-full font-semibold py-3 px-6 rounded-lg text-[#3537B4] border-2 border-[#3537B4] hover:bg-blue-50 flex items-center justify-center gap-2"
                 >
                   <Zap className="w-5 h-5 text-orange-500" /> Upgrade to <span className="capitalize">{upgradePlan}</span> Plan
@@ -126,7 +148,7 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
               <button className="flex h-12 flex-1 flex-col items-center justify-center rounded-lg border bg-gradient-to-r from-[rgba(255,245,206,0.4)] to-[rgba(255,250,230,0.4)]"><span className="text-[#B94C00] text-xs">Elite</span><span className="text-[#B94C00] text-xs font-semibold">{formatAmount(counselor.eliteAmount)}</span></button>
             </div>
             <button
-              onClick={() =>isAuthenticated ? navigate('/subscribe', { state: { counselorId: counselor.userName, userId: userId, counselor: counselor } }) : toggleLogin()}
+              onClick={() => handleSubscribeClick(false)}
               disabled={pendingApproval}
               aria-disabled={pendingApproval}
               className={`w-full mt-4 font-semibold text-xs py-3 px-6 rounded-lg transition-colors ${pendingApproval ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : 'bg-[#3537B4] text-white hover:bg-blue-700'}`}
@@ -197,15 +219,7 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
                 </a>
               {upgradePlan ? (
                 <button
-                  onClick={() => navigate('/subscribe', { 
-                  state: { 
-                    counselorId: counselor.userName, 
-                    userId: userId, 
-                    counselor: counselor,
-                    isUpgrade: true,
-                    currentPlan: subscription
-                  } 
-                })}
+                  onClick={() => handleSubscribeClick(true)}
                   className="w-full sm:flex-1 font-semibold py-3 px-6 rounded-lg text-[#3537B4] border-2 border-[#3537B4] hover:bg-blue-50 flex items-center justify-center gap-2"
                 >
                   <Zap className="w-5 h-5 text-orange-500" /> Upgrade to <span className="capitalize">{upgradePlan}</span> Plan
@@ -231,7 +245,7 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
               <button disabled className="w-full sm:w-auto flex items-center justify-center border gap-2 px-14 py-3 text-[#B2B9C5] bg-[#F9FAFC] rounded-lg cursor-not-allowed"><Lock className="w-4 h-4 text-[#B2B9C5]"/> Chat</button>
               <button disabled className="w-full sm:w-auto flex items-center justify-center border gap-2 px-14 py-3 text-[#B2B9C5] bg-[#F9FAFC] rounded-lg cursor-not-allowed"><Lock className="w-4 h-4 text-[#B2B9C5]" /> Call</button>
               <button
-                onClick={() => navigate('/subscribe', { state: { counselorId: counselor.userName, userId: userId, counselor: counselor } })}
+                onClick={() => handleSubscribeClick(false)}
                 disabled={pendingApproval}
                 aria-disabled={pendingApproval}
                 className={`w-full sm:flex-1 font-semibold py-3 px-6 rounded-lg transition-colors ${pendingApproval ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : 'bg-[#3537B4] text-white hover:bg-blue-700'}`}

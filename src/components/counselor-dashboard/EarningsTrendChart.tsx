@@ -1,7 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useMemo, useState } from 'react';
 import type { Transaction } from '@/types/earnings';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import TimeframePicker from './TimeframePicker';
 
 interface ChartData {
   name: string;
@@ -16,6 +16,7 @@ interface EarningsTrendChartProps {
 }
 
 const processYearlyData = (transactions: Transaction[], year: number): ChartData[] => {
+  if (!transactions) return [];
   const monthlyData: { [key: string]: { plus: number; pro: number; elite: number } } = {};
   transactions.forEach(tx => {
     const txDate = new Date(tx.timestamp);
@@ -37,6 +38,7 @@ const processYearlyData = (transactions: Transaction[], year: number): ChartData
 };
 
 const processWeeklyData = (transactions: Transaction[], month: Date): ChartData[] => {
+  if (!transactions) return [];
   const weekBins = {
     '1-7': { name: '1-7', plus: 0, pro: 0, elite: 0 },
     '8-14': { name: '8-14', plus: 0, pro: 0, elite: 0 },
@@ -118,10 +120,10 @@ export default function EarningsTrendChart({ transactions, timeframe }: Earnings
   const maxEarning = Math.max(...chartData.map(d => d.plus + d.pro + d.elite), 0);
   const yAxisDomainMax = Math.ceil(maxEarning / 500) * 500 || 500;
 
-  const goToNextYear = () => setCurrentYear(prev => prev + 1);
-  const goToPrevYear = () => setCurrentYear(prev => prev - 1);
-  const goToNextMonth = () => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
-  const goToPrevMonth = () => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  // const goToNextYear = () => setCurrentYear(prev => prev + 1);
+  // const goToPrevYear = () => setCurrentYear(prev => prev - 1);
+  // const goToNextMonth = () => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  // const goToPrevMonth = () => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
 
   return (
      <div className="w-full h-[400px] p-4">
@@ -133,17 +135,17 @@ export default function EarningsTrendChart({ transactions, timeframe }: Earnings
         </div>
         
         {timeframe === 'yearly' ? (
-          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-md p-1">
-            <button onClick={goToPrevYear} className="p-1 hover:bg-gray-100 rounded"><ChevronLeft size={16} /></button>
-            <span className="text-sm font-medium">{currentYear}</span>
-            <button onClick={goToNextYear} className="p-1 hover:bg-gray-100 rounded"><ChevronRight size={16} /></button>
-          </div>
+          <TimeframePicker 
+            mode="yearly"
+            value={new Date(currentYear, 0, 1)}
+            onChange={(date) => setCurrentYear(date.getFullYear())}
+          />
         ) : (
-          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-md p-1">
-            <button onClick={goToPrevMonth} className="p-1 hover:bg-gray-100 rounded"><ChevronLeft size={16} /></button>
-            <span className="text-sm font-medium">{currentMonth.toLocaleString('default', { month: 'short' })}'{currentMonth.getFullYear().toString().slice(-2)}</span>
-            <button onClick={goToNextMonth} className="p-1 hover:bg-gray-100 rounded"><ChevronRight size={16} /></button>
-          </div>
+          <TimeframePicker 
+            mode="monthly"
+            value={currentMonth}
+            onChange={setCurrentMonth}
+          />
         )}
       </div>
 

@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
-import { getCounselorProfileById } from '@/api/counselor-Dashboard';
+import { getCounselorProfileById, updateCounselorProfile } from '@/api/counselor-Dashboard';
 import type { CounselorProfileData } from '@/types/counselorProfile';
-import { X, Edit, CheckCircle2 } from 'lucide-react';
+import { X, Edit, CheckCircle2, Loader2 } from 'lucide-react';
+import type { User } from '@/types/user';
+import EditableField from './EditableField';
 
 interface CounselorProfileProps {
   isOpen: boolean;
   onClose: () => void;
-  counsellorId: string;
+  user: User;
+  token: string;
 }
 
 const InfoField = ({ label, value }: { label: string; value: string }) => (
@@ -45,34 +48,74 @@ const SubscriptionPlan = ({ name, price, seats, textColor, backgroundGradient, b
   </div>
 );
 
-export default function CounselorProfile({ isOpen, onClose, counsellorId }: CounselorProfileProps) {
+export default function CounselorProfile({ isOpen, onClose, user, token }: CounselorProfileProps) {
   const [counselor, setCounselor] = useState<CounselorProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [editableData, setEditableData] = useState<Partial<CounselorProfileData>>({});
 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
+      setIsEditing(false);
     }
     return () => {
       document.body.style.overflow = 'unset';
     };
   }, [isOpen]);
   
+  const fetchCounselorData = async () => {
+      if (!user.userName) return;
+      setIsLoading(true);
+      const data = await getCounselorProfileById(user.userName, token);
+      setCounselor(data);
+      if (data) {
+        setEditableData(data);
+      }
+      setIsLoading(false);
+  };
+
   useEffect(() => {
     if (isOpen) {
-      const fetchCounselorData = async () => {
-        setIsLoading(true);
-        const data = await getCounselorProfileById(counsellorId);
-        setCounselor(data);
-        setIsLoading(false);
-      };
       fetchCounselorData();
     }
-  }, [isOpen, counsellorId]);
+  }, [isOpen, user, token]);
 
   if (!isOpen) return null;
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const arrayFields = ['stateOfCounsellor', 'languagesKnow', 'expertise'];
+    
+    setEditableData(prev => ({
+      ...prev,
+      [name]: arrayFields.includes(name) ? value.split(',').map(item => item.trim()) : value,
+    }));
+  };
+
+  const handleUpdate = async () => {
+    if (!user.userName) return;
+    setIsUpdating(true);
+    try {
+      const payload: Partial<CounselorProfileData> = {
+        organisationName: editableData.organisationName,
+        stateOfCounsellor: editableData.stateOfCounsellor,
+        languagesKnow: editableData.languagesKnow,
+        description: editableData.description,
+        experience: editableData.experience,
+      };
+
+      await updateCounselorProfile(user.userName, payload, token);
+      await fetchCounselorData();
+      setIsEditing(false);
+    } catch (error) {
+    } finally {
+      setIsUpdating(false);
+    }
+  };
   
   const getWorkingDays = () => {
       if (!counselor?.workingDays || counselor.workingDays.length === 0) return "Not specified";
@@ -125,8 +168,8 @@ export default function CounselorProfile({ isOpen, onClose, counsellorId }: Coun
                 />
                 <div className="flex-1 mt-2">
                   <h3 className="text-2xl font-bold text-gray-800">{`${counselor.firstName} ${counselor.lastName}`}</h3>
-                  <p className="text-base text-[#718EBF] mt-1">Career Counselor, {counselor.experience}+ years of experience</p>
-                  <p className="text-sm text-gray-600 mt-3 max-w-2xl">{counselor.description}</p>
+                  <p className="text-base text-[#718EBF] mt-1">Career Counselor, {isEditing ? editableData.experience : counselor.experience}+ years of experience</p>
+                  <p className="text-sm text-gray-600 mt-3 max-w-2xl">{isEditing ? editableData.description : counselor.description}</p>
                   <div className="flex items-center gap-6 mt-4 text-sm">
                     <div className="flex items-center gap-2">
                       <span className="text-[#232323]">Email:</span>
@@ -140,20 +183,22 @@ export default function CounselorProfile({ isOpen, onClose, counsellorId }: Coun
                     </div>
                   </div>
                 </div>
-                 <button className="absolute top-0 right-0 flex items-center gap-2 text-[#13097D] font-semibold text-base">
-                    <Edit size={18} />
-                    Edit
-                </button>
+                 {!isEditing && (
+                    <button onClick={() => setIsEditing(true)} className="absolute top-0 right-0 flex items-center gap-2 text-[#13097D] font-semibold text-base">
+                        <Edit size={18} />
+                        Edit
+                    </button>
+                 )}
               </div>
 
               <hr className="my-8 border-t border-[#E5E5E5]" />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                <InfoField label="Address" value={counselor.fullOfficeAddress.city || 'Not Provided'} />
-                <InfoField label="Location" value={counselor.stateOfCounsellor.join(', ')} />
-                <InfoField label="Organisation" value={counselor.organisationName} />
+                <InfoField label="Address" value={counselor.fullOfficeAddress?.city || 'Not Provided'} />
+                <EditableField label="Location" name="stateOfCounsellor" value={editableData.stateOfCounsellor || []} isEditing={isEditing} onChange={handleInputChange} />
+                <EditableField label="Organisation" name="organisationName" value={editableData.organisationName || ''} isEditing={isEditing} onChange={handleInputChange} />
                 <InfoField label="Working days & Time" value={`${getWorkingDays()}, ${counselor.officeStartTime} - ${counselor.officeEndTime}`} />
-                <InfoField label="Languages" value={counselor.languagesKnow.join(', ')} />
+                <EditableField label="Languages" name="languagesKnow" value={editableData.languagesKnow || []} isEditing={isEditing} onChange={handleInputChange} />
                 <div>
                   <label className="text-sm font-montserrat text-[#232323]">Subscription Plans</label>
                   <div className="mt-2 flex gap-4">
@@ -163,6 +208,24 @@ export default function CounselorProfile({ isOpen, onClose, counsellorId }: Coun
                   </div>
                 </div>
               </div>
+              
+              {isEditing && (
+                <div className="mt-8 flex justify-end gap-4">
+                    <button 
+                        onClick={() => setIsEditing(false)}
+                        className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-semibold"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        onClick={handleUpdate}
+                        disabled={isUpdating}
+                        className="px-6 py-2 rounded-lg bg-[#13097D] text-white font-semibold flex items-center gap-2 disabled:bg-indigo-300"
+                    >
+                        {isUpdating ? <Loader2 className="animate-spin" /> : 'Update'}
+                    </button>
+                </div>
+              )}
             </>
           )}
         </div>

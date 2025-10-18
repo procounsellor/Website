@@ -40,6 +40,9 @@ const getStatusContent = (currentStatus: CounselorAppointment['status']) => {
 
 export default function AppointmentCard({ appointment }: AppointmentCardProps) {
   const { userFullName, userPhootoSmall, userCourse, date, startTime, endTime, status } = appointment;
+  const imageUrl = userPhootoSmall && userPhootoSmall !== 'NA' 
+    ? userPhootoSmall 
+    : `https://ui-avatars.com/api/?name=${userFullName}&background=random`;
 
   return (
     <>
@@ -57,7 +60,7 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
         <div className="flex items-center gap-3">
           <div className="w-14 h-14 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
             <img
-              src={userPhootoSmall || `https://ui-avatars.com/api/?name=${userFullName}&background=random`}
+              src={imageUrl}
               alt={userFullName}
               className="w-full h-full object-cover"
             />
@@ -95,7 +98,7 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
               <div className="md:col-span-4 flex items-center gap-4">
                   <div className="w-20 h-20 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
                       <img
-                          src={userPhootoSmall || `https://ui-avatars.com/api/?name=${userFullName}&background=random`}
+                          src={imageUrl}
                           alt={userFullName}
                           className="w-full h-full object-cover"
                       />

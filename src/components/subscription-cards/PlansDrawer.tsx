@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import type { CounselorDetails } from "@/types";
 import { useAuthStore } from "@/store/AuthStore";
 import { useNavigate, useLocation } from "react-router-dom";
-import { transferAmount, subscribeCounselor, manualPaymentApproval } from "@/api/wallet";
+import { transferAmount, subscribeCounselor, manualPaymentApproval, upgradeSubscriptionPlan, type UpgradePlanPayload } from "@/api/wallet";
 import toast from 'react-hot-toast';
 import type { SubscribedCounsellor } from "@/types/user";
 
@@ -66,6 +66,7 @@ export default function PlansDrawer({
   async function subscribe() {
     const wallet = user?.walletAmount ?? 0;
     const priceNum = isUpgrade ? priceToPay : newPlanPrice;
+    
     if (wallet < priceNum) {
       navigate("/wallet", { 
         state: { 
@@ -76,58 +77,80 @@ export default function PlansDrawer({
       return;
     }
     if (!counselor?.userName || !user?.userName) {
-      console.error("Missing counselor or user identifier for payment");
+      toast.error("Missing counselor or user identifier.");
       return;
     }
 
-    const toastId = toast.loading('Processing your subscription...');
+    const toastId = toast.loading('Processing your request...');
+
     try {
-      // transfer pro coins from user to counsellor
       const transferRes = await transferAmount(counselor.userName, user.userName, priceNum);
-      // expect API to return an object with success flag or status
       if (!transferRes || (transferRes as any).status === false) {
-        console.error('Transfer failed', transferRes);
-        toast.error('Payment transfer failed. Please try again.', { id: toastId });
-        return;
+        throw new Error('Payment transfer failed. Please try again.');
       }
-
-      // after successful transfer, call subscribe endpoint
-      const subscribeRes = await subscribeCounselor(counselor.userName, user.userName, priceNum, (planTitle ?? '').toLowerCase());
-      console.log('subscribeRes', subscribeRes);
-
-      // refresh cached user (wallet amount will be decreased)
+      if (isUpgrade) {
+        toast.loading('Upgrading your plan...', { id: toastId });
+        const payload: UpgradePlanPayload = {
+          userId: user.userName,
+          counsellorId: counselor.userName,
+          receiverFcmToken: null,
+          amount: priceNum,
+          plan: (planTitle ?? '').toLowerCase() as 'plus' | 'pro' | 'elite',
+          subscriptionMode: 'online',
+          subscriptionType: 'upgrade',
+        };
+        await upgradeSubscriptionPlan(payload);
+      } else {
+        toast.loading('Completing your subscription...', { id: toastId });
+        await subscribeCounselor(counselor.userName, user.userName, priceNum, (planTitle ?? '').toLowerCase());
+      }
+      
       await refreshUser(true);
-      toast.success('Subscription successful! Redirecting...', { id: toastId });
+      toast.success(isUpgrade ? 'Upgrade successful! Redirecting...' : 'Subscription successful! Redirecting...', { id: toastId });
 
       setTimeout(() => {
         navigate(`/counselors/profile`, { state: { id: counselor.userName } });
         onClose();
       }, 1500);
+
     } catch (err) {
-      console.error('Subscription flow failed', err);
-      toast.error('Subscription failed. Please try again.', { id: toastId });
+      console.error('Subscription/Upgrade flow failed', err);
+      toast.error(err instanceof Error ? err.message : 'An unknown error occurred.', { id: toastId });
     }
   }
 
-
-
-  async function offlinePayment(){
-    const priceNum = isUpgrade ? priceToPay : newPlanPrice;
-    if(!counselor?.userName || !user?.userName){
-      console.log('Counselor username of user id mising')
-      return 
-    }
-
-    try{
-      const offlinePayment = await manualPaymentApproval(counselor.userName, user.userName, priceNum, (planTitle ?? '').toLowerCase())
-      console.log('offline payment: ', offlinePayment)
-      setPayingOffline(false)
-      setApproved(offlinePayment.status)
-
-    }catch(e){
-      console.error(e)
-    }
+  async function offlinePayment() {
+  const priceNum = isUpgrade ? priceToPay : newPlanPrice;
+  if (!counselor?.userName || !user?.userName) {
+    toast.error('Counselor or user ID is missing.');
+    return;
   }
+  const toastId = toast.loading('Sending offline request...');
+  try {
+    const subscriptionType = isUpgrade ? 'upgrade' : '';
+    const offlinePaymentResult = await manualPaymentApproval(
+      counselor.userName,
+      user.userName,
+      priceNum,
+      (planTitle ?? '').toLowerCase(),
+      subscriptionType
+    );
+
+    console.log('Offline payment response: ', offlinePaymentResult);
+    
+    if (offlinePaymentResult?.status) {
+      toast.success('Offline request sent successfully!', { id: toastId });
+      setApproved(true);
+      setPayingOffline(false);
+    } else {
+      throw new Error(offlinePaymentResult?.message || 'Failed to send offline request.');
+    }
+
+  } catch (e) {
+    console.error(e);
+    toast.error(e instanceof Error ? e.message : 'An unknown error occurred.', { id: toastId });
+  }
+}
 
   useEffect(() => {
     if (!open) return;
@@ -380,7 +403,7 @@ export default function PlansDrawer({
                   <span>{planTitle} Plan</span>
                 </div>
                 <span className="text-[16px] font-medium text-[#232323]">
-                  ₹{newPlanPrice.toLocaleString('en-IN')}
+                  &#8377;{newPlanPrice.toLocaleString('en-IN')}
                 </span>
               </div>
 
@@ -390,7 +413,7 @@ export default function PlansDrawer({
                   <p>Wallet Balance</p>
                 </div>
                 <span className="text-[16px] font-medium text-[#232323]">
-                  ₹{(user?.walletAmount ?? 0).toLocaleString('en-IN')}
+                  &#8377;{(user?.walletAmount ?? 0).toLocaleString('en-IN')}
                 </span>
               </div>
 
@@ -400,7 +423,7 @@ export default function PlansDrawer({
                     <p><span className="capitalize">{currentPlan?.plan}</span> Plan Credit</p>
                   </div>
                   <span className="text-[16px] font-medium text-green-600">
-                    - ₹{currentPlanPrice.toLocaleString('en-IN')}
+                    - &#8377;{currentPlanPrice.toLocaleString('en-IN')}
                   </span>
                 </div>
               )}
@@ -409,7 +432,7 @@ export default function PlansDrawer({
               <div className="flex justify-between items-center">
                 <p className="text-[16px] font-bold text-[#343C6A]">Price to Pay</p>
                 <span className="text-xl font-bold text-orange-600">
-                  ₹{(isUpgrade ? priceToPay : newPlanPrice).toLocaleString('en-IN')}
+                  &#8377;{(isUpgrade ? priceToPay : newPlanPrice).toLocaleString('en-IN')}
                 </span>
               </div>
             </div>

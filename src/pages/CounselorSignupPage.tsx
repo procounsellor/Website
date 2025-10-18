@@ -83,22 +83,15 @@ export default function CounselorSignupPage() {
       phoneOtpVerified: formData.phoneOtpVerified,
       emailOtpVerified: formData.emailOtpVerified,
     };
-
-    // try {
-    //   await counsellorSignup(payload);
-    //   toast.success('Application submitted successfully! Our team will verify your details.');
-    //   navigate('/counselor-dashboard');
-    // } catch (error) {
-    //   toast.error(error instanceof Error ? error.message : 'An unexpected error occurred.');
-    // } finally {
-    //   setIsSubmitting(false);
-    // }
-    console.log("Form Submission Payload:", payload);
-    toast.success("Data logged to console! Check your browser's developer tools.");
-    setTimeout(() => {
-        setIsSubmitting(false);
-        navigate('/');
-    }, 1000);
+    try {
+      await counsellorSignup(payload);
+      toast.success('Application submitted successfully! Our team will review your details.');
+      navigate('/counselor-dashboard');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'An unexpected error occurred.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleVerifyPhone = async () => {

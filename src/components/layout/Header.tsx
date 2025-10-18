@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 import SmartImage from "@/components/ui/SmartImage";
 
 export default function Header(){
-    const {toggleLogin,isAuthenticated, logout} = useAuthStore()
+    const {user,toggleLogin,isAuthenticated, logout} = useAuthStore()
     const [scrolled, setScrolled] = useState(false)
     const [showHeaderSearch, setShowHeaderSearch] = useState(false)
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
@@ -77,6 +77,15 @@ export default function Header(){
     setIsDropdownOpen(false);
 }, [location.pathname]);
 
+const handleProfileNavigation = () => {
+    if (user?.role === 'counsellor') {
+        navigate('/counselor-dashboard');
+    } else {
+        navigate('/dashboard/student');
+    }
+    setIsDropdownOpen(false);
+};
+
 
   return (
     <>
@@ -143,10 +152,7 @@ export default function Header(){
               ref={dropdownRef}
               className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50 py-1 border border-gray-200">
                 <button
-                  onClick={() => {
-                    navigate('/dashboard/student');
-                    setIsDropdownOpen(false);
-                  }}
+                  onClick={handleProfileNavigation}
                   className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 >
                   <LayoutDashboard size={16} />

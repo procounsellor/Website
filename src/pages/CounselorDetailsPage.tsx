@@ -147,6 +147,7 @@ export default function CounselorDetailsPage() {
             isFavourite={isFavourite}
             onToggleFavourite={handleToggleFavourite}
             isTogglingFavourite={isTogglingFavourite}  
+            user={user}
           />
           <AboutCounselorCard counselor={counselor} />
           <CounselorReviews 

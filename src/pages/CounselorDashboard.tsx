@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useState } from "react";
+import { useAuthStore } from "@/store/AuthStore";
 import { getAllAppointments, getOutOfOffice } from "@/api/counselor-Dashboard";
 import CustomCalendar from "@/components/Calendar";
 import { 
@@ -9,8 +11,7 @@ import {
   ReviewsTab
 } from "@/components/counselor-dashboard";
 import type { GroupedAppointments, OutOfOffice, Appointment } from "@/types/appointments";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, Loader2, Clock, SquarePen } from "lucide-react";
 import AppointmentsTab from "@/components/counselor-dashboard/AppointmentsTab";
 import CounselorProfile from "@/components/counselor-dashboard/CounselorProfile";
 
@@ -24,39 +25,57 @@ const TABS: { key: MainTab, name: string }[] = [
     { key: 'clients', name: 'Clients' },
 ];
 
+const GRID_CONFIG = {
+  visibleDays: 4,
+  timeColumnWidth: 84,
+  dayColumnMinWidth: 189,
+  headerHeight: 48,
+  slotHeight: 80,
+  appointmentWidth: 157,
+  appointmentHeight: 56,
+  appointmentPaddingHorizontal: 16,
+  appointmentPaddingVertical: 12,
+};
+
+const PendingReviewScreen = () => (
+  <div className="flex items-center justify-center h-screen p-4">
+    <div className="flex flex-col items-center justify-center p-8 bg-yellow-50 rounded-lg max-w-lg">
+        <Clock className="w-16 h-16 text-yellow-500 mb-4" />
+        <h1 className="text-3xl font-bold text-yellow-800 mb-2">Application Under Review</h1>
+        <p className="text-lg text-yellow-700 text-center">
+        Thank you for your submission. Our team is currently reviewing your details. You will be notified once the verification process is complete.
+        </p>
+    </div>
+  </div>
+);
+
 export default function CounselorDashboard() {
+  const { user, refreshUser, loading } = useAuthStore();
+  const token = localStorage.getItem('jwt') ?? '';
+  
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [hours, setHours] = useState<number[]>([]);
   const [appointments, setAppointments] = useState<GroupedAppointments>({});
   const [outOfOfficeData, setOutOfOfficeData] = useState<OutOfOffice[]>([]);
   const [isProfileModalOpen, setProfileModalOpen] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] = useState<{
-    data: Appointment;
-    position: { x: number; y: number; centerY: number };
-  } | null>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<{ data: Appointment; position: { x: number; y: number; centerY: number }; } | null>(null);
   const [mainTab, setMainTab] = useState<MainTab>('calendar');
-  
-  const GRID_CONFIG = {
-    visibleDays: 4,
-    timeColumnWidth: 84,
-    dayColumnMinWidth: 189,
-    headerHeight: 48,
-    slotHeight: 80,
-    appointmentWidth: 157,
-    appointmentHeight: 56,
-    appointmentPaddingHorizontal: 16,
-    appointmentPaddingVertical: 12,
-  };
-
   const [currentDateOffset, setCurrentDateOffset] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'meetings' | 'other'>('meetings');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
+  useEffect(() => {
+    refreshUser(true);
+}, []);
+
   const fetchData = async () => {
+    const counsellorId = user?.userName;
+    if (!counsellorId || !token) return;
+
     try {
       const [fetchedAppointments, fetchedOutOfOffice] = await Promise.all([
-        getAllAppointments("9470988669"),
-        getOutOfOffice("9470988669")
+        getAllAppointments(counsellorId, token),
+        getOutOfOffice(counsellorId, token)
       ]);
       setAppointments(fetchedAppointments ?? {});
       setOutOfOfficeData(fetchedOutOfOffice ?? []);
@@ -68,9 +87,11 @@ export default function CounselorDashboard() {
   useEffect(() => {
     const HOUR = Array.from({ length: 12 }, (_, i) => 9 + i);
     setHours(HOUR);
-
-    fetchData();
-  }, []);
+    
+    if (user?.role?.trim() === 'counsellor') {
+      fetchData();
+    }
+  }, [user]);
 
   const formatDateLocal = (date: Date): string => {
     const year = date.getFullYear();
@@ -120,33 +141,75 @@ export default function CounselorDashboard() {
     setSelectedDate(newDate);
   }, [currentDateOffset]);
 
-  const maxApptsPerHour: Record<string, number> = {};
-  visibleDates.forEach((date) => {
-    hours.forEach((h) => {
-      const hourKey = h.toString().padStart(2, "0") + ":00";
-      const count = (appointments[date]?.[hourKey] || []).length;
-      maxApptsPerHour[hourKey] = Math.max(maxApptsPerHour[hourKey] || 0, count);
+  const maxApptsPerHour: Record<string, number> = useMemo(() => {
+    const maxCounts: Record<string, number> = {};
+    visibleDates.forEach((date) => {
+        hours.forEach((h) => {
+            const hourKey = h.toString().padStart(2, "0") + ":00";
+            const count = (appointments[date]?.[hourKey] || []).length;
+            maxCounts[hourKey] = Math.max(maxCounts[hourKey] || 0, count);
+        });
     });
-  });
+    return maxCounts;
+  }, [appointments, visibleDates, hours]);
+  
 
+  if (loading || !user) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="w-12 h-12 animate-spin text-orange-500" />
+      </div>
+    );
+  }
+
+  if (user.role?.trim() !== 'counsellor' || !user.verified) {
+    return <PendingReviewScreen />;
+  }  
   return (
     <div className="w-full bg-[#F5F5F7] px-4 sm:px-6 lg:px-8 mt-16 sm:mt-20 flex flex-col items-center">
-      <div className="w-full max-w-[1200px] flex flex-col md:flex-row md:justify-between md:items-center justify-between items-center gap-4 py-7">
-        <div className="flex items-center gap-4">
-          <img src="/counselor.png" alt="Counselor" />
-          <h1 className="flex flex-col gap-2 font-semibold text-2xl text-[#343C6A]">
-            Ashutosh Kumar
-            <span className="text-[#718EBF] text-lg font-medium">
-              Career Counselor, 5+ years of experience
-            </span>
-          </h1>
+      <div className="w-full max-w-[1200px] rounded-xl">
+  <div className="h-32 md:h-56 bg-gray-200 rounded-t-xl">
+    <img
+      src="https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=2070&auto.format&fit=crop"
+      alt="University Banner"
+      className="w-full h-full object-cover rounded-t-xl"
+    />
+  </div>
+
+  <div className="px-4 md:px-10 pb-6">
+    <div className="relative flex flex-col items-center md:flex-row md:justify-between md:items-start">
+      <div className="flex flex-col md:flex-row items-center md:items-start w-full">
+        <div className="flex-shrink-0 w-32 h-32 md:w-48 md:h-48 rounded-full border-[4px] border-white bg-gray-300 overflow-hidden shadow-lg -mt-16 md:-mt-24">
+          <img
+            src={user.photo || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=EBF4FF&color=0D47A1`}
+            alt={`${user.firstName} ${user.lastName}`}
+            className="w-full h-full object-cover"
+            onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=EBF4FF&color=0D47A1`; }}
+          />
         </div>
+        
+        <div className="mt-4 md:mt-0 md:ml-6 md:pt-6 flex flex-col items-center md:items-start">
+          <h1 className="text-xl md:text-2xl font-semibold text-[#343C6A] leading-tight">
+            {user.firstName} {user.lastName}
+          </h1>
+          <p className="text-sm md:text-lg text-[#718EBF] font-medium">
+            Career Counselor
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 md:mt-0 md:pt-6">
         <button 
-        onClick={() => setProfileModalOpen(true)}
-        className="h-full bg-white py-2.5 px-4 border border-[#343c6a] rounded-[12px] text-[16px] font-medium">
-          View profile
+          onClick={() => setProfileModalOpen(true)}
+          className="flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-[#343C6A] rounded-xl text-[#343C6A] font-medium text-base hover:bg-gray-100 transition-colors shadow-sm whitespace-nowrap"
+        >
+          <SquarePen size={20} />
+          <span>View Profile</span>
         </button>
       </div>
+    </div>
+  </div>
+</div>
 
       <div className="w-full max-w-[1200px]">
         <div className="border-b border-gray-200">
@@ -318,11 +381,6 @@ export default function CounselorDashboard() {
                                                   left: -GRID_CONFIG.timeColumnWidth,
                                                   width: `calc(${GRID_CONFIG.timeColumnWidth}px + ${GRID_CONFIG.dayColumnMinWidth * visibleDates.length}px + 16px)`,
                                                   borderTop: '2px dashed #EDEDED',
-                                                  backgroundImage: 'repeating-linear-gradient(to right, #EDEDED 0px, #EDEDED 14px, transparent 14px, transparent 28px)',
-                                                  backgroundSize: '28px 2px',
-                                                  backgroundPosition: 'top',
-                                                  backgroundRepeat: 'repeat-x',
-                                                  height: '2px',
                                               }}
                                               />
                                           )}
@@ -382,14 +440,22 @@ export default function CounselorDashboard() {
                   </div>
               </div>
           )}
-          {mainTab === 'earnings' && <MyEarningsTab />}
-          {mainTab === 'appointments' && <AppointmentsTab />}
-          {mainTab === 'reviews' && <ReviewsTab />}
-          {mainTab === 'clients' && <ClientsTab />}
+          {mainTab === 'earnings' && <MyEarningsTab user={user} token={token}/>}
+          {mainTab === 'appointments' && <AppointmentsTab user={user} token={token}/>}
+          {mainTab === 'reviews' && <ReviewsTab user={user} token={token}/>}
+          {mainTab === 'clients' && <ClientsTab user={user} token={token}/>}
         </div>
       </div>
 
-      <OutOfOfficeDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      <OutOfOfficeDrawer 
+  open={drawerOpen} 
+  onClose={() => {
+    setDrawerOpen(false);
+    fetchData();
+  }} 
+  user={user} 
+  token={token}
+/>
 
       {selectedAppointment && (
         <AppointmentPopup 
@@ -397,14 +463,17 @@ export default function CounselorDashboard() {
           position={selectedAppointment.position}
           onClose={() => setSelectedAppointment(null)}
           onAppointmentUpdate={fetchData}
+          user={user} 
+          token={token}
         />
       )}
 
-      {isProfileModalOpen && (
+      {isProfileModalOpen && user.userName && (
         <CounselorProfile 
           isOpen={isProfileModalOpen}
           onClose={() => setProfileModalOpen(false)}
-          counsellorId="9470988669"
+          user={user}
+          token={token}
         />
       )}
     </div>
