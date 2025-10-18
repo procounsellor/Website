@@ -57,6 +57,7 @@ export interface User {
   transactions: Transaction[];
   bankDetails?: BankDetails | null;
   role: string;
+  verified?: boolean;
   activityLog: ActivityLog[];
   callHistory?: unknown | null;
   photo: string | null;

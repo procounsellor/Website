@@ -2,6 +2,7 @@ import type { EarningsData } from '@/types/earnings';
 import { Info } from 'lucide-react';
 import EarningsTrendChart from './EarningsTrendChart';
 import { useState } from 'react';
+import CompensationModal from './CompensationModal';
 
 interface EarningsViewProps {
   data: EarningsData;
@@ -35,6 +36,7 @@ const InfoCard = ({ title, amount, variant }: { title: string; amount: number; v
 
 export default function EarningsView({ data }: EarningsViewProps) {
     const [timeframe, setTimeframe] = useState<'yearly' | 'monthly'>('yearly');
+    const [isSlabModalOpen, setSlabModalOpen] = useState(false);
   return (
     <div>
       <div className="mb-6">
@@ -53,8 +55,10 @@ export default function EarningsView({ data }: EarningsViewProps) {
             <div className="flex justify-between items-center">
               <h3 className="text-base font-medium text-gray-700">Current Slab</h3>
               <div className="flex items-center gap-2">
+                <button onClick={() => setSlabModalOpen(true)} className="flex items-center gap-2 cursor-pointer">
                 <span className="font-semibold text-gray-800">{data.slabOfCounsellor}</span>
-                <Info size={16} className="text-gray-400" />
+                <Info size={24} fill="#13097D" className="text-white" />
+              </button>
               </div>
             </div>
 
@@ -104,6 +108,11 @@ export default function EarningsView({ data }: EarningsViewProps) {
           <InfoCard title="Payout" amount={data.totalLifetimePayout} variant="payout" />
         </div>
       </div>
+      <CompensationModal 
+        isOpen={isSlabModalOpen}
+        onClose={() => setSlabModalOpen(false)}
+        data={data}
+      />
     </div>
   );
 }

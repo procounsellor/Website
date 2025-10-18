@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import startRecharge from "@/api/wallet"
 import AddFundsPanel from "@/components/student-dashboard/AddFundsPanel"
+import toast from "react-hot-toast"
 
 declare global {
   interface Window {
@@ -48,7 +49,7 @@ export default function RechargeWallet() {
         description: "Wallet Recharge",
         notes: { userId: user?.userName },
         handler: async function () {
-          alert("Payment successful. Your balance will be updated shortly.");
+          toast.success("Payment successful. Your balance will be updated shortly.");
           try {
             const updatedUser = await refreshUser(true);
             if (updatedUser && typeof updatedUser.walletAmount === 'number') {

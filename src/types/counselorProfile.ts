@@ -1,3 +1,5 @@
+import type { ActivityLog, Transaction } from "@/types/user";
+
 export interface FullOfficeAddress {
   role: string | null;
   officeNameFloorBuildingAndArea: string | null;
@@ -35,4 +37,8 @@ export interface CounselorProfileData {
   proSeats: string;
   eliteSeats: string;
   verified: boolean;
+  photoUrlSmall: string;
+  walletAmount: number;
+  transactions: Transaction[];
+  activityLog: ActivityLog[];
 }

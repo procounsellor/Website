@@ -6,18 +6,20 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { Dayjs } from "dayjs";
 import { setOutOfOffice } from "@/api/counselor-Dashboard";
-// import { useAuthStore } from "@/store/AuthStore";
+import type { User } from '@/types/user';
 import toast from "react-hot-toast";
 
 export default function OutOfOfficeDrawer({
   open,
   onClose,
+  user,
+  token
 }: {
   open: boolean;
   onClose: () => void;
-  counselor?: string;
+  user: User;
+  token: string;
 }) {
-  // const { userId } = useAuthStore();
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
   const [startTime, setStartTime] = useState('09:00');
@@ -55,9 +57,9 @@ export default function OutOfOfficeDrawer({
   }, [showStartCalendar, showEndCalendar]);
 
   const handleSubmit = async () => {
-    const counselorId = '9470988669';
+    const counselorId = user.userName;
 
-    if (!startDate || !endDate || !startTime || !endTime || !reason.trim()) {
+    if (!startDate || !endDate || !startTime || !endTime || !reason.trim() || !token) {
         toast.error("Please fill in all fields before scheduling.");
         return;
     }
@@ -73,7 +75,7 @@ export default function OutOfOfficeDrawer({
 
     setIsSubmitting(true);
     try {
-        await setOutOfOffice(payload);
+        await setOutOfOffice(payload, token);
         setStartDate(null);
         setEndDate(null);
         setReason("");
