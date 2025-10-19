@@ -5,9 +5,10 @@ import "./PlansDrawer.css";
 import { useState, useEffect } from "react";
 import type { CounselorDetails } from "@/types";
 import { useAuthStore } from "@/store/AuthStore";
-import { useNavigate } from "react-router-dom";
-import { transferAmount, subscribeCounselor, manualPaymentApproval } from "@/api/wallet";
+import { useNavigate, useLocation } from "react-router-dom";
+import { transferAmount, subscribeCounselor, manualPaymentApproval, upgradeSubscriptionPlan, type UpgradePlanPayload } from "@/api/wallet";
 import toast from 'react-hot-toast';
+import type { SubscribedCounsellor } from "@/types/user";
 
 type PlansResponse = {
   benefits?: Array<any>;
@@ -28,6 +29,8 @@ export default function PlansDrawer({
   planTitle,
   price,
   counselor,
+  isUpgrade,
+  currentPlan
 }: {
   open: boolean;
   onClose: () => void;
@@ -36,6 +39,8 @@ export default function PlansDrawer({
   planTitle?: string | null;
   price?: string | undefined;
   counselor?: CounselorDetails;
+  isUpgrade?: boolean;
+  currentPlan?: SubscribedCounsellor | null;
 }) {
   const [payingOffline, setPayingOffline] = useState(false);
   const [approved, setApproved] = useState(false)
@@ -44,67 +49,108 @@ export default function PlansDrawer({
   const user = useAuthStore((s) => s.user);
   const refreshUser = useAuthStore((s) => s.refreshUser);
   const navigate = useNavigate();
+  const location = useLocation();
+  const getPlanPrice = (planName: string | null | undefined): number => {
+    if (!planName || !counselor) return 0;
+    const lowerCasePlanName = planName.toLowerCase();
+    if (lowerCasePlanName === 'plus') return counselor.plusAmount;
+    if (lowerCasePlanName === 'pro') return counselor.proAmount;
+    if (lowerCasePlanName === 'elite') return counselor.eliteAmount;
+    return 0;
+  };
+
+  const newPlanPrice = getPlanPrice(planTitle);
+  const currentPlanPrice = isUpgrade ? getPlanPrice(currentPlan?.plan) : 0;
+  const priceToPay = newPlanPrice - currentPlanPrice;
 
   async function subscribe() {
     const wallet = user?.walletAmount ?? 0;
-    const priceNum = Number(price ?? 0);
+    const priceNum = isUpgrade ? priceToPay : newPlanPrice;
+    
     if (wallet < priceNum) {
-      navigate("/wallet");
+      navigate("/wallet", { 
+        state: { 
+          returnTo: location.pathname, 
+          returnState: { ...location.state, autoOpenPlan: planKey }
+        } 
+      });
       return;
     }
     if (!counselor?.userName || !user?.userName) {
-      console.error("Missing counselor or user identifier for payment");
+      toast.error("Missing counselor or user identifier.");
       return;
     }
 
-    const toastId = toast.loading('Processing your subscription...');
+    const toastId = toast.loading('Processing your request...');
+
     try {
-      // transfer pro coins from user to counsellor
       const transferRes = await transferAmount(counselor.userName, user.userName, priceNum);
-      // expect API to return an object with success flag or status
       if (!transferRes || (transferRes as any).status === false) {
-        console.error('Transfer failed', transferRes);
-        toast.error('Payment transfer failed. Please try again.', { id: toastId });
-        return;
+        throw new Error('Payment transfer failed. Please try again.');
       }
-
-      // after successful transfer, call subscribe endpoint
-      const subscribeRes = await subscribeCounselor(counselor.userName, user.userName, priceNum, (planTitle ?? '').toLowerCase());
-      console.log('subscribeRes', subscribeRes);
-
-      // refresh cached user (wallet amount will be decreased)
+      if (isUpgrade) {
+        toast.loading('Upgrading your plan...', { id: toastId });
+        const payload: UpgradePlanPayload = {
+          userId: user.userName,
+          counsellorId: counselor.userName,
+          receiverFcmToken: null,
+          amount: priceNum,
+          plan: (planTitle ?? '').toLowerCase() as 'plus' | 'pro' | 'elite',
+          subscriptionMode: 'online',
+          subscriptionType: 'upgrade',
+        };
+        await upgradeSubscriptionPlan(payload);
+      } else {
+        toast.loading('Completing your subscription...', { id: toastId });
+        await subscribeCounselor(counselor.userName, user.userName, priceNum, (planTitle ?? '').toLowerCase());
+      }
+      
       await refreshUser(true);
-      toast.success('Subscription successful! Redirecting...', { id: toastId });
+      toast.success(isUpgrade ? 'Upgrade successful! Redirecting...' : 'Subscription successful! Redirecting...', { id: toastId });
 
       setTimeout(() => {
         navigate(`/counselors/profile`, { state: { id: counselor.userName } });
         onClose();
       }, 1500);
+
     } catch (err) {
-      console.error('Subscription flow failed', err);
-      toast.error('Subscription failed. Please try again.', { id: toastId });
+      console.error('Subscription/Upgrade flow failed', err);
+      toast.error(err instanceof Error ? err.message : 'An unknown error occurred.', { id: toastId });
     }
   }
 
-
-
-  async function offlinePayment(){
-    const priceNum = Number(price ?? 0);
-    if(!counselor?.userName || !user?.userName){
-      console.log('Counselor username of user id mising')
-      return 
-    }
-
-    try{
-      const offlinePayment = await manualPaymentApproval(counselor.userName, user.userName, priceNum, (planTitle ?? '').toLowerCase())
-      console.log('offline payment: ', offlinePayment)
-      setPayingOffline(false)
-      setApproved(offlinePayment.status)
-
-    }catch(e){
-      console.error(e)
-    }
+  async function offlinePayment() {
+  const priceNum = isUpgrade ? priceToPay : newPlanPrice;
+  if (!counselor?.userName || !user?.userName) {
+    toast.error('Counselor or user ID is missing.');
+    return;
   }
+  const toastId = toast.loading('Sending offline request...');
+  try {
+    const subscriptionType = isUpgrade ? 'upgrade' : '';
+    const offlinePaymentResult = await manualPaymentApproval(
+      counselor.userName,
+      user.userName,
+      priceNum,
+      (planTitle ?? '').toLowerCase(),
+      subscriptionType
+    );
+
+    console.log('Offline payment response: ', offlinePaymentResult);
+    
+    if (offlinePaymentResult?.status) {
+      toast.success('Offline request sent successfully!', { id: toastId });
+      setApproved(true);
+      setPayingOffline(false);
+    } else {
+      throw new Error(offlinePaymentResult?.message || 'Failed to send offline request.');
+    }
+
+  } catch (e) {
+    console.error(e);
+    toast.error(e instanceof Error ? e.message : 'An unknown error occurred.', { id: toastId });
+  }
+}
 
   useEffect(() => {
     if (!open) return;
@@ -350,21 +396,44 @@ export default function PlansDrawer({
 
             <hr className="w-full h-px bg-[#D0D0D0] my-5" />
 
-            <div className="flex text-[14px] font-normal text-[#232323] justify-between bg-[#F9FAFB] border border-[#F9FAFB] rounded-[12px] p-4 w-[404px]">
-              <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 text-[14px] font-normal text-[#232323] bg-[#F9FAFB] border border-[#F9FAFB] rounded-[12px] p-4 w-[404px]">
+              <div className="flex justify-between items-center">
                 <div className="flex gap-2 items-center">
-                  <img src="/planImage.svg" alt="" />
-                  {planTitle}
+                  <img src="/planImage.svg" alt="plan icon" />
+                  <span>{planTitle} Plan</span>
                 </div>
-                <div className="flex gap-2 items-center">
-                  <img src="/wallet.svg" alt="" />
-                  <p>Wallet Balance</p>
-                </div>
+                <span className="text-[16px] font-medium text-[#232323]">
+                  &#8377;{newPlanPrice.toLocaleString('en-IN')}
+                </span>
               </div>
 
-              <div className="flex flex-col gap-3 text-[16px] font-medium text-[#232323]">
-                <div className="">{price}</div>
-                <div>{user?.walletAmount}</div>
+              <div className="flex justify-between items-center">
+                <div className="flex gap-2 items-center">
+                  <img src="/wallet.svg" alt="wallet icon" />
+                  <p>Wallet Balance</p>
+                </div>
+                <span className="text-[16px] font-medium text-[#232323]">
+                  &#8377;{(user?.walletAmount ?? 0).toLocaleString('en-IN')}
+                </span>
+              </div>
+
+              {isUpgrade && currentPlanPrice > 0 && (
+                <div className="flex justify-between items-center">
+                  <div className="flex gap-2 items-center text-green-600">
+                    <p><span className="capitalize">{currentPlan?.plan}</span> Plan Credit</p>
+                  </div>
+                  <span className="text-[16px] font-medium text-green-600">
+                    - &#8377;{currentPlanPrice.toLocaleString('en-IN')}
+                  </span>
+                </div>
+              )}
+
+              <hr className="my-2 border-gray-300" />
+              <div className="flex justify-between items-center">
+                <p className="text-[16px] font-bold text-[#343C6A]">Price to Pay</p>
+                <span className="text-xl font-bold text-orange-600">
+                  &#8377;{(isUpgrade ? priceToPay : newPlanPrice).toLocaleString('en-IN')}
+                </span>
               </div>
             </div>
 

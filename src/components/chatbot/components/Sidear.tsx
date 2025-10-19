@@ -1,4 +1,6 @@
-import {  EllipsisVertical, Plus, Search} from "lucide-react";
+import { useState } from 'react';
+import { EllipsisVertical, Plus, Search, PanelLeftClose, ArrowLeft, PanelRightClose } from "lucide-react";
+import ChatOptionsMenu from './ChatOptionsMenu';
 
 type ChatItem = {
   id: string;
@@ -16,80 +18,128 @@ type Props = {
   handleDeleteChat: (id: string) => void;
 };
 
-export default function ({
+const IconOnlyButton = ({ onClick, children, ariaLabel }: { onClick?: () => void, children: React.ReactNode, ariaLabel: string }) => (
+  <button
+    onClick={onClick}
+    aria-label={ariaLabel}
+    className="p-3 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+  >
+    {children}
+  </button>
+);
+
+
+export default function Sidebar({
   handleNewChat,
   isSidebarOpen,
+  setIsSidebarOpen,
   chatHistory,
   currentChatId,
   handleSelectChat,
+  handleDeleteChat,
 }: Props) {
+  const [menuOpenFor, setMenuOpenFor] = useState<string | null>(null);
+  const handleRename = (chatId: string) => {
+    console.log("Renaming chat:", chatId);
+    setMenuOpenFor(null);
+  };
+  const handleBookmark = (chatId: string) => {
+    console.log("Bookmarking chat:", chatId);
+    setMenuOpenFor(null);
+  };
+  const handleDelete = (chatId: string) => {
+    handleDeleteChat(chatId);
+    setMenuOpenFor(null);
+  };
+
   return (
     <div
-      className={`bg-[#232323] border-t-0 lg:mt-1  w-[17.75rem] transition-all duration-50 ease-in-out overflow-hidden flex flex-col items-center ${
-        isSidebarOpen ? "border-r border-[#E2E2E2]/60" : "border-r-0"
-      }`}
+      className={`bg-[#232323] h-full border-t border-r border-[#A0A0A099] transition-all duration-300 ease-in-out`}
+      style={{ width: isSidebarOpen ? '264px' : '80px' }}
     >
-
       {isSidebarOpen ? (
-        <div className="w-[13.75rem] lg:py-11 flex flex-col overflow-y-auto px-4">
-
-          <button
-            onClick={handleNewChat}
-            className="text-white  rounded-lg flex items-center gap-2 transition-colors lg:mb-7"
-          >
-            <Plus size={20} />
-            <span>New Chat</span>
-          </button>
-
-          <div>
-            <div className="w-[200px] flex items-center justify-between mb-[22px]">
-              <p className="text-[14px] font-medium text-white">
-                Recent Searches
-              </p>
-              <Search size={16} className="text-white/60" />
-            </div>
-
-            {chatHistory.map((chat) => (
-              <div
-                key={chat.id}
-                className={`group w-[200px] rounded-[12px] hover:bg-[#FFFFFF40] py-1.5 mb-2 cursor-pointer transition-colors 
-                   ${
-                    currentChatId === chat.id 
-                    ? "bg-[#FFFFFF14]"
-                    :''
-                    }
-                  `}
+        <div className="w-full h-full p-8 flex flex-col">
+          <div className="flex-grow overflow-y-auto">
+            <div className="flex items-center justify-between mb-3">
+              <button
+                onClick={handleNewChat}
+                className="flex items-center gap-1 text-white font-semibold text-sm mt-3"
               >
-                <div
-                  onClick={() => handleSelectChat(chat.id)}
-                  
-                  className={`flex items-center gap-6 px-4`}>
-                  <div className="flex-1 justify-between min-w-0">
-                    <p
-                      className={`${
-                        currentChatId === chat.id
-                          ? "text-white"
-                          : "text-white/60"
-                      } text-sm truncate group-hover:text-white`}
-                    >
-                      {chat.title}
-                    </p>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                    className="ml-2 opacity-100 text-white cursor-pointer group-hover:opacity-100 transition-opacity"
-                    aria-label="Delete chat"
-                  >
-                    <EllipsisVertical size={16}/>
-                  </button>
-                </div>
+                <Plus size={24} />
+                <span>New Chat</span>
+              </button>
+              <button onClick={() => setIsSidebarOpen(false)} className="text-white">
+                <PanelLeftClose size={24} />
+              </button>
+            </div>
+            <div className="mt-7">
+              <div className="flex items-center justify-between p-4">
+                <p className="font-semibold text-sm text-white">
+                  RECENT SEARCHES
+                </p>
+                <Search size={18} className="text-white/60" />
               </div>
-            ))}
+              <div className="mt-6 space-y-2">
+                {chatHistory.map((chat) => (
+                  <div key={chat.id} className="relative">
+                    <div onClick={() => handleSelectChat(chat.id)} className={`group w-full rounded-lg py-[6px] px-4 cursor-pointer transition-colors ${currentChatId === chat.id ? "bg-white/[.25]" : "hover:bg-white/[.25]"}`}>
+                      <div className="flex items-center justify-between">
+                        <p className={`text-sm font-medium truncate ${currentChatId === chat.id ? "text-white" : "text-white/60"} group-hover:text-white`}>
+                          {chat.title}
+                        </p>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMenuOpenFor(menuOpenFor === chat.id ? null : chat.id);
+                          }}
+                          className={`transition-opacity ${currentChatId === chat.id || menuOpenFor === chat.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                          aria-label="More options"
+                        >
+                          <EllipsisVertical size={16} className="text-white"/>
+                        </button>
+                      </div>
+                    </div>
+                    {menuOpenFor === chat.id && (
+                      <ChatOptionsMenu
+                        onClose={() => setMenuOpenFor(null)}
+                        onRename={() => handleRename(chat.id)}
+                        onBookmark={() => handleBookmark(chat.id)}
+                        onDelete={() => handleDelete(chat.id)}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div>
+            <button className="w-full flex items-center gap-3 p-[11px] rounded-xl">
+                <ArrowLeft size={20} className="text-white" />
+                <span className="font-medium text-sm text-white">Back to Home</span>
+            </button>
           </div>
         </div>
-      ) : null}
+      ) : (
+        // collapsed view
+        <div className="w-full h-full flex flex-col items-center justify-between py-8">
+          <div className="flex flex-col items-center space-y-4">
+            <IconOnlyButton onClick={() => setIsSidebarOpen(true)} ariaLabel="Expand sidebar">
+              <PanelRightClose size={22} />
+            </IconOnlyButton>
+            <IconOnlyButton onClick={handleNewChat} ariaLabel="New chat">
+              <Plus size={22} />
+            </IconOnlyButton>
+            <IconOnlyButton ariaLabel="Search">
+              <Search size={22} />
+            </IconOnlyButton>
+          </div>
+          <div>
+            <IconOnlyButton ariaLabel="Back to home">
+              <ArrowLeft size={22} />
+            </IconOnlyButton>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -70,6 +70,94 @@ export async function verifyOtp(phone: string, otp: string) {
     }
 }
 
+export async function sendEmailOtp(email: string) {
+  try {
+    const payload = { email: email };
+    const response = await fetch(`${baseUrl}/api/auth/send-mail`, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: Failed to send email OTP. Server says: ${errorText}`);
+    }
+    
+    const responseText = await response.text();
+    try {
+      return JSON.parse(responseText);
+    } catch (e) {
+      console.log(responseText);
+      return { success: true, message: responseText };
+    }
+
+  } catch (error) {
+    console.error('Send Email OTP Error:', error);
+    throw (error);
+  }
+}
+
+export async function verifyEmailOtp(email: string, otp: string) {
+  try {
+    const payload = { email: email, otp: otp };
+    const response = await fetch(`${baseUrl}/api/auth/verify-mail`, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: Email OTP verification failed. Server says: ${errorText}`);
+    }
+    
+    const responseText = await response.text();
+    try {
+      return JSON.parse(responseText);
+    } catch (e) {
+      console.log(responseText);
+      return { success: true, message: responseText };
+    }
+
+  } catch (error) {
+    console.error('Verify Email OTP Error:', error);
+    throw error;
+  }
+}
+
+export async function counsellorSignup(payload: any) {
+  try {
+    const token = localStorage.getItem('jwt');
+    const response = await fetch(`${baseUrl}/api/auth/counsellorSignup`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: Signup failed. Server says: ${errorText}`);
+    }
+    
+    const responseText = await response.text();
+    try {
+      return JSON.parse(responseText);
+    } catch (e) {
+      return { success: true, message: responseText };
+    }
+
+  } catch (error) {
+    console.error('Counselor Signup Error:', error);
+    throw error;
+  }
+}
+
+
 export async function getSates(){
     try{
         const response = await fetch(`${baseUrl}//api/courseAndState/all-states`, {

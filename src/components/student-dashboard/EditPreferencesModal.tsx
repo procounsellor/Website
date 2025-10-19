@@ -11,9 +11,10 @@ import { Check, X } from 'lucide-react';
 interface EditCourseViewProps {
   selectedCourse: string | null;
   onCourseSelect: (name: string) => void;
+  onSubmit: () => void;
 }
 
-const EditCourseView: React.FC<EditCourseViewProps> = ({ selectedCourse, onCourseSelect }) => {
+const EditCourseView: React.FC<EditCourseViewProps> = ({ selectedCourse, onCourseSelect, onSubmit }) => {
   const [courses, setCourses] = useState<CousrseApiLogin[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,6 +31,16 @@ const EditCourseView: React.FC<EditCourseViewProps> = ({ selectedCourse, onCours
     fetchCourses();
   }, []);
 
+  const getCardStyle = (name: string) => {
+    return selectedCourse === name
+      ? 'bg-[#13097D] text-white'
+      : 'bg-white hover:shadow-lg';
+  };
+  const getTextStyle = (name: string, type: 'primary' | 'secondary') => {
+    if (selectedCourse === name) return 'text-white';
+    return type === 'primary' ? 'text-gray-800' : 'text-gray-500';
+  }
+
   if (loading) return <div className="text-center p-10">Loading courses...</div>;
 
   return (
@@ -41,13 +52,29 @@ const EditCourseView: React.FC<EditCourseViewProps> = ({ selectedCourse, onCours
             <button
               key={course.courseId}
               onClick={() => onCourseSelect(course.name)}
-              className={`transform rounded-xl border p-5 text-center transition-all duration-200 ${
-                selectedCourse === course.name ? 'bg-[#13097D] text-white' : 'bg-white hover:shadow-lg'
-              }`}
+              className={`transform rounded-xl border p-5 text-center transition-all duration-200 ${getCardStyle(course.name)}`}
             >
-              <h3 className={`text-lg font-bold ${selectedCourse === course.name ? 'text-white' : 'text-gray-800'}`}>{course.name}</h3>
+              <img src={`/courseIcon/${course.image}`} alt={`${course.name} icon`} className="mb-4 h-24 w-24 object-contain mx-auto" />
+              <h3 className={`text-lg font-bold ${getTextStyle(course.name, 'primary')}`}>{course.name}</h3>
+              <p className={`text-sm ${getTextStyle(course.name, 'secondary')}`}>
+                {course.duration}
+              </p>
+              <p className={`mt-2 text-sm ${getTextStyle(course.name, 'secondary')}`}>
+                {course.tagline}
+              </p>
             </button>
           ))}
+        </div>
+      </div>
+      <div className="mt-auto pt-6 border-t border-gray-200">
+        <div className="flex justify-end">
+          <button 
+            onClick={onSubmit} 
+            className="rounded-lg bg-[#FA660F] px-12 py-3 font-semibold text-white transition-colors hover:bg-orange-600"
+            disabled={!selectedCourse} 
+          >
+            Update Course
+          </button>
         </div>
       </div>
     </>
@@ -93,9 +120,14 @@ const EditStatesView: React.FC<EditStatesViewProps> = ({ selectedStates, onState
                 isSelected(state.name) ? 'border-transparent bg-[#13097D] text-white' : 'bg-white hover:shadow-lg'
               }`}
             >
+              <img src={`/stateIcons/${state.image}`} alt={`${state.name} icon`} className="mb-3 h-12 w-12 object-contain mx-auto" />
               <h3 className="font-semibold">{state.name}</h3>
-              <div className={`absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded border-2 ${isSelected(state.name) ? 'border-white bg-white text-[#13097D]' : 'border-gray-300'}`}>
-                {isSelected(state.name) && <Check size={14} strokeWidth={3} />}
+              <div
+                className={`absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded border-2 ${
+                  isSelected(state.name) ? 'border-white bg-white text-[#13097D]' : 'border-gray-300'
+                }`}
+              >
+                {isSelected(state.name) && <Check  size={14} strokeWidth={3} />}
               </div>
             </button>
           ))}
@@ -127,7 +159,6 @@ const EditPreferencesModal: React.FC<EditPreferencesModalProps> = ({ mode, curre
 
   const handleCourseSelect = (name: string) => {
     setSelectedCourse(name);
-    handleSubmit({ interestedCourse: name });
   };
 
   const handleStateSelect = (stateName: string) => {
@@ -168,6 +199,7 @@ const EditPreferencesModal: React.FC<EditPreferencesModalProps> = ({ mode, curre
           <EditCourseView
             selectedCourse={selectedCourse}
             onCourseSelect={handleCourseSelect}
+            onSubmit={() => handleSubmit()}
           />
         )}
         {mode === 'states' && (

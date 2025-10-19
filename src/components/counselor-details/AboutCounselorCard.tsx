@@ -14,15 +14,15 @@ export function AboutCounselorCard({ counselor }: Props) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
         <div className="flex justify-between items-center">
-            <h2 className="text-xl font-bold text-[#343C6A]">About {counselor.firstName}</h2>
+            <h2 className="md:text-xl md:font-bold text-base font-semibold text-[#343C6A]">About {counselor.firstName}</h2>
             <div className="flex items-center gap-1 text-yellow-500 px-2 py-1 rounded-full">
                 <Star className="w-4 h-4 fill-current" />
                 <span className="font-bold text-sm">{rating.toFixed(1)}</span>
                 {/* <span className="text-xs text-yellow-700">({reviewCount})</span> */}
             </div>
         </div>
-        <p className="text-[#718EBF] mt-2">From {counselor.organisationName}, {counselor.fullOfficeAddress?.city || 'Location'} Office</p>
-        <p className="mt-4 text-[#232323] font-medium leading-relaxed">
+        <p className="text-sm font-semibold text-[#718EBF] mt-2">From {counselor.organisationName}, {counselor.fullOfficeAddress?.city || 'Location'} Office</p>
+        <p className="mt-4 text-[#232323] md:font-medium md:text-base text-xs leading-relaxed">
             {counselor.description || 'Experienced education counsellor with a strong track record helping students choose suitable colleges and programs. Specialises in entrance strategy, profile building, and admission planning.'}
         </p>
 

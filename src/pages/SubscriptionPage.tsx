@@ -5,7 +5,7 @@ import { useLocation } from "react-router-dom"
 
 export function SubscriptionPage(){
     const location = useLocation()
-    const {counselorId, userId, counselor} = location.state
+    const {counselorId, userId, counselor, isUpgrade, currentPlan, autoOpenPlan} = location.state || {};    
     const [plans, setPlans] = useState({})
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -58,7 +58,13 @@ export function SubscriptionPage(){
     return <div className="w-full min-h-screen bg-[#F5F7FA] mt-20 px-40">
          <div className="flex flex-col items-center gap-6 justify-center py-10">
             <h1 className="flex flex-wrap justify-center text-[28px] font-semibold text-[#13097D] max-w-[523px]">Choose the best plan for your <span className="text-[#ff660a]">career guidance</span></h1>
-            <PlansCard plan={plans} counselor={counselor}/>
+            <PlansCard 
+                plan={plans} 
+                counselor={counselor} 
+                isUpgrade={isUpgrade} 
+                currentPlan={currentPlan}
+                initialSelectedPlan={autoOpenPlan}
+            />
          </div>
       
         

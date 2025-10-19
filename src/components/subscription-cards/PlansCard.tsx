@@ -2,6 +2,7 @@ import { useState } from "react";
 import PlansDrawer from "./PlansDrawer";
 import { Check, X } from "lucide-react";
 import type { CounselorDetails } from "@/types";
+import type { SubscribedCounsellor } from "@/types/user";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type PlansResponse = {
@@ -38,15 +39,27 @@ function ValueCell({ value }: { value: any }) {
   );
 }
 
-export default function PlansCard({ plan, counselor }: { plan?: PlansResponse, counselor?: CounselorDetails}) {
+export default function PlansCard({ 
+  plan, 
+  counselor, 
+  isUpgrade, 
+  currentPlan,
+  initialSelectedPlan
+}: { 
+  plan?: PlansResponse, 
+  counselor?: CounselorDetails,
+  isUpgrade?: boolean,
+  currentPlan?: SubscribedCounsellor | null,
+  initialSelectedPlan?: string | null
+}) {
   const columns: Array<{ key: string; title: string; icon?: string }> = [
     { key: "plus", title: "Plus", icon: "/plusIcon.svg" },
     { key: "pro", title: "Pro", icon: "/proIcon.svg" },
     { key: "elite", title: "Elite", icon: "/eliteIcon.svg" },
   ];
   // default select the Elite plan
-  const [selected, setSelected] = useState<string | null>("elite");
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selected, setSelected] = useState<string | null>(initialSelectedPlan || "elite");
+  const [drawerOpen, setDrawerOpen] = useState(!!initialSelectedPlan);
 
   return (
     <div className="bg-white w-full max-w-[1092px] pl-6 pr-6 py-6 rounded-[20px]">
@@ -152,6 +165,8 @@ export default function PlansCard({ plan, counselor }: { plan?: PlansResponse, c
           planTitle={columns.find((c) => c.key === selected)?.title}
           price={(plan?.prices as any)?.[selected ?? ""]}
           counselor={counselor}
+          isUpgrade={isUpgrade}
+          currentPlan={currentPlan}
         />
 
     </div>

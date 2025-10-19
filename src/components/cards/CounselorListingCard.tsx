@@ -1,5 +1,7 @@
 import { StarIcon, Bookmark, BadgeCheck, Briefcase, MapPin, Languages } from "lucide-react";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import { useAuthStore } from "@/store/AuthStore";
 
 export type CounselorCardData = {
   id: string;
@@ -21,9 +23,25 @@ export type CounselorCardData = {
 
 type CounselorCardProps = {
   counselor: CounselorCardData;
+  isFavourite: boolean;
+  onToggleFavourite: (counsellorId: string) => void;
 };
 
-export function CounselorCard({ counselor }: CounselorCardProps) {
+export function CounselorCard({ counselor, isFavourite, onToggleFavourite }: CounselorCardProps) {
+  const { isAuthenticated, toggleLogin } = useAuthStore();
+
+  const handleBookmarkClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      toast.error("Please log in to add favourites.");
+      toggleLogin();
+      return;
+    }
+    onToggleFavourite(counselor.id);
+  };
+
   return (
   <Link to={`/counselors/profile`} state={{ id: counselor.id }} className="flex h-full">
     <div className="flex w-full max-w-sm flex-col overflow-hidden rounded-lg cursor-pointer border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg">
@@ -31,7 +49,7 @@ export function CounselorCard({ counselor }: CounselorCardProps) {
         <img
           src={counselor.imageUrl}
           alt={`Photo of ${counselor.name}`}
-          className="h-60 w-full object-contain"
+          className="h-60 w-full object-cover"
         />
 
         <div className="absolute left-4 top-4 flex h-[38px] w-auto items-center justify-center gap-1.5 rounded-full bg-[#0C111F57] px-3 py-1 text-sm text-white shadow-[inset_7px_0px_20px_0px_rgba(255,255,255,0.15)]">
@@ -40,11 +58,13 @@ export function CounselorCard({ counselor }: CounselorCardProps) {
             </div>
             <span className="font-semibold whitespace-nowrap">{counselor.rating.toFixed(1)}</span>
         </div>
+        
         <button
+          onClick={handleBookmarkClick}
           aria-label="Save counselor"
           className="absolute right-4 top-4 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-black/30 backdrop-blur-md transition-colors hover:bg-black/50"
         >
-          <Bookmark className="h-4 w-4 text-white" />
+          <Bookmark className={`h-4 w-4 text-white transition-colors ${isFavourite ? 'fill-current' : ''}`} />
         </button>
       </div>
 
