@@ -321,3 +321,33 @@ export async function updateCounselorProfile(counsellorId: string, payload: Part
     throw error;
   }
 }
+
+export async function uploadCounselorPhoto(counsellorId: string, photoFile: File, token: string) {
+  const formData = new FormData();
+  formData.append('photo', photoFile);
+
+  try {
+    const response = await fetch(`${baseUrl}/api/counsellor/uploadPhoto?counsellorId=${counsellorId}`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        authorization: `Bearer ${token}`
+      },
+      body: formData,
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || 'Failed to upload photo.');
+    }
+
+    toast.success('Profile photo updated successfully!');
+    return result;
+
+  } catch (error) {
+    console.error("Upload Counselor Photo Error:", error);
+    toast.error(error instanceof Error ? error.message : 'An unknown error occurred.');
+    throw error;
+  }
+}
