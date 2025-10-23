@@ -1,6 +1,7 @@
 import { Star, ChevronRight, Info } from 'lucide-react';
 import React, { useState } from 'react';
 import type { CounselorReview } from '@/types/counselorReview';
+import toast from 'react-hot-toast';
 
 const StarRating = ({
   rating,
@@ -72,20 +73,38 @@ const formatTimeAgo = (timestamp: { seconds: number; nanos: number }) => {
   return 'just now';
 };
 
-// const mockReviews = [
-//   { name: 'Rahul Singh', time: '1 week ago', rating: 5, text: 'Very insightful session — explained admission options clearly and suggested practical next steps that I could follow.' },
-//     { name: 'Priya Sharma', time: '2 weeks ago', rating: 4, text: 'Very helpful and provided clear guidance for my career path. Highly recommended!' },
-// ];
-
 interface CounselorReviewsProps {
   reviews: CounselorReview[];
   isSubscribed: boolean;
   counsellorId: string;
+  onSubmitReview: (reviewText: string, rating: number) => Promise<void>;
 }
 
-export function CounselorReviews({ reviews,isSubscribed }: CounselorReviewsProps) {
+export function CounselorReviews({ reviews,isSubscribed, onSubmitReview }: CounselorReviewsProps) {
   const [userRating, setUserRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const handleLocalSubmit = async () => {
+    if (userRating === 0) {
+      toast.error("Please select a rating (1-5 stars).");
+      return;
+    }
+    if (!reviewText.trim()) {
+      toast.error("Please write a review before submitting.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await onSubmitReview(reviewText, userRating);
+      setUserRating(0);
+      setReviewText('');
+    } catch (error) {
+      console.error("Submission failed in component:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-8">
@@ -104,9 +123,14 @@ export function CounselorReviews({ reviews,isSubscribed }: CounselorReviewsProps
               placeholder="Share your experience with this counsellor..."
               value={reviewText}
               onChange={(e) => setReviewText(e.target.value)}
+              disabled={isSubmitting}
             />
-            <button className="self-start px-6 py-2 bg-[#13097D] text-white font-semibold rounded-lg hover:bg-opacity-90 transition">
-              Submit Review
+            <button 
+              className="self-start px-6 py-2 bg-[#13097D] text-white font-semibold rounded-lg hover:bg-opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleLocalSubmit}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Submitting..." : "Submit Review"}
             </button>
           </div>
         ) : (
@@ -135,7 +159,8 @@ export function CounselorReviews({ reviews,isSubscribed }: CounselorReviewsProps
 
           <div className="mt-4">
               {reviews && reviews.length > 0 ? (
-            reviews.map((review, index) => (
+            reviews.sort((a, b) => b.timestamp.seconds - a.timestamp.seconds)
+             .map((review, index) => (
               <React.Fragment key={review.reviewId}>
                 {index > 0 && <hr className="my-4 border-gray-200" />}
                 <div className="py-2">

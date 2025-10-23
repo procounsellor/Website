@@ -272,7 +272,7 @@ export async function getReviewsForCounselor(counsellorId: string, token: string
   try {
     const response = await fetch(`${baseUrl}/api/counsellor/getReviewsByCounsellorId?counsellorId=${counsellorId}`, {
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
         authorization: `Bearer ${token}`
       }
     });

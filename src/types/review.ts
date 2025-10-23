@@ -8,4 +8,6 @@ export interface Review {
     seconds: number;
     nanos: number;
   };
+  userId: string;
+  counsellorName: string;
 }

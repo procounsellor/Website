@@ -8,7 +8,7 @@ import { FreeCareerAssessmentCard } from '@/components/shared/FreeCareerAssessme
 import { FeaturedCollegesCard } from '@/components/shared/FeaturedCollegesCard';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/AuthStore';
-import { getSubscribedCounsellors, getReviewsByCounselorId, addFav } from '@/api/counsellor';
+import { getSubscribedCounsellors, getReviewsByCounselorId, addFav, postReview } from '@/api/counsellor';
 import toast from 'react-hot-toast';
 import type { CounselorReview } from '@/types/counselorReview';
 import type { SubscribedCounsellor } from '@/types/user';
@@ -42,6 +42,17 @@ export default function CounselorDetailsPage() {
       setIsFavourite(favIds.includes(computedId));
     }
   }, [user, computedId]);
+
+  const fetchReviews = async () => {
+    if (!userId || !computedId || !token) return;
+    try {
+      const fetchedReviews = await getReviewsByCounselorId(userId, computedId, token);
+      setReviews(fetchedReviews);
+    } catch (error) {
+      console.error("Failed to fetch reviews:", error);
+      setReviews([]);
+    }
+  };
 
   useEffect(() => {
     if (!computedId || !userId || !token) {
@@ -93,6 +104,50 @@ export default function CounselorDetailsPage() {
 
     fetchData();
   }, [userId, token, computedId]);
+
+  const handleSubmitReview = async (reviewText: string, rating: number) => {
+    if (!userId || !computedId || !token || !user) {
+      toast.error("You must be logged in to post a review.");
+      return;
+    }
+    const optimisticReview: CounselorReview = {
+      reviewId: `temp-${Date.now()}`,
+      userFullName: String(user.fullName || "Your Name"), 
+      userPhotoUrl: user.photoSmall || `https://ui-avatars.com/api/?name=${user.fullName || 'U'}`,
+      reviewText,
+      rating,
+      timestamp: {
+        seconds: Math.floor(Date.now() / 1000),
+        nanos: 0,
+      },
+    };
+    setReviews(prevReviews => [optimisticReview, ...prevReviews]);
+    const loadingToastId = toast.loading("Submitting review...");
+    try {
+      const reviewData = {
+        userId,
+        counsellorId: computedId,
+        reviewText,
+        rating,
+        receiverFcmToken: null,
+      };
+      
+      const response = await postReview({ ...reviewData, token });
+      toast.dismiss(loadingToastId);
+      if (response.status === 'success') {
+        toast.success(response.message || "Review posted successfully!");
+        await fetchReviews();
+      } else {
+        throw new Error(response.message || "Failed to post review.");
+      }
+
+    } catch (err) {
+      toast.dismiss(loadingToastId);
+      toast.error((err as Error).message || "Could not post review.");
+      setReviews(prevReviews => prevReviews.filter(r => r.reviewId !== optimisticReview.reviewId));
+      console.error("Submit Review Error:", err);
+    }
+  };
 
   const handleToggleFavourite = async () => {
     if (!userId || !computedId || !token) {
@@ -153,7 +208,8 @@ export default function CounselorDetailsPage() {
           <CounselorReviews 
               reviews={reviews}
               isSubscribed={!!subscriptionDetails}
-              counsellorId={computedId} 
+              counsellorId={computedId}
+              onSubmitReview={handleSubmitReview}
             />
         </div>
 
