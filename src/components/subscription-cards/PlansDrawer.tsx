@@ -9,6 +9,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { transferAmount, subscribeCounselor, manualPaymentApproval, upgradeSubscriptionPlan, type UpgradePlanPayload } from "@/api/wallet";
 import toast from 'react-hot-toast';
 import type { SubscribedCounsellor } from "@/types/user";
+import { ConfirmationModal } from '@/components/shared/ConfirmationModal';
 
 type PlansResponse = {
   benefits?: Array<any>;
@@ -46,6 +47,7 @@ export default function PlansDrawer({
   const [approved, setApproved] = useState(false)
   const [offlineAck, setOfflineAck] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const user = useAuthStore((s) => s.user);
   const refreshUser = useAuthStore((s) => s.refreshUser);
   const navigate = useNavigate();
@@ -319,6 +321,7 @@ export default function PlansDrawer({
   }
 
   return (
+    <>
     <div className="fixed inset-0 z-50 pointer-events-auto">
       <div
         className={`absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-200 ${mounted ? 'opacity-100' : 'opacity-0'}`}
@@ -438,7 +441,7 @@ export default function PlansDrawer({
             </div>
 
             <button
-              onClick={subscribe}
+              onClick={() => setIsConfirmModalOpen(true)}
               disabled={approved}
               aria-disabled={approved}
               className={`${approved ? 'bg-[#919191]': 'bg-[#EA5C19]'} cursor-pointer w-[404px] my-5 py-3 px-2 rounded-[12px] flex items-center justify-center text-[16px] text-white font-semibold`}
@@ -479,5 +482,14 @@ export default function PlansDrawer({
         </div>
       </aside>
     </div>
+    <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={subscribe}
+        title={isUpgrade ? "Confirm Plan Upgrade" : "Confirm Subscription"}
+        message={`Are you sure you want to ${isUpgrade ? 'upgrade to' : 'subscribe to'} the ${planTitle} plan for ₹${(isUpgrade ? priceToPay : newPlanPrice).toLocaleString('en-IN')}? This amount will be deducted from your wallet.`}
+        confirmText={isUpgrade ? "Yes, Upgrade" : "Yes, Subscribe"}
+      />
+      </>
   );
 }
