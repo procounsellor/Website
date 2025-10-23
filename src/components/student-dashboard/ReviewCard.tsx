@@ -43,9 +43,10 @@ const formatTimeAgo = (timestamp: { seconds: number; nanos: number }) => {
 
 interface ReviewCardProps {
   review: Review;
+  onEdit: (review: Review) => void;
 }
 
-const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
+const ReviewCard: React.FC<ReviewCardProps> = ({ review, onEdit }) => {
   return (
     <div className="bg-white rounded-2xl p-4 flex flex-col gap-3 shadow-[0px_0px_4px_0px_rgba(35,35,35,0.15)] border-l-[6px] border-[#3537B4]">
       <div className="flex items-center justify-between">
@@ -61,7 +62,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
             <StarRating rating={review.rating} />
           </div>
         </div>
-        <button className="flex items-center gap-2 text-xs font-semibold text-[#13097D] hover:opacity-80 transition-opacity">
+        <button className="flex items-center gap-2 text-xs font-semibold text-[#13097D] hover:opacity-80 transition-opacity" onClick={() => onEdit(review)}>
           <Edit className="w-4 h-4" />
           Edit
         </button>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useVoiceChatStore } from '@/store/VoiceChatStore';
 import { Mic, PhoneOff} from 'lucide-react';
-// import { motion } from 'framer-motion'; // ✨ NEW: Import framer-motion
+import { motion } from 'framer-motion';
 
 // --- Predefined color palettes for the visualizer ---
 const colorPalettes = [

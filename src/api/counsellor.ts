@@ -188,3 +188,33 @@ export const getReviewsForCounselor = async (counsellorId: string, token: string
         timeAgo: formatTimeAgo(apiReview.timestamp),
     }));
 };
+
+export async function postReview(reviewData: {
+  userId: string;
+  counsellorId: string;
+  reviewText: string;
+  rating: number;
+  receiverFcmToken: null;
+  token: string;
+}) {
+  const { token, ...body } = reviewData; 
+  try {
+    const response = await fetch(`${baseUrl}/api/user/postReview`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(body)
+    });
+    const result = await response.json(); 
+    if (!response.ok) {
+      throw new Error(result.message || `Failed to post review. Status: ${response.status}`);
+    }
+    return result;
+  } catch (error) {
+    console.error("Post Review Error:", error);
+    throw error;
+  }
+}
