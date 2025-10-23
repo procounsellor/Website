@@ -8,7 +8,8 @@ import { FreeCareerAssessmentCard } from '@/components/shared/FreeCareerAssessme
 import { FeaturedCollegesCard } from '@/components/shared/FeaturedCollegesCard';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/AuthStore';
-import { getSubscribedCounsellors, getReviewsByCounselorId } from '@/api/counsellor';
+import { getSubscribedCounsellors, getReviewsByCounselorId, addFav, postReview } from '@/api/counsellor';
+import toast from 'react-hot-toast';
 import type { CounselorReview } from '@/types/counselorReview';
 import type { SubscribedCounsellor } from '@/types/user';
 
@@ -26,12 +27,32 @@ export default function CounselorDetailsPage() {
   const state = location.state as LocationState;
   const computedId = paramId || state?.id;
   const { counselor, loading, error } = useCounselorById(computedId ?? '');
-  const { userId } = useAuthStore();
+  const { user, userId, refreshUser } = useAuthStore();
   const token = localStorage.getItem('jwt');
 
   const [subscriptionDetails, setSubscriptionDetails] = useState<SubscribedCounsellor | null>(null);
   const [reviews, setReviews] = useState<CounselorReview[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [isFavourite, setIsFavourite] = useState(false);
+  const [isTogglingFavourite, setIsTogglingFavourite] = useState(false);
+
+  useEffect(() => {
+    if (user && computedId) {
+      const favIds = user.favouriteCounsellorIds || [];
+      setIsFavourite(favIds.includes(computedId));
+    }
+  }, [user, computedId]);
+
+  const fetchReviews = async () => {
+    if (!userId || !computedId || !token) return;
+    try {
+      const fetchedReviews = await getReviewsByCounselorId(userId, computedId, token);
+      setReviews(fetchedReviews);
+    } catch (error) {
+      console.error("Failed to fetch reviews:", error);
+      setReviews([]);
+    }
+  };
 
   useEffect(() => {
     if (!computedId || !userId || !token) {
@@ -84,6 +105,71 @@ export default function CounselorDetailsPage() {
     fetchData();
   }, [userId, token, computedId]);
 
+  const handleSubmitReview = async (reviewText: string, rating: number) => {
+    if (!userId || !computedId || !token || !user) {
+      toast.error("You must be logged in to post a review.");
+      return;
+    }
+    const optimisticReview: CounselorReview = {
+      reviewId: `temp-${Date.now()}`,
+      userFullName: String(user.fullName || "Your Name"), 
+      userPhotoUrl: user.photoSmall || `https://ui-avatars.com/api/?name=${user.fullName || 'U'}`,
+      reviewText,
+      rating,
+      timestamp: {
+        seconds: Math.floor(Date.now() / 1000),
+        nanos: 0,
+      },
+    };
+    setReviews(prevReviews => [optimisticReview, ...prevReviews]);
+    const loadingToastId = toast.loading("Submitting review...");
+    try {
+      const reviewData = {
+        userId,
+        counsellorId: computedId,
+        reviewText,
+        rating,
+        receiverFcmToken: null,
+      };
+      
+      const response = await postReview({ ...reviewData, token });
+      toast.dismiss(loadingToastId);
+      if (response.status === 'success') {
+        toast.success(response.message || "Review posted successfully!");
+        await fetchReviews();
+      } else {
+        throw new Error(response.message || "Failed to post review.");
+      }
+
+    } catch (err) {
+      toast.dismiss(loadingToastId);
+      toast.error((err as Error).message || "Could not post review.");
+      setReviews(prevReviews => prevReviews.filter(r => r.reviewId !== optimisticReview.reviewId));
+      console.error("Submit Review Error:", err);
+    }
+  };
+
+  const handleToggleFavourite = async () => {
+    if (!userId || !computedId || !token) {
+      toast.error("You must be logged in to add favourites.");
+      return;
+    }
+
+    setIsTogglingFavourite(true);
+    setIsFavourite(prevState => !prevState); 
+
+    try {
+      await addFav(userId, computedId);
+      await refreshUser(true); 
+      toast.success("Favourite status updated!");
+    } catch (err) {
+      setIsFavourite(prevState => !prevState); 
+      toast.error("Could not update favourite status.");
+    } finally {
+      setIsTogglingFavourite(false);
+    }
+  };
+
   if (!computedId) {
     return <div className="p-8 text-center text-red-500">Error: Counselor ID is missing.</div>;
   }
@@ -97,10 +183,10 @@ export default function CounselorDetailsPage() {
   }
 
   return (
-    <div className="bg-gray-50 pt-28 pb-8 px-4">
+    <div className="bg-gray-50 pt-20 md:pt-28 pb-8 px-4">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-      <div className="max-w-7xl mx-auto mb-6">
+      <div className="max-w-7xl mx-auto mb-6 hidden md:block">
         <h1 className="text-2xl font-bold text-gray-800">Counselor Profile</h1>
         <p className="text-gray-500">Discover their expertise and find the right guidance for your future</p>
       </div>
@@ -110,18 +196,26 @@ export default function CounselorDetailsPage() {
         
         {/* Left Column */}
         <div className="lg:col-span-2 flex flex-col gap-8">
-          <CounselorProfileCard counselor={counselor} subscription={subscriptionDetails} />
+          <CounselorProfileCard 
+            counselor={counselor} 
+            subscription={subscriptionDetails} 
+            isFavourite={isFavourite}
+            onToggleFavourite={handleToggleFavourite}
+            isTogglingFavourite={isTogglingFavourite}  
+            user={user}
+          />
           <AboutCounselorCard counselor={counselor} />
           <CounselorReviews 
               reviews={reviews}
               isSubscribed={!!subscriptionDetails}
-              counsellorId={computedId} 
+              counsellorId={computedId}
+              onSubmitReview={handleSubmitReview}
             />
         </div>
 
         {/* Right Column */}
         <div className="lg:col-span-1 flex flex-col gap-8">
-          <FreeCareerAssessmentCard  counselor={counselor}/>
+          <FreeCareerAssessmentCard  counselor={counselor} user={user}/>
           <FeaturedCollegesCard />
         </div>
 

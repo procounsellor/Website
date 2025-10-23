@@ -5,6 +5,9 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectGr
 import { ChevronDown, ChevronRight, Search, X } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import Pagination from "@/components/ui/Pagination";
+import { useAuthStore } from "@/store/AuthStore";
+import { addFav } from "@/api/counsellor";
+import toast from "react-hot-toast";
 
 function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
   const firstName = apiCounselor.firstName || 'Unknown';
@@ -67,6 +70,34 @@ export default function CounselorListingPage() {
   const { data: counselors, loading, error } = useAllCounselors();
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 9;
+  const { user, userId, refreshUser } = useAuthStore();
+  const [favouriteIds, setFavouriteIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (user?.favouriteCounsellorIds) {
+      setFavouriteIds(new Set(user.favouriteCounsellorIds));
+    }
+  }, [user]);
+
+  const handleToggleFavourite = async (counsellorId: string) => {
+    if (!userId) return;
+    const newFavouriteIds = new Set(favouriteIds);
+    if (newFavouriteIds.has(counsellorId)) {
+      newFavouriteIds.delete(counsellorId);
+    } else {
+      newFavouriteIds.add(counsellorId);
+    }
+    setFavouriteIds(newFavouriteIds);
+
+    try {
+      await addFav(userId, counsellorId);
+      await refreshUser(true);
+      toast.success("Favourite status updated!");
+    } catch (err) {
+      toast.error("Could not update favourite status.");
+      setFavouriteIds(new Set(user?.favouriteCounsellorIds || []));
+    }
+  };
 
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
@@ -262,12 +293,18 @@ export default function CounselorListingPage() {
     return (
     <>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {paginatedCounselors.map((counselor) => (
-          <CounselorCard
-            key={counselor.counsellorId}
-            counselor={adaptApiDataToCardData(counselor)}
-          />
-        ))}
+        {paginatedCounselors.map((counselor) => {
+          const cardData = adaptApiDataToCardData(counselor);
+          const isFavourite = favouriteIds.has(cardData.id);
+          return (
+            <CounselorCard
+              key={counselor.counsellorId}
+              counselor={cardData}
+              isFavourite={isFavourite}
+              onToggleFavourite={handleToggleFavourite}
+            />
+          );
+        })}
       </div>
       <Pagination
         currentPage={currentPage}

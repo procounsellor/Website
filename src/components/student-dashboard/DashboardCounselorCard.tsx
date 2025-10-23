@@ -17,14 +17,14 @@ export function DashboardCounselorCard({ counselor }: CounselorCardProps){
       <img
        src={imageUrl}
        alt={fullName}
-       className="w-full aspect-square object-cover rounded-lg mb-3"
+       className="w-full h-[124px] object-cover rounded-lg mb-2 sm:aspect-square sm:h-auto sm:mb-3"
        onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`; }}
       />
       <div className="flex flex-col">
-        <h4 className="font-semibold text-lg text-[#242645] truncate">{fullName}</h4>
-        <p className="text-sm text-[#8C8CA1] truncate">{description}</p>
-        <p className="text-sm text-[#8C8CA1] truncate">{counselor.city}</p>
-        <div className="flex items-center text-sm text-gray-600 gap-4 my-2">
+        <h4 className="font-semibold text-sm sm:text-lg text-[#242645] truncate">{fullName}</h4>
+        <p className="text-xs sm:text-sm text-[#8C8CA1] truncate">{description}</p>
+        <p className="text-xs sm:text-sm text-[#8C8CA1] truncate">{counselor.city}</p>
+        <div className="flex items-center text-xs sm:text-sm text-gray-600 gap-4 my-2">
             <span className="flex items-center gap-1">
                 <Star className="w-4 h-4 text-yellow-500" fill="currentColor"/>
                 {counselor.rating ?? 'N/A'} | {counselor.numberOfRatings}
@@ -34,10 +34,10 @@ export function DashboardCounselorCard({ counselor }: CounselorCardProps){
                 {counselor.experience ?? 'N/A'}+ Yrs
             </span>
         </div>
-        <hr className="my-1"/>
-        <div className="flex items-center gap-2 mt-1">
-          <img src='/Procoin.jpg' alt="procoin_icon" className="w-6 h-6"/>
-          <span className="text-sm font-semibold text-[#343c6a]">
+        <hr className="my-1 border-[#F5F5F5]"/>
+        <div className="flex items-center gap-2 mt-2">
+          <img src='/Procoin.jpg' alt="procoin_icon" className="w-5 h-5 sm:w-6 sm:h-6"/>
+          <span className="text-xs sm:text-sm font-semibold text-[#343c6a]">
             {counselor.ratePerYear?.toLocaleString('en-IN') ?? 'N/A'} ProCoins/Hour
           </span>
         </div>

@@ -9,6 +9,35 @@ import { useAllCounselors } from "../../hooks/useCounselors";
 import { AllCounselorCardSkeleton } from "../skeletons/CounselorSkeletons";
 import { useNavigate, Link } from "react-router-dom";
 
+const addTrackpadScrolling = (emblaApi: EmblaCarouselType) => {
+  const SCROLL_COOLDOWN_MS = 300; 
+  let isThrottled = false;
+
+  const wheelListener = (event: WheelEvent) => {
+    if (isThrottled) return;
+
+    if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
+      event.preventDefault();
+      
+      isThrottled = true;
+      
+      if (event.deltaX > 0) {
+        emblaApi.scrollNext();
+      } else {
+        emblaApi.scrollPrev();
+      }
+      setTimeout(() => {
+        isThrottled = false;
+      }, SCROLL_COOLDOWN_MS);
+    }
+  };
+
+  const containerNode = emblaApi.containerNode();
+  containerNode.addEventListener("wheel", wheelListener);
+
+  return () => containerNode.removeEventListener("wheel", wheelListener);
+};
+
 export function AllCounselorSection() {
   const navigate = useNavigate();
   const { data: counselors, loading, error, refetch } = useAllCounselors(8);
@@ -39,9 +68,11 @@ export function AllCounselorSection() {
   React.useEffect(() => {
     if (!emblaApi) return;
     emblaApi.on("select", updateSelectedIndex);
+    const removeTrackpadScrolling = addTrackpadScrolling(emblaApi);
     
     return () => {
       emblaApi.off("select", updateSelectedIndex);
+      removeTrackpadScrolling();
     };
   }, [emblaApi, updateSelectedIndex]);
     

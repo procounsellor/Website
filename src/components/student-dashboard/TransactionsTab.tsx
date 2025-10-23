@@ -35,13 +35,13 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions }) => {
   const hasFailedTransactions = activeFilter === 'Failed' && filteredTransactions.length > 0;
 
   return (
-    <div className="bg-white p-6 rounded-2xl border border-[#EFEFEF]">
-      <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-6">
+    <div className="sm:bg-white sm:p-6 sm:rounded-2xl sm:border sm:border-[#EFEFEF]">
+      <div className="bg-white p-1 rounded-2xl flex items-center gap-2 mb-6 sm:bg-transparent sm:p-0 sm:gap-4">
         {TABS.map(tab => (
           <button
             key={tab}
             onClick={() => setActiveFilter(tab)}
-            className={`px-4 py-2 text-base font-medium rounded-full transition-colors duration-200 ${
+            className={`flex-1 text-center px-3 py-1.5 sm:flex-none sm:w-auto sm:px-4 sm:py-2 text-sm sm:text-base font-medium rounded-full transition-colors duration-200 ${
               activeFilter === tab 
               ? 'bg-[#E8E7F2] text-[#13097D]' 
               : 'bg-transparent text-[#13097D]'
@@ -52,9 +52,9 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions }) => {
         ))}
       </div>
 
-      <div className='-mt-6'>
+      <div>
         {filteredTransactions.length > 0 ? (
-          <div className="divide-y divide-gray-200">
+          <div className="flex flex-col gap-3 sm:gap-0 sm:divide-y sm:divide-gray-200">
             {filteredTransactions.map((transaction, index) => (
               <TransactionCard key={`${transaction.paymentId || 'no-id'}-${index}`} transaction={transaction} />
             ))}

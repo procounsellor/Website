@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Check , ChevronLeft } from 'lucide-react';
 import { getSates,getCoursesOnborading, updateUser } from '@/api/auth';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import type { CousrseApiLogin, StatesApiResponse } from '@/types';
 import { useAuthStore } from '@/store/AuthStore';
 
@@ -251,7 +251,7 @@ const OnboardingCard = () => {
 
   return (
     <>
-    <Toaster 
+    {/* <Toaster 
         position="top-center"
         toastOptions={{
           duration: 3000,
@@ -276,7 +276,7 @@ const OnboardingCard = () => {
         containerStyle={{
           zIndex: 9999,
         }}
-      />
+      /> */}
     <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="w-full max-w-4xl rounded-2xl bg-[#F5F7FA] p-6 md:p-8 shadow-lg flex flex-col max-h-[90vh] h-full">
         {step === 1 && (
