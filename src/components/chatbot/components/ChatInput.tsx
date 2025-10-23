@@ -1,15 +1,16 @@
-import React from 'react';
+import React from "react";
 
-interface ChatInputProps {
+type ChatInputProps = {
   handleKeyPress: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   handleSend: () => void;
   loading: boolean;
   input: string;
-  setInput: React.Dispatch<React.SetStateAction<string>>;
-}
+  setInput: (value: string) => void;
+};
 
-export default function({handleKeyPress, handleSend, loading, input, setInput}: ChatInputProps) {
-  return  <div className="max-w-[57.6rem] w-full mx-auto">
+export default function ChatInput({handleKeyPress, handleSend, loading, input, setInput}: ChatInputProps): React.ReactElement{
+  return (
+    <div className="max-w-[57.6rem] w-full mx-auto">
             <div className="flex gap-3 items-end">
               <div className="relative flex-1 bg-[#232323] rounded-3xl border border-[#A0A0A066] transition-colors">
                 <textarea
@@ -33,4 +34,5 @@ export default function({handleKeyPress, handleSend, loading, input, setInput}: 
         
             </div>
           </div>
+  );
 }
