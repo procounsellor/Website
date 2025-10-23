@@ -1,5 +1,5 @@
 import { API_CONFIG } from './config';
-import type { Appointment, GroupedAppointments, OutOfOfficePayload, CounselorAppointment, CancelAppointmentPayload } from '@/types/appointments';
+import type { Appointment, GroupedAppointments, OutOfOfficePayload, CounselorAppointment, CancelAppointmentPayload, CounselorAppointmentDetails } from '@/types/appointments';
 import type { ApiClient, ApiPendingRequest } from '@/types/client';
 import type { CounselorProfileData } from '@/types/counselorProfile';
 import type { EarningsData } from '@/types/earnings';
@@ -130,12 +130,10 @@ export async function cancelAppointment(payload: CancelAppointmentPayload, token
       throw new Error(result.message || 'Failed to cancel the appointment.');
     }
 
-    toast.success(result.message || 'Appointment cancelled successfully!');
     return result;
 
   } catch (error) {
     console.error("Cancel Appointment Error:", error);
-    toast.error(error instanceof Error ? error.message : 'An unknown error occurred.');
     throw error;
   }
 }
@@ -348,6 +346,28 @@ export async function uploadCounselorPhoto(counsellorId: string, photoFile: File
   } catch (error) {
     console.error("Upload Counselor Photo Error:", error);
     toast.error(error instanceof Error ? error.message : 'An unknown error occurred.');
+    throw error;
+  }
+}
+
+export async function getCounselorAppointmentById(counsellorId: string, appointmentId: string, token: string): Promise<CounselorAppointmentDetails> {
+  try {
+    const response = await fetch(`${baseUrl}/api/counsellor/getAppointmentById?counsellorId=${counsellorId}&appointmentId=${appointmentId}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json();
+      throw new Error(errorBody.message || 'Failed to fetch appointment details.');
+    }
+    
+    return await response.json();
+
+  } catch (error) {
+    console.error('Get Counselor Appointment By ID Error:', error);
     throw error;
   }
 }

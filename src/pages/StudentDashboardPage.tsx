@@ -13,6 +13,7 @@ import EditPreferencesModal from '@/components/student-dashboard/EditPreferences
 import AddFundsPanel from '@/components/student-dashboard/AddFundsPanel';
 import startRecharge from '@/api/wallet';
 import { updateUserProfile } from '@/api/user';
+import toast from 'react-hot-toast';
 
 declare global {
   interface Window {
@@ -108,7 +109,7 @@ const StudentDashboardPage: React.FC = () => {
         description: "Wallet Recharge",
         notes: { userId: user?.userName },
         handler: async function () {
-          alert("Payment successful. Your balance will be updated shortly.");
+          toast.success("Payment successful. Your balance will be updated shortly.");
           try {
             await fetchUserProfile();
           } catch (err) {

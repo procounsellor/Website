@@ -4,14 +4,14 @@ import AppointmentCard from '../appointment-cards/AppointmentCard';
 import type { CounselorDetails } from '@/types/academic';
 import { useAuthStore } from '@/store/AuthStore';
 import type { User } from '@/types/user';
-import toast from 'react-hot-toast';
 
 interface Props{
   counselor: CounselorDetails;
   user: User | null;
+  onProfileIncomplete: (action: () => void) => void;
 }
 
-export function FreeCareerAssessmentCard({counselor, user}:Props):JSX.Element {
+export function FreeCareerAssessmentCard({counselor, user, onProfileIncomplete}:Props):JSX.Element {
   const [booking, setBooking] = useState(false);
   const { isAuthenticated, toggleLogin } = useAuthStore();
 
@@ -22,11 +22,14 @@ export function FreeCareerAssessmentCard({counselor, user}:Props):JSX.Element {
       toggleLogin();
       return;
     } 
+    const bookAction = () => {
+      setBooking(true);
+    };
     if (!user?.firstName || !user?.email) {
-      toast.error("Please complete your profile before booking an appointment.");
+      onProfileIncomplete(bookAction);
       return;
     }
-    setBooking(true);
+    bookAction();
   };
 
   if(booking){

@@ -68,3 +68,14 @@ export interface CancelAppointmentPayload {
   receiverFcmToken: string | null;
   reason: string;
 }
+
+export interface CounselorAppointmentDetails extends CounselorAppointment {
+  notes: string | null;
+  counsellorRemarks: string | null;
+  createdAt: { seconds: number; nanos: number; };
+  updatedAt: { seconds: number; nanos: number; };
+  userAttended: boolean;
+  userRating: number | null;
+  userFeedback: string | null;
+  zoomMeetingLink: string | null;
+}
