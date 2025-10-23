@@ -11,3 +11,14 @@ export interface Appointment {
   status: 'booked' | 'rescheduled' | 'completed' | 'cancelled';
   counsellorFCMToken: string;
 }
+
+export interface AppointmentDetails extends Appointment {
+  notes: string | null;
+  counsellorRemarks: string | null;
+  createdAt: { seconds: number; nanos: number; };
+  updatedAt: { seconds: number; nanos: number; };
+  userAttended: boolean;
+  userRating: number | null;
+  userFeedback: string | null;
+  zoomMeetingLink: string | null;
+}

@@ -58,7 +58,7 @@ export function SearchResults({ onResultClick }: SearchResultsProps) {
         <div className="mb-4">
           <Book className="w-12 h-12 mx-auto text-gray-300" />
         </div>
-        <p className="text-sm">Start typing to search for exams, colleges, courses, or counselors...</p>
+        <p className="text-sm">Start typing to search for exams, colleges, courses, or counsellors...</p>
       </div>
     );
   }

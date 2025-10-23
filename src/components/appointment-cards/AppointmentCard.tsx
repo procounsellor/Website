@@ -9,13 +9,25 @@ import { Calendar } from "../ui/calendar";
 import { useAuthStore } from '@/store/AuthStore';
 import { academicApi } from '@/api/academic';
 import BookingConfirmationCard from "./BookingConfirmationCard";
+import toast from 'react-hot-toast';
+import type { Appointment } from "@/types/appointment";
+import { rescheduleAppointment } from "@/api/appointment";
 
 interface Props {
   counselor: CounselorDetails;
   onClose?: () => void;
+  isReschedule?: boolean;
+  appointmentToReschedule?: Appointment;
+  onRescheduleSuccess?: () => void;
 }
 
-export default function AppointmentCard({ counselor, onClose }: Props): JSX.Element {
+export default function AppointmentCard({ 
+  counselor, 
+  onClose,
+  isReschedule = false,
+  appointmentToReschedule,
+  onRescheduleSuccess
+}: Props): JSX.Element {
   const fullName = counselor.firstName + " " + counselor.lastName;
   const imageUrl =
     counselor.photoUrlSmall ||
@@ -311,7 +323,10 @@ export default function AppointmentCard({ counselor, onClose }: Props): JSX.Elem
     counselorName: string;
     appointmentDate: string;
     appointmentTime: string;
+    counselorImage: string;
   } | null>(null);
+
+  const token = localStorage.getItem('jwt');
 
   const handleBook = async () => {
     if (!isReadyToBook || !selectedDate || !selectedSlot) return;
@@ -319,40 +334,67 @@ export default function AppointmentCard({ counselor, onClose }: Props): JSX.Elem
     const allSlots = [...morningSlots, ...afternoonSlots, ...eveningSlots];
     const slotLabel = allSlots.find((s) => `slot-${s.replace(/[:\s-]/g, '')}` === selectedSlot);
     const startTime = slotLabel ? slotLabel.split('-')[0] : '';
+    const newDate = `${selectedDate.getFullYear()}-${(selectedDate.getMonth()+1).toString().padStart(2,'0')}-${selectedDate.getDate().toString().padStart(2,'0')}`;
 
     const c = counselor as unknown as { counsellorId?: string; id?: string; userName?: string; photoUrlSmall?: string; firstName?: string; lastName?: string };
-    const payload = {
-      userId: userId ?? '',
-      counsellorId: c.counsellorId || c.id || c.userName || '',
-      date: `${selectedDate.getFullYear()}-${(selectedDate.getMonth()+1).toString().padStart(2,'0')}-${selectedDate.getDate().toString().padStart(2,'0')}`,
-      startTime: startTime,
-      mode: 'offline' as const,
-      notes: undefined as string | undefined,
-      receiverFcmToken: counselor.fcmToken,
-    };
+    setBooking(true);
+    const toastId = toast.loading(isReschedule ? 'Rescheduling...' : 'Booking...');
 
     try {
-      setBooking(true);
-      const res = await academicApi.bookAppointment(payload);
-      
-      // Store booking details for confirmation
-      setBookingDetails({
-        counselorName: `${c.firstName || ''} ${c.lastName || ''}`.trim(),
-        appointmentDate: payload.date,
-        appointmentTime: startTime,
-      });
-      
-      console.log(res)
-      setConfirmed(true)
-      try {
-        sessionStorage.removeItem(sessionKeyDate);
-        sessionStorage.removeItem(sessionKeySlot);
-      } catch {
-        // ignore
+      if (isReschedule && appointmentToReschedule && token) {
+        const payload = {
+          userId: userId ?? '',
+          appointmentId: appointmentToReschedule.appointmentId,
+          newDate: newDate,
+          newStartTime: startTime,
+          oldDate: appointmentToReschedule.date,
+          oldStartTime: appointmentToReschedule.startTime,
+          receiverFcmToken: counselor.fcmToken || null,
+        };
+        await rescheduleAppointment(payload, token);
+        toast.success('Appointment rescheduled!', { id: toastId });
+        
+        if (onRescheduleSuccess) {
+          onRescheduleSuccess();
+        } else {
+          onClose?.();
+        }
+        return;
+
+      } else {
+        const payload = {
+          userId: userId ?? '',
+          counsellorId: c.counsellorId || c.id || c.userName || '',
+          date: newDate,
+          startTime: startTime,
+          mode: 'offline' as const,
+          notes: undefined as string | undefined,
+          receiverFcmToken: counselor.fcmToken,
+        };
+        
+        const res = await academicApi.bookAppointment(payload);
+        
+        setBookingDetails({
+          counselorName: `${c.firstName || ''} ${c.lastName || ''}`.trim(),
+          appointmentDate: payload.date,
+          appointmentTime: startTime,
+          counselorImage: imageUrl
+        });
+        
+        console.log(res)
+        setConfirmed(true)
+        try {
+          sessionStorage.removeItem(sessionKeyDate);
+          sessionStorage.removeItem(sessionKeySlot);
+        } catch {
+          // ignore
+        }
+        toast.dismiss(toastId);
       }
-      // Don't close immediately - let confirmation handle it
+
     } catch (err) {
-      console.error('Booking failed', err);
+      console.error(isReschedule ? 'Reschedule failed' : 'Booking failed', err);
+      toast.error(err instanceof Error ? err.message : 'An error occurred.', { id: toastId });
     } finally {
       setBooking(false);
     }
@@ -389,6 +431,7 @@ export default function AppointmentCard({ counselor, onClose }: Props): JSX.Elem
         counselorName={bookingDetails?.counselorName}
         appointmentDate={bookingDetails?.appointmentDate}
         appointmentTime={bookingDetails?.appointmentTime}
+        counselorImage={bookingDetails?.counselorImage}
         onClose={() => {
           setConfirmed(false);
           setBookingDetails(null);
@@ -574,7 +617,10 @@ export default function AppointmentCard({ counselor, onClose }: Props): JSX.Elem
               onClick={handleBook}
               className={`${isReadyToBook ? "bg-[#fa660a] hover:bg-[#fa660a]" : "bg-[#ACACAC]"} text-[16px] text-white w-full max-w-md disabled:opacity-60 disabled:cursor-not-allowed`}
             >
-              {booking ? 'Booking...' : 'Book Appointment Now'}
+              {booking 
+                ? (isReschedule ? 'Rescheduling...' : 'Booking...')
+                : (isReschedule ? 'Reschedule Appointment' : 'Book Appointment Now')
+              }
             </Button>
           </div>
         </div>

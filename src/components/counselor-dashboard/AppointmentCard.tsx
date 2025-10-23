@@ -3,6 +3,10 @@ import type { CounselorAppointment } from '@/types/appointments';
 
 interface AppointmentCardProps {
   appointment: CounselorAppointment;
+  onCardClick: (appointment: CounselorAppointment) => void;
+  onCancel: (appointment: CounselorAppointment) => void;
+  isMenuOpen: boolean;
+  onMenuToggle: () => void;
 }
 
 const formatDate = (dateString: string) => {
@@ -38,24 +42,51 @@ const getStatusContent = (currentStatus: CounselorAppointment['status']) => {
     }
 };
 
-export default function AppointmentCard({ appointment }: AppointmentCardProps) {
+export default function AppointmentCard({ appointment, onCancel, onCardClick, isMenuOpen, onMenuToggle }: AppointmentCardProps) {
   const { userFullName, userPhootoSmall, userCourse, date, startTime, endTime, status } = appointment;
   const imageUrl = userPhootoSmall && userPhootoSmall !== 'NA' 
     ? userPhootoSmall 
     : `https://ui-avatars.com/api/?name=${userFullName}&background=random`;
 
+  const showMenu = status === 'booked' || status === 'rescheduled';
+
+  const handleCancel = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onCancel(appointment);
+  };
+
   return (
     <>
-      <div className="block md:hidden bg-white border border-gray-200 rounded-2xl p-4 space-y-4 shadow-sm">
+      <div 
+        className="block md:hidden bg-white border border-gray-200 rounded-2xl p-4 space-y-4 shadow-sm relative"
+        onClick={() => onCardClick(appointment)}
+      >
         <div className="flex justify-between items-center">
           <p className="text-sm font-medium text-[#343C6A]">Appointment with</p>
           <div className="flex items-center gap-2">
             {getStatusContent(status)}
-            <button className="text-gray-400" onClick={(e) => e.stopPropagation()}>
-              <MoreVertical size={20} />
-            </button>
+            {showMenu && (
+              <button className="text-gray-400 z-20" onClick={(e) => {
+                e.stopPropagation();
+                onMenuToggle();
+              }}>
+                <MoreVertical size={20} />
+              </button>
+            )}
           </div>
         </div>
+        {isMenuOpen && (
+            <div 
+              className="absolute right-4 top-14 w-48 bg-white rounded-lg shadow-lg border border-gray-100 z-30"
+            >
+              <button 
+                onClick={handleCancel}
+                className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+              >
+                Cancel Appointment
+              </button>
+            </div>
+        )}
 
         <div className="flex items-center gap-3">
           <div className="w-14 h-14 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
@@ -93,7 +124,10 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
         </div>
       </div>
 
-      <div className="hidden md:block py-6">
+      <div 
+        className="hidden md:block py-6 relative cursor-pointer"
+        onClick={() => onCardClick(appointment)}
+      >
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
               <div className="md:col-span-4 flex items-center gap-4">
                   <div className="w-20 h-20 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
@@ -122,11 +156,28 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
 
               <div className="md:col-span-4 flex items-center justify-end gap-4">
                   {getStatusContent(status)}
-                  <button className="text-gray-500 p-2 rounded-full hover:bg-gray-100"
-                      onClick={(e) => e.stopPropagation()}
-                  >
-                      <MoreVertical size={24} />
-                  </button>
+                  {showMenu && (
+                    <button className="text-gray-500 p-2 rounded-full hover:bg-gray-100 z-20"
+                        onClick={(e) => {
+                           e.stopPropagation();
+                           onMenuToggle();
+                        }}
+                    >
+                        <MoreVertical size={24} />
+                    </button>
+                  )}
+                  {isMenuOpen && (
+                      <div 
+                        className="absolute right-6 top-16 w-48 bg-white rounded-lg shadow-lg border border-gray-100 z-30"
+                      >
+                        <button 
+                          onClick={handleCancel}
+                          className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+                        >
+                          Cancel Appointment
+                        </button>
+                      </div>
+                  )}
               </div>
           </div>
       </div>

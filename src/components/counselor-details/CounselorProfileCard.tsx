@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import { isManualSubscriptionRequest } from '@/api/counsellor';
 import type { SubscribedCounsellor, User } from '@/types/user';
 import { useAuthStore } from '@/store/AuthStore';
-import toast from 'react-hot-toast';
 
 type Props = {
   counselor: CounselorDetails;
@@ -14,9 +13,10 @@ type Props = {
   onToggleFavourite: () => void;
   isTogglingFavourite: boolean;
   user: User | null;
+  onProfileIncomplete: (action: () => void) => void;
 };
 
-export function CounselorProfileCard({ counselor, subscription, isFavourite, onToggleFavourite, isTogglingFavourite, user }: Props) {
+export function CounselorProfileCard({ counselor, subscription, isFavourite, onToggleFavourite, isTogglingFavourite, user, onProfileIncomplete }: Props) {
   const userId = localStorage.getItem('phone');
   const navigate = useNavigate();
   const [pendingApproval, setPendingApproval] = useState(false);
@@ -35,19 +35,24 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
       toggleLogin();
       return;
     }
+    const subscribeAction = () => {
+      const autoOpenPlan = isUpgrade ? getUpgradePlan() : null;
+      navigate('/subscribe', { 
+        state: { 
+          counselorId: counselor.userName, 
+          userId: userId, 
+          counselor: counselor,
+          isUpgrade: isUpgrade,
+          ...(isUpgrade && { currentPlan: subscription }),
+          autoOpenPlan: autoOpenPlan,
+        } 
+      });
+    };
     if (!user?.firstName || !user?.email) {
-      toast.error("Please complete your profile before subscribing.");
+      onProfileIncomplete(subscribeAction);
       return;
     }
-    navigate('/subscribe', { 
-      state: { 
-        counselorId: counselor.userName, 
-        userId: userId, 
-        counselor: counselor,
-        isUpgrade: isUpgrade,
-        ...(isUpgrade && { currentPlan: subscription })
-      } 
-    });
+    subscribeAction();
   };
 
   const fullName = `${counselor.firstName} ${counselor.lastName}`;
