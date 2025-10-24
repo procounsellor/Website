@@ -5,6 +5,7 @@ import { getUserProfile } from "@/api/user";
 import { getCounselorProfileById } from "@/api/counselor-Dashboard";
 import type { User } from "@/types/user";
 import type { CounselorProfileData } from "@/types/counselorProfile";
+import type { Transaction as UserTransaction } from "@/types/user";
 
 const mapCounselorToUser = (counselorData: CounselorProfileData): User => {
   return {
@@ -19,7 +20,8 @@ const mapCounselorToUser = (counselorData: CounselorProfileData): User => {
     photoSmall: counselorData.photoUrlSmall,
     languagesKnow: counselorData.languagesKnow,
     walletAmount: counselorData.walletAmount || 0,
-    transactions: counselorData.transactions || [],
+    transactions: [] as UserTransaction[],
+    offlineTransactions: [],
     activityLog: counselorData.activityLog || [],
     userInterestedStateOfCounsellors: null,
     interestedCourse: null,
@@ -117,7 +119,7 @@ export const useAuthStore = create<AuthState>()(
           get().logout();
           return null;
         } finally {
-          set({ loading: false });
+          // set({ loading: false });
         }
       },
 

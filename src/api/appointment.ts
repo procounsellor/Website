@@ -61,6 +61,7 @@ export async function cancelAppointment(payload: CancelPayload, token: string): 
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(payload)

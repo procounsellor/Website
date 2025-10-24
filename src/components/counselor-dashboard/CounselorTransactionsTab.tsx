@@ -7,32 +7,34 @@ import { Info } from 'lucide-react';
 
 interface TransactionsTabProps {
   transactions: Transaction[];
+  offlineTransactions: Transaction[];
 }
 
-type TransactionFilter = 'All' | 'Successful' | 'Failed';
+type TransactionFilter = 'All' | 'Successful' | 'Failed' | 'Offline Payments';
 
-const CounselorTransactionsTab: React.FC<TransactionsTabProps> = ({ transactions }) => {
+const CounselorTransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, offlineTransactions }) => {
   const [activeFilter, setActiveFilter] = useState<TransactionFilter>('All');
 
-  const TABS: TransactionFilter[] = ['All', 'Successful', 'Failed'];
+  const TABS: TransactionFilter[] = ['All', 'Successful', 'Failed', 'Offline Payments'];
 
   const filteredTransactions = useMemo(() => {
-    if (!Array.isArray(transactions)) return [];
-    
-    const sorted = [...transactions].sort((a, b) => b.timestamp - a.timestamp);
-
+    const onlineTrans = Array.isArray(transactions) ? [...transactions] : [];
+    const offlineTrans = Array.isArray(offlineTransactions) ? [...offlineTransactions] : [];
     switch (activeFilter) {
       case 'Failed':
-        return sorted.filter(t => t.status?.toLowerCase() === 'failed');
+        return onlineTrans.filter(t => t.status?.toLowerCase() === 'failed');
       
       case 'Successful':
-        return sorted.filter(t => t.status?.toLowerCase() !== 'failed');
+        return onlineTrans.filter(t => t.status?.toLowerCase() !== 'failed');
         
+      case 'Offline Payments':
+        return offlineTrans;
+
       case 'All':
       default:
-        return sorted;
+        return [...onlineTrans, ...offlineTrans];
     }
-  }, [activeFilter, transactions]);
+  }, [activeFilter, transactions, offlineTransactions]);
 
   const hasFailedTransactions = activeFilter === 'Failed' && filteredTransactions.length > 0;
 

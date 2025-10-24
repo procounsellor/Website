@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { CounselorAppointment } from '@/types/appointments';
-import { X, Calendar, Clock, MapPin, CheckCircle, ChevronLeft, Loader2 } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, CheckCircle, ChevronLeft, Loader2, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { getCounselorAppointmentById } from '@/api/counselor-Dashboard'; // --- ADDED ---
 import toast from 'react-hot-toast';
@@ -66,15 +66,49 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
 
   if (!isOpen || !appointment) return null;
 
+  const isCancelled = appointment.status === 'cancelled';
+  const isCompleted = appointment.status === 'completed';
+  const modalTitle = isCancelled 
+    ? 'Appointment Cancelled' 
+    : isCompleted 
+      ? 'Appointment Completed' 
+      : 'Appointment Confirmed';
+
   const imageUrl = (appointment.userPhootoSmall && appointment.userPhootoSmall !== 'NA')
     ? appointment.userPhootoSmall 
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(appointment.userFullName)}&background=E0E7FF&color=4F46E5`;
 
   const duration = calculateDuration(appointment.startTime, appointment.endTime);
   const timeRange = `${formatTime(appointment.startTime)} - ${formatTime(appointment.endTime)}`;
-  const statusText = appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1);
+
+  const StatusDisplay = () => {
+    const statusText = appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1);
+    
+    if (isCancelled) {
+      return (
+        <span className="font-medium text-[#EE1C1F] capitalize flex items-center gap-1">
+          <XCircle size={16} /> {statusText}
+        </span>
+      );
+    }
+    return (
+      <span className="font-medium text-green-600 capitalize flex items-center gap-1">
+        <CheckCircle size={16} /> {statusText}
+      </span>
+    );
+  };
 
   const JoinButton = () => {
+    if (isCancelled || isCompleted) {
+      return (
+        <button 
+          disabled
+          className="bg-gray-300 text-gray-500 font-medium px-6 py-2 rounded-lg text-sm cursor-not-allowed"
+        >
+          Join
+        </button>
+      );
+    }
     if (isLoadingLink) {
       return (
         <button 
@@ -111,7 +145,6 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
       </span>
     );
   };
-
   return (
     <div className="fixed inset-0 z-[100] md:bg-opacity-50 md:backdrop-blur-sm flex items-center justify-center">
       
@@ -121,7 +154,7 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
           <button onClick={onClose} className="p-2 mr-2">
             <ChevronLeft size={24} className="text-gray-700" />
           </button>
-          <h2 className="text-lg font-semibold text-[#343C6A]">Appointment Confirmed</h2>
+          <h2 className="text-lg font-semibold text-[#343C6A]">{modalTitle}</h2>
         </header>
 
         <div className="flex-grow overflow-y-auto p-4 space-y-6">
@@ -161,9 +194,7 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
                 <span className="flex items-center gap-2 text-gray-600">
                   <Clock size={16} /> Duration: {duration} Minutes
                 </span>
-                <span className="font-medium text-green-600 capitalize flex items-center gap-1">
-                  <CheckCircle size={16} /> {statusText}
-                </span>
+                <StatusDisplay />
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="flex items-center gap-2 text-gray-600 capitalize">
@@ -193,9 +224,7 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
           <X size={20} />
         </button>
-        
-        <h2 className="text-xl font-semibold text-[#343C6A] mb-6">Appointment Confirmed</h2>
-        
+        <h2 className="text-lg font-semibold text-[#343C6A]">{modalTitle}</h2>
         <div className="bg-white rounded-xl p-4">
             <div className="flex items-center gap-3">
               <img src={imageUrl} alt={appointment.userFullName} className="w-14 h-14 rounded-full object-cover" />
@@ -228,9 +257,7 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
                 <span className="flex items-center gap-2 text-gray-600">
                   <Clock size={16} /> Duration: {duration} Minutes
                 </span>
-                <span className="font-medium text-green-600 capitalize flex items-center gap-1">
-                  <CheckCircle size={16} /> {statusText}
-                </span>
+                <StatusDisplay />
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="flex items-center gap-2 text-gray-600 capitalize">
@@ -239,6 +266,14 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
                 <JoinButton />
               </div>
             </div>
+          </div>
+          <div className="text-center p-4 bg-white rounded-xl border border-gray-100">
+             <h3 className="font-semibold text-gray-800">Need Help</h3>
+             <p className="text-sm text-gray-500 mt-1 mb-4">Our team is here to assist you with any questions</p>
+             <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+                <a href="tel:7004789484" className="text-sm font-medium text-gray-700">📞 70047 89484</a>
+                <a href="mailto:support@procounsel.co.in" className="text-sm font-medium text-gray-700">✉️ support@procounsel.co.in</a>
+             </div>
           </div>
       </div>
     </div>

@@ -66,14 +66,14 @@ export default function CancelAppointmentModal({
           <button
             onClick={handleRescheduleClick}
             disabled={isSubmitting}
-            className="w-full sm:w-auto flex-1 px-6 py-3 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50"
+            className="w-full sm:w-auto flex-1 px-6 py-3 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg text-sm hover:cursor-pointer hover:bg-gray-50 disabled:opacity-50"
           >
             Reschedule
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting || !reason}
-            className="w-full sm:w-auto flex-1 px-6 py-3 bg-gray-500 text-white font-semibold rounded-lg text-sm hover:bg-gray-600 disabled:bg-gray-400"
+            className="w-full sm:w-auto flex-1 px-6 py-3 bg-[#13097D] text-white font-semibold rounded-lg text-sm hover:cursor-pointer disabled:bg-gray-400"
           >
             {isSubmitting ? 'Cancelling...' : 'Yes'}
           </button>

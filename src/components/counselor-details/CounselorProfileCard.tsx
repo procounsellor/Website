@@ -1,10 +1,11 @@
 import type { CounselorDetails } from '@/types/academic';
-import { Bookmark, Briefcase, Languages, Lock, CheckCircle, MessageSquare, Phone, Zap } from 'lucide-react';
+import { Bookmark, Briefcase, Languages, Lock, CheckCircle, MessageSquare, Phone, Zap, Info } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isManualSubscriptionRequest } from '@/api/counsellor';
 import type { SubscribedCounsellor, User } from '@/types/user';
 import { useAuthStore } from '@/store/AuthStore';
+import toast from 'react-hot-toast';
 
 type Props = {
   counselor: CounselorDetails;
@@ -20,17 +21,29 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
   const userId = localStorage.getItem('phone');
   const navigate = useNavigate();
   const [pendingApproval, setPendingApproval] = useState(false);
-  const { isAuthenticated, toggleLogin } = useAuthStore();
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+  const toggleLogin = useAuthStore(state => state.toggleLogin);
+  const loggedInUserRole = useAuthStore(state => state.role);
+
+  const isCurrentUserCounselor = loggedInUserRole === 'counselor';
 
   useEffect(() => {
+    if (isCurrentUserCounselor) {
+      setPendingApproval(false);
+      return;
+    }
     if (!subscription && userId && counselor?.userName) {
       isManualSubscriptionRequest(userId, counselor.userName)
         .then(res => setPendingApproval(Boolean(res?.pendingApproval)))
         .catch(err => console.error('Manual subscription check failed', err));
     }
-  }, [subscription, userId, counselor?.userName]);
+  }, [isCurrentUserCounselor]);
 
   const handleSubscribeClick = (isUpgrade = false) => {
+    if (isCurrentUserCounselor) {
+      toast.error("Counselors cannot subscribe to other counselors.");
+      return;
+    }
     if (!isAuthenticated) {
       toggleLogin();
       return;
@@ -132,33 +145,51 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
                 </span>
             </div>
             <div className="flex gap-3">
-                <a href={`sms:${counselor.phoneNumber}`} className="w-full flex items-center justify-center border gap-2 py-3 text-gray-700 bg-gray-50 rounded-lg text-sm font-medium"><MessageSquare className="w-4 h-4"/> Chat</a>
-                <a href={`tel:${counselor.phoneNumber}`} className="w-full flex items-center justify-center border gap-2 py-3 text-gray-700 bg-gray-50 rounded-lg text-sm font-medium"><Phone className="w-4 h-4" /> Call</a>
+                <a href={!isCurrentUserCounselor ? `sms:${counselor.phoneNumber}`: undefined}
+                   className={`w-full flex items-center justify-center border gap-2 py-3 rounded-lg text-sm font-medium ${isCurrentUserCounselor ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'text-gray-700 bg-gray-50'}`}
+                   aria-disabled={isCurrentUserCounselor}
+                   onClick={(e) => isCurrentUserCounselor && e.preventDefault()}
+                >
+                    <MessageSquare className="w-4 h-4"/> Chat
+                </a>
+                <a href={!isCurrentUserCounselor ? `tel:${counselor.phoneNumber}` : undefined}
+                   className={`w-full flex items-center justify-center border gap-2 py-3 rounded-lg text-sm font-medium ${isCurrentUserCounselor ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'text-gray-700 bg-gray-50'}`}
+                   aria-disabled={isCurrentUserCounselor}
+                   onClick={(e) => isCurrentUserCounselor && e.preventDefault()}
+                 >
+                    <Phone className="w-4 h-4" /> Call
+                </a>
             </div>
             {upgradePlan && (
                 <button
                   onClick={() => handleSubscribeClick(true)}
-                  className="w-full font-semibold py-3 px-6 rounded-lg text-[#3537B4] border-2 border-[#3537B4] hover:bg-blue-50 flex items-center justify-center gap-2"
+                  disabled={isCurrentUserCounselor}
+                  className={`w-full font-semibold py-3 px-6 rounded-lg border-2 flex items-center justify-center gap-2 ${isCurrentUserCounselor ? 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed' : 'text-[#3537B4] border-[#3537B4] hover:bg-blue-50'}`}
                 >
                   <Zap className="w-5 h-5 text-orange-500" /> Upgrade to <span className="capitalize">{upgradePlan}</span> Plan
                 </button>
             )}
+             {isCurrentUserCounselor && (
+                 <div className="p-2 bg-yellow-50 text-yellow-800 text-xs rounded-md flex items-center gap-1.5">
+                     <Info size={14} /> Counselors cannot interact via subscribed features.
+                 </div>
+             )}
           </div>
         ) : (
           <div className="border-t border-gray-200 pt-4">
             <h3 className="font-semibold text-gray-700 mb-3">Subscription Plans</h3>
             <div className="flex gap-3">
-              <button className="flex h-12 flex-1 flex-col items-center justify-center rounded-lg border bg-gradient-to-r from-[rgba(222,237,255,0.4)] to-[rgba(126,136,211,0.4)]"><span className="text-xs text-[#1447E7]">Plus</span><span className="text-[#1447E7] text-xs font-semibold">{formatAmount(counselor.plusAmount)}</span></button>
-              <button className="flex h-12 flex-1 flex-col items-center justify-center rounded-lg border-2 bg-gradient-to-r from-[rgba(244,232,255,0.4)] to-[rgba(250,244,255,0.4)]"><span className="text-[#8200DA] text-xs">Pro</span><span className="text-[#8200DA] text-xs font-semibold">{formatAmount(counselor.proAmount)}</span></button>
-              <button className="flex h-12 flex-1 flex-col items-center justify-center rounded-lg border bg-gradient-to-r from-[rgba(255,245,206,0.4)] to-[rgba(255,250,230,0.4)]"><span className="text-[#B94C00] text-xs">Elite</span><span className="text-[#B94C00] text-xs font-semibold">{formatAmount(counselor.eliteAmount)}</span></button>
+              <button disabled={isCurrentUserCounselor} className={`flex h-12 flex-1 flex-col items-center justify-center rounded-lg border ${isCurrentUserCounselor ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-gradient-to-r from-[rgba(222,237,255,0.4)] to-[rgba(126,136,211,0.4)] hover:shadow-inner'}`}><span className="font-semibold text-xs text-[#1447E7]">Plus</span><span className="text-[#1447E7] text-xs font-bold">{formatAmount(counselor.plusAmount)}</span></button>
+              <button disabled={isCurrentUserCounselor} className={`flex h-12 flex-1 flex-col items-center justify-center rounded-lg border ${isCurrentUserCounselor ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-gradient-to-r from-[rgba(244,232,255,0.4)] to-[rgba(250,244,255,0.4)] hover:shadow-inner'}`}><span className="font-semibold text-[#8200DA] text-xs">Pro</span><span className="text-[#8200DA] text-xs font-bold">{formatAmount(counselor.proAmount)}</span></button>
+              <button disabled={isCurrentUserCounselor} className={`flex h-12 flex-1 flex-col items-center justify-center rounded-lg border ${isCurrentUserCounselor ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-gradient-to-r from-[rgba(255,245,206,0.4)] to-[rgba(255,250,230,0.4)] hover:shadow-inner'}`}><span className="font-semibold text-[#B94C00] text-xs">Elite</span><span className="text-[#B94C00] text-xs font-bold">{formatAmount(counselor.eliteAmount)}</span></button>
             </div>
             <button
               onClick={() => handleSubscribeClick(false)}
-              disabled={pendingApproval}
-              aria-disabled={pendingApproval}
-              className={`w-full mt-4 font-semibold text-xs py-3 px-6 rounded-lg transition-colors ${pendingApproval ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : 'bg-[#3537B4] text-white hover:bg-blue-700'}`}
+              disabled={pendingApproval || isCurrentUserCounselor}
+              aria-disabled={pendingApproval || isCurrentUserCounselor}
+              className={`w-full mt-4 font-semibold text-xs py-3 px-6 rounded-lg transition-colors ${pendingApproval ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : isCurrentUserCounselor ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : 'bg-[#3537B4] text-white hover:bg-blue-700'}`}
             >
-              {pendingApproval ? 'Request Pending' : 'Subscribe Now'}
+              {pendingApproval ? 'Request Pending' : isCurrentUserCounselor ? 'Cannot Subscribe' : 'Subscribe Now'}
             </button>
             <div className="mt-4 flex gap-3">
                 <button disabled className="w-full flex items-center justify-center text-xs font-medium border gap-2 py-3 text-[#B2B9C5] bg-[#F9FAFC] rounded-lg"><Lock className="w-4 h-4"/> Chat</button>
@@ -216,16 +247,25 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
             </div>
             <hr className="my-6 border-gray-200" />
             <div className="flex flex-col sm:flex-row gap-3 items-center">
-                <a href={`sms:${counselor.phoneNumber}`} className="flex items-center justify-center gap-2 text-green-600 font-semibold py-3 px-4">
+                <a href={!isCurrentUserCounselor ? `sms:${counselor.phoneNumber}` : undefined}
+                   className={`flex items-center justify-center gap-2 font-semibold py-3 px-4 ${isCurrentUserCounselor ? 'text-gray-400 cursor-not-allowed' : 'text-green-600'}`}
+                   aria-disabled={isCurrentUserCounselor}
+                   onClick={(e) => isCurrentUserCounselor && e.preventDefault()}
+                >
                   <MessageSquare className="w-5 h-5" /> Message
                 </a>
-                <a href={`tel:${counselor.phoneNumber}`} className="flex items-center justify-center gap-2 text-green-600 font-semibold py-3 px-4">
+                <a href={!isCurrentUserCounselor ? `tel:${counselor.phoneNumber}` : undefined}
+                   className={`flex items-center justify-center gap-2 font-semibold py-3 px-4 ${isCurrentUserCounselor ? 'text-gray-400 cursor-not-allowed' : 'text-green-600'}`}
+                   aria-disabled={isCurrentUserCounselor}
+                   onClick={(e) => isCurrentUserCounselor && e.preventDefault()}
+                >
                   <Phone className="w-5 h-5" /> Call
                 </a>
               {upgradePlan ? (
                 <button
                   onClick={() => handleSubscribeClick(true)}
-                  className="w-full sm:flex-1 font-semibold py-3 px-6 rounded-lg text-[#3537B4] border-2 border-[#3537B4] hover:bg-blue-50 flex items-center justify-center gap-2"
+                  disabled={isCurrentUserCounselor}
+                  className={`w-full sm:flex-1 font-semibold py-3 px-6 rounded-lg border-2 flex items-center justify-center gap-2 ${isCurrentUserCounselor ? 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed' : 'text-[#3537B4] border-[#3537B4] hover:bg-blue-50'}`}
                 >
                   <Zap className="w-5 h-5 text-orange-500" /> Upgrade to <span className="capitalize">{upgradePlan}</span> Plan
                 </button>
@@ -235,15 +275,20 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
                 </button>
               )}
             </div>
+            {isCurrentUserCounselor && (
+                 <div className="mt-4 p-2 bg-yellow-50 text-yellow-800 text-sm rounded-md flex items-center gap-2">
+                     <Info size={16} /> Counselors cannot interact using subscribed features (Chat/Call/Upgrade).
+                 </div>
+             )}
           </div>
         ) : (
           <div>
             <div className="mt-6">
               <h3 className="font-semibold text-gray-700">Subscription Plans</h3>
               <div className="mt-3 flex flex-col sm:flex-row gap-3">
-                <button className="flex h-[50px] flex-1 flex-col items-center justify-center rounded-xl border bg-gradient-to-r from-[rgba(222,237,255,0.4)] to-[rgba(126,136,211,0.4)]"><span className="font-semibold text-sm text-[#1447E7]">Plus</span><span className="text-[#1447E7] text-sm font-bold">{formatAmount(counselor.plusAmount)}</span></button>
-                <button className="flex h-[50px] flex-1 flex-col items-center justify-center rounded-xl border bg-gradient-to-r from-[rgba(244,232,255,0.4)] to-[rgba(250,244,255,0.4)]"><span className="font-semibold text-[#8200DA] text-sm">Pro</span><span className="text-[#8200DA] text-sm font-bold">{formatAmount(counselor.proAmount)}</span></button>
-                <button className="flex h-[50px] flex-1 flex-col items-center justify-center rounded-xl border bg-gradient-to-r from-[rgba(255,245,206,0.4)] to-[rgba(255,250,230,0.4)]"><span className="font-semibold text-[#B94C00] text-sm">Elite</span><span className="text-[#B94C00] text-sm font-bold">{formatAmount(counselor.eliteAmount)}</span></button>
+                <button disabled={isCurrentUserCounselor} className={`flex h-[50px] flex-1 flex-col items-center justify-center rounded-xl border ${isCurrentUserCounselor ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-gradient-to-r from-[rgba(222,237,255,0.4)] to-[rgba(126,136,211,0.4)] hover:shadow-inner'}`}><span className="font-semibold text-sm text-[#1447E7]">Plus</span><span className="text-[#1447E7] text-sm font-bold">{formatAmount(counselor.plusAmount)}</span></button>
+                <button disabled={isCurrentUserCounselor} className={`flex h-[50px] flex-1 flex-col items-center justify-center rounded-xl border ${isCurrentUserCounselor ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-gradient-to-r from-[rgba(244,232,255,0.4)] to-[rgba(250,244,255,0.4)] hover:shadow-inner'}`}><span className="font-semibold text-[#8200DA] text-sm">Pro</span><span className="text-[#8200DA] text-sm font-bold">{formatAmount(counselor.proAmount)}</span></button>
+                <button disabled={isCurrentUserCounselor} className={`flex h-[50px] flex-1 flex-col items-center justify-center rounded-xl border ${isCurrentUserCounselor ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-gradient-to-r from-[rgba(255,245,206,0.4)] to-[rgba(255,250,230,0.4)] hover:shadow-inner'}`}><span className="font-semibold text-[#B94C00] text-sm">Elite</span><span className="text-[#B94C00] text-sm font-bold">{formatAmount(counselor.eliteAmount)}</span></button>
               </div>
             </div>
             <div className="mt-6 flex flex-col sm:flex-row gap-3 items-center">
@@ -251,11 +296,11 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
               <button disabled className="w-full sm:w-auto flex items-center justify-center border gap-2 px-14 py-3 text-[#B2B9C5] bg-[#F9FAFC] rounded-lg cursor-not-allowed"><Lock className="w-4 h-4 text-[#B2B9C5]" /> Call</button>
               <button
                 onClick={() => handleSubscribeClick(false)}
-                disabled={pendingApproval}
-                aria-disabled={pendingApproval}
-                className={`w-full sm:flex-1 font-semibold py-3 px-6 rounded-lg transition-colors ${pendingApproval ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : 'bg-[#3537B4] text-white hover:bg-blue-700'}`}
+                disabled={pendingApproval || isCurrentUserCounselor}
+                aria-disabled={pendingApproval || isCurrentUserCounselor}
+                className={`w-full sm:flex-1 font-semibold py-3 px-6 rounded-lg transition-colors ${pendingApproval ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : isCurrentUserCounselor ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : 'bg-[#3537B4] text-white hover:bg-blue-700'}`}
               >
-                {pendingApproval ? 'Request Pending' : 'Subscribe Now'}
+                 {pendingApproval ? 'Request Pending' : isCurrentUserCounselor ? 'Cannot Subscribe' : 'Subscribe Now'}
               </button>
             </div>
             <p className="mt-3 text-xs text-center text-[#232323] flex items-center justify-center gap-1"><Lock className="w-3 h-3" /> Subscribe to unlock chat and call features</p>

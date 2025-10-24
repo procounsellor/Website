@@ -268,7 +268,7 @@ export async function getEarnings(counsellorId: string, token: string): Promise<
 
 export async function getReviewsForCounselor(counsellorId: string, token: string): Promise<ReviewReceived[]> {
   try {
-    const response = await fetch(`${baseUrl}/api/counsellor/getReviewsByCounsellorId?counsellorId=${counsellorId}`, {
+    const response = await fetch(`${baseUrl}/api/counsellor/getAllReviewsReceivedByCounsellor?counsellorId=${counsellorId}`, {
       headers: {
         Accept: 'application/json',
         authorization: `Bearer ${token}`

@@ -56,10 +56,10 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
       amountColor = 'text-[#EE1C1F]';
       
       mobileLine1 = 'Payment Failed';
-      mobileLine2 = transaction.description || 'Proconsel';
+      mobileLine2 = transaction.description || 'Procounsel';
 
       desktopTitle = 'Payment Failed';
-      desktopDescription = 'Proconsel';
+      desktopDescription = 'Procounsel';
 
     } else if (transaction.type === 'credit') {
       icon = <ArrowDownCircle className="w-10 h-10 text-[#28A745] sm:w-12 sm:h-12 bg-[#28A74526] rounded-full p-1.5 sm:p-2 flex-shrink-0" />;
@@ -75,8 +75,8 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
       icon = <ArrowUpCircle className="w-10 h-10 text-blue-500 sm:w-12 sm:h-12 bg-blue-50 rounded-full p-1.5 sm:p-2 flex-shrink-0" />;
       mobileLine1 = 'Paid to';
       mobileLine2 = (transaction.description || '').replace(/^Paid to /i, '');
-      desktopTitle = transaction.description || 'Paid to Proconsel';
-      desktopDescription = 'Proconsel';
+      desktopTitle = transaction.description || 'Paid to Procounsel';
+      desktopDescription = 'Procounsel';
     }
 
     return { icon, amountColor, mobileLine1, mobileLine2, desktopTitle, desktopDescription };

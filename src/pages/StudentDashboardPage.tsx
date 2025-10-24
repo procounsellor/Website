@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuthStore } from '@/store/AuthStore';
 import type { User } from '@/types/user';
 import ProfileHeader from '@/components/student-dashboard/ProfileHeader';
@@ -54,7 +54,7 @@ const StudentDashboardPage: React.FC = () => {
     } finally {
       if (loading) setLoading(false);
     }
-  }, [userId, token, loading, refreshUser]);
+  }, [userId, token, refreshUser]);
 
   useEffect(() => {
     fetchUserProfile();
@@ -80,17 +80,6 @@ const StudentDashboardPage: React.FC = () => {
     setPrefsEditMode(null);
     fetchUserProfile();
   };
-
-  const calculatedBalance = useMemo(() => {
-    if (!user?.transactions || !Array.isArray(user.transactions)) {
-      return 0;
-    }
-    return user.transactions.reduce((acc, transaction) => {
-      if (transaction.type === 'credit') return acc + transaction.amount;
-      if (transaction.type === 'debit') return acc - transaction.amount;
-      return acc;
-    }, 0);
-  }, [user?.transactions]);
 
   const handleAddFunds = async (amount: number) => {
     if (!amount || amount <= 0) {
@@ -187,7 +176,10 @@ const StudentDashboardPage: React.FC = () => {
                 />}
           {activeTab === 'Appointments' && <AppointmentsTab />}
           {activeTab === 'Counsellors' && <CounsellorsTab />}
-          {activeTab === 'Transactions' && <TransactionsTab transactions={user.transactions} />}
+          {activeTab === 'Transactions' && <TransactionsTab 
+              transactions={user.transactions || []} 
+              offlineTransactions={user.offlineTransactions || []}
+            />}
           {activeTab === 'Reviews' && <ReviewsTab />}
         </div>
       </div>
@@ -209,7 +201,7 @@ const StudentDashboardPage: React.FC = () => {
       <AddFundsPanel 
         isOpen={isAddFundsOpen}
         onClose={() => setIsAddFundsOpen(false)}
-        balance={calculatedBalance}
+        balance={user.walletAmount}
         onAddMoney={handleAddFunds}
       />
     </div>

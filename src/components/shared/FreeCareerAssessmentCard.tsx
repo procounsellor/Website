@@ -4,6 +4,7 @@ import AppointmentCard from '../appointment-cards/AppointmentCard';
 import type { CounselorDetails } from '@/types/academic';
 import { useAuthStore } from '@/store/AuthStore';
 import type { User } from '@/types/user';
+import { Info } from 'lucide-react';
 
 interface Props{
   counselor: CounselorDetails;
@@ -13,15 +14,23 @@ interface Props{
 
 export function FreeCareerAssessmentCard({counselor, user, onProfileIncomplete}:Props):JSX.Element {
   const [booking, setBooking] = useState(false);
-  const { isAuthenticated, toggleLogin } = useAuthStore();
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+  const toggleLogin = useAuthStore(state => state.toggleLogin);
+  const loggedInUserRole = useAuthStore(state => state.role);
+
+  const isCurrentUserCounselor = loggedInUserRole === 'counselor';
 
   const handleBookingClick = () => {
+    if (isCurrentUserCounselor) {
+      console.log("Counselors cannot book appointments with other counselors.");
+      return;
+    }
     console.log('Book Appointment clicked, isAuthenticated:', isAuthenticated);
     if (!isAuthenticated) {
       console.log('User not authenticated, triggering login');
       toggleLogin();
       return;
-    } 
+    }
     const bookAction = () => {
       setBooking(true);
     };
@@ -51,11 +60,23 @@ export function FreeCareerAssessmentCard({counselor, user, onProfileIncomplete}:
         <p className="text-gray-600 mt-1 font-medium text-sm">30-minute discovery session</p>
         <button
           onClick={handleBookingClick}
-          className="mt-4 w-full bg-[#FA660F] text-white text-xs md:text-base font-semibold py-2.5 rounded-lg hover:bg-orange-600 transition-colors"
+          disabled={isCurrentUserCounselor}
+          className={`mt-4 w-full text-white text-xs md:text-base font-semibold py-2.5 rounded-lg transition-colors ${
+            isCurrentUserCounselor
+            ? 'bg-gray-300 text-gray-700 cursor-not-allowed'
+            : 'bg-[#FA660F] hover:bg-orange-600'
+          }`}
         >
-            Book Appointment Now
+            {isCurrentUserCounselor ? 'Cannot Book (Counselor)' : 'Book Appointment Now'}
         </button>
-        <p className="md:text-xs text-[10px] text-center text-[#3537B4] mt-2">Discover the approach to a brighter future</p>
+        {isCurrentUserCounselor && (
+             <div className="mt-2 p-1.5 bg-yellow-50 text-yellow-800 text-xs rounded-md flex items-center gap-1.5 justify-center">
+                 <Info size={14} /> Counselors cannot book appointments.
+             </div>
+         )}
+         {!isCurrentUserCounselor && (
+            <p className="md:text-xs text-[10px] text-center text-[#3537B4] mt-2">Discover the approach to a brighter future</p>
+         )}
     </div>
   );
 }

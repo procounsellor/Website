@@ -4,7 +4,7 @@ export interface Transaction {
   timestamp: number;
   description: string;
   paymentId: string;
-  counsellorId: string;
+  counsellorId: string | null;
   userId: string;
   method: string; 
   status: string;
@@ -55,6 +55,7 @@ export interface User {
   password?: string | null;
   walletAmount: number;
   transactions: Transaction[];
+  offlineTransactions: Transaction[];
   bankDetails?: BankDetails | null;
   role: string;
   verified?: boolean;
