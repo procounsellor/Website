@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getEarnings } from '@/api/counselor-Dashboard';
+import { getEarnings, getCounselorProfileById } from '@/api/counselor-Dashboard';
 import type { EarningsData } from '@/types/earnings';
 import type { User } from '@/types/user';
 import EarningsView from './EarningsView';
@@ -22,8 +22,21 @@ export default function MyEarningsTab({ user, token }: Props) {
     const fetchEarnings = async () => {
       try {
         setLoading(true);
-        const data = await getEarnings(user.userName, token);
-        setEarningsData(data);
+        const [earningsData, profileData] = await Promise.all([
+          getEarnings(user.userName, token),
+          getCounselorProfileById(user.userName, token)
+        ]);
+
+        if (earningsData) {
+          const combinedData = {
+            ...earningsData,
+            offlineTransactions: profileData?.offlineTransactions || []
+          };
+          setEarningsData(combinedData);
+        } else {
+          throw new Error("Failed to load primary earnings data");
+        }
+
       } catch (error) {
         console.error("Failed to load earnings tab data", error);
       } finally {
@@ -55,7 +68,10 @@ export default function MyEarningsTab({ user, token }: Props) {
     }
     
     if (activeTab === 'Transactions') {
-      return <CounselorTransactionsTab transactions={earningsData.transactionData || []} />;
+      return <CounselorTransactionsTab 
+                transactions={earningsData.transactionData || []} 
+                offlineTransactions={earningsData.offlineTransactions || []}
+              />;
     }
   };
 

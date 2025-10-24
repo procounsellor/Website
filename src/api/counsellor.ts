@@ -181,10 +181,10 @@ export const getReviewsForCounselor = async (counsellorId: string, token: string
 
     return data.map(apiReview => ({
         id: apiReview.reviewId,
-        userName: apiReview.userFullName,
+        userFullName: apiReview.userFullName,
         userImageUrl: apiReview.userPhotoUrl || `https://ui-avatars.com/api/?name=${apiReview.userFullName}`,
         rating: apiReview.rating,
-        text: apiReview.reviewText,
+        reviewText: apiReview.reviewText,
         timeAgo: formatTimeAgo(apiReview.timestamp),
     }));
 };

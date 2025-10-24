@@ -8,7 +8,7 @@ import { FreeCareerAssessmentCard } from '@/components/shared/FreeCareerAssessme
 import { FeaturedCollegesCard } from '@/components/shared/FeaturedCollegesCard';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/AuthStore';
-import { getSubscribedCounsellors, getReviewsByCounselorId, addFav, postReview } from '@/api/counsellor';
+import { getSubscribedCounsellors, addFav, postReview, getReviewsByCounselorId } from '@/api/counsellor';
 import toast from 'react-hot-toast';
 import type { CounselorReview } from '@/types/counselorReview';
 import type { SubscribedCounsellor } from '@/types/user';
@@ -29,7 +29,7 @@ export default function CounselorDetailsPage() {
   const state = location.state as LocationState;
   const computedId = paramId || state?.id;
   const { counselor, loading, error } = useCounselorById(computedId ?? '');
-  const { user, userId, refreshUser } = useAuthStore();
+  const { user, userId, refreshUser, role } = useAuthStore();
   const token = localStorage.getItem('jwt');
 
   const [subscriptionDetails, setSubscriptionDetails] = useState<SubscribedCounsellor | null>(null);
@@ -59,55 +59,62 @@ export default function CounselorDetailsPage() {
   };
 
   useEffect(() => {
-    if (!computedId || !userId || !token) {
-      setLoadingData(false);
-      return;
-    }
+  if (!computedId || !userId || !token) {
+    setLoadingData(false);
+    return;
+  }
 
-    const fetchData = async () => {
-      try {
-        setLoadingData(true);
-        const results = await Promise.allSettled([
-          getSubscribedCounsellors(userId, token),
-          getReviewsByCounselorId(userId, computedId, token)
-        ]);
-        
-        if (results[0].status === 'fulfilled') {
-          const subscribedList: ApiSubscribedCounselor[] = results[0].value;
-          
-          const currentApiSubscription = subscribedList.find(c => c.counsellorId === computedId);
-          if (currentApiSubscription && currentApiSubscription.plan) {
-            const formattedSubscription: SubscribedCounsellor = {
-              counsellorId: currentApiSubscription.counsellorId,
-              plan: currentApiSubscription.plan,
-              subscriptionMode: currentApiSubscription.subscriptionMode ?? "unknown",
-            };
-            setSubscriptionDetails(formattedSubscription);
-          }
-            else {
-            setSubscriptionDetails(null);
-          }
-        } else {
-          console.error("Failed to fetch subscription status:", results[0].reason);
-        }
+  const fetchData = async () => {
+    try {
+      setLoadingData(true);
 
-        if (results[1].status === 'fulfilled') {
-          const fetchedReviews = results[1].value;
-          setReviews(fetchedReviews);
-        } else {
-          console.error("Failed to fetch reviews (this may be expected if none exist):", results[1].reason);
-          setReviews([]);
-        }
-
-      } catch (err) {
-        console.error("An unexpected error occurred in fetchData:", err);
-      } finally {
-        setLoadingData(false);
+      if (role === "counselor") {
+        console.log("Skipping subscription and review fetch for counselor login");
+        setSubscriptionDetails(null);
+        setReviews([]);
+        return;
       }
-    };
 
-    fetchData();
-  }, [userId, token, computedId]);
+      const results = await Promise.allSettled([
+        getSubscribedCounsellors(userId, token),
+        getReviewsByCounselorId(userId, computedId, token)
+      ]);
+
+      if (results[0].status === "fulfilled") {
+        const subscribedList: ApiSubscribedCounselor[] = results[0].value;
+        const currentApiSubscription = subscribedList.find(c => c.counsellorId === computedId);
+
+        if (currentApiSubscription && currentApiSubscription.plan) {
+          const formattedSubscription: SubscribedCounsellor = {
+            counsellorId: currentApiSubscription.counsellorId,
+            plan: currentApiSubscription.plan,
+            subscriptionMode: currentApiSubscription.subscriptionMode ?? "unknown",
+          };
+          setSubscriptionDetails(formattedSubscription);
+        } else {
+          setSubscriptionDetails(null);
+        }
+      } else {
+        console.error("Failed to fetch subscription status:", results[0].reason);
+      }
+
+      if (results[1].status === "fulfilled") {
+        const fetchedReviews = results[1].value;
+        setReviews(fetchedReviews);
+      } else {
+        console.error("Failed to fetch reviews (this may be expected if none exist):", results[1].reason);
+        setReviews([]);
+      }
+
+    } catch (err) {
+      console.error("An unexpected error occurred in fetchData:", err);
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  fetchData();
+}, [userId, token, computedId, role]);
 
   const handleProfileIncomplete = (action: () => void) =>{
     setPendingAction(() => action);

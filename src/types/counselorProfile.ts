@@ -1,5 +1,5 @@
-import type { ActivityLog, Transaction } from "@/types/user";
-
+import type { ActivityLog } from "@/types/user";
+import type { Transaction } from "@/types/earnings";
 export interface FullOfficeAddress {
   role: string | null;
   officeNameFloorBuildingAndArea: string | null;
@@ -40,5 +40,6 @@ export interface CounselorProfileData {
   photoUrlSmall: string;
   walletAmount: number;
   transactions: Transaction[];
+  offlineTransactions: Transaction[];
   activityLog: ActivityLog[];
 }

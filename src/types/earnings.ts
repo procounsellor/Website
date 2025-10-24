@@ -34,6 +34,7 @@ export interface EarningsData {
   totalEarnings: number;
   totalPayout: number;
   transactionData: Transaction[];
+  offlineTransactions: Transaction[];
   plusPercentage: number;
   proPercentage: number;
   elitePercentage: number;
