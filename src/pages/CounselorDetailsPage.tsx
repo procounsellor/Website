@@ -8,10 +8,12 @@ import { FreeCareerAssessmentCard } from '@/components/shared/FreeCareerAssessme
 import { FeaturedCollegesCard } from '@/components/shared/FeaturedCollegesCard';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/AuthStore';
-import { getSubscribedCounsellors, getReviewsByCounselorId, addFav, postReview } from '@/api/counsellor';
+import { getSubscribedCounsellors, addFav, postReview, getReviewsByCounselorId } from '@/api/counsellor';
 import toast from 'react-hot-toast';
 import type { CounselorReview } from '@/types/counselorReview';
 import type { SubscribedCounsellor } from '@/types/user';
+import EditProfileModal from '@/components/student-dashboard/EditProfileModal';
+import { updateUserProfile } from '@/api/user';
 
 type ApiSubscribedCounselor = {
   counsellorId: string;
@@ -27,7 +29,7 @@ export default function CounselorDetailsPage() {
   const state = location.state as LocationState;
   const computedId = paramId || state?.id;
   const { counselor, loading, error } = useCounselorById(computedId ?? '');
-  const { user, userId, refreshUser } = useAuthStore();
+  const { user, userId, refreshUser, role } = useAuthStore();
   const token = localStorage.getItem('jwt');
 
   const [subscriptionDetails, setSubscriptionDetails] = useState<SubscribedCounsellor | null>(null);
@@ -35,6 +37,8 @@ export default function CounselorDetailsPage() {
   const [loadingData, setLoadingData] = useState(true);
   const [isFavourite, setIsFavourite] = useState(false);
   const [isTogglingFavourite, setIsTogglingFavourite] = useState(false);
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
   useEffect(() => {
     if (user && computedId) {
@@ -55,56 +59,83 @@ export default function CounselorDetailsPage() {
   };
 
   useEffect(() => {
-    if (!computedId || !userId || !token) {
-      setLoadingData(false);
-      return;
-    }
+  if (!computedId || !userId || !token) {
+    setLoadingData(false);
+    return;
+  }
 
-    const fetchData = async () => {
-      try {
-        setLoadingData(true);
-        const results = await Promise.allSettled([
-          getSubscribedCounsellors(userId, token),
-          getReviewsByCounselorId(userId, computedId, token)
-        ]);
-        
-        if (results[0].status === 'fulfilled') {
-          const subscribedList: ApiSubscribedCounselor[] = results[0].value;
-          
-          const currentApiSubscription = subscribedList.find(c => c.counsellorId === computedId);
-          if (currentApiSubscription && currentApiSubscription.plan) {
-            const formattedSubscription: SubscribedCounsellor = {
-              counsellorId: currentApiSubscription.counsellorId,
-              plan: currentApiSubscription.plan,
-              subscriptionMode: currentApiSubscription.subscriptionMode ?? "unknown",
-            };
-            setSubscriptionDetails(formattedSubscription);
-          }
-            else {
-            setSubscriptionDetails(null);
-          }
-        } else {
-          console.error("Failed to fetch subscription status:", results[0].reason);
-        }
+  const fetchData = async () => {
+    try {
+      setLoadingData(true);
 
-        if (results[1].status === 'fulfilled') {
-          const fetchedReviews = results[1].value;
-          setReviews(fetchedReviews);
-        } else {
-          console.error("Failed to fetch reviews (this may be expected if none exist):", results[1].reason);
-          setReviews([]);
-        }
-
-      } catch (err) {
-        console.error("An unexpected error occurred in fetchData:", err);
-      } finally {
-        setLoadingData(false);
+      if (role === "counselor") {
+        console.log("Skipping subscription and review fetch for counselor login");
+        setSubscriptionDetails(null);
+        setReviews([]);
+        return;
       }
-    };
 
-    fetchData();
-  }, [userId, token, computedId]);
+      const results = await Promise.allSettled([
+        getSubscribedCounsellors(userId, token),
+        getReviewsByCounselorId(userId, computedId, token)
+      ]);
 
+      if (results[0].status === "fulfilled") {
+        const subscribedList: ApiSubscribedCounselor[] = results[0].value;
+        const currentApiSubscription = subscribedList.find(c => c.counsellorId === computedId);
+
+        if (currentApiSubscription && currentApiSubscription.plan) {
+          const formattedSubscription: SubscribedCounsellor = {
+            counsellorId: currentApiSubscription.counsellorId,
+            plan: currentApiSubscription.plan,
+            subscriptionMode: currentApiSubscription.subscriptionMode ?? "unknown",
+          };
+          setSubscriptionDetails(formattedSubscription);
+        } else {
+          setSubscriptionDetails(null);
+        }
+      } else {
+        console.error("Failed to fetch subscription status:", results[0].reason);
+      }
+
+      if (results[1].status === "fulfilled") {
+        const fetchedReviews = results[1].value;
+        setReviews(fetchedReviews);
+      } else {
+        console.error("Failed to fetch reviews (this may be expected if none exist):", results[1].reason);
+        setReviews([]);
+      }
+
+    } catch (err) {
+      console.error("An unexpected error occurred in fetchData:", err);
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  fetchData();
+}, [userId, token, computedId, role]);
+
+  const handleProfileIncomplete = (action: () => void) =>{
+    setPendingAction(() => action);
+    setIsEditProfileModalOpen(true);
+  };
+
+  const handleUpdateProfile = async (updatedData: { firstName: string; lastName: string; email: string }) => {
+    if(!userId || !token){
+      throw new Error("User not authenticated");
+    }
+    await updateUserProfile(userId, updatedData, token);
+    await refreshUser(true);
+    if(pendingAction){
+      pendingAction();
+      setPendingAction(null);
+    }
+  };
+  const handleCloseModal = () => {
+    setIsEditProfileModalOpen(false);
+    setPendingAction(null);
+  }
   const handleSubmitReview = async (reviewText: string, rating: number) => {
     if (!userId || !computedId || !token || !user) {
       toast.error("You must be logged in to post a review.");
@@ -171,15 +202,15 @@ export default function CounselorDetailsPage() {
   };
 
   if (!computedId) {
-    return <div className="p-8 text-center text-red-500">Error: Counselor ID is missing.</div>;
+    return <div className="p-8 text-center text-red-500">Error: Counsellor ID is missing.</div>;
   }
 
   if (loading || loadingData) {
-    return <div className="flex h-screen items-center justify-center">Loading Counselor Profile...</div>;
+    return <div className="flex h-screen items-center justify-center">Loading Counsellor Profile...</div>;
   }
 
   if (error || !counselor) {
-    return <div className="flex h-screen items-center justify-center text-red-500">{error || "Counselor not found."}</div>;
+    return <div className="flex h-screen items-center justify-center text-red-500">{error || "Counsellor not found."}</div>;
   }
 
   return (
@@ -187,7 +218,7 @@ export default function CounselorDetailsPage() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
       <div className="max-w-7xl mx-auto mb-6 hidden md:block">
-        <h1 className="text-2xl font-bold text-gray-800">Counselor Profile</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Counsellor Profile</h1>
         <p className="text-gray-500">Discover their expertise and find the right guidance for your future</p>
       </div>
 
@@ -203,6 +234,7 @@ export default function CounselorDetailsPage() {
             onToggleFavourite={handleToggleFavourite}
             isTogglingFavourite={isTogglingFavourite}  
             user={user}
+            onProfileIncomplete={handleProfileIncomplete}
           />
           <AboutCounselorCard counselor={counselor} />
           <CounselorReviews 
@@ -215,12 +247,21 @@ export default function CounselorDetailsPage() {
 
         {/* Right Column */}
         <div className="lg:col-span-1 flex flex-col gap-8">
-          <FreeCareerAssessmentCard  counselor={counselor} user={user}/>
+          <FreeCareerAssessmentCard  counselor={counselor} user={user} onProfileIncomplete={handleProfileIncomplete}/>
           <FeaturedCollegesCard />
         </div>
 
       </div>
       </main>
+      {user && (
+        <EditProfileModal
+          isOpen={isEditProfileModalOpen}
+          onClose={handleCloseModal}
+          user={user}
+          onUpdate={handleUpdateProfile}
+          onUploadComplete={() => {}} 
+        />
+      )}
     </div>
   );
 }

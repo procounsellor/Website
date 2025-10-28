@@ -14,9 +14,9 @@ export interface ApiReviewReceived {
 
 export interface ReviewReceived {
   id: string;
-  userName: string;
+  userFullName: string;
   userImageUrl: string;
   rating: number;
-  text: string;
+  reviewText: string;
   timeAgo: string;
 }

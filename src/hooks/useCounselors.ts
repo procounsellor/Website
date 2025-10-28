@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { academicApi } from '@/api/academic';
 import type { Counselor, AllCounselor, CounsellorApiResponse, CounselorDetails } from '@/types/academic';
+import { useAuthStore } from '@/store/AuthStore'; 
 
 
 function transformCounselorData(apiData: CounsellorApiResponse): Counselor {
@@ -46,6 +47,8 @@ export function useCounselors(limit?: number) {
   const [data, setData] = useState<Counselor[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const userId = useAuthStore(state => state.userId);
+  const role = useAuthStore(state => state.role);
 
   useEffect(() => {
     const fetchCounselors = async () => {
@@ -54,8 +57,10 @@ export function useCounselors(limit?: number) {
         setError(null);
         
         const apiData = await academicApi.getCounsellors();
-        const transformedData = apiData.map(transformCounselorData);
-        
+        let transformedData = apiData.map(transformCounselorData);
+        if (role === 'counselor' && userId) {
+          transformedData = transformedData.filter(c => c.id !== userId);
+        }
  
         const finalData = limit ? transformedData.slice(0, limit) : transformedData;
         
@@ -69,7 +74,7 @@ export function useCounselors(limit?: number) {
     };
 
     fetchCounselors();
-  }, [limit]);
+  }, [limit, userId, role]);
 
   return { data, loading, error, refetch: () => window.location.reload() };
 }
@@ -78,6 +83,8 @@ export function useAllCounselors(limit?: number) {
   const [data, setData] = useState<AllCounselor[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const userId = useAuthStore(state => state.userId);
+  const role = useAuthStore(state => state.role);
 
   useEffect(() => {
     const fetchCounselors = async () => {
@@ -86,7 +93,10 @@ export function useAllCounselors(limit?: number) {
         setError(null);
         
         const apiData = await academicApi.getAllCounsellors();
-        const transformedData = apiData.map(transformAllCounselorData);
+        let transformedData = apiData.map(transformAllCounselorData);
+        if (role === 'counselor' && userId) {
+          transformedData = transformedData.filter(c => c.counsellorId !== userId);
+        }
         
         const finalData = limit ? transformedData.slice(0, limit) : transformedData;
         
@@ -100,7 +110,7 @@ export function useAllCounselors(limit?: number) {
     };
 
     fetchCounselors();
-  }, [limit]);
+  }, [limit, userId, role]);
 
   return { data, loading, error, refetch: () => window.location.reload() };
 }

@@ -60,6 +60,11 @@ export default function PlansCard({
   // default select the Elite plan
   const [selected, setSelected] = useState<string | null>(initialSelectedPlan || "elite");
   const [drawerOpen, setDrawerOpen] = useState(!!initialSelectedPlan);
+  const planHierarchy = ['plus','pro','elite'];
+
+  const currentPlanIndex = (isUpgrade && currentPlan?.plan)
+    ? planHierarchy.indexOf(currentPlan.plan.toLowerCase())
+    : -1;
 
   return (
     <div className="bg-white w-full max-w-[1092px] pl-6 pr-6 py-6 rounded-[20px]">
@@ -85,15 +90,24 @@ export default function PlansCard({
           <div className="flex gap-6">
             {columns.map((col) => {
             const isSelected = selected === col.key;
+            const columnIndex = planHierarchy.indexOf(col.key);
+            const isDisabled = isUpgrade && currentPlanIndex != -1 && columnIndex <= currentPlanIndex;
             return (
               <button
                 key={col.key}
                 type="button"
-                onClick={() => setSelected(isSelected ? null : col.key)}
+                disabled={isDisabled}
+                aria-disabled={isDisabled}
+                onClick={() => {
+                  if (isDisabled) return;
+                  setSelected(isSelected ? null : col.key)
+                }}
                 className={`w-[181px] p-4 transition-colors duration-150 rounded-[16px] text-left border-2 box-border ${
                   isSelected
                     ? "border-[#EC5E1A] bg-gradient-to-b from-[#FFF4EB] to-[#FFF1E6]"
                     : "border-transparent bg-transparent"
+                } ${
+                  isDisabled ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 aria-pressed={isSelected}
               >

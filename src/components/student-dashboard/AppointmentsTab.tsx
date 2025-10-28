@@ -1,10 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { Appointment } from '@/types/appointment';
 import { useAuthStore } from '@/store/AuthStore';
-import { getUserAppointments, getUpcomingAppointments } from '@/api/appointment';
+import { getUserAppointments, getUpcomingAppointments, cancelAppointment } from '@/api/appointment';
 import AppointmentCard from './AppointmentCard';
 import { Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import AppointmentDetailsModal from './AppointmentDetailsModal';
+import CancelAppointmentModal from './CancelAppointmentModal';
+import RescheduleModalWrapper from './RescheduleModalWrapper';
 
 type AppointmentFilter = 'All' | 'Upcoming' | 'Completed' | 'Cancelled';
 
@@ -19,41 +23,42 @@ const AppointmentsTab: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [cancelModalAppt, setCancelModalAppt] = useState<Appointment | null>(null);
+  const [rescheduleModalAppt, setRescheduleModalAppt] = useState<Appointment | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const fetchAppointments = async (showLoading = true) => {
+    if (!userId || !token) {
+      setError("User not authenticated.");
+      if (showLoading) setLoading(false);
+      return;
+    }
+    try {
+      if (showLoading) setLoading(true);
+      const [allData, upcomingData] = await Promise.all([
+        getUserAppointments(userId, token),
+        getUpcomingAppointments(userId, token)
+      ]);
+      
+      setAllAppointments(allData);
+      setUpcomingAppointments(upcomingData);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch appointments.');
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchAppointments = async () => {
-      if (!userId || !token) {
-        setError("User not authenticated.");
-        setLoading(false);
-        return;
-      }
-      try {
-        setLoading(true);
-        const [allData, upcomingData] = await Promise.all([
-          getUserAppointments(userId, token),
-          getUpcomingAppointments(userId, token)
-        ]);
-        
-        // allData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        // upcomingData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-        setAllAppointments(allData);
-        setUpcomingAppointments(upcomingData);
-
-      } catch (err)
- {
-        setError(err instanceof Error ? err.message : 'Failed to fetch appointments.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAppointments();
+    fetchAppointments(true);
   }, [userId, token]);
 
   const filteredAppointments = useMemo(() => {
     switch (activeFilter) {
       case 'Upcoming':
-        return upcomingAppointments;
+        return upcomingAppointments.filter(app => app.status === 'booked' || app.status === 'rescheduled');
       case 'Completed':
         return allAppointments.filter(app => app.status === 'completed');
       case 'Cancelled':
@@ -63,6 +68,52 @@ const AppointmentsTab: React.FC = () => {
         return allAppointments;
     }
   }, [activeFilter, allAppointments, upcomingAppointments]);
+
+  const handleCardClick = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+  };
+
+  const handleNavigateToCounselor = (counselorId: string) => {
+    navigate('/counselors/profile', { state: { id: counselorId } });
+    setSelectedAppointment(null);
+  };
+  
+  const handleCancelConfirm = async (reason: string) => {
+    if (!cancelModalAppt || !userId || !token) return;
+
+    setIsSubmitting(true);
+    const toastId = toast.loading('Cancelling appointment...');
+    
+    try {
+      const payload = {
+        userId: userId,
+        appointmentId: cancelModalAppt.appointmentId,
+        receiverFcmToken: cancelModalAppt.counsellorFCMToken || null,
+        reason: reason,
+      };
+      
+      await cancelAppointment(payload, token); 
+      
+      toast.success('Appointment cancelled.', { id: toastId });
+      setCancelModalAppt(null);
+      await fetchAppointments(false);
+      
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to cancel appointment.', { id: toastId });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  const handleRescheduleFromCancel = () => {
+    setRescheduleModalAppt(cancelModalAppt);
+    setCancelModalAppt(null);
+  };
+
+  const handleRescheduleSuccess = () => {
+    setRescheduleModalAppt(null);
+    fetchAppointments(false);
+  };
 
   const TABS: AppointmentFilter[] = ['All', 'Upcoming', 'Completed', 'Cancelled'];
 
@@ -109,7 +160,9 @@ const AppointmentsTab: React.FC = () => {
             <AppointmentCard 
               key={appointment.appointmentId} 
               appointment={appointment} 
-              onClick={() => navigate('/counselors/profile', { state: { id: appointment.counsellorId } })}
+              onCardClick={handleCardClick}
+              onCancel={setCancelModalAppt}
+              onReschedule={setRescheduleModalAppt}
             />
           ))}
         </div>
@@ -119,6 +172,28 @@ const AppointmentsTab: React.FC = () => {
           <p className="text-gray-500 mt-2">There are no {activeFilter.toLowerCase()} appointments.</p>
         </div>
       )}
+
+      <AppointmentDetailsModal
+        isOpen={!!selectedAppointment}
+        appointment={selectedAppointment}
+        onClose={() => setSelectedAppointment(null)}
+        onNavigateToCounselor={handleNavigateToCounselor}
+      />
+
+      <CancelAppointmentModal
+        isOpen={!!cancelModalAppt}
+        onClose={() => setCancelModalAppt(null)}
+        onConfirm={handleCancelConfirm}
+        onReschedule={handleRescheduleFromCancel}
+        isSubmitting={isSubmitting}
+      />
+
+      <RescheduleModalWrapper
+        appointment={rescheduleModalAppt}
+        onClose={() => setRescheduleModalAppt(null)}
+        onRescheduleSuccess={handleRescheduleSuccess}
+      />
+
     </div>
   );
 };

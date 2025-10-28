@@ -2,7 +2,6 @@ import type { User } from '@/types/user';
 import InfoCard from './InfoCard';
 import WalletCard from './WalletCard';
 import { GraduationCap, MapPin } from 'lucide-react';
-import { useMemo } from 'react';
 
 interface MyInfoTabProps {
   user: User;
@@ -12,20 +11,6 @@ interface MyInfoTabProps {
 }
 
 const MyInfoTab: React.FC<MyInfoTabProps> = ({ user, onEditCourse, onEditStates, onAddFunds }) => {
-  const calculatedBalance = useMemo(() => {
-    if (!user.transactions || !Array.isArray(user.transactions)) {
-      return 0;
-    }
-
-    return user.transactions.reduce((acc, transaction) => {
-      if (transaction.type === 'credit') {
-        return acc + transaction.amount;
-      } else if (transaction.type === 'debit') {
-        return acc - transaction.amount;
-      }
-      return acc;
-    }, 0);
-  }, [user.transactions]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
@@ -49,8 +34,7 @@ const MyInfoTab: React.FC<MyInfoTabProps> = ({ user, onEditCourse, onEditStates,
 
       <div className="lg:col-span-1">
           <WalletCard 
-            balance={calculatedBalance} 
-            transactions={user.transactions}
+            balance={user.walletAmount} 
             onAddFunds={onAddFunds}
           />
       </div>

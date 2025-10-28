@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuthStore } from '@/store/AuthStore';
 import type { User } from '@/types/user';
 import ProfileHeader from '@/components/student-dashboard/ProfileHeader';
@@ -13,6 +13,7 @@ import EditPreferencesModal from '@/components/student-dashboard/EditPreferences
 import AddFundsPanel from '@/components/student-dashboard/AddFundsPanel';
 import startRecharge from '@/api/wallet';
 import { updateUserProfile } from '@/api/user';
+import toast from 'react-hot-toast';
 
 declare global {
   interface Window {
@@ -53,7 +54,7 @@ const StudentDashboardPage: React.FC = () => {
     } finally {
       if (loading) setLoading(false);
     }
-  }, [userId, token, loading, refreshUser]);
+  }, [userId, token, refreshUser]);
 
   useEffect(() => {
     fetchUserProfile();
@@ -80,17 +81,6 @@ const StudentDashboardPage: React.FC = () => {
     fetchUserProfile();
   };
 
-  const calculatedBalance = useMemo(() => {
-    if (!user?.transactions || !Array.isArray(user.transactions)) {
-      return 0;
-    }
-    return user.transactions.reduce((acc, transaction) => {
-      if (transaction.type === 'credit') return acc + transaction.amount;
-      if (transaction.type === 'debit') return acc - transaction.amount;
-      return acc;
-    }, 0);
-  }, [user?.transactions]);
-
   const handleAddFunds = async (amount: number) => {
     if (!amount || amount <= 0) {
       console.error('A valid amount is required.');
@@ -108,7 +98,7 @@ const StudentDashboardPage: React.FC = () => {
         description: "Wallet Recharge",
         notes: { userId: user?.userName },
         handler: async function () {
-          alert("Payment successful. Your balance will be updated shortly.");
+          toast.success("Payment successful. Your balance will be updated shortly.");
           try {
             await fetchUserProfile();
           } catch (err) {
@@ -186,7 +176,10 @@ const StudentDashboardPage: React.FC = () => {
                 />}
           {activeTab === 'Appointments' && <AppointmentsTab />}
           {activeTab === 'Counsellors' && <CounsellorsTab />}
-          {activeTab === 'Transactions' && <TransactionsTab transactions={user.transactions} />}
+          {activeTab === 'Transactions' && <TransactionsTab 
+              transactions={user.transactions || []} 
+              offlineTransactions={user.offlineTransactions || []}
+            />}
           {activeTab === 'Reviews' && <ReviewsTab />}
         </div>
       </div>
@@ -208,7 +201,7 @@ const StudentDashboardPage: React.FC = () => {
       <AddFundsPanel 
         isOpen={isAddFundsOpen}
         onClose={() => setIsAddFundsOpen(false)}
-        balance={calculatedBalance}
+        balance={user.walletAmount}
         onAddMoney={handleAddFunds}
       />
     </div>

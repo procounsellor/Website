@@ -1,9 +1,12 @@
 import { MoreVertical, Calendar, Clock } from 'lucide-react';
 import type { Appointment } from '@/types/appointment';
+import { useState } from 'react';
 
 interface AppointmentCardProps {
   appointment: Appointment;
-  onClick?: () => void;
+  onCardClick: (appointment: Appointment) => void;
+  onCancel: (appointment: Appointment) => void;
+  onReschedule: (appointment: Appointment) => void;
 }
 
 const formatDate = (dateString: string) => {
@@ -25,8 +28,28 @@ const formatTime = (time: string) => {
     }).format(date);
 };
 
-const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onClick }) => {
+const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onCardClick, onCancel, onReschedule }) => {
   const { counsellorFullName, counsellorPhootoSmall, date, startTime, endTime, status } = appointment;
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleMenuToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen(prev => !prev);
+  };
+
+  const handleCancel = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen(false);
+    onCancel(appointment);
+  };
+
+  const handleReschedule = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMenuOpen(false);
+    onReschedule(appointment);
+  };
+
+  const showMenu = status === 'booked' || status === 'rescheduled';
 
   const getStatusContent = (currentStatus: Appointment['status']) => {
     // const baseButtonClasses = "px-4 py-2 text-sm font-semibold rounded-lg transition-colors";
@@ -60,18 +83,40 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onClick 
     <>
       {/*Mobile View*/}
       <div 
-        className="block md:hidden bg-white border border-gray-200 rounded-2xl p-4 space-y-4 shadow-sm"
-        onClick={onClick}
+        className="block md:hidden bg-white border border-gray-200 rounded-2xl p-4 space-y-4 shadow-sm relative"
+        onClick={() => onCardClick(appointment)}
       >
+        {menuOpen && <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }}></div>}
         <div className="flex justify-between items-center">
           <p className="text-sm font-medium text-gray-500">Counselling</p>
           <div className="flex items-center gap-2">
             {getStatusContent(status)}
-            <button className="text-gray-400" onClick={(e) => e.stopPropagation()}>
-              <MoreVertical size={20} />
-            </button>
+            {showMenu && (
+              <button className="text-gray-400 z-20" onClick={handleMenuToggle}>
+                <MoreVertical size={20} />
+              </button>
+            )}
           </div>
         </div>
+
+        {menuOpen && (
+            <div 
+              className="absolute right-4 top-14 w-48 bg-white rounded-lg shadow-lg border border-gray-100 z-30"
+            >
+              <button 
+                onClick={handleCancel}
+                className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleReschedule}
+                className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-b-lg"
+              >
+                Reschedule
+              </button>
+            </div>
+        )}
 
         <div className="flex items-center gap-3">
           <div className="w-14 h-14 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
@@ -110,9 +155,10 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onClick 
       </div>
 
       {/*Desktop View*/}
-      <div className="hidden md:block py-6 cursor-pointer transition-colors rounded-lg -mx-6 px-6"
-          onClick={onClick}
+      <div className="hidden md:block py-6 cursor-pointer transition-colors rounded-lg -mx-6 px-6 relative"
+          onClick={() => onCardClick(appointment)}
       >
+        {menuOpen && <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }}></div>}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
               <div className="md:col-span-4 flex items-center gap-4">
                   <div className="w-20 h-20 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
@@ -141,11 +187,31 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onClick 
 
               <div className="md:col-span-4 flex items-center justify-end gap-4">
                   {getStatusContent(status)}
-                  <button className="text-black p-2 rounded-full"
-                      onClick={(e) => e.stopPropagation()}
-                  >
-                      <MoreVertical size={24} />
-                  </button>
+                  {showMenu && (
+                    <button className="text-black p-2 rounded-full z-20"
+                        onClick={handleMenuToggle}
+                    >
+                        <MoreVertical size={24} />
+                    </button>
+                  )}
+                  {menuOpen && (
+                      <div 
+                        className="absolute right-6 top-16 w-48 bg-white rounded-lg shadow-lg border border-gray-100 z-30"
+                      >
+                        <button 
+                          onClick={handleCancel}
+                          className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg"
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          onClick={handleReschedule}
+                          className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-b-lg"
+                        >
+                          Reschedule
+                        </button>
+                      </div>
+                  )}
               </div>
           </div>
       </div>

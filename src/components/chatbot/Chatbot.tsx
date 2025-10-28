@@ -1,90 +1,107 @@
-import { useState, useEffect, useRef } from "react";
-import { useChatStore } from "@/store/ChatStore";
-import {User2, LogOut, LayoutDashboard } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { User2, LogOut, LayoutDashboard, Sparkles,  Square } from "lucide-react";
 import SmartImage from "@/components/ui/SmartImage";
-import { useAuthStore } from "@/store/AuthStore";
 import { Button } from "../ui";
 import toast from "react-hot-toast";
 import ChatInput from "./components/ChatInput";
 import Sidear from "./components/Sidear";
+import ChatMessage from "./components/ChatMessage";
+import { ChatbotCounselorCard } from "./components/ChatbotCounselorCard";
+import { useChatStore } from "@/store/ChatStore";
+import { useAuthStore } from "@/store/AuthStore";
+
+// Small reusable UI pieces from the second file
+const TypingIndicator = () => (
+  <div className="flex items-end gap-2.5">
+  
+    <div className="rounded-2xl px-4 py-3  bg-[#2a2a2a]  shadow-sm">
+      <div className=" flex items-center justify-center gap-1.5">
+        <span className="h-2 w-2 rounded-full bg-gray-400 animate-bounce [animation-delay:-0.3s]"></span>
+        <span className="h-2 w-2 rounded-full bg-gray-400 animate-bounce [animation-delay:-0.15s]"></span>
+        <span className="h-2 w-2 rounded-full bg-gray-400 animate-bounce"></span>
+      </div>
+    </div>
+  </div>
+);
+
+const WelcomeMessage = () => (
+  <div className="text-center p-8">
+    <div className="inline-block p-3 bg-[#2a2a2a] rounded-full">
+      <Sparkles className="h-8 w-8 text-[#FA660F]" />
+    </div>
+    <h2 className="mt-4 text-2xl font-semibold text-white">ProCounsel GPT</h2>
+    <p className="mt-2 text-gray-400">Your personal guide to colleges and exams in India.<br />How can I help you today?</p>
+  </div>
+);
 
 export default function Chatbot() {
-  const { messages, toggleChatbot, sendMessage, loading, loadMessages, clearMessages } = useChatStore();
+  const navigate = useNavigate();
+  const { messages, toggleChatbot, sendMessage, loading, loadMessages, clearMessages, stopGenerating } = useChatStore();
   const { toggleLogin, isAuthenticated, logout } = useAuthStore();
+
+  // UI state
   const [input, setInput] = useState("");
-  const [chatHistory, setChatHistory] = useState<
-    Array<{ id: string; title: string; timestamp: Date }>
-  >([]);
+  const [chatHistory, setChatHistory] = useState<Array<{ id: string; title: string; timestamp: string }>>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
 
-  // Load chat history from localStorage on mount
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Load saved chat history
   useEffect(() => {
-    const savedHistory = localStorage.getItem("chatHistory");
-    if (savedHistory) {
-      setChatHistory(JSON.parse(savedHistory));
-    }
+    const saved = localStorage.getItem("chatHistory");
+    if (saved) setChatHistory(JSON.parse(saved));
   }, []);
 
-
-  // Handle dropdown click outside
+  // Click outside dropdown
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setIsDropdownOpen(false);
       }
     };
-    if (isDropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    if (isDropdownOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isDropdownOpen]);
 
-  // Save messages to localStorage whenever they change
+  // Persist messages for the current chat
   useEffect(() => {
     if (messages.length > 0 && currentChatId) {
-      localStorage.setItem(
-        `chat_${currentChatId}`,
-        JSON.stringify(messages)
-      );
+      localStorage.setItem(`chat_${currentChatId}`, JSON.stringify(messages));
     }
   }, [messages, currentChatId]);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, loading]);
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
 
-    // If no current chat, create a new one
+    // Create a new chat if none selected
     if (!currentChatId) {
       const newChatId = Date.now().toString();
       const newChat = {
         id: newChatId,
         title: input.slice(0, 30) + (input.length > 30 ? "..." : ""),
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
       };
-      const updatedHistory = [newChat, ...chatHistory];
-      setChatHistory(updatedHistory);
+      const updated = [newChat, ...chatHistory];
+      setChatHistory(updated);
+      localStorage.setItem("chatHistory", JSON.stringify(updated));
       setCurrentChatId(newChatId);
-      localStorage.setItem("chatHistory", JSON.stringify(updatedHistory));
     }
 
+    // send the message via store
     await sendMessage(input);
     setInput("");
   };
 
   const handleNewChat = () => {
-    // Only clear if there are messages
     if (messages.length > 0) {
       setCurrentChatId(null);
       clearMessages();
@@ -93,29 +110,27 @@ export default function Chatbot() {
 
   const handleSelectChat = (chatId: string) => {
     setCurrentChatId(chatId);
-    const savedMessages = localStorage.getItem(`chat_${chatId}`);
-    if (savedMessages) {
-      const parsedMessages = JSON.parse(savedMessages);
-      loadMessages(parsedMessages);
+    const saved = localStorage.getItem(`chat_${chatId}`);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      loadMessages(parsed);
     }
   };
 
   const handleDeleteChat = (chatId: string) => {
-    const updatedHistory = chatHistory.filter((chat) => chat.id !== chatId);
-    setChatHistory(updatedHistory);
-    localStorage.setItem("chatHistory", JSON.stringify(updatedHistory));
+    const updated = chatHistory.filter((c) => c.id !== chatId);
+    setChatHistory(updated);
+    localStorage.setItem("chatHistory", JSON.stringify(updated));
     localStorage.removeItem(`chat_${chatId}`);
-    if (currentChatId === chatId) {
-      setCurrentChatId(null);
-    }
+    if (currentChatId === chatId) setCurrentChatId(null);
   };
 
   const handleLogout = () => {
     logout();
     setIsDropdownOpen(false);
     toggleChatbot();
-    navigate('/');
-    toast.success('Logged out successfully!', { duration: 3000 });
+    navigate("/");
+    toast.success("Logged out successfully!", { duration: 3000 });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -126,55 +141,37 @@ export default function Chatbot() {
   };
 
   return (
-    <div className="fixed inset-0 z-100 flex flex-col bg-[#232323]">
-      {/* Header - Full Width at Top */}
-      <header className="h-14 md:h-20 bg-[#232323] border-b border-[#FFFFFF40] shadow-[0_2px_4px_0_rgba(255,255,255,0.25)] w-full">
+    <div className="fixed inset-0 z-[100] flex flex-col bg-[#232323]">
+      {/* Header */}
+      <header className="h-14 md:h-20 bg-[#232323] border-b border-[#FFFFFF40] shadow-[0_2px_4px_0_rgba(255,255,255,0.06)] w-full">
         <div className="flex h-full items-center justify-between px-5 lg:px-20">
-          {/* Logo */}
-          <div className="Logo flex cursor-pointer" onClick={() => {
-            toggleChatbot();
-            navigate('/');
-          }}>
-            <SmartImage
-              src="/logo.svg"
-              alt="procounsel_logo"
-              className="h-7 w-7 md:w-11 md:h-12"
-              width={44}
-              height={44}
-              priority
-            />
+          <div
+            className="Logo flex cursor-pointer"
+            onClick={() => {
+              toggleChatbot();
+              navigate("/");
+            }}
+          >
+            <SmartImage src="/logo.svg" alt="procounsel_logo" className="h-7 w-7 md:w-11 md:h-12" width={44} height={44} priority />
             <div className="flex flex-col leading-tight pl-[9px]">
-              <h1 className="text-white font-semibold text-sm md:text-xl">
-                ProCounsel
-              </h1>
-              <span className="font-normal text-gray-400 text-[8px] md:text-[10px]">
-                By CatalystAI
-              </span>
+              <h1 className="text-white font-semibold text-sm md:text-xl">ProCounsel</h1>
+              <span className="font-normal text-gray-400 text-[8px] md:text-[10px]">By CatalystAI</span>
             </div>
           </div>
 
-          {/* Right Side Buttons */}
           <div className="flex items-center gap-3">
-            
             <div className="btn relative">
               {isAuthenticated ? (
                 <>
-                  <button 
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)} 
-                    className="p-2 rounded-full hover:bg-gray-700 transition-colors" 
-                    aria-label="Open user menu"
-                  >
+                  <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="p-2 rounded-full hover:bg-gray-700 transition-colors" aria-label="Open user menu">
                     <User2 className="h-6 w-6 text-white" />
                   </button>
-                                          
+
                   {isDropdownOpen && (
-                    <div 
-                      ref={dropdownRef}
-                      className="absolute top-full right-0 mt-2 w-48 bg-[#2a2a2a] rounded-lg shadow-xl z-50 py-1 border border-gray-700"
-                    >
+                    <div ref={dropdownRef} className="absolute top-full right-0 mt-2 w-48 bg-[#2a2a2a] rounded-lg shadow-xl z-50 py-1 border border-gray-700">
                       <button
                         onClick={() => {
-                          navigate('/dashboard/student');
+                          navigate("/dashboard/student");
                           setIsDropdownOpen(false);
                           toggleChatbot();
                         }}
@@ -183,10 +180,7 @@ export default function Chatbot() {
                         <LayoutDashboard size={16} />
                         <span>Profile</span>
                       </button>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-900/20"
-                      >
+                      <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-900/20">
                         <LogOut size={16} />
                         <span>Logout</span>
                       </button>
@@ -194,12 +188,7 @@ export default function Chatbot() {
                   )}
                 </>
               ) : (
-                <Button
-                  variant={"outline"}
-                  className="w-full lg:w-[164px] flex items-center justify-center h-6 md:h-11 border rounded-[12px] bg-[#232323] font-semibold text-white border-[#858585]
-                   text-[10px] md:text-lg hover:bg-[#FF660F] hover:text-white transition-all duration-200"
-                  onClick={toggleLogin}
-                >
+                <Button variant={"outline"} className="w-full lg:w-[164px] flex items-center justify-center h-6 md:h-11 border rounded-[12px] bg-[#232323] font-semibold text-white border-[#858585] text-[10px] md:text-lg hover:bg-[#FF660F] hover:text-white transition-all duration-200" onClick={toggleLogin}>
                   Login/Sign Up
                 </Button>
               )}
@@ -208,130 +197,96 @@ export default function Chatbot() {
         </div>
       </header>
 
-      {/* Content Area - Sidebar and Main Chat */}
+      {/* Content Area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <Sidear 
-        handleNewChat={handleNewChat}
-        isSidebarOpen={isSidebarOpen} 
-        chatHistory={chatHistory} 
-        currentChatId={currentChatId} 
-        handleSelectChat={handleSelectChat} 
-        handleDeleteChat={handleDeleteChat}   
-        setIsSidebarOpen={setIsSidebarOpen}     
+        <Sidear
+          handleNewChat={handleNewChat}
+          isSidebarOpen={isSidebarOpen}
+          chatHistory={chatHistory}
+          currentChatId={currentChatId}
+          handleSelectChat={handleSelectChat}
+          handleDeleteChat={handleDeleteChat}
+          setIsSidebarOpen={setIsSidebarOpen}
         />
 
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {messages.length === 0 ? (
-            // Landing Page - Centered Input
-           <div>
-            <div className="lg:mt-[11.75rem] flex flex-col items-center justify-center gap-5">
-              <h1 className="text-white font-semibold text-[32px]">Procounsel GPT</h1>
-              <p className="flex flex-col text-white/50 text-2xl font-medium text-center">Your personal guide to college and exams in India.<span>How can I help you today?</span></p>
-            </div>
-            <div className="lg:mt-[70px]">
-               <ChatInput
-            input={input}
-            setInput={setInput}
-            handleKeyPress={handleKeyPress}
-            handleSend={handleSend}
-            loading={loading}
-            />
-            <div className="flex justify-center lg:mt-4 gap-4">
-              <div className="border border-[#7B7B7B] rounded-[12px] py-2.5 px-4 flex gap-4 items-center">
-                <img src="/book.svg" alt="" />
-                <p className="text-[14px] font-medium text-white">Access premium learning courses.</p>
+          {messages.length === 0 && !loading ? (
+            <div>
+              <div className="lg:mt-[11.75rem] flex flex-col items-center justify-center gap-5">
+                <h1 className="text-white font-semibold text-[32px]">Procounsel GPT</h1>
+                <p className="flex flex-col text-white/50 text-2xl font-medium text-center">Your personal guide to college and exams in India.<span>How can I help you today?</span></p>
               </div>
-              <div className="border border-[#7B7B7B] rounded-[12px] py-2.5 px-4 flex gap-4 items-center">
-                <img src="/cap.svg" alt="" />
-                <p className="text-[14px] font-medium text-white">Discover top colleges.</p>
-              </div>
-              <div className="border border-[#7B7B7B] rounded-[12px] py-2.5 px-4 flex gap-4 items-center">
-                <img src="/person.svg" alt="" />
-                <p className="text-[14px] font-medium text-white">Consult expert counselors.</p>
+
+              <div className="lg:mt-[70px]">
+                <ChatInput input={input} setInput={setInput} handleKeyPress={handleKeyPress} handleSend={handleSend} loading={loading} />
+
+                <div className="flex justify-center lg:mt-4 gap-4">
+                  <div className="border border-[#7B7B7B] rounded-[12px] py-2.5 px-4 flex gap-4 items-center">
+                    <img src="/book.svg" alt="" />
+                    <p className="text-[14px] font-medium text-white">Access premium learning courses.</p>
+                  </div>
+                  <div className="border border-[#7B7B7B] rounded-[12px] py-2.5 px-4 flex gap-4 items-center">
+                    <img src="/cap.svg" alt="" />
+                    <p className="text-[14px] font-medium text-white">Discover top colleges.</p>
+                  </div>
+                  <div className="border border-[#7B7B7B] rounded-[12px] py-2.5 px-4 flex gap-4 items-center">
+                    <img src="/person.svg" alt="" />
+                    <p className="text-[14px] font-medium text-white">Consult expert counselors.</p>
+                  </div>
+                </div>
               </div>
             </div>
-            </div>
-           </div>
           ) : (
-            // Chat View - Messages with Bottom Input
             <>
-              {/* Messages Area */}
               <div className="flex-1 overflow-y-auto bg-[#232323] mt-2 p-6">
                 <div className="max-w-4xl mx-auto space-y-4">
-                  {messages.map((message, index) => (
-                    <div
-                      key={index}
-                      className={`flex ${
-                        message.isUser ? "justify-end" : "justify-start"
-                      }`}
-                    >
-                      <div
-                        className={`max-w-[80%] rounded-[.50rem] py-3 px-4 ${
-                          message.isUser
-                            ? "bg-[#6C6969] text-white"
-                            : "text-gray-200"
-                        }`}
-                      >
-                        <p className="whitespace-pre-wrap">{message.text}</p>
-                        {message.followup && (
-                          <p className="mt-2 text-sm text-gray-400 italic">
-                            {message.followup}
-                          </p>
-                        )}
-                        {message.counsellors && message.counsellors.length > 0 && (
-                          <div className="mt-3 space-y-2">
-                            <p className="text-sm font-semibold">
-                              Recommended Counselors:
-                            </p>
-                            {message.counsellors.map((counsellor) => (
-                              <div
-                                key={counsellor.counsellorId}
-                                className="bg-[#2a2a2a] p-2 rounded text-sm"
-                              >
-                                <p className="font-medium">
-                                  {counsellor.firstName} {counsellor.lastName}
-                                </p>
-                                <p className="text-gray-400 text-xs">
-                                  {counsellor.city} • ⭐ {counsellor.rating}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                  {messages.length === 0 && !loading && <WelcomeMessage />}
+
+                  {messages.map((msg: any, index: number) => (
+                    <div key={index}>
+                      {/* Use ChatMessage component to preserve second file behavior */}
+                      <p className="m-7">
+                        <ChatMessage  text={msg.text} isUser={msg.isUser} />
+                        <p className="text-gray-400 text-sm italic">{msg.followup}</p>
+                        
+                      </p>
+                      
+
+                      {msg.counsellors && msg.counsellors.length > 0 && (
+                        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 animate-in fade-in-50 duration-500">
+                          {(msg.counsellors as any[]).map((c) => (
+                            <Link className="w-fit" to="/counselors/profile" state={{ id: c.counsellorId }} key={c.counsellorId} onClick={toggleChatbot}>
+                              <ChatbotCounselorCard counselor={c} />
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+
+                      
                     </div>
                   ))}
-                  {loading && (
-                    <div className="flex justify-start">
-                      <div className="bg-[#2a2a2a] rounded-lg p-4">
-                        <div className="flex gap-2">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                          <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                            style={{ animationDelay: "0.1s" }}
-                          ></div>
-                          <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                            style={{ animationDelay: "0.2s" }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+
+                  {loading && <TypingIndicator />}
                   <div ref={messagesEndRef} />
                 </div>
               </div>
 
-              <div className="lg:mb-[3.75rem]">
-                <ChatInput
-                input={input}
-                setInput={setInput}
-                loading={loading}
-                handleKeyPress={handleKeyPress}
-                handleSend={handleSend}
-                />
+              {/* Footer with ChatInput and stop button when loading */}
+              <div className="lg:mb-[3.75rem] p-4 bg-transparent">
+                <div className="max-w-4xl mx-auto">
+                  {loading && (
+                    <div className="flex justify-center mb-3">
+                      <button onClick={stopGenerating} className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-gray-200 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-sm hover:bg-[#3b3b3b] transition-all">
+                        <Square className="h-4 w-4" />
+                        Stop generating
+                      </button>
+                    </div>
+                  )}
+
+                  <ChatInput input={input} setInput={setInput} handleKeyPress={handleKeyPress} handleSend={handleSend} loading={loading} />
+                </div>
               </div>
             </>
           )}

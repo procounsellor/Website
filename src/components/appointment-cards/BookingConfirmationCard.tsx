@@ -1,9 +1,11 @@
 import { X } from "lucide-react";
+const DEFAULT_COUNSELOR_IMAGE = "/discover-imageCounselor2.jpg";
 
 interface Props {
   counselorName?: string;
   appointmentDate?: string; // expected YYYY-MM-DD
   appointmentTime?: string; // expected HH:MM (24h)
+  counselorImage?: string;
   onClose?: () => void;
 }
 
@@ -36,7 +38,7 @@ function formatTime(hhmm?: string) {
   return `${startTime}-${endTime} ${ampm}`;
 }
 
-export default function BookingConfirmationCard({ counselorName = 'Ashutosh Kumar', appointmentDate, appointmentTime, onClose }: Props){
+export default function BookingConfirmationCard({ counselorName = 'Ashutosh Kumar', appointmentDate, appointmentTime, counselorImage, onClose }: Props){
 
   return (
     <div 
@@ -83,7 +85,7 @@ export default function BookingConfirmationCard({ counselorName = 'Ashutosh Kuma
         <div className="flex flex-col gap-4 bg-white w-[482px] h-[331px] border-[1px] border-[#f5f5f5] rounded-[12px] p-4">
 
           <div className="flex gap-2 items-center">
-            <img src="/discover-imageCounselor2.jpg" alt="Counselor" className="w-16 h-16 rounded-[10px]" />
+            <img src={counselorImage || DEFAULT_COUNSELOR_IMAGE} alt={counselorName} className="w-16 h-16 rounded-[10px] object-cover" />
             <p className="flex flex-col gap-0 text-[18px] text-[#343c6a] font-semibold">Counselling Session<span className="text-[16px] text-[#718ebf] font-medium">with {counselorName}</span></p>
           </div>
 
@@ -117,7 +119,7 @@ export default function BookingConfirmationCard({ counselorName = 'Ashutosh Kuma
                 </span>
                 <span className="flex items-center gap-2 text-[#718ebf] text-[16px] font-normal">
                   <img src="/map.svg" alt="map" className="w-5 h-5"/>
-                  Format: In-Person
+                  Format: Online
                 </span>
               </p>
             </div>

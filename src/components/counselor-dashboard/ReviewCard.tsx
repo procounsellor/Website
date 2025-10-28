@@ -23,18 +23,18 @@ export default function ReviewCard({ review }: ReviewCardProps) {
       <div className="flex items-start gap-4">
         <img 
           src={review.userImageUrl} 
-          alt={review.userName}
+          alt={review.userFullName}
           className="w-[55px] h-[55px] rounded-full object-cover"
         />
         <div>
-          <h4 className="font-semibold text-xl text-[#343C6A]">{review.userName}</h4>
+          <h4 className="font-semibold text-xl text-[#343C6A]">{review.userFullName}</h4>
           <div className="mt-1">
             <StarRating rating={review.rating} />
           </div>
         </div>
       </div>
       <p className="mt-4 text-sm text-[#232323] font-medium leading-tight flex-grow">
-        {review.text}
+        {review.reviewText}
       </p>
       <p className="mt-auto text-xs text-[#C3C3C3] font-medium">{review.timeAgo}</p>
     </div>

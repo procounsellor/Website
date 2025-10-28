@@ -86,7 +86,6 @@ const LoginCard: React.FC = () => {
         if (isProfileIncomplete) {
           navigate('/');
         } else {
-          navigate('/dashboard/student');
         }
       } else {
         throw new Error("Authentication token not found after login.");
