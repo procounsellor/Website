@@ -9,13 +9,13 @@ export default function ChatMessage({ text, isUser }: ChatMessageProps) {
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-2`}>
       <div
-        className={`p-3 rounded-lg max-w-lg ${ // Added max-w-lg
+        className={` rounded-[.50rem] max-w-[80%] ${ // Added max-w-lg
           isUser
-            ? "bg-[#FA660F] text-white rounded-br-none"
-            : "bg-gray-200 text-gray-800 rounded-bl-none"
+            ? "bg-[#6C6969] text-gray-400 py-3 px-4"
+            : " text-gray-400 "
         }`}
       >
-        <p className="whitespace-pre-wrap text-left break-words">{text}</p>
+        <p className=" text-gray-200 text-left break-words ">{text}</p>
       </div>
     </div>
   );
