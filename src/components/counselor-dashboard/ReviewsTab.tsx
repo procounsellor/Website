@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useMemo } from 'react';
 import { Star, Loader2 } from 'lucide-react';
-import type { ReviewReceived } from '@/types/counselorDashboard';
 import { getReviewsForCounselor } from '@/api/counselor-Dashboard';
 import type { User } from '@/types/user';
 import ReviewCard from './ReviewCard';
+import { useQuery } from '@tanstack/react-query';
 
 const StarRatingSummary = ({ rating }: { rating: number }) => (
     <div className="flex items-center gap-1">
@@ -23,34 +23,16 @@ interface Props {
 }
 
 export default function ReviewsTab({ user, token }: Props) {
-  const [reviews, setReviews] = useState<ReviewReceived[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { 
+    data: reviews = [],
+    isLoading: loading, 
+    error 
+  } = useQuery({
+    queryKey: ['counselorReviews', user.userName],
+    queryFn: () => getReviewsForCounselor(user.userName, token),
+    enabled: !!user.userName && !!token,
+  });
 
-  const fetchReviews = useCallback(async () => {
-    const counselorId = user.userName; 
-    if (!counselorId|| !token) {
-      setError("Counselor ID not found.");
-      setLoading(false);
-      return;
-    }
-    
-    try {
-      setLoading(true);
-      setError(null);
-      const fetchedReviews = await getReviewsForCounselor(counselorId, token);
-      setReviews(fetchedReviews);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load reviews.");
-    } finally {
-      setLoading(false);
-    }
-  }, [user, token]);
-
-  useEffect(() => {
-    fetchReviews();
-  }, [fetchReviews]);
-  
   const { overallRating, totalReviews } = useMemo(() => {
     if (!reviews || reviews.length === 0) {
       return { overallRating: 0, totalReviews: 0 };
@@ -71,14 +53,13 @@ export default function ReviewsTab({ user, token }: Props) {
   }
 
   if (error) {
-    return <div className="text-center py-16 text-red-500 bg-white rounded-2xl">{error}</div>;
+    return <div className="text-center py-16 text-red-500 bg-white rounded-2xl">{(error as Error).message}</div>;
   }
 
   return (
     <div className="bg-white p-6 rounded-2xl border border-[#EFEFEF]">
       <div className="flex justify-between items-center">
         <h3 className="ml-7 font-medium text-lg text-[#13097D]">My Reviews</h3>
-        {/* <button className="font-medium text-sm text-[#FA660F]">See All</button> */}
       </div>
 
       <div className="mt-5 ml-7 flex items-center gap-2">

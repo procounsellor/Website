@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { getEarnings, getCounselorProfileById } from '@/api/counselor-Dashboard';
-import type { EarningsData } from '@/types/earnings';
 import type { User } from '@/types/user';
 import EarningsView from './EarningsView';
 import EarningsSidebar from './EarningsSidebar';
 import CounselorTransactionsTab from './CounselorTransactionsTab';
+import { useQuery } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
 
 type InnerTab = 'Earnings' | 'Transactions';
 
@@ -15,42 +16,36 @@ interface Props {
 
 export default function MyEarningsTab({ user, token }: Props) {
   const [activeTab, setActiveTab] = useState<InnerTab>('Earnings');
-  const [earningsData, setEarningsData] = useState<EarningsData | null>(null);
-  const [loading, setLoading] = useState(true);
+  
+  const { data: earningsData, isLoading: isLoadingEarnings } = useQuery({
+    queryKey: ['counselorEarnings', user.userName],
+    queryFn: () => getEarnings(user.userName, token),
+    enabled: !!user.userName && !!token,
+  });
 
-  useEffect(() => {
-    const fetchEarnings = async () => {
-      try {
-        setLoading(true);
-        const [earningsData, profileData] = await Promise.all([
-          getEarnings(user.userName, token),
-          getCounselorProfileById(user.userName, token)
-        ]);
+  const { data: profileData, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ['counselorProfile', user.userName],
+    queryFn: () => getCounselorProfileById(user.userName, token),
+    enabled: !!user.userName && !!token,
+  });
 
-        if (earningsData) {
-          const combinedData = {
-            ...earningsData,
-            offlineTransactions: profileData?.offlineTransactions || []
-          };
-          setEarningsData(combinedData);
-        } else {
-          throw new Error("Failed to load primary earnings data");
-        }
-
-      } catch (error) {
-        console.error("Failed to load earnings tab data", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchEarnings();
-  }, [user, token]);
+  const loading = isLoadingEarnings || isLoadingProfile;
 
   const renderContent = () => {
     if (loading) {
-      return <div className="text-center py-10">Loading earnings data...</div>;
+      return (
+        <div className="text-center py-10 flex justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-[#13097D]" />
+        </div>
+      );
     }
-    if (!earningsData) {
+    
+    const combinedData = earningsData ? {
+      ...earningsData,
+      offlineTransactions: profileData?.offlineTransactions || []
+    } : null;
+    
+    if (!combinedData) {
       return <div className="text-center py-10">Could not load earnings data.</div>;
     }
 
@@ -58,10 +53,10 @@ export default function MyEarningsTab({ user, token }: Props) {
       return (
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           <div className="lg:col-span-3">
-            <EarningsView data={earningsData} />
+            <EarningsView data={combinedData} />
           </div>
           <div className="lg:col-span-2">
-            <EarningsSidebar data={earningsData} />
+            <EarningsSidebar data={combinedData} />
           </div>
         </div>
       );
@@ -69,8 +64,8 @@ export default function MyEarningsTab({ user, token }: Props) {
     
     if (activeTab === 'Transactions') {
       return <CounselorTransactionsTab 
-                transactions={earningsData.transactionData || []} 
-                offlineTransactions={earningsData.offlineTransactions || []}
+                transactions={combinedData.transactionData || []} 
+                offlineTransactions={combinedData.offlineTransactions || []}
               />;
     }
   };

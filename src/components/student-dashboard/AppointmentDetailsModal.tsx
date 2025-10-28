@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
 import type { Appointment } from '@/types/appointment';
 import { X, Calendar, Clock, MapPin, CheckCircle, ChevronLeft, Loader2, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuthStore } from '@/store/AuthStore';
 import { getAppointmentById } from '@/api/appointment';
-import toast from 'react-hot-toast';
+import { useQuery } from '@tanstack/react-query';
 
 interface Props {
   isOpen: boolean;
@@ -40,29 +39,18 @@ const formatDate = (dateStr: string) => {
 export default function AppointmentDetailsModal({ isOpen, onClose, appointment, onNavigateToCounselor }: Props) {
   const { userId } = useAuthStore();
   const token = localStorage.getItem('jwt');
-  const [zoomLink, setZoomLink] = useState<string | null>(null);
-  const [isLoadingLink, setIsLoadingLink] = useState(false);
 
-  useEffect(() => {
-  if (isOpen && appointment && userId && token) {
-      setIsLoadingLink(true);
-      setZoomLink(null);
-
-      getAppointmentById(userId, appointment.appointmentId, token)
-        .then(details => {
-          if (details.zoomMeetingLink) {
-            setZoomLink(details.zoomMeetingLink);
-          }
-        })
-        .catch(err => {
-          console.error(err);
-          toast.error('Could not fetch meeting link.');
-        })
-        .finally(() => {
-          setIsLoadingLink(false);
-        });
-  }
-}, [isOpen, appointment, userId, token]);
+  const { data: zoomLink, isLoading: isLoadingLink } = useQuery({
+    queryKey: ['appointment', 'details', appointment?.appointmentId],
+    queryFn: async () => {
+      return getAppointmentById(userId!, appointment!.appointmentId, token!);
+    },
+    
+    enabled: !!isOpen && !!appointment && !!userId && !!token,
+    select: (details) => details.zoomMeetingLink || null,
+    staleTime: 1000 * 60,
+    retry: false, 
+  });
 
   if (!isOpen || !appointment) return null;
 

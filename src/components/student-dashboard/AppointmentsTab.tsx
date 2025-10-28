@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import type { Appointment } from '@/types/appointment';
 import { useAuthStore } from '@/store/AuthStore';
 import { getUserAppointments, getUpcomingAppointments, cancelAppointment } from '@/api/appointment';
@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import AppointmentDetailsModal from './AppointmentDetailsModal';
 import CancelAppointmentModal from './CancelAppointmentModal';
 import RescheduleModalWrapper from './RescheduleModalWrapper';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 type AppointmentFilter = 'All' | 'Upcoming' | 'Completed' | 'Cancelled';
 
@@ -16,44 +17,29 @@ const AppointmentsTab: React.FC = () => {
   const { userId } = useAuthStore();
   const token = localStorage.getItem('jwt');
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
-  const [allAppointments, setAllAppointments] = useState<Appointment[]>([]);
-  const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
   const [activeFilter, setActiveFilter] = useState<AppointmentFilter>('All');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [cancelModalAppt, setCancelModalAppt] = useState<Appointment | null>(null);
   const [rescheduleModalAppt, setRescheduleModalAppt] = useState<Appointment | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fetchAppointments = async (showLoading = true) => {
-    if (!userId || !token) {
-      setError("User not authenticated.");
-      if (showLoading) setLoading(false);
-      return;
-    }
-    try {
-      if (showLoading) setLoading(true);
-      const [allData, upcomingData] = await Promise.all([
-        getUserAppointments(userId, token),
-        getUpcomingAppointments(userId, token)
-      ]);
-      
-      setAllAppointments(allData);
-      setUpcomingAppointments(upcomingData);
+  const allAppointmentsQuery = useQuery({
+    queryKey: ['appointments', 'all', { userId }],
+    queryFn: () => getUserAppointments(userId!, token!),
+    enabled: !!userId && !!token,
+  });
 
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch appointments.');
-    } finally {
-      if (showLoading) setLoading(false);
-    }
-  };
+  const upcomingAppointmentsQuery = useQuery({
+    queryKey: ['appointments', 'upcoming', { userId }],
+    queryFn: () => getUpcomingAppointments(userId!, token!),
+    enabled: !!userId && !!token,
+  });
 
-  useEffect(() => {
-    fetchAppointments(true);
-  }, [userId, token]);
+  const { data: allAppointments = [] } = allAppointmentsQuery;
+  const { data: upcomingAppointments = [] } = upcomingAppointmentsQuery;
+  const loading = allAppointmentsQuery.isLoading || upcomingAppointmentsQuery.isLoading;
+  const error = allAppointmentsQuery.error || upcomingAppointmentsQuery.error;
 
   const filteredAppointments = useMemo(() => {
     switch (activeFilter) {
@@ -69,6 +55,29 @@ const AppointmentsTab: React.FC = () => {
     }
   }, [activeFilter, allAppointments, upcomingAppointments]);
 
+  const { mutate: cancelAppointmentMutation, isPending: isSubmitting } = useMutation({
+    mutationFn: (reason: string) => {
+      if (!cancelModalAppt || !userId || !token) {
+        throw new Error('Could not cancel appointment. Missing data.');
+      }
+      const payload = {
+        userId: userId,
+        appointmentId: cancelModalAppt.appointmentId,
+        receiverFcmToken: cancelModalAppt.counsellorFCMToken || null,
+        reason: reason,
+      };
+      return cancelAppointment(payload, token);
+    },
+    onSuccess: () => {
+      toast.success('Appointment cancelled.');
+      setCancelModalAppt(null);
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : 'Failed to cancel appointment.');
+    }
+  });
+
   const handleCardClick = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
   };
@@ -78,31 +87,8 @@ const AppointmentsTab: React.FC = () => {
     setSelectedAppointment(null);
   };
   
-  const handleCancelConfirm = async (reason: string) => {
-    if (!cancelModalAppt || !userId || !token) return;
-
-    setIsSubmitting(true);
-    const toastId = toast.loading('Cancelling appointment...');
-    
-    try {
-      const payload = {
-        userId: userId,
-        appointmentId: cancelModalAppt.appointmentId,
-        receiverFcmToken: cancelModalAppt.counsellorFCMToken || null,
-        reason: reason,
-      };
-      
-      await cancelAppointment(payload, token); 
-      
-      toast.success('Appointment cancelled.', { id: toastId });
-      setCancelModalAppt(null);
-      await fetchAppointments(false);
-      
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to cancel appointment.', { id: toastId });
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleCancelConfirm = (reason: string) => {
+    cancelAppointmentMutation(reason || 'No reason provided');
   };
   
   const handleRescheduleFromCancel = () => {
@@ -112,7 +98,7 @@ const AppointmentsTab: React.FC = () => {
 
   const handleRescheduleSuccess = () => {
     setRescheduleModalAppt(null);
-    fetchAppointments(false);
+    queryClient.invalidateQueries({ queryKey: ['appointments'] });
   };
 
   const TABS: AppointmentFilter[] = ['All', 'Upcoming', 'Completed', 'Cancelled'];
@@ -129,7 +115,7 @@ const AppointmentsTab: React.FC = () => {
     return (
       <div className="text-center py-16 bg-white rounded-xl border border-red-200">
         <h3 className="text-lg font-semibold text-red-600">Error</h3>
-        <p className="text-gray-500 mt-2">{error}</p>
+        <p className="text-gray-500 mt-2">{(error as Error).message}</p>
       </div>
     );
   }

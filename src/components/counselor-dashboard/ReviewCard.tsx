@@ -22,7 +22,7 @@ export default function ReviewCard({ review }: ReviewCardProps) {
     <div className="bg-[#F9FAFB] rounded-2xl p-4 shadow-[0px_0px_4px_0px_#23232326] h-[170px] flex flex-col">
       <div className="flex items-start gap-4">
         <img 
-          src={review.userImageUrl} 
+          src={review.userImageUrl ||  `https://ui-avatars.com/api/?name=${review.userFullName}`} 
           alt={review.userFullName}
           className="w-[55px] h-[55px] rounded-full object-cover"
         />

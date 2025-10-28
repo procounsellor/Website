@@ -1,5 +1,5 @@
 import { API_CONFIG } from './config';
-import type { Appointment, GroupedAppointments, OutOfOfficePayload, CounselorAppointment, CancelAppointmentPayload, CounselorAppointmentDetails } from '@/types/appointments';
+import type { Appointment, GroupedAppointments, OutOfOfficePayload, CounselorAppointment, CancelAppointmentPayload, CounselorAppointmentDetails, OutOfOffice } from '@/types/appointments';
 import type { ApiClient, ApiPendingRequest } from '@/types/client';
 import type { CounselorProfileData } from '@/types/counselorProfile';
 import type { EarningsData } from '@/types/earnings';
@@ -40,7 +40,7 @@ export async function getAllAppointments(counsellorId: string, token: string) {
 }
 
 
-export async function getOutOfOffice(counsellorId: string, token: string) {
+export async function getOutOfOffice(counsellorId: string, token: string): Promise<OutOfOffice[]> {
     try {
         const response = await fetch(`${baseUrl}/api/counsellor/getOutOfOfficeByCounsellor?counsellorId=${counsellorId}`, {
             headers: {
