@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import type { AllCounselor } from "@/types/academic";
-
+import { API_CONFIG } from "@/api/config";
 export interface Message {
   text: string;
   isUser: boolean;
@@ -95,7 +95,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
       // Use the native fetch API for streaming
       const response = await fetch(
-        `http://127.0.0.1:8000/ask?question=${encodeURIComponent(question)}`, // IMPORTANT: Update with your backend URL
+        `${API_CONFIG.chatbotUrl}/ask?question=${encodeURIComponent(question)}`, // IMPORTANT: Update with your backend URL
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
