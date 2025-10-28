@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import ClientCard from './ClientCard';
 import type { Client, ApiClient, ApiPendingRequest } from '@/types/client';
 import type { User } from '@/types/user';
 import { getSubscribedClients, getPendingRequests, respondToSubscriptionRequest } from '@/api/counselor-Dashboard';
 import { Loader2, Search } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 type SubTab = 'My Clients' | 'Pending Request';
 
@@ -19,12 +20,8 @@ function isPendingRequest(client: any): client is ApiPendingRequest {
 
 export default function ClientsTab({ user, token }: Props) {
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('My Clients');
-  
-  const [myClients, setMyClients] = useState<Client[]>([]);
-  const [pendingRequests, setPendingRequests] = useState<Client[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const queryClient = useQueryClient();
 
   const TABS: SubTab[] = ['My Clients', 'Pending Request'];
 
@@ -52,70 +49,76 @@ export default function ClientsTab({ user, token }: Props) {
     });
   };
 
-  const fetchClients = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const counselorId = user.userName;
-      const apiClients = await getSubscribedClients(counselorId, token);
-      setMyClients(formatClients(apiClients));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load clients.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user, token]);
+  const { 
+    data: apiClients, 
+    isLoading: isLoadingClients, 
+    error: clientsError 
+  } = useQuery({
+    queryKey: ['subscribedClients', user.userName],
+    queryFn: () => getSubscribedClients(user.userName, token),
+    enabled: !!user.userName && !!token,
+    select: formatClients,
+  });
 
-  const fetchPendingRequests = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const counselorId = user.userName;
-      const apiPending = await getPendingRequests(counselorId, token);
-      setPendingRequests(formatClients(apiPending));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load pending requests.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user, token]);
+  const { 
+    data: apiPending, 
+    isLoading: isLoadingPending, 
+    error: pendingError 
+  } = useQuery({
+    queryKey: ['pendingClients', user.userName],
+    queryFn: () => getPendingRequests(user.userName, token),
+    enabled: !!user.userName && !!token,
+    select: formatClients,
+  });
+  
+  const isLoading = activeSubTab === 'My Clients' ? isLoadingClients : isLoadingPending;
+  const error = activeSubTab === 'My Clients' ? clientsError : pendingError;
+  const myClients = apiClients || [];
+  const pendingRequests = apiPending || [];
 
-
-  useEffect(() => {
-    if (activeSubTab === 'My Clients') {
-      fetchClients();
-    } else if (activeSubTab === 'Pending Request') {
-      fetchPendingRequests();
-    }
-  }, [activeSubTab, fetchClients, fetchPendingRequests]);
-
-  const [isResponding, setIsResponding] = useState<string | null>(null);
-
-  const handleAccept = async (client: Client) => {
-    if (!client.manualSubscriptionRequestId) return toast.error("Request ID is missing.");
-    setIsResponding(client.id);
-    try {
-      await respondToSubscriptionRequest(client.manualSubscriptionRequestId, 'completed', token);
-      setMyClients(prevClients => [client, ...prevClients]);
-      setPendingRequests(prevRequests => prevRequests.filter(p => p.id !== client.id));
-      toast.success(`Subscription request from ${client.name} accepted.`);
-    } catch (error) {
-    } finally {
-      setIsResponding(null);
-    }
+  const invalidateClientQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ['subscribedClients', user.userName] });
+    queryClient.invalidateQueries({ queryKey: ['pendingClients', user.userName] });
   };
 
-  const handleReject = async (client: Client) => {
-    if (!client.manualSubscriptionRequestId) return toast.error("Request ID is missing.");
-    setIsResponding(client.id);
-    try {
-      await respondToSubscriptionRequest(client.manualSubscriptionRequestId, 'rejected', token);
-      setPendingRequests(prevRequests => prevRequests.filter(p => p.id !== client.id));
-      toast.error(`Subscription request from ${client.name} rejected.`);
-    } catch (error) {
-    } finally {
-      setIsResponding(null);
+  const { mutate: acceptMutation, isPending: isAccepting } = useMutation({
+    mutationFn: (client: Client) => {
+      if (!client.manualSubscriptionRequestId) throw new Error("Request ID is missing.");
+      return respondToSubscriptionRequest(client.manualSubscriptionRequestId, 'completed', token);
+    },
+    onSuccess: (_, client) => {
+      toast.success(`Subscription request from ${client.name} accepted.`);
+      invalidateClientQueries();
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : 'Action failed.');
     }
+  });
+
+  const { mutate: rejectMutation, isPending: isRejecting } = useMutation({
+    mutationFn: (client: Client) => {
+      if (!client.manualSubscriptionRequestId) throw new Error("Request ID is missing.");
+      return respondToSubscriptionRequest(client.manualSubscriptionRequestId, 'rejected', token);
+    },
+    onSuccess: (_, client) => {
+      toast.error(`Subscription request from ${client.name} rejected.`);
+      invalidateClientQueries();
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : 'Action failed.');
+    }
+  });
+
+  const [respondingId, setRespondingId] = useState<string | null>(null);
+  
+  const handleAccept = (client: Client) => {
+    setRespondingId(client.id);
+    acceptMutation(client, { onSettled: () => setRespondingId(null) });
+  };
+  
+  const handleReject = (client: Client) => {
+    setRespondingId(client.id);
+    rejectMutation(client, { onSettled: () => setRespondingId(null) });
   };
   
   const filteredClients = useMemo(() => {
@@ -134,7 +137,7 @@ export default function ClientsTab({ user, token }: Props) {
       return <div className="text-center py-10 flex justify-center"><Loader2 className="animate-spin" /></div>;
     }
     if (error) {
-      return <div className="text-center py-16 text-red-500">{error}</div>;
+      return <div className="text-center py-16 text-red-500">{(error as Error).message}</div>;
     }
     
     return filteredClients.length > 0 ? (
@@ -145,7 +148,7 @@ export default function ClientsTab({ user, token }: Props) {
             variant={activeSubTab === 'My Clients' ? 'client' : 'pending'}
             onAccept={() => handleAccept(client)}
             onReject={() => handleReject(client)}
-            isResponding={isResponding === client.id}
+            isResponding={respondingId === client.id && (isAccepting || isRejecting)}
         />
       )
     ) : (

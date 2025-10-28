@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
 import type { CounselorAppointment } from '@/types/appointments';
 import { X, Calendar, Clock, MapPin, CheckCircle, ChevronLeft, Loader2, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
-import { getCounselorAppointmentById } from '@/api/counselor-Dashboard'; // --- ADDED ---
-import toast from 'react-hot-toast';
+import { getCounselorAppointmentById } from '@/api/counselor-Dashboard';
+import { useQuery } from '@tanstack/react-query';
 
 interface Props {
   isOpen: boolean;
@@ -17,14 +16,12 @@ const calculateDuration = (startTime: string, endTime: string): number => {
   if (!startTime || !endTime) return 0;
   const [startHour, startMinute] = startTime.split(':').map(Number);
   const [endHour, endMinute] = endTime.split(':').map(Number);
-  
   const startDate = new Date(0, 0, 0, startHour, startMinute);
   const endDate = new Date(0, 0, 0, endHour, endMinute);
-  
+
   let diff = endDate.getTime() - startDate.getTime();
   return Math.round(diff / 60000);
 };
-
 const formatTime = (timeStr: string) => {
   if (!timeStr) return 'N/A';
   const [hours, minutes] = timeStr.split(':').map(Number);
@@ -32,50 +29,38 @@ const formatTime = (timeStr: string) => {
   date.setHours(hours, minutes);
   return format(date, 'h:mm a');
 };
-
 const formatDate = (dateStr: string) => {
   if (!dateStr) return 'N/A';
   const date = new Date(`${dateStr}T00:00:00`);
   return format(date, 'd MMM, yyyy');
 };
 
-export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appointment, counsellorId, token }: Props) {
-  const [zoomLink, setZoomLink] = useState<string | null>(null);
-  const [isLoadingLink, setIsLoadingLink] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && appointment && counsellorId && token) {
-      setIsLoadingLink(true);
-      setZoomLink(null);
-      
-      getCounselorAppointmentById(counsellorId, appointment.appointmentId, token)
-        .then(details => {
-          if (details.zoomMeetingLink) {
-            setZoomLink(details.zoomMeetingLink);
-          }
-        })
-        .catch(err => {
-          console.error(err);
-          toast.error('Could not fetch meeting link.');
-        })
-        .finally(() => {
-          setIsLoadingLink(false);
-        });
-    }
-  }, [isOpen, appointment, counsellorId, token]);
+export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appointment, counsellorId, token }: Props) {
+
+  const { data: zoomLink, isLoading: isLoadingLink } = useQuery({
+    queryKey: ['counselorAppointmentDetails', appointment?.appointmentId],
+    queryFn: () => {
+      return getCounselorAppointmentById(counsellorId, appointment!.appointmentId, token);
+    },
+    enabled: isOpen && !!appointment && !!counsellorId && !!token,
+    select: (details) => details.zoomMeetingLink || null,
+    staleTime: 1000 * 60,
+    retry: false,
+  });
 
   if (!isOpen || !appointment) return null;
 
   const isCancelled = appointment.status === 'cancelled';
   const isCompleted = appointment.status === 'completed';
-  const modalTitle = isCancelled 
-    ? 'Appointment Cancelled' 
-    : isCompleted 
-      ? 'Appointment Completed' 
+  const modalTitle = isCancelled
+    ? 'Appointment Cancelled'
+    : isCompleted
+      ? 'Appointment Completed'
       : 'Appointment Confirmed';
 
   const imageUrl = (appointment.userPhootoSmall && appointment.userPhootoSmall !== 'NA')
-    ? appointment.userPhootoSmall 
+    ? appointment.userPhootoSmall
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(appointment.userFullName)}&background=E0E7FF&color=4F46E5`;
 
   const duration = calculateDuration(appointment.startTime, appointment.endTime);
@@ -83,7 +68,7 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
 
   const StatusDisplay = () => {
     const statusText = appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1);
-    
+
     if (isCancelled) {
       return (
         <span className="font-medium text-[#EE1C1F] capitalize flex items-center gap-1">
@@ -101,7 +86,7 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
   const JoinButton = () => {
     if (isCancelled || isCompleted) {
       return (
-        <button 
+        <button
           disabled
           className="bg-gray-300 text-gray-500 font-medium px-6 py-2 rounded-lg text-sm cursor-not-allowed"
         >
@@ -111,7 +96,7 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
     }
     if (isLoadingLink) {
       return (
-        <button 
+        <button
           disabled
           className="bg-gray-400 text-white font-medium px-6 py-2 rounded-lg text-sm inline-flex items-center"
         >
@@ -122,7 +107,7 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
     }
     if (zoomLink) {
       return (
-        <a 
+        <a
           href={zoomLink}
           target="_blank"
           rel="noopener noreferrer"
@@ -145,9 +130,10 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
       </span>
     );
   };
+
   return (
     <div className="fixed inset-0 z-[100] md:bg-opacity-50 md:backdrop-blur-sm flex items-center justify-center">
-      
+
       {/* Mobile View */}
       <div className="md:hidden h-full w-full bg-[#F5F7FA] flex flex-col">
         <header className="flex-shrink-0 flex items-center p-4 bg-white border-b border-gray-200">
@@ -160,10 +146,10 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
         <div className="flex-grow overflow-y-auto p-4 space-y-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
             <div className="flex items-center gap-3">
-              <img 
-                src={imageUrl} 
-                alt={appointment.userFullName} 
-                className="w-12 h-12 rounded-full object-cover" 
+              <img
+                src={imageUrl}
+                alt={appointment.userFullName}
+                className="w-12 h-12 rounded-full object-cover"
               />
               <div>
                 <p className="font-medium text-gray-500 text-sm">Counselling Session</p>
@@ -204,7 +190,7 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
               </div>
             </div>
           </div>
-          
+
           <div className="text-center p-4 bg-white rounded-xl border border-gray-100">
              <h3 className="font-semibold text-gray-800">Need Help</h3>
              <p className="text-sm text-gray-500 mt-1 mb-4">Our team is here to assist you with any questions</p>
@@ -217,7 +203,7 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
       </div>
 
       {/* Desktop View */}
-      <div 
+      <div
         className="hidden md:block w-full max-w-md bg-white rounded-xl shadow-xl p-6 relative"
         onClick={(e) => e.stopPropagation()}
       >

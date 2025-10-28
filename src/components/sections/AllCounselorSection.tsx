@@ -133,7 +133,7 @@ export function AllCounselorSection() {
           <div className="text-center">
             <p className="text-red-600 mb-4">{error}</p>
             <Button 
-              onClick={refetch} 
+              onClick={() => refetch()} 
               className="bg-[#FA660F] hover:bg-[#e55a0d]"
             >
               Try Again

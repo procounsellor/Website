@@ -11,12 +11,14 @@ import { MessageSquare } from "lucide-react";
 import { useVoiceChatStore } from "@/store/VoiceChatStore";
 import VoiceChat from "@/components/chatbot/VoiceChat";
 import InfoModal from "@/components/counselor-signup/InfoModal";
+import AppInstallBanner from "@/components/shared/AppInstallBanner";
 export default function MainLayout(){
   const { isLoginToggle, isAuthenticated, userExist } = useAuthStore();
     const { isChatbotOpen, toggleChatbot } = useChatStore();
    const { isVoiceChatOpen} = useVoiceChatStore();
     return (
         <div>
+          <AppInstallBanner />
            <nav>
              <Header/>
            </nav>
@@ -59,7 +61,7 @@ export default function MainLayout(){
 
       {/* Render the voice chat UI when open */}
       {isVoiceChatOpen && <VoiceChat />}
-
+        
         </div>
     );
 }

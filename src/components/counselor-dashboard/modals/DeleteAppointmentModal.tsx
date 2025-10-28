@@ -5,21 +5,21 @@ interface DeleteAppointmentModalProps {
   userName: string;
   onClose: () => void;
   onConfirm: (reason: string) => void; 
+  isSubmitting: boolean;
 }
 
 export default function DeleteAppointmentModal({
   onClose,
   onConfirm,
+  isSubmitting,
 }: DeleteAppointmentModalProps) {
   const [reason, setReason] = useState("");
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleConfirm = () => {
     if (!reason.trim()) {
       alert("Please provide a reason for cancellation.");
       return;
     }
-    setIsDeleting(true);
     onConfirm(reason);
   };
 
@@ -68,10 +68,10 @@ export default function DeleteAppointmentModal({
         <div className="flex justify-end gap-4 mt-auto pt-4">
           <button
             onClick={handleConfirm}
-            disabled={!reason.trim() || isDeleting}
+            disabled={!reason.trim()|| isSubmitting}
             className="px-6 py-2 bg-[#FA660F] text-white rounded-lg font-medium hover:bg-[#e55d0e] transition-colors disabled:bg-orange-300 disabled:cursor-not-allowed"
           >
-            {isDeleting ? "Cancelling..." : "Confirm Cancellation"}
+            {isSubmitting ? "Cancelling..." : "Confirm Cancellation"}
           </button>
           <button
             onClick={onClose}

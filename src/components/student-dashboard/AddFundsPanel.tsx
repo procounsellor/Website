@@ -6,6 +6,7 @@ interface AddFundsPanelProps {
   onClose: () => void;
   balance: number;
   onAddMoney: (amount: number) => void;
+  isProcessing?: boolean;
 }
 
 const formatCurrency = (amount: number) => {
@@ -17,7 +18,7 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-const AddFundsPanel: React.FC<AddFundsPanelProps> = ({ isOpen, onClose, balance, onAddMoney }) => {
+const AddFundsPanel: React.FC<AddFundsPanelProps> = ({ isOpen, onClose, balance, onAddMoney, isProcessing }) => {
   const [amount, setAmount] = useState('');
 
   useEffect(() => {
@@ -27,7 +28,7 @@ const AddFundsPanel: React.FC<AddFundsPanelProps> = ({ isOpen, onClose, balance,
   }, [isOpen]);
 
   const handleAddClick = () => {
-    if (!amount || Number(amount) <= 0) return;
+    if (!amount || Number(amount) <= 0 || isProcessing) return;
     onAddMoney(Number(amount));
   };
 
@@ -89,10 +90,10 @@ const AddFundsPanel: React.FC<AddFundsPanelProps> = ({ isOpen, onClose, balance,
               </div>
               <button
                 onClick={handleAddClick}
-                disabled={!amount || Number(amount) <= 0}
+                disabled={!amount || Number(amount) <= 0 || isProcessing}
                 className="w-full h-[42px] bg-[#FA660F] rounded-[12px] text-white font-semibold text-sm disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors"
               >
-                Add Money
+                {isProcessing ? 'Processing...' : 'Add Money'}
               </button>
             </div>
           </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Review } from '@/types/review';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const StarRatingInput = ({
@@ -45,16 +45,24 @@ interface EditReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUpdate: (updatedData: { reviewText: string; rating: number }) => Promise<void>;
+  isSubmitting: boolean;
 }
 
-const EditReviewModal: React.FC<EditReviewModalProps> = ({ review, isOpen, onClose, onUpdate }) => {
+const EditReviewModal: React.FC<EditReviewModalProps> = ({
+  review,
+  isOpen,
+  onClose,
+  onUpdate,
+  isSubmitting,
+}) => {
   const [rating, setRating] = useState(review.rating);
   const [reviewText, setReviewText] = useState(review.reviewText);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    setRating(review.rating);
-    setReviewText(review.reviewText);
+    if (review) {
+        setRating(review.rating);
+        setReviewText(review.reviewText);
+    }
   }, [review]);
 
   const handleSubmit = async () => {
@@ -67,23 +75,21 @@ const EditReviewModal: React.FC<EditReviewModalProps> = ({ review, isOpen, onClo
       return;
     }
 
-    setIsSubmitting(true);
     try {
       await onUpdate({ reviewText, rating });
     } catch (error) {
       console.error(error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   if (!isOpen) return null;
+
   const isButtonEnabled = rating > 0 && reviewText.trim().length > 0 && !isSubmitting;
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-[#232323]/50 backdrop-blur-[35px]"
-      onClick={onClose}
+      onClick={isSubmitting ? undefined : onClose}
     >
       <div
         className="bg-white rounded-2xl border border-[#EFEFEF] shadow-xl w-[632px] h-[440px] p-6 relative flex flex-col items-center"
@@ -91,7 +97,8 @@ const EditReviewModal: React.FC<EditReviewModalProps> = ({ review, isOpen, onClo
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-transparent text-black flex items-center justify-center transition-colors hover:bg-black hover:text-white"
+          disabled={isSubmitting}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-transparent text-black flex items-center justify-center transition-colors hover:bg-black hover:text-white disabled:opacity-50"
           aria-label="Close modal"
         >
           <X className="w-5 h-5" />
@@ -124,13 +131,16 @@ const EditReviewModal: React.FC<EditReviewModalProps> = ({ review, isOpen, onClo
         <button
           onClick={handleSubmit}
           disabled={!isButtonEnabled}
-          className={`w-[548px] h-12 mt-5 rounded-xl font-semibold text-white text-base transition-colors
+          className={`w-[548px] h-12 mt-5 rounded-xl font-semibold text-white text-base transition-colors flex items-center justify-center
             ${isButtonEnabled
               ? 'bg-[#13097D] hover:bg-opacity-90'
               : 'bg-[#ACACAC] cursor-not-allowed'
             }`}
         >
-          {isSubmitting ? "Saving..." : "Submit Review"}
+          {isSubmitting
+            ? <Loader2 className="w-5 h-5 animate-spin" />
+            : "Submit Review"
+          }
         </button>
       </div>
     </div>
@@ -138,4 +148,3 @@ const EditReviewModal: React.FC<EditReviewModalProps> = ({ review, isOpen, onClo
 };
 
 export default EditReviewModal;
-

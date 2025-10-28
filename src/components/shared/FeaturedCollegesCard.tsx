@@ -25,7 +25,7 @@ export function FeaturedCollegesCard() {
             <div className="mt-4 space-y-4">
                 {loading && <p className="text-center text-gray-500">Loading colleges...</p>}
                 {error && <p className="text-center text-red-500">Could not load colleges.</p>}
-                {colleges.map(college => (
+                {colleges?.map(college => (
                     <CollegeItem 
                         key={college.id}
                         name={college.name}
