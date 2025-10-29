@@ -37,13 +37,18 @@ type AuthState = {
   userExist: boolean;
   isCounselorSignupOpen: boolean;
   loading: boolean;
-  toggleLogin: () => void;
+  toggleLogin: (onSuccess?: () => void) => void;
   toggleCounselorSignup: () => void;
   setUser: (user: User | null) => void;
   sendOtp: (phone: string) => Promise<void>;
   verifyOtp: (phone: string, otp: string) => Promise<void>;
   refreshUser: (force?: boolean) => Promise<User | null>;
+  onLoginSuccess: (() => void) | null;
   logout: () => void;
+  pendingAction?: (() => void) | null;
+  setPendingAction: (fn: (() => void) | null) => void;
+  bookingTriggered: boolean;
+setBookingTriggered: (value: boolean) => void;
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -57,9 +62,17 @@ export const useAuthStore = create<AuthState>()(
       userExist: false,
       isCounselorSignupOpen: false,
       loading: true,
+      onLoginSuccess: null,
+      pendingAction: null,
+      setPendingAction: (fn) => set({ pendingAction: fn }),
+      bookingTriggered: false,
+      setBookingTriggered: (value) => set({ bookingTriggered: value }),
 
-      toggleLogin: () =>
-        set((state) => ({ isLoginToggle: !state.isLoginToggle })),
+      toggleLogin: (onSuccess?: () => void) =>
+        set((state) => ({
+          isLoginToggle: !state.isLoginToggle,
+          onLoginSuccess: !state.isLoginToggle ? (onSuccess || null) : null,
+        })),
 
       toggleCounselorSignup: () =>
         set((state) => ({
@@ -128,13 +141,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       verifyOtp: async (phone: string, otp: string) => {
-        console.log("🔹 Starting verifyOtp...");
         set({ loading: true });
 
         const data = await apiVerifyOtp(phone, otp);
-        console.log("🔹 OTP API response:", data);
 
-        // Handle counselor vs student
         const isUser = data?.isUser === true || data?.isUser === "true";
         const role = isUser ? "student" : "counselor";
 
@@ -147,7 +157,6 @@ export const useAuthStore = create<AuthState>()(
           }
           if (phone) {
             localStorage.setItem("phone", phone);
-            console.log("✅ Phone saved");
           }
         } catch (err) {
           console.error("⚠️ Failed to save JWT/phone:", err);
@@ -155,7 +164,7 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           const res = await checkUrl(phone, data?.jwt ?? data?.jwtToken);
-          set({ userExist: Boolean(res), isLoginToggle: Boolean(res) });
+          set({ userExist: Boolean(res) });
         } catch {
           set({ userExist: false });
         }
@@ -172,10 +181,15 @@ export const useAuthStore = create<AuthState>()(
                 isAuthenticated: true,
                 loading: false,
               });
-              return;
+
+              const { onLoginSuccess } = get();
+              if (onLoginSuccess) {
+                onLoginSuccess();
+                set({ onLoginSuccess: null });
+              }
             }
-          } else {
-            const user = await getUserProfile(phone, data.jwtToken);
+            } else {
+              const user = await getUserProfile(phone, data.jwtToken);
 
             if (user) {
               user.role = user.role.toLowerCase();
@@ -185,15 +199,35 @@ export const useAuthStore = create<AuthState>()(
                 isAuthenticated: true,
                 loading: false,
               });
-              return;
+
+            const { onLoginSuccess } = get();
+            if (onLoginSuccess) {
+              onLoginSuccess();
+              set({ onLoginSuccess: null });
             }
           }
-        } catch (err) {
-          console.error("❌ Failed during verifyOtp data fetch:", err);
-        } finally {
-          set({ loading: false });
         }
-      },
+
+        const { pendingAction } = get();
+        const { setBookingTriggered } = get();
+
+        if (pendingAction) {
+          set({ isLoginToggle: false });
+
+          setTimeout(() => {
+            setBookingTriggered(true);
+            set({ pendingAction: null });
+          }, 400);
+        } else {
+          set({ isLoginToggle: false });
+        }
+
+      } catch (err) {
+        console.error("❌ Failed during verifyOtp data fetch:", err);
+      } finally {
+        set({ loading: false });
+      }
+    },
 
       logout: () => {
         try {
@@ -208,6 +242,7 @@ export const useAuthStore = create<AuthState>()(
           isLoginToggle: false,
           userExist: false,
           role: null,
+          onLoginSuccess: null,
           loading: false,
         });
       },
@@ -215,10 +250,15 @@ export const useAuthStore = create<AuthState>()(
     {
       name: "user",
       storage: createJSONStorage(() => localStorage),
-
+      partialize: (state) =>
+        Object.fromEntries(
+          Object.entries(state).filter(([key]) =>
+            ['user', 'userId', 'role', 'isAuthenticated', 'userExist'].includes(key)
+          )
+        ),
       onRehydrateStorage: () => (state) => {
         if (state) {
-          console.log("✅ Zustand rehydrated from localStorage");
+          // console.log("✅ Zustand rehydrated from localStorage");
         }
       },
     }

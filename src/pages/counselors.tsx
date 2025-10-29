@@ -70,7 +70,7 @@ export default function CounselorListingPage() {
   const { data: counselors, loading, error } = useAllCounselors();
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 9;
-  const { user, userId, refreshUser } = useAuthStore();
+  const { user, userId, refreshUser, role } = useAuthStore();
   const [favouriteIds, setFavouriteIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -80,6 +80,10 @@ export default function CounselorListingPage() {
   }, [user]);
 
   const handleToggleFavourite = async (counsellorId: string) => {
+    if (role === 'counselor') {
+      toast.error("Counselors cannot add other counselors to favourites.");
+      return;
+    }
     if (!userId) return;
     const newFavouriteIds = new Set(favouriteIds);
     if (newFavouriteIds.has(counsellorId)) {

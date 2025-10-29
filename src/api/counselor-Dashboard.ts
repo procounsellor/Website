@@ -2,7 +2,7 @@ import { API_CONFIG } from './config';
 import type { Appointment, GroupedAppointments, OutOfOfficePayload, CounselorAppointment, CancelAppointmentPayload, CounselorAppointmentDetails, OutOfOffice } from '@/types/appointments';
 import type { ApiClient, ApiPendingRequest } from '@/types/client';
 import type { CounselorProfileData } from '@/types/counselorProfile';
-import type { EarningsData } from '@/types/earnings';
+import type { EarningsData, Transaction } from '@/types/earnings';
 import toast from 'react-hot-toast';
 import type { ReviewReceived } from '@/types/counselorDashboard';
 
@@ -263,6 +263,34 @@ export async function getEarnings(counsellorId: string, token: string): Promise<
     console.error("Get Earnings Data Error:", error);
     toast.error("Could not load your earnings data.");
     return null;
+  }
+}
+
+export async function getAllOfflineTransactions(counsellorId: string, token: string): Promise<Transaction[]> {
+  try {
+    const response = await fetch(`${baseUrl}/api/counsellor/getAllOfflineTransactionsByCounsellorId?counsellorId=${counsellorId}`, {
+      headers: {
+        'Accept': 'application/json',
+        authorization: `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch offline transactions');
+    }
+    
+    const responseText = await response.text();
+    if (!responseText || responseText.toLowerCase().includes("no transactions")) {
+        return [];
+    }
+    
+    const data: Transaction[] = JSON.parse(responseText);
+    return data;
+
+  } catch (error) {
+    console.error("Get Offline Transactions Error:", error);
+    toast.error("Could not load your offline transactions.");
+    return [];
   }
 }
 
