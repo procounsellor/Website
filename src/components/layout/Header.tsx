@@ -8,15 +8,13 @@ import toast from "react-hot-toast";
 import SmartImage from "@/components/ui/SmartImage";
 import { BANNER_DISMISS_EVENT } from "@/components/shared/AppInstallBanner";
 
-const LOCAL_STORAGE_KEY = 'appBannerDismissed_v1';
-
 export default function Header(){
     const {user,toggleLogin,isAuthenticated, logout} = useAuthStore()
     const [scrolled, setScrolled] = useState(false)
     const [showHeaderSearch, setShowHeaderSearch] = useState(false)
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [isBannerVisible, setIsBannerVisible] = useState(false);
+    const [isBannerVisible, setIsBannerVisible] = useState(true);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const searchBarRef = useRef(null)
     const navigate = useNavigate()
@@ -26,15 +24,6 @@ export default function Header(){
     const isHomePage = location.pathname === '/'
 
     useEffect(() => {
-      try {
-        const dismissed = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (!dismissed) {
-          setIsBannerVisible(true);
-        }
-      }catch(error){
-        console.error("Could not access localStorage", error);
-      }
-
       const handleBannerDismiss = () => {
         setIsBannerVisible(false);
       };
@@ -193,7 +182,7 @@ const handleProfileNavigation = () => {
           variant={"outline"}
           className="w-full lg:w-[164px] flex items-center justify-center h-6 md:h-11 border rounded-[12px] font-semibold text-[#FF660F] border-[#FF660F]
            text-[10px] md:text-lg hover:bg-[#FF660F] hover:text-white transition-all duration-200"
-          onClick={toggleLogin}
+          onClick={() => toggleLogin()}
           >
             Login/Sign Up
           </Button>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui';
 import SmartImage from '@/components/ui/SmartImage';
@@ -7,32 +7,15 @@ const APP_STORE_LINK = "https://apps.apple.com/app/procounsel/id6752525886";
 const PLAY_STORE_LINK = "https://play.google.com/store/apps/details?id=com.catalystai.ProCounsel"
 const QR_CODE_IMAGE_PATH = "/qr_procounsel.jpg";
 
-const LOCAL_STORAGE_KEY = 'appBannerDismissed_v1';
 export const BANNER_DISMISS_EVENT = 'appBannerDismissed';
 
 export default function AppInstallBanner() {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    try {
-      const dismissed = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (!dismissed) {
-        setIsVisible(true);
-      }
-    } catch (error) {
-      console.error("Could not access localStorage", error);
-    }
-  }, []);
+  const [isVisible, setIsVisible] = useState(true);
 
   const handleDismiss = () => {
-    setIsVisible(false);
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, 'true');
-      window.dispatchEvent(new CustomEvent(BANNER_DISMISS_EVENT));
-    } catch (error) {
-      console.error("Could not access localStorage", error);
-    }
-  };
+  setIsVisible(false);
+  window.dispatchEvent(new CustomEvent(BANNER_DISMISS_EVENT));
+};
 
   const handleDownloadClick = () => {
     const userAgent = navigator.userAgent || navigator.vendor;

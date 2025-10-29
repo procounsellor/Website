@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getEarnings, getCounselorProfileById } from '@/api/counselor-Dashboard';
+import { getEarnings, getAllOfflineTransactions } from '@/api/counselor-Dashboard';
 import type { User } from '@/types/user';
 import EarningsView from './EarningsView';
 import EarningsSidebar from './EarningsSidebar';
@@ -23,13 +23,19 @@ export default function MyEarningsTab({ user, token }: Props) {
     enabled: !!user.userName && !!token,
   });
 
-  const { data: profileData, isLoading: isLoadingProfile } = useQuery({
-    queryKey: ['counselorProfile', user.userName],
-    queryFn: () => getCounselorProfileById(user.userName, token),
+  // const { data: profileData, isLoading: isLoadingProfile } = useQuery({
+  //   queryKey: ['counselorProfile', user.userName],
+  //   queryFn: () => getCounselorProfileById(user.userName, token),
+  //   enabled: !!user.userName && !!token,
+  // });
+
+  const { data: offlineTransactionsData, isLoading: isLoadingOfflineTx } = useQuery({
+    queryKey: ['counselorOfflineTransactions', user.userName],
+    queryFn: () => getAllOfflineTransactions(user.userName, token),
     enabled: !!user.userName && !!token,
   });
 
-  const loading = isLoadingEarnings || isLoadingProfile;
+  const loading = isLoadingEarnings || isLoadingOfflineTx;
 
   const renderContent = () => {
     if (loading) {
@@ -42,7 +48,7 @@ export default function MyEarningsTab({ user, token }: Props) {
     
     const combinedData = earningsData ? {
       ...earningsData,
-      offlineTransactions: profileData?.offlineTransactions || []
+      offlineTransactions: offlineTransactionsData || []
     } : null;
     
     if (!combinedData) {

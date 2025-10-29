@@ -44,16 +44,18 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
       toast.error("Counselors cannot subscribe to other counselors.");
       return;
     }
-    if (!isAuthenticated) {
-      toggleLogin();
-      return;
-    }
+    
     const subscribeAction = () => {
+      const freshUserId = localStorage.getItem('phone');
+      if (!freshUserId) {
+        toast.error("Could not get user ID after login. Please try again.");
+        return;
+      }
       const autoOpenPlan = isUpgrade ? getUpgradePlan() : null;
       navigate('/subscribe', { 
         state: { 
           counselorId: counselor.userName, 
-          userId: userId, 
+          userId: freshUserId, 
           counselor: counselor,
           isUpgrade: isUpgrade,
           ...(isUpgrade && { currentPlan: subscription }),
@@ -61,6 +63,10 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
         } 
       });
     };
+    if (!isAuthenticated) {
+      toggleLogin(subscribeAction);
+      return;
+    }
     if (!user?.firstName || !user?.email) {
       onProfileIncomplete(subscribeAction);
       return;
