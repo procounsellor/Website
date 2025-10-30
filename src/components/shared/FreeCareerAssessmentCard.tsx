@@ -1,5 +1,5 @@
 // import { Flame } from 'lucide-react';
-import { useState, type JSX } from 'react';
+import { useState, useEffect, type JSX } from 'react';
 import AppointmentCard from '../appointment-cards/AppointmentCard';
 import type { CounselorDetails } from '@/types/academic';
 import { useAuthStore } from '@/store/AuthStore';
@@ -14,9 +14,13 @@ interface Props{
 
 export function FreeCareerAssessmentCard({counselor, user, onProfileIncomplete}:Props):JSX.Element {
   const [booking, setBooking] = useState(false);
-  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
-  const toggleLogin = useAuthStore(state => state.toggleLogin);
-  const loggedInUserRole = useAuthStore(state => state.role);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const toggleLogin = useAuthStore((s) => s.toggleLogin);
+  const loggedInUserRole = useAuthStore((s) => s.role);
+  const setPendingAction = useAuthStore((s) => s.setPendingAction);
+  const bookingTriggered = useAuthStore((s) => s.bookingTriggered);
+  const setBookingTriggered = useAuthStore((s) => s.setBookingTriggered);
+
 
   const isCurrentUserCounselor = loggedInUserRole === 'counselor';
 
@@ -25,21 +29,38 @@ export function FreeCareerAssessmentCard({counselor, user, onProfileIncomplete}:
       console.log("Counselors cannot book appointments with other counselors.");
       return;
     }
-    console.log('Book Appointment clicked, isAuthenticated:', isAuthenticated);
+
+    const bookAction = () => {
+  console.log("✅ Running BookAction after login...");
+  // small delay to let login modal close before opening appointment modal
+  setTimeout(() => {
+    setBooking(true);
+  }, 300);
+};
+
+
     if (!isAuthenticated) {
-      console.log('User not authenticated, triggering login');
+      console.log('User not authenticated, triggering login with callback');
+      setPendingAction(() => bookAction);
       toggleLogin();
       return;
     }
-    const bookAction = () => {
-      setBooking(true);
-    };
+
     if (!user?.firstName || !user?.email) {
       onProfileIncomplete(bookAction);
       return;
     }
+
     bookAction();
   };
+
+  useEffect(() => {
+    if (bookingTriggered) {
+      console.log("🎯 Detected booking trigger after login — opening modal...");
+      setBooking(true);
+      setBookingTriggered(false); // reset flag
+    }
+  }, [bookingTriggered, setBookingTriggered]);
 
   if(booking){
       return <AppointmentCard counselor={counselor} onClose={() => setBooking(false)} />

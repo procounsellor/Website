@@ -1,67 +1,56 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { academicApi } from '../api/academic';
 import type { ExamApiResponse, Exam } from '../types/academic';
 
 export const useExams = (limit?: number) => {
-  const [exams, setExams] = useState<Exam[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: exams,
+    isLoading: loading,
+    isError,
+    error: queryError,
+  } = useQuery({
+    queryKey: ['exams'],
+    queryFn: academicApi.getExams,
 
-  useEffect(() => {
-    const fetchExams = async () => {
-      try {
-        setLoading(true);
-        const data = await academicApi.getExams();
-        const transformedExams: Exam[] = data.map((exam: ExamApiResponse) => ({
-          id: exam.examId,
-          name: exam.examName,
-          level: exam.examLevel,
-          type: exam.examType,
-          iconUrl: exam.iconUrl,
-          bannerUrl: exam.bannerUrl,
-          popularity: exam.popularityCount
-        }));
+    select: (data) => {
+      const transformedExams: Exam[] = data.map((exam: ExamApiResponse) => ({
+        id: exam.examId,
+        name: exam.examName,
+        level: exam.examLevel,
+        type: exam.examType,
+        iconUrl: exam.iconUrl,
+        bannerUrl: exam.bannerUrl,
+        popularity: exam.popularityCount
+      }));
 
+      const sortedExams = transformedExams.sort((a, b) => b.popularity - a.popularity);
+      
+      return limit ? sortedExams.slice(0, limit) : sortedExams;
+    }
+  });
 
-        const sortedExams = transformedExams.sort((a, b) => b.popularity - a.popularity);
-        
-        const finalExams = limit ? sortedExams.slice(0, limit) : sortedExams;
-        
-        setExams(finalExams);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch exams');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchExams();
-  }, [limit]);
-
+  const error = isError
+    ? (queryError as Error)?.message || 'Failed to fetch exams'
+    : null;
+  
   return { exams, loading, error };
 };
 
 export const useExamById = (examId: string) => {
-  const [exam, setExam] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: exam,
+    isLoading: loading,
+    isError,
+    error: queryError,
+  } = useQuery({
+    queryKey: ['exam', examId],
+    queryFn: () => academicApi.getExamById(examId),
+    enabled: !!examId, 
+  });
 
-  useEffect(() => {
-    if (!examId) return;
-    const fetchExam = async () => {
-      try {
-        setLoading(true);
-        const data = await academicApi.getExamById(examId);
-        setExam(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch exam details');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchExam();
-  }, [examId]);
+  const error = isError
+    ? (queryError as Error)?.message || 'Failed to fetch exam details'
+    : null;
 
   return { exam, loading, error };
 };

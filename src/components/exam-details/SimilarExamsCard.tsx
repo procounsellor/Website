@@ -23,7 +23,7 @@ export function SimilarExamsCard() {
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <h3 className="text-lg font-bold text-[#343C6A]">Similar Exams</h3>
             <div className="mt-4 space-y-4">
-                {loading ? <p>Loading...</p> : exams.map(exam => (
+                {loading ? <p>Loading...</p> : exams?.map(exam => (
                     <SimilarExamItem key={exam.id} id={exam.id} name={exam.name} imageUrl={exam.iconUrl} />
                 ))}
             </div>

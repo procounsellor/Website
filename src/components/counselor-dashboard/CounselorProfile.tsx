@@ -4,6 +4,8 @@ import type { CounselorProfileData } from '@/types/counselorProfile';
 import { X, Edit, CheckCircle2, Loader2, PenSquare } from 'lucide-react';
 import type { User } from '@/types/user';
 import EditableField from './EditableField';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 
 interface CounselorProfileProps {
   isOpen: boolean;
@@ -12,7 +14,6 @@ interface CounselorProfileProps {
   token: string;
 }
 
-// InfoField and SubscriptionPlan components remain the same...
 const InfoField = ({ label, value }: { label: string; value: string }) => (
   <div>
     <label className="text-sm font-montserrat text-[#232323]">{label}</label>
@@ -48,14 +49,12 @@ const SubscriptionPlan = ({
     );
 
 export default function CounselorProfile({ isOpen, onClose, user, token }: CounselorProfileProps) {
-  const [counselor, setCounselor] = useState<CounselorProfileData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [editableData, setEditableData] = useState<Partial<CounselorProfileData>>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (isOpen) {
@@ -78,23 +77,46 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
       }
     };
   }, [previewUrl]);
-  
-  const fetchCounselorData = async () => {
-      if (!user.userName) return;
-      setIsLoading(true);
-      const data = await getCounselorProfileById(user.userName, token);
-      setCounselor(data);
-      if (data) {
-        setEditableData(data);
-      }
-      setIsLoading(false);
-  };
+
+  const { data: counselor, isLoading } = useQuery({
+    queryKey: ['counselorProfile', user.userName],
+    queryFn: () => getCounselorProfileById(user.userName!, token),
+    enabled: isOpen && !!user.userName && !!token,
+  });
 
   useEffect(() => {
-    if (isOpen) {
-      fetchCounselorData();
+    if (counselor) {
+      setEditableData(counselor);
     }
-  }, [isOpen, user, token]);
+  }, [counselor]);
+
+  const { mutateAsync: updateProfileMutation, isPending: isUpdatingProfile } = useMutation({
+    mutationFn: (payload: Partial<CounselorProfileData>) => {
+      return updateCounselorProfile(user.userName!, payload, token);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['counselorProfile', user.userName] });
+      toast.success('Profile updated!');
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : 'Failed to update profile.');
+    }
+  });
+
+  const { mutateAsync: uploadPhotoMutation, isPending: isUploadingPhoto } = useMutation({
+    mutationFn: (file: File) => {
+      return uploadCounselorPhoto(user.userName!, file, token);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['counselorProfile', user.userName] });
+      toast.success('Photo updated!');
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : 'Failed to upload photo.');
+    }
+  });
+  
+  const isUpdating = isUpdatingProfile || isUploadingPhoto;
 
   if (!isOpen) return null;
 
@@ -123,10 +145,10 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
   
   const handleUpdate = async () => {
     if (!user.userName) return;
-    setIsUpdating(true);
+    
     try {
       if (selectedFile) {
-        await uploadCounselorPhoto(user.userName, selectedFile, token);
+        await uploadPhotoMutation(selectedFile);
       }
 
       const payload: Partial<CounselorProfileData> = {
@@ -137,15 +159,13 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
         experience: editableData.experience,
         fullOfficeAddress: editableData.fullOfficeAddress,
       };
-      await updateCounselorProfile(user.userName, payload, token);
+      await updateProfileMutation(payload);
 
-      await fetchCounselorData();
       setIsEditing(false);
       setSelectedFile(null);
       setPreviewUrl(null);
     } catch (error) {
-    } finally {
-      setIsUpdating(false);
+      console.error("Update failed", error);
     }
   };
   
@@ -171,7 +191,7 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
         </button>
 
         <div className="mt-8 p-6 rounded-2xl border border-[#EFEFEF]" style={{ background: 'linear-gradient(180deg, #F7F7FF 0%, #FFFFFF 100%)' }}>
-          {isLoading ? ( <div className="h-[574px] flex items-center justify-center">Loading...</div> ) : !counselor ? ( <div className="h-[574px] flex items-center justify-center">Failed to load profile.</div> ) : (
+          {isLoading ? ( <div className="h-[574px] flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-orange-500" /></div> ) : !counselor ? ( <div className="h-[574px] flex items-center justify-center">Failed to load profile.</div> ) : (
             <>
               <div className="relative flex items-start gap-8">
                 <div className="relative w-[155px] h-[155px] flex-shrink-0">
@@ -210,7 +230,10 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
                   </div>
                 </div>
                  {!isEditing && (
-                    <button onClick={() => setIsEditing(true)} className="absolute top-0 right-0 flex items-center gap-2 text-[#13097D] font-semibold text-base">
+                    <button onClick={() => {
+                      setEditableData(counselor);
+                      setIsEditing(true);
+                    }} className="absolute top-0 right-0 flex items-center gap-2 text-[#13097D] font-semibold text-base">
                         <Edit size={18} />
                         Edit
                     </button>

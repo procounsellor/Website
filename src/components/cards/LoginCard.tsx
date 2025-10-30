@@ -122,7 +122,7 @@ const LoginCard: React.FC = () => {
       <div className="fixed inset-0 bg-white/30 backdrop-blur-none md:backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div className="bg-white rounded-2xl shadow-xl flex w-full max-w-5xl md:max-h-[90vh] relative overflow-hidden">
           <button 
-            onClick={toggleLogin}
+            onClick={() => toggleLogin()}
             className="absolute top-4 right-4 z-10 p-1.5 rounded-full transition-colors duration-200 hover:bg-black group"
           >
             <X className="h-5 w-5 text-gray-500 transition-colors duration-200 group-hover:text-white" />

@@ -107,7 +107,7 @@ export default function ExamDetailsPage() {
                   <div className="grid grid-cols-2 gap-3 lg:gap-6">
                     {coursesLoading && <p>Loading courses...</p>}
                     {coursesError && <p className="text-red-500">{coursesError}</p>}
-                    {courses.map((course) => (
+                    {courses?.map((course) => (
                        <ExamDetailGridCard
                         key={course.id}
                         variant='compact'

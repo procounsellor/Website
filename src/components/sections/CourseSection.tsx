@@ -144,7 +144,7 @@ export function CourseSection() {
         <div className="relative mt-2 lg:mt-8">
           <div className="overflow-x-hidden px-0.5 py-4" ref={emblaRef}>
             <div className="flex gap-3 px-3 lg:px-6 lg:gap-6 py-1">
-              {courses.map((course)=>(
+              {courses?.map((course)=>(
                 <div key={course.id}
                 className="flex-shrink-0 w-[170px] lg:w-[282px]"
                 onClick={()=> handleCourseClick(course.id)}

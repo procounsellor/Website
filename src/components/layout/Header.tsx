@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import SmartImage from "@/components/ui/SmartImage";
+import { BANNER_DISMISS_EVENT } from "@/components/shared/AppInstallBanner";
 
 export default function Header(){
     const {user,toggleLogin,isAuthenticated, logout} = useAuthStore()
@@ -13,6 +14,7 @@ export default function Header(){
     const [showHeaderSearch, setShowHeaderSearch] = useState(false)
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isBannerVisible, setIsBannerVisible] = useState(true);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const searchBarRef = useRef(null)
     const navigate = useNavigate()
@@ -22,6 +24,10 @@ export default function Header(){
     const isHomePage = location.pathname === '/'
 
     useEffect(() => {
+      const handleBannerDismiss = () => {
+        setIsBannerVisible(false);
+      };
+      window.addEventListener(BANNER_DISMISS_EVENT, handleBannerDismiss);
         const onScroll = () => {
             const scrollY = window.scrollY;
             setScrolled(scrollY > 20);
@@ -46,6 +52,7 @@ export default function Header(){
         return () => {
             window.removeEventListener("scroll", onScroll);
             window.removeEventListener("heroSearchBarVisibility", handleHeroSearchBarVisibility as EventListener);
+            window.removeEventListener(BANNER_DISMISS_EVENT, handleBannerDismiss);
         };
     }, [isHomePage]);
 
@@ -91,6 +98,8 @@ const handleProfileNavigation = () => {
     <>
     
     <header className={`fixed top-0 left-0 right-0 z-50 border border-[#d6d6d6] shadow-xs transition-all duration-300 ease-out ${
+      (isBannerVisible && !scrolled) ? "top-[60px] md:top-0" : "top-0"
+      } ${
         scrolled 
           ? "bg-white/85 backdrop-blur-xl  shadow-lg shadow-black/5" 
           : "bg-transparent"
@@ -173,7 +182,7 @@ const handleProfileNavigation = () => {
           variant={"outline"}
           className="w-full lg:w-[164px] flex items-center justify-center h-6 md:h-11 border rounded-[12px] font-semibold text-[#FF660F] border-[#FF660F]
            text-[10px] md:text-lg hover:bg-[#FF660F] hover:text-white transition-all duration-200"
-          onClick={toggleLogin}
+          onClick={() => toggleLogin()}
           >
             Login/Sign Up
           </Button>

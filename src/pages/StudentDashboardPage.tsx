@@ -1,6 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/AuthStore';
-import type { User } from '@/types/user';
 import ProfileHeader from '@/components/student-dashboard/ProfileHeader';
 import MyInfoTab from '@/components/student-dashboard/MyInfoTab';
 import AppointmentsTab from '@/components/student-dashboard/AppointmentsTab';
@@ -12,8 +11,9 @@ import EditProfileModal from '@/components/student-dashboard/EditProfileModal';
 import EditPreferencesModal from '@/components/student-dashboard/EditPreferencesModal';
 import AddFundsPanel from '@/components/student-dashboard/AddFundsPanel';
 import startRecharge from '@/api/wallet';
-import { updateUserProfile } from '@/api/user';
+import { updateUserProfile, getUserProfile } from '@/api/user';
 import toast from 'react-hot-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 declare global {
   interface Window {
@@ -22,43 +22,32 @@ declare global {
 }
 type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 
-
 const TABS = ['My Info', 'Appointments', 'Counsellors', 'Transactions', 'Reviews'];
 
 const StudentDashboardPage: React.FC = () => {
+  const queryClient = useQueryClient();
   const { userId } = useAuthStore();
-  const refreshUser = useAuthStore(state => state.refreshUser);
   const token = localStorage.getItem('jwt');
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+
   const [activeTab, setActiveTab] = useState('My Info');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [prefsEditMode, setPrefsEditMode] = useState<'course' | 'states' | null>(null);
   const [isAddFundsOpen, setIsAddFundsOpen] = useState(false);
 
-  const handleOpenPrefsModal = (mode: 'course' | 'states') => {
-    setPrefsEditMode(mode);
-  };
-
-  const fetchUserProfile = useCallback(async () => {
-    if (!userId || !token) {
-      setLoading(false);
-      return;
-    }
-    try {
-      const userData = await refreshUser(true);
-      setUser(userData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-    } finally {
-      if (loading) setLoading(false);
-    }
-  }, [userId, token, refreshUser]);
-
-  useEffect(() => {
-    fetchUserProfile();
-  }, [fetchUserProfile]);
+  const {
+    data: user,
+    isLoading: loading,
+    error: queryError,
+  } = useQuery({
+    queryKey: ['user', userId],
+    queryFn: async () => {
+      if (!userId || !token) {
+        throw new Error('User not authenticated');
+      }
+      return getUserProfile(userId, token);
+    },
+    enabled: !!userId && !!token,
+  });
 
   useEffect(() => {
     if (user && !loading) {
@@ -68,56 +57,81 @@ const StudentDashboardPage: React.FC = () => {
     }
   }, [user, loading]);
 
-  const handleUpdateProfile = async (updatedData: { firstName: string; lastName: string; email: string }) => {
-    if (!userId || !token) {
-      throw new Error("User ID is missing. Please log in again.");
-    }
-    await updateUserProfile(userId, updatedData, token);
-    await fetchUserProfile(); 
-  };
+  const {
+    mutateAsync: handleUpdateProfile,
+  } = useMutation({
+    mutationFn: (updatedData: { firstName: string; lastName: string; email: string }) => {
+      if (!userId || !token) {
+        throw new Error("User ID is missing. Please log in again.");
+      }
+      return updateUserProfile(userId, updatedData, token);
+    },
+    onSuccess: () => {
+      toast.success('Profile updated!');
+      queryClient.invalidateQueries({ queryKey: ['user', userId] });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
-  const handleClosePrefsModal = () => {
-    setPrefsEditMode(null);
-    fetchUserProfile();
-  };
-
-  const handleAddFunds = async (amount: number) => {
-    if (!amount || amount <= 0) {
-      console.error('A valid amount is required.');
-      return;
-    }
-    setIsAddFundsOpen(false);
-    try {
-      const order = await startRecharge(user?.userName ?? '', amount);
+  const {
+    mutate: handleAddFunds,
+    isPending: isStartingPayment,
+  } = useMutation({
+    mutationFn: async (amount: number) => {
+      if (!amount || amount <= 0) {
+        throw new Error('A valid amount is required.');
+      }
+      if (!user?.userName) {
+        throw new Error('User data not found.');
+      }
+      setIsAddFundsOpen(false);
+      return await startRecharge(user.userName, amount);
+    },
+    onSuccess: (order) => {
       const options = {
         key: order.keyId,
         amount: order.amount,
         currency: order.currency,
         order_id: order.orderId,
-        name: "ProCounsel Wallet",
-        description: "Wallet Recharge",
+        name: 'ProCounsel Wallet',
+        description: 'Wallet Recharge',
         notes: { userId: user?.userName },
-        handler: async function () {
-          toast.success("Payment successful. Your balance will be updated shortly.");
-          try {
-            await fetchUserProfile();
-          } catch (err) {
-            console.error('Failed to refresh user balance after payment.', err);
-          }
+        handler: () => {
+          toast.success('Payment successful. Your balance will be updated shortly.');
+          queryClient.invalidateQueries({ queryKey: ['user', userId] });
         },
-        theme: { color: "#3399cc" },
+        theme: { color: '#3399cc' },
       };
-
       const Rz = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
       const rzp = new Rz(options);
       rzp.open();
+    },
+    onError: (error) => {
+      console.error('Failed to initiate Razorpay order.', error);
+      toast.error('Could not start the payment process. Please try again later.');
+    },
+  });
 
-    } catch (error) {
-      console.error("Failed to initiate Razorpay order.", error);
-      alert("Could not start the payment process. Please try again later.");
-    }
+  const handleOpenPrefsModal = (mode: 'course' | 'states') => {
+    setPrefsEditMode(mode);
   };
 
+  const handleClosePrefsModal = () => {
+    setPrefsEditMode(null);
+    queryClient.invalidateQueries({ queryKey: ['user', userId] });
+  };
+
+  const onUpdateProfile = async (updatedData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  }) => {
+    await handleUpdateProfile(updatedData);
+  };
+
+  const error = queryError ? (queryError as Error).message : null;
 
   if (loading) {
     return (
@@ -150,7 +164,10 @@ const StudentDashboardPage: React.FC = () => {
         <ProfileHeader user={user} onEditClick={() => setIsEditModalOpen(true)} />
 
         <div className="border-b border-gray-200 mb-6">
-          <nav className="-mb-px flex space-x-6 overflow-x-auto scrollbar-hide" aria-label="Tabs">
+          <nav
+            className="-mb-px flex space-x-6 overflow-x-auto scrollbar-hide"
+            aria-label="Tabs"
+          >
             {TABS.map((tab) => (
               <button
                 key={tab}
@@ -168,28 +185,34 @@ const StudentDashboardPage: React.FC = () => {
         </div>
 
         <div>
-          {activeTab === 'My Info'  && <MyInfoTab 
-                user={user} 
-                onEditCourse={() => handleOpenPrefsModal('course')}
-                onEditStates={() => handleOpenPrefsModal('states')}
-                onAddFunds={() => setIsAddFundsOpen(true)}
-                />}
+          {activeTab === 'My Info' && (
+            <MyInfoTab
+              user={user}
+              onEditCourse={() => handleOpenPrefsModal('course')}
+              onEditStates={() => handleOpenPrefsModal('states')}
+              onAddFunds={() => setIsAddFundsOpen(true)}
+            />
+          )}
           {activeTab === 'Appointments' && <AppointmentsTab />}
           {activeTab === 'Counsellors' && <CounsellorsTab />}
-          {activeTab === 'Transactions' && <TransactionsTab 
-              transactions={user.transactions || []} 
+          {activeTab === 'Transactions' && (
+            <TransactionsTab
+              transactions={user.transactions || []}
               offlineTransactions={user.offlineTransactions || []}
-            />}
+            />
+          )}
           {activeTab === 'Reviews' && <ReviewsTab />}
         </div>
       </div>
-      <EditProfileModal 
+      <EditProfileModal
         key={user.email}
         user={user}
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        onUpdate={handleUpdateProfile}
-        onUploadComplete={fetchUserProfile}
+        onUpdate={onUpdateProfile}
+        onUploadComplete={() =>
+          queryClient.invalidateQueries({ queryKey: ['user', userId] })
+        }
       />
       {prefsEditMode && (
         <EditPreferencesModal
@@ -198,11 +221,12 @@ const StudentDashboardPage: React.FC = () => {
           onClose={handleClosePrefsModal}
         />
       )}
-      <AddFundsPanel 
+      <AddFundsPanel
         isOpen={isAddFundsOpen}
         onClose={() => setIsAddFundsOpen(false)}
         balance={user.walletAmount}
         onAddMoney={handleAddFunds}
+        isProcessing={isStartingPayment}
       />
     </div>
   );

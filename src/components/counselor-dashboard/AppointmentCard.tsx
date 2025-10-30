@@ -46,7 +46,7 @@ export default function AppointmentCard({ appointment, onCancel, onCardClick, is
   const { userFullName, userPhootoSmall, userCourse, date, startTime, endTime, status } = appointment;
   const imageUrl = userPhootoSmall && userPhootoSmall !== 'NA' 
     ? userPhootoSmall 
-    : `https://ui-avatars.com/api/?name=${userFullName}&background=random`;
+    : `https://ui-avatars.com/api/?name=${userFullName}&background=F0F0F0&color=343C6A`;
 
   const showMenu = status === 'booked' || status === 'rescheduled';
 

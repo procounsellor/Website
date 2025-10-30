@@ -1,18 +1,18 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import type { EmblaCarouselType } from 'embla-carousel';
 import useEmblaCarousel from 'embla-carousel-react';
 import { useAuthStore } from '@/store/AuthStore';
-import type { Counsellor } from '@/types/counsellor';
 import { getFavouriteCounsellors, getSubscribedCounsellors } from '@/api/counsellor';
-import { AllCounselorCardSkeleton } from '@/components/skeletons/CounselorSkeletons';
 import { DashboardCounselorCard } from './DashboardCounselorCard';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useQuery } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
 
 type CounsellorFilter = 'Subscribed' | 'Favourite';
 
 const addTrackpadScrolling = (emblaApi: EmblaCarouselType) => {
-  const SCROLL_COOLDOWN_MS = 300; 
+  const SCROLL_COOLDOWN_MS = 300;
   let isThrottled = false;
 
   const wheelListener = (event: WheelEvent) => {
@@ -20,9 +20,9 @@ const addTrackpadScrolling = (emblaApi: EmblaCarouselType) => {
 
     if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
       event.preventDefault();
-      
+
       isThrottled = true;
-      
+
       if (event.deltaX > 0) {
         emblaApi.scrollNext();
       } else {
@@ -49,13 +49,10 @@ const CounsellorsTab: React.FC = () => {
     loop: false,
     align: 'start',
   });
-
   const [selectedIndex, setSelectedIndex] = useState(0);
-
   const updateSelectedIndex = useCallback((emblaApi: EmblaCarouselType) => {
     setSelectedIndex(emblaApi.selectedScrollSnap());
   }, []);
-
   useEffect(() => {
     if (!emblaApi) return;
     emblaApi.on('select', updateSelectedIndex);
@@ -67,54 +64,42 @@ const CounsellorsTab: React.FC = () => {
   }, [emblaApi, updateSelectedIndex]);
 
   const [activeFilter, setActiveFilter] = useState<CounsellorFilter>('Subscribed');
-  const [favouriteCounsellors, setFavouriteCounsellors] = useState<Counsellor[]>([]);
-  const [subscribedCounsellors, setSubscribedCounsellors] = useState<Counsellor[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [subscribedError, setSubscribedError] = useState<string | null>(null);
-  const [favouriteError, setFavouriteError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchCounsellors = async () => {
-      if (!userId || !token) {
-        setSubscribedError("User not authenticated.");
-        setFavouriteError("User not authenticated.");
-        setLoading(false);
-        return;
-      }
-      setLoading(true);
-      const results = await Promise.allSettled([
-        getSubscribedCounsellors(userId, token),
-        getFavouriteCounsellors(userId, token),
-      ]);
+  const {
+    data: subscribedCounsellors = [],
+    isLoading: isLoadingSubscribed,
+    error: subscribedError,
+  } = useQuery({
+    queryKey: ['subscribedCounsellors', userId],
+    queryFn: () => getSubscribedCounsellors(userId!, token!),
+    enabled: !!userId && !!token,
+  });
 
-      if (results[0].status === 'fulfilled') {
-        setSubscribedCounsellors(results[0].value);
-      } else {
-        console.error("Failed to fetch subscribed counsellors:", results[0].reason);
-        setSubscribedError('Could not load subscribed counsellors.');
-      }
+  const {
+    data: favouriteCounsellors = [],
+    isLoading: isLoadingFavourite,
+    error: favouriteError,
+  } = useQuery({
+    queryKey: ['favouriteCounsellors', userId],
+    queryFn: () => getFavouriteCounsellors(userId!, token!),
+    enabled: !!userId && !!token,
+  });
 
-      if (results[1].status === 'fulfilled') {
-        setFavouriteCounsellors(results[1].value);
-      } else {
-        console.error("Failed to fetch favourite counsellors:", results[1].reason);
-        setFavouriteError('Could not load favourite counsellors.');
-      }
-      
-      setLoading(false);
-    };
-    fetchCounsellors();
-  }, [userId, token]);
-
-  const TABS: CounsellorFilter[] = ['Subscribed', 'Favourite'];
-  const counsellorsToDisplay = activeFilter === 'Subscribed' ? subscribedCounsellors : favouriteCounsellors;
+  const isLoading = activeFilter === 'Subscribed' ? isLoadingSubscribed : isLoadingFavourite;
   const currentError = activeFilter === 'Subscribed' ? subscribedError : favouriteError;
 
+  const TABS: CounsellorFilter[] = ['Subscribed', 'Favourite'];
+
+  const counsellorsToDisplay = useMemo(() => {
+     return activeFilter === 'Subscribed' ? subscribedCounsellors : favouriteCounsellors;
+  }, [activeFilter, subscribedCounsellors, favouriteCounsellors]);
+
+
   const renderContent = () => {
-    if (loading) {
+    if (isLoading) {
       return (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => <AllCounselorCardSkeleton key={i} />)}
+        <div className="flex justify-center items-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-[#13097D]" />
         </div>
       );
     }
@@ -123,14 +108,14 @@ const CounsellorsTab: React.FC = () => {
       return (
         <div className="text-center py-16 bg-white rounded-xl border border-red-200">
           <h3 className="text-lg font-semibold text-red-600">Error</h3>
-          <p className="text-gray-500 mt-2">{currentError}</p>
+          <p className="text-gray-500 mt-2">{(currentError as Error).message}</p>
         </div>
       );
     }
 
     if (counsellorsToDisplay.length === 0) {
       return (
-        <div className="text-center py-16">
+        <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-700">No Counsellors Found</h3>
           <p className="text-gray-500 mt-2">You haven't added any counsellors to this list yet.</p>
         </div>
@@ -146,7 +131,7 @@ const CounsellorsTab: React.FC = () => {
                 <div key={counsellor.counsellorId} className="flex-shrink-0">
                   <div className="w-[170px] h-[264px] bg-white rounded-2xl p-2.5 shadow-[0px_0px_4px_0px_#23232340]">
                     <Link to="/counselors/profile" state={{ id: counsellor.counsellorId }} className="h-full flex flex-col">
-                      <DashboardCounselorCard counselor={counsellor as any} />
+                      <DashboardCounselorCard counselor={counsellor} />
                     </Link>
                   </div>
                 </div>
@@ -173,9 +158,9 @@ const CounsellorsTab: React.FC = () => {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {counsellorsToDisplay.map((counsellor) => (
-              <div key={counsellor.counsellorId} className="border border-gray-200 rounded-2xl p-2.5 transition-shadow hover:shadow-lg">
+              <div key={counsellor.counsellorId} className="bg-white border border-gray-200 rounded-2xl p-2.5 transition-shadow hover:shadow-lg">
                 <Link to="/counselors/profile" state={{ id: counsellor.counsellorId }}>
-                  <DashboardCounselorCard counselor={counsellor as any} />
+                  <DashboardCounselorCard counselor={counsellor} />
                 </Link>
               </div>
             ))}
