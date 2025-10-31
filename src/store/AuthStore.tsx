@@ -87,54 +87,58 @@ export const useAuthStore = create<AuthState>()(
         }),
 
       refreshUser: async (force = false) => {
-        set({ loading: true });
+  const state = get();
 
-        const state = get();
-        const uid =
-          state.userId ??
-          (typeof window !== "undefined" ? localStorage.getItem("phone") : null);
-        const token =
-          typeof window !== "undefined"
-            ? localStorage.getItem("jwt")
-            : null;
-        const role =
-          state.role ??
-          (typeof window !== "undefined"
-            ? localStorage.getItem("role")
-            : null);
+  // ✅ Don't instantly set loading: true on every call
+  if (state.loading && !force) {
+    return state.user;
+  }
 
-        if (!uid || !token) {
-          set({ loading: false });
-          return null;
-        }
+  set({ loading: true });
 
-        if (!force && state.user) {
-          set({ loading: false });
-          return state.user;
-        }
+  const uid =
+    state.userId ??
+    (typeof window !== "undefined" ? localStorage.getItem("phone") : null);
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("jwt") : null;
+  const role =
+    state.role ??
+    (typeof window !== "undefined" ? localStorage.getItem("role") : null);
 
-        try {
-          if (role === "counselor") {
-            const counselorData = await getCounselorProfileById(uid, token);
-            if (counselorData) {
-              const mapped = mapCounselorToUser(counselorData);
-              set({ user: mapped, role: "counselor", loading: false });
-              return mapped;
-            }
-            throw new Error("Counselor profile not found");
-          }
+  if (!uid || !token) {
+    set({ loading: false });
+    return null;
+  }
 
-          const user = await getUserProfile(uid, token);
-          user.role = user.role.toLowerCase();
-          set({ user, role: user.role as AuthState["role"], loading: false });
-          return user;
-        } catch (err) {
-          get().logout();
-          return null;
-        } finally {
-          // set({ loading: false });
-        }
-      },
+  if (!force && state.user) {
+    set({ loading: false });
+    return state.user;
+  }
+
+  try {
+    if (role === "counselor") {
+      const counselorData = await getCounselorProfileById(uid, token);
+      if (counselorData) {
+        const mapped = mapCounselorToUser(counselorData);
+        set({ user: mapped, role: "counselor" });
+        return mapped;
+      }
+      throw new Error("Counselor profile not found");
+    }
+
+    const user = await getUserProfile(uid, token);
+    user.role = user.role.toLowerCase();
+    set({ user, role: user.role as AuthState["role"] });
+    return user;
+  } catch (err) {
+    get().logout();
+    return null;
+  } finally {
+    // ✅ Always end loading after any fetch attempt
+    set({ loading: false });
+  }
+},
+
 
       sendOtp: async (phone: string) => {
         await sendOtp(phone);
@@ -256,11 +260,14 @@ export const useAuthStore = create<AuthState>()(
             ['user', 'userId', 'role', 'isAuthenticated', 'userExist'].includes(key)
           )
         ),
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          // console.log("✅ Zustand rehydrated from localStorage");
-        }
-      },
+      onRehydrateStorage: () => (state, error) => {
+  if (!error && state) {
+    // mark loading false once data is rehydrated
+    setTimeout(() => {
+      state.loading = false;
+    }, 100);
+  }
+},
     }
   )
 );
