@@ -273,6 +273,7 @@ export interface AllCounselor {
 }
 
 export interface CousrseApiLogin{
+  imageStorage: any;
   courseId:string
   name:string
   image:string
@@ -283,6 +284,7 @@ export interface CousrseApiLogin{
 }
 
 export interface StatesApiResponse{
+  imageStorage: string | undefined;
   stateId:string
   name:string
   image:string

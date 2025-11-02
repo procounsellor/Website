@@ -14,6 +14,7 @@ import type { CounselorReview } from '@/types/counselorReview';
 import type { SubscribedCounsellor } from '@/types/user';
 import EditProfileModal from '@/components/student-dashboard/EditProfileModal';
 import { updateUserProfile } from '@/api/user';
+import { unlockScroll } from '@/lib/scrollLock';
 
 type ApiSubscribedCounselor = {
   counsellorId: string;
@@ -39,6 +40,11 @@ export default function CounselorDetailsPage() {
   const [isTogglingFavourite, setIsTogglingFavourite] = useState(false);
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+
+  // Fix: Always unlock scroll when page loads (fixes Razorpay modal issue)
+  useEffect(() => {
+    unlockScroll();
+  }, []);
 
   useEffect(() => {
     if (user && computedId) {

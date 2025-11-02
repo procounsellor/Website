@@ -8,6 +8,18 @@ import { Check, X, Loader2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { PatchUser } from '@/types';
 
+// Helper functions for styling
+const getCardStyle = (courseName: string | null) => {
+  return courseName ? 'bg-white hover:shadow-lg border-gray-200' : 'bg-white hover:shadow-lg border-gray-200';
+};
+
+const getTextStyle = (courseName: string | null, type: 'primary' | 'secondary') => {
+  if (type === 'primary') {
+    return 'text-gray-800';
+  }
+  return 'text-gray-500';
+};
+
 interface EditCourseViewProps {
   selectedCourse: string | null;
   onCourseSelect: (name: string) => void;
@@ -41,41 +53,23 @@ const EditCourseView: React.FC<EditCourseViewProps> = ({
     <>
       <h2 className="text-base md:text-2xl font-semibold md:font-bold text-[#343C6A] mb-4 md:mb-6">Select Preferred Course</h2>
       <div className="flex-1 overflow-y-auto pr-2">
-        <div className="grid grid-cols-1 gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {courses.map((course: CousrseApiLogin) => {
-            const isSelected = selectedCourse === course.name;
-            return (
-              <button
-                key={course.courseId}
-                onClick={() => onCourseSelect(course.name)}
-                className={`transform rounded-xl border md:border p-4 md:p-5 text-left md:text-center transition-all duration-200 flex flex-row items-center gap-4 md:flex-col
-                  ${
-                    isSelected
-                      ? 'bg-[#13097D] border-transparent'
-                      : 'bg-white hover:shadow-lg border-gray-200'
-                  }
-                `}
-              >
-                <img
-                  src={`/courseIcon/${course.image}`}
-                  alt={`${course.name} icon`}
-                  className="flex-shrink-0 h-12 w-12 md:h-24 md:w-24 object-contain md:mx-auto md:mb-4"
-                />
-
-                <div className="flex-1">
-                  <h3 className={`text-base md:text-lg font-bold ${ isSelected ? 'text-white' : 'text-gray-800'}`} >
-                    {course.name}
-                  </h3>
-                  <p className={`text-sm ${ isSelected ? 'text-white' : 'text-gray-500' }`} >
-                    {course.duration}
-                  </p>
-                  <p className={`md:block mt-1 md:mt-2 text-xs md:text-sm ${ isSelected ? 'text-white' : 'text-gray-500' }`} >
-                    {course.tagline}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {courses.map((course: CousrseApiLogin) => (
+            <button
+              key={course.courseId}
+              onClick={() => onCourseSelect(course.name)}
+              className={`transform rounded-xl border p-5 text-center transition-all duration-200 ${getCardStyle(course.name)}`}
+            >
+              <img src={course.imageStorage} alt={`${course.name} icon`} className="mb-4 h-24 w-24 object-contain mx-auto" />
+              <h3 className={`text-lg font-bold ${getTextStyle(course.name, 'primary')}`}>{course.name}</h3>
+              <p className={`text-sm ${getTextStyle(course.name, 'secondary')}`}>
+                {course.duration}
+              </p>
+              <p className={`mt-2 text-sm ${getTextStyle(course.name, 'secondary')}`}>
+                {course.tagline}
+              </p>
+            </button>
+          ))}
         </div>
       </div>
       <div className="mt-auto pt-6 border-t border-gray-200">
@@ -136,11 +130,8 @@ const EditStatesView: React.FC<EditStatesViewProps> = ({
                   isSelected(state.name) ? 'border-transparent bg-[#13097D] text-white' : 'bg-white hover:shadow-lg border-gray-200'
                 }`}
             >
-              <div className="flex flex-1 items-center gap-4">
-                <img src={`/stateIcons/${state.image}`} alt={`${state.name} icon`} className="h-10 w-10 md:h-12 md:w-12 object-contain md:mx-auto md:mb-3" />
-                <h3 className="font-semibold text-sm md:text-base">{state.name}</h3>
-              </div>
-
+              <img src={state.imageStorage} alt={`${state.name} icon`} className="mb-3 h-12 w-12 object-contain mx-auto" />
+              <h3 className="font-semibold">{state.name}</h3>
               <div
                 className={`flex-shrink-0 md:absolute md:right-3 md:top-3 flex h-5 w-5 items-center justify-center rounded border-2 ${
                   isSelected(state.name) ? 'border-white bg-white text-[#13097D]' : 'border-gray-300'

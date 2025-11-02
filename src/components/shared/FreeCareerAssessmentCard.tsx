@@ -31,13 +31,12 @@ export function FreeCareerAssessmentCard({counselor, user, onProfileIncomplete}:
     }
 
     const bookAction = () => {
-  console.log("✅ Running BookAction after login...");
-  // small delay to let login modal close before opening appointment modal
-  setTimeout(() => {
-    setBooking(true);
-  }, 300);
-};
-
+      console.log("✅ Running BookAction after login...");
+      // small delay to let login modal close before opening appointment modal
+      setTimeout(() => {
+        setBooking(true);
+      }, 300);
+    };
 
     if (!isAuthenticated) {
       console.log('User not authenticated, triggering login with callback');
@@ -46,7 +45,9 @@ export function FreeCareerAssessmentCard({counselor, user, onProfileIncomplete}:
       return;
     }
 
+    // Check if profile is complete (firstName and email required)
     if (!user?.firstName || !user?.email) {
+      console.log('Profile incomplete, showing profile completion modal');
       onProfileIncomplete(bookAction);
       return;
     }

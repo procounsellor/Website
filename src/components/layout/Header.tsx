@@ -113,9 +113,8 @@ const handleProfileNavigation = () => {
           height={44}
           priority
         />
-        <div className="leading-tight pl-[9px] hover:cursor-pointer" onClick={() => navigate('/')}>
-           <h1 className="text-[#232323] font-semibold text-xs md:text-2xl">ProCounsel</h1>
-            {/* <span className="font-normal text-[#858585] text-[8px] md:text-[10px]">By CatalystAI</span> */}
+        <div className="flex items-center leading-tight pl-[9px] hover:cursor-pointer" onClick={() => navigate('/')}>
+           <h1 className="text-[#232323] font-semibold text-sm md:text-xl">ProCounsel</h1>
         </div>
       </div>
 

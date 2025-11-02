@@ -5,6 +5,17 @@ import toast from 'react-hot-toast';
 import type { CousrseApiLogin, StatesApiResponse } from '@/types';
 import { useAuthStore } from '@/store/AuthStore';
 
+// Helper functions for styling
+const getCardStyle = (courseId: string | null) => {
+  return courseId ? 'bg-white hover:shadow-lg border-gray-200' : 'bg-white hover:shadow-lg border-gray-200';
+};
+
+const getTextStyle = (courseId: string | null, type: 'primary' | 'secondary') => {
+  if (type === 'primary') {
+    return 'text-gray-800';
+  }
+  return 'text-gray-500';
+};
 
 interface SelectCourseStepProps {
   selectedCourseId: string | null;
@@ -24,7 +35,7 @@ const SelectCourseStep = ({ selectedCourseId, onCourseSelect }: SelectCourseStep
       try{
         setLoading(true)
         const CourseData = await getCoursesOnborading()
-         setCourses(CourseData)
+        setCourses(CourseData)
       }catch(error){
         setError(error instanceof Error ? error.message : 'Failed to fetch Courses')
       }finally{
@@ -69,36 +80,24 @@ const SelectCourseStep = ({ selectedCourseId, onCourseSelect }: SelectCourseStep
         </div>
       </div>
       
-      <div className="flex-1 overflow-y-auto -mr-2 md:-mr-4 pr-2 md:pr-4">
-        <div className="grid grid-cols-1 gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {courses.map((course) => {
-            const isSelected = selectedCourseId === course.name;
-            return (
-              <button
-                key={course.courseId}
-                onClick={() => onCourseSelect(course.name)}
-                className={`transform rounded-xl border md:border p-4 md:p-5 text-left md:text-center transition-all duration-200 flex flex-row items-center gap-4 md:flex-col
-                  ${
-                    isSelected
-                      ? 'bg-[#13097D] border-transparent'
-                      : 'bg-white hover:shadow-lg border-gray-200'
-                  }
-                `}
-              >
-                <img src={`/courseIcon/${course.image}`} alt={`${course.name} icon`} className="flex-shrink-0 h-12 w-12 md:h-24 md:w-24 object-contain md:mx-auto md:mb-4" />
-                
-                <div className="flex-1">
-                  <h3 className={`text-base md:text-lg font-bold ${isSelected ? 'text-white' : 'text-gray-800'}`}>{course.name}</h3>
-                  <p className={`text-sm ${isSelected ? 'text-white' : 'text-gray-500'}`}>
-                    {course.duration}
-                  </p>
-                  <p className={`mt-1 md:mt-2 text-xs md:text-sm ${isSelected ? 'text-white' : 'text-gray-500'}`}>
-                    {course.tagline}
-                  </p>
-                </div>
-              </button>
-            )
-          })}
+      <div className="flex-1 overflow-y-auto -mr-4 pr-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {courses.map((course) => (
+            <button
+              key={course.courseId}
+              onClick={() => onCourseSelect(course.name)}
+              className={`transform rounded-xl border p-5 text-center transition-all duration-200 ${getCardStyle(course.courseId)}`}
+            >
+              <img src={`/courseIcon/${course.image}`} alt={`${course.name} icon`} className="mb-4 h-24 w-24 object-contain mx-auto" />
+              <h3 className={`text-lg font-bold ${getTextStyle(course.courseId, 'primary')}`}>{course.name}</h3>
+              <p className={`text-sm ${getTextStyle(course.courseId, 'secondary')}`}>
+                {course.duration}
+              </p>
+              <p className={`mt-2 text-sm ${getTextStyle(course.courseId, 'secondary')}`}>
+                {course.tagline}
+              </p>
+            </button>
+          ))}
         </div>
       </div>
     </>
@@ -187,13 +186,10 @@ const SelectStatesStep = ({ selectedStates, onStateSelect, onBack, onSubmit, isS
                   isSelected(state.name) ? 'border-transparent bg-[#13097D] text-white' : 'bg-white hover:shadow-lg border-gray-200'
                 }`}
             >
-              <div className="flex flex-1 items-center gap-4">
-                <img src={`/stateIcons/${state.image}`} alt={`${state.name} icon`} className="h-10 w-10 md:h-12 md:w-12 object-contain md:mx-auto md:mb-3" />
-                <h3 className="font-semibold text-sm md:text-base">{state.name}</h3>
-              </div>
-
+              <img src={`/stateIcons/${state.image}`} alt={`${state.name} icon`} className="mb-3 h-12 w-12 object-contain mx-auto" />
+              <h3 className="font-semibold">{state.name}</h3>
               <div
-                className={`flex-shrink-0 md:absolute md:right-3 md:top-3 flex h-5 w-5 items-center justify-center rounded border-2 ${
+                className={`absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded border-2 ${
                   isSelected(state.name) ? 'border-white bg-white text-[#13097D]' : 'border-gray-300'
                 }`}
               >
@@ -219,17 +215,19 @@ const SelectStatesStep = ({ selectedStates, onStateSelect, onBack, onSubmit, isS
   );
 };
 
-const OnboardingCard = () => {
+const OnboardingCard = ({ onComplete }: { onComplete?: () => void }) => {
   const [step, setStep] = useState(1);
   const [selectedCourseName, setSelectedCourseName] = useState<string | null>(null);
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
-  const {toggleLogin, userId} = useAuthStore()
+  const {userId, setNeedsOnboarding} = useAuthStore()
   const token = localStorage.getItem('jwt')
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    console.log('🎯 OnboardingCard mounted!');
     document.body.classList.add('overflow-hidden');
     return () => {
+      console.log('🚪 OnboardingCard unmounting...');
       document.body.classList.remove('overflow-hidden');
     };
   }, []);
@@ -261,16 +259,21 @@ const OnboardingCard = () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     try{
-      console.log('Submitting preferences...', payload);
+      console.log('Submitting preferences...', payload); // Debug log
       await updateUser(userId, payload, token)
       toast.success('Preferences saved successfully!');
       
+      // Delay closing the modal to allow toast to show
       setTimeout(() => {
-        toggleLogin()
-      }, 2000);
+        console.log('🚪 Setting needsOnboarding to false and calling onComplete');
+        setNeedsOnboarding(false);
+        if (onComplete) {
+          onComplete();
+        }
+      }, 1000);
       
     }catch(err){
-      console.error('Update user error:', err);
+      console.error('Update user error:', err); // Debug log
       const error = err instanceof Error ? err.message : 'Failed to update preferences'
       toast.error(error)
     } finally {
@@ -281,8 +284,34 @@ const OnboardingCard = () => {
 
   return (
     <>
-    <div className="fixed inset-0 bg-black/40 md:backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="w-full max-w-4xl rounded-2xl bg-[#F5F7FA] p-4 md:p-8 shadow-lg flex flex-col max-h-[90vh] h-auto md:h-full">
+    {/* <Toaster 
+        position="top-center"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+            zIndex: 9999,
+          },
+          success: {
+            style: {
+              background: '#10B981',
+              color: '#fff',
+            },
+          },
+          error: {
+            style: {
+              background: '#EF4444',
+              color: '#fff',
+            },
+          },
+        }}
+        containerStyle={{
+          zIndex: 9999,
+        }}
+      /> */}
+    <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="w-full max-w-4xl rounded-2xl bg-[#F5F7FA] p-6 md:p-8 shadow-lg flex flex-col max-h-[90vh] h-full">
         {step === 1 && (
           <SelectCourseStep
             selectedCourseId={selectedCourseName}
