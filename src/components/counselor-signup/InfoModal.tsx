@@ -7,7 +7,7 @@ import { X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function InfoModal() {
-  const { isCounselorSignupOpen, toggleCounselorSignup, isAuthenticated, toggleLogin, role } = useAuthStore();
+  const { isCounselorSignupOpen, toggleCounselorSignup, isAuthenticated, toggleLogin, role, setIsCounselorSignupFlow } = useAuthStore();
   const navigate = useNavigate();
 
   const [info, setInfo] = useState<CounselorPageInfo | null>(null);
@@ -43,6 +43,8 @@ export default function InfoModal() {
     }
 
     if (!isAuthenticated) {
+      setIsCounselorSignupFlow(true);
+      
       const redirectToCounselorSignup = () => {
         toggleCounselorSignup();
         navigate('/counselor-signup');

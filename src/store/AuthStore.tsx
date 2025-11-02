@@ -41,11 +41,13 @@ type AuthState = {
   needsProfileCompletion: boolean;
   isProfileCompletionOpen: boolean;
   returnToPath: string | null;
+  isCounselorSignupFlow: boolean;
   toggleLogin: (onSuccess?: () => void) => void;
   toggleCounselorSignup: () => void;
   toggleProfileCompletion: () => void;
   setIsProfileCompletionOpen: (value: boolean) => void;
   setUser: (user: User | null) => void;
+  setIsCounselorSignupFlow: (value: boolean) => void;
   sendOtp: (phone: string) => Promise<void>;
   verifyOtp: (phone: string, otp: string) => Promise<void>;
   refreshUser: (force?: boolean) => Promise<User | null>;
@@ -78,12 +80,14 @@ export const useAuthStore = create<AuthState>()(
       needsProfileCompletion: false,
       isProfileCompletionOpen: false,
       returnToPath: null,
+      isCounselorSignupFlow: false,
       setPendingAction: (fn) => set({ pendingAction: fn }),
       bookingTriggered: false,
       setBookingTriggered: (value) => set({ bookingTriggered: value }),
       setReturnToPath: (path) => set({ returnToPath: path }),
       setNeedsOnboarding: (value) => set({ needsOnboarding: value }),
       setNeedsProfileCompletion: (value) => set({ needsProfileCompletion: value }),
+      setIsCounselorSignupFlow: (value) => set({ isCounselorSignupFlow: value }),
       
       checkProfileCompletion: () => {
         const state = get();
@@ -191,23 +195,25 @@ export const useAuthStore = create<AuthState>()(
             localStorage.setItem("phone", phone);
           }
         } catch (err) {
-          console.error("⚠️ Failed to save JWT/phone:", err);
+          console.error("Failed to save JWT/phone:", err);
         }
 
         try {
           const isProfileIncomplete = await checkUrl(phone, data?.jwt ?? data?.jwtToken);
           console.log('🔍 isUserDetailsNull API response:', isProfileIncomplete);
-          
-          // Only set needsOnboarding if the API explicitly returns true
-          if (isProfileIncomplete === true) {
-            console.log('✅ Setting needsOnboarding to TRUE');
+          const { isCounselorSignupFlow } = get();
+          if (isCounselorSignupFlow) {
+            console.log('User is in counselor signup flow, skipping onboarding');
+            set({ userExist: false, needsOnboarding: false });
+          } else if (isProfileIncomplete === true) {
+            console.log('Setting needsOnboarding to TRUE');
             set({ userExist: true, needsOnboarding: true });
           } else {
-            console.log('ℹ️ Setting needsOnboarding to FALSE');
+            console.log('Setting needsOnboarding to FALSE');
             set({ userExist: false, needsOnboarding: false });
           }
         } catch (err) {
-          console.error('❌ checkUrl failed:', err);
+          console.error('checkUrl failed:', err);
           set({ userExist: false, needsOnboarding: false });
         }
 
@@ -230,6 +236,8 @@ export const useAuthStore = create<AuthState>()(
                 onLoginSuccess();
                 set({ onLoginSuccess: null });
               }
+              
+              set({ isCounselorSignupFlow: false });
             }
           } else {
             const user = await getUserProfile(phone, data.jwtToken);
@@ -253,10 +261,11 @@ export const useAuthStore = create<AuthState>()(
                 onLoginSuccess();
                 set({ onLoginSuccess: null });
               }
+              set({ isCounselorSignupFlow: false });
             }
           }
         } catch (err) {
-          console.error("❌ Failed during verifyOtp data fetch:", err);
+          console.error("Failed during verifyOtp data fetch:", err);
         }
 
         const { pendingAction } = get();
@@ -292,6 +301,7 @@ export const useAuthStore = create<AuthState>()(
           isProfileCompletionOpen: false,
           returnToPath: null,
           pendingAction: null,
+          isCounselorSignupFlow: false,
         });
       },
     }),
@@ -306,7 +316,6 @@ export const useAuthStore = create<AuthState>()(
         ),
       onRehydrateStorage: () => (state, error) => {
   if (!error && state) {
-    // mark loading false once data is rehydrated
     setTimeout(() => {
       state.loading = false;
     }, 100);

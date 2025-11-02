@@ -84,7 +84,7 @@ const SelectCourseStep = ({ selectedCourseId, onCourseSelect }: SelectCourseStep
               onClick={() => onCourseSelect(course.name)}
               className={`transform rounded-xl border p-5 text-center transition-all duration-200 ${getCardStyle(course.courseId)}`}
             >
-              <img src={`${course.image}`} alt={`${course.name} icon`} className="mb-4 h-24 w-24 object-contain mx-auto" />
+              <img src={`${course.imageStorage}`} alt={`${course.name} icon`} className="mb-4 h-24 w-24 object-contain mx-auto" />
               <h3 className={`text-lg font-bold ${getTextStyle(course.courseId, 'primary')}`}>{course.name}</h3>
               <p className={`text-sm ${getTextStyle(course.courseId, 'secondary')}`}>
                 {course.duration}
@@ -164,7 +164,7 @@ const SelectStatesStep = ({ selectedStates, onStateSelect, onBack, onSubmit }: S
                 isSelected(state.name) ? 'border-transparent bg-[#13097D] text-white' : 'bg-white hover:shadow-lg'
               }`}
             >
-              <img src={state.image} alt={`${state.name} icon`} className="mb-3 h-12 w-12 object-contain mx-auto" />
+              <img src={state.imageStorage} alt={`${state.name} icon`} className="mb-3 h-12 w-12 object-contain mx-auto" />
               <h3 className="font-semibold">{state.name}</h3>
               <div
                 className={`absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded border-2 ${
