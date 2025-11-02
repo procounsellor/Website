@@ -14,11 +14,11 @@ const COLORS = {
 
 const RADIAN = Math.PI / 180;
 const renderCustomizedLabel = ({ cx, cy, midAngle, outerRadius, percent, payload }: any) => {
-    const radius = outerRadius * 1.5;
+    const radius = outerRadius * 1.2;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
     const textAnchor = x > cx ? 'start' : 'end';
-    const textOffsetX = x > cx ? 12 : -12;
+    const textOffsetX = x > cx ? 8 : -8;
 
     return (
       <g>
@@ -29,7 +29,7 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, outerRadius, percent, payload
             fill={payload.color}
             textAnchor={textAnchor} 
             dominantBaseline="central" 
-            fontSize="14px" 
+            fontSize="12px" 
             fontWeight="500"
         >
             {`${(percent * 100).toFixed(1)}%`}
@@ -63,10 +63,10 @@ export default function EarningsSidebar({ data }: EarningsSidebarProps) {
 
 
   return (
-    <div className="space-y-6 flex-shrink-0">
+    <div className="hidden lg:block space-y-6 flex-shrink-0">
       <div>
-        <h2 className="text-xl font-semibold text-[#343C6A]">Earnings Distribution (This Cycle)</h2>
-        <div className="mt-4 border border-[#EFEFEF] rounded-2xl bg-white h-[264px] flex items-center justify-center">
+        <h2 className="text-base lg:text-xl font-semibold text-[#343C6A]">Earnings Distribution (This Cycle)</h2>
+        <div className="mt-4 border border-[#EFEFEF] rounded-xl bg-white h-[257px] flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                     <Pie
@@ -92,8 +92,8 @@ export default function EarningsSidebar({ data }: EarningsSidebarProps) {
       <hr className="border-[#E4E4E4]" />
 
       <div>
-        <h2 className="text-xl font-semibold text-[#343C6A]">Plan-wise Breakdown</h2>
-        <div className="mt-4 border border-[#EFEFEF] rounded-2xl bg-white p-4 space-y-4">
+        <h2 className="text-base lg:text-xl font-semibold text-[#343C6A]">Plan-wise Breakdown</h2>
+        <div className="mt-4 border border-[#EFEFEF] rounded-xl bg-white p-4 space-y-4">
            <PlanBreakdownCard 
              planName="Plus Plan"
              percentage={data.plusPercentage}

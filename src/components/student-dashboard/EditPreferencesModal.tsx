@@ -8,6 +8,18 @@ import { Check, X, Loader2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { PatchUser } from '@/types';
 
+// Helper functions for styling
+const getCardStyle = (courseName: string | null) => {
+  return courseName ? 'bg-white hover:shadow-lg border-gray-200' : 'bg-white hover:shadow-lg border-gray-200';
+};
+
+const getTextStyle = (courseName: string | null, type: 'primary' | 'secondary') => {
+  if (type === 'primary') {
+    return 'text-gray-800';
+  }
+  return 'text-gray-500';
+};
+
 interface EditCourseViewProps {
   selectedCourse: string | null;
   onCourseSelect: (name: string) => void;
@@ -27,15 +39,6 @@ const EditCourseView: React.FC<EditCourseViewProps> = ({
     staleTime: 1000 * 60 * 5,
   });
 
-  const getCardStyle = (name: string) => {
-    return selectedCourse === name
-      ? 'bg-[#13097D] text-white'
-      : 'bg-white hover:shadow-lg';
-  };
-  const getTextStyle = (name: string, type: 'primary' | 'secondary') => {
-    if (selectedCourse === name) return 'text-white';
-    return type === 'primary' ? 'text-gray-800' : 'text-gray-500';
-  };
 
   if (loading) {
     return (
@@ -48,7 +51,7 @@ const EditCourseView: React.FC<EditCourseViewProps> = ({
 
   return (
     <>
-      <h2 className="text-2xl font-bold text-[#343C6A] mb-6">Select Preferred Course</h2>
+      <h2 className="text-base md:text-2xl font-semibold md:font-bold text-[#343C6A] mb-4 md:mb-6">Select Preferred Course</h2>
       <div className="flex-1 overflow-y-auto pr-2">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {courses.map((course: CousrseApiLogin) => (
@@ -70,10 +73,10 @@ const EditCourseView: React.FC<EditCourseViewProps> = ({
         </div>
       </div>
       <div className="mt-auto pt-6 border-t border-gray-200">
-        <div className="flex justify-end">
+        <div className="flex justify-center md:justify-end">
           <button
             onClick={onSubmit}
-            className="rounded-lg bg-[#FA660F] px-12 py-3 font-semibold text-white transition-colors hover:bg-orange-600 disabled:bg-orange-300 min-w-[160px]"
+            className="w-full md:w-auto rounded-lg bg-[#FA660F] md:px-12 py-3 font-semibold text-white transition-colors hover:bg-orange-600 disabled:bg-orange-300 md:min-w-[160px]"
             disabled={!selectedCourse || isSubmitting}
           >
             {isSubmitting ? <Loader2 className="animate-spin w-5 h-5 mx-auto" /> : 'Update Course'}
@@ -115,21 +118,22 @@ const EditStatesView: React.FC<EditStatesViewProps> = ({
 
   return (
     <>
-      <h2 className="text-2xl font-bold text-[#343C6A] mb-6">Select Preferred States</h2>
+      <h2 className="text-base md:text-2xl font-semibold md:font-bold text-[#343C6A] mb-4 md:mb-6">Select Preferred States</h2>
       <div className="flex-1 overflow-y-auto pr-2">
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 md:gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {states.map((state: StatesApiResponse) => (
             <button
               key={state.name}
               onClick={() => onStateSelect(state.name)}
-              className={`relative flex flex-col items-center justify-center rounded-xl border p-6 transition-colors duration-200 ${
-                isSelected(state.name) ? 'border-transparent bg-[#13097D] text-white' : 'bg-white hover:shadow-lg'
-              }`}
+              className={`relative flex flex-row items-center justify-between md:flex-col md:justify-center rounded-xl border p-4 md:p-6 transition-colors duration-200
+                ${
+                  isSelected(state.name) ? 'border-transparent bg-[#13097D] text-white' : 'bg-white hover:shadow-lg border-gray-200'
+                }`}
             >
               <img src={state.imageStorage} alt={`${state.name} icon`} className="mb-3 h-12 w-12 object-contain mx-auto" />
               <h3 className="font-semibold">{state.name}</h3>
               <div
-                className={`absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded border-2 ${
+                className={`flex-shrink-0 md:absolute md:right-3 md:top-3 flex h-5 w-5 items-center justify-center rounded border-2 ${
                   isSelected(state.name) ? 'border-white bg-white text-[#13097D]' : 'border-gray-300'
                 }`}
               >
@@ -140,10 +144,10 @@ const EditStatesView: React.FC<EditStatesViewProps> = ({
         </div>
       </div>
       <div className="mt-auto pt-6 border-t border-gray-200">
-        <div className="flex justify-end">
+        <div className="flex justify-center md:justify-end">
           <button
             onClick={onSubmit}
-            className="rounded-lg bg-[#FA660F] px-12 py-3 font-semibold text-white transition-colors hover:bg-orange-600 disabled:bg-orange-300 min-w-[160px]"
+            className="w-full md:w-auto rounded-lg bg-[#FA660F] md:px-12 py-3 font-semibold text-white transition-colors hover:bg-orange-600 disabled:bg-orange-300 md:min-w-[160px]"
             disabled={isSubmitting}
           >
             {isSubmitting ? <Loader2 className="animate-spin w-5 h-5 mx-auto" /> : 'Update States'}
@@ -207,9 +211,9 @@ const EditPreferencesModal: React.FC<EditPreferencesModalProps> = ({ mode, curre
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/40 md:backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div
-        className="relative w-full max-w-4xl rounded-2xl bg-[#F5F7FA] p-6 md:p-8 shadow-lg flex flex-col max-h-[90vh] h-[700px]"
+        className="relative w-full max-w-4xl rounded-2xl bg-[#F5F7FA] p-4 md:p-8 shadow-lg flex flex-col max-h-[90vh] h-auto md:h-[700px]"
         onClick={(e) => e.stopPropagation()}
       >
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 hover:text-gray-900 z-10"><X /></button>

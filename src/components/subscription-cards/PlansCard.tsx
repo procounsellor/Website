@@ -4,7 +4,6 @@ import { Check, X } from "lucide-react";
 import type { CounselorDetails } from "@/types";
 import type { SubscribedCounsellor } from "@/types/user";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 type PlansResponse = {
   benefits?: Array<any>;
   elite?: string[];
@@ -12,7 +11,7 @@ type PlansResponse = {
   plus?: string[];
   prices?: { elite?: string; pro?: string; plus?: string };
   seats?: { elite?: string; pro?: string; plus?: string };
-  desc?: { elite?: string; pro?: string; plus?: string };
+  desc?: { elite?: string; pro?:string; plus?: string };
 };
 
 function ValueCell({ value }: { value: any }) {
@@ -22,18 +21,18 @@ function ValueCell({ value }: { value: any }) {
   if (isTrue)
     return (
       <span className="inline-flex items-center justify-center w-full">
-        <Check size={16} className="text-[#07B02E]" />
+        <Check size={14} className="text-[#07B02E] md:size={16}" />
       </span>
     );
   if (isFalse)
     return (
       <span className="inline-flex items-center justify-center w-full">
-        <X size={16} className="text-[#FF3B30]" />
+        <X size={14} className="text-[#FF3B30] md:size={16}" />
       </span>
     );
 
   return (
-    <span className="inline-flex items-center justify-center w-full text-[#13097D]">
+    <span className="inline-flex items-center justify-center w-full text-[#13097D] font-medium text-xs md:text-sm">
       {String(value ?? "-")}
     </span>
   );
@@ -57,7 +56,6 @@ export default function PlansCard({
     { key: "pro", title: "Pro", icon: "/proIcon.svg" },
     { key: "elite", title: "Elite", icon: "/eliteIcon.svg" },
   ];
-  // default select the Elite plan
   const [selected, setSelected] = useState<string | null>(initialSelectedPlan || "elite");
   const [drawerOpen, setDrawerOpen] = useState(!!initialSelectedPlan);
   const planHierarchy = ['plus','pro','elite'];
@@ -66,123 +64,126 @@ export default function PlansCard({
     ? planHierarchy.indexOf(currentPlan.plan.toLowerCase())
     : -1;
 
+  const rowHeight = "h-14 md:h-16"; 
+  const headerRowHeight = "h-20 md:h-24";
+
   return (
-    <div className="bg-white w-full max-w-[1092px] pl-6 pr-6 py-6 rounded-[20px]">
-      <div className="flex gap-6 items-start">
-        {/* Left column: header + benefit names */}
-        <div className="w-[333px] pr-4">
-          <h1 className="text-[#343C6A] text-[clamp(1.5rem, 2.5vw, 2rem)] font-semibold">Benefits</h1>
-          <p className="text-[#232323] text-lg font-normal mb-8">
-            To drive your passion
-          </p>
-
-          {plan?.benefits?.map((benefit, idx) => (
-            <div
-              key={idx}
-              className="text-[#232323] text-[clamp(0.75rem , 4vw, 1rem)] font-medium py-1.5 flex items-center"
-            >
-              {benefit.name ?? "-"}
+    <div className="bg-white w-full max-w-[1092px] p-2 md:pl-6 md:pr-6 md:py-6 rounded-[20px]">
+      <div>
+        <div className="flex flex-row">
+          <div className="w-1/3 max-w-[280px] md:w-[333px] pr-2 md:pr-4">
+            <div className={`flex flex-col justify-start ${headerRowHeight}`}>
+              <h1 className="text-[#343C6A] text-base md:text-2xl font-semibold">Benefits</h1>
+              <p className="text-[#232323] text-xs md:text-base font-normal mt-1">
+                To drive your passion
+              </p>
             </div>
-          ))}
-        </div>
+            
+            <div className="flex flex-col">
+              {plan?.benefits?.map((benefit, idx) => (
+                <div
+                  key={idx}
+                  className={`text-[#232323] text-xs md:text-sm font-medium py-1.5 flex items-center ${rowHeight}`}
+                >
+                  {benefit.name ?? "-"}
+                </div>
+              ))}
+            </div>
+          </div>
 
-        <div className="w-[591px]">
-          <div className="flex gap-6">
+          <div className="flex-1 flex flex-row gap-1 md:gap-6">
             {columns.map((col) => {
-            const isSelected = selected === col.key;
-            const columnIndex = planHierarchy.indexOf(col.key);
-            const isDisabled = isUpgrade && currentPlanIndex != -1 && columnIndex <= currentPlanIndex;
-            return (
-              <button
-                key={col.key}
-                type="button"
-                disabled={isDisabled}
-                aria-disabled={isDisabled}
-                onClick={() => {
-                  if (isDisabled) return;
-                  setSelected(isSelected ? null : col.key)
-                }}
-                className={`w-[181px] p-4 transition-colors duration-150 rounded-[16px] text-left border-2 box-border ${
-                  isSelected
-                    ? "border-[#EC5E1A] bg-gradient-to-b from-[#FFF4EB] to-[#FFF1E6]"
-                    : "border-transparent bg-transparent"
-                } ${
-                  isDisabled ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-                aria-pressed={isSelected}
-              >
-                <div className="flex flex-col items-center">
-                  <div
-                    className={`flex gap-2.5 text-[28px] font-normal items-center ${
-                      isSelected ? "text-[#EC5E1A]" : "text-[#13097D]"
-                    }`}
-                  >
-                    <img
-                      src={col.icon}
-                      alt=""
-                      className="h-5 w-5 object-contain"
-                    />
-                    {col.title}
+              const isSelected = selected === col.key;
+              const columnIndex = planHierarchy.indexOf(col.key);
+              const isDisabled = isUpgrade && currentPlanIndex != -1 && columnIndex <= currentPlanIndex;
+              return (
+                <button
+                  key={col.key}
+                  type="button"
+                  disabled={isDisabled}
+                  aria-disabled={isDisabled}
+                  onClick={() => {
+                    if (isDisabled) return;
+                    setSelected(isSelected ? null : col.key)
+                  }}
+                  className={`flex-1 p-2 md:p-4 transition-colors duration-150 rounded-[16px] text-center border-2 box-border ${
+                    isSelected
+                      ? "border-[#EC5E1A] bg-gradient-to-b from-[#FFF4EB] to-[#FFF1E6]"
+                      : "border-transparent bg-transparent"
+                  } ${
+                    isDisabled ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                  aria-pressed={isSelected}
+                >
+                  <div className={`flex flex-col items-center ${headerRowHeight}`}>
+                    <div
+                      className={`flex gap-1 md:gap-2.5 text-base md:text-2xl font-normal items-center ${
+                        isSelected ? "text-[#EC5E1A]" : "text-[#13097D]"
+                      }`}
+                    >
+                      <img
+                        src={col.icon}
+                        alt=""
+                        className="h-4 w-4 md:h-5 md:w-5 object-contain"
+                      />
+                      {col.title}
+                    </div>
+                    <p
+                      className={`${
+                        isSelected ? "text-[#EC5E1A]" : "text-[#13097D]"
+                      } text-sm md:text-xl font-semibold mt-1`}
+                    >
+                      {(plan?.prices as any)?.[col.key]}
+                    </p>
                   </div>
-                  <p
-                    className={`${
-                      isSelected ? "text-[#EC5E1A]" : "text-[#13097D]"
-                    } text-2xl font-semibold`}
-                  >
-                    {(plan?.prices as any)?.[col.key]}
-                  </p>
 
-                  <div className="mt-2 w-full">
+                  <div className="w-full">
                     {plan?.benefits?.map((benefit, idx) => (
                       <div
                         key={`${col.key}-${idx}`}
-                        className="py-1.5 text-[16px] text-center font-semibold w-full"
+                        className={`py-1.5 text-xs md:text-sm text-center font-semibold w-full flex items-center justify-center ${rowHeight}`}
                       >
                         <ValueCell value={(benefit as any)[col.key]} />
                       </div>
                     ))}
                   </div>
-                </div>
-              </button>
-            );
+                </button>
+              );
             })}
-
           </div>
-
-          {/* Single button centered below plan columns: width 586px, height 48px, 48px gap from last row */}
-          <div className="mt-12 flex justify-center">
-            <button
-              type="button"
-              onClick={() => {
-                if (!selected) return;
-                setDrawerOpen(true);
-              }}
-              className={`w-[586px] h-12 rounded-md text-lg font-semibold transition-colors duration-150 ${
-                selected
-                  ? "bg-[#EC5E1A] text-white"
-                  : "bg-white text-[#EC5E1A] border border-[#EC5E1A] opacity-50 cursor-not-allowed"
-              }`}
-              disabled={!selected}
-            >
-              Buy Membership
-            </button>
-          </div>
-
         </div>
       </div>
-        {/* Plans drawer (overlay) */}
-        <PlansDrawer
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          planKey={selected}
-          plan={plan}
-          planTitle={columns.find((c) => c.key === selected)?.title}
-          price={(plan?.prices as any)?.[selected ?? ""]}
-          counselor={counselor}
-          isUpgrade={isUpgrade}
-          currentPlan={currentPlan}
-        />
 
+      <div className="mt-6 md:mt-12 flex justify-center">
+        <button
+          type="button"
+          onClick={() => {
+            if (!selected) return;
+            setDrawerOpen(true);
+          }}
+          className={`w-full lg:w-[586px] h-12 rounded-md text-base md:text-lg font-semibold transition-colors duration-150 ${
+            selected
+              ? "bg-[#EC5E1A] text-white"
+              : "bg-white text-[#EC5E1A] border border-[#EC5E1A] opacity-50 cursor-not-allowed"
+          }`}
+          disabled={!selected}
+        >
+          Buy Membership
+        </button>
+      </div>
+
+      <PlansDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        planKey={selected}
+        plan={plan}
+        planTitle={columns.find((c) => c.key === selected)?.title}
+        price={(plan?.prices as any)?.[selected ?? ""]}
+        counselor={counselor}
+        isUpgrade={isUpgrade}
+        currentPlan={currentPlan}
+      />
     </div>
   );
 }
+

@@ -26,6 +26,7 @@ export default function AppointmentPopup({
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const queryClient = useQueryClient();
+  const isMobileView = position.x === 0 && position.y === 0;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -95,18 +96,38 @@ export default function AppointmentPopup({
     cancelMutation(reason);
   };
 
-  return (
-    <div
-      ref={popupRef}
-      className="fixed bg-white rounded-[20px] shadow-lg z-50 p-6"
-      style={{
+  const popupStyle: React.CSSProperties = isMobileView
+    ? {
+        width: "calc(100% - 32px)",
+        maxWidth: "500px",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        border: "1px solid #2B2B2F40",
+        boxShadow: "0px 1px 4px 0px #23232340",
+      }
+    : {
         width: "500px",
         left: `${position.x - 500 - 22}px`,
         top: `${position.centerY - 156.5}px`,
         border: "1px solid #2B2B2F40",
         boxShadow: "0px 1px 4px 0px #23232340",
-      }}
+      };
+
+  return (
+    <>
+    {isMobileView && (
+        <div
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50"
+          onClick={onClose}
+        />
+      )}
+    <div
+      ref={popupRef}
+      className="fixed bg-white rounded-[20px] shadow-lg z-50 p-6"
+      style={popupStyle}
     >
+      {!isMobileView && (
       <img
         src="/triangle.svg"
         alt=""
@@ -117,6 +138,7 @@ export default function AppointmentPopup({
           transform: "translateY(-50%)",
         }}
       />
+      )}
       
       <button
         onClick={onClose}
@@ -193,5 +215,6 @@ export default function AppointmentPopup({
         />
       )}
     </div>
+    </>
   );
 }
