@@ -44,10 +44,25 @@ const AddFundsPanel: React.FC<AddFundsPanelProps> = ({ isOpen, onClose, balance,
       />
 
       <div
-        className={`fixed top-0 right-0 h-full bg-white w-[460px] shadow-2xl z-[100] transform transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
+  className={`
+    fixed z-[100] bg-white shadow-2xl transition-all duration-300 ease-in-out
+    
+    /* === Mobile styles (default) === */
+    /* This makes it a centered modal */
+    top-1/2 left-1/2 w-[90vw] max-w-[460px] rounded-2xl
+    
+    /* === Desktop styles (md: and up) === */
+    /* This overrides mobile styles and makes it a side-panel */
+    md:top-0 md:right-0 md:left-auto md:h-full md:w-[460px] md:rounded-none
+    
+    /* === Animation Logic === */
+    ${
+      isOpen
+        ? 'opacity-100 translate-x-[-50%] translate-y-[-50%] scale-100 md:translate-x-0'
+        : 'opacity-0 pointer-events-none translate-x-[-50%] translate-y-[-45%] scale-95 md:translate-x-full md:translate-y-0'
+    }
+  `}
+>
         <div className="flex items-center justify-between h-[68px] px-6 border-b border-[#EFEFEF]">
           <h2 className="text-lg font-semibold text-[#343C6A]">Wallet Balance</h2>
           <button onClick={onClose} className="p-2 rounded-md transition-colors hover:bg-gray-100">
@@ -77,12 +92,12 @@ const AddFundsPanel: React.FC<AddFundsPanelProps> = ({ isOpen, onClose, balance,
                 placeholder="₹ Enter Amount"
                 className="w-full h-[40px] bg-[#F5F5F5] border border-[#EFEFEF] rounded-[10px] text-center text-lg font-semibold placeholder:text-[#23232380] focus:outline-none focus:ring-2 focus:ring-[#13097D]"
               />
-              <div className="flex justify-between my-4">
+              <div className="flex justify-between my-4 gap-2">
                 {presetAmounts.map((preset) => (
                   <button
                     key={preset}
                     onClick={() => setAmount(String(preset))}
-                    className="w-[117px] h-[40px] border border-[#13097D] rounded-[10px] text-[#13097D] font-semibold text-sm hover:bg-[#13097D] hover:text-white transition-colors"
+                    className="flex-1 h-[36px] border border-[#13097D] rounded-[10px] text-[#13097D] font-semibold text-xs text-center hover:bg-[#13097D] hover:text-white transition-colors md:h-[40px] md:text-sm md:flex-none md:w-[117px]"
                   >
                     + {formatCurrency(preset)}
                   </button>

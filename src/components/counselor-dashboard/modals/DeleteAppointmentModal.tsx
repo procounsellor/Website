@@ -31,15 +31,7 @@ export default function DeleteAppointmentModal({
       />
 
       <div
-        className="fixed bg-white rounded-[16px] shadow-lg z-[70] p-5 flex flex-col"
-        style={{
-          width: "580px",
-          height: "auto",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          border: "1px solid #2B2B2F40",
-        }}
+        className="fixed bg-white rounded-[16px] shadow-lg z-[70] p-5 flex flex-col w-[90vw] max-w-[580px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border border-[#2B2B2F40]"
       >
         <div className="flex justify-between">
           <div className="text-[20px] font-semibold text-[#343C6A]">
@@ -65,17 +57,17 @@ export default function DeleteAppointmentModal({
           />
         </div>
 
-        <div className="flex justify-end gap-4 mt-auto pt-4">
+        <div className="flex justify-end gap-2 sm:gap-4 mt-auto pt-4">
           <button
             onClick={handleConfirm}
             disabled={!reason.trim()|| isSubmitting}
-            className="px-6 py-2 bg-[#FA660F] text-white rounded-lg font-medium hover:bg-[#e55d0e] transition-colors disabled:bg-orange-300 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm sm:px-6 sm:py-2 sm:text-base bg-[#FA660F] text-white rounded-lg font-medium hover:bg-[#e55d0e] transition-colors disabled:bg-orange-300 disabled:cursor-not-allowed"
           >
             {isSubmitting ? "Cancelling..." : "Confirm Cancellation"}
           </button>
           <button
             onClick={onClose}
-            className="px-6 py-2 border border-[#FA660F] text-[#FA660F] rounded-lg font-medium hover:bg-[#FA660F]/5 transition-colors"
+            className="px-4 py-2 text-sm sm:px-6 sm:py-2 sm:text-base border border-[#FA660F] text-[#FA660F] rounded-lg font-medium hover:bg-[#FA660F]/5 transition-colors"
           >
             Back
           </button>

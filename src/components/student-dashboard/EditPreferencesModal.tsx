@@ -27,15 +27,6 @@ const EditCourseView: React.FC<EditCourseViewProps> = ({
     staleTime: 1000 * 60 * 5,
   });
 
-  const getCardStyle = (name: string) => {
-    return selectedCourse === name
-      ? 'bg-[#13097D] text-white'
-      : 'bg-white hover:shadow-lg';
-  };
-  const getTextStyle = (name: string, type: 'primary' | 'secondary') => {
-    if (selectedCourse === name) return 'text-white';
-    return type === 'primary' ? 'text-gray-800' : 'text-gray-500';
-  };
 
   if (loading) {
     return (
@@ -48,32 +39,50 @@ const EditCourseView: React.FC<EditCourseViewProps> = ({
 
   return (
     <>
-      <h2 className="text-2xl font-bold text-[#343C6A] mb-6">Select Preferred Course</h2>
+      <h2 className="text-base md:text-2xl font-semibold md:font-bold text-[#343C6A] mb-4 md:mb-6">Select Preferred Course</h2>
       <div className="flex-1 overflow-y-auto pr-2">
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {courses.map((course: CousrseApiLogin) => (
-            <button
-              key={course.courseId}
-              onClick={() => onCourseSelect(course.name)}
-              className={`transform rounded-xl border p-5 text-center transition-all duration-200 ${getCardStyle(course.name)}`}
-            >
-              <img src={`/courseIcon/${course.image}`} alt={`${course.name} icon`} className="mb-4 h-24 w-24 object-contain mx-auto" />
-              <h3 className={`text-lg font-bold ${getTextStyle(course.name, 'primary')}`}>{course.name}</h3>
-              <p className={`text-sm ${getTextStyle(course.name, 'secondary')}`}>
-                {course.duration}
-              </p>
-              <p className={`mt-2 text-sm ${getTextStyle(course.name, 'secondary')}`}>
-                {course.tagline}
-              </p>
-            </button>
-          ))}
+        <div className="grid grid-cols-1 gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {courses.map((course: CousrseApiLogin) => {
+            const isSelected = selectedCourse === course.name;
+            return (
+              <button
+                key={course.courseId}
+                onClick={() => onCourseSelect(course.name)}
+                className={`transform rounded-xl border md:border p-4 md:p-5 text-left md:text-center transition-all duration-200 flex flex-row items-center gap-4 md:flex-col
+                  ${
+                    isSelected
+                      ? 'bg-[#13097D] border-transparent'
+                      : 'bg-white hover:shadow-lg border-gray-200'
+                  }
+                `}
+              >
+                <img
+                  src={`/courseIcon/${course.image}`}
+                  alt={`${course.name} icon`}
+                  className="flex-shrink-0 h-12 w-12 md:h-24 md:w-24 object-contain md:mx-auto md:mb-4"
+                />
+
+                <div className="flex-1">
+                  <h3 className={`text-base md:text-lg font-bold ${ isSelected ? 'text-white' : 'text-gray-800'}`} >
+                    {course.name}
+                  </h3>
+                  <p className={`text-sm ${ isSelected ? 'text-white' : 'text-gray-500' }`} >
+                    {course.duration}
+                  </p>
+                  <p className={`md:block mt-1 md:mt-2 text-xs md:text-sm ${ isSelected ? 'text-white' : 'text-gray-500' }`} >
+                    {course.tagline}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
       <div className="mt-auto pt-6 border-t border-gray-200">
-        <div className="flex justify-end">
+        <div className="flex justify-center md:justify-end">
           <button
             onClick={onSubmit}
-            className="rounded-lg bg-[#FA660F] px-12 py-3 font-semibold text-white transition-colors hover:bg-orange-600 disabled:bg-orange-300 min-w-[160px]"
+            className="w-full md:w-auto rounded-lg bg-[#FA660F] md:px-12 py-3 font-semibold text-white transition-colors hover:bg-orange-600 disabled:bg-orange-300 md:min-w-[160px]"
             disabled={!selectedCourse || isSubmitting}
           >
             {isSubmitting ? <Loader2 className="animate-spin w-5 h-5 mx-auto" /> : 'Update Course'}
@@ -115,21 +124,25 @@ const EditStatesView: React.FC<EditStatesViewProps> = ({
 
   return (
     <>
-      <h2 className="text-2xl font-bold text-[#343C6A] mb-6">Select Preferred States</h2>
+      <h2 className="text-base md:text-2xl font-semibold md:font-bold text-[#343C6A] mb-4 md:mb-6">Select Preferred States</h2>
       <div className="flex-1 overflow-y-auto pr-2">
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 md:gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {states.map((state: StatesApiResponse) => (
             <button
               key={state.name}
               onClick={() => onStateSelect(state.name)}
-              className={`relative flex flex-col items-center justify-center rounded-xl border p-6 transition-colors duration-200 ${
-                isSelected(state.name) ? 'border-transparent bg-[#13097D] text-white' : 'bg-white hover:shadow-lg'
-              }`}
+              className={`relative flex flex-row items-center justify-between md:flex-col md:justify-center rounded-xl border p-4 md:p-6 transition-colors duration-200
+                ${
+                  isSelected(state.name) ? 'border-transparent bg-[#13097D] text-white' : 'bg-white hover:shadow-lg border-gray-200'
+                }`}
             >
-              <img src={`/stateIcons/${state.image}`} alt={`${state.name} icon`} className="mb-3 h-12 w-12 object-contain mx-auto" />
-              <h3 className="font-semibold">{state.name}</h3>
+              <div className="flex flex-1 items-center gap-4">
+                <img src={`/stateIcons/${state.image}`} alt={`${state.name} icon`} className="h-10 w-10 md:h-12 md:w-12 object-contain md:mx-auto md:mb-3" />
+                <h3 className="font-semibold text-sm md:text-base">{state.name}</h3>
+              </div>
+
               <div
-                className={`absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded border-2 ${
+                className={`flex-shrink-0 md:absolute md:right-3 md:top-3 flex h-5 w-5 items-center justify-center rounded border-2 ${
                   isSelected(state.name) ? 'border-white bg-white text-[#13097D]' : 'border-gray-300'
                 }`}
               >
@@ -140,10 +153,10 @@ const EditStatesView: React.FC<EditStatesViewProps> = ({
         </div>
       </div>
       <div className="mt-auto pt-6 border-t border-gray-200">
-        <div className="flex justify-end">
+        <div className="flex justify-center md:justify-end">
           <button
             onClick={onSubmit}
-            className="rounded-lg bg-[#FA660F] px-12 py-3 font-semibold text-white transition-colors hover:bg-orange-600 disabled:bg-orange-300 min-w-[160px]"
+            className="w-full md:w-auto rounded-lg bg-[#FA660F] md:px-12 py-3 font-semibold text-white transition-colors hover:bg-orange-600 disabled:bg-orange-300 md:min-w-[160px]"
             disabled={isSubmitting}
           >
             {isSubmitting ? <Loader2 className="animate-spin w-5 h-5 mx-auto" /> : 'Update States'}
@@ -207,9 +220,9 @@ const EditPreferencesModal: React.FC<EditPreferencesModalProps> = ({ mode, curre
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/40 md:backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div
-        className="relative w-full max-w-4xl rounded-2xl bg-[#F5F7FA] p-6 md:p-8 shadow-lg flex flex-col max-h-[90vh] h-[700px]"
+        className="relative w-full max-w-4xl rounded-2xl bg-[#F5F7FA] p-4 md:p-8 shadow-lg flex flex-col max-h-[90vh] h-auto md:h-[700px]"
         onClick={(e) => e.stopPropagation()}
       >
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 hover:text-gray-900 z-10"><X /></button>

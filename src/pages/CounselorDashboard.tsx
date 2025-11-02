@@ -11,7 +11,7 @@ import {
   ReviewsTab,
 } from "@/components/counselor-dashboard";
 import type { Appointment } from "@/types/appointments";
-import { ChevronLeft, ChevronRight, Loader2, Clock, SquarePen, ChevronDown, ChevronUp, Plus } from "lucide-react";
+import { SquareChevronLeft, SquareChevronRight, ChevronLeft, ChevronRight, Loader2, Clock, SquarePen, ChevronDown, ChevronUp, Plus } from "lucide-react";
 import AppointmentsTab from "@/components/counselor-dashboard/AppointmentsTab";
 import CounselorProfile from "@/components/counselor-dashboard/CounselorProfile";
 import { useQuery } from "@tanstack/react-query";
@@ -565,7 +565,7 @@ export default function CounselorDashboard() {
                 <div className="w-full max-w-[335px] h-[39px] mx-auto p-1 bg-white rounded-[16px] flex items-center justify-around shadow">
                   <button
                     onClick={() => setActiveTab("meetings")}
-                    className={`flex-1 rounded-[24px] py-1 px-4 text-center text-[10px] transition-all ${
+                    className={`flex-1 rounded-[24px] py-1 px-4 text-center text-[12px] transition-all ${
                       activeTab === "meetings"
                         ? "bg-[#E8E7F2] text-[#13097D] font-semibold"
                         : "bg-transparent text-[#8C8CA1] font-medium"
@@ -575,7 +575,7 @@ export default function CounselorDashboard() {
                   </button>
                   <button
                     onClick={() => setActiveTab("other")}
-                    className={`flex-1 rounded-[24px] py-1 px-4 text-center text-[10px] transition-all ${
+                    className={`flex-1 rounded-[24px] py-1 px-4 text-center text-[12px] transition-all ${
                       activeTab === "other"
                         ? "bg-[#E8E7F2] text-[#13097D] font-semibold"
                         : "bg-transparent text-[#8C8CA1] font-medium"
@@ -592,6 +592,12 @@ export default function CounselorDashboard() {
                       setSelectedDate={setSelectedDate}
                       setCurrentDateOffset={setCurrentDateOffset}
                       groupedAppointments={groupedAppointments}
+                      onAppointmentClick={(appt) => {
+                        setSelectedAppointment({
+                          data: appt,
+                          position: { x: 0, y: 0, centerY: 0 }, 
+                        });
+                      }}
                     />
                   ) : (
                     <div className="p-1 space-y-4">
@@ -677,11 +683,13 @@ const MobileMeetingsView = ({
   setSelectedDate,
   setCurrentDateOffset,
   groupedAppointments,
+  onAppointmentClick,
 }: {
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
   setCurrentDateOffset: (offset: number | ((prev: number) => number)) => void;
   groupedAppointments: Record<string, Record<string, Appointment[]>>;
+  onAppointmentClick: (appointment: Appointment) => void;
 }) => {
   const [isMonthViewOpen, setIsMonthViewOpen] = useState(false);
 
@@ -742,17 +750,27 @@ const MobileMeetingsView = ({
         <h3 className="font-semibold text-base text-[#13097D]">This Week</h3>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => changeWeek("prev")}
-            className="p-1 rounded-md text-gray-500 hover:bg-gray-100"
-          >
-            <ChevronLeft size={20} />
-          </button>
+          onClick={() => changeWeek("prev")}
+          className="rounded-lg"
+        >
+          <SquareChevronLeft 
+            size={24} 
+            fill="#A49E9B"
+            color="white"
+            strokeWidth={2}
+          />
+        </button>
           <button
-            onClick={() => changeWeek("next")}
-            className="p-1 rounded-md text-[#FA660F] hover:bg-gray-100"
-          >
-            <ChevronRight size={20} />
-          </button>
+          onClick={() => changeWeek("next")}
+          className="rounded-lg"
+        >
+          <SquareChevronRight 
+            size={24} 
+            fill="#FA660F"
+            color="white"
+            strokeWidth={2}
+          />
+        </button>
         </div>
       </div>
 
@@ -810,7 +828,8 @@ const MobileMeetingsView = ({
           appointmentsForDay.map((appt) => (
             <div
               key={appt.appointmentId}
-              className="w-full h-10 bg-[#F9FAFB] rounded-[8px] px-3 py-2 flex items-center justify-between"
+              className="w-full h-10 bg-[#F9FAFB] rounded-[8px] px-3 py-2 flex items-center justify-between cursor-pointer"
+              onClick={() => onAppointmentClick(appt)}
             >
               <div className="flex items-center gap-3">
                 <div className="flex flex-col text-left">

@@ -174,10 +174,15 @@ export default function PlansDrawer({
           onClick={onClose}
         />
 
-        <aside className={`absolute right-0 top-0 bottom-0 w-[460px] p-7 bg-white shadow-xl transform transition-all duration-300 ${mounted ? 'translate-x-0 opacity-100' : 'translate-x-6 opacity-0'}`}>
+        <aside className={`absolute inset-0 md:inset-auto md:right-0 md:top-0 md:bottom-0 
+                           w-full md:w-[460px] p-4 md:p-7 bg-white shadow-xl 
+                           transform transition-all duration-300 
+                           ${mounted 
+                             ? 'opacity-100 translate-y-0 md:translate-x-0' 
+                             : 'opacity-0 translate-y-4 md:translate-y-0 md:opacity-100 md:translate-x-6'}`}>
           <div className="h-full flex flex-col">
             <div className="flex justify-between items-center">
-              <h1 className="text-[20px] font-semibold text-[#343C6A]">
+              <h1 className="text-lg md:text-[20px] font-semibold text-[#343C6A]">
                 Offline Payment
               </h1>
               <button
@@ -190,17 +195,17 @@ export default function PlansDrawer({
             </div>
 
             {/* Scrollable content area (header/footer stay fixed) */}
-            <div className="flex-1 overflow-auto plans-drawer-content">
-              <div className="flex justify-between items-center mt-5">
+            <div className="flex-1 overflow-auto plans-drawer-content py-4">
+              <div className="flex justify-between items-center mt-1 md:mt-5">
                 <div className="flex gap-2">
                   <img src="/payoffline.svg" alt="" />
-                  <h1 className="flex flex-col  text-[#343C6A] text-lg font-semibold">
+                  <h1 className="flex flex-col  text-[#343C6A] text-base md:text-lg font-semibold">
                     Payment Initiated
                   </h1>
                 </div>
               </div>
 
-              <p className="font-normal text-[14px] text-[#232323] py-3">
+              <p className="font-normal text-sm text-[#232323] py-3">
                 Your offline payment request has been recorded. Please complete
                 the payment as instructed below
               </p>
@@ -211,16 +216,16 @@ export default function PlansDrawer({
 
               <div className="flex items-center justify-start gap-2">
                 <img src="/greenwallet.svg" alt="" />
-                <h1 className="text-lg text-[#343C6A] font-semibold">
+                <h1 className="text-base md:text-lg text-[#343C6A] font-semibold">
                   Payment Instruction
                 </h1>
               </div>
 
               <div className="py-4 flex gap-2 items-start">
-                <img src="/one.svg" alt="" />
-                <h1 className="flex flex-col gap-2 font-medium text-[16px] text-[#232323]">
+                <img src="/one.svg" alt="" className="mt-1" />
+                <h1 className="flex flex-col gap-2 font-medium text-sm md:text-[16px] text-[#232323]">
                   Transfer the subscription amount
-                  <span className="text-[14px] text-[#718EBF] font-normal">
+                  <span className="text-sm text-[#718EBF] font-normal">
                     Use your preferred payment method{" "}
                     <span className="font-medium">
                       (bank transfer, UPI, cash){" "}
@@ -231,10 +236,10 @@ export default function PlansDrawer({
               </div>
 
               <div className="py-4 flex gap-2 items-start">
-                <img src="/two.svg" alt="" />
-                <h1 className="flex flex-col gap-2 font-medium text-[16px] text-[#232323]">
+                <img src="/two.svg" alt="" className="mt-1" />
+                <h1 className="flex flex-col gap-2 font-medium text-sm md:text-[16px] text-[#232323]">
                   Keep the payment proof
-                  <span className="text-[14px] text-[#718EBF] font-normal">
+                  <span className="text-sm text-[#718EBF] font-normal">
                     Save your transaction receipt or take a photo as proof of
                     payment.
                   </span>
@@ -242,17 +247,17 @@ export default function PlansDrawer({
               </div>
 
               <div className="py-4 flex gap-2 items-start">
-                <img src="/three.svg" alt="" />
-                <h1 className="flex flex-col gap-2 font-medium text-[16px] text-[#232323]">
+                <img src="/three.svg" alt="" className="mt-1" />
+                <h1 className="flex flex-col gap-2 font-medium text-sm md:text-[16px] text-[#232323]">
                   Confirm and Send request
-                  <span className="text-[14px] text-[#718EBF] font-normal">
+                  <span className="text-sm text-[#718EBF] font-normal">
                     Acknowledge your payment below and send the subscription
                     request.
                   </span>
                 </h1>
               </div>
 
-              <div className="flex text-xs font-normal bg-[#F9FAFB] border border-[#F9FAFB] rounded-[12px] p-4 w-[404px]">
+              <div className="flex text-xs font-normal bg-[#F9FAFB] border border-[#F9FAFB] rounded-[12px] p-4 w-full md:w-[404px]">
                 <div className="flex items-center gap-3">
                   <input
                     id="default-checkbox"
@@ -273,7 +278,7 @@ export default function PlansDrawer({
                 <hr className="w-full bg-[#D0D0D0] h-px" />
               </div>
 
-              <div className="flex flex-col  gap-4 max-w-[404px]">
+              <div className="flex flex-col gap-4 w-full md:max-w-[404px]">
                 <div className="flex items-start justify-between">
                   <div className="flex gap-3 items-center">
                     <img
@@ -281,7 +286,7 @@ export default function PlansDrawer({
                       alt=""
                       className="h-[72px] w-[72px] rounded-[8px]"
                     />
-                    <h1 className="flex flex-col gap-2 text-[16px] font-semibold text-[#343C6A]">
+                    <h1 className="flex flex-col gap-2 text-base font-semibold text-[#343C6A]">
                       {`${counselor?.firstName} ${counselor?.lastName}`}
                       <span className="text-[#718EBF] text-xs font-normal">{`${counselor?.fullOfficeAddress.city} ${counselor?.organisationName}`}</span>
                     </h1>
@@ -293,7 +298,8 @@ export default function PlansDrawer({
                   onClick={offlinePayment}
                   disabled={!offlineAck}
                   aria-disabled={!offlineAck}
-                  className={`my-4 py-3 px-2 rounded-[12px] flex items-center justify-center text-[16px] font-semibold ${
+                  className={`my-4 py-3 px-2 rounded-[12px] flex items-center justify-center text-base font-semibold w-full
+                    ${
                     offlineAck
                       ? 'bg-[#EA5C19] text-white cursor-pointer'
                       : 'bg-[#919191] text-white cursor-not-allowed'
@@ -305,7 +311,7 @@ export default function PlansDrawer({
                 <div className="flex justify-center">
                   <div
                     onClick={() => setPayingOffline(!payingOffline)}
-                    className="cursor-pointer mb-[190px] mt-3 text-xs font-normal text-[#707070]"
+                    className="cursor-pointer mb-20 md:mb-[190px] mt-3 text-xs font-normal text-[#707070]"
                   >
                     Click here to return to online payment
                   </div>
@@ -328,10 +334,15 @@ export default function PlansDrawer({
         onClick={onClose}
       />
 
-      <aside className={`absolute right-0 top-0 bottom-0 w-[460px] p-7 bg-white shadow-xl transform transition-all duration-300 ${mounted ? 'translate-x-0 opacity-100' : 'translate-x-6 opacity-0'}`}>
+      <aside className={`absolute inset-0 md:inset-auto md:right-0 md:top-0 md:bottom-0 
+                         w-full md:w-[460px] p-4 md:p-7 bg-white shadow-xl 
+                         transform transition-all duration-300 
+                         ${mounted 
+                           ? 'opacity-100 translate-y-0 md:translate-x-0' 
+                           : 'opacity-0 translate-y-4 md:translate-y-0 md:opacity-100 md:translate-x-6'}`}>
         <div className="h-full flex flex-col">
           <div className="flex justify-between items-center">
-            <h1 className="text-[20px] font-semibold text-[#343C6A]">
+            <h1 className="text-lg md:text-[20px] font-semibold text-[#343C6A]">
               {planTitle} Membership Details
             </h1>
             <button
@@ -344,13 +355,13 @@ export default function PlansDrawer({
           </div>
 
           {/* Scrollable content area (header/footer stay fixed) */}
-          <div className="flex-1 overflow-auto plans-drawer-content">
-            <div className="flex justify-between items-center mt-5">
+          <div className="flex-1 overflow-auto plans-drawer-content py-4">
+            <div className="flex justify-between items-center mt-1 md:mt-5">
               <div className="flex gap-2">
                 <img src="/plus.svg" alt="" />
-                <h1 className="flex flex-col  text-[#343C6A] text-lg font-semibold">
+                <h1 className="flex flex-col  text-[#343C6A] text-base md:text-lg font-semibold">
                   {" "}
-                  {planTitle} <span className="text-[14px]">{price}</span>
+                  {planTitle} <span className="text-sm">{price}</span>
                 </h1>
               </div>
 
@@ -362,16 +373,16 @@ export default function PlansDrawer({
               </Badge>
             </div>
 
-            <p className="font-normal text-[14px] text-[#232323] py-3">
+            <p className="font-normal text-sm text-[#232323] py-3">
               {desc}
             </p>
 
             <div className="flex items-center justify-center gap-2 mb-5 mt-2">
-              <hr className="w-[108px] bg-[#D0D0D0] h-px" />
-              <p className="text-[#232323] text-lg font-semibold">
+              <hr className="w-full md:w-[108px] bg-[#D0D0D0] h-px" />
+              <p className="text-[#232323] text-base md:text-lg font-semibold whitespace-nowrap">
                 Exclusive Benefits
               </p>
-              <hr className="w-[108px] bg-[#D0D0D0] h-px" />
+              <hr className="w-full md:w-[108px] bg-[#D0D0D0] h-px" />
             </div>
 
             <div className="flex flex-col gap-3">
@@ -390,7 +401,7 @@ export default function PlansDrawer({
 
                 return features.map((feat, idx) => (
                   <div key={idx} className="flex items-start gap-3">
-                    <img src="/tick.svg" alt="" />
+                    <img src="/tick.svg" alt="" className="mt-1 flex-shrink-0" />
                     <p className="text-sm text-[#232323]">{feat}</p>
                   </div>
                 ));
@@ -399,13 +410,13 @@ export default function PlansDrawer({
 
             <hr className="w-full h-px bg-[#D0D0D0] my-5" />
 
-            <div className="flex flex-col gap-3 text-[14px] font-normal text-[#232323] bg-[#F9FAFB] border border-[#F9FAFB] rounded-[12px] p-4 w-[404px]">
+            <div className="flex flex-col gap-3 text-sm font-normal text-[#232323] bg-[#F9FAFB] border border-[#F9FAFB] rounded-[12px] p-4 w-full md:w-[404px]">
               <div className="flex justify-between items-center">
                 <div className="flex gap-2 items-center">
                   <img src="/planImage.svg" alt="plan icon" />
                   <span>{planTitle} Plan</span>
                 </div>
-                <span className="text-[16px] font-medium text-[#232323]">
+                <span className="text-base font-medium text-[#232323]">
                   &#8377;{newPlanPrice.toLocaleString('en-IN')}
                 </span>
               </div>
@@ -415,7 +426,7 @@ export default function PlansDrawer({
                   <img src="/wallet.svg" alt="wallet icon" />
                   <p>Wallet Balance</p>
                 </div>
-                <span className="text-[16px] font-medium text-[#232323]">
+                <span className="text-base font-medium text-[#232323]">
                   &#8377;{(user?.walletAmount ?? 0).toLocaleString('en-IN')}
                 </span>
               </div>
@@ -425,7 +436,7 @@ export default function PlansDrawer({
                   <div className="flex gap-2 items-center text-green-600">
                     <p><span className="capitalize">{currentPlan?.plan}</span> Plan Credit</p>
                   </div>
-                  <span className="text-[16px] font-medium text-green-600">
+                  <span className="text-base font-medium text-green-600">
                     - &#8377;{currentPlanPrice.toLocaleString('en-IN')}
                   </span>
                 </div>
@@ -433,7 +444,7 @@ export default function PlansDrawer({
 
               <hr className="my-2 border-gray-300" />
               <div className="flex justify-between items-center">
-                <p className="text-[16px] font-bold text-[#343C6A]">Price to Pay</p>
+                <p className="text-base font-bold text-[#343C6A]">Price to Pay</p>
                 <span className="text-xl font-bold text-orange-600">
                   &#8377;{(isUpgrade ? priceToPay : newPlanPrice).toLocaleString('en-IN')}
                 </span>
@@ -444,7 +455,7 @@ export default function PlansDrawer({
               onClick={() => setIsConfirmModalOpen(true)}
               disabled={approved}
               aria-disabled={approved}
-              className={`${approved ? 'bg-[#919191]': 'bg-[#EA5C19]'} cursor-pointer w-[404px] my-5 py-3 px-2 rounded-[12px] flex items-center justify-center text-[16px] text-white font-semibold`}
+              className={`${approved ? 'bg-[#919191]': 'bg-[#EA5C19]'} cursor-pointer w-full md:w-[404px] my-5 py-3 px-2 rounded-[12px] flex items-center justify-center text-base text-white font-semibold`}
             >
               Subscribe
             </button>
@@ -455,17 +466,17 @@ export default function PlansDrawer({
                 className="flex gap-2 p-2.5 bg-[#F0F2F5] border border-[#E5E7EB] rounded-[12px]"
               >
                 <img src="/pending.svg" alt="" />
-                <button className="text-[#232323] text-[14px] font-medium">
+                <button className="text-[#232323] text-sm font-medium">
                   Request Pending
                 </button>
               </div>
              ):(
                <div
                 onClick={() => setPayingOffline(!payingOffline)}
-                className="flex gap-2 p-2.5 bg-[#F0F2F5] cursor-pointer border border-[#E5E7EB] rounded-[12px] w-[130px]"
+                className="flex gap-2 p-2.5 bg-[#F0F2F5] cursor-pointer border border-[#E5E7EB] rounded-[12px] w-auto md:w-[130px]"
               >
                 <img src="/pay.svg" alt="" />
-                <button className="text-[#232323] cursor-pointer text-[14px] font-medium">
+                <button className="text-[#232323] cursor-pointer text-sm font-medium">
                   Pay offline
                 </button>
               </div>
@@ -474,7 +485,7 @@ export default function PlansDrawer({
             </div>
 
             <div className="flex justify-center">
-              <div className="mb-[190px] mt-3 text-xs font-normal text-[#707070]">
+              <div className="mb-20 md:mb-[190px] mt-3 text-xs font-normal text-[#707070]">
                 Bank transfer or cash payment available
               </div>
             </div>
