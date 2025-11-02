@@ -57,7 +57,7 @@ const EditCourseView: React.FC<EditCourseViewProps> = ({
               onClick={() => onCourseSelect(course.name)}
               className={`transform rounded-xl border p-5 text-center transition-all duration-200 ${getCardStyle(course.name)}`}
             >
-              <img src={`/courseIcon/${course.image}`} alt={`${course.name} icon`} className="mb-4 h-24 w-24 object-contain mx-auto" />
+              <img src={course.image} alt={`${course.name} icon`} className="mb-4 h-24 w-24 object-contain mx-auto" />
               <h3 className={`text-lg font-bold ${getTextStyle(course.name, 'primary')}`}>{course.name}</h3>
               <p className={`text-sm ${getTextStyle(course.name, 'secondary')}`}>
                 {course.duration}
@@ -126,7 +126,7 @@ const EditStatesView: React.FC<EditStatesViewProps> = ({
                 isSelected(state.name) ? 'border-transparent bg-[#13097D] text-white' : 'bg-white hover:shadow-lg'
               }`}
             >
-              <img src={`/stateIcons/${state.image}`} alt={`${state.name} icon`} className="mb-3 h-12 w-12 object-contain mx-auto" />
+              <img src={state.image} alt={`${state.name} icon`} className="mb-3 h-12 w-12 object-contain mx-auto" />
               <h3 className="font-semibold">{state.name}</h3>
               <div
                 className={`absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded border-2 ${

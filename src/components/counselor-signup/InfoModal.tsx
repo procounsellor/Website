@@ -7,7 +7,7 @@ import { X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function InfoModal() {
-  const { isCounselorSignupOpen, toggleCounselorSignup, isAuthenticated, toggleLogin } = useAuthStore();
+  const { isCounselorSignupOpen, toggleCounselorSignup, isAuthenticated, toggleLogin, role } = useAuthStore();
   const navigate = useNavigate();
 
   const [info, setInfo] = useState<CounselorPageInfo | null>(null);
@@ -34,8 +34,15 @@ export default function InfoModal() {
   }, [isCounselorSignupOpen, toggleCounselorSignup]);
 
   const handleProceed = () => {
+    // Check if user is already a counselor
+    if (isAuthenticated && role === 'counselor') {
+      toast.error("You are already registered as a counselor.");
+      toggleCounselorSignup();
+      navigate('/counselor-dashboard');
+      return;
+    }
+
     if (!isAuthenticated) {
-      // Store the intent to navigate to counselor signup after login
       const redirectToCounselorSignup = () => {
         toggleCounselorSignup();
         navigate('/counselor-signup');
@@ -104,29 +111,57 @@ export default function InfoModal() {
         </div>
 
         <div className="px-6 py-4 border-t bg-white sticky bottom-0">
-            <div className="flex justify-center items-center mb-4">
-                <input
-                    id="agree-checkbox"
-                    type="checkbox"
-                    checked={agreed}
-                    onChange={(e) => setAgreed(e.target.checked)}
-                    className="h-5 w-5 text-[#FA660F] focus:ring-[#FA660F] border-[#13097D] rounded"
-                />
-                <label htmlFor="agree-checkbox" className="ml-3 text-sm font-medium text-[#6C6969]">
-                    By continuing, you agree to Procounsel's <a href="/terms" target="_blank" className="underline text-[#2F2F2F] hover:text-[#FA660F]">Terms & Condition</a> and <a href="/privacy-policy" target="_blank" className="underline text-[#2F2F2F] hover:text-[#FA660F]">Privacy Policy</a>.
-                </label>
-            </div>
-            <div className="text-center">
-                <button
-                    onClick={handleProceed}
-                    disabled={!agreed || loading}
-                    className={`w-[444px] max-w-full h-11 rounded-xl font-semibold text-white text-base transition-colors ${
-                        agreed ? 'bg-[#FA660F] hover:bg-orange-600' : 'bg-gray-300 cursor-not-allowed'
-                    }`}
-                >
-                    Proceed
-                </button>
-            </div>
+            {isAuthenticated && role === 'counselor' ? (
+              <div className="text-center">
+                <p className="mb-4 text-sm text-gray-600">You are already registered as a counselor!</p>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={() => {
+                      toggleCounselorSignup();
+                      navigate('/counselor-dashboard');
+                    }}
+                    className="px-6 py-3 bg-[#13097D] text-white rounded-xl font-semibold hover:bg-[#13097D]/90 transition-colors"
+                  >
+                    Go to Dashboard
+                  </button>
+                  <button
+                    onClick={() => {
+                      toggleCounselorSignup();
+                      navigate('/counselors');
+                    }}
+                    className="px-6 py-3 bg-[#FA660F] text-white rounded-xl font-semibold hover:bg-orange-600 transition-colors"
+                  >
+                    Browse Counselors
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-center items-center mb-4">
+                    <input
+                        id="agree-checkbox"
+                        type="checkbox"
+                        checked={agreed}
+                        onChange={(e) => setAgreed(e.target.checked)}
+                        className="h-5 w-5 text-[#FA660F] focus:ring-[#FA660F] border-[#13097D] rounded"
+                    />
+                    <label htmlFor="agree-checkbox" className="ml-3 text-sm font-medium text-[#6C6969]">
+                        By continuing, you agree to Procounsel's <a href="/terms" target="_blank" className="underline text-[#2F2F2F] hover:text-[#FA660F]">Terms & Condition</a> and <a href="/privacy-policy" target="_blank" className="underline text-[#2F2F2F] hover:text-[#FA660F]">Privacy Policy</a>.
+                    </label>
+                </div>
+                <div className="text-center">
+                    <button
+                        onClick={handleProceed}
+                        disabled={!agreed || loading}
+                        className={`w-[444px] max-w-full h-11 rounded-xl font-semibold text-white text-base transition-colors ${
+                            agreed ? 'bg-[#FA660F] hover:bg-orange-600' : 'bg-gray-300 cursor-not-allowed'
+                        }`}
+                    >
+                        Proceed
+                    </button>
+                </div>
+              </>
+            )}
         </div>
 
       </div>

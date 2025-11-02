@@ -3,8 +3,6 @@ import { X, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import CustomOTP from '../ui/custom-otp';
 import { useAuthStore } from '@/store/AuthStore';
-import { useNavigate } from 'react-router-dom';
-import { checkUrl } from '@/api/auth';
 
 const slideData = [
   {
@@ -26,7 +24,6 @@ const slideData = [
 
 const LoginCard: React.FC = () => {
   const { sendOtp, verifyOtp, toggleLogin } = useAuthStore();
-  const navigate = useNavigate();
   const [phone, setPhone] = useState<string>('');
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [currentStep, setCurrentStep] = useState<'phone' | 'otp'>('phone');
@@ -79,17 +76,7 @@ const LoginCard: React.FC = () => {
     try {
       await verifyOtp(phone, otp);
       toast.success('Verification successful!', { duration: 3000 });
-      const token = localStorage.getItem('jwt');
-      if (token) {
-        const isProfileIncomplete = await checkUrl(phone, token);
-        setIsLoading(false);
-        if (isProfileIncomplete) {
-          navigate('/');
-        } else {
-        }
-      } else {
-        throw new Error("Authentication token not found after login.");
-      }
+      setIsLoading(false);
     } catch {
       setHasError(true);
       toast.error('Invalid OTP, please try again', { duration: 3000 });

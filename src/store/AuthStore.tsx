@@ -31,14 +31,20 @@ const mapCounselorToUser = (counselorData: CounselorProfileData): User => {
 type AuthState = {
   user: User | null;
   userId: string | null;
-  role: "student" | "counselor" | null;
+  role: "student" | "counselor" | "user" | null;
   isAuthenticated: boolean;
   isLoginToggle: boolean;
   userExist: boolean;
   isCounselorSignupOpen: boolean;
   loading: boolean;
+  needsOnboarding: boolean;
+  needsProfileCompletion: boolean;
+  isProfileCompletionOpen: boolean;
+  returnToPath: string | null;
   toggleLogin: (onSuccess?: () => void) => void;
   toggleCounselorSignup: () => void;
+  toggleProfileCompletion: () => void;
+  setIsProfileCompletionOpen: (value: boolean) => void;
   setUser: (user: User | null) => void;
   sendOtp: (phone: string) => Promise<void>;
   verifyOtp: (phone: string, otp: string) => Promise<void>;
@@ -48,7 +54,11 @@ type AuthState = {
   pendingAction?: (() => void) | null;
   setPendingAction: (fn: (() => void) | null) => void;
   bookingTriggered: boolean;
-setBookingTriggered: (value: boolean) => void;
+  setBookingTriggered: (value: boolean) => void;
+  setReturnToPath: (path: string | null) => void;
+  setNeedsOnboarding: (value: boolean) => void;
+  setNeedsProfileCompletion: (value: boolean) => void;
+  checkProfileCompletion: () => boolean;
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -64,9 +74,22 @@ export const useAuthStore = create<AuthState>()(
       loading: true,
       onLoginSuccess: null,
       pendingAction: null,
+      needsOnboarding: false,
+      needsProfileCompletion: false,
+      isProfileCompletionOpen: false,
+      returnToPath: null,
       setPendingAction: (fn) => set({ pendingAction: fn }),
       bookingTriggered: false,
       setBookingTriggered: (value) => set({ bookingTriggered: value }),
+      setReturnToPath: (path) => set({ returnToPath: path }),
+      setNeedsOnboarding: (value) => set({ needsOnboarding: value }),
+      setNeedsProfileCompletion: (value) => set({ needsProfileCompletion: value }),
+      
+      checkProfileCompletion: () => {
+        const state = get();
+        if (!state.user) return true;
+        return !!(state.user.firstName && state.user.email);
+      },
 
       toggleLogin: (onSuccess?: () => void) =>
         set((state) => ({
@@ -79,6 +102,13 @@ export const useAuthStore = create<AuthState>()(
           isCounselorSignupOpen: !state.isCounselorSignupOpen,
         })),
 
+      toggleProfileCompletion: () =>
+        set((state) => ({
+          isProfileCompletionOpen: !state.isProfileCompletionOpen,
+        })),
+
+      setIsProfileCompletionOpen: (value) => set({ isProfileCompletionOpen: value }),
+
       setUser: (user) =>
         set({
           user,
@@ -89,7 +119,6 @@ export const useAuthStore = create<AuthState>()(
       refreshUser: async (force = false) => {
   const state = get();
 
-  // ✅ Don't instantly set loading: true on every call
   if (state.loading && !force) {
     return state.user;
   }
@@ -134,7 +163,6 @@ export const useAuthStore = create<AuthState>()(
     get().logout();
     return null;
   } finally {
-    // ✅ Always end loading after any fetch attempt
     set({ loading: false });
   }
 },
@@ -167,10 +195,20 @@ export const useAuthStore = create<AuthState>()(
         }
 
         try {
-          const res = await checkUrl(phone, data?.jwt ?? data?.jwtToken);
-          set({ userExist: Boolean(res) });
-        } catch {
-          set({ userExist: false });
+          const isProfileIncomplete = await checkUrl(phone, data?.jwt ?? data?.jwtToken);
+          console.log('🔍 isUserDetailsNull API response:', isProfileIncomplete);
+          
+          // Only set needsOnboarding if the API explicitly returns true
+          if (isProfileIncomplete === true) {
+            console.log('✅ Setting needsOnboarding to TRUE');
+            set({ userExist: true, needsOnboarding: true });
+          } else {
+            console.log('ℹ️ Setting needsOnboarding to FALSE');
+            set({ userExist: false, needsOnboarding: false });
+          }
+        } catch (err) {
+          console.error('❌ checkUrl failed:', err);
+          set({ userExist: false, needsOnboarding: false });
         }
 
         try {
@@ -184,6 +222,7 @@ export const useAuthStore = create<AuthState>()(
                 role: "counselor",
                 isAuthenticated: true,
                 loading: false,
+                needsProfileCompletion: false,
               });
 
               const { onLoginSuccess } = get();
@@ -192,46 +231,46 @@ export const useAuthStore = create<AuthState>()(
                 set({ onLoginSuccess: null });
               }
             }
-            } else {
-              const user = await getUserProfile(phone, data.jwtToken);
+          } else {
+            const user = await getUserProfile(phone, data.jwtToken);
 
             if (user) {
               user.role = user.role.toLowerCase();
+              
+              const needsCompletion = !user.firstName || !user.email;
+              console.log('🔍 Profile check - firstName:', user.firstName, 'email:', user.email, 'needsCompletion:', needsCompletion);
+              
               set({
                 user,
                 role: user.role as AuthState["role"],
                 isAuthenticated: true,
                 loading: false,
+                needsProfileCompletion: needsCompletion,
               });
 
-            const { onLoginSuccess } = get();
-            if (onLoginSuccess) {
-              onLoginSuccess();
-              set({ onLoginSuccess: null });
+              const { onLoginSuccess } = get();
+              if (onLoginSuccess) {
+                onLoginSuccess();
+                set({ onLoginSuccess: null });
+              }
             }
           }
+        } catch (err) {
+          console.error("❌ Failed during verifyOtp data fetch:", err);
         }
 
         const { pendingAction } = get();
         const { setBookingTriggered } = get();
 
         if (pendingAction) {
-          set({ isLoginToggle: false });
-
           setTimeout(() => {
             setBookingTriggered(true);
             set({ pendingAction: null });
           }, 400);
-        } else {
-          set({ isLoginToggle: false });
         }
 
-      } catch (err) {
-        console.error("❌ Failed during verifyOtp data fetch:", err);
-      } finally {
-        set({ loading: false });
-      }
-    },
+        set({ isLoginToggle: false, loading: false });
+      },
 
       logout: () => {
         try {
@@ -248,6 +287,11 @@ export const useAuthStore = create<AuthState>()(
           role: null,
           onLoginSuccess: null,
           loading: false,
+          needsOnboarding: false,
+          needsProfileCompletion: false,
+          isProfileCompletionOpen: false,
+          returnToPath: null,
+          pendingAction: null,
         });
       },
     }),
@@ -257,7 +301,7 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) =>
         Object.fromEntries(
           Object.entries(state).filter(([key]) =>
-            ['user', 'userId', 'role', 'isAuthenticated', 'userExist'].includes(key)
+            ['user', 'userId', 'role', 'isAuthenticated', 'userExist', 'needsOnboarding', 'needsProfileCompletion'].includes(key)
           )
         ),
       onRehydrateStorage: () => (state, error) => {

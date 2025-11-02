@@ -210,6 +210,11 @@ export default function CounselorListingPage() {
     if (!counselors) return []
 
     const filtered = counselors.filter(counselor => {
+      // Filter out the logged-in counselor from the list
+      if (role === 'counselor' && userId && counselor.counsellorId === userId) {
+        return false;
+      }
+
       if (experienceFilters.length > 0) {
         const experience = parseInt(counselor.experience || '0')
         const matchesExperience = experienceFilters.some(filter => {

@@ -25,7 +25,7 @@ const SelectCourseStep = ({ selectedCourseId, onCourseSelect }: SelectCourseStep
       try{
         setLoading(true)
         const CourseData = await getCoursesOnborading()
-         setCourses(CourseData)
+        setCourses(CourseData)
       }catch(error){
         setError(error instanceof Error ? error.message : 'Failed to fetch Courses')
       }finally{
@@ -84,7 +84,7 @@ const SelectCourseStep = ({ selectedCourseId, onCourseSelect }: SelectCourseStep
               onClick={() => onCourseSelect(course.name)}
               className={`transform rounded-xl border p-5 text-center transition-all duration-200 ${getCardStyle(course.courseId)}`}
             >
-              <img src={`/courseIcon/${course.image}`} alt={`${course.name} icon`} className="mb-4 h-24 w-24 object-contain mx-auto" />
+              <img src={`${course.image}`} alt={`${course.name} icon`} className="mb-4 h-24 w-24 object-contain mx-auto" />
               <h3 className={`text-lg font-bold ${getTextStyle(course.courseId, 'primary')}`}>{course.name}</h3>
               <p className={`text-sm ${getTextStyle(course.courseId, 'secondary')}`}>
                 {course.duration}
@@ -164,7 +164,7 @@ const SelectStatesStep = ({ selectedStates, onStateSelect, onBack, onSubmit }: S
                 isSelected(state.name) ? 'border-transparent bg-[#13097D] text-white' : 'bg-white hover:shadow-lg'
               }`}
             >
-              <img src={`/stateIcons/${state.image}`} alt={`${state.name} icon`} className="mb-3 h-12 w-12 object-contain mx-auto" />
+              <img src={state.image} alt={`${state.name} icon`} className="mb-3 h-12 w-12 object-contain mx-auto" />
               <h3 className="font-semibold">{state.name}</h3>
               <div
                 className={`absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded border-2 ${
@@ -193,16 +193,18 @@ const SelectStatesStep = ({ selectedStates, onStateSelect, onBack, onSubmit }: S
   );
 };
 
-const OnboardingCard = () => {
+const OnboardingCard = ({ onComplete }: { onComplete?: () => void }) => {
   const [step, setStep] = useState(1);
   const [selectedCourseName, setSelectedCourseName] = useState<string | null>(null);
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
-  const {toggleLogin, userId} = useAuthStore()
+  const {userId, setNeedsOnboarding} = useAuthStore()
   const token = localStorage.getItem('jwt')
 
   useEffect(() => {
+    console.log('🎯 OnboardingCard mounted!');
     document.body.classList.add('overflow-hidden');
     return () => {
+      console.log('🚪 OnboardingCard unmounting...');
       document.body.classList.remove('overflow-hidden');
     };
   }, []);
@@ -232,17 +234,21 @@ const OnboardingCard = () => {
 
   const handleSubmit = async() => {
     try{
-      console.log('Submitting preferences...', payload); // Debug log
+      console.log('📤 Submitting preferences...', payload);
       await updateUser(userId, payload, token)
       toast.success('Preferences saved successfully!');
       
-      // Delay closing the modal to allow toast to show
+      console.log('✅ Preferences saved! Closing modal in 1 second...');
       setTimeout(() => {
-        toggleLogin()
-      }, 2000);
+        console.log('🚪 Setting needsOnboarding to false and calling onComplete');
+        setNeedsOnboarding(false);
+        if (onComplete) {
+          onComplete();
+        }
+      }, 1000);
       
     }catch(err){
-      console.error('Update user error:', err); // Debug log
+      console.error('❌ Update user error:', err);
       const error = err instanceof Error ? err.message : 'Failed to update preferences'
       toast.error(error)
     }
@@ -277,7 +283,7 @@ const OnboardingCard = () => {
           zIndex: 9999,
         }}
       /> */}
-    <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
       <div className="w-full max-w-4xl rounded-2xl bg-[#F5F7FA] p-6 md:p-8 shadow-lg flex flex-col max-h-[90vh] h-full">
         {step === 1 && (
           <SelectCourseStep
