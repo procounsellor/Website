@@ -40,7 +40,7 @@ const CounselorTransactionsTab: React.FC<TransactionsTabProps> = ({ transactions
 
   return (
     <div className="sm:bg-white sm:p-6 sm:rounded-2xl sm:border sm:border-[#EFEFEF]">
-      <div className="bg-white p-1 rounded-2xl flex items-center gap-2 mb-6 sm:bg-transparent sm:p-0 sm:gap-4">
+      <div className="bg-white p-1 rounded-2xl flex items-center flex-wrap gap-2 mb-6 sm:bg-transparent sm:p-0 sm:gap-4">
         {TABS.map(tab => (
           <button
             key={tab}

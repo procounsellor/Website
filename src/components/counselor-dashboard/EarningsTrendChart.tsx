@@ -126,7 +126,7 @@ export default function EarningsTrendChart({ transactions, timeframe }: Earnings
   // const goToPrevMonth = () => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
 
   return (
-     <div className="w-full h-[400px] p-4">
+     <div className="w-full h-[300px] lg:h-[400px] p-3 lg:p-4">
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-[#F6CF7D]"></span>Plus</div>
@@ -150,20 +150,20 @@ export default function EarningsTrendChart({ transactions, timeframe }: Earnings
       </div>
 
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={{ top: 20, right: 10, left: 10, bottom: 40 }}>
+        <BarChart data={chartData} margin={{ top: 20, right: 20, left: -20, bottom: 40 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0, 0, 26, 0.05)" />
           <XAxis 
             dataKey="name" 
             axisLine={{ stroke: 'rgba(0, 0, 26, 0.15)', strokeWidth: 0.75 }}
             tickLine={{ stroke: 'rgba(0, 0, 26, 0.4)' }}
             interval={0}
-            tick={timeframe === 'yearly' ? <RotatedXAxisTick /> : { fontFamily: 'Montserrat', fontSize: 14, fill: 'rgba(0, 0, 26, 0.4)' }}
+            tick={timeframe === 'yearly' ? <RotatedXAxisTick /> : { fontFamily: 'Montserrat', fontSize: 10, fill: 'rgba(0, 0, 26, 0.4)' }}
             height={timeframe === 'yearly' ? 60 : 30}
           />
           <YAxis 
             axisLine={{ stroke: 'rgba(0, 0, 26, 0.15)', strokeWidth: 0.75 }}
             tickLine={{ stroke: 'rgba(0, 0, 26, 0.4)' }}
-            tick={{ fontFamily: 'Montserrat', fontSize: 13, fill: 'rgba(0, 0, 26, 0.4)'}}
+            tick={{ fontFamily: 'Montserrat', fontSize: 10, fill: 'rgba(0, 0, 26, 0.4)'}}
             domain={[0, yAxisDomainMax]}
             ticks={[0, yAxisDomainMax * 0.25, yAxisDomainMax * 0.5, yAxisDomainMax * 0.75, yAxisDomainMax].map(t => Math.round(t))}
           />

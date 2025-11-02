@@ -77,7 +77,7 @@ export default function MyEarningsTab({ user, token }: Props) {
   };
 
   return (
-    <div className="w-full bg-white rounded-xl p-6">
+    <div className="w-full bg-white rounded-xl p-4 lg:p-6">
       <div className="border-b border-gray-200 mb-6">
         <nav className="flex space-x-8 -mb-px" aria-label="Tabs">
           <button
@@ -86,7 +86,7 @@ export default function MyEarningsTab({ user, token }: Props) {
               activeTab === 'Earnings'
                 ? 'border-[#13097D] text-[#13097D]'
                 : 'border-transparent text-[#8C8CA1] hover:text-gray-700'
-            } whitespace-nowrap py-3 px-1 border-b-2 font-semibold text-base transition-colors`}
+            } whitespace-nowrap py-3 px-1 border-b-2 font-semibold text-xs lg:text-base transition-colors`}
           >
             Earnings
           </button>
@@ -96,7 +96,7 @@ export default function MyEarningsTab({ user, token }: Props) {
               activeTab === 'Transactions'
                 ? 'border-[#13097D] text-[#13097D]'
                 : 'border-transparent text-[#8C8CA1] hover:text-gray-700'
-            } whitespace-nowrap py-3 px-1 border-b-2 font-semibold text-base transition-colors`}
+            } whitespace-nowrap py-3 px-1 border-b-2 font-semibold text-xs lg:text-base transition-colors`}
           >
             Transaction
           </button>

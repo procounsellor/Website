@@ -20,23 +20,23 @@ const PlanSlabCard = ({
   styles: { gradient: string; border: string; };
 }) => (
   <div
-    className="w-full h-[86px] rounded-2xl p-px"
+    className="w-full h-[71px] md:h-[86px] rounded-2xl p-px"
     style={{ background: styles.border }}
   >
     <div
-      className="w-full h-full rounded-[15px] p-4 flex justify-between items-center"
+      className="w-full h-full rounded-[15px] px-3 py-2.5 md:p-4 flex justify-between items-center"
       style={{ background: styles.gradient }}
     >
       <div>
         <div className="flex items-center gap-2">
           {icon}
-          <span className="font-semibold text-lg text-[#232323]">{planName}</span>
+          <span className="font-semibold text-xs md:text-lg text-[#232323]">{planName}</span>
         </div>
-        <p className="font-medium text-sm text-[#718EBF] mt-1">Tier Level</p>
+        <p className="font-normal md:font-medium text-xs md:text-sm text-[#718EBF] mt-1">Tier Level</p>
       </div>
       <div className="text-right">
-        <p className="font-semibold text-lg text-[#232323]">{commission}%</p>
-        <p className="font-medium text-sm text-[#718EBF] mt-1">Commission</p>
+        <p className="font-semibold text-base md:text-lg text-[#232323]">{commission}%</p>
+        <p className="font-normal md:font-medium text-xs md:text-sm text-[#718EBF] mt-1">Commission</p>
       </div>
     </div>
   </div>
@@ -74,33 +74,32 @@ export default function CompensationModal({ isOpen, onClose, data }: Compensatio
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50 backdrop-blur-sm p-4">
-      <div className="relative w-[480px] bg-white rounded-2xl shadow-lg overflow-hidden">
-        
-        <div className="bg-[#F9FAFB] p-5 border-b border-[#EFEFEF]">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-[#F1FDF6] border border-[#C9F7DD] flex items-center justify-center">
-              <TrendingUp className="text-[#28A745]" />
+      <div className="relative w-[335px] md:w-[480px] bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-[#F9FAFB] p-4 md:p-5 border-b border-[#EFEFEF]">
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#F1FDF6] border border-[#C9F7DD] flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="text-[#28A745] w-5 h-5" />
             </div>
-            <h2 className="font-medium text-base text-[#232323]">Compensation Details</h2>
+            <h2 className="font-medium text-sm md:text-base text-[#232323]">Compensation Details</h2>
           </div>
 
-          <h3 className="mt-8 text-xl font-semibold text-[#232323]">Slab Information</h3>
-          <p className="mt-2 text-sm text-[#718EBF] max-w-md">
+          <h3 className="mt-4 md:mt-8 text-base md:text-xl font-semibold text-[#232323]">Slab Information</h3>
+          <p className="mt-2 text-xs md:text-sm text-[#718EBF] max-w-md">
             Your total earning for this period is between <span className="font-semibold text-[#13097D]">0 to 5 Lacs ProCoins,</span> hence you fall under this slab.
           </p>
         </div>
 
-        <div className="p-5">
-            <h3 className="text-base font-semibold text-[#343C6A] mb-4">ProCounsel's Compensation</h3>
-            <div className="space-y-6">
-                <PlanSlabCard planName="Plus Plan" commission={parseInt(data.plusPlanCommission)} icon={<PlusIcon />} styles={planStyles.plus} />
-                <PlanSlabCard planName="Pro Plan" commission={parseInt(data.proPlanCommission)} icon={<ProIcon />} styles={planStyles.pro} />
-                <PlanSlabCard planName="Elite Plan" commission={parseInt(data.elitePlanCommission)} icon={<EliteIcon />} styles={planStyles.elite} />
-            </div>
+        <div className="p-4 md:p-5">
+          <h3 className="text-xs md:text-base font-medium md:font-semibold text-[#13097D] md:text-[#343C6A] mb-4">ProCounsel's Compensation</h3>
+          <div className="space-y-2.5 md:space-y-6">
+            <PlanSlabCard planName="Plus Plan" commission={parseInt(data.plusPlanCommission)} icon={<PlusIcon />} styles={planStyles.plus}/>
+            <PlanSlabCard planName="Pro Plan" commission={parseInt(data.proPlanCommission)} icon={<ProIcon />} styles={planStyles.pro} />
+            <PlanSlabCard planName="Elite Plan" commission={parseInt(data.elitePlanCommission)} icon={<EliteIcon />} styles={planStyles.elite} />
+          </div>
         </div>
 
-        <div className="bg-[#F9FAFB] p-5 border-t border-[#EFEFEF] text-center">
-            <p className="text-sm text-[#767676]">
+        <div className="bg-[#F9FAFB] p-4 md:p-5 border-t border-[#EFEFEF] text-center">
+            <p className="text-xs md:text-sm text-[#767676]">
                 Compensation rates are calculated based on your<br />total Pro coin earnings
             </p>
         </div>
