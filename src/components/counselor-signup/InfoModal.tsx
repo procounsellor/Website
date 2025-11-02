@@ -35,8 +35,13 @@ export default function InfoModal() {
 
   const handleProceed = () => {
     if (!isAuthenticated) {
+      // Store the intent to navigate to counselor signup after login
+      const redirectToCounselorSignup = () => {
+        toggleCounselorSignup();
+        navigate('/counselor-signup');
+      };
       toggleCounselorSignup();
-      toggleLogin();
+      toggleLogin(redirectToCounselorSignup);
       toast.error("Please log in to become a counsellor.");
     } else {
       toggleCounselorSignup();

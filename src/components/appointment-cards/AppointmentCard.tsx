@@ -442,8 +442,8 @@ export default function AppointmentCard({
   }
 
   return (
-    <div className="fixed inset-0  bg-[#232323]/50 backdrop-blur-sm flex items-center justify-center p-4 z-100" onClick={() => onClose?.()}>
-      <div onClick={(e) => e.stopPropagation()} className="bg-[#F5F7FA] w-full flex flex-col max-w-[747px] max-h-[667px] rounded-[16px] relative p-[42px] pb-[86px] gap-6 overflow-hidden">
+    <div className="fixed inset-0 bg-[#232323]/50 md:backdrop-blur-sm flex items-center justify-center md:p-4 z-100" onClick={() => onClose?.()}>
+      <div onClick={(e) => e.stopPropagation()} className="bg-[#F5F7FA] w-full h-full md:h-auto flex flex-col md:max-w-[747px] md:max-h-[667px] md:rounded-[16px] relative p-4 md:p-[42px] pb-[86px] gap-6 overflow-hidden">
         <style>{`
           .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
           .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -457,7 +457,7 @@ export default function AppointmentCard({
           }
         `}</style>
         <div className="flex items-center gap-2 text-[#343C6A]">
-          <p className="text-2xl font-semibold">Book Appointment</p>
+          <p className="text-xl md:text-2xl font-semibold">Book Appointment</p>
             <button 
             onClick={() => onClose?.()}
             className="absolute top-4 right-4 z-10 p-1.5 rounded-full transition-colors duration-200 hover:bg-black group"
@@ -466,33 +466,33 @@ export default function AppointmentCard({
           </button>
         </div>
 
-        <div className="bg-white w-[663px] max-h-[598px] p-4 pb-[100px] rounded-2xl custom-scrollbar overflow-y-auto">
+        <div className="bg-white w-full md:w-[663px] max-h-[598px] p-4 pb-[100px] rounded-2xl custom-scrollbar overflow-y-auto">
           <div className="flex flex-col gap-4">
-            <div className="flex justify-between">
-              <div className="flex gap-4">
+            <div className="flex flex-col md:flex-row md:justify-between gap-4">
+              <div className="flex gap-3 md:gap-4">
                 <img
                   src={imageUrl}
                   alt={fullName}
-                  className="w-[100px] h-[100px] rounded-[8px]"
+                  className="w-[80px] h-[80px] md:w-[100px] md:h-[100px] rounded-[8px] object-cover"
                 />
-                <h1 className="text-[#343C6A] font-semibold text-[20px] flex flex-col gap-1.5">
+                <h1 className="text-[#343C6A] font-semibold text-[18px] md:text-[20px] flex flex-col gap-1.5">
                   {fullName}
-                  <span className="text-[#718EBF] font-normal text-[16px]">
+                  <span className="text-[#718EBF] font-normal text-[14px] md:text-[16px]">
                     {counselor?.fullOfficeAddress?.city}
                   </span>
                 </h1>
               </div>
 
-              <div className="flex gap-3">
-                <Star className="h-6 w-6 text-[#ffd700]" fill="currentColor" />
-                <div className="font-semibold text-[16px] text-[#718ebf]">
-                  {rating} <span className="text-[13px] text-[#232323] font-normal">(1)</span>
+              <div className="flex gap-3 items-start">
+                <Star className="h-5 w-5 md:h-6 md:w-6 text-[#ffd700]" fill="currentColor" />
+                <div className="font-semibold text-[14px] md:text-[16px] text-[#718ebf]">
+                  {rating} <span className="text-[12px] md:text-[13px] text-[#232323] font-normal">(1)</span>
                 </div>
               </div>
             </div>
 
             <div className="flex justify-between items-center">
-              <h1 className="text-[#232323] font-semibold text-[18px]">
+              <h1 className="text-[#232323] font-semibold text-[16px] md:text-[18px]">
                 Available This Week
               </h1>
               <div className="relative">
@@ -532,7 +532,7 @@ export default function AppointmentCard({
               </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex gap-2 md:gap-4 overflow-x-auto pb-2 scrollbar-hide">
               {quickDates.map((d, idx) => {
                 const activeDate = selectedDate ?? quickDates[0];
                 const isSelected = activeDate.toDateString() === d.toDateString();
@@ -557,20 +557,29 @@ export default function AppointmentCard({
                         setCalendarOpen(false);
                       }
                     }}
-                    className={`w-[200px] h-[59px] rounded-[12px] shadow-xs flex items-center justify-center cursor-pointer border-[1px] transition-all duration-150 ${
+                    className={`min-w-[140px] md:w-[200px] h-[55px] md:h-[59px] rounded-[12px] shadow-xs flex items-center justify-center cursor-pointer border-[1px] transition-all duration-150 ${
                       isSelected
                         ? "bg-[#3536b4] border-transparent text-white"
                         : "bg-white border-[#f5f5f5] text-[#232323]"
                     }`}
                   >
-                    <p className="h-full flex flex-col items-center justify-center text-[14px] font-normal">
-                      <span className="text-[13px]">{label}</span>
-                      <span className="text-[16px] font-semibold">{pretty}</span>
+                    <p className="h-full flex flex-col items-center justify-center text-[13px] md:text-[14px] font-normal">
+                      <span className="text-[12px] md:text-[13px]">{label}</span>
+                      <span className="text-[14px] md:text-[16px] font-semibold">{pretty}</span>
                     </p>
                   </div>
                 );
               })}
             </div>
+            <style>{`
+              .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+              }
+              .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+              }
+            `}</style>
 
             {slotsForSelectedDate.length === 0 ? (
               <div className="w-full flex items-center justify-center py-10 text-[#718EBF]">
@@ -608,14 +617,14 @@ export default function AppointmentCard({
             )}
           </div>
         </div>
-        <div className="absolute left-0 right-0 bottom-0 h-[67px] z-50 bg-white border-t border-[#f5f5f5] flex items-center justify-center rounded-b-[16px] shadow-xs">
-          <div className="w-full max-w-[663px] px-4 flex justify-center">
+        <div className="absolute left-0 right-0 bottom-0 h-[60px] md:h-[67px] z-50 bg-white border-t border-[#f5f5f5] flex items-center justify-center rounded-b-[16px] md:rounded-b-[16px] shadow-xs">
+          <div className="w-full max-w-[663px] px-3 md:px-4 flex justify-center">
             <Button
               variant={"default"}
               disabled={!isReadyToBook || booking}
               aria-disabled={!isReadyToBook || booking}
               onClick={handleBook}
-              className={`${isReadyToBook ? "bg-[#fa660a] hover:bg-[#fa660a]" : "bg-[#ACACAC]"} text-[16px] text-white w-full max-w-md disabled:opacity-60 disabled:cursor-not-allowed`}
+              className={`${isReadyToBook ? "bg-[#fa660a] hover:bg-[#fa660a]" : "bg-[#ACACAC]"} text-[14px] md:text-[16px] text-white w-full max-w-md disabled:opacity-60 disabled:cursor-not-allowed h-[44px] md:h-auto`}
             >
               {booking 
                 ? (isReschedule ? 'Rescheduling...' : 'Booking...')
