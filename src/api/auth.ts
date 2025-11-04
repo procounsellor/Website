@@ -160,7 +160,7 @@ export async function counsellorSignup(payload: any) {
 
 export async function getSates(){
     try{
-        const response = await fetch(`${baseUrl}//api/courseAndState/all-states`, {
+        const response = await fetch(`${baseUrl}/api/courseAndState/all-states`, {
             headers:{
                Accept:'application/json' 
             }
@@ -237,12 +237,14 @@ export async function checkUrl(phone:string , token:string){
     })
 
     if(!response.ok){
+        console.error(`❌ checkUrl failed: ${response.status} ${response.statusText}`);
         throw new Error(`${response.statusText}: ${response.status}`)
     }
     const res = await response.json()
+    console.log('✅ checkUrl response:', res);
     return res
     }catch(error){
-        console.error(error)
+        console.error('❌ checkUrl error:', error)
         throw(error)
     }
 }

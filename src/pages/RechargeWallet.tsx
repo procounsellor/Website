@@ -15,6 +15,9 @@ type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 export default function RechargeWallet() {
   const user = useAuthStore(state => state.user)
   const refreshUser = useAuthStore(state => state.refreshUser)
+  const setNeedsProfileCompletion = useAuthStore(state => state.setNeedsProfileCompletion)
+  const toggleProfileCompletion = useAuthStore(state => state.toggleProfileCompletion)
+  const setReturnToPath = useAuthStore(state => state.setReturnToPath)
   const navigate = useNavigate();
   const location = useLocation();
   const returnState = location.state;
@@ -23,8 +26,16 @@ export default function RechargeWallet() {
   const [isPanelOpen, setPanelOpen] = useState(false);
 
   useEffect(() => {
+    if (user && (!user.firstName || !user.email)) {
+      setNeedsProfileCompletion(true);
+      setReturnToPath(location.pathname);
+      toggleProfileCompletion();
+      toast.error("Please complete your profile before recharging your wallet.");
+      navigate('/dashboard/student');
+      return;
+    }
     setPanelOpen(true);
-  }, []);
+  }, [user, navigate, location.pathname, setNeedsProfileCompletion, setReturnToPath, toggleProfileCompletion]);
 
   const handlePanelClose = () => {
     setPanelOpen(false);

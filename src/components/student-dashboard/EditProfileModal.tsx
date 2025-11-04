@@ -3,6 +3,8 @@ import type { User } from '@/types/user';
 import { X, SquarePen, ChevronLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { uploadUserPhoto } from '@/api/user';
+import { sendEmailOtp, verifyEmailOtp } from '@/api/auth';
+import OtpVerificationModal from '@/components/counselor-signup/OtpVerificationModal';
 
 interface EditProfileModalProps {
   user: User;
@@ -17,6 +19,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
   const [lastName, setLastName] = useState(user.lastName);
   const [email, setEmail] = useState(user.email);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(!!user.email);
+  const [isOtpModalOpen, setOtpModalOpen] = useState(false);
   const token = localStorage.getItem('jwt');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -27,10 +31,62 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
       setFirstName(user.firstName);
       setLastName(user.lastName);
       setEmail(user.email);
+      setIsEmailVerified(!!user.email);
       setPhotoPreview(null);
       setSelectedFile(null);
     }
   }, [user, isOpen]);
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    // Reset verification status when email changes
+    if (e.target.value !== user.email) {
+      setIsEmailVerified(false);
+    } else {
+      setIsEmailVerified(!!user.email);
+    }
+  };
+
+  const handleVerifyEmail = async () => {
+    if (!email || !email.includes('@')) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    try {
+      console.log('📧 Sending OTP to email:', email);
+      await sendEmailOtp(email);
+      setOtpModalOpen(true);
+      toast.success('OTP sent to your email!');
+    } catch (error) {
+      console.error('❌ Failed to send email OTP:', error);
+      toast.error('Failed to send OTP. Please try again.');
+    }
+  };
+
+  const handleOtpVerification = async (otp: string): Promise<boolean> => {
+    try {
+      console.log('🔐 Verifying email OTP...');
+      await verifyEmailOtp(email, otp);
+      setIsEmailVerified(true);
+      toast.success('Email verified successfully!');
+      setOtpModalOpen(false);
+      return true;
+    } catch (error) {
+      console.error('❌ Email OTP verification failed:', error);
+      toast.error('Invalid OTP. Please try again.');
+      return false;
+    }
+  };
+
+  const handleResendOtp = async () => {
+    try {
+      await sendEmailOtp(email);
+      toast.success('OTP resent to your email!');
+    } catch (error) {
+      toast.error('Failed to resend OTP. Please try again.');
+    }
+  };
 
   const handlePhotoEditClick = () => {
     fileInputRef.current?.click();
@@ -51,20 +107,35 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!firstName.trim() || !email.trim()) {
-    toast.error('Please fill in all required fields.');
-    return;
-  }
+      toast.error('Please fill in all required fields.');
+      return;
+    }
+
+    // Check if email has changed and needs verification
+    if (email !== user.email && !isEmailVerified) {
+      toast.error('Please verify your email before saving.');
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
+      console.log('📤 EditProfileModal: uploading photo and updating profile...');
       if (selectedFile && user.userName && token) {
         await uploadUserPhoto(user.userName, selectedFile, token);
+        console.log('✅ Photo uploaded successfully');
       }
+      
       await onUpdate({ firstName, lastName, email });
+      console.log('✅ Profile updated successfully');
       
       toast.success('Profile saved successfully!');
+      
+      // The parent component (MainLayout) will handle closing the modal
+      // by calling toggleProfileCompletion() after successful update
       onClose();
     } catch (error) {
+      console.error('❌ EditProfileModal: Profile update failed:', error);
       toast.error(error instanceof Error ? error.message : 'An unknown error occurred.');
     } finally {
       setIsSubmitting(false);
@@ -133,14 +204,26 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
                 className="w-full h-11 px-4 bg-white border border-[#EFEFEF] rounded-xl text-base text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
               />
             </div>
-             <div>
+            <div>
               <label className="block text-[10px] font-semibold text-[#2F303280] mb-1">Email</label>
-              <input 
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full h-11 px-4 bg-white border border-[#EFEFEF] rounded-xl text-base text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="relative h-11">
+                <input 
+                  type="email"
+                  value={email}
+                  onChange={handleEmailChange}
+                  className="h-full w-full px-4 pr-20 bg-white border border-[#EFEFEF] rounded-xl text-base text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
+                />
+                <button 
+                  type="button"
+                  onClick={handleVerifyEmail} 
+                  disabled={isEmailVerified || !email || isSubmitting}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold ${
+                    isEmailVerified ? 'text-green-600 cursor-default' : 'text-blue-600 hover:text-blue-800 disabled:opacity-50'
+                  }`}
+                >
+                  {isEmailVerified ? '✓ Verified' : 'Verify'}
+                </button>
+              </div>
             </div>
             <div className="pt-6">
                <button 
@@ -188,13 +271,25 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
               </div>
               <div className="md:col-span-2">
                 <label className="block text-xs font-semibold text-[#2F303280] mb-2">Email</label>
-                <input 
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="shubham@gmail.com"
-                  className="w-full h-12 px-3 bg-white border border-[#EFEFEF] rounded-xl text-base text-[#718EBF] placeholder-[#718EBF]"
-                />
+                <div className="relative h-12">
+                  <input 
+                    type="email"
+                    value={email}
+                    onChange={handleEmailChange}
+                    placeholder="shubham@gmail.com"
+                    className="w-full h-full px-3 pr-20 bg-white border border-[#EFEFEF] rounded-xl text-base text-[#718EBF] placeholder-[#718EBF]"
+                  />
+                  <button 
+                    type="button"
+                    onClick={handleVerifyEmail} 
+                    disabled={isEmailVerified || !email || isSubmitting}
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold ${
+                      isEmailVerified ? 'text-green-600 cursor-default' : 'text-blue-600 hover:text-blue-800 disabled:opacity-50'
+                    }`}
+                  >
+                    {isEmailVerified ? '✓ Verified' : 'Verify'}
+                  </button>
+                </div>
               </div>
             </div>
             <div className="pt-4 text-center">
@@ -209,6 +304,17 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
           </form>
         </div>
       </div>
+
+      <OtpVerificationModal
+        isOpen={isOtpModalOpen}
+        onClose={() => setOtpModalOpen(false)}
+        otpLength={6}
+        contactInfo={email}
+        onVerify={handleOtpVerification}
+        onResend={handleResendOtp}
+        title="Verify Email"
+        description="Enter the OTP sent to"
+      />
     </div>
   );
 };

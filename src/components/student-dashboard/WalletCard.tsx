@@ -5,10 +5,8 @@ interface WalletCardProps {
   onAddFunds: () => void;
 }
 
-const formatCurrency = (amount: number) => {
+const formatNumber = (amount: number) => {
   return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
@@ -21,12 +19,19 @@ const WalletCard: React.FC<WalletCardProps> = ({ balance, onAddFunds }) => {
         <div className="flex items-center gap-3 mb-4">
         <Wallet size={20} className="text-[#242645]" />
         <h3 className="text-base md:text-lg font-semibold text-[#242645]">
-          Wallet
+          Available Procoins
         </h3>
       </div>
-      <p className="text-2xl md:text-4xl font-medium text-[#28A745] mb-4">
-        {formatCurrency(balance)}
-      </p>
+      <div className="flex items-center gap-2 text-2xl md:text-4xl font-medium text-[#28A745] mb-4">
+        <img
+          src="/Procoin.jpg"
+          alt="ProCoin"
+          className="w-9 h-9"
+        />
+        <span>
+          {formatNumber(balance)}
+        </span>
+      </div>
 
       <button 
         onClick={onAddFunds}

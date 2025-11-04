@@ -1,6 +1,6 @@
 import { Header } from "@/components";
 import Footer from "@/components/layout/Footer";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { LoginCard } from "@/components/cards/LoginCard";
 import OnboardingCard from "@/components/cards/OnboardingCard";
 import { useAuthStore } from "@/store/AuthStore";
@@ -12,38 +12,145 @@ import { useVoiceChatStore } from "@/store/VoiceChatStore";
 import VoiceChat from "@/components/chatbot/VoiceChat";
 import InfoModal from "@/components/counselor-signup/InfoModal";
 import AppInstallBanner from "@/components/shared/AppInstallBanner";
+import EditProfileModal from "@/components/student-dashboard/EditProfileModal";
+import { useEffect } from "react";
+import { updateUserProfile } from '@/api/user';
+
 export default function MainLayout(){
-  const { isLoginToggle, isAuthenticated, userExist } = useAuthStore();
-    const { isChatbotOpen, toggleChatbot } = useChatStore();
-   const { isVoiceChatOpen} = useVoiceChatStore();
-    return (
-        <div>
-          <AppInstallBanner />
-           <nav>
-             <Header/>
-           </nav>
+  const { 
+    isLoginToggle, 
+    isAuthenticated, 
+    needsOnboarding,
+    needsProfileCompletion,
+    isProfileCompletionOpen,
+    toggleProfileCompletion,
+    setIsProfileCompletionOpen,
+    user,
+    role,
+    setNeedsOnboarding,
+    setNeedsProfileCompletion,
+    returnToPath,
+    setReturnToPath,
+  } = useAuthStore();
+  const { refreshUser } = useAuthStore();
+  const { isChatbotOpen, toggleChatbot } = useChatStore();
+  const { isVoiceChatOpen} = useVoiceChatStore();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-           <main>
-            <Outlet/>
-           </main>
+  useEffect(() => {
+    if (isAuthenticated && role === 'counselor' && location.pathname === '/') {
+      navigate('/counselor-dashboard');
+    }
+  }, [isAuthenticated, role, location.pathname, navigate]);
 
-           <footer className="bottom-0 left-0 right-0">
-            <Footer/>
-           </footer>
-           {isLoginToggle && <LoginCard/>}
-           <InfoModal />
-           {isAuthenticated && userExist && isLoginToggle &&  <OnboardingCard/>}
-            <Toaster
-              position="top-center"
-              toastOptions={{
-                duration: 3000,
-                style: {
-                  background: '#363636',
-                  color: '#fff',
-                },
-              }}
-           />
-           <button
+  const shouldShowOnboarding = isAuthenticated && (role === 'student' || role === 'user') && needsOnboarding;
+
+  console.log('🔍 MainLayout - isAuthenticated:', isAuthenticated, 'role:', role, 'needsOnboarding:', needsOnboarding, 'needsProfileCompletion:', needsProfileCompletion, 'shouldShowOnboarding:', shouldShowOnboarding);
+
+  useEffect(() => {
+    // Only show profile completion after onboarding is done
+    if (isAuthenticated && needsProfileCompletion && !needsOnboarding) {
+      console.log('🔍 Opening profile completion modal');
+      toggleProfileCompletion();
+    }
+  }, [isAuthenticated, needsProfileCompletion, needsOnboarding]);
+
+  const handleProfileUpdate = async (updatedData: { firstName: string; lastName: string; email: string }) => {
+    try {
+      console.log('📤 MainLayout: updating profile with', updatedData);
+      const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null;
+      const uid = typeof window !== 'undefined' ? localStorage.getItem('phone') : null;
+
+      if (!uid || !token) {
+        console.error('⚠️ MainLayout: missing uid or token when updating profile');
+        // still close the modal to avoid blocking the user, but keep the flag so they can retry
+        return;
+      }
+
+      // call API and wait for it to complete
+      await updateUserProfile(uid, updatedData, token);
+
+      // refresh user in the store so UI reflects latest profile
+      if (refreshUser) await refreshUser(true);
+
+      console.log('✅ MainLayout: profile updated successfully, closing modal');
+      
+      // close profile completion flow only after successful update
+      setNeedsProfileCompletion(false);
+      setIsProfileCompletionOpen(false);
+
+      if (returnToPath) {
+        navigate(returnToPath);
+        setReturnToPath(null);
+      }
+    } catch (err) {
+      console.error('❌ MainLayout: failed to update profile', err);
+    }
+  };
+
+  const handleOnboardingComplete = () => {
+    setNeedsOnboarding(false);
+    
+    if (user && (!user.firstName || !user.email)) {
+      setNeedsProfileCompletion(true);
+    } else if (returnToPath) {
+      navigate(returnToPath);
+      setReturnToPath(null);
+    }
+  };
+
+  return (
+    <div>
+      <AppInstallBanner />
+      <nav>
+        <Header/>
+      </nav>
+
+      <main>
+        <Outlet/>
+      </main>
+
+      <footer className="bottom-0 left-0 right-0">
+        <Footer/>
+      </footer>
+      
+      {isLoginToggle && <LoginCard/>}
+      <InfoModal />
+      
+      {shouldShowOnboarding && (
+        <>
+          {console.log('🎯 RENDERING OnboardingCard NOW')}
+          <OnboardingCard onComplete={handleOnboardingComplete} />
+        </>
+      )}
+      
+      {isProfileCompletionOpen && user && (
+        <EditProfileModal
+          isOpen={isProfileCompletionOpen}
+          onClose={() => {
+            console.log('🚪 MainLayout: Closing profile modal via X button');
+            setIsProfileCompletionOpen(false);
+            setNeedsProfileCompletion(false);
+          }}
+          user={user}
+          onUpdate={handleProfileUpdate}
+          onUploadComplete={() => {}}
+        />
+      )}
+      
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+        }}
+      />
+      
+      <button
         onClick={toggleChatbot}
         className="fixed bottom-6 right-6 bg-[#FA660F] text-white w-16 h-16 flex items-center justify-center rounded-full shadow-lg z-50 hover:bg-orange-600 transition-all duration-300 transform hover:scale-110"
         aria-label="Toggle Chatbot"
@@ -52,16 +159,7 @@ export default function MainLayout(){
       </button>
 
       {isChatbotOpen && <Chatbot />}
-      {/* <button
-        onClick={toggleVoiceChat}
-        
-      >
-        <Mic size={32} />
-      </button> */}
-
-      {/* Render the voice chat UI when open */}
       {isVoiceChatOpen && <VoiceChat />}
-        
-        </div>
-    );
+    </div>
+  );
 }

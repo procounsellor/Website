@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuthStore } from "@/store/AuthStore";
+import toast from 'react-hot-toast';
 import { 
   locationIcon, 
   phoneIcon, 
@@ -11,7 +12,16 @@ import {
 } from "@/assets/icons";
 
 export default function Footer() {
-  const toggleCounselorSignup = useAuthStore((state) => state.toggleCounselorSignup);
+  const { toggleCounselorSignup, role } = useAuthStore();
+  
+  const handleBecomeCounselor = () => {
+    if (role === 'counselor') {
+      toast.error("You are already registered as a counselor!");
+      return;
+    }
+    toggleCounselorSignup();
+  };
+  
   return (
     <footer className="bg-gradient-to-b from-[#FCEDE3] to-[#F5C3A3] text-slate-700">
       <div className="mx-auto max-w-[1440px] px-4 sm:px-8 md:px-16 lg:px-[125px] py-6 sm:py-10">
@@ -67,17 +77,20 @@ export default function Footer() {
                   <a href="/exams" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Exams</a>
                 </li>
                 <li>
+                  <a href="/counselors" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Counselors</a>
+                </li>
+                <li>
                   <a href="/about" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">About Us</a>
                 </li>
                 <li>
                   <a href="/contact" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Contact</a>
                 </li>
-                <li>
+                {/* <li>
                   <a href="/counselor-dashboard" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Add College</a>
-                </li>
+                </li> */}
                 <li>
                   <button 
-                    onClick={toggleCounselorSignup} 
+                    onClick={handleBecomeCounselor} 
                     className="block cursor-pointer font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors text-left w-full"
                   >
                     Become a Counselor?

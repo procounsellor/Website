@@ -1,6 +1,7 @@
 import axios from "axios";
 import { API_CONFIG } from "@/api/config";
 import type { AllCounselor } from "@/types/academic";
+import type { SessionData } from "@/lib/sessionManager";
 
 export interface CounsellorFromAPI {
   counsellorId: string;
@@ -27,23 +28,26 @@ interface FrontendMessage {
   isUser: boolean;
   followup?: string;
 }
-// ... (rest of your existing api.ts code) ...
 
-
-
-// UPDATED: The function now accepts `history` and uses the POST method
-export const askQuestion = async (question: string, history: FrontendMessage[]): Promise<AskResponse> => {
-  // Format the history to match what the Python backend expects ({ role, content })
-  const formattedHistory = history.map(msg => ({
-    
-    role: msg.isUser ? 'user' : 'assistant',
-    content: msg.text + " "+msg.followup,
-    
+export const askQuestion = async (
+  question: string,
+  history: FrontendMessage[],
+  sessionData: SessionData
+): Promise<AskResponse> => {
+  const formattedHistory = history.map((msg) => ({
+    role: msg.isUser ? "user" : "assistant",
+    content: msg.text + " " + msg.followup,
   }));
 
   const response = await axios.post<AskResponse>(
     `${API_CONFIG.chatbotUrl}/ask?question=${encodeURIComponent(question)}`,
-    formattedHistory // Send the history in the request body
+    {
+      formattedHistory,
+      sessionId: sessionData.sessionId,
+      userId: sessionData.userId,
+      userType: sessionData.userType,
+      source: sessionData.source,
+    } 
   );
   return response.data;
 };

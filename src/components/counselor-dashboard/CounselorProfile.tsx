@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { getCounselorProfileById, updateCounselorProfile, uploadCounselorPhoto } from '@/api/counselor-Dashboard';
 import type { CounselorProfileData } from '@/types/counselorProfile';
-import { X, Edit, CheckCircle2, Loader2, PenSquare } from 'lucide-react';
+import { X, Edit, CheckCircle2, Loader2, PenSquare, ChevronLeft } from 'lucide-react';
 import type { User } from '@/types/user';
 import EditableField from './EditableField';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,9 +16,9 @@ interface CounselorProfileProps {
 
 const InfoField = ({ label, value }: { label: string; value: string }) => (
   <div>
-    <label className="text-sm font-montserrat text-[#232323]">{label}</label>
-    <div className="mt-2 w-full min-h-[40px] flex items-center px-4 py-2 rounded-md border border-gray-200 bg-white cursor-not-allowed">
-      <p className="font-montserrat font-medium text-base text-[#718EBF]">{value}</p>
+    <label className="text-xs md:text-sm text-[#232323]">{label}</label>
+    <div className="mt-1 md:mt-2 w-full min-h-[48px] md:min-h-[40px] flex items-center px-4 py-2 rounded-lg md:rounded-md border border-[#EFEFEF] md:border-gray-200 bg-[#F9FAFB] md:bg-white cursor-not-allowed">
+      <p className="font-normal md:font-medium text-sm md:text-base text-[#718EBF]">{value}</p>
     </div>
   </div>
 );
@@ -32,18 +32,18 @@ const SubscriptionPlan = ({
     backgroundGradient: string; 
     borderGradient: string; }) => ( 
       <div 
-        className="w-[116px] h-[48px] rounded-lg p-[1px]" 
+        className="flex-1 md:w-[116px] h-auto md:h-[48px] rounded-lg p-2 md:p-[1px]" 
         style={{ background: borderGradient }} 
       > 
         <div 
-          className="w-full h-full rounded-[7px] p-1 flex flex-col justify-center text-center" 
+          className="w-full h-full rounded-[7px] p-1 flex flex-col justify-center items-center text-center" 
           style={{ background: backgroundGradient }} 
         > 
-          <p className={`text-xs ${textColor}`}> 
+          <p className={`text-[10px] md:text-xs ${textColor}`}> 
             <span className="font-normal">{name} </span> 
             <span className="font-medium">₹{price.toLocaleString('en-IN')}</span> 
           </p> 
-          <p className="text-[10px] font-normal text-[#FA660F] mt-1"> {seats} seats left </p> 
+          <p className="text-[10px] font-normal text-[#FA660F] mt-1 hidden md:block"> {seats} seats left </p> 
         </div> 
       </div>
     );
@@ -180,21 +180,52 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
 
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50 backdrop-blur-sm p-4">
-      <div className="relative w-full max-w-[1000px] max-h-[95vh] overflow-y-auto bg-white rounded-2xl shadow-lg p-10">
-        <h2 className="font-semibold text-2xl text-[#343C6A]">Counselor Profile</h2>
-        <button
-          onClick={onClose}
-          className="absolute top-7 right-7 w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 text-gray-800 hover:bg-black hover:text-white transition-colors duration-200"
-        >
-          <X size={24} />
-        </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50 backdrop-blur-sm p-0 md:p-4">
+      <div className="relative w-full h-full md:max-w-[1000px] md:h-auto md:max-h-[95vh] overflow-y-auto bg-white rounded-none md:rounded-2xl shadow-lg p-0 md:p-10">        
+        <div className="sticky top-0 md:static z-10 bg-white flex items-center justify-between p-4 md:p-0 border-b border-gray-100 md:border-none">
+          <button
+            onClick={onClose}
+            className="block md:hidden text-gray-800"
+          >
+            <ChevronLeft size={24} />
+          </button>
+          <h2 className="font-semibold text-lg md:text-2xl text-[#343C6A] md:absolute md:left-10 md:top-10">
+            {isEditing ? 'Edit Profile' : 'Counselor Profile'}
+          </h2>
+          <div className="md:absolute md:top-7 md:right-7">
+            {!isEditing ? (
+              <button 
+                onClick={() => {
+                  if (counselor) { 
+                    setEditableData(counselor);
+                    setIsEditing(true);
+                  }
+                }} 
+                className="block md:hidden text-[#13097D]"
+              >
+                <Edit size={18} />
+              </button>
+            ) : (
+              <div className="w-6 h-6 block md:hidden"></div>
+            )}
+            
+            <button
+              onClick={onClose}
+              className="w-10 h-10 rounded-full items-center justify-center text-gray-800 transition-colors duration-200
+                         bg-gray-100 hover:bg-black hover:text-white
+                         hidden md:flex"
+            >
+              <X size={24} />
+            </button>
+          </div>
+        </div>
 
-        <div className="mt-8 p-6 rounded-2xl border border-[#EFEFEF]" style={{ background: 'linear-gradient(180deg, #F7F7FF 0%, #FFFFFF 100%)' }}>
+
+        <div className="mt-0 md:mt-8 p-4 md:p-6 rounded-none md:rounded-2xl md:border md:border-[#EFEFEF]" style={{ background: 'linear-gradient(180deg, #F7F7FF 0%, #FFFFFF 100%)' }}>
           {isLoading ? ( <div className="h-[574px] flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-orange-500" /></div> ) : !counselor ? ( <div className="h-[574px] flex items-center justify-center">Failed to load profile.</div> ) : (
             <>
-              <div className="relative flex items-start gap-8">
-                <div className="relative w-[155px] h-[155px] flex-shrink-0">
+              <div className="relative flex flex-col items-center md:flex-row md:items-start gap-4 md:gap-8">
+                <div className="relative w-24 h-24 md:w-[155px] md:h-[155px] flex-shrink-0">
                   <img
                     src={previewUrl || counselor.photoUrl || '/counselor.png'}
                     alt={`${counselor.firstName} ${counselor.lastName}`}
@@ -204,10 +235,10 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
                     <>
                       <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="absolute bottom-1 right-1 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition-colors"
+                        className="absolute bottom-0 right-0 md:bottom-1 md:right-1 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition-colors"
                         aria-label="Edit profile picture"
                       >
-                        <PenSquare size={20} className="text-[#13097D]" />
+                        <PenSquare className="w-4 h-4 md:w-5 md:h-5 text-[#13097D]" />
                       </button>
                       <input
                         type="file"
@@ -220,37 +251,50 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
                   )}
                 </div>
 
-                <div className="flex-1 mt-2">
-                  <h3 className="text-2xl font-bold text-gray-800">{`${counselor.firstName} ${counselor.lastName}`}</h3>
-                  <p className="text-base text-[#718EBF] mt-1">Career Counselor, {isEditing ? editableData.experience : counselor.experience}+ years of experience</p>
-                  <p className="text-sm text-gray-600 mt-3 max-w-2xl">{isEditing ? editableData.description : counselor.description}</p>
-                  <div className="flex items-center gap-6 mt-4 text-sm">
+                <div className="flex-1 mt-2 text-center md:text-left">
+                  <h3 className="text-xl md:text-2xl font-bold text-gray-800">{`${counselor.firstName} ${counselor.lastName}`}</h3>
+                  <p className="text-sm md:text-base text-[#718EBF] mt-1">Career Counselor, {isEditing ? editableData.experience : counselor.experience}+ years of experience</p>
+                  <p className={`text-sm text-gray-600 mt-3 max-w-2xl ${isEditing ? 'hidden md:block' : ''}`}>
+                    {isEditing ? editableData.description : counselor.description}
+                  </p>
+                  <div className="flex flex-col items-center md:flex-row md:items-center gap-2 md:gap-6 mt-4 text-sm">
                     <div className="flex items-center gap-2"> <span className="text-[#232323]">Email:</span> <span className="text-[#718EBF]">{counselor.email}</span> {counselor.emailOtpVerified && <CheckCircle2 size={16} className="text-green-500" />} </div>
                     <div className="flex items-center gap-2"> <span className="text-[#232323]">Contact:</span> <span className="text-[#718EBF]">{counselor.phoneNumber}</span> {counselor.phoneOtpVerified && <CheckCircle2 size={16} className="text-green-500" />} </div>
                   </div>
                 </div>
+
                  {!isEditing && (
                     <button onClick={() => {
-                      setEditableData(counselor);
-                      setIsEditing(true);
-                    }} className="absolute top-0 right-0 flex items-center gap-2 text-[#13097D] font-semibold text-base">
+                      if (counselor) {
+                        setEditableData(counselor);
+                        setIsEditing(true);
+                      }
+                    }} className="absolute top-0 right-0 items-center gap-2 text-[#13097D] font-semibold text-sm md:text-base
+                                /* This class hides it on mobile */
+                                hidden md:flex"> 
                         <Edit size={18} />
-                        Edit
+                        <span className="hidden md:block">Edit</span>
                     </button>
                  )}
               </div>
 
-              <hr className="my-8 border-t border-[#E5E5E5]" />
+              <hr className="my-6 md:my-8 border-t border-[#E5E5E5]" />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 md:gap-y-6">
+                {isEditing && (
+                  <div className="block md:hidden">
+                    <EditableField label="Bio" name="description" value={editableData.description || ''} isEditing={isEditing} onChange={handleInputChange} />
+                  </div>
+                )}
+                
                 <EditableField label="Address" name="city" value={editableData.fullOfficeAddress?.city || ''} isEditing={isEditing} onChange={handleInputChange} />
                 <EditableField label="Location" name="stateOfCounsellor" value={editableData.stateOfCounsellor || []} isEditing={isEditing} onChange={handleInputChange} />
                 <EditableField label="Organisation" name="organisationName" value={editableData.organisationName || ''} isEditing={isEditing} onChange={handleInputChange} />
                 <InfoField label="Working days & Time" value={`${getWorkingDays()}, ${counselor.officeStartTime} - ${counselor.officeEndTime}`} />
                 <EditableField label="Languages" name="languagesKnow" value={editableData.languagesKnow || []} isEditing={isEditing} onChange={handleInputChange} />
                 <div>
-                  <label className="text-sm font-montserrat text-[#232323]">Subscription Plans</label>
-                  <div className="mt-2 flex gap-4">
+                  <label className="text-xs md:text-sm text-[#858585] md:text-[#232323]">Subscription Plans</label>
+                  <div className="mt-1 md:mt-2 flex flex-row gap-2 md:gap-4">
                       <SubscriptionPlan name="Plus" price={counselor.plusAmount} seats={counselor.plusSeats} {...planStyles.plus} />
                       <SubscriptionPlan name="Pro" price={counselor.proAmount} seats={counselor.proSeats} {...planStyles.pro} />
                       <SubscriptionPlan name="Elite" price={counselor.eliteAmount} seats={counselor.eliteSeats} {...planStyles.elite} />
@@ -259,19 +303,20 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
               </div>
               
               {isEditing && (
-                <div className="mt-8 flex justify-end gap-4">
+                <div className="sticky bottom-0 -mx-4 -mb-4 md:mx-0 md:mb-0 p-4 md:p-0 bg-white md:bg-transparent md:mt-8 
+                              flex flex-row md:flex-col md:justify-end gap-4 border-t border-gray-100 md:border-none">
                     <button 
                         onClick={() => setIsEditing(false)}
-                        className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 font-semibold"
+                        className="flex-1 md:flex-none px-6 py-2.5 md:py-2 rounded-lg border border-gray-300 text-gray-700 font-semibold block"
                     >
                         Cancel
                     </button>
                     <button 
                         onClick={handleUpdate}
                         disabled={isUpdating}
-                        className="px-6 py-2 rounded-lg bg-[#13097D] text-white font-semibold flex items-center gap-2 disabled:bg-indigo-300"
+                        className="flex-1 md:flex-none md:w-auto px-6 py-2.5 text-nowrap md:py-2 rounded-lg bg-[#13097D] text-white font-semibold flex items-center justify-center gap-2 disabled:bg-indigo-300"
                     >
-                        {isUpdating ? <Loader2 className="animate-spin" /> : 'Update'}
+                        {isUpdating ? <Loader2 className="animate-spin" /> : 'Update Profile'}
                     </button>
                 </div>
               )}
