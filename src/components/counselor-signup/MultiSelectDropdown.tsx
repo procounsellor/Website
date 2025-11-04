@@ -92,7 +92,7 @@ export default function MultiSelectDropdown({
         </button>
 
         {isOpen && (
-            <div className="absolute z-10 w-full mt-1 bg-[#F5F5F5] border border-gray-200 rounded-xl shadow-lg p-2">
+            <div className="absolute z-10 w-full mt-1 bg-[#F5F5F5] border border-gray-200 rounded-xl shadow-lg p-2 overflow-hidden">
                 <div className="relative mb-2">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#343C6A]" />
                     <input
@@ -103,7 +103,7 @@ export default function MultiSelectDropdown({
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <ul className="max-h-40 overflow-y-auto space-y-1">
+                <ul className="max-h-40 overflow-y-auto space-y-1 pr-6 -mr-6">
                     {filteredOptions.map((option) => (
                         <li
                             key={option.value}

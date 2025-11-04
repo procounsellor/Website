@@ -94,7 +94,7 @@ export default function CounselorDashboard() {
   } = useQuery({
     queryKey: ["counselorProfile", counsellorId],
     queryFn: () => getCounselorProfileById(counsellorId!, token),
-    enabled: Boolean(counsellorId && token),
+    enabled: Boolean(counsellorId && token && authUser?.verified),
   });
 
   const {
@@ -104,7 +104,7 @@ export default function CounselorDashboard() {
   } = useQuery({
     queryKey: ["counselorAppointmentsGrouped", counsellorId],
     queryFn: () => getAllAppointments(counsellorId!, token),
-    enabled: Boolean(counsellorId && token),
+    enabled: Boolean(counsellorId && token && authUser?.verified),
   });
 
   const {
@@ -114,11 +114,11 @@ export default function CounselorDashboard() {
   } = useQuery({
     queryKey: ["counselorOutOfOffice", counsellorId],
     queryFn: () => getOutOfOffice(counsellorId!, token),
-    enabled: Boolean(counsellorId && token),
+    enabled: Boolean(counsellorId && token && authUser?.verified),
   });
 
   const queriesLoading =
-    profileLoading || appointmentsLoading || outOfOfficeLoading;
+    (profileLoading || appointmentsLoading || outOfOfficeLoading) && authUser?.verified;
 
   const formatDateLocal = (date: Date): string => {
     const y = date.getFullYear();
