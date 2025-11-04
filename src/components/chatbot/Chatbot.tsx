@@ -37,8 +37,8 @@ const WelcomeMessage = () => (
 
 export default function Chatbot() {
   const navigate = useNavigate();
-  const { messages, toggleChatbot, sendMessage, loading, loadMessages, clearMessages, stopGenerating } = useChatStore();
-  const { toggleLogin, isAuthenticated, logout } = useAuthStore();
+  const { messages, toggleChatbot, sendMessage, loading, loadMessages, clearMessages, stopGenerating, startNewChat } = useChatStore();
+  const { toggleLogin, isAuthenticated, logout, userId, role } = useAuthStore();
 
   // UI state
   const [input, setInput] = useState("");
@@ -96,8 +96,8 @@ export default function Chatbot() {
       setCurrentChatId(newChatId);
     }
 
-    // send the message via store
-    await sendMessage(input);
+    // send the message via store with user information
+    await sendMessage(input, userId, role);
     setInput("");
   };
 
@@ -105,6 +105,7 @@ export default function Chatbot() {
     if (messages.length > 0) {
       setCurrentChatId(null);
       clearMessages();
+      startNewChat(); // ✨ Start a new session with new session ID
     }
   };
 
