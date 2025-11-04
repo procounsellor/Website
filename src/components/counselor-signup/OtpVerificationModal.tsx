@@ -117,7 +117,7 @@ export default function OtpVerificationModal({
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 onFocus={(e) => e.target.select()}
                 disabled={isLoading}
-                className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-semibold border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition ${
+                className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-semibold border rounded-lg focus:outline-none focus:ring-0 focus:border-orange-500 transition ${
                   error ? 'border-red-500' : 'border-gray-300'
                 }`}
               />

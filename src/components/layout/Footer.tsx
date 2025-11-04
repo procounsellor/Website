@@ -12,12 +12,17 @@ import {
 } from "@/assets/icons";
 
 export default function Footer() {
-  const { toggleCounselorSignup, role } = useAuthStore();
+  const { toggleCounselorSignup, role, user } = useAuthStore();
   
   const handleBecomeCounselor = () => {
-    if (role === 'counselor') {
+    if (role === 'counselor' && user?.verified) {
       toast.error("You are already registered as a counselor!");
       return;
+    }
+    const hasSubmitted = localStorage.getItem('hasSubmittedCounselorApp') === 'true';
+    if (hasSubmitted) {
+       toast.error("Your application is already under review.");
+       return;
     }
     toggleCounselorSignup();
   };

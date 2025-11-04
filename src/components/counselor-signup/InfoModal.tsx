@@ -7,7 +7,7 @@ import { X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function InfoModal() {
-  const { isCounselorSignupOpen, toggleCounselorSignup, isAuthenticated, toggleLogin, role, setIsCounselorSignupFlow } = useAuthStore();
+  const { isCounselorSignupOpen, toggleCounselorSignup, isAuthenticated, toggleLogin, role, setIsCounselorSignupFlow, user } = useAuthStore();
   const navigate = useNavigate();
 
   const [info, setInfo] = useState<CounselorPageInfo | null>(null);
@@ -35,10 +35,16 @@ export default function InfoModal() {
 
   const handleProceed = () => {
     // Check if user is already a counselor
-    if (isAuthenticated && role === 'counselor') {
+    if (isAuthenticated && role === 'counselor' && user?.verified) {
       toast.error("You are already registered as a counselor.");
       toggleCounselorSignup();
       navigate('/counselor-dashboard');
+      return;
+    }
+    const hasSubmitted = localStorage.getItem('hasSubmittedCounselorApp') === 'true';
+    if (isAuthenticated && hasSubmitted) {
+      toast.error("Your application is already under review.");
+      toggleCounselorSignup();
       return;
     }
 

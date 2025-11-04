@@ -23,7 +23,7 @@ const StarRatingInput = ({
           key={starIndex}
           onClick={() => onRatingChange(starIndex)}
           onMouseEnter={() => setHoverRating(starIndex)}
-          className={`w-[32px] h-[32px] cursor-pointer transition-colors`}
+          className={`w-7 h-7 md:w-[32px] md:h-[32px] cursor-pointer transition-colors`}
           viewBox="0 0 32 32"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -92,7 +92,7 @@ const EditReviewModal: React.FC<EditReviewModalProps> = ({
       onClick={isSubmitting ? undefined : onClose}
     >
       <div
-        className="bg-white rounded-2xl border border-[#EFEFEF] shadow-xl w-[632px] h-[440px] p-6 relative flex flex-col items-center"
+        className="bg-white rounded-2xl border border-[#EFEFEF] shadow-xl w-full mx-4 max-w-sm md:mx-0 md:w-[632px] h-auto md:h-[440px] p-4 md:p-6 relative flex flex-col items-center"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -104,7 +104,7 @@ const EditReviewModal: React.FC<EditReviewModalProps> = ({
           <X className="w-5 h-5" />
         </button>
 
-        <h2 className="text-xl font-semibold text-[#343C6A] mt-8">
+        <h2 className="text-lg md:text-xl font-semibold text-[#343C6A] mt-4 md:mt-8">
           Tap to rate
         </h2>
 
@@ -112,7 +112,7 @@ const EditReviewModal: React.FC<EditReviewModalProps> = ({
           <StarRatingInput rating={rating} onRatingChange={setRating} />
         </div>
 
-        <p className="mt-3.5 text-base font-medium text-[#232323]">
+        <p className="mt-3 text-sm md:text-base font-medium text-[#232323]">
           Rate out of 5
         </p>
 
@@ -121,7 +121,7 @@ const EditReviewModal: React.FC<EditReviewModalProps> = ({
         </h3>
 
         <textarea
-          className="w-[548px] h-[132px] mt-4 p-4 bg-[#F5F5F5] border border-[#EFEFEF] rounded-2xl placeholder-[#23232380] text-base font-semibold focus:outline-none focus:ring-2 focus:ring-[#13097D]"
+          className="w-full h-[132px] mt-4 p-4 bg-[#F5F5F5] border border-[#EFEFEF] rounded-2xl placeholder-[#23232380] text-base font-semibold focus:outline-none focus:ring-2 focus:ring-[#13097D]"
           placeholder="Write your review..."
           value={reviewText}
           onChange={(e) => setReviewText(e.target.value)}
@@ -131,7 +131,7 @@ const EditReviewModal: React.FC<EditReviewModalProps> = ({
         <button
           onClick={handleSubmit}
           disabled={!isButtonEnabled}
-          className={`w-[548px] h-12 mt-5 rounded-xl font-semibold text-white text-base transition-colors flex items-center justify-center
+          className={`w-full h-12 mt-5 rounded-xl font-semibold text-white text-base transition-colors flex items-center justify-center
             ${isButtonEnabled
               ? 'bg-[#13097D] hover:bg-opacity-90'
               : 'bg-[#ACACAC] cursor-not-allowed'
