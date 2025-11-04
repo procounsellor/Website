@@ -3,6 +3,12 @@
 import { create } from "zustand";
 import type { AllCounselor } from "@/types/academic";
 import { API_CONFIG } from "@/api/config";
+import {
+  getSessionData,
+  createNewSession,
+  type SessionData,
+} from "@/lib/sessionManager";
+
 export interface Message {
   text: string;
   isUser: boolean;
@@ -13,13 +19,15 @@ export interface Message {
 type ChatState = {
   messages: Message[];
   isChatbotOpen: boolean;
-  abortController: AbortController | null; // ✨ ADD THIS: To hold the controller
+  abortController: AbortController | null; // ✨ To hold the controller
   loading: boolean;
+  currentSessionId: string | null; // ✨ NEW: Track current session ID
   toggleChatbot: () => void;
-  sendMessage: (question: string) => Promise<void>;
-  stopGenerating: () => void; // ✨ ADD THIS: The new stop function
-  loadMessages: (messages: Message[]) => void; // ✨ ADD THIS LINE
-  clearMessages: () => void; // ✨ ADD THIS LINE
+  sendMessage: (question: string, userId?: string | null, userRole?: string | null) => Promise<void>;
+  stopGenerating: () => void; // ✨ The stop function
+  loadMessages: (messages: Message[]) => void;
+  clearMessages: () => void;
+  startNewChat: () => void; // ✨ NEW: Start a new chat session
 };
 
 // This helper function is moved from your api.ts file
@@ -42,14 +50,16 @@ const transformCounselorData = (apiCounselor: any): AllCounselor => {
 
 
 export const useChatStore = create<ChatState>((set, get) => ({
-  abortController: null, // ✨ ADD THIS: Initial state
+  abortController: null,
   messages: [],
   isChatbotOpen: false,
   loading: false,
+  currentSessionId: null, // ✨ NEW: Track session
 
   toggleChatbot: () => {
     set((state) => ({ isChatbotOpen: !state.isChatbotOpen }));
   },
+  
   stopGenerating: () => {
     const { abortController } = get();
     if (abortController) {
@@ -57,6 +67,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       set({ loading: false, abortController: null });
     }
   },
+  
   loadMessages: (newMessages: Message[]) => {
     set({ messages: newMessages });
   },
@@ -64,13 +75,36 @@ export const useChatStore = create<ChatState>((set, get) => ({
   clearMessages: () => {
     set({ messages: [] });
   },
+  
+  // ✨ NEW: Start a new chat session
+  startNewChat: () => {
+    const newSessionId = createNewSession();
+    set({ messages: [], currentSessionId: newSessionId });
+    console.log("🆕 New chat session started:", newSessionId);
+  },
 
-  sendMessage: async (question: string) => {
+  sendMessage: async (question: string, userId?: string | null, userRole?: string | null) => {
     get().abortController?.abort();
     const userMessage: Message = { text: question, isUser: true };
     const currentHistory = get().messages;
     const controller = new AbortController(); // ✨ CREATE a new controller for this request
     const botPlaceholder: Message = { text: "", isUser: false, counsellors: [], followup: "" };
+    
+    // ✨ Get session data
+    const sessionData: SessionData = getSessionData(userId, userRole);
+    
+    // ✨ Update current session ID if it's a new chat
+    if (!get().currentSessionId) {
+      set({ currentSessionId: sessionData.sessionId });
+    }
+    
+    console.log("📤 Sending message with session data:", {
+      sessionId: sessionData.sessionId,
+      userId: sessionData.userId,
+      userType: sessionData.userType,
+      source: sessionData.source,
+    });
+    
     set((state) => ({
       messages: [...state.messages, userMessage, botPlaceholder],
       loading: true,
@@ -95,11 +129,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
       // Use the native fetch API for streaming
       const response = await fetch(
-        `${API_CONFIG.chatbotUrl}/ask?question=${encodeURIComponent(question)}`, // IMPORTANT: Update with your backend URL
+        `${API_CONFIG.chatbotUrl}/ask?question=${encodeURIComponent(question)}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formattedHistory),
+          body: JSON.stringify({
+            formattedHistory,
+            sessionId: sessionData.sessionId,
+            userId: sessionData.userId,
+            userType: sessionData.userType,
+            source: sessionData.source,
+          }),
           signal: controller.signal, // ✨ PASS the signal to fetch
         }
       );
