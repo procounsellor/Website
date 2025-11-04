@@ -113,7 +113,7 @@ const handleProfileNavigation = () => {
           height={44}
           priority
         />
- ~       <div className="flex items-center leading-tight pl-[9px] hover:cursor-pointer" onClick={() => navigate('/')}>
+      <div className="flex items-center leading-tight pl-[9px] hover:cursor-pointer" onClick={() => navigate('/')}>
            <h1 className="text-[#232323] font-semibold text-sm md:text-xl">ProCounsel</h1>
         </div>
       </div>
