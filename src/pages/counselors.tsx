@@ -68,11 +68,64 @@ function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
 
 export default function CounselorListingPage() {
   const { data: counselors, loading, error } = useAllCounselors();
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 9;
   const { user, userId, refreshUser, role } = useAuthStore();
+  
+  // Session storage keys
+  const STORAGE_KEY = 'counselors_filters';
+  
+  // Load initial state from session storage
+  const loadFromStorage = () => {
+    try {
+      const stored = sessionStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.error('Error loading from session storage:', e);
+    }
+    return null;
+  };
+
+  const savedState = loadFromStorage();
+  
+  const [currentPage, setCurrentPage] = useState(savedState?.currentPage || 1);
+  const ITEMS_PER_PAGE = 9;
   const [favouriteIds, setFavouriteIds] = useState<Set<string>>(new Set());
 
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [filterCount, setFilterCount] = useState(0);
+  const [selected, setSelected] = useState<string[]>(savedState?.selected || []);
+  const [selectedSort, setSelectedSort] = useState(savedState?.selectedSort || "popularity");
+  const [citySearch, setCitySearch] = useState("");
+
+  const [experienceFilters, setExperienceFilters] = useState<string[]>(savedState?.experienceFilters || []);
+  const [languageFilters, setLanguageFilters] = useState<string[]>(savedState?.languageFilters || []);
+  const [cityFilters, setCityFilters] = useState<string[]>(savedState?.cityFilters || []);
+  const [minPrice, setMinPrice] = useState(savedState?.minPrice || "");
+  const [maxPrice, setMaxPrice] = useState(savedState?.maxPrice || "");
+
+  const [experienceToggle, setExperienceToggle] = useState(false);
+  const [languageToggle, setLanguageToggle] = useState(false);
+  const [cityToggle, setCityToggle] = useState(false);
+  const [priceToggle, setPriceToggle] = useState(false);
+  const [workingDaysToggle, setWorkingDaysToggle] = useState(false);
+
+  // Save to session storage whenever filters or pagination changes
+  useEffect(() => {
+    const stateToSave = {
+      currentPage,
+      selected,
+      selectedSort,
+      experienceFilters,
+      languageFilters,
+      cityFilters,
+      minPrice,
+      maxPrice
+    };
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+  }, [currentPage, selected, selectedSort, experienceFilters, languageFilters, cityFilters, minPrice, maxPrice]);
+
+  // Load user's favourite counselors
   useEffect(() => {
     if (user?.favouriteCounsellorIds) {
       setFavouriteIds(new Set(user.favouriteCounsellorIds));
@@ -102,27 +155,6 @@ export default function CounselorListingPage() {
       setFavouriteIds(new Set(user?.favouriteCounsellorIds || []));
     }
   };
-
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
-  const [filterCount, setFilterCount] = useState(0)
-  const [selected, setSelected] = useState<string[]>([])
-  const [selectedSort, setSelectedSort] = useState("popularity")
-  const [citySearch, setCitySearch] = useState("")
-
-
-  const [experienceFilters, setExperienceFilters] = useState<string[]>([])
-  const [languageFilters, setLanguageFilters] = useState<string[]>([])
-  const [cityFilters, setCityFilters] = useState<string[]>([])
-  const [minPrice, setMinPrice] = useState("")
-  const [maxPrice, setMaxPrice] = useState("")
-
-
-  const [experienceToggle, setExperienceToggle] = useState(false)
-  const [languageToggle, setLanguageToggle] = useState(false)
-  const [cityToggle, setCityToggle] = useState(false)
-  const [priceToggle, setPriceToggle] = useState(false)
-  const [workingDaysToggle, setWorkingDaysToggle] = useState(false)
-
 
   const sortTypes = [
     {label:'Popularity', value:'popularity'},
@@ -559,7 +591,7 @@ export default function CounselorListingPage() {
                 <div className="flex gap-3">
                   <button
                     onClick={clearAllFilters}
-                    className="flex-1 py-3 border border-gray-300 rounded-lg text-center font-medium text-gray-700 hover:bg-gray-50"
+                    className="flex-1 py-3 border border-gray-300 rounded-lg text-center font-medium text-gray-700 hover:bg-gray-50 cursor-pointer"
                   >
                     Clear All
                   </button>
@@ -590,10 +622,13 @@ export default function CounselorListingPage() {
             </div>
 
             <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px]">
-             <div className="flex justify-between text-[#242645]">
+             <div 
+               className="flex justify-between text-[#242645] cursor-pointer" 
+               onClick={() => setExperienceToggle(!experienceToggle)}
+             >
               <p>Experience</p>
-              {experienceToggle?<ChevronDown className="w-6 h-6" onClick={() => setExperienceToggle(!experienceToggle)}/>
-              : <ChevronRight className="w-6 h-6" onClick={() => setExperienceToggle(!experienceToggle)}/>}
+              {experienceToggle?<ChevronDown className="w-6 h-6"/>
+              : <ChevronRight className="w-6 h-6"/>}
              </div>
 
              {experienceToggle && 
@@ -619,10 +654,13 @@ export default function CounselorListingPage() {
 
             
             <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px]">
-             <div className="flex justify-between text-[#242645]">
+             <div 
+               className="flex justify-between text-[#242645] cursor-pointer" 
+               onClick={() => setLanguageToggle(!languageToggle)}
+             >
               <p>Languages</p>
-              {languageToggle?<ChevronDown className="w-6 h-6" onClick={() => setLanguageToggle(!languageToggle)}/>
-              : <ChevronRight className="w-6 h-6" onClick={() => setLanguageToggle(!languageToggle)}/>}
+              {languageToggle?<ChevronDown className="w-6 h-6"/>
+              : <ChevronRight className="w-6 h-6"/>}
              </div>
 
              {languageToggle && 
@@ -645,10 +683,13 @@ export default function CounselorListingPage() {
 
             
             <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px]">
-             <div className="flex justify-between text-[#242645]">
+             <div 
+               className="flex justify-between text-[#242645] cursor-pointer" 
+               onClick={() => setCityToggle(!cityToggle)}
+             >
               <p>City</p>
-              {cityToggle?<ChevronDown className="w-6 h-6" onClick={() => setCityToggle(!cityToggle)}/>
-              : <ChevronRight className="w-6 h-6" onClick={() => setCityToggle(!cityToggle)}/>}
+              {cityToggle?<ChevronDown className="w-6 h-6"/>
+              : <ChevronRight className="w-6 h-6"/>}
              </div>
 
              {cityToggle && 
@@ -691,10 +732,13 @@ export default function CounselorListingPage() {
 
             
             <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px]">
-             <div className="flex justify-between text-[#242645]">
+             <div 
+               className="flex justify-between text-[#242645] cursor-pointer" 
+               onClick={() => setPriceToggle(!priceToggle)}
+             >
               <p>Price</p>
-              {priceToggle?<ChevronDown className="w-6 h-6" onClick={() => setPriceToggle(!priceToggle)}/>
-              : <ChevronRight className="w-6 h-6" onClick={() => setPriceToggle(!priceToggle)}/>}
+              {priceToggle?<ChevronDown className="w-6 h-6"/>
+              : <ChevronRight className="w-6 h-6"/>}
              </div>
 
              {priceToggle && 
@@ -734,10 +778,13 @@ export default function CounselorListingPage() {
 
             
             <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px]">
-             <div className="flex justify-between text-[#242645]">
+             <div 
+               className="flex justify-between text-[#242645] cursor-pointer" 
+               onClick={() => setWorkingDaysToggle(!workingDaysToggle)}
+             >
               <p>Working Days</p>
-              {workingDaysToggle?<ChevronDown className="w-6 h-6" onClick={() => setWorkingDaysToggle(!workingDaysToggle)}/>
-              : <ChevronRight className="w-6 h-6" onClick={() => setWorkingDaysToggle(!workingDaysToggle)}/>}
+              {workingDaysToggle?<ChevronDown className="w-6 h-6"/>
+              : <ChevronRight className="w-6 h-6"/>}
              </div>
 
              {workingDaysToggle && 
@@ -770,7 +817,7 @@ export default function CounselorListingPage() {
             
             <button
               onClick={clearAllFilters}
-              className="w-full max-w-[312px] py-3 border border-gray-300 rounded-lg text-center font-medium text-gray-700 hover:bg-gray-50"
+              className="w-full max-w-[312px] py-3 border border-gray-300 rounded-lg text-center font-medium text-gray-700 hover:bg-gray-50 cursor-pointer"
             >
               Clear All Filters
             </button>

@@ -7,16 +7,40 @@ type CounselorCardProps = {
   counselor: AllCounselor;
 };
 
+// Helper function to capitalize first letter of each name part
+const capitalizeName = (name: string) => {
+  return name
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
+// Helper function to order working days Monday to Sunday
+const orderWeekDays = (days: string[] | undefined): string => {
+  if (!days || days.length === 0) return 'No days specified';
+  
+  const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const shortDayOrder = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  
+  const orderedDays = dayOrder.filter(day => days.includes(day));
+  const orderedShortDays = shortDayOrder.filter((_day, index) => days.includes(dayOrder[index]));
+  
+  return orderedShortDays.length > 0 ? orderedShortDays.join(', ') : orderedDays.join(', ');
+};
+
 export function AllCounselorCard({ counselor }: CounselorCardProps){
-  const fullName = `${counselor.firstName || 'Unknown'} ${counselor.lastName || 'Counselor'}`;
+  const firstName = capitalizeName(counselor.firstName || 'Unknown');
+  const lastName = capitalizeName(counselor.lastName || 'Counselor');
+  const fullName = `${firstName} ${lastName}`;
   const imageUrl = counselor.photoUrlSmall || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=6B7280&color=ffffff&size=400`;
   const languages = counselor.languagesKnow || ['English'];
+  const languagesText = languages.join(' | ');
   const experience = counselor.experience ? `${counselor.experience} Years` : 'Entry Level';
   const rating = counselor.rating || 4.0;
   const reviews = parseInt(counselor.numberOfRatings || "0");
   const rateText = counselor.ratePerYear ? `${counselor.ratePerYear.toLocaleString('en-IN')} ProCoins` : '5,000 ProCoins';
   const location = counselor.city || 'Location not specified';
-  const description = languages.slice(0, 2).join(' | ');
+  const workingDays = orderWeekDays(counselor.workingDays);
 
   return (
     <div
@@ -42,7 +66,7 @@ export function AllCounselorCard({ counselor }: CounselorCardProps){
         </div>
 
         <div className=" flex flex-col text-[#8C8CA1] text-[12px] lg:text-[18px] font-medium ">
-          {description}
+          <span className="truncate" title={languagesText}>{languagesText}</span>
           <span>{location}</span>
         </div>
 
