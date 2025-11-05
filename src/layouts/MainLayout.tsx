@@ -80,7 +80,12 @@ export default function MainLayout(){
       setNeedsProfileCompletion(false);
       setIsProfileCompletionOpen(false);
 
-      if (returnToPath) {
+      // Now execute the pending action (booking/subscription) if any
+      const store = useAuthStore.getState();
+      if (store.onLoginSuccess) {
+        store.onLoginSuccess();
+        store.toggleLogin(); // Clear the callback
+      } else if (returnToPath) {
         navigate(returnToPath);
         setReturnToPath(null);
       }
@@ -92,8 +97,18 @@ export default function MainLayout(){
   const handleOnboardingComplete = () => {
     setNeedsOnboarding(false);
     
+    // Check if we need profile completion
     if (user && (!user.firstName || !user.email)) {
       setNeedsProfileCompletion(true);
+      // Don't execute onLoginSuccess yet, wait for profile completion
+      return;
+    }
+    
+    // If no profile completion needed, execute pending action
+    const store = useAuthStore.getState();
+    if (store.onLoginSuccess) {
+      store.onLoginSuccess();
+      store.toggleLogin(); // Clear the callback
     } else if (returnToPath) {
       navigate(returnToPath);
       setReturnToPath(null);

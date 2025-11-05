@@ -15,19 +15,6 @@ const capitalizeName = (name: string) => {
     .join(' ');
 };
 
-// Helper function to order working days Monday to Sunday
-const orderWeekDays = (days: string[] | undefined): string => {
-  if (!days || days.length === 0) return 'No days specified';
-  
-  const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const shortDayOrder = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  
-  const orderedDays = dayOrder.filter(day => days.includes(day));
-  const orderedShortDays = shortDayOrder.filter((_day, index) => days.includes(dayOrder[index]));
-  
-  return orderedShortDays.length > 0 ? orderedShortDays.join(', ') : orderedDays.join(', ');
-};
-
 export function AllCounselorCard({ counselor }: CounselorCardProps){
   const firstName = capitalizeName(counselor.firstName || 'Unknown');
   const lastName = capitalizeName(counselor.lastName || 'Counselor');
@@ -40,7 +27,6 @@ export function AllCounselorCard({ counselor }: CounselorCardProps){
   const reviews = parseInt(counselor.numberOfRatings || "0");
   const rateText = counselor.ratePerYear ? `${counselor.ratePerYear.toLocaleString('en-IN')} ProCoins` : '5,000 ProCoins';
   const location = counselor.city || 'Location not specified';
-  const workingDays = orderWeekDays(counselor.workingDays);
 
   return (
     <div

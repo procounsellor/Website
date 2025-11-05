@@ -256,8 +256,10 @@ export const useAuthStore = create<AuthState>()(
                 needsProfileCompletion: needsCompletion,
               });
 
-              const { onLoginSuccess } = get();
-              if (onLoginSuccess) {
+              // Only execute onLoginSuccess if user doesn't need onboarding
+              // If they need onboarding, the callback will be executed after onboarding completes
+              const { onLoginSuccess, needsOnboarding } = get();
+              if (onLoginSuccess && !needsOnboarding && !needsCompletion) {
                 onLoginSuccess();
                 set({ onLoginSuccess: null });
               }
