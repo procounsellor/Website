@@ -18,22 +18,53 @@ function adaptApiDataToCardData(apiCollege: College): CollegeCardData {
 
 export default function CollegesListingPage() {
   const { colleges, loading, error } = useColleges();
-  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Session storage key
+  const STORAGE_KEY = 'colleges_filters';
+  
+  // Load initial state from session storage
+  const loadFromStorage = () => {
+    try {
+      const stored = sessionStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.error('Error loading from session storage:', e);
+    }
+    return null;
+  };
+
+  const savedState = loadFromStorage();
+  
+  const [currentPage, setCurrentPage] = useState(savedState?.currentPage || 1);
   const ITEMS_PER_PAGE = 9;
 
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
-  const [filterCount, setFilterCount] = useState(0)
-  const [selectedSort, setSelectedSort] = useState("popularity")
-  const [citySearch, setCitySearch] = useState("")
-  const [stateSearch, setStateSearch] = useState("")
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [filterCount, setFilterCount] = useState(0);
+  const [selectedSort, setSelectedSort] = useState(savedState?.selectedSort || "popularity");
+  const [citySearch, setCitySearch] = useState("");
+  const [stateSearch, setStateSearch] = useState("");
 
-  const [cityFilters, setCityFilters] = useState<string[]>([])
-  const [stateFilters, setStateFilters] = useState<string[]>([])
-  const [typeFilters, setTypeFilters] = useState<string[]>([])
+  const [cityFilters, setCityFilters] = useState<string[]>(savedState?.cityFilters || []);
+  const [stateFilters, setStateFilters] = useState<string[]>(savedState?.stateFilters || []);
+  const [typeFilters, setTypeFilters] = useState<string[]>(savedState?.typeFilters || []);
 
-  const [cityToggle, setCityToggle] = useState(false)
-  const [stateToggle, setStateToggle] = useState(false)
-  const [typeToggle, setTypeToggle] = useState(false)
+  const [cityToggle, setCityToggle] = useState(false);
+  const [stateToggle, setStateToggle] = useState(false);
+  const [typeToggle, setTypeToggle] = useState(false);
+
+  // Save to session storage whenever filters or pagination changes
+  useEffect(() => {
+    const stateToSave = {
+      currentPage,
+      selectedSort,
+      cityFilters,
+      stateFilters,
+      typeFilters
+    };
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+  }, [currentPage, selectedSort, cityFilters, stateFilters, typeFilters]);
 
   const sortTypes = [
     {label:'Popularity', value:'popularity'},
