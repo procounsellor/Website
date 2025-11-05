@@ -187,7 +187,7 @@ export default function AppointmentPopup({
             className="flex items-center cursor-pointer justify-center border border-[#13097D] rounded-[12px] gap-1 py-1 px-6"
           >
             <img src="/buttoncal.svg" alt="" />
-            Delete
+            Cancel
           </button>
         </div>
       </div>

@@ -7,6 +7,40 @@ import EditableField from './EditableField';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 
+const LANGUAGES_OPTIONS = [
+  { label: 'English', value: 'English' },
+  { label: 'Hindi', value: 'Hindi' },
+  { label: 'Tamil', value: 'Tamil' },
+  { label: 'Kannada', value: 'Kannada' },
+  { label: 'Telugu', value: 'Telugu' },
+  { label: 'Marathi', value: 'Marathi' },
+  { label: 'Bengali', value: 'Bengali' },
+  { label: 'Malayalam', value: 'Malayalam' },
+];
+
+const WORKING_DAYS_OPTIONS = [
+  { label: 'Monday', value: 'Monday' },
+  { label: 'Tuesday', value: 'Tuesday' },
+  { label: 'Wednesday', value: 'Wednesday' },
+  { label: 'Thursday', value: 'Thursday' },
+  { label: 'Friday', value: 'Friday' },
+  { label: 'Saturday', value: 'Saturday' },
+  { label: 'Sunday', value: 'Sunday' },
+];
+
+const STATE_OPTIONS = [
+  { label: 'Maharashtra', value: 'Maharashtra' },
+  { label: 'Karnataka', value: 'Karnataka' },
+  { label: 'Delhi', value: 'Delhi' },
+  { label: 'Tamil Nadu', value: 'Tamil Nadu' },
+  { label: 'Jharkhand', value: 'Jharkhand' },
+  { label: 'West Bengal', value: 'West Bengal' },
+  { label: 'Uttar Pradesh', value: 'Uttar Pradesh' },
+  { label: 'Gujarat', value: 'Gujarat' },
+  { label: 'Rajasthan', value: 'Rajasthan' },
+  { label: 'Punjab', value: 'Punjab' },
+];
+
 interface CounselorProfileProps {
   isOpen: boolean;
   onClose: () => void;
@@ -120,16 +154,19 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
 
   if (!isOpen) return null;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    const arrayFields = ['stateOfCounsellor', 'languagesKnow', 'expertise'];
-
+    
     if (name === 'city') {
       const defaultAddress = { role: null, officeNameFloorBuildingAndArea: null, city: null, state: null, pinCode: null, latCoordinate: null, longCoordinate: null };
       setEditableData(prev => ({...prev, fullOfficeAddress: {...defaultAddress, ...prev.fullOfficeAddress, city: value,},}));
     } else {
-      setEditableData(prev => ({...prev, [name]: arrayFields.includes(name) ? value.split(',').map(item => item.trim()) : value,}));
+      setEditableData(prev => ({...prev, [name]: value,}));
     }
+  };
+
+  const handleMultiSelectChange = (name: string, value: string[]) => {
+    setEditableData(prev => ({ ...prev, [name]: value }));
   };
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,6 +195,9 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
         description: editableData.description,
         experience: editableData.experience,
         fullOfficeAddress: editableData.fullOfficeAddress,
+        workingDays: editableData.workingDays,
+        officeStartTime: editableData.officeStartTime,
+        officeEndTime: editableData.officeEndTime,
       };
       await updateProfileMutation(payload);
 
@@ -181,7 +221,7 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50 backdrop-blur-sm p-0 md:p-4">
-      <div className="relative w-full h-full md:max-w-[1000px] md:h-auto md:max-h-[95vh] overflow-y-auto bg-white rounded-none md:rounded-2xl shadow-lg p-0 md:p-10">        
+      <div className="relative w-full h-full md:max-w-[1000px] md:h-auto md:max-h-[95vh] overflow-y-auto scrollbar-hide bg-white rounded-none md:rounded-2xl shadow-lg p-0 md:p-10">        
         <div className="sticky top-0 md:static z-10 bg-white flex items-center justify-between p-4 md:p-0 border-b border-gray-100 md:border-none">
           <button
             onClick={onClose}
@@ -254,9 +294,12 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
                 <div className="flex-1 mt-2 text-center md:text-left">
                   <h3 className="text-xl md:text-2xl font-bold text-gray-800">{`${counselor.firstName} ${counselor.lastName}`}</h3>
                   <p className="text-sm md:text-base text-[#718EBF] mt-1">Career Counselor, {isEditing ? editableData.experience : counselor.experience}+ years of experience</p>
+                  
+                  {/* Show description field in view mode for desktop */}
                   <p className={`text-sm text-gray-600 mt-3 max-w-2xl ${isEditing ? 'hidden md:block' : ''}`}>
                     {isEditing ? editableData.description : counselor.description}
                   </p>
+                  
                   <div className="flex flex-col items-center md:flex-row md:items-center gap-2 md:gap-6 mt-4 text-sm">
                     <div className="flex items-center gap-2"> <span className="text-[#232323]">Email:</span> <span className="text-[#718EBF]">{counselor.email}</span> {counselor.emailOtpVerified && <CheckCircle2 size={16} className="text-green-500" />} </div>
                     <div className="flex items-center gap-2"> <span className="text-[#232323]">Contact:</span> <span className="text-[#718EBF]">{counselor.phoneNumber}</span> {counselor.phoneOtpVerified && <CheckCircle2 size={16} className="text-green-500" />} </div>
@@ -280,18 +323,95 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
 
               <hr className="my-6 md:my-8 border-t border-[#E5E5E5]" />
 
+              {/* --- EDITABLE FIELDS GRID (Updated) --- */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 md:gap-y-6">
+                
+                {/* Bio field, only visible on mobile when editing */}
                 {isEditing && (
                   <div className="block md:hidden">
-                    <EditableField label="Bio" name="description" value={editableData.description || ''} isEditing={isEditing} onChange={handleInputChange} />
+                    <EditableField 
+                      label="Bio" 
+                      name="description" 
+                      value={editableData.description || ''} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                      as="textarea" // Use textarea
+                    />
                   </div>
                 )}
                 
-                <EditableField label="Address" name="city" value={editableData.fullOfficeAddress?.city || ''} isEditing={isEditing} onChange={handleInputChange} />
-                <EditableField label="Location" name="stateOfCounsellor" value={editableData.stateOfCounsellor || []} isEditing={isEditing} onChange={handleInputChange} />
-                <EditableField label="Organisation" name="organisationName" value={editableData.organisationName || ''} isEditing={isEditing} onChange={handleInputChange} />
-                <InfoField label="Working days & Time" value={`${getWorkingDays()}, ${counselor.officeStartTime} - ${counselor.officeEndTime}`} />
-                <EditableField label="Languages" name="languagesKnow" value={editableData.languagesKnow || []} isEditing={isEditing} onChange={handleInputChange} />
+                <EditableField 
+                  label="Address" 
+                  name="city" 
+                  value={editableData.fullOfficeAddress?.city || ''} 
+                  isEditing={isEditing} 
+                  onChange={handleInputChange} 
+                  as="textarea" // Use textarea
+                />
+                
+                <EditableField 
+                  label="Location" 
+                  name="stateOfCounsellor" 
+                  value={editableData.stateOfCounsellor || []} 
+                  isEditing={isEditing}
+                  as="multiselect" // Use multiselect
+                  multiSelectOptions={STATE_OPTIONS}
+                  onMultiChange={(selected) => handleMultiSelectChange('stateOfCounsellor', selected)}
+                />
+                
+                <EditableField 
+                  label="Organisation" 
+                  name="organisationName" 
+                  value={editableData.organisationName || ''} 
+                  isEditing={isEditing} 
+                  onChange={handleInputChange} 
+                />
+
+                {/* --- Working Days & Time (Updated) --- */}
+                {isEditing ? (
+                  <div className="flex flex-col gap-y-4 md:gap-y-6">
+                    <EditableField
+                      label="Working Days"
+                      name="workingDays"
+                      as="multiselect"
+                      isEditing={isEditing}
+                      value={editableData.workingDays || []}
+                      multiSelectOptions={WORKING_DAYS_OPTIONS}
+                      onMultiChange={(selected) => handleMultiSelectChange('workingDays', selected)}
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <EditableField
+                        label="Start Time"
+                        name="officeStartTime"
+                        isEditing={isEditing}
+                        value={editableData.officeStartTime || ''}
+                        onChange={handleInputChange}
+                        type="time" // Use time input
+                      />
+                      <EditableField
+                        label="End Time"
+                        name="officeEndTime"
+                        isEditing={isEditing}
+                        value={editableData.officeEndTime || ''}
+                        onChange={handleInputChange}
+                        type="time" // Use time input
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <InfoField label="Working days & Time" value={`${getWorkingDays()}, ${counselor.officeStartTime} - ${counselor.officeEndTime}`} />
+                )}
+                
+                <EditableField 
+                  label="Languages" 
+                  name="languagesKnow" 
+                  value={editableData.languagesKnow || []} 
+                  isEditing={isEditing}
+                  as="multiselect" // Use multiselect
+                  multiSelectOptions={LANGUAGES_OPTIONS}
+                  onMultiChange={(selected) => handleMultiSelectChange('languagesKnow', selected)}
+                />
+                
                 <div>
                   <label className="text-xs md:text-sm text-[#858585] md:text-[#232323]">Subscription Plans</label>
                   <div className="mt-1 md:mt-2 flex flex-row gap-2 md:gap-4">
@@ -302,9 +422,10 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
                 </div>
               </div>
               
+              {/* --- BUTTONS (No Change) --- */}
               {isEditing && (
-                <div className="sticky bottom-0 -mx-4 -mb-4 md:mx-0 md:mb-0 p-4 md:p-0 bg-white md:bg-transparent md:mt-8 
-                              flex flex-row md:flex-col md:justify-end gap-4 border-t border-gray-100 md:border-none">
+                <div className="sticky md:static bottom-0 -mx-4 -mb-4 md:mx-0 md:mb-0 p-4 bg-white md:mt-8 
+                              flex flex-col md:flex-row md:justify-end gap-4 border-t border-gray-100">
                     <button 
                         onClick={() => setIsEditing(false)}
                         className="flex-1 md:flex-none px-6 py-2.5 md:py-2 rounded-lg border border-gray-300 text-gray-700 font-semibold block"

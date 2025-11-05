@@ -12,12 +12,17 @@ import {
 } from "@/assets/icons";
 
 export default function Footer() {
-  const { toggleCounselorSignup, role } = useAuthStore();
+  const { toggleCounselorSignup, role, user } = useAuthStore();
   
   const handleBecomeCounselor = () => {
-    if (role === 'counselor') {
+    if (role === 'counselor' && user?.verified) {
       toast.error("You are already registered as a counselor!");
       return;
+    }
+    const hasSubmitted = localStorage.getItem('hasSubmittedCounselorApp') === 'true';
+    if (hasSubmitted) {
+       toast.error("Your application is already under review.");
+       return;
     }
     toggleCounselorSignup();
   };
@@ -150,7 +155,11 @@ export default function Footer() {
             <span className="text-slate-300 hidden sm:inline">|</span>
             <Link className="font-montserrat font-medium text-xs sm:text-sm leading-none text-[#180033] hover:text-[#FA660F] transition-colors" to="/terms">Terms of Service</Link>
             <span className="text-slate-300 hidden sm:inline">|</span>
-            <Link className="font-montserrat font-medium text-xs sm:text-sm leading-none text-[#180033] hover:text-[#FA660F] transition-colors" to="/sitemap">Sitemap</Link>
+            <Link className="font-montserrat font-medium text-xs sm:text-sm leading-none text-[#180033] hover:text-[#FA660F] transition-colors" to="/cancellation-refund">Cancellation & Refund</Link>
+            <span className="text-slate-300 hidden sm:inline">|</span>
+            <Link className="font-montserrat font-medium text-xs sm:text-sm leading-none text-[#180033] hover:text-[#FA660F] transition-colors" to="/shipping-exchange">Shipping & Exchange</Link>
+            {/* <span className="text-slate-300 hidden sm:inline">|</span>
+            <Link className="font-montserrat font-medium text-xs sm:text-sm leading-none text-[#180033] hover:text-[#FA660F] transition-colors" to="/sitemap">Sitemap</Link> */}
           </div>
         </div>
       </div>

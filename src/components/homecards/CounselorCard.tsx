@@ -6,10 +6,18 @@ type CounselorCardProps = {
   counselor: AllCounselor;
 };
 
+// Helper function to capitalize first letter of each name part
+const capitalizeName = (name: string) => {
+  return name
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
 export function CounselorCard({ counselor }: CounselorCardProps) {
-  const fullName = `${counselor.firstName || "Unknown"} ${
-    counselor.lastName || "Counselor"
-  }`;
+  const firstName = capitalizeName(counselor.firstName || "Unknown");
+  const lastName = capitalizeName(counselor.lastName || "Counselor");
+  const fullName = `${firstName} ${lastName}`;
   const imageUrl =
     counselor.photoUrlSmall ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(

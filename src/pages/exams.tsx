@@ -19,21 +19,52 @@ function adaptApiDataToCardData(apiExam: Exam): ExamCardData {
 export default function ExamsListingPage() {
   const ismobile = window.matchMedia("(max:width:1024px)")
   const { exams, loading, error } = useExams();
-  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Session storage key
+  const STORAGE_KEY = 'exams_filters';
+  
+  // Load initial state from session storage
+  const loadFromStorage = () => {
+    try {
+      const stored = sessionStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.error('Error loading from session storage:', e);
+    }
+    return null;
+  };
+
+  const savedState = loadFromStorage();
+  
+  const [currentPage, setCurrentPage] = useState(savedState?.currentPage || 1);
   const ITEMS_PER_PAGE = ismobile?8:9;
 
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
-  const [filterCount, setFilterCount] = useState(0)
-  const [selectedSort, setSelectedSort] = useState("popularity")
-  const [examSearch, setExamSearch] = useState("")
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [filterCount, setFilterCount] = useState(0);
+  const [selectedSort, setSelectedSort] = useState(savedState?.selectedSort || "popularity");
+  const [examSearch, setExamSearch] = useState("");
 
-  const [levelFilters, setLevelFilters] = useState<string[]>([])
-  const [typeFilters, setTypeFilters] = useState<string[]>([])
-  const [examFilters, setExamFilters] = useState<string[]>([])
+  const [levelFilters, setLevelFilters] = useState<string[]>(savedState?.levelFilters || []);
+  const [typeFilters, setTypeFilters] = useState<string[]>(savedState?.typeFilters || []);
+  const [examFilters, setExamFilters] = useState<string[]>(savedState?.examFilters || []);
 
-  const [levelToggle, setLevelToggle] = useState(false)
-  const [typeToggle, setTypeToggle] = useState(false)
-  const [examToggle, setExamToggle] = useState(false)
+  const [levelToggle, setLevelToggle] = useState(false);
+  const [typeToggle, setTypeToggle] = useState(false);
+  const [examToggle, setExamToggle] = useState(false);
+
+  // Save to session storage whenever filters or pagination changes
+  useEffect(() => {
+    const stateToSave = {
+      currentPage,
+      selectedSort,
+      levelFilters,
+      typeFilters,
+      examFilters
+    };
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+  }, [currentPage, selectedSort, levelFilters, typeFilters, examFilters]);
 
   const sortOptions = [
     {label:'Most Popular', value:'popularity'},

@@ -18,23 +18,55 @@ function adaptApiDataToCardData(apiCourse: Course): CourseCardData {
 
 export default function CoursesListingPage() {
   const { courses, loading, error } = useCourses();
-  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Session storage key
+  const STORAGE_KEY = 'courses_filters';
+  
+  // Load initial state from session storage
+  const loadFromStorage = () => {
+    try {
+      const stored = sessionStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.error('Error loading from session storage:', e);
+    }
+    return null;
+  };
+
+  const savedState = loadFromStorage();
+  
+  const [currentPage, setCurrentPage] = useState(savedState?.currentPage || 1);
   const ITEMS_PER_PAGE = 9;
 
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
-  const [filterCount, setFilterCount] = useState(0)
-  const [selectedSort, setSelectedSort] = useState("popularity")
-  const [courseSearch, setCourseSearch] = useState("")
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [filterCount, setFilterCount] = useState(0);
+  const [selectedSort, setSelectedSort] = useState(savedState?.selectedSort || "popularity");
+  const [courseSearch, setCourseSearch] = useState("");
 
-  const [durationFilters, setDurationFilters] = useState<string[]>([])
-  const [typeFilters, setTypeFilters] = useState<string[]>([])
-  const [levelFilters, setLevelFilters] = useState<string[]>([])
-  const [courseFilters, setCourseFilters] = useState<string[]>([])
+  const [durationFilters, setDurationFilters] = useState<string[]>(savedState?.durationFilters || []);
+  const [typeFilters, setTypeFilters] = useState<string[]>(savedState?.typeFilters || []);
+  const [levelFilters, setLevelFilters] = useState<string[]>(savedState?.levelFilters || []);
+  const [courseFilters, setCourseFilters] = useState<string[]>(savedState?.courseFilters || []);
 
-  const [durationToggle, setDurationToggle] = useState(false)
-  const [typeToggle, setTypeToggle] = useState(false)
-  const [levelToggle, setLevelToggle] = useState(false)
-  const [courseToggle, setCourseToggle] = useState(false)
+  const [durationToggle, setDurationToggle] = useState(false);
+  const [typeToggle, setTypeToggle] = useState(false);
+  const [levelToggle, setLevelToggle] = useState(false);
+  const [courseToggle, setCourseToggle] = useState(false);
+
+  // Save to session storage whenever filters or pagination changes
+  useEffect(() => {
+    const stateToSave = {
+      currentPage,
+      selectedSort,
+      durationFilters,
+      typeFilters,
+      levelFilters,
+      courseFilters
+    };
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+  }, [currentPage, selectedSort, durationFilters, typeFilters, levelFilters, courseFilters]);
 
   const sortTypes = [
     {label:'Popularity', value:'popularity'},

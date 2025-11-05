@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/AuthStore';
 import type { CounselorFormData } from '@/types/counselor';
-import { sendOtp, sendEmailOtp, verifyOtp, verifyEmailOtp, counsellorSignup } from '@/api/auth';
+import { sendEmailOtp, verifyEmailOtp, counsellorSignup } from '@/api/auth';
 import ProfileDetailsStep from '@/components/counselor-signup/ProfileDetailsStep';
 import CourseSelectionStep from '@/components/counselor-signup/CourseSelectionStep';
 import StateSelectionStep from '@/components/counselor-signup/StateSelectionStep';
@@ -27,17 +27,13 @@ const initialFormData: CounselorFormData = {
   stateOfCounsellor: [],
 };
 
-type VerificationType = 'phone' | 'email' | null;
-
 export default function CounselorSignupPage() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<CounselorFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOtpModalOpen, setOtpModalOpen] = useState(false);
-  const [verificationType, setVerificationType] = useState<VerificationType>(null);
-
   const navigate = useNavigate();
-  const { toggleCounselorSignup } = useAuthStore();
+  const { toggleCounselorSignup, isCounselorSignupOpen, user } = useAuthStore();
 
   const handleNextStep = () => setStep(prev => prev + 1);
   const handlePrevStep = () => setStep(prev => prev - 1);
@@ -70,7 +66,7 @@ export default function CounselorSignupPage() {
     const payload = {
       firstName: formData.firstName,
       lastName: formData.lastName,
-      phoneNumber: formData.phoneNumber,
+      phoneNumber: user?.userName || '',
       email: formData.email,
       password: formData.password,
       organisationName: formData.organisation,
@@ -86,6 +82,10 @@ export default function CounselorSignupPage() {
     try {
       await counsellorSignup(payload);
       toast.success('Application submitted successfully! Our team will review your details.');
+      localStorage.setItem('hasSubmittedCounselorApp', 'true');
+      if (isCounselorSignupOpen) {
+        toggleCounselorSignup();
+      }
       navigate('/counselor-dashboard');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'An unexpected error occurred.');
@@ -94,21 +94,9 @@ export default function CounselorSignupPage() {
     }
   };
 
-  const handleVerifyPhone = async () => {
-    try {
-      await sendOtp(formData.phoneNumber);
-      setVerificationType('phone');
-      setOtpModalOpen(true);
-      toast.success('OTP sent to your phone!');
-    } catch (error) {
-      toast.error('Failed to send OTP. Please check the number and try again.');
-    }
-  };
-
   const handleVerifyEmail = async () => {
     try {
       await sendEmailOtp(formData.email);
-      setVerificationType('email');
       setOtpModalOpen(true);
       toast.success('OTP sent to your email!');
     } catch (error) {
@@ -118,13 +106,8 @@ export default function CounselorSignupPage() {
 
   const handleOtpVerification = async (otp: string): Promise<boolean> => {
     try {
-      if (verificationType === 'phone') {
-        await verifyOtp(formData.phoneNumber, otp);
-        setFormData(prev => ({ ...prev, phoneOtpVerified: true }));
-      } else if (verificationType === 'email') {
-        await verifyEmailOtp(formData.email, otp);
-        setFormData(prev => ({ ...prev, emailOtpVerified: true }));
-      }
+      await verifyEmailOtp(formData.email, otp);
+      setFormData(prev => ({ ...prev, emailOtpVerified: true }));
       toast.success('Verification successful!');
       setOtpModalOpen(false);
       return true;
@@ -152,7 +135,6 @@ export default function CounselorSignupPage() {
               formData={formData}
               setFormData={setFormData}
               onNext={handleNextStep}
-              onVerifyPhone={handleVerifyPhone}
               onVerifyEmail={handleVerifyEmail}
             />
           </div>
@@ -203,8 +185,8 @@ export default function CounselorSignupPage() {
   };
 
   return (
-    <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center p-4 z-40 font-montserrat">
-      <div className="w-full max-w-[932px] h-auto max-h-[90vh] bg-white rounded-2xl shadow-lg p-10 flex flex-col">
+    <div className="fixed inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center p-4 z-40 font-montserrat">
+      <div className="w-full max-w-[932px] h-auto max-h-[90vh] bg-white rounded-2xl shadow-lg p-10 flex flex-col relative">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
             <button onClick={step === 1 ? handleBackToInfoModal : handlePrevStep} className="text-[#343C6A] hover:opacity-75">
@@ -223,8 +205,7 @@ export default function CounselorSignupPage() {
         </div>
 
         <div className="border-t border-gray-200 my-4"></div>
-
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           {renderStepContent()}
         </div>
       </div>
@@ -232,12 +213,12 @@ export default function CounselorSignupPage() {
       <OtpVerificationModal
         isOpen={isOtpModalOpen}
         onClose={() => setOtpModalOpen(false)}
-        title={verificationType === 'phone' ? 'Phone Verification' : 'Email Verification'}
+        title="Email Verification"
         description="Please input the OTP sent on"
-        contactInfo={verificationType === 'phone' ? `+91-${formData.phoneNumber}` : formData.email}
-        otpLength={verificationType === 'phone' ? 4 : 6}
+        contactInfo={formData.email}
+        otpLength={6}
         onVerify={handleOtpVerification}
-        onResend={verificationType === 'phone' ? handleVerifyPhone : handleVerifyEmail}
+        onResend={handleVerifyEmail}
       />
     </div>
   );

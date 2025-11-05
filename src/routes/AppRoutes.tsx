@@ -8,6 +8,8 @@ import ContactPage from "@/pages/Contact";
 import PrivacyPolicyPage from "@/pages/PrivacyPolicy";
 import TermsPage from "@/pages/Terms";
 import SitemapPage from "@/pages/Sitemap";
+import CancellationRefundPage from "@/pages/CancellationRefund";
+import ShippingExchangePage from "@/pages/ShippingExchange";
 import AddCollegePage from "@/pages/AddCollege";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import ExternalPrivacyPage from "@/pages/external/Privacy";
@@ -62,6 +64,8 @@ export default function AppRoutes(){
                                 <Route path="/contact" element={<ContactPage/>} />
                                 <Route path="/privacy-policy" element={<PrivacyPolicyPage/>} />
                                 <Route path="/terms" element={<TermsPage/>} />
+                                <Route path="/cancellation-refund" element={<CancellationRefundPage/>} />
+                                <Route path="/shipping-exchange" element={<ShippingExchangePage/>} />
                                 <Route path="/sitemap" element={<SitemapPage/>} />
                                 <Route path="/add-college" element={<AddCollegePage/>} />
                                 <Route path="/exams/:id" element={<ExamDetailsPage />} />
