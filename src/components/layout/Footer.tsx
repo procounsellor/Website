@@ -36,7 +36,7 @@ export default function Footer() {
               <img
                 src="/logo.png"
                 alt="Logo"
-                className="h-8 sm:h-10 lg:h-12 object-contain flex-shrink-0"
+                className="h-8 sm:h-10 lg:h-12 object-contain rounded-md flex-shrink-0"
               />
               <div className="flex flex-col leading-tight">
                 <h1 className="text-xl sm:text-2xl font-bold text-orange-600">ProCounsel</h1>

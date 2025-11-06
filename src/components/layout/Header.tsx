@@ -108,7 +108,7 @@ const handleProfileNavigation = () => {
 
         <div className="Logo flex items-center cursor-pointer" onClick={() => navigate('/')}>
         <SmartImage src="/logo.png" alt="procounsel_logo" 
-          className="h-7 w-7 md:w-11 md:h-12"
+          className="h-7 w-7 md:w-11 md:h-12 rounded-md"
           width={44}
           height={44}
           priority
