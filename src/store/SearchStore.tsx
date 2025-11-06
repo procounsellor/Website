@@ -48,7 +48,7 @@ export const useSearchStore = create<SearchState>()(
             academicApi.getExams().catch(() => []),
             academicApi.getColleges().catch(() => []),
             academicApi.getCourses().catch(() => []),
-            academicApi.getAllCounsellors().catch(() => [])
+            academicApi.getLoggedOutCounsellors().catch(() => [])
           ]);
 
           const results: SearchResult[] = [];
