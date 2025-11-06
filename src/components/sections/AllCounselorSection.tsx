@@ -95,7 +95,7 @@ export function AllCounselorSection() {
             <Button 
               variant="outline" 
               className="font-semibold border-2 border-black/50 text-black/80 hover:bg-black hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
-              onClick={() => navigate('/counselors')}
+              onClick={() => navigate('/counsellors')}
             >
               See All <img src="/seeAll.svg" className="h-6"/>
             </Button>
@@ -175,7 +175,7 @@ export function AllCounselorSection() {
              <Button 
               variant="outline" 
               className="group hidden lg:flex hover:cursor-pointer font-semibold border-2 border-black/50 text-black/80 hover:bg-black hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
-              onClick={() => navigate('/counselors')}
+              onClick={() => navigate('/counsellors')}
             >
               See All <img src="/seeAll.svg" className="h-6 ml-2 group-hover:filter group-hover:invert"/>
             </Button>
@@ -189,7 +189,7 @@ export function AllCounselorSection() {
                   key={counselor.counsellorId}
                   className="flex-shrink-0 w-[170px] lg:w-[282px]"
                 >
-                  <Link to={`/counsellors-profile`} state={{ id: counselor.counsellorId }} className="block">
+                  <Link to={`/counsellor-profile`} state={{ id: counselor.counsellorId }} className="block">
                     <AllCounselorCard counselor={counselor} />
                   </Link>
                 </div>
