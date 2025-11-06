@@ -92,7 +92,7 @@ export function CounselorSection() {
           <Button
             variant="outline"
             className="group hidden lg:flex hover:cursor-pointer font-semibold border-2 border-black/50 text-black/80 hover:bg-black hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
-            onClick={() => navigate("/counselors")}
+            onClick={() => navigate("/counsellors")}
           >
             See All
             <img
@@ -103,7 +103,7 @@ export function CounselorSection() {
 
           <a
             className="flex gap-2 lg:hidden items-center cursor-pointer"
-            onClick={() => navigate("/counselors")}
+            onClick={() => navigate("/counsellors")}
           >
             See All
             <img src="/seeAll.svg" className="h-5" />
