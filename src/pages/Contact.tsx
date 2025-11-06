@@ -109,12 +109,11 @@ export default function ContactPage() {
                   <div className="bg-gray-50 rounded-lg p-4">
                     <div className="text-gray-700 leading-relaxed">
                       <p className="font-medium text-gray-900 mb-2">CATALYSTAI TECHNOLOGY PRIVATE LIMITED</p>
-                      <p>Office No. 327, 3rd Floor</p>
-                      <p>Geras Imperium Rise</p>
-                      <p>MIDC Phase 2 Main Road</p>
-                      <p>Near Geras Imperium Rise Plaza</p>
-                      <p>Hinjawadi, Pune</p>
-                      <p>Maharashtra - 411057, India</p>
+                      <p>The Address Commercia</p>
+                      <p>Shop No. 427</p>
+                      <p>Near Hinjewadi Bridge</p>
+                      <p>Wakad-411057</p>
+                      <p>Maharashtra, India</p>
                     </div>
                   </div>
                   <div className="flex items-center">

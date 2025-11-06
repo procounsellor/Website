@@ -9,7 +9,8 @@ export type CatalogCardProps = {
   className?: string;
   city?: string;
   mh?:string,
-  dh?:string
+  dh?:string,
+  onClick?: () => void;
 };
 
 export function AcademicCard({
@@ -20,15 +21,17 @@ export function AcademicCard({
   badge,
   city,
   mh,
-  dh
+  dh,
+  onClick
 
 }: CatalogCardProps) {
   return (
     <div
+      onClick={onClick}
       className={`flex flex-col justify-start items-center w-[170px] lg:w-[282px] bg-white ${mh? mh : 'h-[222px]'}
       ${dh? dh :'lg:h-[353px]'}
       shadow-[0px_0px_4px_0px_#23232340] rounded-[12px] lg:rounded-[20px] transition-all duration-300 
-      hover:shadow-lg p-[10px] gap-2 relative overflow-hidden`}
+      hover:shadow-lg p-[10px] gap-2 relative overflow-hidden ${onClick ? 'cursor-pointer' : ''}`}
     >
       <div className={`relative w-[146px] lg:w-[262px] flex-shrink-0 ${mh ? 'h-[120px]' : 'h-[139px]'} lg:h-[248px]`}>
         <img

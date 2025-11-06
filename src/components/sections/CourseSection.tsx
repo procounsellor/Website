@@ -76,8 +76,7 @@ export function CourseSection() {
   }, [emblaApi, updateSelectedIndex]);
 
   const handleCourseClick = (courseId: string) => {
-    console.log("Course clicked:", courseId);
-    // TODO: Navigate to course details page
+    navigate(`/courses/${courseId}`);
   };
 
   if (loading) {
@@ -147,7 +146,6 @@ export function CourseSection() {
               {courses?.map((course)=>(
                 <div key={course.id}
                 className="flex-shrink-0 w-[170px] lg:w-[282px]"
-                onClick={()=> handleCourseClick(course.id)}
                 >
                   <AcademicCard
                   imageAlt={course.name}
@@ -155,6 +153,7 @@ export function CourseSection() {
                   title={course.name}
                   badge={course.level}
                   ctaLabel="View Course"
+                  onClick={() => handleCourseClick(course.id)}
                   />
                 </div>
               ))}

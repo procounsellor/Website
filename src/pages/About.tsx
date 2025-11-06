@@ -121,7 +121,7 @@ export default function AboutPage() {
                   <p className="text-gray-700">
                     <strong>Email:</strong> hr@procounsel.co.in<br />
                     <strong>Phone:</strong> 7004789484, 9470988669<br />
-                    <strong>Location:</strong> CATALYSTAI TECHNOLOGY PRIVATE LIMITED, Office No. 327, 3rd Floor, Geras Imperium Rise, MIDC Phase 2 Main Road, Near Gears Imperium Rise Plaza, Hinjawadi, Pune, Maharashtra - 411057
+                    <strong>Location:</strong> The Address Commercia, Shop No. 427, Near Hinjewadi Bridge, Wakad-411057, Maharashtra, India
                   </p>
                 </div>
               </div>

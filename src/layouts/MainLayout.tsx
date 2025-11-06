@@ -145,12 +145,18 @@ export default function MainLayout(){
           isOpen={isProfileCompletionOpen}
           onClose={() => {
             console.log('🚪 MainLayout: Closing profile modal via X button');
+            // Only allow closing if not mandatory or if profile is complete
+            if (!user.firstName || !user.email) {
+              console.log('⚠️ Profile completion is mandatory, cannot close');
+              return;
+            }
             setIsProfileCompletionOpen(false);
             setNeedsProfileCompletion(false);
           }}
           user={user}
           onUpdate={handleProfileUpdate}
           onUploadComplete={() => {}}
+          isMandatory={needsProfileCompletion} // Pass mandatory flag
         />
       )}
       

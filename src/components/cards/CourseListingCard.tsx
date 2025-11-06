@@ -1,4 +1,5 @@
 import { Briefcase } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export type CourseCardData = {
   id: string;
@@ -14,7 +15,7 @@ type CourseCardProps = {
 
 export function CourseCard({ course }: CourseCardProps){
   return (
-    <div className="flex w-full max-w-sm flex-col overflow-hidden cursor-pointer rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg">
+    <Link to={`/courses/${course.id}`} className="flex w-full max-w-sm flex-col overflow-hidden cursor-pointer rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg">
       <div className="relative">
         <img
           src={course.imageUrl}
@@ -37,14 +38,11 @@ export function CourseCard({ course }: CourseCardProps){
         </div>
 
         <div className="mt-4 border-t border-gray-100 pt-3 text-center">
-          <a
-            href="#"
-            className="text-sm font-semibold underline text-[#718EBF] hover:text-blue-800"
-          >
+          <span className="text-sm font-semibold underline text-[#718EBF] hover:text-blue-800">
             View Course
-          </a>
+          </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
