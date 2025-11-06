@@ -98,7 +98,7 @@ export default function Footer() {
                     onClick={handleBecomeCounselor} 
                     className="block cursor-pointer font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors text-left w-full"
                   >
-                    Become a Counselor?
+                    Become a Counsellor?
                   </button>
                 </li>
               </ul>
