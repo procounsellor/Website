@@ -31,13 +31,29 @@ async function fetcher<T>(endpoint: string): Promise<T> {
   return res.json();
 }
 
+async function authFetcher<T>(endpoint: string, token: string): Promise<T> {
+  if (!API_CONFIG.baseUrl) {
+    throw new Error('API base URL not configured.');
+  }
+  
+  const res = await fetch(`${API_CONFIG.baseUrl}${endpoint}`, {
+    headers: {
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  if (!res.ok) throw new Error("API error");
+  return res.json();
+}
+
 export const academicApi = {
   getColleges: () => fetcher<CollegeApiResponse[]>(API_CONFIG.endpoints.getColleges),
   getExams: () => fetcher<ExamApiResponse[]>(API_CONFIG.endpoints.getExams),
   getExamById: (id: string) => fetcher<any>(`/api/exams/getExamById?examId=${id}`),
   getCourses: () => fetcher<CourseApiResponse[]>(API_CONFIG.endpoints.getCourses),
   getCounsellors: () => fetcher<CounsellorApiResponse[]>(API_CONFIG.endpoints.getCounsellors),
-  getAllCounsellors: () => fetcher<AllCounselor[]>(API_CONFIG.endpoints.getCounsellors), // Use same endpoint but expect new format
+  getLoggedOutCounsellors: () => fetcher<AllCounselor[]>(`/api/shared/getAllCounsellors`),
+  getLoggedInCounsellors: (userId: string, token: string) => authFetcher<AllCounselor[]>(`/api/user/counsellorsAccordingToInterestedCourse/all?userName=${userId}`, token),
   getCounselorById: (id: string) => fetcher<CounselorDetails>(`${API_CONFIG.endpoints.getCounsellorById}?counsellorId=${id}`),
   getCounselorNonAvailability: async (userId: string, counsellorId: string) => {
   const token = localStorage.getItem('jwt');

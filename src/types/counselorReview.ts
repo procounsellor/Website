@@ -8,4 +8,5 @@ export interface CounselorReview {
     seconds: number;
     nanos: number;
   };
+  userName: string;
 }

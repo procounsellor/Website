@@ -38,7 +38,10 @@ function transformAllCounselorData(apiData: AllCounselor): AllCounselor {
     plan: apiData.plan || null,
     subscriptionMode: apiData.subscriptionMode || null,
     numberOfRatings: apiData.numberOfRatings || "0",
-    states: apiData.states || []
+    states: apiData.states || [],
+    plusAmount: apiData.plusAmount,
+    proAmount: apiData.proAmount,
+    eliteAmount: apiData.eliteAmount,
   };
 }
 
@@ -76,6 +79,8 @@ export function useCounselors(limit?: number) {
 export function useAllCounselors(limit?: number) {
   const userId = useAuthStore((state) => state.userId);
   const role = useAuthStore((state) => state.role);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const token = localStorage.getItem('jwt');
 
   const {
     data,
@@ -84,8 +89,13 @@ export function useAllCounselors(limit?: number) {
     error: queryError,
     refetch,
   } = useQuery({
-    queryKey: ["counselors", "all", { role, userId }],
-    queryFn: academicApi.getAllCounsellors,
+    queryKey: ["counselors", "all", { isAuthenticated, role, userId }],
+    queryFn: () => {
+      if (isAuthenticated && userId && token) {
+        return academicApi.getLoggedInCounsellors(userId, token);
+      }
+      return academicApi.getLoggedOutCounsellors();
+    },
     select: (apiData) => {
       let transformedData = apiData.map(transformAllCounselorData);
       if (role === "counselor" && userId) {
