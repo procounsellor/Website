@@ -265,7 +265,7 @@ export default function CounselorDashboard() {
                 </div>
 
                 <p className="text-sm md:text-lg text-[#718EBF] font-medium">
-                  Career Counselor
+                  Career Counsellor
                 </p>
               </div>
             </div>

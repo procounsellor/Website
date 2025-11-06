@@ -1,6 +1,4 @@
-// src/components/counselor-dashboard/CounselorTransactionCard.tsx
-
-import type { Transaction } from '@/types/earnings'; // Changed from @/types/user
+import type { Transaction } from '@/types/earnings';
 import { ArrowDownCircle, ArrowUpCircle, XCircle } from 'lucide-react';
 
 interface TransactionCardProps {
@@ -67,11 +65,30 @@ const CounselorTransactionCard: React.FC<TransactionCardProps> = ({ transaction 
       icon = <ArrowDownCircle className="w-10 h-10 text-[#28A745] sm:w-12 sm:h-12 bg-[#28A74526] rounded-full p-1.5 sm:p-2 flex-shrink-0" />;
       amountColor = 'text-[#28A745]';
 
-      mobileLine1 = 'Funds Added From';
-      mobileLine2 = 'Bank';
+      let creditSource = 'Bank';
+      const description = transaction.description;
 
-      desktopTitle = 'Funds Added From';
-      desktopDescription = 'Bank';
+      if (description) {
+          const lowerDesc = description.toLowerCase();
+          
+          if (lowerDesc.startsWith('received from ')) {
+              const extractedName = description.substring(14).trim();
+              if (extractedName) {
+                  creditSource = extractedName;
+              }
+          } else if (lowerDesc.startsWith('offline subscription received from user: ')) {
+              const extractedName = description.substring(41).trim();
+              if (extractedName) {
+                  creditSource = extractedName;
+              }
+          }
+      }
+
+      mobileLine1 = 'ProCoins Transeffered From';
+      mobileLine2 = creditSource;
+
+      desktopTitle = 'ProCoins Transeferred From';
+      desktopDescription = creditSource;
 
     } else { // debit
       icon = <ArrowUpCircle className="w-10 h-10 text-blue-500 sm:w-12 sm:h-12 bg-blue-50 rounded-full p-1.5 sm:p-2 flex-shrink-0" />;
