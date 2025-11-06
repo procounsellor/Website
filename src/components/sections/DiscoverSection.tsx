@@ -43,7 +43,7 @@ export function DiscoverSection(){
     switch(tag.toLowerCase()) {
       case 'counsellors':
       case 'counselors':
-        navigate('/counselors');
+        navigate('/counsellors');
         break;
       case 'colleges':
         navigate('/colleges');
