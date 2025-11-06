@@ -229,8 +229,9 @@ export default function ShippingExchangePage() {
                     <div>
                       <p className="text-sm text-gray-600">Office Address</p>
                       <p className="text-gray-700 text-sm">
-                        Office No. 327, 3rd Floor, Geras Imperium Rise, MIDC Phase 2,<br />
-                        Main Road, Hinjawadi, Pune, Maharashtra - 411057
+                        The Address Commercia, Shop No. 427,<br />
+                        Near Hinjewadi Bridge, Wakad-411057,<br />
+                        Maharashtra, India
                       </p>
                     </div>
                   </div>

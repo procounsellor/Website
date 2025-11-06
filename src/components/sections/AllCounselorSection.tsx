@@ -170,7 +170,7 @@ export function AllCounselorSection() {
             <h2 className="font-semibold text-[16px] lg:text-[28px]">
               Counsellors
             </h2>
-            <a className="flex gap-2 lg:hidden cursor-pointer" onClick={() => navigate('/counselors')}>See All <img src="/seeAll.svg" className="h-5"/></a>
+            <a className="flex gap-2 lg:hidden cursor-pointer" onClick={() => navigate('/counsellors')}>See All <img src="/seeAll.svg" className="h-5"/></a>
 
              <Button 
               variant="outline" 

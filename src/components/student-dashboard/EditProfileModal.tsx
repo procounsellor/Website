@@ -12,9 +12,10 @@ interface EditProfileModalProps {
   onClose: () => void;
   onUpdate: (updatedData: { firstName: string; lastName: string; email: string }) => Promise<void>;
   onUploadComplete: () => void;
+  isMandatory?: boolean; // New prop to indicate if this is mandatory after first login
 }
 
-const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClose, onUpdate }) => {
+const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClose, onUpdate, isMandatory = false }) => {
   const [firstName, setFirstName] = useState(user.firstName);
   const [lastName, setLastName] = useState(user.lastName);
   const [email, setEmail] = useState(user.email);
@@ -25,6 +26,21 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const handleClose = () => {
+    // If mandatory, only allow closing if name and email are filled
+    if (isMandatory) {
+      if (!firstName.trim() || !email.trim()) {
+        toast.error('Please complete your profile with name and email before continuing.');
+        return;
+      }
+      if (email !== user.email && !isEmailVerified) {
+        toast.error('Please verify your email before continuing.');
+        return;
+      }
+    }
+    onClose();
+  };
 
   useEffect(() => {
     if (user) {
@@ -129,8 +145,6 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
       await onUpdate({ firstName, lastName, email });
       console.log('✅ Profile updated successfully');
       
-      toast.success('Profile saved successfully!');
-      
       // The parent component (MainLayout) will handle closing the modal
       // by calling toggleProfileCompletion() after successful update
       onClose();
@@ -176,10 +190,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
       />
       <div className="md:hidden h-full w-full bg-[#F5F5F7] flex flex-col">
         <header className="flex-shrink-0 flex items-center p-4 bg-white border-b border-gray-200">
-          <button onClick={onClose} className="p-2 mr-2">
+          <button onClick={handleClose} className="p-2 mr-2" type="button">
             <ChevronLeft size={24} className="text-gray-700" />
           </button>
           <h2 className="text-lg font-semibold text-[#343C6A]">Edit Profile</h2>
+          {isMandatory && (
+            <span className="ml-auto text-xs text-orange-600 font-medium">Required</span>
+          )}
         </header>
 
         <div className="flex-grow overflow-y-auto p-8">
@@ -187,11 +204,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-[10px] font-semibold text-[#2F303280] mb-1">First Name</label>
+              <label className="block text-[10px] font-semibold text-[#2F303280] mb-1">
+                First Name {isMandatory && <span className="text-red-500">*</span>}
+              </label>
               <input 
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
+                required={isMandatory}
                 className="w-full h-11 px-4 bg-white border border-[#EFEFEF] rounded-xl text-base text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -205,12 +225,15 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
               />
             </div>
             <div>
-              <label className="block text-[10px] font-semibold text-[#2F303280] mb-1">Email</label>
+              <label className="block text-[10px] font-semibold text-[#2F303280] mb-1">
+                Email {isMandatory && <span className="text-red-500">*</span>}
+              </label>
               <div className="relative h-11">
                 <input 
                   type="email"
                   value={email}
                   onChange={handleEmailChange}
+                  required={isMandatory}
                   className="h-full w-full px-4 pr-20 bg-white border border-[#EFEFEF] rounded-xl text-base text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
                 />
                 <button 
@@ -243,20 +266,28 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
         onClick={(e) => e.stopPropagation()}
         className="hidden md:block relative w-[747px] h-auto bg-[#F5F7FA] rounded-2xl shadow-lg border border-[#EFEFEF] py-6 px-[42px]"
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
+        <button onClick={handleClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-800" type="button">
           <X size={24} />
         </button>
-        <h2 className="text-2xl font-bold text-[#343C6A] mb-8">Edit Profile</h2>
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl font-bold text-[#343C6A]">Edit Profile</h2>
+          {isMandatory && (
+            <span className="text-sm text-orange-600 font-medium">* Required fields</span>
+          )}
+        </div>
         <div className="bg-gradient-to-b from-[#8586a76c] to-white/50 rounded-2xl p-7">
           <ProfilePicture />
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-semibold text-[#2F303280] mb-2">First Name</label>
+                <label className="block text-xs font-semibold text-[#2F303280] mb-2">
+                  First Name {isMandatory && <span className="text-red-500">*</span>}
+                </label>
                 <input 
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
+                  required={isMandatory}
                   className="w-full h-12 px-3 bg-white border border-[#EFEFEF] rounded-xl text-base text-[#718EBF] placeholder-[#718EBF]"
                 />
               </div>
@@ -270,12 +301,15 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-[#2F303280] mb-2">Email</label>
+                <label className="block text-xs font-semibold text-[#2F303280] mb-2">
+                  Email {isMandatory && <span className="text-red-500">*</span>}
+                </label>
                 <div className="relative h-12">
                   <input 
                     type="email"
                     value={email}
                     onChange={handleEmailChange}
+                    required={isMandatory}
                     placeholder="shubham@gmail.com"
                     className="w-full h-full px-3 pr-20 bg-white border border-[#EFEFEF] rounded-xl text-base text-[#718EBF] placeholder-[#718EBF]"
                   />

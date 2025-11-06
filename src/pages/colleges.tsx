@@ -220,10 +220,10 @@ export default function CollegesListingPage() {
   };
 
   return (
-    <div className="bg-gray-50 pt-20 min-h-screen overflow-x-auto">
+    <div className="bg-gray-50 pt-20 min-h-screen">
       <main className="container mx-auto px-4 py-4">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
-          <aside className="flex lg:block">
+        <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
+          <aside className="lg:w-[312px] lg:flex-shrink-0 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)]">
             <div className="flex justify-center gap-6 items-center px-4 h-14 w-full sm:hidden">
               <div className="text-[#13097D] text-[16px] flex items-center gap-2">
                 <img src="./filter.svg" alt="filter_icon" className="w-6 h-6" />
@@ -411,7 +411,7 @@ export default function CollegesListingPage() {
             )}
 
             
-            <div className={`${mobileFilterOpen ? 'flex' : 'hidden'} lg:flex flex-col gap-6`}>
+            <div className={`${mobileFilterOpen ? 'flex' : 'hidden'} lg:flex flex-col gap-6 overflow-y-auto scrollbar-thin w-full`}>
               <div className="flex justify-between w-full h-full max-w-[312px] max-h-[88px] 
                 p-5 bg-white border-[1px] border-[#E6E6E6] rounded-[8px]"
               >
@@ -425,7 +425,7 @@ export default function CollegesListingPage() {
               </div>
 
               
-              <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px]">
+              <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
                 <div className="flex justify-between text-[#242645]">
                   <p>City</p>
                   {cityToggle ? <ChevronDown className="w-6 h-6" onClick={() => setCityToggle(!cityToggle)}/> 
@@ -468,7 +468,7 @@ export default function CollegesListingPage() {
               </div>
 
               
-              <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px]">
+              <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
                 <div className="flex justify-between text-[#242645]">
                   <p>State</p>
                   {stateToggle ? <ChevronDown className="w-6 h-6" onClick={() => setStateToggle(!stateToggle)}/> 
@@ -511,7 +511,7 @@ export default function CollegesListingPage() {
               </div>
 
               
-              <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px]">
+              <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
                 <div className="flex justify-between text-[#242645]">
                   <p>Type</p>
                   {typeToggle ? <ChevronDown className="w-6 h-6" onClick={() => setTypeToggle(!typeToggle)}/> 
@@ -545,7 +545,7 @@ export default function CollegesListingPage() {
             </div>
           </aside>
 
-          <section className="col-span-1 lg:col-span-3">
+          <section className="flex-1 lg:min-w-0">
             <div className="flex justify-between">
               <h1 className="flex flex-col gap-2 mb-6 text-[16px] text-2xl font-bold">Discover colleges tailored to you.
                 <span className="text-[#8C8CA1] font-medium text-[14px] lg:text-[20px]">Filter by city, state, type and rankings to find the best fit.</span>
