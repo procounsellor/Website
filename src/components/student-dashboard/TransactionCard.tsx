@@ -65,17 +65,17 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
       icon = <ArrowDownCircle className="w-10 h-10 text-[#28A745] sm:w-12 sm:h-12 bg-[#28A74526] rounded-full p-1.5 sm:p-2 flex-shrink-0" />;
       amountColor = 'text-[#28A745]';
 
-      mobileLine1 = 'Funds Added From';
+      mobileLine1 = 'Purchased ProCoins From';
       mobileLine2 = 'Bank';
 
-      desktopTitle = 'Funds Added From';
+      desktopTitle = 'Purchased ProCoins From';
       desktopDescription = 'Bank';
 
     } else {
       icon = <ArrowUpCircle className="w-10 h-10 text-blue-500 sm:w-12 sm:h-12 bg-blue-50 rounded-full p-1.5 sm:p-2 flex-shrink-0" />;
-      mobileLine1 = 'Paid to';
+      mobileLine1 = 'Transferred to';
       mobileLine2 = (transaction.description || '').replace(/^Paid to /i, '');
-      desktopTitle = transaction.description || 'Paid to Procounsel';
+      desktopTitle = (transaction.description || 'Transeffered to Procounsel').replace(/^Paid to /i, 'Transeffered to ');
       desktopDescription = 'Procounsel';
     }
 

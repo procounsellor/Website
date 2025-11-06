@@ -79,13 +79,9 @@ export function AllCounselorCard({ counselor }: CounselorCardProps){
           width={44}
           height={44}
           />
-          <span className="text-[12px] lg:font-semibold text-[#343c6a] text-center">{rateText}<span>/Hour</span></span>
+          <span className="text-[12px] lg:font-semibold text-[#343c6a] text-center">{rateText}</span>
         </div>
-      
-
        </div>
-
-
     </div>
   )
 }

@@ -4,7 +4,9 @@ import type { CounselorProfileData } from '@/types/counselorProfile';
 import { X, Edit, CheckCircle2, Loader2, PenSquare, ChevronLeft } from 'lucide-react';
 import type { User } from '@/types/user';
 import EditableField from './EditableField';
+import EditableWorkSchedule from './EditableWorkSchedule';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { generateTimeSlots } from '@/utils/time';
 import toast from 'react-hot-toast';
 
 const LANGUAGES_OPTIONS = [
@@ -29,16 +31,42 @@ const WORKING_DAYS_OPTIONS = [
 ];
 
 const STATE_OPTIONS = [
-  { label: 'Maharashtra', value: 'Maharashtra' },
-  { label: 'Karnataka', value: 'Karnataka' },
-  { label: 'Delhi', value: 'Delhi' },
-  { label: 'Tamil Nadu', value: 'Tamil Nadu' },
-  { label: 'Jharkhand', value: 'Jharkhand' },
-  { label: 'West Bengal', value: 'West Bengal' },
-  { label: 'Uttar Pradesh', value: 'Uttar Pradesh' },
+  { label: 'Andhra Pradesh', value: 'Andhra Pradesh' },
+  { label: 'Arunachal Pradesh', value: 'Arunachal Pradesh' },
+  { label: 'Assam', value: 'Assam' },
+  { label: 'Bihar', value: 'Bihar' },
+  { label: 'Chhattisgarh', value: 'Chhattisgarh' },
+  { label: 'Goa', value: 'Goa' },
   { label: 'Gujarat', value: 'Gujarat' },
-  { label: 'Rajasthan', value: 'Rajasthan' },
+  { label: 'Haryana', value: 'Haryana' },
+  { label: 'Himachal Pradesh', value: 'Himachal Pradesh' },
+  { label: 'Jharkhand', value: 'Jharkhand' },
+  { label: 'Karnataka', value: 'Karnataka' },
+  { label: 'Kerala', value: 'Kerala' },
+  { label: 'Madhya Pradesh', value: 'Madhya Pradesh' },
+  { label: 'Maharashtra', value: 'Maharashtra' },
+  { label: 'Manipur', value: 'Manipur' },
+  { label: 'Meghalaya', value: 'Meghalaya' },
+  { label: 'Mizoram', value: 'Mizoram' },
+  { label: 'Nagaland', value: 'Nagaland' },
+  { label: 'Odisha', value: 'Odisha' },
   { label: 'Punjab', value: 'Punjab' },
+  { label: 'Rajasthan', value: 'Rajasthan' },
+  { label: 'Sikkim', value: 'Sikkim' },
+  { label: 'Tamil Nadu', value: 'Tamil Nadu' },
+  { label: 'Telangana', value: 'Telangana' },
+  { label: 'Tripura', value: 'Tripura' },
+  { label: 'Uttar Pradesh', value: 'Uttar Pradesh' },
+  { label: 'Uttarakhand', value: 'Uttarakhand' },
+  { label: 'West Bengal', value: 'West Bengal' },
+  { label: 'Andaman and Nicobar Islands', value: 'Andaman and Nicobar Islands' },
+  { label: 'Chandigarh', value: 'Chandigarh' },
+  { label: 'Dadra and Nagar Haveli and Daman and Diu', value: 'Dadra and Nagar Haveli and Daman and Diu' },
+  { label: 'Delhi', value: 'Delhi' },
+  { label: 'Jammu and Kashmir', value: 'Jammu and Kashmir' },
+  { label: 'Ladakh', value: 'Ladakh' },
+  { label: 'Lakshadweep', value: 'Lakshadweep' },
+  { label: 'Puducherry', value: 'Puducherry' },
 ];
 
 interface CounselorProfileProps {
@@ -48,14 +76,6 @@ interface CounselorProfileProps {
   token: string;
 }
 
-const InfoField = ({ label, value }: { label: string; value: string }) => (
-  <div>
-    <label className="text-xs md:text-sm text-[#232323]">{label}</label>
-    <div className="mt-1 md:mt-2 w-full min-h-[48px] md:min-h-[40px] flex items-center px-4 py-2 rounded-lg md:rounded-md border border-[#EFEFEF] md:border-gray-200 bg-[#F9FAFB] md:bg-white cursor-not-allowed">
-      <p className="font-normal md:font-medium text-sm md:text-base text-[#718EBF]">{value}</p>
-    </div>
-  </div>
-);
 const SubscriptionPlan = ({ 
   name, price, seats, textColor, backgroundGradient, borderGradient }
   : { 
@@ -81,6 +101,9 @@ const SubscriptionPlan = ({
         </div> 
       </div>
     );
+
+const START_TIME_OPTIONS = generateTimeSlots(8, 11, 30);
+const END_TIME_OPTIONS = generateTimeSlots(15, 20, 30);
 
 export default function CounselorProfile({ isOpen, onClose, user, token }: CounselorProfileProps) {
   const [isEditing, setIsEditing] = useState(false);
@@ -154,7 +177,7 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
 
   if (!isOpen) return null;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
     if (name === 'city') {
@@ -230,7 +253,7 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
             <ChevronLeft size={24} />
           </button>
           <h2 className="font-semibold text-lg md:text-2xl text-[#343C6A] md:absolute md:left-10 md:top-10">
-            {isEditing ? 'Edit Profile' : 'Counselor Profile'}
+            {isEditing ? 'Edit Profile' : 'Counsellor Profile'}
           </h2>
           <div className="md:absolute md:top-7 md:right-7">
             {!isEditing ? (
@@ -293,9 +316,8 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
 
                 <div className="flex-1 mt-2 text-center md:text-left">
                   <h3 className="text-xl md:text-2xl font-bold text-gray-800">{`${counselor.firstName} ${counselor.lastName}`}</h3>
-                  <p className="text-sm md:text-base text-[#718EBF] mt-1">Career Counselor, {isEditing ? editableData.experience : counselor.experience}+ years of experience</p>
+                  <p className="text-sm md:text-base text-[#718EBF] mt-1">Career Counsellor, {isEditing ? editableData.experience : counselor.experience}+ years of experience</p>
                   
-                  {/* Show description field in view mode for desktop */}
                   <p className={`text-sm text-gray-600 mt-3 max-w-2xl ${isEditing ? 'hidden md:block' : ''}`}>
                     {isEditing ? editableData.description : counselor.description}
                   </p>
@@ -335,7 +357,7 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
                       value={editableData.description || ''} 
                       isEditing={isEditing} 
                       onChange={handleInputChange} 
-                      as="textarea" // Use textarea
+                      as="textarea"
                     />
                   </div>
                 )}
@@ -346,7 +368,7 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
                   value={editableData.fullOfficeAddress?.city || ''} 
                   isEditing={isEditing} 
                   onChange={handleInputChange} 
-                  as="textarea" // Use textarea
+                  as="textarea"
                 />
                 
                 <EditableField 
@@ -354,7 +376,7 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
                   name="stateOfCounsellor" 
                   value={editableData.stateOfCounsellor || []} 
                   isEditing={isEditing}
-                  as="multiselect" // Use multiselect
+                  as="multiselect"
                   multiSelectOptions={STATE_OPTIONS}
                   onMultiChange={(selected) => handleMultiSelectChange('stateOfCounsellor', selected)}
                 />
@@ -367,47 +389,24 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
                   onChange={handleInputChange} 
                 />
 
-                {/* --- Working Days & Time (Updated) --- */}
-                {isEditing ? (
-                  <div className="flex flex-col gap-y-4 md:gap-y-6">
-                    <EditableField
-                      label="Working Days"
-                      name="workingDays"
-                      as="multiselect"
-                      isEditing={isEditing}
-                      value={editableData.workingDays || []}
-                      multiSelectOptions={WORKING_DAYS_OPTIONS}
-                      onMultiChange={(selected) => handleMultiSelectChange('workingDays', selected)}
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                      <EditableField
-                        label="Start Time"
-                        name="officeStartTime"
-                        isEditing={isEditing}
-                        value={editableData.officeStartTime || ''}
-                        onChange={handleInputChange}
-                        type="time" // Use time input
-                      />
-                      <EditableField
-                        label="End Time"
-                        name="officeEndTime"
-                        isEditing={isEditing}
-                        value={editableData.officeEndTime || ''}
-                        onChange={handleInputChange}
-                        type="time" // Use time input
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <InfoField label="Working days & Time" value={`${getWorkingDays()}, ${counselor.officeStartTime} - ${counselor.officeEndTime}`} />
-                )}
+                {/* --- Working Days & Time --- */}
+                <EditableWorkSchedule 
+                  isEditing={isEditing}
+                  data={editableData}
+                  onChange={handleInputChange}
+                  onMultiChange={handleMultiSelectChange}
+                  daysOptions={WORKING_DAYS_OPTIONS}
+                  startTimeOptions={START_TIME_OPTIONS}
+                  endTimeOptions={END_TIME_OPTIONS}
+                  displayValue={isLoading || !counselor ? 'Loading...' : `${getWorkingDays()}, ${counselor.officeStartTime} - ${counselor.officeEndTime}`}
+                />
                 
                 <EditableField 
                   label="Languages" 
                   name="languagesKnow" 
                   value={editableData.languagesKnow || []} 
                   isEditing={isEditing}
-                  as="multiselect" // Use multiselect
+                  as="multiselect"
                   multiSelectOptions={LANGUAGES_OPTIONS}
                   onMultiChange={(selected) => handleMultiSelectChange('languagesKnow', selected)}
                 />
@@ -422,7 +421,6 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
                 </div>
               </div>
               
-              {/* --- BUTTONS (No Change) --- */}
               {isEditing && (
                 <div className="sticky md:static bottom-0 -mx-4 -mb-4 md:mx-0 md:mb-0 p-4 bg-white md:mt-8 
                               flex flex-col md:flex-row md:justify-end gap-4 border-t border-gray-100">

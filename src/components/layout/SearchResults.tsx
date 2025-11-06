@@ -28,7 +28,7 @@ export function SearchResults({ onResultClick }: SearchResultsProps) {
   const handleResultClick = (result: SearchResult) => {
     switch(result.type) {
       case 'counselor': {
-        navigate('/counselors/profile', { state: { id: result.id } });
+        navigate('/counsellor-profile', { state: { id: result.id } });
         break;
       }
       case 'college': {

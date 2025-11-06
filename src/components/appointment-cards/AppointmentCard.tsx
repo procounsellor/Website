@@ -442,7 +442,7 @@ export default function AppointmentCard({
   }
 
   return (
-    <div className="fixed inset-0 bg-[#232323]/50 md:backdrop-blur-sm flex items-center justify-center md:p-4 z-100" onClick={() => onClose?.()}>
+    <div className="fixed inset-0 bg-[#232323]/50 md:backdrop-blur-sm flex items-center justify-center md:p-4 z-60" onClick={() => onClose?.()}>
       <div onClick={(e) => e.stopPropagation()} className="bg-[#F5F7FA] w-full h-full md:h-auto flex flex-col md:max-w-[747px] md:max-h-[667px] md:rounded-[16px] relative p-4 md:p-[42px] pb-[86px] gap-6 overflow-hidden">
         <style>{`
           .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }

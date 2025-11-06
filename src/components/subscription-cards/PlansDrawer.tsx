@@ -111,7 +111,7 @@ export default function PlansDrawer({
       toast.success(isUpgrade ? 'Upgrade successful! Redirecting...' : 'Subscription successful! Redirecting...', { id: toastId });
 
       setTimeout(() => {
-        navigate(`/counselors/profile`, { state: { id: counselor.userName } });
+        navigate(`/counsellor-profile`, { state: { id: counselor.userName } });
         onClose();
       }, 1500);
 

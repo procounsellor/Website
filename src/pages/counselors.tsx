@@ -3,7 +3,7 @@ import { useAllCounselors } from "@/hooks/useCounselors";
 import type { AllCounselor } from "@/types/academic";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { ChevronDown, ChevronRight, Search, X } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Pagination from "@/components/ui/Pagination";
 import { useAuthStore } from "@/store/AuthStore";
 import { addFav } from "@/api/counsellor";
@@ -110,6 +110,8 @@ export default function CounselorListingPage() {
   const [priceToggle, setPriceToggle] = useState(false);
   const [workingDaysToggle, setWorkingDaysToggle] = useState(false);
 
+  const isMounted = useRef(false);
+
   // Save to session storage whenever filters or pagination changes
   useEffect(() => {
     const stateToSave = {
@@ -190,7 +192,11 @@ export default function CounselorListingPage() {
                   (minPrice ? 1 : 0) + 
                   (maxPrice ? 1 : 0)
     setFilterCount(count);
-    setCurrentPage(1);
+    if (isMounted.current) {
+    setCurrentPage((prev: number) => prev);
+  } else {
+    isMounted.current = true;
+  }
   }, [experienceFilters, languageFilters, cityFilters, selected, minPrice, maxPrice])
 
   useEffect(() => {
