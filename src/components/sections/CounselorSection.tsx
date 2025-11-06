@@ -123,7 +123,7 @@ export function CounselorSection() {
           counselors?.map((counselor) => (
               <div key={counselor.counsellorId}
             className="flex-shrink-0 w-[170px] lg:w-[282px] ">
-              <Link to={`/counselors/profile`} state={{ id: counselor.counsellorId }} className="block">
+              <Link to={`/counsellor-profile`} state={{ id: counselor.counsellorId }} className="block">
                 <CounselorCard counselor={counselor}/>
               </Link>
             </div>
