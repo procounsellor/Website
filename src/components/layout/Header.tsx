@@ -86,9 +86,9 @@ export default function Header(){
 
 const handleProfileNavigation = () => {
     if (user?.role === 'counsellor') {
-        navigate('/counselor-dashboard');
+        navigate('/counsellor-dashboard');
     } else {
-        navigate('/dashboard/student');
+        navigate('/dashboard-student');
     }
     setIsDropdownOpen(false);
 };

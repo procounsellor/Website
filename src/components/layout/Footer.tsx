@@ -82,7 +82,7 @@ export default function Footer() {
                   <a href="/exams" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Exams</a>
                 </li>
                 <li>
-                  <a href="/counselors" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Counselors</a>
+                  <a href="/counsellors" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Counsellors</a>
                 </li>
                 <li>
                   <a href="/about" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">About Us</a>
