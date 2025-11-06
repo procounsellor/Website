@@ -38,7 +38,7 @@ export function DashboardCounselorCard({ counselor }: CounselorCardProps){
         <div className="flex items-center gap-2 mt-2">
           <img src='/Procoin.jpg' alt="procoin_icon" className="w-5 h-5 sm:w-6 sm:h-6 -mt-2"/>
           <span className="text-xs sm:text-sm text-nowrap font-semibold text-[#343c6a] -mt-1.5">
-            {counselor.ratePerYear?.toLocaleString('en-IN') ?? 'N/A'} ProCoins/Hour
+            {counselor.ratePerYear?.toLocaleString('en-IN') ?? 'N/A'} ProCoins
           </span>
         </div>
       </div>
