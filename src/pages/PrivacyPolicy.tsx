@@ -143,7 +143,7 @@ export default function PrivacyPolicyPage() {
                 <p className="text-gray-700 mb-2"><strong>Name:</strong> Aswini Verma </p>
                 <p className="text-gray-700 mb-2"><strong>Designation:</strong> Grievance Officer, ProCounsel</p>
                 <p className="text-gray-700 mb-2"><strong>Email:</strong> support@procounsel.co.in </p>
-                <p className="text-gray-700"><strong>Address:</strong> Office No. 327, 3rd Floor, Geras Imperium Rise, MIDC Phase 2 Main Road, Near Gears Imperium Rise Plaza, Hinjawadi, Pune, Maharashtra - 411057</p>
+                <p className="text-gray-700"><strong>Address:</strong> The Address Commercia, Shop No. 427, Near Hinjewadi Bridge, Wakad-411057, Maharashtra, India</p>
               </div>
 
               <h3 className="text-2xl font-semibold text-gray-700 mt-6 mb-4">Cookie & Tracking Policy</h3>
@@ -155,7 +155,7 @@ export default function PrivacyPolicyPage() {
                 <p className="text-gray-700 mb-2"><strong>CatalystAI Technology Private Limited</strong></p>
                 <p className="text-gray-700 mb-2"><strong>Email:</strong> hr@procounsel.co.in</p>
                 <p className="text-gray-700 mb-2"><strong>Website:</strong> www.procounsel.co.in</p>
-                <p className="text-gray-700"><strong>Address:</strong> Office No. 327, 3rd Floor, Geras Imperium Rise, MIDC Phase 2 Main Road, Near Gears Imperium Rise Plaza, Hinjawadi, Pune, Maharashtra - 411057</p>
+                <p className="text-gray-700"><strong>Address:</strong> The Address Commercia, Shop No. 427, Near Hinjewadi Bridge, Wakad-411057, Maharashtra, India</p>
               </div>
             </section>
             

@@ -6,23 +6,47 @@ interface OutOfOfficeCardProps {
 }
 
 export function OutOfOfficeCard({ outOfOffice }: OutOfOfficeCardProps) {
-    const isActive = () => {
+    const getOooStatus = (): 'Active' | 'Past' | 'Upcoming' => {
         const now = new Date();
-        const currentDate = now.toISOString().split('T')[0];
-        const currentTime = now.toTimeString().slice(0, 5);
-
         const startDateTime = new Date(`${outOfOffice.startDate}T${outOfOffice.startTime}`);
         const endDateTime = new Date(`${outOfOffice.endDate}T${outOfOffice.endTime}`);
-        const nowDateTime = new Date(`${currentDate}T${currentTime}`);
 
-        return nowDateTime >= startDateTime && nowDateTime <= endDateTime;
+        if (now > endDateTime) {
+            return 'Past';
+        }
+        if (now >= startDateTime && now <= endDateTime) {
+            return 'Active';
+        }
+        return 'Upcoming';
     };
 
-    const active = isActive();
-    const badgeColor = active ? '#FA660F' : '#28A745';
-    const badgeBgColor = active ? '#FA660F26' : '#28A74526';
-    const badgeText = active ? 'Active' : 'Upcoming';
-    const badgeFontWeight = active ? 600 : 700;
+    const status = getOooStatus();
+
+    let badgeColor: string;
+    let badgeBgColor: string;
+    let badgeText: string;
+    let badgeFontWeight: number;
+
+    switch (status) {
+        case 'Active':
+            badgeColor = '#FA660F';
+            badgeBgColor = '#FA660F26';
+            badgeText = 'Active';
+            badgeFontWeight = 600;
+            break;
+        case 'Past':
+            badgeColor = '#6C757D';
+            badgeBgColor = '#6C757D26';
+            badgeText = 'Past';
+            badgeFontWeight = 600;
+            break;
+        default:
+            badgeColor = '#28A745';
+            badgeBgColor = '#28A74526';
+            badgeText = 'Upcoming';
+            badgeFontWeight = 700;
+            break;
+    }
 
     const formatDate = (dateStr: string) => {
         const date = new Date(dateStr);

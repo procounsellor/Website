@@ -125,7 +125,6 @@ export function CollegeSection() {
               {colleges?.map((college)=>(
                 <div key={college.id}
                 className="flex-shrink-0 w-[170px] lg:w-[282px]"
-                onClick={()=> console.log(college.id)}
                 >
                   <AcademicCard
                   imageAlt={college.name}
@@ -136,6 +135,7 @@ export function CollegeSection() {
                   city={college.city}
                   mh="h-[230px]"
                   dh="lg:h-[382px]"
+                  onClick={() => navigate(`/colleges/${college.id}`)}
                   />
                 </div>
               ))}

@@ -9,6 +9,7 @@ import { FeaturedCollegesCard } from '@/components/shared/FeaturedCollegesCard';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/AuthStore';
 import { getSubscribedCounsellors, addFav, postReview, getReviewsByCounselorId } from '@/api/counsellor';
+import { updateUserReview } from '@/api/review';
 import toast from 'react-hot-toast';
 import type { CounselorReview } from '@/types/counselorReview';
 import type { SubscribedCounsellor } from '@/types/user';
@@ -35,6 +36,7 @@ export default function CounselorDetailsPage() {
 
   const [subscriptionDetails, setSubscriptionDetails] = useState<SubscribedCounsellor | null>(null);
   const [reviews, setReviews] = useState<CounselorReview[]>([]);
+  const [userReview, setUserReview] = useState<CounselorReview | null>(null);
   const [loadingData, setLoadingData] = useState(true);
   const [isFavourite, setIsFavourite] = useState(false);
   const [isTogglingFavourite, setIsTogglingFavourite] = useState(false);
@@ -58,9 +60,16 @@ export default function CounselorDetailsPage() {
     try {
       const fetchedReviews = await getReviewsByCounselorId(userId, computedId, token);
       setReviews(fetchedReviews);
+      if (userId && role !== "counselor") {
+        const foundReview = fetchedReviews.find(r => r.userName === userId);
+        setUserReview(foundReview || null);
+      } else {
+        setUserReview(null);
+      }
     } catch (error) {
       console.error("Failed to fetch reviews:", error);
       setReviews([]);
+      setUserReview(null);
     }
   };
 
@@ -107,9 +116,16 @@ export default function CounselorDetailsPage() {
       if (results[1].status === "fulfilled") {
         const fetchedReviews = results[1].value;
         setReviews(fetchedReviews);
+        if (userId && (role as string) !== "counselor") {
+            const foundReview = fetchedReviews.find(r => r.userName === userId); 
+            setUserReview(foundReview || null);
+          } else {
+            setUserReview(null);
+          }
       } else {
         console.error("Failed to fetch reviews (this may be expected if none exist):", results[1].reason);
         setReviews([]);
+        setUserReview(null);
       }
 
     } catch (err) {
@@ -157,6 +173,7 @@ export default function CounselorDetailsPage() {
         seconds: Math.floor(Date.now() / 1000),
         nanos: 0,
       },
+      userName: userId,
     };
     setReviews(prevReviews => [optimisticReview, ...prevReviews]);
     const loadingToastId = toast.loading("Submitting review...");
@@ -183,6 +200,41 @@ export default function CounselorDetailsPage() {
       toast.error((err as Error).message || "Could not post review.");
       setReviews(prevReviews => prevReviews.filter(r => r.reviewId !== optimisticReview.reviewId));
       console.error("Submit Review Error:", err);
+    }
+  };
+
+  const handleUpdateReview = async (reviewText: string, rating: number) => {
+    if (!userId || !computedId || !token || !userReview) {
+      toast.error("You must be logged in to update a review.");
+      return;
+    }
+
+    if (!userReview.reviewId) {
+      toast.error("Could not find review ID to update.");
+      return;
+    }
+
+    const loadingToastId = toast.loading("Updating review...");
+    try {
+      const payload = {
+        reviewId: userReview.reviewId,
+        userId,
+        counsellorId: computedId,
+        reviewText,
+        rating,
+      };
+
+      await updateUserReview(payload, token);
+      
+      toast.dismiss(loadingToastId);
+      toast.success("Review updated successfully!");
+
+      await fetchReviews();
+
+    } catch (err) {
+      toast.dismiss(loadingToastId);
+      toast.error((err as Error).message || "Could not update review.");
+      console.error("Update Review Error:", err);
     }
   };
 
@@ -248,6 +300,8 @@ export default function CounselorDetailsPage() {
               isSubscribed={!!subscriptionDetails}
               counsellorId={computedId}
               onSubmitReview={handleSubmitReview}
+              userReview={userReview}
+              onUpdateReview={handleUpdateReview}
             />
         </div>
 

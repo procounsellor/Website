@@ -270,6 +270,9 @@ export interface AllCounselor {
   subscriptionMode?: string | null;
   numberOfRatings?: string;
   states?: string[];
+  plusAmount?: number;
+  proAmount?: number;
+  eliteAmount?: number;
 }
 
 export interface CousrseApiLogin{

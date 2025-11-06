@@ -19,6 +19,8 @@ import { SubscriptionPage } from '@/pages/SubscriptionPage';
 import RechargeWallet from '@/pages/RechargeWallet';
 import CounselorDashboard from '@/pages/CounselorDashboard';
 import CounselorSignupPage from '@/pages/CounselorSignupPage';
+import CollegeDetailsPage from '@/pages/CollegeDetails';
+import CourseDetailsPage from '@/pages/CourseDetails';
 const CollegesListingPage = lazy(() => import('@/pages/colleges'));
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const CoursesListingPage = lazy(() => import('@/pages/courses'));
@@ -29,9 +31,6 @@ const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
 
 
 
-
-const CollegeDetail = () => <div className="p-8 text-center">College profile coming soon — full listing and admission details will appear here.</div>;
-const CourseDetail = () => <div className="p-8 text-center">Course overview coming soon — syllabus, duration and career outcomes will appear here.</div>;
 
 export default function AppRoutes(){
     return(
@@ -56,9 +55,9 @@ export default function AppRoutes(){
                                 <Route path="/counsellors" element={<CounselorListingPage/>} />
                                 <Route path="/counsellor-profile" element={<CounselorDetailsPage/>} />
                                 <Route path="/courses" element={<CoursesListingPage/>} />
-                                <Route path="/courses/:id" element={<CourseDetail/>} />
+                                <Route path="/courses/:id" element={<CourseDetailsPage/>} />
                                 <Route path="/colleges" element={<CollegesListingPage />} />
-                                <Route path="/colleges/:id" element={<CollegeDetail/>} />
+                                <Route path="/colleges/:id" element={<CollegeDetailsPage/>} />
                                 <Route path="/exams" element={<ExamsListingPage />} />
                                 <Route path="/about" element={<AboutPage/>} />
                                 <Route path="/contact" element={<ContactPage/>} />

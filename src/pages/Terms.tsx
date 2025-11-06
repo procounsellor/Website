@@ -260,7 +260,7 @@ export default function TermsPage() {
                 <p className="text-gray-700 mb-2"><strong>Company:</strong> CatalystAI Technology Private Limited</p>
                 <p className="text-gray-700 mb-2"><strong>Email:</strong> grievance@procounsel.co.in</p>
                 <p className="text-gray-700 mb-2"><strong>Website:</strong> www.procounsel.co.in</p>
-                <p className="text-gray-700"><strong>Address:</strong> Office No. 327, 3rd Floor, Geras Imperium Rise, MIDC Phase 2 Main Road, Near Gears Imperium Rise Plaza, Hinjawadi, Pune, Maharashtra – 411057</p>
+                <p className="text-gray-700"><strong>Address:</strong> The Address Commercia, Shop No. 427, Near Hinjewadi Bridge, Wakad-411057, Maharashtra, India</p>
               </div>
             </section>
           </div>
