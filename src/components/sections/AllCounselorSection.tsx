@@ -189,7 +189,7 @@ export function AllCounselorSection() {
                   key={counselor.counsellorId}
                   className="flex-shrink-0 w-[170px] lg:w-[282px]"
                 >
-                  <Link to={`/counselors/profile`} state={{ id: counselor.counsellorId }} className="block">
+                  <Link to={`/counsellors-profile`} state={{ id: counselor.counsellorId }} className="block">
                     <AllCounselorCard counselor={counselor} />
                   </Link>
                 </div>
