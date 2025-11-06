@@ -40,7 +40,7 @@ export default function MainLayout(){
 
   useEffect(() => {
     if (isAuthenticated && role === 'counselor' && location.pathname === '/') {
-      navigate('/counselor-dashboard');
+      navigate('/counsellor-dashboard');
     }
   }, [isAuthenticated, role, location.pathname, navigate]);
 

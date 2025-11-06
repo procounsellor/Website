@@ -31,7 +31,7 @@ export default function RechargeWallet() {
       setReturnToPath(location.pathname);
       toggleProfileCompletion();
       toast.error("Please complete your profile before recharging your wallet.");
-      navigate('/dashboard/student');
+      navigate('/dashboard-student');
       return;
     }
     setPanelOpen(true);

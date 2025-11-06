@@ -38,7 +38,7 @@ export default function InfoModal() {
     if (isAuthenticated && role === 'counselor' && user?.verified) {
       toast.error("You are already registered as a counselor.");
       toggleCounselorSignup();
-      navigate('/counselor-dashboard');
+      navigate('/counsellor-dashboard');
       return;
     }
     const hasSubmitted = localStorage.getItem('hasSubmittedCounselorApp') === 'true';
@@ -53,14 +53,14 @@ export default function InfoModal() {
       
       const redirectToCounselorSignup = () => {
         toggleCounselorSignup();
-        navigate('/counselor-signup');
+        navigate('/counsellor-signup');
       };
       toggleCounselorSignup();
       toggleLogin(redirectToCounselorSignup);
       toast.error("Please log in to become a counsellor.");
     } else {
       toggleCounselorSignup();
-      navigate('/counselor-signup');
+      navigate('/counsellor-signup');
     }
   };
 
@@ -126,7 +126,7 @@ export default function InfoModal() {
                   <button
                     onClick={() => {
                       toggleCounselorSignup();
-                      navigate('/counselor-dashboard');
+                      navigate('/counsellor-dashboard');
                     }}
                     className="px-6 py-3 bg-[#13097D] text-white rounded-xl font-semibold hover:bg-[#13097D]/90 transition-colors"
                   >
@@ -135,7 +135,7 @@ export default function InfoModal() {
                   <button
                     onClick={() => {
                       toggleCounselorSignup();
-                      navigate('/counselors');
+                      navigate('/counsellors');
                     }}
                     className="px-6 py-3 bg-[#FA660F] text-white rounded-xl font-semibold hover:bg-orange-600 transition-colors"
                   >

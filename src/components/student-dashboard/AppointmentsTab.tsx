@@ -83,7 +83,7 @@ const AppointmentsTab: React.FC = () => {
   };
 
   const handleNavigateToCounselor = (counselorId: string) => {
-    navigate('/counselors/profile', { state: { id: counselorId } });
+    navigate('/counsellor-profile', { state: { id: counselorId } });
     setSelectedAppointment(null);
   };
   

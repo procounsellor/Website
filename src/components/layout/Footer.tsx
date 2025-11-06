@@ -34,7 +34,7 @@ export default function Footer() {
           <div className="md:col-span-4 space-y-4 sm:space-y-5">
             <div className="flex items-center gap-3">
               <img
-                src="/logo.svg"
+                src="/logo.png"
                 alt="Logo"
                 className="h-8 sm:h-10 lg:h-12 object-contain flex-shrink-0"
               />
@@ -82,7 +82,7 @@ export default function Footer() {
                   <a href="/exams" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Exams</a>
                 </li>
                 <li>
-                  <a href="/counselors" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Counsellors</a>
+                  <a href="/counsellors" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Counsellors</a>
                 </li>
                 <li>
                   <a href="/about" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">About Us</a>

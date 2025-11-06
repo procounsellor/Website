@@ -172,7 +172,7 @@ export default function Chatbot() {
                     <div ref={dropdownRef} className="absolute top-full right-0 mt-2 w-48 bg-[#2a2a2a] rounded-lg shadow-xl z-50 py-1 border border-gray-700">
                       <button
                         onClick={() => {
-                          navigate("/dashboard/student");
+                          navigate("/dashboard-student");
                           setIsDropdownOpen(false);
                           toggleChatbot();
                         }}
@@ -258,7 +258,7 @@ export default function Chatbot() {
                       {msg.counsellors && msg.counsellors.length > 0 && (
                         <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 animate-in fade-in-50 duration-500">
                           {(msg.counsellors as any[]).map((c) => (
-                            <Link className="w-fit" to="/counselors/profile" state={{ id: c.counsellorId }} key={c.counsellorId} onClick={toggleChatbot}>
+                            <Link className="w-fit" to="/counsellor-profile" state={{ id: c.counsellorId }} key={c.counsellorId} onClick={toggleChatbot}>
                               <ChatbotCounselorCard counselor={c} />
                             </Link>
                           ))}

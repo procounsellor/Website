@@ -314,7 +314,7 @@ const OnboardingCard = ({ onComplete }: { onComplete?: () => void }) => {
           zIndex: 9999,
         }}
       /> */}
-    <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center p-2 md:p-4 z-50">
+    <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center p-2 md:p-4 z-80">
       <div className="w-full max-w-4xl rounded-2xl bg-[#F5F7FA] p-4 md:p-8 shadow-lg flex flex-col max-h-[95vh] md:max-h-[90vh] h-full">
         {step === 1 && (
           <SelectCourseStep

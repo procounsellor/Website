@@ -43,7 +43,7 @@ export function CounselorCard({ counselor, isFavourite, onToggleFavourite }: Cou
   };
 
   return (
-  <Link to={`/counselors/profile`} state={{ id: counselor.id }} className="flex h-full">
+  <Link to={`/counsellor-profile`} state={{ id: counselor.id }} className="flex h-full">
     <div className="flex w-full max-w-sm flex-col overflow-hidden rounded-lg cursor-pointer border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg">
       <div className="relative">
         <img

@@ -50,11 +50,11 @@ export default function AppRoutes(){
                      <Routes>
                         <Route path="/privacy1" element={<ExternalPrivacyPage/>} />
                         <Route path="/term1" element={<ExternalTermsPage/>} />
-                        <Route path="/counselor-signup" element={<CounselorSignupPage />} />
+                        <Route path="/counsellor-signup" element={<CounselorSignupPage />} />
                         <Route element={<MainLayout/>}>
                                 <Route path="/" element={<Home/>}/>
-                                <Route path="/counselors" element={<CounselorListingPage/>} />
-                                <Route path="/counselors/profile" element={<CounselorDetailsPage/>} />
+                                <Route path="/counsellors" element={<CounselorListingPage/>} />
+                                <Route path="/counsellor-profile" element={<CounselorDetailsPage/>} />
                                 <Route path="/courses" element={<CoursesListingPage/>} />
                                 <Route path="/courses/:id" element={<CourseDetail/>} />
                                 <Route path="/colleges" element={<CollegesListingPage />} />
@@ -70,9 +70,9 @@ export default function AppRoutes(){
                                 <Route path="/add-college" element={<AddCollegePage/>} />
                                 <Route path="/exams/:id" element={<ExamDetailsPage />} />
                                 <Route path='/subscribe' element={<SubscriptionPage/>}/>
-                                <Route path='/counselor-dashboard' element={<CounselorDashboard/>}/>
+                                <Route path='/counsellor-dashboard' element={<CounselorDashboard/>}/>
                                 <Route element={<ProtectedRoute/>}>
-                                <Route path='/dashboard/student' element={<StudentDashboardPage/>}/>
+                                <Route path='/dashboard-student' element={<StudentDashboardPage/>}/>
                                 <Route path='/wallet' element={<RechargeWallet/>}/>
                                 </Route>
                          </Route>
