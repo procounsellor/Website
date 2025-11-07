@@ -61,6 +61,7 @@ type AuthState = {
   setNeedsOnboarding: (value: boolean) => void;
   setNeedsProfileCompletion: (value: boolean) => void;
   checkProfileCompletion: () => boolean;
+  clearOnLoginSuccess: () => void;
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -94,6 +95,8 @@ export const useAuthStore = create<AuthState>()(
         if (!state.user) return true;
         return !!(state.user.firstName && state.user.email);
       },
+
+      clearOnLoginSuccess: () => set({ onLoginSuccess: null }),
 
       toggleLogin: (onSuccess?: () => void) =>
         set((state) => ({
