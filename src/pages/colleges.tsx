@@ -411,7 +411,7 @@ export default function CollegesListingPage() {
             )}
 
             
-            <div className={`${mobileFilterOpen ? 'flex' : 'hidden'} lg:flex flex-col gap-6 w-full max-h-[calc(100vh-7rem)] overflow-y-auto scrollbar-thin`}>
+            <div className={`${mobileFilterOpen ? 'flex' : 'hidden'} lg:flex flex-col gap-6 w-full max-h-[calc(100vh-7rem)] overflow-y-auto scrollbar-hide`}>
               <div className="flex justify-between w-full h-full max-w-[312px] max-h-[88px] 
                 p-5 bg-white border-[1px] border-[#E6E6E6] rounded-[8px]"
               >
