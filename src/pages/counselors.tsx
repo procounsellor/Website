@@ -366,7 +366,7 @@ export default function CounselorListingPage() {
     <div className="bg-gray-50 pt-20 min-h-screen">
       <main className="container mx-auto px-4 py-4">
         <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
-          <aside className="lg:w-[312px] lg:flex-shrink-0 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)]">
+          <aside className="lg:w-[312px] lg:flex-shrink-0 lg:sticky lg:top-24 lg:self-start">
             <div className="flex justify-center gap-6 items-center px-4 h-14 w-full sm:hidden">
               <div className="text-[#13097D] text-[16px] flex items-center gap-2">
                 <img src="./filter.svg" alt="filter_icon" className="w-6 h-6" />
@@ -612,7 +612,7 @@ export default function CounselorListingPage() {
           )}
 
           {/* Desktop Filters - Sticky Sidebar */}
-          <div className={`${mobileFilterOpen? 'flex': 'hidden'} lg:flex flex-col gap-6 overflow-y-auto scrollbar-thin w-full`}>
+          <div className={`${mobileFilterOpen? 'flex': 'hidden'} lg:flex flex-col gap-6 w-full max-h-[calc(100vh-7rem)] overflow-y-auto scrollbar-hide`}>
 
             <div className="flex justify-between w-full h-full max-w-[312px] max-h-[88px] 
             p-5 bg-white border-[1px] border-[#E6E6E6] rounded-[8px]"
@@ -631,7 +631,12 @@ export default function CounselorListingPage() {
                className="flex justify-between text-[#242645] cursor-pointer" 
                onClick={() => setExperienceToggle(!experienceToggle)}
              >
-              <p>Experience</p>
+              <div className="flex items-center gap-2">
+                <p>Experience</p>
+                {experienceFilters.length > 0 && (
+                  <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
+                )}
+              </div>
               {experienceToggle?<ChevronDown className="w-6 h-6"/>
               : <ChevronRight className="w-6 h-6"/>}
              </div>
@@ -663,7 +668,12 @@ export default function CounselorListingPage() {
                className="flex justify-between text-[#242645] cursor-pointer" 
                onClick={() => setLanguageToggle(!languageToggle)}
              >
-              <p>Languages</p>
+              <div className="flex items-center gap-2">
+                <p>Languages</p>
+                {languageFilters.length > 0 && (
+                  <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
+                )}
+              </div>
               {languageToggle?<ChevronDown className="w-6 h-6"/>
               : <ChevronRight className="w-6 h-6"/>}
              </div>
@@ -692,7 +702,12 @@ export default function CounselorListingPage() {
                className="flex justify-between text-[#242645] cursor-pointer" 
                onClick={() => setCityToggle(!cityToggle)}
              >
-              <p>City</p>
+              <div className="flex items-center gap-2">
+                <p>City</p>
+                {cityFilters.length > 0 && (
+                  <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
+                )}
+              </div>
               {cityToggle?<ChevronDown className="w-6 h-6"/>
               : <ChevronRight className="w-6 h-6"/>}
              </div>
@@ -741,7 +756,12 @@ export default function CounselorListingPage() {
                className="flex justify-between text-[#242645] cursor-pointer" 
                onClick={() => setPriceToggle(!priceToggle)}
              >
-              <p>Price</p>
+              <div className="flex items-center gap-2">
+                <p>Price</p>
+                {(minPrice || maxPrice) && (
+                  <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
+                )}
+              </div>
               {priceToggle?<ChevronDown className="w-6 h-6"/>
               : <ChevronRight className="w-6 h-6"/>}
              </div>
@@ -787,7 +807,12 @@ export default function CounselorListingPage() {
                className="flex justify-between text-[#242645] cursor-pointer" 
                onClick={() => setWorkingDaysToggle(!workingDaysToggle)}
              >
-              <p>Working Days</p>
+              <div className="flex items-center gap-2">
+                <p>Working Days</p>
+                {selected.length > 0 && (
+                  <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
+                )}
+              </div>
               {workingDaysToggle?<ChevronDown className="w-6 h-6"/>
               : <ChevronRight className="w-6 h-6"/>}
              </div>

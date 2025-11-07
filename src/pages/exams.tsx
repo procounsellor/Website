@@ -339,7 +339,7 @@ export default function ExamsListingPage() {
     <div className="bg-gray-50 pt-20 min-h-screen">
       <main className="container mx-auto px-4 py-4">
         <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
-          <aside className="lg:w-[312px] lg:flex-shrink-0 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)]">
+          <aside className="lg:w-[312px] lg:flex-shrink-0 lg:sticky lg:top-24 lg:self-start">
             <div className="flex justify-center gap-6 items-center px-4 h-14 w-full sm:hidden">
               <div className="text-[#13097D] text-[16px] flex items-center gap-2">
                 <img src="./filter.svg" alt="filter_icon" className="w-6 h-6" />
@@ -509,7 +509,7 @@ export default function ExamsListingPage() {
             )}
 
             
-            <div className={`${mobileFilterOpen ? 'flex' : 'hidden'} lg:flex flex-col gap-6 overflow-y-auto scrollbar-thin w-full`}>
+            <div className={`${mobileFilterOpen ? 'flex' : 'hidden'} lg:flex flex-col gap-6 w-full max-h-[calc(100vh-7rem)] overflow-y-auto scrollbar-hide`}>
               <div className="flex justify-between w-full h-full max-w-[312px] max-h-[88px] 
                 p-5 bg-white border-[1px] border-[#E6E6E6] rounded-[8px]"
               >
@@ -525,7 +525,12 @@ export default function ExamsListingPage() {
               
               <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
                 <div className="flex justify-between text-[#242645]">
-                  <p>Level</p>
+                  <div className="flex items-center gap-2">
+                    <p>Level</p>
+                    {levelFilters.length > 0 && (
+                      <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
+                    )}
+                  </div>
                   {levelToggle ? <ChevronDown className="w-6 h-6" onClick={() => setLevelToggle(!levelToggle)}/> 
                   : <ChevronRight className="w-6 h-6" onClick={() => setLevelToggle(!levelToggle)}/>}
                 </div>
@@ -550,7 +555,12 @@ export default function ExamsListingPage() {
               
               <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
                 <div className="flex justify-between text-[#242645]">
-                  <p>Type</p>
+                  <div className="flex items-center gap-2">
+                    <p>Type</p>
+                    {typeFilters.length > 0 && (
+                      <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
+                    )}
+                  </div>
                   {typeToggle ? <ChevronDown className="w-6 h-6" onClick={() => setTypeToggle(!typeToggle)}/> 
                   : <ChevronRight className="w-6 h-6" onClick={() => setTypeToggle(!typeToggle)}/>}
                 </div>
@@ -575,7 +585,12 @@ export default function ExamsListingPage() {
               
               <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
                 <div className="flex justify-between text-[#242645]">
-                  <p>Exams</p>
+                  <div className="flex items-center gap-2">
+                    <p>Exams</p>
+                    {examFilters.length > 0 && (
+                      <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
+                    )}
+                  </div>
                   {examToggle ? <ChevronDown className="w-6 h-6" onClick={() => setExamToggle(!examToggle)}/> 
                   : <ChevronRight className="w-6 h-6" onClick={() => setExamToggle(!examToggle)}/>}
                 </div>
