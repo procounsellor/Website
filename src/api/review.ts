@@ -32,6 +32,9 @@ export async function getUserReviews(userId: string, token: string): Promise<Rev
     });
 
     if (!response.ok) {
+      if (response.status === 404) {
+        return [];
+      }
       throw new Error(`HTTP ${response.status}: Failed to fetch user reviews.`);
     }
 

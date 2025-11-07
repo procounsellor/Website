@@ -38,12 +38,15 @@ function transformAllCounselorData(apiData: AllCounselor): AllCounselor {
     plan: apiData.plan || null,
     subscriptionMode: apiData.subscriptionMode || null,
     numberOfRatings: apiData.numberOfRatings || "0",
-    states: apiData.states || []
+    states: apiData.states || [],
+    plusAmount: apiData.plusAmount,
+    proAmount: apiData.proAmount,
+    eliteAmount: apiData.eliteAmount,
   };
 }
 
-
 export function useCounselors(limit?: number) {
+
   const userId = useAuthStore((state) => state.userId);
   const role = useAuthStore((state) => state.role);
 
@@ -76,16 +79,49 @@ export function useCounselors(limit?: number) {
 export function useAllCounselors(limit?: number) {
   const userId = useAuthStore((state) => state.userId);
   const role = useAuthStore((state) => state.role);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const authLoading = useAuthStore((state) => state.loading);
+
+  const token = typeof window !== "undefined" ? localStorage.getItem('jwt') : null;
+
+  console.log('🔍 useAllCounselors - Auth State:', {
+    userId,
+    role,
+    isAuthenticated,
+    hasToken: !!token,
+    authLoading
+  });
 
   const {
     data,
-    isLoading: loading,
+    isLoading: queryLoading,
     isError,
     error: queryError,
     refetch,
   } = useQuery({
-    queryKey: ["counselors", "all", { role, userId }],
-    queryFn: academicApi.getAllCounsellors,
+    queryKey: ["counselors", "all", { isAuthenticated, role, userId }],
+    queryFn: async () => {
+      const currentUserId = useAuthStore.getState().userId;
+      const currentRole = useAuthStore.getState().role;
+      const currentIsAuthenticated = useAuthStore.getState().isAuthenticated;
+      const currentToken = localStorage.getItem('jwt');
+
+      console.log('🚀 Query Function Executing:', {
+        currentUserId,
+        currentRole,
+        currentIsAuthenticated,
+        hasToken: !!currentToken
+      });
+
+      if (currentIsAuthenticated && currentRole === 'user' && currentUserId && currentToken) {
+        console.log('✅ Calling getLoggedInCounsellors for student:', currentUserId);
+        return academicApi.getLoggedInCounsellors(currentUserId, currentToken);
+      }
+      
+      console.log('📋 Calling getLoggedOutCounsellors');
+      return academicApi.getLoggedOutCounsellors();
+    },
+    enabled: !authLoading,
     select: (apiData) => {
       let transformedData = apiData.map(transformAllCounselorData);
       if (role === "counselor" && userId) {
@@ -101,7 +137,7 @@ export function useAllCounselors(limit?: number) {
     ? (queryError as Error)?.message || "Failed to load counselors."
     : null;
 
-  return { data, loading, error, refetch };
+  return { data, loading: authLoading || queryLoading, error, refetch };
 }
 
 export function useCounselorById(counsellorId: string) {

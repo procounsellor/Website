@@ -35,13 +35,17 @@ function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
   
 
   const experience = apiCounselor.experience || '0';
-  const experienceText = experience && experience !== '0' ? `${experience} Years Experience` : 'Entry Level';
+  let experienceText: string;
+
+  if (experience === '0' || !experience) {
+    experienceText = 'Entry Level';
+  } else if (experience.toLowerCase().includes('year')) {
+    experienceText = experience; 
+  } else {
+    experienceText = `${experience} Years Experience`;
+  }
   const languageText = languages.slice(0, 2).join(' | ');
   const specialization = [experienceText, languageText].filter(Boolean).join(' • ') || 'General Counselor';
-
-  const baseRate = apiCounselor.ratePerYear || 5000;
-  
-
   const location = apiCounselor.city || "Location not specified";
   
   const rating = apiCounselor.rating || 4.0;
@@ -59,10 +63,10 @@ function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
     languages: languages,
     availability: availability.length > 0 ? availability : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
     pricing: {
-      plus: baseRate,
-      pro: baseRate * 2,
-      elite: baseRate * 5,
-    },
+  plus: apiCounselor.plusAmount || apiCounselor.ratePerYear || 5000,
+  pro: apiCounselor.proAmount || (apiCounselor.ratePerYear || 5000) * 2,
+  elite: apiCounselor.eliteAmount || (apiCounselor.ratePerYear || 5000) * 5,
+},
   };
 }
 
@@ -299,10 +303,10 @@ export default function CounselorListingPage() {
     const sorted = [...filtered]
     switch (selectedSort) {
       case 'price-low':
-        sorted.sort((a, b) => ((a.rating || 0) * 1000 + 2000) - ((b.rating || 0) * 1000 + 2000))
+        sorted.sort((a, b) => (a.ratePerYear || 5000) - (b.ratePerYear || 5000));
         break
       case 'price-high':
-        sorted.sort((a, b) => ((b.rating || 0) * 1000 + 2000) - ((a.rating || 0) * 1000 + 2000))
+        sorted.sort((a, b) => (b.ratePerYear || 5000) - (a.ratePerYear || 5000));
         break
       case 'popularity':
       default:
@@ -312,10 +316,6 @@ export default function CounselorListingPage() {
 
     return sorted
   }
-
-
-
-
 
   const renderContent = () => {
     if (loading) {
