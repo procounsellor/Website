@@ -84,16 +84,23 @@ const AddFundsPanel: React.FC<AddFundsPanelProps> = ({ isOpen, onClose, balance,
             <div className="p-4 border border-[#EFEFEF] rounded-2xl">
               <input
                 type="number"
+                min={0}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
+
                 placeholder="₹ Enter Amount"
-                className="w-full h-[40px] bg-[#F5F5F5] border border-[#EFEFEF] rounded-[10px] text-center text-lg font-semibold placeholder:text-[#23232380] focus:outline-none focus:ring-2 focus:ring-[#13097D]"
+                className="w-full no-spinner h-[40px] bg-[#F5F5F5] border border-[#EFEFEF] rounded-[10px] text-center text-lg font-semibold placeholder:text-[#23232380] focus:outline-none focus:ring-2 focus:ring-[#13097D]"
               />
               <div className="flex flex-wrap justify-center md:justify-between my-4 gap-2">
                 {presetAmounts.map((preset) => (
                   <button
                     key={preset}
-                    onClick={() => setAmount(String(preset))}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const currentAmount = Number(amount) || 0;
+                      setAmount(String(currentAmount + preset));
+                    }}
                     className="flex-1 min-w-[100px] h-[40px] border border-[#13097D] rounded-[10px] text-[#13097D] font-semibold text-sm text-center hover:bg-[#13097D] hover:text-white transition-colors md:flex-none md:w-[117px]"
                   >
                     + {formatCurrency(preset)}
