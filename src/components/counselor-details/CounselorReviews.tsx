@@ -262,7 +262,6 @@ export function CounselorReviews({ reviews,isSubscribed, onSubmitReview, userRev
         <div className="mt-4">
           {displayedReviews && displayedReviews.length > 0 ? (
             displayedReviews
-              .sort((a, b) => b.timestamp.seconds - a.timestamp.seconds)
               .map((review, index) => renderReviewItem(review, index, true))
           ) : (
             <p className="text-sm text-gray-500 mt-4">

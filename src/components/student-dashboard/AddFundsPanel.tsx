@@ -10,12 +10,7 @@ interface AddFundsPanelProps {
 }
 
 const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
+  return amount.toLocaleString('en-IN');
 };
 
 const AddFundsPanel: React.FC<AddFundsPanelProps> = ({ isOpen, onClose, balance, onAddMoney, isProcessing }) => {
@@ -70,10 +65,10 @@ const AddFundsPanel: React.FC<AddFundsPanelProps> = ({ isOpen, onClose, balance,
         <div className="p-6">
           <div className="mb-5">
             <h3 className="text-lg font-semibold text-[#343C6A] mb-3">
-              Available Wallet Balance
+              Available ProCoins
             </h3>
             <div className="flex items-center justify-center px-4 h-[49px] bg-white border border-[#EFEFEF] rounded-2xl">
-              <span className="font-semibold text-lg text-green-600">{balance} Pro Coins</span>
+              <span className="font-semibold text-lg text-green-600 flex items-center gap-1">{balance} <img src="/coin.svg" alt="" /></span>
             </div>
           </div>
 
@@ -82,15 +77,18 @@ const AddFundsPanel: React.FC<AddFundsPanelProps> = ({ isOpen, onClose, balance,
               Add Money to Your Wallet
             </h3>
             <div className="p-4 border border-[#EFEFEF] rounded-2xl">
-              <input
-                type="number"
-                min={0}
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-
-                placeholder="₹ Enter Amount"
-                className="w-full no-spinner h-[40px] bg-[#F5F5F5] border border-[#EFEFEF] rounded-[10px] text-center text-lg font-semibold placeholder:text-[#23232380] focus:outline-none focus:ring-2 focus:ring-[#13097D]"
-              />
+              <div className="relative flex items-center justify-center h-[40px] bg-[#F5F5F5] border border-[#EFEFEF] rounded-[10px]">
+                {amount && <img src="/coin.svg" alt="coin" className="w-5 h-5 mr-1" />}
+                <input
+                  type="number"
+                  min={0}
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="Enter Amount"
+                  className="no-spinner bg-transparent text-center text-lg font-semibold placeholder:text-[#23232380] focus:outline-none w-auto flex-shrink-0"
+                  style={{ width: amount ? `${amount.length + 1}ch` : 'auto' }}
+                />
+              </div>
               <div className="flex flex-wrap justify-center md:justify-between my-4 gap-2">
                 {presetAmounts.map((preset) => (
                   <button
@@ -101,9 +99,9 @@ const AddFundsPanel: React.FC<AddFundsPanelProps> = ({ isOpen, onClose, balance,
                       const currentAmount = Number(amount) || 0;
                       setAmount(String(currentAmount + preset));
                     }}
-                    className="flex-1 min-w-[100px] h-[40px] border border-[#13097D] rounded-[10px] text-[#13097D] font-semibold text-sm text-center hover:bg-[#13097D] hover:text-white transition-colors md:flex-none md:w-[117px]"
+                    className="flex-1 min-w-[100px] h-[40px] border border-[#13097D] rounded-[10px] text-[#13097D] font-semibold text-sm text-center hover:bg-[#13097D] hover:text-white transition-colors md:flex-none md:w-[117px] flex items-center justify-center gap-1"
                   >
-                    + {formatCurrency(preset)}
+                    + <img src="/coin.svg" alt="coin" className="w-4 h-4" /> {formatCurrency(preset)}
                   </button>
                 ))}
               </div>
