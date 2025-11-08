@@ -1,4 +1,4 @@
-import { Star, ChevronRight, Info } from 'lucide-react';
+import { Star, ChevronRight, Info, X, ChevronLeft } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import type { CounselorReview } from '@/types/counselorReview';
 import toast from 'react-hot-toast';
@@ -87,6 +87,10 @@ export function CounselorReviews({ reviews,isSubscribed, onSubmitReview, userRev
   const [reviewText, setReviewText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showAllReviewsModal, setShowAllReviewsModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const reviewsPerPage = 10;
+  
   useEffect(() => {
     if (userReview) {
       setUserRating(userReview.rating);
@@ -204,6 +208,37 @@ export function CounselorReviews({ reviews,isSubscribed, onSubmitReview, userRev
     return review.reviewId !== userReview.reviewId;
   });
 
+  const displayedReviews = otherReviews.slice(0, 5);
+  
+  const totalPages = Math.ceil(otherReviews.length / reviewsPerPage);
+  const startIndex = (currentPage - 1) * reviewsPerPage;
+  const paginatedReviews = otherReviews.slice(startIndex, startIndex + reviewsPerPage);
+
+  const renderReviewItem = (review: CounselorReview, index: number, showDivider: boolean) => (
+    <React.Fragment key={review.reviewId}>
+      {showDivider && index > 0 && <hr className="my-4 border-gray-200" />}
+      <div className="py-2">
+        <div className="flex items-start gap-3">
+          <img 
+            src={review.userPhotoUrl || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(review.userFullName || 'Procounsel User') + '&background=13097D&color=fff&size=128'} 
+            alt={review.userFullName || 'Procounsel User'} 
+            className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-start gap-2 mb-2">
+              <h4 className="font-semibold text-[#343C6A] text-base">
+                {review.userFullName || 'Procounsel User'}
+              </h4>
+              <p className="text-xs text-gray-500 whitespace-nowrap">{formatTimeAgo(review.timestamp)}</p>
+            </div>
+            <StarRating rating={review.rating} />
+            <p className="text-[#232323] text-sm font-normal mt-2 leading-relaxed">{review.reviewText}</p>
+          </div>
+        </div>
+      </div>
+    </React.Fragment>
+  );
+
   return (
     <div className="flex flex-col gap-8">
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
@@ -216,28 +251,19 @@ export function CounselorReviews({ reviews,isSubscribed, onSubmitReview, userRev
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold text-[#343C6A]">Recent Reviews</h2>
-          <a href="#" className="flex items-center gap-1 text-sm font-semibold text-[#343C6A] hover:underline">
+          <button 
+            onClick={() => setShowAllReviewsModal(true)}
+            className="flex items-center gap-1 text-sm font-semibold text-[#343C6A] hover:underline"
+          >
             See All <ChevronRight className="w-4 h-4" />
-          </a>
+          </button>
         </div>
 
         <div className="mt-4">
-          {otherReviews && otherReviews.length > 0 ? (
-            otherReviews
+          {displayedReviews && displayedReviews.length > 0 ? (
+            displayedReviews
               .sort((a, b) => b.timestamp.seconds - a.timestamp.seconds)
-              .map((review, index) => (
-                <React.Fragment key={review.reviewId}>
-                  {index > 0 && <hr className="my-4 border-gray-200" />}
-                  <div className="py-2">
-                    <div className="flex justify-between items-center">
-                      <StarRating rating={review.rating} />
-                      <p className="text-sm text-[#343C6A]">{formatTimeAgo(review.timestamp)}</p>
-                    </div>
-                    <h4 className="font-semibold text-[#343C6A] mt-2">{review.userFullName}</h4>
-                    <p className="text-[#232323] text-sm font-medium mt-1">{review.reviewText}</p>
-                  </div>
-                </React.Fragment>
-              ))
+              .map((review, index) => renderReviewItem(review, index, true))
           ) : (
             <p className="text-sm text-gray-500 mt-4">
               {userReview && reviews.length > 0 ? "No other reviews yet." : "No reviews for this counsellor yet."}
@@ -245,6 +271,79 @@ export function CounselorReviews({ reviews,isSubscribed, onSubmitReview, userRev
           )}
         </div>
       </div>
+
+      {/* All Reviews Modal */}
+      {showAllReviewsModal && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center p-4 md:p-6 border-b border-gray-200">
+              <h2 className="text-xl md:text-2xl font-bold text-[#343C6A]">All Reviews ({otherReviews.length})</h2>
+              <button 
+                onClick={() => {
+                  setShowAllReviewsModal(false);
+                  setCurrentPage(1);
+                }}
+                className="text-gray-500 hover:text-gray-700 transition"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Modal Body - Scrollable */}
+            <div className="flex-1 overflow-y-auto p-4 md:p-6">
+              {paginatedReviews
+                .sort((a, b) => b.timestamp.seconds - a.timestamp.seconds)
+                .map((review, index) => renderReviewItem(review, index, true))
+              }
+            </div>
+
+            {/* Modal Footer - Pagination */}
+            {totalPages > 1 && (
+              <div className="border-t border-gray-200 p-4 md:p-6">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <p className="text-sm text-gray-600">
+                    Showing {startIndex + 1} to {Math.min(startIndex + reviewsPerPage, otherReviews.length)} of {otherReviews.length} reviews
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      <span className="hidden sm:inline">Previous</span>
+                    </button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                            currentPage === page
+                              ? 'bg-[#13097D] text-white'
+                              : 'text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1"
+                    >
+                      <span className="hidden sm:inline">Next</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
