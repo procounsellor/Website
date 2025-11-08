@@ -78,6 +78,11 @@ export function GlobalSearchBar({
     onClose?.();
   };
 
+  const handleClearInput = () => {
+    setQuery("");
+    inputRef.current?.focus();
+  };
+
   const handleResultClick = () => {
     setShowResults(false);
     setIsFocused(false);
@@ -111,9 +116,9 @@ export function GlobalSearchBar({
             placeholder={placeholder}
             className="flex-1 text-[#232323] text-md placeholder:text-black focus:outline-none bg-transparent"
           />
-          {(query || isFocused) && (
+          {query && (
             <button
-              onClick={handleClose}
+              onClick={handleClearInput}
               className="p-1 hover:bg-gray-100 rounded-full transition-colors"
               aria-label="Clear search"
             >

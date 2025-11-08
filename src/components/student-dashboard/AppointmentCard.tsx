@@ -7,6 +7,7 @@ interface AppointmentCardProps {
   onCardClick: (appointment: Appointment) => void;
   onCancel: (appointment: Appointment) => void;
   onReschedule: (appointment: Appointment) => void;
+  interestedCourse?: string | null;
 }
 
 const formatDate = (dateString: string) => {
@@ -28,7 +29,7 @@ const formatTime = (time: string) => {
     }).format(date);
 };
 
-const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onCardClick, onCancel, onReschedule }) => {
+const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onCardClick, onCancel, onReschedule, interestedCourse }) => {
   const { counsellorFullName, counsellorPhootoSmall, date, startTime, endTime, status } = appointment;
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -128,7 +129,9 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onCardCl
           </div>
           <div>
             <h4 className="font-semibold text-base text-[#242645]">{counsellorFullName}</h4>
-            <p className="text-sm font-medium text-gray-500">Engineering Counsellor</p>
+            <p className="text-sm font-medium text-gray-500">
+              {interestedCourse ? `${interestedCourse} Counselling Session` : 'Counselling Session'}
+            </p>
           </div>
         </div>
 
@@ -170,7 +173,9 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onCardCl
                   </div>
                   <div>
                       <h4 className="font-semibold text-xl text-[#242645]">{counsellorFullName}</h4>
-                      <p className="text-base font-medium text-[#8C8CA1]">Engineering Counselling Session</p>
+                      <p className="text-base font-medium text-[#8C8CA1]">
+                        {interestedCourse ? `${interestedCourse} Counselling Session` : 'Counselling Session'}
+                      </p>
                   </div>
               </div>
 
