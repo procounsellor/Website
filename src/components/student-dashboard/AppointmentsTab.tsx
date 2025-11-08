@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { Appointment } from '@/types/appointment';
 import { useAuthStore } from '@/store/AuthStore';
 import { getUserAppointments, getUpcomingAppointments, cancelAppointment } from '@/api/appointment';
@@ -14,7 +14,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 type AppointmentFilter = 'All' | 'Upcoming' | 'Completed' | 'Cancelled';
 
 const AppointmentsTab: React.FC = () => {
-  const { userId } = useAuthStore();
+  const { userId, user, refreshUser } = useAuthStore();
   const token = localStorage.getItem('jwt');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -23,6 +23,13 @@ const AppointmentsTab: React.FC = () => {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [cancelModalAppt, setCancelModalAppt] = useState<Appointment | null>(null);
   const [rescheduleModalAppt, setRescheduleModalAppt] = useState<Appointment | null>(null);
+
+  // Refresh user data when component mounts to get latest interestedCourse
+  useEffect(() => {
+    if (userId && token) {
+      refreshUser(true);
+    }
+  }, [userId, token, refreshUser]);
 
   const allAppointmentsQuery = useQuery({
     queryKey: ['appointments', 'all', { userId }],
@@ -149,6 +156,7 @@ const AppointmentsTab: React.FC = () => {
               onCardClick={handleCardClick}
               onCancel={setCancelModalAppt}
               onReschedule={setRescheduleModalAppt}
+              interestedCourse={user?.interestedCourse}
             />
           ))}
         </div>
