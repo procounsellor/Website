@@ -2,7 +2,7 @@ import { CounselorCard, type CounselorCardData } from "@/components/cards/Counse
 import { useAllCounselors } from "@/hooks/useCounselors";
 import type { AllCounselor } from "@/types/academic";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectGroup, SelectLabel } from "@/components/ui/select";
-import { ChevronDown, ChevronRight, Search, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Search, X, Info } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import Pagination from "@/components/ui/Pagination";
 import { useAuthStore } from "@/store/AuthStore";
@@ -108,13 +108,39 @@ export default function CounselorListingPage() {
   const [minPrice, setMinPrice] = useState(savedState?.minPrice || "");
   const [maxPrice, setMaxPrice] = useState(savedState?.maxPrice || "");
 
-  const [experienceToggle, setExperienceToggle] = useState(false);
-  const [languageToggle, setLanguageToggle] = useState(false);
-  const [cityToggle, setCityToggle] = useState(false);
-  const [priceToggle, setPriceToggle] = useState(false);
-  const [workingDaysToggle, setWorkingDaysToggle] = useState(false);
+  const [experienceToggle, setExperienceToggle] = useState(savedState?.experienceToggle ?? false);
+  const [languageToggle, setLanguageToggle] = useState(savedState?.languageToggle ?? false);
+  const [cityToggle, setCityToggle] = useState(savedState?.cityToggle ?? false);
+  const [priceToggle, setPriceToggle] = useState(savedState?.priceToggle ?? false);
+  const [workingDaysToggle, setWorkingDaysToggle] = useState(savedState?.workingDaysToggle ?? false);
 
   const isMounted = useRef(false);
+
+  // Clear filters when coming from home page
+  useEffect(() => {
+    const referrer = sessionStorage.getItem('page_referrer');
+    if (referrer === '/' || referrer === '/home') {
+      // Clear all filters
+      sessionStorage.removeItem(STORAGE_KEY);
+      setCurrentPage(1);
+      setSelected([]);
+      setSelectedSort("popularity");
+      setExperienceFilters([]);
+      setLanguageFilters([]);
+      setCityFilters([]);
+      setMinPrice("");
+      setMaxPrice("");
+      setExperienceToggle(false);
+      setLanguageToggle(false);
+      setCityToggle(false);
+      setPriceToggle(false);
+      setWorkingDaysToggle(false);
+    }
+    // Store current page as referrer for next navigation
+    return () => {
+      sessionStorage.setItem('page_referrer', '/counsellors');
+    };
+  }, []);
 
   // Save to session storage whenever filters or pagination changes
   useEffect(() => {
@@ -126,12 +152,16 @@ export default function CounselorListingPage() {
       languageFilters,
       cityFilters,
       minPrice,
-      maxPrice
+      maxPrice,
+      experienceToggle,
+      languageToggle,
+      cityToggle,
+      priceToggle,
+      workingDaysToggle
     };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-  }, [currentPage, selected, selectedSort, experienceFilters, languageFilters, cityFilters, minPrice, maxPrice]);
+  }, [currentPage, selected, selectedSort, experienceFilters, languageFilters, cityFilters, minPrice, maxPrice, experienceToggle, languageToggle, cityToggle, priceToggle, workingDaysToggle]);
 
-  // Load user's favourite counselors
   useEffect(() => {
     if (user?.favouriteCounsellorIds) {
       setFavouriteIds(new Set(user.favouriteCounsellorIds));
@@ -518,7 +548,16 @@ export default function CounselorListingPage() {
                 
                 <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
                   <div className="flex justify-between text-[#242645]">
-                    <p>Price</p>
+                    <div className="flex items-center gap-2">
+                      <p>Price</p>
+                      <div className="relative group">
+                        <Info className="w-3.5 h-3.5 text-gray-400 cursor-help" />
+                        <div className="absolute left-0 top-full mt-1 hidden group-hover:flex items-center gap-1.5 bg-gray-800 text-white text-xs rounded px-2.5 py-1.5 whitespace-nowrap z-10">
+                          <span>1₹ = 1 ProCoin</span>
+                          <img src="/coin.svg" alt="coin" className="w-3 h-3 flex-shrink-0" />
+                        </div>
+                      </div>
+                    </div>
                     <button onClick={() => setPriceToggle(!priceToggle)}>
                       {priceToggle ? <ChevronDown className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
                     </button>
@@ -529,25 +568,27 @@ export default function CounselorListingPage() {
                       <div className="flex gap-3">
                         <div className="flex flex-col gap-2">
                           <p className="font-medium text-[14px]">Min Price</p>
-                          <div className="rounded-[12px] flex-1 h-[36px] border border-[#efefef] bg-white">
+                          <div className="rounded-[12px] flex-1 h-[36px] border border-[#efefef] bg-white flex items-center px-3 gap-1.5">
+                            <img src="/coin.svg" alt="coin" className="w-3.5 h-3.5 flex-shrink-0 opacity-60" />
                             <input 
                               type="text" 
                               placeholder="100"
                               value={minPrice}
                               onChange={(e) => setMinPrice(e.target.value)}
-                              className="px-3 w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold" 
+                              className="w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold" 
                             />
                           </div>
                         </div>
                         <div className="flex flex-col gap-2">
                           <p className="text-[14px] font-medium">Max Price</p>
-                          <div className="rounded-[12px] flex-1 h-[36px] border border-[#efefef] bg-white">
+                          <div className="rounded-[12px] flex-1 h-[36px] border border-[#efefef] bg-white flex items-center px-3 gap-1.5">
+                            <img src="/coin.svg" alt="coin" className="w-3.5 h-3.5 flex-shrink-0 opacity-60" />
                             <input 
                               type="text" 
                               placeholder="10000"
                               value={maxPrice}
                               onChange={(e) => setMaxPrice(e.target.value)}
-                              className="px-3 w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold" 
+                              className="w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold" 
                             />
                           </div>
                         </div>
@@ -650,7 +691,7 @@ export default function CounselorListingPage() {
                     type="checkbox" 
                     checked={experienceFilters.includes(option.id)}
                     onChange={() => toggleExperienceFilter(option.id)}
-                    className="w-5 h-5"
+                    className="w-5 h-5 cursor-pointer"
                   />
                   <p className="flex flex-col font-medium text-[14px]">
                     {option.label} 
@@ -687,7 +728,7 @@ export default function CounselorListingPage() {
                     type="checkbox" 
                     checked={languageFilters.includes(language)}
                     onChange={() => toggleLanguageFilter(language)}
-                    className="w-5 h-5"
+                    className="w-5 h-5 cursor-pointer"
                   />
                   <p className="font-medium text-[14px]">{language}</p>
                 </div>
@@ -735,7 +776,7 @@ export default function CounselorListingPage() {
                     type="checkbox" 
                     checked={cityFilters.includes(city)}
                     onChange={() => toggleCityFilter(city)}
-                    className="w-5 h-5"
+                    className="w-5 h-5 cursor-pointer"
                   />
                   <p className="font-medium text-[14px]">{city}</p>
                 </div>
@@ -758,6 +799,13 @@ export default function CounselorListingPage() {
              >
               <div className="flex items-center gap-2">
                 <p>Price</p>
+                <div className="relative group">
+                  <Info className="w-3.5 h-3.5 text-gray-400 cursor-help" />
+                  <div className="absolute left-0 top-full mt-1 hidden group-hover:flex items-center gap-1.5 bg-gray-800 text-white text-xs rounded px-2.5 py-1.5 whitespace-nowrap z-10">
+                    <span>1₹ = 1 ProCoin</span>
+                    <img src="/coin.svg" alt="coin" className="w-3 h-3 flex-shrink-0" />
+                  </div>
+                </div>
                 {(minPrice || maxPrice) && (
                   <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
                 )}
@@ -773,26 +821,28 @@ export default function CounselorListingPage() {
               <div className="flex gap-3">
                <div className="flex flex-col gap-2">
                 <p className="font-medium text-[14px]">Min Price</p>
-                <div className="rounded-[12px] w-[128px] h-[36px] border border-[#efefef] bg-white">
+                <div className="rounded-[12px] w-[128px] h-[36px] border border-[#efefef] bg-white flex items-center px-3 gap-1.5">
+                  <img src="/coin.svg" alt="coin" className="w-3.5 h-3.5 flex-shrink-0 opacity-60" />
                   <input 
                   type="text" 
                   placeholder="100"
                   value={minPrice}
                   onChange={(e) => setMinPrice(e.target.value)}
-                  className=" px-3 w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold" 
+                  className="w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold" 
                   />
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
                 <p className="text-[14px] font-medium">Max Price</p>
-                <div className="rounded-[12px] w-[128px] h-[36px] border border-[#efefef] bg-white">
+                <div className="rounded-[12px] w-[128px] h-[36px] border border-[#efefef] bg-white flex items-center px-3 gap-1.5">
+                  <img src="/coin.svg" alt="coin" className="w-3.5 h-3.5 flex-shrink-0 opacity-60" />
                   <input 
                   type="text" 
                   placeholder="10000"
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(e.target.value)}
-                  className="px-3 w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold" 
+                  className="w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold" 
                   />
                 </div>
               </div>

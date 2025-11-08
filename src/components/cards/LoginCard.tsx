@@ -127,7 +127,7 @@ const LoginCard: React.FC = () => {
               <>
                 <div className="flex items-baseline mb-4 md:mb-6">
                   <h1 className="text-2xl md:text-3xl font-semibold text-[#13097D] whitespace-nowrap">Log in or Sign up</h1>
-                  <a href="/contact" className="text-xs md:text-sm underline text-gray-500 hover:text-gray-700 ml-auto whitespace-nowrap">Need Help?</a>
+                  <a href="/contact" className="text-xs md:text-sm underline text-gray-500 hover:text-gray-700 ml-auto whitespace-nowrap cursor-pointer">Need Help?</a>
                 </div>
                 <div className="flex items-center bg-white border border-gray-300 rounded-xl w-full md:max-w-[444px] h-[44px] px-3 mb-6 md:mb-12 focus-within:border-[#FA660F] focus-within:ring-1 focus-within:ring-[#FA660F]">
                   <div className="flex items-center cursor-pointer">
@@ -165,7 +165,7 @@ const LoginCard: React.FC = () => {
                 </button>
                 
                 <p className="text-[10px] md:text-xs text-gray-500 mt-4 text-center">
-                  By continuing, you agree to Procounsel's <a href="/terms" className="underline text-black hover:text-[#FA660F]">Terms & Condition</a> and <a href="/privacy-policy" className="underline text-black hover:text-[#FA660F]">Privacy Policy</a>
+                  By continuing, you agree to Procounsel's <a href="/terms" className="underline text-black hover:text-[#FA660F] cursor-pointer">Terms & Condition</a> and <a href="/privacy-policy" className="underline text-black hover:text-[#FA660F] cursor-pointer">Privacy Policy</a>
                 </p>
               </>
             ) : (
