@@ -82,16 +82,6 @@ export function useAllCounselors(limit?: number) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const authLoading = useAuthStore((state) => state.loading);
 
-  const token = typeof window !== "undefined" ? localStorage.getItem('jwt') : null;
-
-  console.log('🔍 useAllCounselors - Auth State:', {
-    userId,
-    role,
-    isAuthenticated,
-    hasToken: !!token,
-    authLoading
-  });
-
   const {
     data,
     isLoading: queryLoading,
@@ -106,19 +96,10 @@ export function useAllCounselors(limit?: number) {
       const currentIsAuthenticated = useAuthStore.getState().isAuthenticated;
       const currentToken = localStorage.getItem('jwt');
 
-      console.log('🚀 Query Function Executing:', {
-        currentUserId,
-        currentRole,
-        currentIsAuthenticated,
-        hasToken: !!currentToken
-      });
-
       if (currentIsAuthenticated && currentRole === 'user' && currentUserId && currentToken) {
-        console.log('✅ Calling getLoggedInCounsellors for student:', currentUserId);
         return academicApi.getLoggedInCounsellors(currentUserId, currentToken);
       }
       
-      console.log('📋 Calling getLoggedOutCounsellors');
       return academicApi.getLoggedOutCounsellors();
     },
     enabled: !authLoading,

@@ -18,11 +18,9 @@ function adaptApiDataToCardData(apiCollege: College): CollegeCardData {
 
 export default function CollegesListingPage() {
   const { colleges, loading, error } = useColleges();
-  
-  // Session storage key
+
   const STORAGE_KEY = 'colleges_filters';
   
-  // Load initial state from session storage
   const loadFromStorage = () => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
@@ -50,21 +48,41 @@ export default function CollegesListingPage() {
   const [stateFilters, setStateFilters] = useState<string[]>(savedState?.stateFilters || []);
   const [typeFilters, setTypeFilters] = useState<string[]>(savedState?.typeFilters || []);
 
-  const [cityToggle, setCityToggle] = useState(false);
-  const [stateToggle, setStateToggle] = useState(false);
-  const [typeToggle, setTypeToggle] = useState(false);
+  const [cityToggle, setCityToggle] = useState(savedState?.cityToggle ?? false);
+  const [stateToggle, setStateToggle] = useState(savedState?.stateToggle ?? false);
+  const [typeToggle, setTypeToggle] = useState(savedState?.typeToggle ?? false);
 
-  // Save to session storage whenever filters or pagination changes
+  useEffect(() => {
+    const referrer = sessionStorage.getItem('page_referrer');
+    if (referrer === '/' || referrer === '/home') {
+      sessionStorage.removeItem(STORAGE_KEY);
+      setCurrentPage(1);
+      setSelectedSort("popularity");
+      setCityFilters([]);
+      setStateFilters([]);
+      setTypeFilters([]);
+      setCityToggle(false);
+      setStateToggle(false);
+      setTypeToggle(false);
+    }
+    return () => {
+      sessionStorage.setItem('page_referrer', '/colleges');
+    };
+  }, []);
+
   useEffect(() => {
     const stateToSave = {
       currentPage,
       selectedSort,
       cityFilters,
       stateFilters,
-      typeFilters
+      typeFilters,
+      cityToggle,
+      stateToggle,
+      typeToggle
     };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-  }, [currentPage, selectedSort, cityFilters, stateFilters, typeFilters]);
+  }, [currentPage, selectedSort, cityFilters, stateFilters, typeFilters, cityToggle, stateToggle, typeToggle]);
 
   const sortTypes = [
     {label:'Popularity', value:'popularity'},
@@ -91,10 +109,6 @@ export default function CollegesListingPage() {
     const allTypes = colleges.map(c => c.type).filter(Boolean) as string[]
     return [...new Set(allTypes)].sort()
   }, [colleges])
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [cityFilters, stateFilters, typeFilters]);
 
   useEffect(() => {
     const count = cityFilters.length + stateFilters.length + typeFilters.length
@@ -426,15 +440,18 @@ export default function CollegesListingPage() {
 
               
               <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
-                <div className="flex justify-between text-[#242645]">
+                <div 
+                  className="flex justify-between text-[#242645] cursor-pointer"
+                  onClick={() => setCityToggle(!cityToggle)}
+                >
                   <div className="flex items-center gap-2">
                     <p>City</p>
                     {cityFilters.length > 0 && (
                       <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
                     )}
                   </div>
-                  {cityToggle ? <ChevronDown className="w-6 h-6" onClick={() => setCityToggle(!cityToggle)}/> 
-                  : <ChevronRight className="w-6 h-6" onClick={() => setCityToggle(!cityToggle)}/>}
+                  {cityToggle ? <ChevronDown className="w-6 h-6"/> 
+                  : <ChevronRight className="w-6 h-6"/>}
                 </div>
                 {cityToggle && (
                   <div className="flex flex-col gap-[16px] text-[#232323]">
@@ -458,7 +475,7 @@ export default function CollegesListingPage() {
                           type="checkbox" 
                           checked={cityFilters.includes(city)}
                           onChange={() => toggleCityFilter(city)}
-                          className="w-5 h-5"
+                          className="w-5 h-5 cursor-pointer"
                         />
                         <p className="font-medium text-[14px]">{city}</p>
                       </div>
@@ -474,15 +491,18 @@ export default function CollegesListingPage() {
 
               
               <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
-                <div className="flex justify-between text-[#242645]">
+                <div 
+                  className="flex justify-between text-[#242645] cursor-pointer"
+                  onClick={() => setStateToggle(!stateToggle)}
+                >
                   <div className="flex items-center gap-2">
                     <p>State</p>
                     {stateFilters.length > 0 && (
                       <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
                     )}
                   </div>
-                  {stateToggle ? <ChevronDown className="w-6 h-6" onClick={() => setStateToggle(!stateToggle)}/> 
-                  : <ChevronRight className="w-6 h-6" onClick={() => setStateToggle(!stateToggle)}/>}
+                  {stateToggle ? <ChevronDown className="w-6 h-6"/> 
+                  : <ChevronRight className="w-6 h-6"/>}
                 </div>
                 {stateToggle && (
                   <div className="flex flex-col gap-[16px] text-[#232323]">
@@ -506,7 +526,7 @@ export default function CollegesListingPage() {
                           type="checkbox" 
                           checked={stateFilters.includes(state)}
                           onChange={() => toggleStateFilter(state)}
-                          className="w-5 h-5"
+                          className="w-5 h-5 cursor-pointer"
                         />
                         <p className="font-medium text-[14px]">{state}</p>
                       </div>
@@ -522,15 +542,18 @@ export default function CollegesListingPage() {
 
               
               <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
-                <div className="flex justify-between text-[#242645]">
+                <div 
+                  className="flex justify-between text-[#242645] cursor-pointer"
+                  onClick={() => setTypeToggle(!typeToggle)}
+                >
                   <div className="flex items-center gap-2">
                     <p>Type</p>
                     {typeFilters.length > 0 && (
                       <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
                     )}
                   </div>
-                  {typeToggle ? <ChevronDown className="w-6 h-6" onClick={() => setTypeToggle(!typeToggle)}/> 
-                  : <ChevronRight className="w-6 h-6" onClick={() => setTypeToggle(!typeToggle)}/>}
+                  {typeToggle ? <ChevronDown className="w-6 h-6"/> 
+                  : <ChevronRight className="w-6 h-6"/>}
                 </div>
                 {typeToggle && (
                   <div className="flex flex-col gap-[16px] text-[#232323]">
@@ -541,7 +564,7 @@ export default function CollegesListingPage() {
                           type="checkbox" 
                           checked={typeFilters.includes(type)}
                           onChange={() => toggleTypeFilter(type)}
-                          className="w-5 h-5"
+                          className="w-5 h-5 cursor-pointer"
                         />
                         <p className="font-medium text-[14px]">{type}</p>
                       </div>
@@ -553,7 +576,7 @@ export default function CollegesListingPage() {
               
               <button
                 onClick={clearAllFilters}
-                className="w-full max-w-[312px] py-3 border border-gray-300 rounded-lg text-center font-medium text-gray-700 hover:bg-gray-50"
+                className="w-full max-w-[312px] py-3 border border-gray-300 rounded-lg text-center font-medium text-gray-700 hover:bg-gray-50 cursor-pointer"
               >
                 Clear All Filters
               </button>

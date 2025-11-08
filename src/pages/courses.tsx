@@ -18,11 +18,10 @@ function adaptApiDataToCardData(apiCourse: Course): CourseCardData {
 
 export default function CoursesListingPage() {
   const { courses, loading, error } = useCourses();
-  
-  // Session storage key
+ 
   const STORAGE_KEY = 'courses_filters';
   
-  // Load initial state from session storage
+
   const loadFromStorage = () => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
@@ -50,12 +49,31 @@ export default function CoursesListingPage() {
   const [levelFilters, setLevelFilters] = useState<string[]>(savedState?.levelFilters || []);
   const [courseFilters, setCourseFilters] = useState<string[]>(savedState?.courseFilters || []);
 
-  const [durationToggle, setDurationToggle] = useState(false);
-  const [typeToggle, setTypeToggle] = useState(false);
-  const [levelToggle, setLevelToggle] = useState(false);
-  const [courseToggle, setCourseToggle] = useState(false);
+  const [durationToggle, setDurationToggle] = useState(savedState?.durationToggle ?? false);
+  const [typeToggle, setTypeToggle] = useState(savedState?.typeToggle ?? false);
+  const [levelToggle, setLevelToggle] = useState(savedState?.levelToggle ?? false);
+  const [courseToggle, setCourseToggle] = useState(savedState?.courseToggle ?? false);
 
-  // Save to session storage whenever filters or pagination changes
+  useEffect(() => {
+    const referrer = sessionStorage.getItem('page_referrer');
+    if (referrer === '/' || referrer === '/home') {
+      sessionStorage.removeItem(STORAGE_KEY);
+      setCurrentPage(1);
+      setSelectedSort("popularity");
+      setDurationFilters([]);
+      setTypeFilters([]);
+      setLevelFilters([]);
+      setCourseFilters([]);
+      setDurationToggle(false);
+      setTypeToggle(false);
+      setLevelToggle(false);
+      setCourseToggle(false);
+    }
+    return () => {
+      sessionStorage.setItem('page_referrer', '/courses');
+    };
+  }, []);
+
   useEffect(() => {
     const stateToSave = {
       currentPage,
@@ -63,10 +81,14 @@ export default function CoursesListingPage() {
       durationFilters,
       typeFilters,
       levelFilters,
-      courseFilters
+      courseFilters,
+      durationToggle,
+      typeToggle,
+      levelToggle,
+      courseToggle
     };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-  }, [currentPage, selectedSort, durationFilters, typeFilters, levelFilters, courseFilters]);
+  }, [currentPage, selectedSort, durationFilters, typeFilters, levelFilters, courseFilters, durationToggle, typeToggle, levelToggle, courseToggle]);
 
   const sortTypes = [
     {label:'Popularity', value:'popularity'},
@@ -115,10 +137,6 @@ export default function CoursesListingPage() {
     const allCourses = courses.map(c => c.name).filter(Boolean) as string[]
     return [...new Set(allCourses)].sort()
   }, [courses])
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [durationFilters, typeFilters, levelFilters, courseFilters]);
 
   useEffect(() => {
     const count = durationFilters.length + typeFilters.length + levelFilters.length + courseFilters.length
@@ -482,15 +500,18 @@ export default function CoursesListingPage() {
 
               
               <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
-                <div className="flex justify-between text-[#242645]">
+                <div 
+                  className="flex justify-between text-[#242645] cursor-pointer"
+                  onClick={() => setDurationToggle(!durationToggle)}
+                >
                   <div className="flex items-center gap-2">
                     <p>Duration</p>
                     {durationFilters.length > 0 && (
                       <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
                     )}
                   </div>
-                  {durationToggle ? <ChevronDown className="w-6 h-6" onClick={() => setDurationToggle(!durationToggle)}/> 
-                  : <ChevronRight className="w-6 h-6" onClick={() => setDurationToggle(!durationToggle)}/>}
+                  {durationToggle ? <ChevronDown className="w-6 h-6"/> 
+                  : <ChevronRight className="w-6 h-6"/>}
                 </div>
                 {durationToggle && (
                   <div className="flex flex-col gap-[16px] text-[#232323]">
@@ -501,7 +522,7 @@ export default function CoursesListingPage() {
                           type="checkbox" 
                           checked={durationFilters.includes(duration)}
                           onChange={() => toggleDurationFilter(duration)}
-                          className="w-5 h-5"
+                          className="w-5 h-5 cursor-pointer"
                         />
                         <p className="font-medium text-[14px]">{duration}</p>
                       </div>
@@ -510,17 +531,20 @@ export default function CoursesListingPage() {
                 )}
               </div>
 
-              
+{/*               
               <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
-                <div className="flex justify-between text-[#242645]">
+                <div 
+                  className="flex justify-between text-[#242645] cursor-pointer"
+                  onClick={() => setTypeToggle(!typeToggle)}
+                >
                   <div className="flex items-center gap-2">
                     <p>Stream</p>
                     {typeFilters.length > 0 && (
                       <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
                     )}
                   </div>
-                  {typeToggle ? <ChevronDown className="w-6 h-6" onClick={() => setTypeToggle(!typeToggle)}/> 
-                  : <ChevronRight className="w-6 h-6" onClick={() => setTypeToggle(!typeToggle)}/>}
+                  {typeToggle ? <ChevronDown className="w-6 h-6"/> 
+                  : <ChevronRight className="w-6 h-6"/>}
                 </div>
                 {typeToggle && (
                   <div className="flex flex-col gap-[16px] text-[#232323]">
@@ -538,19 +562,22 @@ export default function CoursesListingPage() {
                     ))}
                   </div>
                 )}
-              </div>
+              </div> */}
 
               
               <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
-                <div className="flex justify-between text-[#242645]">
+                <div 
+                  className="flex justify-between text-[#242645] cursor-pointer"
+                  onClick={() => setLevelToggle(!levelToggle)}
+                >
                   <div className="flex items-center gap-2">
                     <p>Level</p>
                     {levelFilters.length > 0 && (
                       <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
                     )}
                   </div>
-                  {levelToggle ? <ChevronDown className="w-6 h-6" onClick={() => setLevelToggle(!levelToggle)}/> 
-                  : <ChevronRight className="w-6 h-6" onClick={() => setLevelToggle(!levelToggle)}/>}
+                  {levelToggle ? <ChevronDown className="w-6 h-6"/> 
+                  : <ChevronRight className="w-6 h-6"/>}
                 </div>
                 {levelToggle && (
                   <div className="flex flex-col gap-[16px] text-[#232323]">
@@ -561,7 +588,7 @@ export default function CoursesListingPage() {
                           type="checkbox" 
                           checked={levelFilters.includes(level)}
                           onChange={() => toggleLevelFilter(level)}
-                          className="w-5 h-5"
+                          className="w-5 h-5 cursor-pointer"
                         />
                         <p className="font-medium text-[14px]">{level}</p>
                       </div>
@@ -572,15 +599,18 @@ export default function CoursesListingPage() {
 
               
               <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
-                <div className="flex justify-between text-[#242645]">
+                <div 
+                  className="flex justify-between text-[#242645] cursor-pointer"
+                  onClick={() => setCourseToggle(!courseToggle)}
+                >
                   <div className="flex items-center gap-2">
                     <p>Courses</p>
                     {courseFilters.length > 0 && (
                       <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
                     )}
                   </div>
-                  {courseToggle ? <ChevronDown className="w-6 h-6" onClick={() => setCourseToggle(!courseToggle)}/> 
-                  : <ChevronRight className="w-6 h-6" onClick={() => setCourseToggle(!courseToggle)}/>}
+                  {courseToggle ? <ChevronDown className="w-6 h-6"/> 
+                  : <ChevronRight className="w-6 h-6"/>}
                 </div>
                 {courseToggle && (
                   <div className="flex flex-col gap-[16px] text-[#232323]">
@@ -604,7 +634,7 @@ export default function CoursesListingPage() {
                           type="checkbox" 
                           checked={courseFilters.includes(course)}
                           onChange={() => toggleCourseFilter(course)}
-                          className="w-5 h-5"
+                          className="w-5 h-5 cursor-pointer"
                         />
                         <p className="font-medium text-[14px]">{course}</p>
                       </div>
@@ -621,7 +651,7 @@ export default function CoursesListingPage() {
               
               <button
                 onClick={clearAllFilters}
-                className="w-full max-w-[312px] py-3 border border-gray-300 rounded-lg text-center font-medium text-gray-700 hover:bg-gray-50"
+                className="w-full max-w-[312px] py-3 border border-gray-300 rounded-lg text-center font-medium text-gray-700 hover:bg-gray-50 cursor-pointer"
               >
                 Clear All Filters
               </button>

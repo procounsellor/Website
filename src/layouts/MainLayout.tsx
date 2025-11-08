@@ -31,6 +31,7 @@ export default function MainLayout(){
     setNeedsProfileCompletion,
     returnToPath,
     setReturnToPath,
+    clearOnLoginSuccess,
   } = useAuthStore();
   const { refreshUser } = useAuthStore();
   const { isChatbotOpen, toggleChatbot } = useChatStore();
@@ -46,24 +47,19 @@ export default function MainLayout(){
 
   const shouldShowOnboarding = isAuthenticated && (role === 'student' || role === 'user') && needsOnboarding;
 
-  console.log('🔍 MainLayout - isAuthenticated:', isAuthenticated, 'role:', role, 'needsOnboarding:', needsOnboarding, 'needsProfileCompletion:', needsProfileCompletion, 'shouldShowOnboarding:', shouldShowOnboarding);
-
   useEffect(() => {
     // Only show profile completion after onboarding is done
     if (isAuthenticated && needsProfileCompletion && !needsOnboarding) {
-      console.log('🔍 Opening profile completion modal');
       toggleProfileCompletion();
     }
   }, [isAuthenticated, needsProfileCompletion, needsOnboarding]);
 
   const handleProfileUpdate = async (updatedData: { firstName: string; lastName: string; email: string }) => {
     try {
-      console.log('📤 MainLayout: updating profile with', updatedData);
       const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null;
       const uid = typeof window !== 'undefined' ? localStorage.getItem('phone') : null;
 
       if (!uid || !token) {
-        console.error('⚠️ MainLayout: missing uid or token when updating profile');
         // still close the modal to avoid blocking the user, but keep the flag so they can retry
         return;
       }
@@ -74,7 +70,6 @@ export default function MainLayout(){
       // refresh user in the store so UI reflects latest profile
       if (refreshUser) await refreshUser(true);
 
-      console.log('✅ MainLayout: profile updated successfully, closing modal');
       
       // close profile completion flow only after successful update
       setNeedsProfileCompletion(false);
@@ -84,7 +79,8 @@ export default function MainLayout(){
       const store = useAuthStore.getState();
       if (store.onLoginSuccess) {
         store.onLoginSuccess();
-        store.toggleLogin(); // Clear the callback
+        //store.toggleLogin(); // Clear the callback
+        clearOnLoginSuccess();
       } else if (returnToPath) {
         navigate(returnToPath);
         setReturnToPath(null);
@@ -108,7 +104,8 @@ export default function MainLayout(){
     const store = useAuthStore.getState();
     if (store.onLoginSuccess) {
       store.onLoginSuccess();
-      store.toggleLogin(); // Clear the callback
+      // store.toggleLogin(); // Clear the callback
+      clearOnLoginSuccess();
     } else if (returnToPath) {
       navigate(returnToPath);
       setReturnToPath(null);
@@ -135,7 +132,6 @@ export default function MainLayout(){
       
       {shouldShowOnboarding && (
         <>
-          {console.log('🎯 RENDERING OnboardingCard NOW')}
           <OnboardingCard onComplete={handleOnboardingComplete} />
         </>
       )}

@@ -17,13 +17,10 @@ function adaptApiDataToCardData(apiExam: Exam): ExamCardData {
 }
 
 export default function ExamsListingPage() {
-  const ismobile = window.matchMedia("(max:width:1024px)")
   const { exams, loading, error } = useExams();
   
-  // Session storage key
   const STORAGE_KEY = 'exams_filters';
   
-  // Load initial state from session storage
   const loadFromStorage = () => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
@@ -39,7 +36,7 @@ export default function ExamsListingPage() {
   const savedState = loadFromStorage();
   
   const [currentPage, setCurrentPage] = useState(savedState?.currentPage || 1);
-  const ITEMS_PER_PAGE = ismobile?8:9;
+  const ITEMS_PER_PAGE = 9;
 
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [filterCount, setFilterCount] = useState(0);
@@ -50,21 +47,44 @@ export default function ExamsListingPage() {
   const [typeFilters, setTypeFilters] = useState<string[]>(savedState?.typeFilters || []);
   const [examFilters, setExamFilters] = useState<string[]>(savedState?.examFilters || []);
 
-  const [levelToggle, setLevelToggle] = useState(false);
-  const [typeToggle, setTypeToggle] = useState(false);
-  const [examToggle, setExamToggle] = useState(false);
+  const [levelToggle, setLevelToggle] = useState(savedState?.levelToggle ?? false);
+  const [typeToggle, setTypeToggle] = useState(savedState?.typeToggle ?? false);
+  const [examToggle, setExamToggle] = useState(savedState?.examToggle ?? false);
 
-  // Save to session storage whenever filters or pagination changes
+
+  useEffect(() => {
+    const referrer = sessionStorage.getItem('page_referrer');
+    if (referrer === '/' || referrer === '/home') {
+      sessionStorage.removeItem(STORAGE_KEY);
+      setCurrentPage(1);
+      setSelectedSort("popularity");
+      setLevelFilters([]);
+      setTypeFilters([]);
+      setExamFilters([]);
+      setLevelToggle(false);
+      setTypeToggle(false);
+      setExamToggle(false);
+    }
+
+    return () => {
+      sessionStorage.setItem('page_referrer', '/exams');
+    };
+  }, []);
+
+
   useEffect(() => {
     const stateToSave = {
       currentPage,
       selectedSort,
       levelFilters,
       typeFilters,
-      examFilters
+      examFilters,
+      levelToggle,
+      typeToggle,
+      examToggle
     };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-  }, [currentPage, selectedSort, levelFilters, typeFilters, examFilters]);
+  }, [currentPage, selectedSort, levelFilters, typeFilters, examFilters, levelToggle, typeToggle, examToggle]);
 
   const sortOptions = [
     {label:'Most Popular', value:'popularity'},
@@ -72,9 +92,6 @@ export default function ExamsListingPage() {
     {label:'Name: Z to A', value:'name-desc'},
     {label:'Level: Undergraduate First', value:'level-undergraduate'},
     {label:'Level: Postgraduate First', value:'level-postgraduate'},
-    {label:'Type: National First', value:'type-national'},
-    {label:'Type: State First', value:'type-state'},
-    {label:'Type: University First', value:'type-university'}
   ]
 
   const examOptions = useMemo(() => {
@@ -121,10 +138,6 @@ export default function ExamsListingPage() {
     })
     return [...new Set(normalizedTypes)].sort()
   }, [exams])
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [levelFilters, typeFilters, examFilters]);
 
   useEffect(() => {
     const count = levelFilters.length + typeFilters.length + examFilters.length
@@ -524,15 +537,18 @@ export default function ExamsListingPage() {
 
               
               <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
-                <div className="flex justify-between text-[#242645]">
+                <div 
+                  className="flex justify-between text-[#242645] cursor-pointer"
+                  onClick={() => setLevelToggle(!levelToggle)}
+                >
                   <div className="flex items-center gap-2">
                     <p>Level</p>
                     {levelFilters.length > 0 && (
                       <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
                     )}
                   </div>
-                  {levelToggle ? <ChevronDown className="w-6 h-6" onClick={() => setLevelToggle(!levelToggle)}/> 
-                  : <ChevronRight className="w-6 h-6" onClick={() => setLevelToggle(!levelToggle)}/>}
+                  {levelToggle ? <ChevronDown className="w-6 h-6"/> 
+                  : <ChevronRight className="w-6 h-6"/>}
                 </div>
                 {levelToggle && (
                   <div className="flex flex-col gap-[16px] text-[#232323]">
@@ -543,7 +559,7 @@ export default function ExamsListingPage() {
                           type="checkbox" 
                           checked={levelFilters.includes(level)}
                           onChange={() => toggleLevelFilter(level)}
-                          className="w-5 h-5"
+                          className="w-5 h-5 cursor-pointer"
                         />
                         <p className="font-medium text-[14px]">{level}</p>
                       </div>
@@ -554,15 +570,18 @@ export default function ExamsListingPage() {
 
               
               <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
-                <div className="flex justify-between text-[#242645]">
+                <div 
+                  className="flex justify-between text-[#242645] cursor-pointer"
+                  onClick={() => setTypeToggle(!typeToggle)}
+                >
                   <div className="flex items-center gap-2">
                     <p>Type</p>
                     {typeFilters.length > 0 && (
                       <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
                     )}
                   </div>
-                  {typeToggle ? <ChevronDown className="w-6 h-6" onClick={() => setTypeToggle(!typeToggle)}/> 
-                  : <ChevronRight className="w-6 h-6" onClick={() => setTypeToggle(!typeToggle)}/>}
+                  {typeToggle ? <ChevronDown className="w-6 h-6"/> 
+                  : <ChevronRight className="w-6 h-6"/>}
                 </div>
                 {typeToggle && (
                   <div className="flex flex-col gap-[16px] text-[#232323]">
@@ -573,9 +592,9 @@ export default function ExamsListingPage() {
                           type="checkbox" 
                           checked={typeFilters.includes(type)}
                           onChange={() => toggleTypeFilter(type)}
-                          className="w-5 h-5"
+                          className="w-5 h-5 cursor-pointer"
                         />
-                        <p className="font-medium text-[14px]">{type}</p>
+                        <p className="font-medium text-[14px] truncate max-w-[14.5rem]">{type}</p>
                       </div>
                     ))}
                   </div>
@@ -584,15 +603,18 @@ export default function ExamsListingPage() {
 
               
               <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
-                <div className="flex justify-between text-[#242645]">
+                <div 
+                  className="flex justify-between text-[#242645] cursor-pointer"
+                  onClick={() => setExamToggle(!examToggle)}
+                >
                   <div className="flex items-center gap-2">
                     <p>Exams</p>
                     {examFilters.length > 0 && (
                       <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
                     )}
                   </div>
-                  {examToggle ? <ChevronDown className="w-6 h-6" onClick={() => setExamToggle(!examToggle)}/> 
-                  : <ChevronRight className="w-6 h-6" onClick={() => setExamToggle(!examToggle)}/>}
+                  {examToggle ? <ChevronDown className="w-6 h-6"/> 
+                  : <ChevronRight className="w-6 h-6"/>}
                 </div>
                 {examToggle && (
                   <div className="flex flex-col gap-[16px] text-[#232323]">
@@ -616,7 +638,7 @@ export default function ExamsListingPage() {
                           type="checkbox" 
                           checked={examFilters.includes(exam)}
                           onChange={() => toggleExamFilter(exam)}
-                          className="w-5 h-5"
+                          className="w-5 h-5 cursor-pointer"
                         />
                         <p className="font-medium text-[14px]">{exam}</p>
                       </div>
@@ -633,7 +655,7 @@ export default function ExamsListingPage() {
               
               <button
                 onClick={clearAllFilters}
-                className="w-full max-w-[312px] py-3 border border-gray-300 rounded-lg text-center font-medium text-gray-700 hover:bg-gray-50"
+                className="w-full max-w-[312px] py-3 border border-gray-300 rounded-lg text-center font-medium text-gray-700 hover:bg-gray-50 cursor-pointer"
               >
                 Clear All Filters
               </button>
