@@ -72,9 +72,6 @@ export default function ExamsListingPage() {
     {label:'Name: Z to A', value:'name-desc'},
     {label:'Level: Undergraduate First', value:'level-undergraduate'},
     {label:'Level: Postgraduate First', value:'level-postgraduate'},
-    {label:'Type: National First', value:'type-national'},
-    {label:'Type: State First', value:'type-state'},
-    {label:'Type: University First', value:'type-university'}
   ]
 
   const examOptions = useMemo(() => {
@@ -524,15 +521,18 @@ export default function ExamsListingPage() {
 
               
               <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
-                <div className="flex justify-between text-[#242645]">
+                <div 
+                  className="flex justify-between text-[#242645] cursor-pointer"
+                  onClick={() => setLevelToggle(!levelToggle)}
+                >
                   <div className="flex items-center gap-2">
                     <p>Level</p>
                     {levelFilters.length > 0 && (
                       <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
                     )}
                   </div>
-                  {levelToggle ? <ChevronDown className="w-6 h-6" onClick={() => setLevelToggle(!levelToggle)}/> 
-                  : <ChevronRight className="w-6 h-6" onClick={() => setLevelToggle(!levelToggle)}/>}
+                  {levelToggle ? <ChevronDown className="w-6 h-6"/> 
+                  : <ChevronRight className="w-6 h-6"/>}
                 </div>
                 {levelToggle && (
                   <div className="flex flex-col gap-[16px] text-[#232323]">
@@ -543,7 +543,7 @@ export default function ExamsListingPage() {
                           type="checkbox" 
                           checked={levelFilters.includes(level)}
                           onChange={() => toggleLevelFilter(level)}
-                          className="w-5 h-5"
+                          className="w-5 h-5 cursor-pointer"
                         />
                         <p className="font-medium text-[14px]">{level}</p>
                       </div>
@@ -554,15 +554,18 @@ export default function ExamsListingPage() {
 
               
               <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
-                <div className="flex justify-between text-[#242645]">
+                <div 
+                  className="flex justify-between text-[#242645] cursor-pointer"
+                  onClick={() => setTypeToggle(!typeToggle)}
+                >
                   <div className="flex items-center gap-2">
                     <p>Type</p>
                     {typeFilters.length > 0 && (
                       <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
                     )}
                   </div>
-                  {typeToggle ? <ChevronDown className="w-6 h-6" onClick={() => setTypeToggle(!typeToggle)}/> 
-                  : <ChevronRight className="w-6 h-6" onClick={() => setTypeToggle(!typeToggle)}/>}
+                  {typeToggle ? <ChevronDown className="w-6 h-6"/> 
+                  : <ChevronRight className="w-6 h-6"/>}
                 </div>
                 {typeToggle && (
                   <div className="flex flex-col gap-[16px] text-[#232323]">
@@ -573,9 +576,9 @@ export default function ExamsListingPage() {
                           type="checkbox" 
                           checked={typeFilters.includes(type)}
                           onChange={() => toggleTypeFilter(type)}
-                          className="w-5 h-5"
+                          className="w-5 h-5 cursor-pointer"
                         />
-                        <p className="font-medium text-[14px]">{type}</p>
+                        <p className="font-medium text-[14px] truncate max-w-[14.5rem]">{type}</p>
                       </div>
                     ))}
                   </div>
@@ -584,15 +587,18 @@ export default function ExamsListingPage() {
 
               
               <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
-                <div className="flex justify-between text-[#242645]">
+                <div 
+                  className="flex justify-between text-[#242645] cursor-pointer"
+                  onClick={() => setExamToggle(!examToggle)}
+                >
                   <div className="flex items-center gap-2">
                     <p>Exams</p>
                     {examFilters.length > 0 && (
                       <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
                     )}
                   </div>
-                  {examToggle ? <ChevronDown className="w-6 h-6" onClick={() => setExamToggle(!examToggle)}/> 
-                  : <ChevronRight className="w-6 h-6" onClick={() => setExamToggle(!examToggle)}/>}
+                  {examToggle ? <ChevronDown className="w-6 h-6"/> 
+                  : <ChevronRight className="w-6 h-6"/>}
                 </div>
                 {examToggle && (
                   <div className="flex flex-col gap-[16px] text-[#232323]">
@@ -616,7 +622,7 @@ export default function ExamsListingPage() {
                           type="checkbox" 
                           checked={examFilters.includes(exam)}
                           onChange={() => toggleExamFilter(exam)}
-                          className="w-5 h-5"
+                          className="w-5 h-5 cursor-pointer"
                         />
                         <p className="font-medium text-[14px]">{exam}</p>
                       </div>
@@ -633,7 +639,7 @@ export default function ExamsListingPage() {
               
               <button
                 onClick={clearAllFilters}
-                className="w-full max-w-[312px] py-3 border border-gray-300 rounded-lg text-center font-medium text-gray-700 hover:bg-gray-50"
+                className="w-full max-w-[312px] py-3 border border-gray-300 rounded-lg text-center font-medium text-gray-700 hover:bg-gray-50 cursor-pointer"
               >
                 Clear All Filters
               </button>

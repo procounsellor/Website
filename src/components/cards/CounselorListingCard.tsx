@@ -90,7 +90,7 @@ export function CounselorCard({ counselor, isFavourite, onToggleFavourite }: Cou
           </div>
           <div className="flex items-center gap-3">
             <Languages className="h-4 w-4 flex-shrink-0 text-[#8C8CA1]"/>
-            <span>{counselor.languages.join(" | ")}</span>
+            <span className="truncate">{counselor.languages.join(" | ")}</span>
           </div>
         </div>
 

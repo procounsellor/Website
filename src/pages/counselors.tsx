@@ -650,7 +650,7 @@ export default function CounselorListingPage() {
                     type="checkbox" 
                     checked={experienceFilters.includes(option.id)}
                     onChange={() => toggleExperienceFilter(option.id)}
-                    className="w-5 h-5"
+                    className="w-5 h-5 cursor-pointer"
                   />
                   <p className="flex flex-col font-medium text-[14px]">
                     {option.label} 
@@ -687,7 +687,7 @@ export default function CounselorListingPage() {
                     type="checkbox" 
                     checked={languageFilters.includes(language)}
                     onChange={() => toggleLanguageFilter(language)}
-                    className="w-5 h-5"
+                    className="w-5 h-5 cursor-pointer"
                   />
                   <p className="font-medium text-[14px]">{language}</p>
                 </div>
@@ -735,7 +735,7 @@ export default function CounselorListingPage() {
                     type="checkbox" 
                     checked={cityFilters.includes(city)}
                     onChange={() => toggleCityFilter(city)}
-                    className="w-5 h-5"
+                    className="w-5 h-5 cursor-pointer"
                   />
                   <p className="font-medium text-[14px]">{city}</p>
                 </div>
