@@ -108,13 +108,39 @@ export default function CounselorListingPage() {
   const [minPrice, setMinPrice] = useState(savedState?.minPrice || "");
   const [maxPrice, setMaxPrice] = useState(savedState?.maxPrice || "");
 
-  const [experienceToggle, setExperienceToggle] = useState(false);
-  const [languageToggle, setLanguageToggle] = useState(false);
-  const [cityToggle, setCityToggle] = useState(false);
-  const [priceToggle, setPriceToggle] = useState(false);
-  const [workingDaysToggle, setWorkingDaysToggle] = useState(false);
+  const [experienceToggle, setExperienceToggle] = useState(savedState?.experienceToggle ?? false);
+  const [languageToggle, setLanguageToggle] = useState(savedState?.languageToggle ?? false);
+  const [cityToggle, setCityToggle] = useState(savedState?.cityToggle ?? false);
+  const [priceToggle, setPriceToggle] = useState(savedState?.priceToggle ?? false);
+  const [workingDaysToggle, setWorkingDaysToggle] = useState(savedState?.workingDaysToggle ?? false);
 
   const isMounted = useRef(false);
+
+  // Clear filters when coming from home page
+  useEffect(() => {
+    const referrer = sessionStorage.getItem('page_referrer');
+    if (referrer === '/' || referrer === '/home') {
+      // Clear all filters
+      sessionStorage.removeItem(STORAGE_KEY);
+      setCurrentPage(1);
+      setSelected([]);
+      setSelectedSort("popularity");
+      setExperienceFilters([]);
+      setLanguageFilters([]);
+      setCityFilters([]);
+      setMinPrice("");
+      setMaxPrice("");
+      setExperienceToggle(false);
+      setLanguageToggle(false);
+      setCityToggle(false);
+      setPriceToggle(false);
+      setWorkingDaysToggle(false);
+    }
+    // Store current page as referrer for next navigation
+    return () => {
+      sessionStorage.setItem('page_referrer', '/counsellors');
+    };
+  }, []);
 
   // Save to session storage whenever filters or pagination changes
   useEffect(() => {
@@ -126,12 +152,16 @@ export default function CounselorListingPage() {
       languageFilters,
       cityFilters,
       minPrice,
-      maxPrice
+      maxPrice,
+      experienceToggle,
+      languageToggle,
+      cityToggle,
+      priceToggle,
+      workingDaysToggle
     };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-  }, [currentPage, selected, selectedSort, experienceFilters, languageFilters, cityFilters, minPrice, maxPrice]);
+  }, [currentPage, selected, selectedSort, experienceFilters, languageFilters, cityFilters, minPrice, maxPrice, experienceToggle, languageToggle, cityToggle, priceToggle, workingDaysToggle]);
 
-  // Load user's favourite counselors
   useEffect(() => {
     if (user?.favouriteCounsellorIds) {
       setFavouriteIds(new Set(user.favouriteCounsellorIds));

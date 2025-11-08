@@ -18,11 +18,10 @@ function adaptApiDataToCardData(apiCourse: Course): CourseCardData {
 
 export default function CoursesListingPage() {
   const { courses, loading, error } = useCourses();
-  
-  // Session storage key
+ 
   const STORAGE_KEY = 'courses_filters';
   
-  // Load initial state from session storage
+
   const loadFromStorage = () => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
@@ -50,12 +49,31 @@ export default function CoursesListingPage() {
   const [levelFilters, setLevelFilters] = useState<string[]>(savedState?.levelFilters || []);
   const [courseFilters, setCourseFilters] = useState<string[]>(savedState?.courseFilters || []);
 
-  const [durationToggle, setDurationToggle] = useState(false);
-  const [typeToggle, setTypeToggle] = useState(false);
-  const [levelToggle, setLevelToggle] = useState(false);
-  const [courseToggle, setCourseToggle] = useState(false);
+  const [durationToggle, setDurationToggle] = useState(savedState?.durationToggle ?? false);
+  const [typeToggle, setTypeToggle] = useState(savedState?.typeToggle ?? false);
+  const [levelToggle, setLevelToggle] = useState(savedState?.levelToggle ?? false);
+  const [courseToggle, setCourseToggle] = useState(savedState?.courseToggle ?? false);
 
-  // Save to session storage whenever filters or pagination changes
+  useEffect(() => {
+    const referrer = sessionStorage.getItem('page_referrer');
+    if (referrer === '/' || referrer === '/home') {
+      sessionStorage.removeItem(STORAGE_KEY);
+      setCurrentPage(1);
+      setSelectedSort("popularity");
+      setDurationFilters([]);
+      setTypeFilters([]);
+      setLevelFilters([]);
+      setCourseFilters([]);
+      setDurationToggle(false);
+      setTypeToggle(false);
+      setLevelToggle(false);
+      setCourseToggle(false);
+    }
+    return () => {
+      sessionStorage.setItem('page_referrer', '/courses');
+    };
+  }, []);
+
   useEffect(() => {
     const stateToSave = {
       currentPage,
@@ -63,10 +81,14 @@ export default function CoursesListingPage() {
       durationFilters,
       typeFilters,
       levelFilters,
-      courseFilters
+      courseFilters,
+      durationToggle,
+      typeToggle,
+      levelToggle,
+      courseToggle
     };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-  }, [currentPage, selectedSort, durationFilters, typeFilters, levelFilters, courseFilters]);
+  }, [currentPage, selectedSort, durationFilters, typeFilters, levelFilters, courseFilters, durationToggle, typeToggle, levelToggle, courseToggle]);
 
   const sortTypes = [
     {label:'Popularity', value:'popularity'},
@@ -115,10 +137,6 @@ export default function CoursesListingPage() {
     const allCourses = courses.map(c => c.name).filter(Boolean) as string[]
     return [...new Set(allCourses)].sort()
   }, [courses])
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [durationFilters, typeFilters, levelFilters, courseFilters]);
 
   useEffect(() => {
     const count = durationFilters.length + typeFilters.length + levelFilters.length + courseFilters.length

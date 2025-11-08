@@ -17,13 +17,10 @@ function adaptApiDataToCardData(apiExam: Exam): ExamCardData {
 }
 
 export default function ExamsListingPage() {
-  const ismobile = window.matchMedia("(max:width:1024px)")
   const { exams, loading, error } = useExams();
   
-  // Session storage key
   const STORAGE_KEY = 'exams_filters';
   
-  // Load initial state from session storage
   const loadFromStorage = () => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
@@ -39,7 +36,7 @@ export default function ExamsListingPage() {
   const savedState = loadFromStorage();
   
   const [currentPage, setCurrentPage] = useState(savedState?.currentPage || 1);
-  const ITEMS_PER_PAGE = ismobile?8:9;
+  const ITEMS_PER_PAGE = 9;
 
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [filterCount, setFilterCount] = useState(0);
@@ -50,21 +47,44 @@ export default function ExamsListingPage() {
   const [typeFilters, setTypeFilters] = useState<string[]>(savedState?.typeFilters || []);
   const [examFilters, setExamFilters] = useState<string[]>(savedState?.examFilters || []);
 
-  const [levelToggle, setLevelToggle] = useState(false);
-  const [typeToggle, setTypeToggle] = useState(false);
-  const [examToggle, setExamToggle] = useState(false);
+  const [levelToggle, setLevelToggle] = useState(savedState?.levelToggle ?? false);
+  const [typeToggle, setTypeToggle] = useState(savedState?.typeToggle ?? false);
+  const [examToggle, setExamToggle] = useState(savedState?.examToggle ?? false);
 
-  // Save to session storage whenever filters or pagination changes
+
+  useEffect(() => {
+    const referrer = sessionStorage.getItem('page_referrer');
+    if (referrer === '/' || referrer === '/home') {
+      sessionStorage.removeItem(STORAGE_KEY);
+      setCurrentPage(1);
+      setSelectedSort("popularity");
+      setLevelFilters([]);
+      setTypeFilters([]);
+      setExamFilters([]);
+      setLevelToggle(false);
+      setTypeToggle(false);
+      setExamToggle(false);
+    }
+
+    return () => {
+      sessionStorage.setItem('page_referrer', '/exams');
+    };
+  }, []);
+
+
   useEffect(() => {
     const stateToSave = {
       currentPage,
       selectedSort,
       levelFilters,
       typeFilters,
-      examFilters
+      examFilters,
+      levelToggle,
+      typeToggle,
+      examToggle
     };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-  }, [currentPage, selectedSort, levelFilters, typeFilters, examFilters]);
+  }, [currentPage, selectedSort, levelFilters, typeFilters, examFilters, levelToggle, typeToggle, examToggle]);
 
   const sortOptions = [
     {label:'Most Popular', value:'popularity'},
@@ -118,10 +138,6 @@ export default function ExamsListingPage() {
     })
     return [...new Set(normalizedTypes)].sort()
   }, [exams])
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [levelFilters, typeFilters, examFilters]);
 
   useEffect(() => {
     const count = levelFilters.length + typeFilters.length + examFilters.length

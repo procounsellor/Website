@@ -18,11 +18,9 @@ function adaptApiDataToCardData(apiCollege: College): CollegeCardData {
 
 export default function CollegesListingPage() {
   const { colleges, loading, error } = useColleges();
-  
-  // Session storage key
+
   const STORAGE_KEY = 'colleges_filters';
   
-  // Load initial state from session storage
   const loadFromStorage = () => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
@@ -50,21 +48,41 @@ export default function CollegesListingPage() {
   const [stateFilters, setStateFilters] = useState<string[]>(savedState?.stateFilters || []);
   const [typeFilters, setTypeFilters] = useState<string[]>(savedState?.typeFilters || []);
 
-  const [cityToggle, setCityToggle] = useState(false);
-  const [stateToggle, setStateToggle] = useState(false);
-  const [typeToggle, setTypeToggle] = useState(false);
+  const [cityToggle, setCityToggle] = useState(savedState?.cityToggle ?? false);
+  const [stateToggle, setStateToggle] = useState(savedState?.stateToggle ?? false);
+  const [typeToggle, setTypeToggle] = useState(savedState?.typeToggle ?? false);
 
-  // Save to session storage whenever filters or pagination changes
+  useEffect(() => {
+    const referrer = sessionStorage.getItem('page_referrer');
+    if (referrer === '/' || referrer === '/home') {
+      sessionStorage.removeItem(STORAGE_KEY);
+      setCurrentPage(1);
+      setSelectedSort("popularity");
+      setCityFilters([]);
+      setStateFilters([]);
+      setTypeFilters([]);
+      setCityToggle(false);
+      setStateToggle(false);
+      setTypeToggle(false);
+    }
+    return () => {
+      sessionStorage.setItem('page_referrer', '/colleges');
+    };
+  }, []);
+
   useEffect(() => {
     const stateToSave = {
       currentPage,
       selectedSort,
       cityFilters,
       stateFilters,
-      typeFilters
+      typeFilters,
+      cityToggle,
+      stateToggle,
+      typeToggle
     };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-  }, [currentPage, selectedSort, cityFilters, stateFilters, typeFilters]);
+  }, [currentPage, selectedSort, cityFilters, stateFilters, typeFilters, cityToggle, stateToggle, typeToggle]);
 
   const sortTypes = [
     {label:'Popularity', value:'popularity'},
@@ -91,10 +109,6 @@ export default function CollegesListingPage() {
     const allTypes = colleges.map(c => c.type).filter(Boolean) as string[]
     return [...new Set(allTypes)].sort()
   }, [colleges])
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [cityFilters, stateFilters, typeFilters]);
 
   useEffect(() => {
     const count = cityFilters.length + stateFilters.length + typeFilters.length
