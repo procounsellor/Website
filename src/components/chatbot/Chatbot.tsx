@@ -10,6 +10,8 @@ import ChatMessage from "./components/ChatMessage";
 import { ChatbotCounselorCard } from "./components/ChatbotCounselorCard";
 import { useChatStore } from "@/store/ChatStore";
 import { useAuthStore } from "@/store/AuthStore";
+import ReactMarkdown from 'react-markdown';
+
 
 // Small reusable UI pieces from the second file
 const TypingIndicator = () => (
@@ -241,33 +243,69 @@ export default function Chatbot() {
             </div>
           ) : (
             <>
-              <div className="flex-1 overflow-y-auto bg-[#232323] mt-2 p-6">
+              <div className="flex-1 overflow-y-auto bg-[#232323] mt-2 p-6 scrollbar-hide">
                 <div className="max-w-4xl mx-auto space-y-4">
                   {messages.length === 0 && !loading && <WelcomeMessage />}
 
-                  {messages.map((msg: any, index: number) => (
-                    <div key={index}>
-                      {/* Use ChatMessage component to preserve second file behavior */}
-                      <p className="m-7">
-                        <ChatMessage  text={msg.text} isUser={msg.isUser} />
-                        <p className="text-gray-400 text-sm italic">{msg.followup}</p>
+                   {messages.map((msg: any, index: number) => {
+                    
+                    // --- START OF THE FIX ---
+                    let formattedText = msg.text;
+                    if (!msg.isUser) {
+                      // This Regex finds "\n\n" ONLY IF it is followed by a number (like "1." or "2.")
+                      // It replaces it with just "\n", which joins the list items.
+                      formattedText = msg.text.replace(/\n\n(?=\d+\.)/g, '\n');
+                    }
+                    // --- END OF THE FIX ---
+
+                    return (
+                      <div key={index} className="space-y-4">
                         
-                      </p>
-                      
+                        {msg.isUser ? (
+                          <ChatMessage text={msg.text} isUser={true} />
+                        ) : (
+                          // This is the bot message bubble
+                          <div className="rounded-2xl px-4   text-white max-w-full overflow-x-auto">
+                            <ReactMarkdown
+                              // We pass the CLEANED "formattedText" variable here
+                              children={formattedText}
+                              components={{
+                                // This logic from Solution 3 is still good to keep.
+                                p: ({ node, ...props }) => {
+                                  // @ts-ignore
+                                  if (node.parent?.tagName === 'li') {
+                                    return <span {...props} />;
+                                  }
+                                  return <p className="mb-2 last:mb-0" {...props} />;
+                                },
+                                ol: ({node, ...props}) => <ol className="list-decimal list-inside ml-4 space-y-2" {...props} />,
+                                ul: ({node, ...props}) => <ul className="list-disc list-inside ml-4 space-y-2" {...props} />,
+                                strong: ({node, ...props}) => <strong className="font-bold" {...props} />,
+                              }}
+                            />
+                          </div>
+                        )}
+                        
+                        {msg.followup && !msg.isUser && (
+                          <p className="text-gray-400 text-sm italic max-w-4xl mx-auto pl-12 pr-6 -mt-2">
+                            {msg.followup}
+                          </p>
+                        )}
 
-                      {msg.counsellors && msg.counsellors.length > 0 && (
-                        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 animate-in fade-in-50 duration-500">
-                          {(msg.counsellors as any[]).map((c) => (
-                            <Link className="w-fit" to="/counsellor-profile" state={{ id: c.counsellorId }} key={c.counsellorId} onClick={toggleChatbot}>
-                              <ChatbotCounselorCard counselor={c} />
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-
-                      
-                    </div>
-                  ))}
+                        {/* ... (rest of your counselor card code) ... */}
+                        {msg.counsellors && msg.counsellors.length > 0 && (
+                          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 animate-in fade-in-50 duration-500">
+                            {(msg.counsellors as any[]).map((c) => (
+                              <Link className="w-fit" to="/counselors/profile" state={{ id: c.counsellorId }} key={c.counsellorId} onClick={toggleChatbot}>
+                                <ChatbotCounselorCard counselor={c} />
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                        
+                      </div>
+                    );
+                  })}
 
                   {loading && <TypingIndicator />}
                   <div ref={messagesEndRef} />
