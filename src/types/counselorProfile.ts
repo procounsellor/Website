@@ -42,4 +42,5 @@ export interface CounselorProfileData {
   transactions: Transaction[];
   offlineTransactions: Transaction[];
   activityLog: ActivityLog[];
+  rating: number;
 }

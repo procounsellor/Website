@@ -128,8 +128,8 @@ export default function AppointmentCard({ appointment, onCancel, onCardClick, is
         className="hidden md:block py-6 relative cursor-pointer"
         onClick={() => onCardClick(appointment)}
       >
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-              <div className="md:col-span-4 flex items-center gap-4">
+          <div className="grid grid-cols-12 gap-4 items-center">
+                <div className="col-span-5 flex items-center gap-4 min-w-0">
                   <div className="w-20 h-20 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
                       <img
                           src={imageUrl}
@@ -137,24 +137,23 @@ export default function AppointmentCard({ appointment, onCancel, onCardClick, is
                           className="w-full h-full object-cover"
                       />
                   </div>
-                  <div>
-                      <h4 className="font-semibold text-xl text-[#242645]">{userFullName}</h4>
-                      <p className="text-base font-medium text-[#8C8CA1]">{userCourse}</p>
+                  <div className="min-w-0">
+                      <h4 className="font-semibold text-xl text-[#242645] truncate">{userFullName}</h4>
+                      <p className="text-base font-medium text-[#8C8CA1] truncate">{userCourse}</p>
                   </div>
               </div>
 
-              <div className="md:col-span-4 flex justify-start md:justify-center items-center gap-8">
-                  <div>
-                      <p className="text-xl font-semibold text-[#242645]">Date</p>
-                      <p className="font-medium text-base text-[#8C8CA1] whitespace-nowrap">{formatDate(date)}</p>
-                  </div>
-                  <div>
-                      <p className="text-xl font-semibold text-[#242645]">Time</p>
-                      <p className="font-medium text-base text-[#8C8CA1] whitespace-nowrap">{`${formatTime(startTime)} - ${formatTime(endTime)}`}</p>
-                  </div>
+              <div className="col-span-2">
+                  <p className="text-xl font-semibold text-[#242645]">Date</p>
+                  <p className="font-medium text-base text-[#8C8CA1] whitespace-nowrap">{formatDate(date)}</p>
               </div>
 
-              <div className="md:col-span-4 flex items-center justify-end gap-4">
+              <div className="col-span-3">
+                  <p className="text-xl font-semibold text-[#242645]">Time</p>
+                  <p className="font-medium text-base text-[#8C8CA1] whitespace-nowrap">{`${formatTime(startTime)} - ${formatTime(endTime)}`}</p>
+              </div>
+
+              <div className="col-span-2 flex items-center justify-end gap-4">
                   {getStatusContent(status)}
                   {showMenu && (
                     <button className="text-gray-500 p-2 rounded-full hover:bg-gray-100 z-20"
