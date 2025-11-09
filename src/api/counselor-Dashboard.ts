@@ -84,7 +84,69 @@ export async function setOutOfOffice(payload: OutOfOfficePayload, token: string)
 
   } catch (error) {
     console.error("Set Out of Office Error:", error);
-    toast.error(error instanceof Error ? error.message : 'An unknown error occurred.');
+    // toast.error(error instanceof Error ? error.message : 'An unknown error occurred.');
+    throw error;
+  }
+}
+
+export interface UpdateOutOfOfficePayload {
+  id: string;
+  counsellorId: string;
+  reason: string;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+}
+
+export async function updateOutOfOffice(payload: UpdateOutOfOfficePayload, token: string) {
+  try {
+    const response = await fetch(`${baseUrl}/api/counsellor/updateOutOfOffice`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.status) {
+      throw new Error(result.message || 'Failed to update out of office.');
+    }
+
+    return result;
+
+  } catch (error) {
+    console.error("Update Out of Office Error:", error);
+    throw error;
+  }
+}
+
+export async function deleteOutOfOffice(counsellorId: string, oooId: string, token: string) {
+  try {
+    const response = await fetch(
+      `${baseUrl}/api/counsellor/deleteOutOfOfficeRequest?counsellorId=${counsellorId}&oooId=${oooId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+          authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.status) {
+      throw new Error(result.message || "Failed to delete out of office.");
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Delete Out of Office Error:", error);
     throw error;
   }
 }

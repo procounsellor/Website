@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
-import { Star, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { Star, Loader2, ChevronRight } from 'lucide-react';
 import { getReviewsForCounselor } from '@/api/counselor-Dashboard';
 import type { User } from '@/types/user';
 import ReviewCard from './ReviewCard';
 import { useQuery } from '@tanstack/react-query';
+import AllReviewsModal from './AllReviewsModal';
 
 const StarRatingSummary = ({ rating }: { rating: number }) => (
     <div className="flex items-center gap-1">
@@ -20,9 +21,12 @@ const StarRatingSummary = ({ rating }: { rating: number }) => (
 interface Props {
   user: User;
   token: string;
+  counselorRating: number;
 }
 
-export default function ReviewsTab({ user, token }: Props) {
+export default function ReviewsTab({ user, token, counselorRating }: Props) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const { 
     data: reviews = [],
     isLoading: loading, 
@@ -33,16 +37,8 @@ export default function ReviewsTab({ user, token }: Props) {
     enabled: !!user.userName && !!token,
   });
 
-  const { overallRating, totalReviews } = useMemo(() => {
-    if (!reviews || reviews.length === 0) {
-      return { overallRating: 0, totalReviews: 0 };
-    }
-    const total = reviews.reduce((acc, review) => acc + review.rating, 0);
-    return {
-      overallRating: total / reviews.length,
-      totalReviews: reviews.length,
-    };
-  }, [reviews]);
+  const totalReviews = reviews.length;
+  const overallRating = counselorRating || 0;
 
   if (loading) {
     return (
@@ -57,28 +53,44 @@ export default function ReviewsTab({ user, token }: Props) {
   }
 
   return (
-    <div className="bg-white p-6 rounded-2xl border border-[#EFEFEF]">
-      <div className="flex justify-between items-center">
-        <h3 className="ml-7 font-medium text-lg text-[#13097D]">My Reviews</h3>
+    <>
+      <div className="bg-white p-6 rounded-2xl border border-[#EFEFEF]">
+        <div className="flex justify-between items-center">
+          <h3 className="ml-7 font-medium text-lg text-[#13097D]">My Reviews</h3>
+            <button 
+            onClick={() => setIsModalOpen(true)}
+            disabled={totalReviews === 0}
+            className="mr-7 text-sm font-medium text-[#FA660F] hover:underline flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span>See All</span>
+            <ChevronRight size={16} />
+          </button>
+        </div>
+
+        <div className="mt-5 ml-7 flex items-center gap-2">
+          <p className="font-semibold text-lg text-[#FFD700]">{overallRating.toFixed(1)}</p>
+          <StarRatingSummary rating={overallRating} />
+        </div>
+        <p className="ml-7 text-sm font-medium text-[#232323]">{totalReviews} {totalReviews === 1 ? 'review' : 'reviews'}</p>
+
+        <div className="mt-8">
+          {reviews.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {reviews.slice(0, 6).map(review => (
+                      <ReviewCard key={review.id} review={review} />
+                  ))}
+              </div>
+          ) : (
+              <div className="text-center py-16 text-gray-500">No reviews found yet.</div>
+          )}
+        </div>
       </div>
 
-      <div className="mt-5 ml-7 flex items-center gap-2">
-        <p className="font-semibold text-lg text-[#FFD700]">{overallRating.toFixed(1)}</p>
-        <StarRatingSummary rating={overallRating} />
-      </div>
-      <p className="ml-7 text-sm font-medium text-[#232323]">{totalReviews} reviews</p>
-
-      <div className="mt-8">
-        {reviews.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {reviews.map(review => (
-                    <ReviewCard key={review.id} review={review} />
-                ))}
-            </div>
-        ) : (
-            <div className="text-center py-16 text-gray-500">No reviews found yet.</div>
-        )}
-      </div>
-    </div>
+      <AllReviewsModal 
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        reviews={reviews}
+      />
+    </>
   );
 }

@@ -98,7 +98,7 @@ export default function MyEarningsTab({ user, token }: Props) {
                 : 'border-transparent text-[#8C8CA1] hover:text-gray-700'
             } whitespace-nowrap py-3 px-1 border-b-2 font-semibold text-xs lg:text-base transition-colors`}
           >
-            Transaction
+            Transactions
           </button>
         </nav>
       </div>
