@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/AuthStore';
 import type { CounselorFormData } from '@/types/counselor';
 import { sendEmailOtp, verifyEmailOtp, counsellorSignup } from '@/api/auth';
-import ProfileDetailsStep from '@/components/counselor-signup/ProfileDetailsStep';
-import CourseSelectionStep from '@/components/counselor-signup/CourseSelectionStep';
-import StateSelectionStep from '@/components/counselor-signup/StateSelectionStep';
-import OtpVerificationModal from '@/components/counselor-signup/OtpVerificationModal';
-import { ChevronLeft, Loader2 } from 'lucide-react';
+import ProfileDetailsStep from './ProfileDetailsStep';
+import CourseSelectionStep from './CourseSelectionStep';
+import StateSelectionStep from './StateSelectionStep';
+import OtpVerificationModal from './OtpVerificationModal';
+import { ChevronLeft, Loader2, X } from 'lucide-react';
 
 const initialFormData: CounselorFormData = {
   firstName: '',
@@ -27,19 +27,21 @@ const initialFormData: CounselorFormData = {
   stateOfCounsellor: [],
 };
 
-export default function CounselorSignupPage() {
+export default function CounselorSignupModal() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<CounselorFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOtpModalOpen, setOtpModalOpen] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, isCounselorSignupFormOpen, closeCounselorSignupForm } = useAuthStore();
 
   const handleNextStep = () => setStep(prev => prev + 1);
   const handlePrevStep = () => setStep(prev => prev - 1);
 
-  const handleBackToInfoModal = () => {
-    navigate(-1);
+  const handleClose = () => {
+    closeCounselorSignupForm();
+    setStep(1);
+    setFormData(initialFormData);
   };
 
   const handleCourseSelect = (courseName: string) => {
@@ -82,6 +84,7 @@ export default function CounselorSignupPage() {
       await counsellorSignup(payload);
       toast.success('Application submitted successfully! Our team will review your details.', { duration: 2000 });
       localStorage.setItem('hasSubmittedCounselorApp', 'true');
+      handleClose();
       navigate('/counselor-dashboard');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'An unexpected error occurred.', { duration: 2000 });
@@ -168,7 +171,7 @@ export default function CounselorSignupPage() {
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || (formData.stateOfCounsellor?.length ?? 0) === 0}
-                className="w-full md:w-[444px] h-11 text-white rounded-xl font-semibold text-base transition-colors disabled:bg-[#ACACAC] bg-[#FA660F] hover:bg-orange-700 flex items-center justify-center"
+                className="w-full md:w-[444px] h-11 text-white rounded-xl font-semibold text-base transition-colors disabled:bg-[#ACACAC] bg-[#FA660F] hover:bg-orange-600 flex items-center justify-center"
               >
                 {isSubmitting ? <Loader2 className="animate-spin" /> : 'Submit Application'}
               </button>
@@ -180,32 +183,43 @@ export default function CounselorSignupPage() {
     }
   };
 
+  if (!isCounselorSignupFormOpen) return null;
+
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-3 md:p-4 z-40 font-montserrat">
-      <div className="w-full max-w-[932px] h-auto max-h-[92vh] md:max-h-[90vh] bg-white rounded-xl md:rounded-2xl shadow-xl p-3 md:p-10 flex flex-col relative">
-        <div className="flex items-center justify-between mb-3 md:mb-4 flex-shrink-0">
-          <div className="flex items-center gap-2 md:gap-4">
-            <button 
-              onClick={step === 1 ? handleBackToInfoModal : handlePrevStep} 
-              className="text-[#343C6A] hover:opacity-75 transition-opacity p-1 -ml-1"
-            >
-              <ChevronLeft size={22} className="md:w-6 md:h-6" />
-            </button>
-            <h1 className="text-base md:text-2xl font-semibold text-[#343C6A]">{getStepTitle()}</h1>
-          </div>
-          <div className="flex flex-col items-end">
-            <span className="text-xs md:text-sm font-medium text-[#232323]">Step {step} of 3</span>
-            <div className="flex items-center gap-1 md:gap-2 mt-1 md:mt-2">
-              {[1, 2, 3].map(s => (
-                <div key={s} className={`w-10 md:w-[70px] h-[4px] md:h-[7px] rounded-full transition-colors ${step >= s ? 'bg-[#FA660F]' : 'bg-[#E9E9E9]'}`}></div>
-              ))}
+    <>
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 md:p-4 z-50 font-montserrat">
+        <div className="w-full max-w-[932px] h-auto max-h-[92vh] md:max-h-[90vh] bg-white rounded-xl md:rounded-2xl shadow-xl p-3 md:p-10 flex flex-col relative">
+          <button 
+            onClick={handleClose}
+            className="absolute top-3 right-3 md:top-4 md:right-4 z-10 w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full text-gray-600 hover:bg-black hover:text-white transition-all duration-200"
+          >
+            <X className="h-5 w-5 md:h-6 md:w-6" />
+          </button>
+
+          <div className="flex items-center justify-between mb-3 md:mb-4 flex-shrink-0">
+            <div className="flex items-center gap-2 md:gap-4">
+              <button 
+                onClick={step === 1 ? handleClose : handlePrevStep} 
+                className="text-[#343C6A] hover:opacity-75 transition-opacity p-1 -ml-1"
+              >
+                <ChevronLeft size={22} className="md:w-6 md:h-6" />
+              </button>
+              <h1 className="text-base md:text-2xl font-semibold text-[#343C6A]">{getStepTitle()}</h1>
+            </div>
+            <div className="flex flex-col items-end">
+              <span className="text-xs md:text-sm font-medium text-[#232323]">Step {step} of 3</span>
+              <div className="flex items-center gap-1 md:gap-2 mt-1 md:mt-2">
+                {[1, 2, 3].map(s => (
+                  <div key={s} className={`w-10 md:w-[70px] h-[4px] md:h-[7px] rounded-full transition-colors ${step >= s ? 'bg-[#FA660F]' : 'bg-[#E9E9E9]'}`}></div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="border-t border-gray-200 my-3 md:my-4 flex-shrink-0"></div>
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          {renderStepContent()}
+          <div className="border-t border-gray-200 my-3 md:my-4 flex-shrink-0"></div>
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            {renderStepContent()}
+          </div>
         </div>
       </div>
 
@@ -219,6 +233,6 @@ export default function CounselorSignupPage() {
         onVerify={handleOtpVerification}
         onResend={handleVerifyEmail}
       />
-    </div>
+    </>
   );
 }

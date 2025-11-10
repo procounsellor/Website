@@ -7,7 +7,7 @@ import { X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function InfoModal() {
-  const { isCounselorSignupOpen, toggleCounselorSignup, isAuthenticated, toggleLogin, role, setIsCounselorSignupFlow, user } = useAuthStore();
+  const { isCounselorSignupOpen, toggleCounselorSignup, openCounselorSignupForm, isAuthenticated, toggleLogin, role, setIsCounselorSignupFlow, user } = useAuthStore();
   const navigate = useNavigate();
 
   const [info, setInfo] = useState<CounselorPageInfo | null>(null);
@@ -52,15 +52,13 @@ export default function InfoModal() {
       setIsCounselorSignupFlow(true);
       
       const redirectToCounselorSignup = () => {
-        toggleCounselorSignup();
-        navigate('/counsellor-signup');
+        openCounselorSignupForm();
       };
       toggleCounselorSignup();
       toggleLogin(redirectToCounselorSignup);
       toast.error("Please log in to become a counsellor.");
     } else {
-      toggleCounselorSignup();
-      navigate('/counsellor-signup');
+      openCounselorSignupForm();
     }
   };
 
