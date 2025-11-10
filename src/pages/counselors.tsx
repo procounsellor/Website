@@ -19,6 +19,8 @@ import Pagination from "@/components/ui/Pagination";
 import { useAuthStore } from "@/store/AuthStore";
 import { addFav } from "@/api/counsellor";
 import toast from "react-hot-toast";
+import EditProfileModal from "@/components/student-dashboard/EditProfileModal";
+import { updateUserProfile } from "@/api/user";
 
 function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
   const firstName = apiCounselor.firstName || "Unknown";
@@ -90,9 +92,14 @@ function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
 export default function CounselorListingPage() {
   const { data: counselors, loading, error } = useAllCounselors();
   const { user, userId, refreshUser, role } = useAuthStore();
+  const token = localStorage.getItem('jwt');
 
   // Session storage keys
   const STORAGE_KEY = "counselors_filters";
+  
+  // Profile completion modal state
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
   // Load initial state from session storage
   const loadFromStorage = () => {
@@ -217,28 +224,72 @@ export default function CounselorListingPage() {
     }
   }, [user]);
 
+  const handleProfileIncomplete = (action: () => void) => {
+    setPendingAction(() => action);
+    setIsEditProfileModalOpen(true);
+  };
+
+  const handleUpdateProfile = async (updatedData: { firstName: string; lastName: string; email: string }) => {
+    if (!userId || !token) {
+      throw new Error("User not authenticated");
+    }
+    await updateUserProfile(userId, updatedData, token);
+    await refreshUser(true);
+    if (pendingAction) {
+      pendingAction();
+      setPendingAction(null);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsEditProfileModalOpen(false);
+    setPendingAction(null);
+  };
+
   const handleToggleFavourite = async (counsellorId: string) => {
-    if (role === "counselor") {
-      toast.error("Counselors cannot add other counselors to favourites.");
+    const { isAuthenticated, toggleLogin } = useAuthStore.getState();
+    
+    const toggleFavAction = async () => {
+      const freshUserId = localStorage.getItem('phone');
+      const freshToken = localStorage.getItem('jwt');
+      
+      if (!freshUserId || !counsellorId || !freshToken) {
+        toast.error("Could not get user ID after login. Please try again.");
+        return;
+      }
+
+      const newFavouriteIds = new Set(favouriteIds);
+      if (newFavouriteIds.has(counsellorId)) {
+        newFavouriteIds.delete(counsellorId);
+      } else {
+        newFavouriteIds.add(counsellorId);
+      }
+      setFavouriteIds(newFavouriteIds);
+
+      try {
+        await addFav(freshUserId, counsellorId);
+        await refreshUser(true);
+        toast.success("Favourite status updated!");
+      } catch (err) {
+        toast.error("Could not update favourite status.");
+        setFavouriteIds(new Set(user?.favouriteCounsellorIds || []));
+      }
+    };
+
+    // Check authentication first
+    if (!isAuthenticated) {
+      toggleLogin(toggleFavAction);
       return;
     }
-    if (!userId) return;
-    const newFavouriteIds = new Set(favouriteIds);
-    if (newFavouriteIds.has(counsellorId)) {
-      newFavouriteIds.delete(counsellorId);
-    } else {
-      newFavouriteIds.add(counsellorId);
-    }
-    setFavouriteIds(newFavouriteIds);
 
-    try {
-      await addFav(userId, counsellorId);
-      await refreshUser(true);
-      toast.success("Favourite status updated!");
-    } catch (err) {
-      toast.error("Could not update favourite status.");
-      setFavouriteIds(new Set(user?.favouriteCounsellorIds || []));
+    // Check profile completion
+    if (!user?.firstName || !user?.email) {
+      handleProfileIncomplete(toggleFavAction);
+      return;
     }
+
+    // If all checks pass, execute the action
+    await toggleFavAction();
   };
 
   const sortTypes = [
@@ -1135,6 +1186,15 @@ export default function CounselorListingPage() {
           </section>
         </div>
       </main>
+      {user && (
+        <EditProfileModal
+          isOpen={isEditProfileModalOpen}
+          onClose={handleCloseModal}
+          user={user}
+          onUpdate={handleUpdateProfile}
+          onUploadComplete={() => {}}
+        />
+      )}
     </div>
   );
 }

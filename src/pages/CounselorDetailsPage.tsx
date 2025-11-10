@@ -239,24 +239,46 @@ export default function CounselorDetailsPage() {
   };
 
   const handleToggleFavourite = async () => {
-    if (!userId || !computedId || !token) {
-      toast.error("You must be logged in to add favourites.");
+    const { isAuthenticated, toggleLogin } = useAuthStore.getState();
+    
+    const toggleFavAction = async () => {
+      const freshUserId = localStorage.getItem('phone');
+      const freshToken = localStorage.getItem('jwt');
+      
+      if (!freshUserId || !computedId || !freshToken) {
+        toast.error("Could not get user ID after login. Please try again.");
+        return;
+      }
+
+      setIsTogglingFavourite(true);
+      setIsFavourite(prevState => !prevState); 
+
+      try {
+        await addFav(freshUserId, computedId);
+        await refreshUser(true); 
+        toast.success("Favourite status updated!");
+      } catch (err) {
+        setIsFavourite(prevState => !prevState); 
+        toast.error("Could not update favourite status.");
+      } finally {
+        setIsTogglingFavourite(false);
+      }
+    };
+
+    // Check authentication first
+    if (!isAuthenticated) {
+      toggleLogin(toggleFavAction);
       return;
     }
 
-    setIsTogglingFavourite(true);
-    setIsFavourite(prevState => !prevState); 
-
-    try {
-      await addFav(userId, computedId);
-      await refreshUser(true); 
-      toast.success("Favourite status updated!");
-    } catch (err) {
-      setIsFavourite(prevState => !prevState); 
-      toast.error("Could not update favourite status.");
-    } finally {
-      setIsTogglingFavourite(false);
+    // Check profile completion
+    if (!user?.firstName || !user?.email) {
+      handleProfileIncomplete(toggleFavAction);
+      return;
     }
+
+    // If all checks pass, execute the action
+    await toggleFavAction();
   };
 
   if (!computedId) {
