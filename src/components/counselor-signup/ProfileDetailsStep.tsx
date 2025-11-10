@@ -46,7 +46,7 @@ const TimePicker = ({
   const selectedTime = timeOptions.find(t => t.value === value);
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative w-full" ref={dropdownRef}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -56,7 +56,7 @@ const TimePicker = ({
           {selectedTime ? selectedTime.label : placeholder}
         </span>
         <svg 
-          className={`h-5 w-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
+          className={`h-5 w-5 text-gray-400 transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} 
           fill="none" 
           stroke="currentColor" 
           viewBox="0 0 24 24"
@@ -66,7 +66,7 @@ const TimePicker = ({
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 z-50 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto scrollbar-hide">
+        <div className="absolute left-0 right-0 z-50 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto scrollbar-hide min-w-full">
           {timeOptions.map((time) => (
             <button
               key={time.value}

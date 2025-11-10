@@ -185,26 +185,29 @@ export default function CounselorSignupPage() {
   };
 
   return (
-    <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center p-4 z-40 font-montserrat">
-      <div className="w-full max-w-[932px] h-auto max-h-[90vh] bg-white rounded-2xl shadow-lg p-4 md:p-10 flex flex-col relative">
-        <div className="flex items-center justify-between mb-3 md:mb-4">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-3 md:p-4 z-40 font-montserrat">
+      <div className="w-full max-w-[932px] h-auto max-h-[92vh] md:max-h-[90vh] bg-white rounded-xl md:rounded-2xl shadow-xl p-3 md:p-10 flex flex-col relative">
+        <div className="flex items-center justify-between mb-3 md:mb-4 flex-shrink-0">
           <div className="flex items-center gap-2 md:gap-4">
-            <button onClick={step === 1 ? handleBackToInfoModal : handlePrevStep} className="text-[#343C6A] hover:opacity-75">
-              <ChevronLeft size={20} className="md:w-6 md:h-6" />
+            <button 
+              onClick={step === 1 ? handleBackToInfoModal : handlePrevStep} 
+              className="text-[#343C6A] hover:opacity-75 transition-opacity p-1 -ml-1"
+            >
+              <ChevronLeft size={22} className="md:w-6 md:h-6" />
             </button>
-            <h1 className="text-lg md:text-2xl font-semibold text-[#343C6A]">{getStepTitle()}</h1>
+            <h1 className="text-base md:text-2xl font-semibold text-[#343C6A]">{getStepTitle()}</h1>
           </div>
           <div className="flex flex-col items-end">
             <span className="text-xs md:text-sm font-medium text-[#232323]">Step {step} of 3</span>
             <div className="flex items-center gap-1 md:gap-2 mt-1 md:mt-2">
               {[1, 2, 3].map(s => (
-                <div key={s} className={`w-12 md:w-[70px] h-[5px] md:h-[7px] rounded-full ${step >= s ? 'bg-[#FA660F]' : 'bg-[#E9E9E9]'}`}></div>
+                <div key={s} className={`w-10 md:w-[70px] h-[4px] md:h-[7px] rounded-full transition-colors ${step >= s ? 'bg-[#FA660F]' : 'bg-[#E9E9E9]'}`}></div>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="border-t border-gray-200 my-4"></div>
+        <div className="border-t border-gray-200 my-3 md:my-4 flex-shrink-0"></div>
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           {renderStepContent()}
         </div>

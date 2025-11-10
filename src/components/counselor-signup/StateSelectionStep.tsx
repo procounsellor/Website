@@ -87,7 +87,8 @@ export default function StateSelectionStep({ selectedStates, onStateSelect }: St
             />
         </div>
 
-        <div className="grid grid-cols-2 gap-2 md:gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="p-1">
+          <div className="grid grid-cols-2 gap-2 md:gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredStates.map((state) => {
                 const isSelected = selectedStates.includes(state.name);
                 return (
@@ -110,6 +111,7 @@ export default function StateSelectionStep({ selectedStates, onStateSelect }: St
                     </button>
                 );
             })}
+          </div>
         </div>
     </div>
   );
