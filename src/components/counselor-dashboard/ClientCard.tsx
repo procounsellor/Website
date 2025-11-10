@@ -15,12 +15,19 @@ const formatPlanName = (plan: string) => {
   return plan.charAt(0).toUpperCase() + plan.slice(1);
 };
 
-const formatTimeAgo = (date: Date) => {
+const formatTimeAgo = (date: Date, isMobile: boolean = false) => {
   const now = new Date();
   const diff = now.getTime() - date.getTime();
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
+  
+  if (isMobile) {
+    // Shorter format for mobile
+    if (minutes < 60) return `${minutes}m`;
+    if (hours < 24) return `${hours}h`;
+    return `${days}d`;
+  }
   
   if (minutes < 60) return `${minutes} min${minutes !== 1 ? 's' : ''} ago`;
   if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
@@ -68,21 +75,24 @@ export default function ClientCard({ client, variant, onAccept, onReject, isResp
         
         {client.plan && (
           <div className="space-y-2 pt-2 border-t border-gray-100">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex-1">
+            <div className="grid grid-cols-3 gap-2">
+              <div>
                 <p className="text-xs text-[#8C8CA1]">Plan</p>
-                <p className="font-semibold text-sm text-[#242645] capitalize">{formatPlanName(client.plan)}</p>
+                <p className="font-semibold text-sm text-[#242645] capitalize truncate">{formatPlanName(client.plan)}</p>
               </div>
               {client.amount && (
-                <div className="text-right flex-1">
+                <div>
                   <p className="text-xs text-[#8C8CA1]">Amount</p>
-                  <p className="font-semibold text-sm text-[#242645]">₹{client.amount}</p>
+                  <p className="font-semibold text-sm text-[#242645] truncate">₹{client.amount}</p>
                 </div>
               )}
               {client.createdAt && variant === 'pending' && (
-                <div className="flex items-center gap-1 text-xs text-[#8C8CA1] flex-1">
-                  <Clock size={12} />
-                  <span>{formatTimeAgo(client.createdAt)}</span>
+                <div>
+                  <p className="text-xs text-[#8C8CA1]">Time</p>
+                  <div className="flex items-center gap-1">
+                    <Clock size={12} className="text-[#242645]" />
+                    <span className="font-semibold text-sm text-[#242645]">{formatTimeAgo(client.createdAt, true)}</span>
+                  </div>
                 </div>
               )}
             </div>
@@ -99,7 +109,7 @@ export default function ClientCard({ client, variant, onAccept, onReject, isResp
       </div>
       {/*desktop*/}
       <div className="hidden md:block py-6">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
           <div className="md:col-span-3 flex items-center gap-4">
             <img src={client.imageUrl} alt={client.name} className="w-20 h-20 rounded-lg object-cover flex-shrink-0" />
             <div className="min-w-0 flex-1">
@@ -109,7 +119,7 @@ export default function ClientCard({ client, variant, onAccept, onReject, isResp
           </div>
 
           {client.plan && (
-            <div className={`flex items-start gap-6 ${client.interestedStates && client.interestedStates.length > 0 && variant === 'client' ? 'md:col-span-7' : 'md:col-span-7'}`}>
+            <div className={`flex items-center gap-6 ${client.interestedStates && client.interestedStates.length > 0 && variant === 'client' ? 'md:col-span-7' : 'md:col-span-7'}`}>
               <div className="flex-shrink-0">
                 <h5 className="font-semibold text-lg text-[#242645]">Plan</h5>
                 <p className="font-medium text-base text-[#8C8CA1] capitalize">{formatPlanName(client.plan)}</p>
