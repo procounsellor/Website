@@ -1,5 +1,5 @@
 import type { CounselorFormData } from '@/types/counselor';
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import MultiSelectDropdown from './MultiSelectDropdown';
 
 interface ProfileDetailsStepProps {
@@ -9,6 +9,85 @@ interface ProfileDetailsStepProps {
   onVerifyEmail: () => void;
 }
 
+// Time Picker Component
+const TimePicker = ({ 
+  value, 
+  onChange, 
+  placeholder
+}: { 
+  value: string; 
+  onChange: (value: string) => void; 
+  placeholder: string;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const timeOptions = [];
+  for (let hour = 6; hour <= 24; hour++) {
+    const displayHour = hour === 24 ? 12 : hour > 12 ? hour - 12 : hour;
+    const period = hour < 12 ? 'AM' : hour === 24 ? 'AM' : 'PM';
+    const hourStr = hour === 24 ? '00' : hour.toString().padStart(2, '0');
+    timeOptions.push({
+      value: `${hourStr}:00`,
+      label: `${displayHour.toString().padStart(2, '0')}:00 ${period}`
+    });
+  }
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedTime = timeOptions.find(t => t.value === value);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="h-12 w-full px-4 border border-[#13097D66] rounded-xl bg-white text-left flex items-center justify-between focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors hover:border-gray-400"
+      >
+        <span className={selectedTime ? 'text-[#232323] font-medium' : 'text-[#6C696980] font-medium'}>
+          {selectedTime ? selectedTime.label : placeholder}
+        </span>
+        <svg 
+          className={`h-5 w-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute left-0 right-0 z-50 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto scrollbar-hide">
+          {timeOptions.map((time) => (
+            <button
+              key={time.value}
+              type="button"
+              onClick={() => {
+                onChange(time.value);
+                setIsOpen(false);
+              }}
+              className={`w-full px-4 py-3 text-left hover:bg-orange-50 transition-colors ${
+                value === time.value ? 'bg-orange-100 text-[#FA660F] font-semibold' : 'text-gray-700'
+              }`}
+            >
+              {time.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const languageOptions = [
   { label: 'English', value: 'English' },
   { label: 'Hindi', value: 'Hindi' },
@@ -16,19 +95,22 @@ const languageOptions = [
   { label: 'Telugu', value: 'Telugu' },
 ];
 
-const workingDaysOptions = [
-  { label: 'Monday', value: 'Monday' }, { label: 'Tuesday', value: 'Tuesday' },
-  { label: 'Wednesday', value: 'Wednesday' }, { label: 'Thursday', value: 'Thursday' },
-  { label: 'Friday', value: 'Friday' }, { label: 'Saturday', value: 'Saturday' },
-  { label: 'Sunday', value: 'Sunday' },
-];
-
 const FormField = ({ label, children }: { label: string; children: React.ReactNode }) => (
     <div className="flex flex-col gap-2">
-        <label className="font-montserrat font-normal text-base text-[#232323]">{label}</label>
+        <label className="font-montserrat font-normal text-sm md:text-base text-[#232323]">{label}</label>
         {children}
     </div>
 );
+
+const weekDays = [
+  { label: 'Mon', value: 'Monday' },
+  { label: 'Tue', value: 'Tuesday' },
+  { label: 'Wed', value: 'Wednesday' },
+  { label: 'Thu', value: 'Thursday' },
+  { label: 'Fri', value: 'Friday' },
+  { label: 'Sat', value: 'Saturday' },
+  { label: 'Sun', value: 'Sunday' }
+];
 
 export default function ProfileDetailsStep({
   formData,
@@ -44,12 +126,29 @@ export default function ProfileDetailsStep({
   const handleMultiSelectChange = (name: 'languagesKnown' | 'workingDays', value: string[]) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+
+  const toggleDay = (dayValue: string) => {
+    setFormData(prev => ({
+      ...prev,
+      workingDays: prev.workingDays.includes(dayValue)
+        ? prev.workingDays.filter(d => d !== dayValue)
+        : [...prev.workingDays, dayValue]
+    }));
+  };
+
+  const handleSelectAllDays = () => {
+    if (formData.workingDays.length === weekDays.length) {
+      setFormData(prev => ({ ...prev, workingDays: [] }));
+    } else {
+      setFormData(prev => ({ ...prev, workingDays: weekDays.map(d => d.value) }));
+    }
+  };
   
   const isFormValid = formData.firstName && formData.lastName && formData.email && formData.emailOtpVerified;
 
   return (
     <div className="font-montserrat space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 overflow-visible">
             <FormField label="First Name">
                 <input type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} required className="h-12 w-full px-4 border border-[#13097D66] rounded-xl placeholder:text-[#6C696980] placeholder:font-medium focus:outline-none focus:border-orange-500 focus:ring-0"/>
             </FormField>
@@ -77,37 +176,62 @@ export default function ProfileDetailsStep({
                   onChange={(selection) => handleMultiSelectChange('languagesKnown', selection)}
                 />
             </FormField>
-            <FormField label="Working Days">
-                <MultiSelectDropdown
-                  placeholder="Select Working Days"
-                  options={workingDaysOptions}
-                  selected={formData.workingDays}
-                  onChange={(selection) => handleMultiSelectChange('workingDays', selection)}
-                />
+            <FormField label="Organisation">
+                <input type="text" name="organisation" placeholder="Organisation" value={formData.organisation} onChange={handleChange} className="h-12 w-full px-4 border border-[#13097D66] rounded-xl placeholder:text-[#6C696980] placeholder:font-medium focus:outline-none focus:border-orange-500 focus:ring-0"/>
             </FormField>
             <FormField label="Office Start Time">
-                <select name="officeStartTime" value={formData.officeStartTime} onChange={handleChange} className="h-12 w-full px-4 border border-[#13097D66] rounded-xl appearance-none bg-white text-[#6C696980] font-medium focus:outline-none focus:border-orange-500 focus:ring-0">
-                    <option value="" disabled>Start Time</option>
-                    <option className="text-black" value="09:00">09:00 AM</option>
-                    <option className="text-black" value="10:00">10:00 AM</option>
-                    <option className="text-black" value="11:00">11:00 AM</option>
-                </select>
+                <TimePicker
+                  value={formData.officeStartTime}
+                  onChange={(value) => setFormData(prev => ({ ...prev, officeStartTime: value }))}
+                  placeholder="Start Time"
+                />
             </FormField>
             <FormField label="Office End Time">
-                <select name="officeEndTime" value={formData.officeEndTime} onChange={handleChange} className="h-12 w-full px-4 border border-[#13097D66] rounded-xl appearance-none bg-white text-[#6C696980] font-medium focus:outline-none focus:border-orange-500 focus:ring-0">
-                    <option value="" disabled>End Time</option>
-                    <option className="text-black" value="17:00">05:00 PM</option>
-                    <option className="text-black" value="18:00">06:00 PM</option>
-                    <option className="text-black" value="19:00">07:00 PM</option>
-                </select>
+                <TimePicker
+                  value={formData.officeEndTime}
+                  onChange={(value) => setFormData(prev => ({ ...prev, officeEndTime: value }))}
+                  placeholder="End Time"
+                />
             </FormField>
         </div>
 
-        <div className="pt-4 text-center">
+        <div className="mt-4 md:mt-6">
+          <div className="flex items-center justify-between mb-2 md:mb-3">
+            <label className="font-montserrat font-normal text-sm md:text-base text-[#232323]">Working Days</label>
+            <button
+              type="button"
+              onClick={handleSelectAllDays}
+              className="text-xs font-semibold text-[#FA660F] hover:text-orange-700 px-2 py-1 rounded-md border border-[#FA660F] hover:bg-orange-50 transition-colors"
+            >
+              {formData.workingDays.length === weekDays.length ? 'Deselect All' : 'Select All'}
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {weekDays.map(day => {
+              const isSelected = formData.workingDays.includes(day.value);
+              return (
+                <button
+                  key={day.value}
+                  type="button"
+                  onClick={() => toggleDay(day.value)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    isSelected
+                      ? 'bg-[#FA660F] text-white border border-[#FA660F]'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:border-[#FA660F] hover:bg-orange-50'
+                  }`}
+                >
+                  {day.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="pt-4 md:pt-6 flex justify-center">
             <button
                 onClick={onNext}
                 disabled={!isFormValid}
-                className="w-[444px] h-11 text-white rounded-xl font-semibold text-base transition-colors disabled:bg-[#ACACAC] bg-[#FA660F] hover:bg-orange-700"
+                className="w-full md:w-[444px] h-11 text-white rounded-xl font-semibold text-base transition-colors disabled:bg-[#ACACAC] bg-[#FA660F] hover:bg-orange-700"
             >
                 Next
             </button>

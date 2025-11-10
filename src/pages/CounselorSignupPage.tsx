@@ -81,14 +81,14 @@ export default function CounselorSignupPage() {
     };
     try {
       await counsellorSignup(payload);
-      toast.success('Application submitted successfully! Our team will review your details.');
+      toast.success('Application submitted successfully! Our team will review your details.', { duration: 2000 });
       localStorage.setItem('hasSubmittedCounselorApp', 'true');
       if (isCounselorSignupOpen) {
         toggleCounselorSignup();
       }
       navigate('/counselor-dashboard');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'An unexpected error occurred.');
+      toast.error(error instanceof Error ? error.message : 'An unexpected error occurred.', { duration: 2000 });
     } finally {
       setIsSubmitting(false);
     }
@@ -98,9 +98,9 @@ export default function CounselorSignupPage() {
     try {
       await sendEmailOtp(formData.email);
       setOtpModalOpen(true);
-      toast.success('OTP sent to your email!');
+      toast.success('OTP sent to your email!', { duration: 2000 });
     } catch (error) {
-      toast.error('Failed to send OTP. Please check the email and try again.');
+      toast.error('Failed to send OTP. Please check the email and try again.', { duration: 2000 });
     }
   };
 
@@ -108,7 +108,7 @@ export default function CounselorSignupPage() {
     try {
       await verifyEmailOtp(formData.email, otp);
       setFormData(prev => ({ ...prev, emailOtpVerified: true }));
-      toast.success('Verification successful!');
+      toast.success('Verification successful!', { duration: 2000 });
       setOtpModalOpen(false);
       return true;
     } catch (error) {
@@ -130,7 +130,7 @@ export default function CounselorSignupPage() {
     switch (step) {
       case 1:
         return (
-          <div className="flex-1 overflow-y-auto pr-4 -mr-4">
+          <div className="flex-1 overflow-y-auto pr-2 -mr-2 md:pr-4 md:-mr-4">
             <ProfileDetailsStep
               formData={formData}
               setFormData={setFormData}
@@ -142,17 +142,17 @@ export default function CounselorSignupPage() {
       case 2:
         return (
           <>
-            <div className="flex-1 overflow-y-auto pr-4 -mr-4">
+            <div className="flex-1 overflow-y-auto pr-2 -mr-2 md:pr-4 md:-mr-4">
               <CourseSelectionStep
                 selectedCourses={formData.expertise}
                 onCourseSelect={handleCourseSelect}
               />
             </div>
-            <div className="pt-6 text-center flex-shrink-0">
+            <div className="pt-4 md:pt-6 flex justify-center flex-shrink-0">
               <button
                 onClick={handleNextStep}
                 disabled={(formData.expertise?.length ?? 0) === 0}
-                className="w-[444px] h-11 text-white rounded-xl font-semibold text-base transition-colors disabled:bg-[#ACACAC] bg-[#FA660F] hover:bg-orange-700"
+                className="w-full md:w-[444px] h-11 text-white rounded-xl font-semibold text-base transition-colors disabled:bg-[#ACACAC] bg-[#FA660F] hover:bg-orange-700"
               >
                 Next
               </button>
@@ -162,17 +162,17 @@ export default function CounselorSignupPage() {
       case 3:
         return (
           <>
-            <div className="flex-1 overflow-y-auto pr-4 -mr-4">
+            <div className="flex-1 overflow-y-auto pr-2 -mr-2 md:pr-4 md:-mr-4">
               <StateSelectionStep
                 selectedStates={formData.stateOfCounsellor}
                 onStateSelect={handleStateSelect}
               />
             </div>
-            <div className="pt-6 text-center flex-shrink-0">
+            <div className="pt-4 md:pt-6 flex justify-center flex-shrink-0">
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || (formData.stateOfCounsellor?.length ?? 0) === 0}
-                className="w-[444px] h-11 text-white rounded-xl font-semibold text-base transition-colors disabled:bg-[#ACACAC] bg-[#FA660F] hover:bg-orange-700 flex items-center justify-center"
+                className="w-full md:w-[444px] h-11 text-white rounded-xl font-semibold text-base transition-colors disabled:bg-[#ACACAC] bg-[#FA660F] hover:bg-orange-700 flex items-center justify-center"
               >
                 {isSubmitting ? <Loader2 className="animate-spin" /> : 'Submit Application'}
               </button>
@@ -185,20 +185,20 @@ export default function CounselorSignupPage() {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center p-4 z-40 font-montserrat">
-      <div className="w-full max-w-[932px] h-auto max-h-[90vh] bg-white rounded-2xl shadow-lg p-10 flex flex-col relative">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-4">
+    <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center p-4 z-40 font-montserrat">
+      <div className="w-full max-w-[932px] h-auto max-h-[90vh] bg-white rounded-2xl shadow-lg p-4 md:p-10 flex flex-col relative">
+        <div className="flex items-center justify-between mb-3 md:mb-4">
+          <div className="flex items-center gap-2 md:gap-4">
             <button onClick={step === 1 ? handleBackToInfoModal : handlePrevStep} className="text-[#343C6A] hover:opacity-75">
-              <ChevronLeft size={24} />
+              <ChevronLeft size={20} className="md:w-6 md:h-6" />
             </button>
-            <h1 className="text-2xl font-semibold text-[#343C6A]">{getStepTitle()}</h1>
+            <h1 className="text-lg md:text-2xl font-semibold text-[#343C6A]">{getStepTitle()}</h1>
           </div>
           <div className="flex flex-col items-end">
-            <span className="text-sm font-medium text-[#232323]">Step {step} of 3</span>
-            <div className="flex items-center gap-2 mt-2">
+            <span className="text-xs md:text-sm font-medium text-[#232323]">Step {step} of 3</span>
+            <div className="flex items-center gap-1 md:gap-2 mt-1 md:mt-2">
               {[1, 2, 3].map(s => (
-                <div key={s} className={`w-[70px] h-[7px] rounded-full ${step >= s ? 'bg-[#FA660F]' : 'bg-[#E9E9E9]'}`}></div>
+                <div key={s} className={`w-12 md:w-[70px] h-[5px] md:h-[7px] rounded-full ${step >= s ? 'bg-[#FA660F]' : 'bg-[#E9E9E9]'}`}></div>
               ))}
             </div>
           </div>
