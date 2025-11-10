@@ -254,7 +254,7 @@ export default function CounselorListingPage() {
       const freshToken = localStorage.getItem('jwt');
       
       if (!freshUserId || !counsellorId || !freshToken) {
-        toast.error("Could not get user ID after login. Please try again.");
+        toast.error("Could not get user ID after login. Please try again.", { duration: 2000 });
         return;
       }
 
@@ -269,9 +269,9 @@ export default function CounselorListingPage() {
       try {
         await addFav(freshUserId, counsellorId);
         await refreshUser(true);
-        toast.success("Favourite status updated!");
+        toast.success("Favourite status updated!", { duration: 2000 });
       } catch (err) {
-        toast.error("Could not update favourite status.");
+        toast.error("Could not update favourite status.", { duration: 2000 });
         setFavouriteIds(new Set(user?.favouriteCounsellorIds || []));
       }
     };

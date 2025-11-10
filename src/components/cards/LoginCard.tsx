@@ -52,7 +52,7 @@ const LoginCard: React.FC = () => {
 
   const handleSendOtp = async () => {
     if (phone.length !== 10) {
-      toast.error('Please enter a valid 10-digit phone number');
+      toast.error('Please enter a valid 10-digit phone number', { duration: 2000 });
       return;
     }
 
@@ -61,9 +61,9 @@ const LoginCard: React.FC = () => {
       await sendOtp(phone);
       setCurrentStep('otp');
       setResendTimer(60);
-      toast.success('OTP sent successfully!', { duration: 3000 });
+      toast.success('OTP sent successfully!', { duration: 2000 });
     } catch {
-      toast.error('Failed to send OTP', { duration: 3000 });
+      toast.error('Failed to send OTP', { duration: 2000 });
     } finally {
       setIsLoading(false);
     }
@@ -75,11 +75,11 @@ const LoginCard: React.FC = () => {
     
     try {
       await verifyOtp(phone, otp);
-      toast.success('Verification successful!', { duration: 3000 });
+      toast.success('Verification successful!', { duration: 2000 });
       setIsLoading(false);
     } catch {
       setHasError(true);
-      toast.error('Invalid OTP, please try again', { duration: 3000 });
+      toast.error('Invalid OTP, please try again', { duration: 2000 });
       setIsLoading(false);
     }
   };
@@ -96,9 +96,9 @@ const LoginCard: React.FC = () => {
       await sendOtp(phone);
       setResendTimer(60);
       setHasError(false);
-      toast.success('OTP resent successfully!', { duration: 3000 });
+      toast.success('OTP resent successfully!', { duration: 2000 });
     } catch {
-      toast.error('Failed to resend OTP', { duration: 3000 });
+      toast.error('Failed to resend OTP', { duration: 2000 });
     } finally {
       setIsLoading(false);
     }

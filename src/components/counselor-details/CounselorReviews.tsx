@@ -273,8 +273,17 @@ export function CounselorReviews({ reviews,isSubscribed, onSubmitReview, userRev
 
       {/* All Reviews Modal */}
       {showAllReviewsModal && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+        <div 
+          className="fixed inset-0 bg-black/30 backdrop-blur-md z-50 flex items-center justify-center p-4"
+          onClick={() => {
+            setShowAllReviewsModal(false);
+            setCurrentPage(1);
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Modal Header */}
             <div className="flex justify-between items-center p-4 md:p-6 border-b border-gray-200">
               <h2 className="text-xl md:text-2xl font-bold text-[#343C6A]">All Reviews ({otherReviews.length})</h2>
