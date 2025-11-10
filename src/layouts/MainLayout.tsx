@@ -11,6 +11,7 @@ import { MessageSquare } from "lucide-react";
 import { useVoiceChatStore } from "@/store/VoiceChatStore";
 import VoiceChat from "@/components/chatbot/VoiceChat";
 import InfoModal from "@/components/counselor-signup/InfoModal";
+import CounselorSignupModal from "@/components/counselor-signup/CounselorSignupModal.tsx";
 import AppInstallBanner from "@/components/shared/AppInstallBanner";
 import EditProfileModal from "@/components/student-dashboard/EditProfileModal";
 import { useEffect } from "react";
@@ -129,6 +130,7 @@ export default function MainLayout(){
       
       {isLoginToggle && <LoginCard/>}
       <InfoModal />
+      <CounselorSignupModal />
       
       {shouldShowOnboarding && (
         <>

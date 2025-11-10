@@ -14,6 +14,15 @@ export interface ApiPendingRequest {
   userFullName: string;
   userSmallPhotoUrl: string | null;
   userInterestedCourse: string;
+  counsellorId: string;
+  plan: string;
+  amount: number;
+  status: string;
+  createdAt: {
+    seconds: number;
+    nanos: number;
+  };
+  subscriptionType: string;
 }
 
 export interface Client {
@@ -21,6 +30,9 @@ export interface Client {
   name: string;
   imageUrl: string;
   course: string;
-  preferredStates: string[];
+  plan?: string;
+  amount?: number;
+  createdAt?: Date;
+  interestedStates?: string[];
   manualSubscriptionRequestId?: string;
 }

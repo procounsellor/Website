@@ -92,32 +92,33 @@ export default function OtpVerificationModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
-        <div className="p-4 border-b flex justify-end">
-          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-100">
-            <X className="h-5 w-5 text-gray-600" />
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-auto">
+        <div className="p-4 md:p-6 border-b border-gray-200 flex justify-between items-center">
+          <h2 className="text-lg md:text-xl font-bold text-gray-800">{title}</h2>
+          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-100 transition-colors">
+            <X className="h-5 w-5 md:h-6 md:w-6 text-gray-600" />
           </button>
         </div>
-        <div className="p-6 text-center">
-          <h2 className="text-xl font-bold text-gray-800 mb-2">{title}</h2>
-          <p className="text-gray-600 mb-6">
+        <div className="p-4 md:p-6 text-center">
+          <p className="text-sm md:text-base text-gray-600 mb-6 md:mb-8">
             {description} <br /> <span className="font-semibold text-gray-800">{contactInfo}</span>
           </p>
           
-          <div className="flex justify-center gap-2 sm:gap-4 mb-4">
+          <div className="flex justify-center gap-2 md:gap-3 mb-4 md:mb-6">
             {otp.map((data, index) => (
               <input
                 key={index}
                 ref={(el) => { inputRefs.current[index] = el; }}
                 type="text"
+                inputMode="numeric"
                 maxLength={1}
                 value={data}
                 onChange={(e) => handleChange(e.target, index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 onFocus={(e) => e.target.select()}
                 disabled={isLoading}
-                className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-semibold border rounded-lg focus:outline-none focus:ring-0 focus:border-orange-500 transition ${
+                className={`w-10 h-12 md:w-14 md:h-16 text-center text-xl md:text-2xl font-semibold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition ${
                   error ? 'border-red-500' : 'border-gray-300'
                 }`}
               />
@@ -130,7 +131,7 @@ export default function OtpVerificationModal({
             <button
               onClick={handleResendClick}
               disabled={resendTimer > 0 || isLoading}
-              className="text-sm text-gray-600 hover:text-orange-600 disabled:text-gray-400 disabled:cursor-not-allowed"
+              className="text-sm md:text-base text-gray-600 hover:text-orange-600 disabled:text-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
             >
               Resend OTP {resendTimer > 0 && `in 00:${String(resendTimer).padStart(2, '0')}`}
             </button>
@@ -139,9 +140,9 @@ export default function OtpVerificationModal({
           <button
             onClick={handleVerification}
             disabled={isLoading}
-            className="w-full h-[44px] bg-[#FA660F] text-white rounded-xl font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center"
+            className="w-full h-11 md:h-12 bg-[#FA660F] text-white rounded-xl font-semibold text-sm md:text-base hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
-            {isLoading ? <Loader2 className="animate-spin" /> : 'Verify OTP'}
+            {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Verify OTP'}
           </button>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { MoreVertical, X, Check, Loader2, MapPin } from 'lucide-react';
+import { X, Check, Loader2, Clock } from 'lucide-react';
 import type { Client } from '@/types/client';
 
 interface ClientCardProps {
@@ -9,25 +9,50 @@ interface ClientCardProps {
   isResponding?: boolean;
 }
 
+const formatPlanName = (plan: string) => {
+  if (plan === 'plus') return 'Plus';
+  if (plan === 'premium') return 'Premium';
+  return plan.charAt(0).toUpperCase() + plan.slice(1);
+};
+
+const formatTimeAgo = (date: Date, isMobile: boolean = false) => {
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  
+  if (isMobile) {
+    // Shorter format for mobile
+    if (minutes < 60) return `${minutes}m`;
+    if (hours < 24) return `${hours}h`;
+    return `${days}d`;
+  }
+  
+  if (minutes < 60) return `${minutes} min${minutes !== 1 ? 's' : ''} ago`;
+  if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+  return `${days} day${days !== 1 ? 's' : ''} ago`;
+};
+
 export default function ClientCard({ client, variant, onAccept, onReject, isResponding }: ClientCardProps) {
   return (
     <>
       {/*mobile view*/}
       <div className="block md:hidden bg-white border border-[#EFEFEF] rounded-2xl p-3 space-y-3 shadow-sm font-montserrat">
         <div className="flex justify-between items-start">
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 flex-1 min-w-0">
                 <img 
                     src={client.imageUrl} 
                     alt={client.name} 
-                    className="w-11 h-11 rounded-md object-cover" 
+                    className="w-11 h-11 rounded-md object-cover flex-shrink-0" 
                 />
-                <div>
-                    <h4 className="font-medium text-sm text-[#242645]">{client.name}</h4>
-                    <p className="font-normal text-xs text-[#8C8CA1]">{client.course}</p>
+                <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-sm text-[#242645] truncate">{client.name}</h4>
+                    <p className="font-normal text-xs text-[#8C8CA1] truncate">{client.course}</p>
                 </div>
             </div>
-            {variant === 'pending' && onAccept && onReject ? (
-                <div className="flex items-center gap-2">
+            {variant === 'pending' && onAccept && onReject && (
+                <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                     <button
                         onClick={onReject}
                         disabled={isResponding}
@@ -45,64 +70,106 @@ export default function ClientCard({ client, variant, onAccept, onReject, isResp
                         {isResponding ? <Loader2 className="animate-spin" size={14} /> : <Check size={16} />}
                     </button>
                 </div>
-            ) : (
-                <button disabled={isResponding} className="p-1 text-[#13097D] hover:bg-gray-100 rounded-full disabled:opacity-50">
-                    <MoreVertical size={20} />
-                </button>
             )}
         </div>
         
-        <div className="pt-2">
-            <div className="flex items-center gap-2">
-                <MapPin size={16} className="text-[#8C8CA1]" />
-                <h5 className="font-medium text-xs text-[#242645]">Preferred States</h5>
+        {client.plan && (
+          <div className="space-y-2 pt-2 border-t border-gray-100">
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <p className="text-xs text-[#8C8CA1]">Plan</p>
+                <p className="font-semibold text-sm text-[#242645] capitalize truncate">{formatPlanName(client.plan)}</p>
+              </div>
+              {client.amount && (
+                <div>
+                  <p className="text-xs text-[#8C8CA1]">Amount</p>
+                  <p className="font-semibold text-sm text-[#242645] truncate">₹{client.amount}</p>
+                </div>
+              )}
+              {client.createdAt && variant === 'pending' && (
+                <div>
+                  <p className="text-xs text-[#8C8CA1]">Time</p>
+                  <div className="flex items-center gap-1">
+                    <Clock size={12} className="text-[#242645]" />
+                    <span className="font-semibold text-sm text-[#242645]">{formatTimeAgo(client.createdAt, true)}</span>
+                  </div>
+                </div>
+              )}
             </div>
-            <p className="font-medium text-xs text-[#8C8CA1] mt-1 pl-1 truncate">
-                {client.preferredStates.join(', ')}
-            </p>
-        </div>
+            {client.interestedStates && client.interestedStates.length > 0 && variant === 'client' && (
+              <div>
+                <p className="text-xs text-[#8C8CA1] mb-1">Interested States</p>
+                <p className="font-medium text-xs text-[#242645] truncate">
+                  {client.interestedStates.join(', ')}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       {/*desktop*/}
       <div className="hidden md:block py-6">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-          <div className="md:col-span-5 flex items-center gap-4">
-            <img src={client.imageUrl} alt={client.name} className="w-20 h-20 rounded-lg object-cover" />
-            <div>
-              <h4 className="font-semibold text-xl text-[#242645]">{client.name}</h4>
-              <p className="font-medium text-base text-[#8C8CA1]">{client.course}</p>
+          <div className="md:col-span-3 flex items-center gap-4">
+            <img src={client.imageUrl} alt={client.name} className="w-20 h-20 rounded-lg object-cover flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <h4 className="font-semibold text-xl text-[#242645] truncate">{client.name}</h4>
+              <p className="font-medium text-base text-[#8C8CA1] truncate">{client.course}</p>
             </div>
           </div>
 
-          <div className="md:col-span-5 -ml-4">
-            <h5 className="font-semibold text-xl text-[#242645]">Preferred States</h5>
-            <p className="font-medium text-base text-[#8C8CA1] truncate">{client.preferredStates.join(', ')}</p>
-          </div>
-          
-          <div className={`md:col-span-2 flex items-center justify-end ${variant === 'pending' ? 'gap-[60px]' : 'gap-2'}`}>
-            {variant === 'pending' && onAccept && onReject && (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={onReject}
-                  disabled={isResponding}
-                  className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
-                  aria-label="Reject"
-                >
-                  <X size={20} />
-                </button>
-                <button
-                  onClick={onAccept}
-                  disabled={isResponding}
-                  className="w-8 h-8 flex items-center justify-center rounded-full border border-[#13097D] text-[#13097D] hover:bg-green-50 hover:text-green-600 transition-colors disabled:opacity-50"
-                  aria-label="Accept"
-                >
-                  {isResponding ? <Loader2 className="animate-spin" size={16} /> : <Check size={20} />}
-                </button>
+          {client.plan && (
+            <div className={`flex items-center gap-6 ${client.interestedStates && client.interestedStates.length > 0 && variant === 'client' ? 'md:col-span-7' : 'md:col-span-7'}`}>
+              <div className="flex-shrink-0">
+                <h5 className="font-semibold text-lg text-[#242645]">Plan</h5>
+                <p className="font-medium text-base text-[#8C8CA1] capitalize">{formatPlanName(client.plan)}</p>
               </div>
-            )}
-            <button disabled={isResponding} className="p-2 text-[#13097D] hover:bg-gray-100 rounded-full disabled:opacity-50">
-              <MoreVertical size={20} />
-            </button>
-          </div>
+              {client.amount && (
+                <div className="flex-shrink-0">
+                  <h5 className="font-semibold text-lg text-[#242645]">Amount</h5>
+                  <p className="font-medium text-base text-[#8C8CA1]">₹{client.amount}</p>
+                </div>
+              )}
+              {client.createdAt && variant === 'pending' && (
+                <div className="flex-shrink-0">
+                  <h5 className="font-semibold text-lg text-[#242645]">Requested</h5>
+                  <div className="flex items-center gap-1.5 text-[#8C8CA1]">
+                    <Clock size={16} />
+                    <p className="font-medium text-base">{formatTimeAgo(client.createdAt)}</p>
+                  </div>
+                </div>
+              )}
+              {client.interestedStates && client.interestedStates.length > 0 && variant === 'client' && (
+                <div className="flex-1 min-w-0">
+                  <h5 className="font-semibold text-lg text-[#242645]">Interested States</h5>
+                  <p className="font-medium text-base text-[#8C8CA1] truncate">
+                    {client.interestedStates.join(', ')}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {variant === 'pending' && onAccept && onReject && (
+            <div className="md:col-span-2 flex items-center justify-end gap-2">
+              <button
+                onClick={onReject}
+                disabled={isResponding}
+                className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+                aria-label="Reject"
+              >
+                <X size={20} />
+              </button>
+              <button
+                onClick={onAccept}
+                disabled={isResponding}
+                className="w-8 h-8 flex items-center justify-center rounded-full border border-[#13097D] text-[#13097D] hover:bg-green-50 hover:text-green-600 transition-colors disabled:opacity-50"
+                aria-label="Accept"
+              >
+                {isResponding ? <Loader2 className="animate-spin" size={16} /> : <Check size={20} />}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>

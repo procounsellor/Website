@@ -498,7 +498,7 @@ export default function PlansDrawer({
         onClose={() => setIsConfirmModalOpen(false)}
         onConfirm={subscribe}
         title={isUpgrade ? "Confirm Plan Upgrade" : "Confirm Subscription"}
-        message={`Are you sure you want to ${isUpgrade ? 'upgrade to' : 'subscribe to'} the ${planTitle} plan for ₹${(isUpgrade ? priceToPay : newPlanPrice).toLocaleString('en-IN')}? This amount will be deducted from your wallet.`}
+        message={`Are you sure you want to ${isUpgrade ? 'upgrade to' : 'subscribe to'} the ${planTitle} plan for ${(isUpgrade ? priceToPay : newPlanPrice).toLocaleString('en-IN')} ProCoins? This amount will be deducted from your wallet.`}
         confirmText={isUpgrade ? "Yes, Upgrade" : "Yes, Subscribe"}
       />
       </>

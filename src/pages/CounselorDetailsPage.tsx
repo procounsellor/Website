@@ -160,7 +160,7 @@ export default function CounselorDetailsPage() {
   }
   const handleSubmitReview = async (reviewText: string, rating: number) => {
     if (!userId || !computedId || !token || !user) {
-      toast.error("You must be logged in to post a review.");
+      toast.error("You must be logged in to post a review.", { duration: 2000 });
       return;
     }
     const optimisticReview: CounselorReview = {
@@ -189,7 +189,7 @@ export default function CounselorDetailsPage() {
       const response = await postReview({ ...reviewData, token });
       toast.dismiss(loadingToastId);
       if (response.status === 'success') {
-        toast.success(response.message || "Review posted successfully!");
+        toast.success(response.message || "Review posted successfully!", { duration: 2000 });
         await fetchReviews();
       } else {
         throw new Error(response.message || "Failed to post review.");
@@ -197,7 +197,7 @@ export default function CounselorDetailsPage() {
 
     } catch (err) {
       toast.dismiss(loadingToastId);
-      toast.error((err as Error).message || "Could not post review.");
+      toast.error((err as Error).message || "Could not post review.", { duration: 2000 });
       setReviews(prevReviews => prevReviews.filter(r => r.reviewId !== optimisticReview.reviewId));
       console.error("Submit Review Error:", err);
     }
@@ -205,12 +205,12 @@ export default function CounselorDetailsPage() {
 
   const handleUpdateReview = async (reviewText: string, rating: number) => {
     if (!userId || !computedId || !token || !userReview) {
-      toast.error("You must be logged in to update a review.");
+      toast.error("You must be logged in to update a review.", { duration: 2000 });
       return;
     }
 
     if (!userReview.reviewId) {
-      toast.error("Could not find review ID to update.");
+      toast.error("Could not find review ID to update.", { duration: 2000 });
       return;
     }
 
@@ -227,36 +227,58 @@ export default function CounselorDetailsPage() {
       await updateUserReview(payload, token);
       
       toast.dismiss(loadingToastId);
-      toast.success("Review updated successfully!");
+      toast.success("Review updated successfully!", { duration: 2000 });
 
       await fetchReviews();
 
     } catch (err) {
       toast.dismiss(loadingToastId);
-      toast.error((err as Error).message || "Could not update review.");
+      toast.error((err as Error).message || "Could not update review.", { duration: 2000 });
       console.error("Update Review Error:", err);
     }
   };
 
   const handleToggleFavourite = async () => {
-    if (!userId || !computedId || !token) {
-      toast.error("You must be logged in to add favourites.");
+    const { isAuthenticated, toggleLogin } = useAuthStore.getState();
+    
+    const toggleFavAction = async () => {
+      const freshUserId = localStorage.getItem('phone');
+      const freshToken = localStorage.getItem('jwt');
+      
+      if (!freshUserId || !computedId || !freshToken) {
+        toast.error("Could not get user ID after login. Please try again.", { duration: 2000 });
+        return;
+      }
+
+      setIsTogglingFavourite(true);
+      setIsFavourite(prevState => !prevState); 
+
+      try {
+        await addFav(freshUserId, computedId);
+        await refreshUser(true); 
+        toast.success("Favourite status updated!", { duration: 2000 });
+      } catch (err) {
+        setIsFavourite(prevState => !prevState); 
+        toast.error("Could not update favourite status.", { duration: 2000 });
+      } finally {
+        setIsTogglingFavourite(false);
+      }
+    };
+
+    // Check authentication first
+    if (!isAuthenticated) {
+      toggleLogin(toggleFavAction);
       return;
     }
 
-    setIsTogglingFavourite(true);
-    setIsFavourite(prevState => !prevState); 
-
-    try {
-      await addFav(userId, computedId);
-      await refreshUser(true); 
-      toast.success("Favourite status updated!");
-    } catch (err) {
-      setIsFavourite(prevState => !prevState); 
-      toast.error("Could not update favourite status.");
-    } finally {
-      setIsTogglingFavourite(false);
+    // Check profile completion
+    if (!user?.firstName || !user?.email) {
+      handleProfileIncomplete(toggleFavAction);
+      return;
     }
+
+    // If all checks pass, execute the action
+    await toggleFavAction();
   };
 
   if (!computedId) {

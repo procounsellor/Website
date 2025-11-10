@@ -1,7 +1,5 @@
 import { StarIcon, Bookmark, BadgeCheck, Briefcase, MapPin, Languages } from "lucide-react";
 import { Link } from "react-router-dom";
-import toast from "react-hot-toast";
-import { useAuthStore } from "@/store/AuthStore";
 
 export type CounselorCardData = {
   id: string;
@@ -28,17 +26,9 @@ type CounselorCardProps = {
 };
 
 export function CounselorCard({ counselor, isFavourite, onToggleFavourite }: CounselorCardProps) {
-  const { isAuthenticated, toggleLogin } = useAuthStore();
-
   const handleBookmarkClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (!isAuthenticated) {
-      toast.error("Please log in to add favourites.");
-      toggleLogin();
-      return;
-    }
     onToggleFavourite(counselor.id);
   };
 

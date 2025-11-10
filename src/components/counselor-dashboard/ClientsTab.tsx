@@ -33,7 +33,9 @@ export default function ClientsTab({ user, token }: Props) {
                 name: item.userFullName,
                 imageUrl: item.userSmallPhotoUrl || `https://ui-avatars.com/api/?name=${item.userFullName}`,
                 course: item.userInterestedCourse,
-                preferredStates: [],
+                plan: item.plan,
+                amount: item.amount,
+                createdAt: new Date(item.createdAt.seconds * 1000),
                 manualSubscriptionRequestId: item.manualSubscriptionRequestId,
             };
         } else {
@@ -42,7 +44,8 @@ export default function ClientsTab({ user, token }: Props) {
                 name: `${item.firstName} ${item.lastName}`,
                 imageUrl: item.photoSmall || `https://ui-avatars.com/api/?name=${item.firstName}+${item.lastName}`,
                 course: item.course,
-                preferredStates: item.userInterestedStateOfCounsellors || [],
+                plan: item.plan,
+                interestedStates: item.userInterestedStateOfCounsellors || [],
                 manualSubscriptionRequestId: item.manualSubscriptionRequestId,
             };
         }
