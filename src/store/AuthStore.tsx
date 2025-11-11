@@ -36,6 +36,7 @@ type AuthState = {
   isLoginToggle: boolean;
   userExist: boolean;
   isCounselorSignupOpen: boolean;
+  isCounselorSignupFormOpen: boolean;
   loading: boolean;
   needsOnboarding: boolean;
   needsProfileCompletion: boolean;
@@ -44,6 +45,8 @@ type AuthState = {
   isCounselorSignupFlow: boolean;
   toggleLogin: (onSuccess?: () => void) => void;
   toggleCounselorSignup: () => void;
+  openCounselorSignupForm: () => void;
+  closeCounselorSignupForm: () => void;
   toggleProfileCompletion: () => void;
   setIsProfileCompletionOpen: (value: boolean) => void;
   setUser: (user: User | null) => void;
@@ -74,6 +77,7 @@ export const useAuthStore = create<AuthState>()(
       isLoginToggle: false,
       userExist: false,
       isCounselorSignupOpen: false,
+      isCounselorSignupFormOpen: false,
       loading: true,
       onLoginSuccess: null,
       pendingAction: null,
@@ -108,6 +112,15 @@ export const useAuthStore = create<AuthState>()(
         set((state) => ({
           isCounselorSignupOpen: !state.isCounselorSignupOpen,
         })),
+
+      openCounselorSignupForm: () =>
+        set({ 
+          isCounselorSignupOpen: false,
+          isCounselorSignupFormOpen: true 
+        }),
+
+      closeCounselorSignupForm: () =>
+        set({ isCounselorSignupFormOpen: false }),
 
       toggleProfileCompletion: () =>
         set((state) => ({

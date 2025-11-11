@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuthStore } from "@/store/AuthStore";
-import { getAllAppointments, getOutOfOffice, getCounselorProfileById } from "@/api/counselor-Dashboard";
+import { getAllAppointments, getOutOfOffice, getCounselorProfileById, deleteOutOfOffice } from "@/api/counselor-Dashboard";
 import CustomCalendar from "@/components/Calendar";
 import {
   OutOfOfficeDrawer,
@@ -10,11 +10,14 @@ import {
   ClientsTab,
   ReviewsTab,
 } from "@/components/counselor-dashboard";
-import type { Appointment } from "@/types/appointments";
+import RescheduleOutOfOfficeModal from "@/components/counselor-dashboard/RescheduleOutOfOfficeModal";
+import CancelOutOfOfficeModal from "@/components/counselor-dashboard/CancelOutOfOfficeModal";
+import type { Appointment, OutOfOffice } from "@/types/appointments";
 import { SquareChevronLeft, SquareChevronRight, ChevronLeft, ChevronRight, Loader2, Clock, SquarePen, ChevronDown, ChevronUp, Plus } from "lucide-react";
 import AppointmentsTab from "@/components/counselor-dashboard/AppointmentsTab";
 import CounselorProfile from "@/components/counselor-dashboard/CounselorProfile";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient  } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 type MainTab = "calendar" | "earnings" | "appointments" | "reviews" | "clients";
 
@@ -70,6 +73,11 @@ export default function CounselorDashboard() {
   const [currentDateOffset, setCurrentDateOffset] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<"meetings" | "other">("meetings");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [openOooMenuId, setOpenOooMenuId] = useState<string | null>(null);
+  const [rescheduleOoo, setRescheduleOoo] = useState<OutOfOffice | null>(null);
+  const [cancelOoo, setCancelOoo] = useState<OutOfOffice | null>(null);
+
+  const queryClient = useQueryClient(); 
 
   useEffect(() => {
     const HOUR = Array.from({ length: 12 }, (_, i) => 9 + i); // 9AM–8PM
@@ -117,8 +125,27 @@ export default function CounselorDashboard() {
     enabled: Boolean(counsellorId && token && authUser?.verified),
   });
 
-  const queriesLoading =
-    (profileLoading || appointmentsLoading || outOfOfficeLoading) && authUser?.verified;
+  const { mutate: deleteOooMutation, isPending: isDeleting } = useMutation({
+    mutationFn: () => {
+      if (!cancelOoo) throw new Error("No 'Out of Office' selected.");
+      return deleteOutOfOffice(cancelOoo.counsellorId, cancelOoo.id, token);
+    },
+    onSuccess: () => {
+      toast.success("Out of Office period cancelled.");
+      queryClient.invalidateQueries({
+        queryKey: ["counselorOutOfOffice", counsellorId],
+      });
+      setCancelOoo(null);
+    },
+    onError: (err) => {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to cancel schedule."
+      );
+      setCancelOoo(null);
+    },
+  });
+
+  const queriesLoading = (profileLoading || appointmentsLoading || outOfOfficeLoading) && authUser?.verified;
 
   const formatDateLocal = (date: Date): string => {
     const y = date.getFullYear();
@@ -226,7 +253,12 @@ export default function CounselorDashboard() {
   }
 
   return (
-    <div className="w-full bg-[#F5F5F7] px-4 sm:px-6 lg:px-8 mt-16 sm:mt-20 flex flex-col items-center">
+    <div 
+      className="w-full bg-[#F5F5F7] px-4 sm:px-6 lg:px-8 mt-16 sm:mt-20 flex flex-col items-center"
+      onClick={() => {
+        setOpenOooMenuId(null);
+      }}
+    >
       <div className="w-full max-w-[1200px] rounded-xl">
         <div className="h-32 md:h-56 bg-gray-200 rounded-t-xl">
           <img
@@ -305,7 +337,7 @@ export default function CounselorDashboard() {
         </div>
       </div>
 
-      <div className="w-full max-w-[1200px] mt-8 mb-16">
+      <div className="w-full max-w-[1200px] mt-8 mb-16" onClick={() => setOpenOooMenuId(null)}>
         <div>
           {mainTab === "calendar" && (
             <>
@@ -324,17 +356,19 @@ export default function CounselorDashboard() {
                         const selected = new Date(date);
                         selected.setHours(0, 0, 0, 0);
                         const diffDays = Math.floor(
-                          (selected.getTime() - today.getTime()) /
-                            (1000 * 60 * 60 * 24)
-                        );
+                        (selected.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
                         setCurrentDateOffset(diffDays);
                       }}
+                      workingDays={counselor.workingDays || []} 
                     />
                   </div>
                   <div className="mt-4">
                     <hr className="w-[311px] bg-[#f5f5f7] h-px" />
                   </div>
-                  <div className="flex justify-between mt-4">
+                  <div 
+                    className="flex justify-between mt-4 cursor-pointer"
+                    onClick={() => setDrawerOpen(true)}
+                  >
                     <div className="flex gap-2">
                       <img src="/cup.svg" alt="" />
                       <h1 className="text-[16px] text-[#13097D] font-semibold">
@@ -344,7 +378,7 @@ export default function CounselorDashboard() {
                     <ChevronRight
                       size={24}
                       className="text-[#13097D] cursor-pointer"
-                      onClick={() => setDrawerOpen(true)}
+                      
                     />
                   </div>
                 </div>
@@ -545,9 +579,26 @@ export default function CounselorDashboard() {
                         </div>
                       </>
                     ) : (
-                      <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4" onClick={(e) => e.stopPropagation()}>
                         {outOfOfficeData.map((ooo) => (
-                          <OutOfOfficeCard key={ooo.id} outOfOffice={ooo} />
+                          <OutOfOfficeCard 
+                            key={ooo.id} 
+                            outOfOffice={ooo} 
+                            isMenuOpen={openOooMenuId === ooo.id}
+                            onMenuToggle={() =>
+                              setOpenOooMenuId((prev) =>
+                                prev === ooo.id ? null : ooo.id
+                              )
+                            }
+                            onReschedule={(ooo) => {
+                              setRescheduleOoo(ooo);
+                              setOpenOooMenuId(null);
+                            }}
+                            onCancel={() => {
+                              setCancelOoo(ooo);
+                              setOpenOooMenuId(null);
+                            }}
+                          />
                         ))}
                         {outOfOfficeData.length === 0 && (
                           <div className="text-center text-[#6C6969] text-sm py-8">
@@ -561,7 +612,7 @@ export default function CounselorDashboard() {
               </div>
 
               {/* mobile view*/}
-              <div className="block lg:hidden w-full relative">
+              <div className="block lg:hidden w-full relative" onClick={(e) => e.stopPropagation()}>
                 <div className="w-full max-w-[335px] h-[39px] mx-auto p-1 bg-white rounded-[16px] flex items-center justify-around shadow">
                   <button
                     onClick={() => setActiveTab("meetings")}
@@ -595,14 +646,31 @@ export default function CounselorDashboard() {
                       onAppointmentClick={(appt) => {
                         setSelectedAppointment({
                           data: appt,
-                          position: { x: 0, y: 0, centerY: 0 }, 
+                          position: { x: 0, y: 0, centerY: 0 },
                         });
                       }}
                     />
                   ) : (
                     <div className="p-1 space-y-4">
                       {outOfOfficeData.map((ooo) => (
-                        <OutOfOfficeCard key={ooo.id} outOfOffice={ooo} />
+                        <OutOfOfficeCard 
+                          key={ooo.id} 
+                          outOfOffice={ooo} 
+                          isMenuOpen={openOooMenuId === ooo.id}
+                          onMenuToggle={() =>
+                            setOpenOooMenuId((prev) =>
+                              prev === ooo.id ? null : ooo.id
+                            )
+                          }
+                          onReschedule={(ooo) => {
+                            setRescheduleOoo(ooo);
+                            setOpenOooMenuId(null);
+                          }}
+                          onCancel={() => {
+                            setCancelOoo(ooo);
+                            setOpenOooMenuId(null);
+                          }}  
+                        />
                       ))}
                       {outOfOfficeData.length === 0 && (
                         <div className="text-center text-[#6C6969] text-sm py-8 bg-white rounded-lg p-4">
@@ -629,7 +697,7 @@ export default function CounselorDashboard() {
           {mainTab === "appointments" && (
             <AppointmentsTab user={authUser} token={token} />
           )}
-          {mainTab === "reviews" && <ReviewsTab user={authUser} token={token} />}
+          {mainTab === "reviews" && <ReviewsTab user={authUser} token={token} counselorRating={counselor.rating || 0}/>}
           {mainTab === "clients" && (
             <ClientsTab user={authUser} token={token} />
           )}
@@ -641,7 +709,28 @@ export default function CounselorDashboard() {
         onClose={() => setDrawerOpen(false)}
         user={authUser}
         token={token}
+        workingDays={counselor.workingDays || []}
       />
+
+      {rescheduleOoo && (
+        <RescheduleOutOfOfficeModal
+          isOpen={!!rescheduleOoo}
+          onClose={() => setRescheduleOoo(null)}
+          outOfOffice={rescheduleOoo}
+          user={authUser}
+          token={token}
+          workingDays={counselor.workingDays || []}
+        />
+      )}
+
+      {cancelOoo && (
+        <CancelOutOfOfficeModal
+          isOpen={!!cancelOoo}
+          onClose={() => setCancelOoo(null)}
+          onConfirm={() => deleteOooMutation()}
+          isSubmitting={isDeleting}
+        />
+      )}
 
       {selectedAppointment && (
         <AppointmentPopup
@@ -727,50 +816,44 @@ const MobileMeetingsView = ({
   };
 
   const formatTime = (timeStr: string) => {
-  if (!timeStr || !timeStr.includes(':')) {
-    return "Invalid Time";
-  }
-
-  const [hours, minutes] = timeStr.split(':');
-  const hour = parseInt(hours, 10);
-
-  if (isNaN(hour) || isNaN(parseInt(minutes, 10))) {
+    if (!timeStr || !timeStr.includes(":")) {
       return "Invalid Time";
-  }
+    }
 
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  const displayHour = hour % 12 || 12;
+    const [hours, minutes] = timeStr.split(":");
+    const hour = parseInt(hours, 10);
 
-  return `${displayHour}:${minutes} ${ampm}`;
-};
+    if (isNaN(hour) || isNaN(parseInt(minutes, 10))) {
+      return "Invalid Time";
+    }
+
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12;
+
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
 
   return (
     <div className="w-full bg-white rounded-[16px] p-4 border border-[#EFEFEF] shadow">
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-semibold text-base text-[#13097D]">This Week</h3>
         <div className="flex items-center gap-2">
-          <button
-          onClick={() => changeWeek("prev")}
-          className="rounded-lg"
-        >
-          <SquareChevronLeft 
-            size={24} 
-            fill="#A49E9B"
-            color="white"
-            strokeWidth={2}
-          />
-        </button>
-          <button
-          onClick={() => changeWeek("next")}
-          className="rounded-lg"
-        >
-          <SquareChevronRight 
-            size={24} 
-            fill="#FA660F"
-            color="white"
-            strokeWidth={2}
-          />
-        </button>
+          <button onClick={() => changeWeek("prev")} className="rounded-lg">
+            <SquareChevronLeft
+              size={24}
+              fill="#A49E9B"
+              color="white"
+              strokeWidth={2}
+            />
+          </button>
+          <button onClick={() => changeWeek("next")} className="rounded-lg">
+            <SquareChevronRight
+              size={24}
+              fill="#FA660F"
+              color="white"
+              strokeWidth={2}
+            />
+          </button>
         </div>
       </div>
 

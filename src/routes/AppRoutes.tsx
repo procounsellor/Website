@@ -49,7 +49,6 @@ export default function AppRoutes(){
                      <Routes>
                         <Route path="/privacy1" element={<ExternalPrivacyPage/>} />
                         <Route path="/term1" element={<ExternalTermsPage/>} />
-                        <Route path="/counsellor-signup" element={<CounselorSignupPage />} />
                         <Route element={<MainLayout/>}>
                                 <Route path="/" element={<Home/>}/>
                                 <Route path="/counsellors" element={<CounselorListingPage/>} />

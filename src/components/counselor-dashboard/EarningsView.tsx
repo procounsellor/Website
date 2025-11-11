@@ -3,7 +3,7 @@ import { Info } from 'lucide-react';
 import EarningsTrendChart from './EarningsTrendChart';
 import { useState } from 'react';
 import CompensationModal from './CompensationModal';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import PlanBreakdownCard from './PlanBreakdownCard';
 
 interface EarningsViewProps {
@@ -42,18 +42,35 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, outerRadius, percent, payload
     );
 };
 
+const CustomPieTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0];
+    return (
+      <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
+        <p className="font-semibold text-gray-800">{data.name}</p>
+        <div className="mt-1 text-sm">
+          <p className="text-gray-600">
+            Percentage: <span className="font-medium" style={{ color: data.payload.color }}>{data.value.toFixed(1)}%</span>
+          </p>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 const planStyles = {
   plus: {
-    gradient: 'bg-gradient-to-r from-[rgba(222,237,255,0.4)] to-[rgba(126,136,211,0.4)]',
-    textColor: 'text-[#1447E7]',
+    gradient: 'bg-[#F6CF7D]/20',
+    textColor: 'text-[#F6CF7D]',
   },
   pro: {
-    gradient: 'bg-gradient-to-r from-[rgba(244,232,255,0.4)] to-[rgba(250,244,255,0.4)]',
-    textColor: 'text-[#8200DA]',
+    gradient: 'bg-[#978FED]/20',
+    textColor: 'text-[#978FED]',
   },
   elite: {
-    gradient: 'bg-gradient-to-r from-[rgba(255,245,206,0.4)] to-[rgba(255,250,230,0.4)]',
-    textColor: 'text-[#B94C00]',
+    gradient: 'bg-[#EE89DF]/20',
+    textColor: 'text-[#EE89DF]',
   }
 };
 
@@ -176,6 +193,7 @@ export default function EarningsView({ data }: EarningsViewProps) {
                               <Cell key={`cell-${entry.name}`} fill={entry.color} />
                           ))}
                       </Pie>
+                      <Tooltip content={<CustomPieTooltip />} />
                   </PieChart>
               </ResponsiveContainer>
           </div>

@@ -32,6 +32,14 @@ const formatCurrency = (amount: number) => {
     }).format(amount);
 };
 
+const formatNumber = (amount: number) => {
+  if (typeof amount !== 'number') return '--';
+  return new Intl.NumberFormat('en-IN', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
 const truncateText = (text: string | null | undefined, maxLength: number) => {
   if (!text) return 'N/A';
   if (text.length <= maxLength) return text;
@@ -41,6 +49,7 @@ const truncateText = (text: string | null | undefined, maxLength: number) => {
 const CounselorTransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
   const isFailed = transaction.status?.toLowerCase() === 'failed';
   const isDebit = transaction.type === 'payout' && !isFailed;
+  const isCredit = transaction.type === 'credit' && !isFailed;
 
   const getTransactionDetails = () => {
     let mobileLine1 = '';
@@ -50,18 +59,19 @@ const CounselorTransactionCard: React.FC<TransactionCardProps> = ({ transaction 
     let desktopDescription = '';
     let amountColor = 'text-gray-800';
     let icon;
+    let isOfflineCredit = false;
 
     if (isFailed) {
       icon = <XCircle className="w-10 h-10 text-[#EE1C1F] sm:w-12 sm:h-12 bg-[#EE1C1F26] rounded-full p-1.5 sm:p-2 flex-shrink-0" />;
       amountColor = 'text-[#EE1C1F]';
       
       mobileLine1 = 'Payment Failed';
-      mobileLine2 = transaction.description || 'Proconsel';
+      mobileLine2 = transaction.description || 'Procounsel';
 
       desktopTitle = 'Payment Failed';
-      desktopDescription = 'Proconsel';
+      desktopDescription = 'Procounsel';
 
-    } else if (transaction.type === 'credit') {
+    } else if (isCredit) {
       icon = <ArrowDownCircle className="w-10 h-10 text-[#28A745] sm:w-12 sm:h-12 bg-[#28A74526] rounded-full p-1.5 sm:p-2 flex-shrink-0" />;
       amountColor = 'text-[#28A745]';
 
@@ -76,32 +86,43 @@ const CounselorTransactionCard: React.FC<TransactionCardProps> = ({ transaction 
               if (extractedName) {
                   creditSource = extractedName;
               }
-          } else if (lowerDesc.startsWith('offline subscription received from user: ')) {
-              const extractedName = description.substring(41).trim();
-              if (extractedName) {
-                  creditSource = extractedName;
+          } else if (lowerDesc.includes('offline subscription')) {
+              isOfflineCredit = true;
+              if (lowerDesc.startsWith('offline subscription received from user: ')) {
+                const extractedName = description.substring(41).trim();
+                if (extractedName) {
+                    creditSource = extractedName;
+                }
+              } else {
+                creditSource = "Offline User"
               }
           }
       }
 
-      mobileLine1 = 'ProCoins Transeffered From';
+      if (isOfflineCredit) {
+        mobileLine1 = 'Offline Payment From';
+        desktopTitle = 'Offline Payment From';
+      } else {
+        mobileLine1 = 'ProCoins Transferred From';
+        desktopTitle = 'ProCoins Transferred From';
+      }
       mobileLine2 = creditSource;
-
-      desktopTitle = 'ProCoins Transeferred From';
       desktopDescription = creditSource;
 
     } else { // debit
       icon = <ArrowUpCircle className="w-10 h-10 text-blue-500 sm:w-12 sm:h-12 bg-blue-50 rounded-full p-1.5 sm:p-2 flex-shrink-0" />;
       mobileLine1 = 'Paid to';
       mobileLine2 = (transaction.description || '').replace(/^Paid to /i, '');
-      desktopTitle = transaction.description || 'Paid to Proconsel';
-      desktopDescription = 'Proconsel';
+      desktopTitle = transaction.description || 'Paid to Procounsel';
+      desktopDescription = 'Procounsel';
     }
 
-    return { icon, amountColor, mobileLine1, mobileLine2, desktopTitle, desktopDescription };
+    return { icon, amountColor, mobileLine1, mobileLine2, desktopTitle, desktopDescription, isOfflineCredit };
   };
 
-  const { icon, amountColor, mobileLine1, mobileLine2, desktopTitle, desktopDescription } = getTransactionDetails();
+  const { icon, amountColor, mobileLine1, mobileLine2, desktopTitle, desktopDescription, isOfflineCredit } = getTransactionDetails();
+
+  const showProCoin = isCredit && !isOfflineCredit;
 
   return (
     <>
@@ -119,9 +140,18 @@ const CounselorTransactionCard: React.FC<TransactionCardProps> = ({ transaction 
         </div>
 
         <div className="flex flex-col items-end flex-shrink-0">
-          <p className={`font-medium text-base ${amountColor}`}>
-            {isDebit ? '-' : ''}
-            {formatCurrency(transaction.amount)}
+          <p className={`font-medium text-base ${amountColor} flex items-center justify-end`}>
+            {showProCoin ? (
+              <>
+                <img src="/Procoin.jpg" alt="PC" className="w-4 h-4 mr-1" />
+                {formatNumber(transaction.amount)}
+              </>
+            ) : (
+              <>
+                {isDebit ? '-' : ''}
+                {formatCurrency(transaction.amount)}
+              </>
+            )}
           </p>
           <p className="font-medium text-xs text-[#718EBF] leading-tight mt-0.5">
             {formatDate(transaction.timestamp, true)}
@@ -155,9 +185,18 @@ const CounselorTransactionCard: React.FC<TransactionCardProps> = ({ transaction 
         <div className="flex justify-end w-[20%]">
              <div>
                 <p className="text-sm font-semibold text-[#8C8CA1] mb-1 text-right">Amount</p>
-                <p className={`font-semibold text-lg ${amountColor}`}>
-                    {isDebit ? '-' : ''}
-                    {formatCurrency(transaction.amount)}
+                <p className={`font-semibold text-lg ${amountColor} flex items-center justify-end`}>
+                  {showProCoin ? (
+                    <>
+                      <img src="/Procoin.jpg" alt="ProCoin" className="w-5 h-5 mr-1" />
+                      {formatNumber(transaction.amount)}
+                    </>
+                  ) : (
+                    <>
+                      {isDebit ? '-' : ''}
+                      {formatCurrency(transaction.amount)}
+                    </>
+                  )}
                 </p>
             </div>
         </div>
