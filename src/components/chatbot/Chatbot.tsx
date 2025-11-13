@@ -191,7 +191,7 @@ export default function Chatbot() {
                   )}
                 </>
               ) : (
-                <Button variant={"outline"} className="w-full lg:w-[164px] flex items-center justify-center h-6 md:h-11 border rounded-[12px] bg-[#232323] font-semibold text-white border-[#858585] text-[10px] md:text-lg hover:bg-[#FF660F] hover:text-white transition-all duration-200" onClick={() => toggleLogin()}>
+                <Button variant={"outline"} className="w-full lg:w-[164px] flex items-center justify-center h-6 md:h-11 border rounded-[12px] bg-[#232323] font-semibold text-white border-[#858585] text-[10px] md:text-lg hover:bg-[#FF660F] hover:text-white hover:border-[#FF660F] transition-all duration-200" onClick={() => toggleLogin()}>
                   Login/Sign Up
                 </Button>
               )}
