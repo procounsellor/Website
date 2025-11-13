@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { User2, LogOut, LayoutDashboard, Sparkles,  Square } from "lucide-react";
+import { User2, LogOut, LayoutDashboard, Sparkles,  Square, Menu } from "lucide-react";
 import SmartImage from "@/components/ui/SmartImage";
 import { Button } from "../ui";
 import toast from "react-hot-toast";
@@ -46,11 +46,24 @@ export default function Chatbot() {
   const [input, setInput] = useState("");
   const [chatHistory, setChatHistory] = useState<Array<{ id: string; title: string; timestamp: string }>>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Changed to false for mobile-first
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [visibleCounselorsPerMessage, setVisibleCounselorsPerMessage] = useState<Record<number, number>>({});
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Initialize sidebar state based on screen size
+  useEffect(() => {
+    const initializeSidebar = () => {
+      const isMobile = window.innerWidth < 768;
+      setIsSidebarOpen(!isMobile); // Open on desktop, closed on mobile
+    };
+
+    initializeSidebar();
+    window.addEventListener('resize', initializeSidebar);
+    return () => window.removeEventListener('resize', initializeSidebar);
+  }, []);
 
   // Load saved chat history
   useEffect(() => {
@@ -84,12 +97,18 @@ export default function Chatbot() {
   const handleSend = async () => {
     if (!input.trim() || loading) return;
 
+    // Store the input message before clearing
+    const messageToSend = input.trim();
+    
+    // Clear input immediately
+    setInput("");
+
     // Create a new chat if none selected
     if (!currentChatId) {
       const newChatId = Date.now().toString();
       const newChat = {
         id: newChatId,
-        title: input.slice(0, 30) + (input.length > 30 ? "..." : ""),
+        title: messageToSend.slice(0, 30) + (messageToSend.length > 30 ? "..." : ""),
         timestamp: new Date().toISOString(),
       };
       const updated = [newChat, ...chatHistory];
@@ -99,8 +118,7 @@ export default function Chatbot() {
     }
 
     // send the message via store with user information
-    await sendMessage(input, userId, role);
-    setInput("");
+    await sendMessage(messageToSend, userId, role);
   };
 
   const handleNewChat = () => {
@@ -148,17 +166,28 @@ export default function Chatbot() {
       {/* Header */}
       <header className="h-14 md:h-20 bg-[#232323] border-b border-[#FFFFFF40] shadow-[0_2px_4px_0_rgba(255,255,255,0.06)] w-full">
         <div className="flex h-full items-center justify-between px-5 lg:px-20">
-          <div
-            className="Logo flex cursor-pointer"
-            onClick={() => {
-              toggleChatbot();
-              navigate("/");
-            }}
-          >
-            <SmartImage src="/logo.svg" alt="procounsel_logo" className="h-7 w-7 md:w-11 md:h-12" width={44} height={44} priority />
-            <div className="flex flex-col leading-tight pl-[9px]">
-              <h1 className="text-white font-semibold text-sm md:text-xl">ProCounsel</h1>
-              <span className="font-normal text-gray-400 text-[8px] md:text-[10px]">By CatalystAI</span>
+          <div className="flex items-center gap-3">
+            {/* Mobile Menu Button */}
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
+              aria-label="Open menu"
+            >
+              <Menu className="h-6 w-6 text-white" />
+            </button>
+
+            <div
+              className="Logo flex cursor-pointer"
+              onClick={() => {
+                toggleChatbot();
+                navigate("/");
+              }}
+            >
+              <SmartImage src="/logo.svg" alt="procounsel_logo" className="h-7 w-7 md:w-11 md:h-12" width={44} height={44} priority />
+              <div className="flex flex-col leading-tight pl-[9px]">
+                <h1 className="text-white font-semibold text-sm md:text-xl">ProCounsel</h1>
+                <span className="font-normal text-gray-400 text-[8px] md:text-[10px]">By CatalystAI</span>
+              </div>
             </div>
           </div>
 
@@ -216,35 +245,41 @@ export default function Chatbot() {
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {messages.length === 0 && !loading ? (
-            <div>
-              <div className="lg:mt-[11.75rem] flex flex-col items-center justify-center gap-5">
-                <h1 className="text-white font-semibold text-[32px]">Procounsel GPT</h1>
-                <p className="flex flex-col text-white/50 text-2xl font-medium text-center">Your personal guide to college and exams in India.<span>How can I help you today?</span></p>
+            <div className="flex flex-col h-full">
+              {/* Welcome Section - Responsive */}
+              <div className="flex-1 flex flex-col items-center justify-center gap-3 md:gap-5 px-4 mt-8 md:mt-0">
+                <h1 className="text-white font-semibold text-2xl md:text-[32px] text-center">Procounsel GPT</h1>
+                <p className="flex flex-col text-white/50 text-base md:text-2xl font-medium text-center px-2">
+                  Your personal guide to college and exams in India.
+                  <span className="mt-1">How can I help you today?</span>
+                </p>
               </div>
 
-              <div className="lg:mt-[70px]">
+              {/* Input and Feature Cards Section */}
+              <div className="pb-6 md:pb-12 px-4">
                 <ChatInput input={input} setInput={setInput} handleKeyPress={handleKeyPress} handleSend={handleSend} loading={loading} />
 
-                <div className="flex justify-center lg:mt-4 gap-4">
-                  <div className="border border-[#7B7B7B] rounded-[12px] py-2.5 px-4 flex gap-4 items-center">
-                    <img src="/book.svg" alt="" />
-                    <p className="text-[14px] font-medium text-white">Access premium learning courses.</p>
+                {/* Feature Cards - Responsive Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mt-4 md:mt-6 max-w-4xl mx-auto">
+                  <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center hover:bg-white/5 transition-colors cursor-pointer">
+                    <img src="/book.svg" alt="Courses" className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
+                    <p className="text-[13px] md:text-[14px] font-medium text-white">Access premium learning courses.</p>
                   </div>
-                  <div className="border border-[#7B7B7B] rounded-[12px] py-2.5 px-4 flex gap-4 items-center">
-                    <img src="/cap.svg" alt="" />
-                    <p className="text-[14px] font-medium text-white">Discover top colleges.</p>
+                  <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center hover:bg-white/5 transition-colors cursor-pointer">
+                    <img src="/cap.svg" alt="Colleges" className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
+                    <p className="text-[13px] md:text-[14px] font-medium text-white">Discover top colleges.</p>
                   </div>
-                  <div className="border border-[#7B7B7B] rounded-[12px] py-2.5 px-4 flex gap-4 items-center">
-                    <img src="/person.svg" alt="" />
-                    <p className="text-[14px] font-medium text-white">Consult expert counselors.</p>
+                  <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center hover:bg-white/5 transition-colors cursor-pointer">
+                    <img src="/person.svg" alt="Counselors" className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
+                    <p className="text-[13px] md:text-[14px] font-medium text-white">Consult expert counselors.</p>
                   </div>
                 </div>
               </div>
             </div>
           ) : (
             <>
-              <div className="flex-1 overflow-y-auto bg-[#232323] mt-2 p-6 scrollbar-hide">
-                <div className="max-w-4xl mx-auto space-y-4">
+              <div className="flex-1 overflow-y-auto bg-[#232323] mt-2 px-3 md:px-6 py-4 md:py-6 scrollbar-hide">
+                <div className="max-w-4xl mx-auto space-y-3 md:space-y-4">
                   {messages.length === 0 && !loading && <WelcomeMessage />}
 
                    {messages.map((msg: any, index: number) => {
@@ -259,13 +294,13 @@ export default function Chatbot() {
                     // --- END OF THE FIX ---
 
                     return (
-                      <div key={index} className="space-y-4">
+                      <div key={index} className="space-y-3 md:space-y-4">
                         
                         {msg.isUser ? (
                           <ChatMessage text={msg.text} isUser={true} />
                         ) : (
                           // This is the bot message bubble
-                          <div className="rounded-2xl px-4   text-white max-w-full overflow-x-auto">
+                          <div className="rounded-2xl px-2 md:px-4 text-white max-w-full overflow-x-auto">
                             <ReactMarkdown
                               // We pass the CLEANED "formattedText" variable here
                               children={formattedText}
@@ -276,10 +311,10 @@ export default function Chatbot() {
                                   if (node.parent?.tagName === 'li') {
                                     return <span {...props} />;
                                   }
-                                  return <p className="mb-2 last:mb-0" {...props} />;
+                                  return <p className="mb-2 last:mb-0 text-sm md:text-base" {...props} />;
                                 },
-                                ol: ({node, ...props}) => <ol className="list-decimal list-inside ml-4 space-y-2" {...props} />,
-                                ul: ({node, ...props}) => <ul className="list-disc list-inside ml-4 space-y-2" {...props} />,
+                                ol: ({node, ...props}) => <ol className="list-decimal list-inside ml-2 md:ml-4 space-y-1 md:space-y-2 text-sm md:text-base" {...props} />,
+                                ul: ({node, ...props}) => <ul className="list-disc list-inside ml-2 md:ml-4 space-y-1 md:space-y-2 text-sm md:text-base" {...props} />,
                                 strong: ({node, ...props}) => <strong className="font-bold" {...props} />,
                               }}
                             />
@@ -287,21 +322,53 @@ export default function Chatbot() {
                         )}
                         
                         {msg.followup && !msg.isUser && (
-                          <p className="text-gray-400 text-sm italic max-w-4xl mx-auto pl-12 pr-6 -mt-2">
+                          <p className="text-gray-400 text-xs md:text-sm italic max-w-4xl mx-auto pl-4 md:pl-12 pr-3 md:pr-6 -mt-2">
                             {msg.followup}
                           </p>
                         )}
 
-                        {/* ... (rest of your counselor card code) ... */}
-                        {msg.counsellors && msg.counsellors.length > 0 && (
-                          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 animate-in fade-in-50 duration-500">
-                            {(msg.counsellors as any[]).map((c) => (
-                              <Link className="w-fit" to="/counselors/profile" state={{ id: c.counsellorId }} key={c.counsellorId} onClick={toggleChatbot}>
-                                <ChatbotCounselorCard counselor={c} />
-                              </Link>
-                            ))}
-                          </div>
-                        )}
+                        {/* Counselor cards - Progressive Loading with See More */}
+                        {msg.counsellors && msg.counsellors.length > 0 && (() => {
+                          const visibleCount = visibleCounselorsPerMessage[index] || 3;
+                          const counsellors = msg.counsellors as any[];
+                          const visibleCounsellors = counsellors.slice(0, visibleCount);
+                          const hasMore = counsellors.length > visibleCount;
+
+                          return (
+                            <div className="mt-3 md:mt-4 space-y-2 md:space-y-3">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
+                                {visibleCounsellors.map((c, idx) => (
+                                  <Link 
+                                    className="w-full animate-in fade-in-50 slide-in-from-bottom-4 duration-500" 
+                                    style={{ animationDelay: `${idx * 100}ms` }}
+                                    to="/counselors/profile" 
+                                    state={{ id: c.counsellorId }} 
+                                    key={c.counsellorId} 
+                                    onClick={toggleChatbot}
+                                  >
+                                    <ChatbotCounselorCard counselor={c} />
+                                  </Link>
+                                ))}
+                              </div>
+                              
+                              {hasMore && (
+                                <div className="flex justify-center pt-2">
+                                  <button
+                                    onClick={() => {
+                                      setVisibleCounselorsPerMessage(prev => ({
+                                        ...prev,
+                                        [index]: (prev[index] || 3) + 3
+                                      }));
+                                    }}
+                                    className="px-4 md:px-6 py-2 md:py-2.5 bg-[#2a2a2a] hover:bg-[#FF660F] text-white text-sm md:text-base font-medium rounded-lg border border-[#404040] hover:border-[#FF660F] transition-all duration-300 shadow-sm hover:shadow-md"
+                                  >
+                                    See More ({counsellors.length - visibleCount} remaining)
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                         
                       </div>
                     );
@@ -312,13 +379,13 @@ export default function Chatbot() {
                 </div>
               </div>
 
-              {/* Footer with ChatInput and stop button when loading */}
-              <div className="lg:mb-[3.75rem] p-4 bg-transparent">
+              {/* Footer with ChatInput and stop button when loading - Responsive */}
+              <div className="pb-3 md:pb-6 lg:pb-[3.75rem] px-3 md:px-4 bg-transparent">
                 <div className="max-w-4xl mx-auto">
                   {loading && (
-                    <div className="flex justify-center mb-3">
-                      <button onClick={stopGenerating} className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-gray-200 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-sm hover:bg-[#3b3b3b] transition-all">
-                        <Square className="h-4 w-4" />
+                    <div className="flex justify-center mb-2 md:mb-3">
+                      <button onClick={stopGenerating} className="flex items-center justify-center gap-2 px-3 md:px-4 py-2 text-xs md:text-sm font-medium text-gray-200 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-sm hover:bg-[#3b3b3b] transition-all">
+                        <Square className="h-3 w-3 md:h-4 md:w-4" />
                         Stop generating
                       </button>
                     </div>

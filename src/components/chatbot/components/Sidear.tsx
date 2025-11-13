@@ -42,8 +42,14 @@ export default function Sidebar({
   const [menuOpenFor, setMenuOpenFor] = useState<string | null>(null);
   const [searchPopupOpen, setSearchPopupOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  
   const searchPopupRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
   
   const handleRename = (chatId: string) => {
     console.log("Renaming chat:", chatId);
@@ -58,6 +64,56 @@ export default function Sidebar({
     setMenuOpenFor(null);
   };
   const {toggleChatbot } = useChatStore();
+
+  // Check if mobile and show tutorial on first visit
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      
+      // Check if user has seen the tutorial
+      if (mobile) {
+        const hasSeenTutorial = localStorage.getItem('chatbot-sidebar-tutorial-seen');
+        if (!hasSeenTutorial) {
+          setShowTutorial(true);
+        }
+      }
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Handle swipe gestures
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isMobile) return;
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isMobile) return;
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!isMobile) return;
+    
+    // Swipe from left edge to open sidebar
+    if (touchStart < 50 && touchEnd - touchStart > 100) {
+      setIsSidebarOpen(true);
+    }
+    
+    // Swipe right to left to close sidebar (when sidebar is open)
+    if (isSidebarOpen && touchStart - touchEnd > 100) {
+      setIsSidebarOpen(false);
+    }
+  };
+
+  const closeTutorial = () => {
+    setShowTutorial(false);
+    localStorage.setItem('chatbot-sidebar-tutorial-seen', 'true');
+  };
 
   // Filter chats based on search query
   const filteredChats = chatHistory.filter(chat => 
@@ -80,10 +136,66 @@ export default function Sidebar({
   }, [searchPopupOpen]);
 
   return (
-    <div
-      className={`bg-[#232323] h-full border-t border-r border-[#A0A0A099] transition-all duration-300 ease-in-out relative`}
-      style={{ width: isSidebarOpen ? '264px' : '60px' }}
-    >
+    <>
+      {/* Swipe area for mobile - invisible touch area on left edge */}
+      {isMobile && !isSidebarOpen && (
+        <div
+          className="fixed left-0 top-0 h-full w-8 z-40"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        />
+      )}
+
+      {/* Backdrop for mobile when sidebar is open */}
+      {isMobile && isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* Tutorial Tooltip for first-time mobile users */}
+      {showTutorial && isMobile && (
+        <div className="fixed inset-0 bg-black/70 z-[200] flex items-center justify-center p-6">
+          <div className="bg-[#2a2a2a] rounded-2xl p-6 max-w-sm border border-[#A0A0A099] shadow-2xl">
+            <div className="flex justify-end mb-2">
+              <button onClick={closeTutorial} className="text-white/60 hover:text-white">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="text-center">
+              <div className="inline-block p-4 bg-[#FF660F]/20 rounded-full mb-4">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 4L3 12L9 20" stroke="#FF660F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M3 12H21" stroke="#FF660F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <h3 className="text-white font-semibold text-lg mb-2">Swipe to Open Menu</h3>
+              <p className="text-gray-400 text-sm mb-4">
+                Swipe from the left edge of the screen to access your chat history and menu options.
+              </p>
+              <button
+                onClick={closeTutorial}
+                className="w-full bg-[#FF660F] text-white font-semibold py-3 px-6 rounded-lg hover:bg-[#e55a0a] transition-colors"
+              >
+                Got it!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div
+        ref={sidebarRef}
+        className={`bg-[#232323] h-full border-t border-r border-[#A0A0A099] transition-all duration-300 ease-in-out relative ${
+          isMobile ? 'fixed left-0 top-0 z-50' : ''
+        } ${isMobile && !isSidebarOpen ? 'hidden' : ''}`}
+        style={{ width: isMobile && isSidebarOpen ? '264px' : isSidebarOpen ? '264px' : '60px' }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
       {isSidebarOpen ? (
         <div className="w-full h-full p-8 flex flex-col">
           <div className="flex-grow overflow-y-auto scrollbar-hide">
@@ -256,6 +368,7 @@ export default function Sidebar({
               </div>
             </div>
           )}
-    </div>
+      </div>
+    </>
   );
 }
