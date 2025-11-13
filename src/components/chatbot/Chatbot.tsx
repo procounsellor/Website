@@ -245,22 +245,24 @@ export default function Chatbot() {
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {messages.length === 0 && !loading ? (
-            <div className="flex flex-col h-full">
-              {/* Welcome Section - Responsive */}
-              <div className="flex-1 flex flex-col items-center justify-center gap-3 md:gap-5 px-4 mt-8 md:mt-0">
-                <h1 className="text-white font-semibold text-2xl md:text-[32px] text-center">Procounsel GPT</h1>
-                <p className="flex flex-col text-white/50 text-base md:text-2xl font-medium text-center px-2">
-                  Your personal guide to college and exams in India.
-                  <span className="mt-1">How can I help you today?</span>
-                </p>
-              </div>
+            <div className="flex flex-col h-full items-center justify-center">
+              <div className="w-full max-w-4xl mx-auto px-4">
+                {/* Welcome Section - Responsive */}
+                <div className="flex flex-col items-center justify-center gap-3 md:gap-5 mb-8 md:mb-12">
+                  <h1 className="text-white font-semibold text-2xl md:text-[32px] text-center">Procounsel GPT</h1>
+                  <p className="flex flex-col text-white/50 text-base md:text-2xl font-medium text-center px-2">
+                    Your personal guide to college and exams in India.
+                    <span className="mt-1">How can I help you today?</span>
+                  </p>
+                </div>
 
-              {/* Input and Feature Cards Section */}
-              <div className="pb-6 md:pb-12 px-4">
-                <ChatInput input={input} setInput={setInput} handleKeyPress={handleKeyPress} handleSend={handleSend} loading={loading} />
+                {/* Input Box - Centered */}
+                <div className="mb-6 md:mb-8">
+                  <ChatInput input={input} setInput={setInput} handleKeyPress={handleKeyPress} handleSend={handleSend} loading={loading} />
+                </div>
 
-                {/* Feature Cards - Responsive Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mt-4 md:mt-6 max-w-4xl mx-auto">
+                {/* Feature Cards - Responsive Grid - Centered */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                   <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center hover:bg-white/5 transition-colors cursor-pointer">
                     <img src="/book.svg" alt="Courses" className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
                     <p className="text-[13px] md:text-[14px] font-medium text-white">Access premium learning courses.</p>
