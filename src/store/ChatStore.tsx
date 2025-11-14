@@ -8,6 +8,7 @@ import {
   createNewSession,
   type SessionData,
 } from "@/lib/sessionManager";
+import { fetchChatSessions, fetchChatHistory, type ChatSession } from "@/api/chatbot";
 
 export interface Message {
   text: string;
@@ -19,15 +20,24 @@ export interface Message {
 type ChatState = {
   messages: Message[];
   isChatbotOpen: boolean;
-  abortController: AbortController | null; // ✨ To hold the controller
+  abortController: AbortController | null;
   loading: boolean;
-  currentSessionId: string | null; // ✨ NEW: Track current session ID
+  currentSessionId: string | null;
+  chatSessions: ChatSession[];
+  visitorMessageCount: number; // Track messages for visitors
+  isLoginOpenFromChatbot: boolean; // Track if login was opened from chatbot
   toggleChatbot: () => void;
   sendMessage: (question: string, userId?: string | null, userRole?: string | null) => Promise<void>;
-  stopGenerating: () => void; // ✨ The stop function
+  stopGenerating: () => void;
   loadMessages: (messages: Message[]) => void;
   clearMessages: () => void;
-  startNewChat: () => void; // ✨ NEW: Start a new chat session
+  startNewChat: () => void;
+  loadChatSessions: (userId: string) => Promise<void>;
+  loadChatHistoryBySessionId: (sessionId: string) => Promise<void>;
+  setCurrentSessionId: (sessionId: string | null) => void;
+  incrementVisitorMessageCount: () => number;
+  resetVisitorMessageCount: () => void;
+  setLoginOpenFromChatbot: (isOpen: boolean) => void;
 };
 
 // This helper function is moved from your api.ts file
@@ -54,16 +64,23 @@ export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],
   isChatbotOpen: false,
   loading: false,
-  currentSessionId: null, // ✨ NEW: Track session
+  currentSessionId: null,
+  chatSessions: [],
+  visitorMessageCount: 0,
+  isLoginOpenFromChatbot: false,
 
   toggleChatbot: () => {
     set((state) => ({ isChatbotOpen: !state.isChatbotOpen }));
+  },
+
+  setLoginOpenFromChatbot: (isOpen: boolean) => {
+    set({ isLoginOpenFromChatbot: isOpen });
   },
   
   stopGenerating: () => {
     const { abortController } = get();
     if (abortController) {
-      abortController.abort(); // Abort the fetch request
+      abortController.abort();
       set({ loading: false, abortController: null });
     }
   },
@@ -76,11 +93,60 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set({ messages: [] });
   },
   
-  // ✨ NEW: Start a new chat session
   startNewChat: () => {
     const newSessionId = createNewSession();
     set({ messages: [], currentSessionId: newSessionId });
     console.log("🆕 New chat session started:", newSessionId);
+  },
+
+  setCurrentSessionId: (sessionId: string | null) => {
+    set({ currentSessionId: sessionId });
+  },
+
+  // Load chat sessions for authenticated user
+  loadChatSessions: async (userId: string) => {
+    try {
+      const sessions = await fetchChatSessions(userId);
+      set({ chatSessions: sessions });
+      console.log("📋 Loaded chat sessions:", sessions);
+    } catch (error) {
+      console.error("Failed to load chat sessions:", error);
+      set({ chatSessions: [] });
+    }
+  },
+
+  // Load chat history for a specific session
+  loadChatHistoryBySessionId: async (sessionId: string) => {
+    try {
+      const history = await fetchChatHistory(sessionId);
+      
+      // Transform API messages to our Message format
+      const transformedMessages: Message[] = history.map((msg) => ({
+        text: msg.content,
+        isUser: msg.role === "user",
+        counsellors: undefined,
+        followup: undefined,
+      }));
+      
+      set({ 
+        messages: transformedMessages, 
+        currentSessionId: sessionId 
+      });
+      console.log("💬 Loaded chat history for session:", sessionId);
+    } catch (error) {
+      console.error("Failed to load chat history:", error);
+      set({ messages: [] });
+    }
+  },
+
+  incrementVisitorMessageCount: () => {
+    const newCount = get().visitorMessageCount + 1;
+    set({ visitorMessageCount: newCount });
+    return newCount;
+  },
+
+  resetVisitorMessageCount: () => {
+    set({ visitorMessageCount: 0 });
   },
 
   sendMessage: async (question: string, userId?: string | null, userRole?: string | null) => {
@@ -172,6 +238,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
             const jsonString = line.substring(6);
             try {
               const eventData = JSON.parse(jsonString);
+
+              // Add a small delay for smoother streaming (mimics ChatGPT)
+              await new Promise(resolve => setTimeout(resolve, 10));
 
               set((state) => {
                 const lastMessageIndex = state.messages.length - 1;

@@ -1,22 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
-import { EllipsisVertical, Search, ArrowLeft, X } from "lucide-react";
+import { EllipsisVertical, Search, ArrowLeft, X, Lock } from "lucide-react";
 import ChatOptionsMenu from './ChatOptionsMenu';
 import { useChatStore } from "@/store/ChatStore";
-
-type ChatItem = {
-  id: string;
-  title: string;
-  timestamp?: string | number | Date;
-};
+import type { ChatSession } from "@/api/chatbot";
 
 type Props = {
   setIsSidebarOpen: (v: boolean) => void;
   handleNewChat: () => void;
   isSidebarOpen: boolean;
-  chatHistory: ChatItem[];
-  currentChatId: string | null;
-  handleSelectChat: (id: string) => void;
-  handleDeleteChat: (id: string) => void;
+  chatSessions: ChatSession[];
+  currentSessionId: string | null;
+  handleSelectChat: (sessionId: string) => void;
+  handleDeleteChat: (sessionId: string) => void;
+  isAuthenticated: boolean;
+  onLoginClick: () => void;
 };
 
 const IconOnlyButton = ({ onClick, children, ariaLabel }: { onClick?: () => void, children: React.ReactNode, ariaLabel: string }) => (
@@ -34,10 +31,12 @@ export default function Sidebar({
   handleNewChat,
   isSidebarOpen,
   setIsSidebarOpen,
-  chatHistory,
-  currentChatId,
+  chatSessions,
+  currentSessionId,
   handleSelectChat,
   handleDeleteChat,
+  isAuthenticated,
+  onLoginClick,
 }: Props) {
   const [menuOpenFor, setMenuOpenFor] = useState<string | null>(null);
   const [searchPopupOpen, setSearchPopupOpen] = useState(false);
@@ -63,7 +62,7 @@ export default function Sidebar({
     handleDeleteChat(chatId);
     setMenuOpenFor(null);
   };
-  const {toggleChatbot } = useChatStore();
+  const { toggleChatbot } = useChatStore();
 
   // Check if mobile and show tutorial on first visit
   useEffect(() => {
@@ -116,7 +115,7 @@ export default function Sidebar({
   };
 
   // Filter chats based on search query
-  const filteredChats = chatHistory.filter(chat => 
+  const filteredChats = chatSessions.filter(chat => 
     chat.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -217,45 +216,83 @@ export default function Sidebar({
                 <p className="font-semibold text-[14px] text-[#AFAFAF] tracking-wider">
                   Chats
                 </p>
-                <button 
-                  onClick={() => setSearchPopupOpen(true)}
-                  className="hover:bg-white/10 p-1.5 rounded-md transition-colors"
-                  aria-label="Search chats"
-                >
-                  <Search size={18} className="text-white/60" />
-                </button>
+                {isAuthenticated && (
+                  <button 
+                    onClick={() => setSearchPopupOpen(true)}
+                    className="hover:bg-white/10 p-1.5 rounded-md transition-colors"
+                    aria-label="Search chats"
+                  >
+                    <Search size={18} className="text-white/60" />
+                  </button>
+                )}
               </div>
-              <div className="space-y-1">
-                {chatHistory.map((chat) => (
-                  <div key={chat.id} className="relative">
-                    <div onClick={() => handleSelectChat(chat.id)} className={`group w-full rounded-lg py-2 px-3 cursor-pointer transition-colors ${currentChatId === chat.id ? "bg-white/[.15]" : "hover:bg-white/[.08]"}`}>
-                      <div className="flex items-center justify-between">
-                        <p className="text-[14px] font-medium truncate text-white">
-                          {chat.title}
-                        </p>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setMenuOpenFor(menuOpenFor === chat.id ? null : chat.id);
-                          }}
-                          className={`transition-opacity ${menuOpenFor === chat.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
-                          aria-label="More options"
-                        >
-                          <EllipsisVertical size={16} className="text-white"/>
-                        </button>
-                      </div>
+              
+              {!isAuthenticated ? (
+                <div className="relative px-3 py-4">
+                  <div className="absolute inset-0 backdrop-blur-sm bg-white/5 rounded-lg flex items-center justify-center">
+                    <div className="text-center z-10">
+                      <Lock className="h-8 w-8 text-[#FF660F] mx-auto mb-2" />
+                      <p className="text-white text-sm font-medium mb-2">Login for Chat History</p>
+                      <p className="text-gray-400 text-xs mb-3">Sign in to save and access your chat conversations</p>
+                      <button
+                        onClick={() => {
+                          setIsSidebarOpen(false);
+                          onLoginClick();
+                        }}
+                        className="px-4 py-2 bg-[#FF660F] text-white text-xs font-semibold rounded-lg hover:bg-[#e55a0a] transition-colors"
+                      >
+                        Login / Sign Up
+                      </button>
                     </div>
-                    {menuOpenFor === chat.id && (
-                      <ChatOptionsMenu
-                        onClose={() => setMenuOpenFor(null)}
-                        onRename={() => handleRename(chat.id)}
-                        onBookmark={() => handleBookmark(chat.id)}
-                        onDelete={() => handleDelete(chat.id)}
-                      />
-                    )}
                   </div>
-                ))}
-              </div>
+                  {/* Blurred placeholder chats */}
+                  <div className="space-y-2 blur-sm pointer-events-none">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="bg-white/5 rounded-lg py-2 px-3">
+                        <div className="h-4 bg-white/10 rounded w-3/4"></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {chatSessions.length === 0 ? (
+                    <div className="px-3 py-8 text-center text-gray-400 text-sm">
+                      No chat history yet.<br />Start a new conversation!
+                    </div>
+                  ) : (
+                    chatSessions.map((chat) => (
+                      <div key={chat.sessionId} className="relative">
+                        <div onClick={() => handleSelectChat(chat.sessionId)} className={`group w-full rounded-lg py-2 px-3 cursor-pointer transition-colors ${currentSessionId === chat.sessionId ? "bg-white/[.15]" : "hover:bg-white/[.08]"}`}>
+                          <div className="flex items-center justify-between">
+                            <p className="text-[14px] font-medium truncate text-white">
+                              {chat.title}
+                            </p>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setMenuOpenFor(menuOpenFor === chat.sessionId ? null : chat.sessionId);
+                              }}
+                              className={`transition-opacity ${menuOpenFor === chat.sessionId ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                              aria-label="More options"
+                            >
+                              <EllipsisVertical size={16} className="text-white"/>
+                            </button>
+                          </div>
+                        </div>
+                        {menuOpenFor === chat.sessionId && (
+                          <ChatOptionsMenu
+                            onClose={() => setMenuOpenFor(null)}
+                            onRename={() => handleRename(chat.sessionId)}
+                            onBookmark={() => handleBookmark(chat.sessionId)}
+                            onDelete={() => handleDelete(chat.sessionId)}
+                          />
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
           </div>
           <div>
@@ -336,24 +373,19 @@ export default function Sidebar({
                   <div className="space-y-1">
                     {filteredChats.map((chat) => (
                       <div
-                        key={chat.id}
+                        key={chat.sessionId}
                         onClick={() => {
-                          handleSelectChat(chat.id);
+                          handleSelectChat(chat.sessionId);
                           setSearchPopupOpen(false);
                           setSearchQuery("");
                         }}
                         className={`group w-full rounded-lg py-2 px-3 cursor-pointer transition-colors ${
-                          currentChatId === chat.id ? "bg-white/[.15]" : "hover:bg-white/[.08]"
+                          currentSessionId === chat.sessionId ? "bg-white/[.15]" : "hover:bg-white/[.08]"
                         }`}
                       >
                         <p className="text-[14px] font-medium truncate text-white">
                           {chat.title}
                         </p>
-                        {chat.timestamp && (
-                          <p className="text-xs text-white/40 mt-0.5">
-                            {new Date(chat.timestamp).toLocaleDateString()}
-                          </p>
-                        )}
                       </div>
                     ))}
                   </div>

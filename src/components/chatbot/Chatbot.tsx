@@ -39,16 +39,32 @@ const WelcomeMessage = () => (
 
 export default function Chatbot() {
   const navigate = useNavigate();
-  const { messages, toggleChatbot, sendMessage, loading, loadMessages, clearMessages, stopGenerating, startNewChat } = useChatStore();
-  const { toggleLogin, isAuthenticated, logout, userId, role } = useAuthStore();
+  const { 
+    messages, 
+    toggleChatbot, 
+    sendMessage, 
+    loading, 
+    clearMessages, 
+    stopGenerating, 
+    startNewChat,
+    chatSessions,
+    loadChatSessions,
+    loadChatHistoryBySessionId,
+    currentSessionId,
+    setCurrentSessionId,
+    incrementVisitorMessageCount,
+    resetVisitorMessageCount,
+    isLoginOpenFromChatbot,
+    setLoginOpenFromChatbot
+  } = useChatStore();
+  const { toggleLogin, isAuthenticated, logout, userId, role, isLoginToggle } = useAuthStore();
 
   // UI state
   const [input, setInput] = useState("");
-  const [chatHistory, setChatHistory] = useState<Array<{ id: string; title: string; timestamp: string }>>([]);
-  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Changed to false for mobile-first
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [visibleCounselorsPerMessage, setVisibleCounselorsPerMessage] = useState<Record<number, number>>({});
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -65,11 +81,18 @@ export default function Chatbot() {
     return () => window.removeEventListener('resize', initializeSidebar);
   }, []);
 
-  // Load saved chat history
+  // Load chat sessions when authenticated
   useEffect(() => {
-    const saved = localStorage.getItem("chatHistory");
-    if (saved) setChatHistory(JSON.parse(saved));
-  }, []);
+    if (isAuthenticated && userId) {
+      // Load user's saved chat sessions from backend
+      loadChatSessions(userId);
+      
+      // Reset visitor message count when user logs in
+      resetVisitorMessageCount();
+      
+      console.log('✅ User authenticated - loaded chat sessions for userId:', userId);
+    }
+  }, [isAuthenticated, userId, loadChatSessions, resetVisitorMessageCount]);
 
   // Click outside dropdown
   useEffect(() => {
@@ -82,13 +105,6 @@ export default function Chatbot() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isDropdownOpen]);
 
-  // Persist messages for the current chat
-  useEffect(() => {
-    if (messages.length > 0 && currentChatId) {
-      localStorage.setItem(`chat_${currentChatId}`, JSON.stringify(messages));
-    }
-  }, [messages, currentChatId]);
-
   // Auto scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -97,25 +113,20 @@ export default function Chatbot() {
   const handleSend = async () => {
     if (!input.trim() || loading) return;
 
+    // Check if visitor has reached message limit
+    if (!isAuthenticated) {
+      const newCount = incrementVisitorMessageCount();
+      if (newCount >= 3) {
+        setShowLoginPrompt(true);
+        return;
+      }
+    }
+
     // Store the input message before clearing
     const messageToSend = input.trim();
     
     // Clear input immediately
     setInput("");
-
-    // Create a new chat if none selected
-    if (!currentChatId) {
-      const newChatId = Date.now().toString();
-      const newChat = {
-        id: newChatId,
-        title: messageToSend.slice(0, 30) + (messageToSend.length > 30 ? "..." : ""),
-        timestamp: new Date().toISOString(),
-      };
-      const updated = [newChat, ...chatHistory];
-      setChatHistory(updated);
-      localStorage.setItem("chatHistory", JSON.stringify(updated));
-      setCurrentChatId(newChatId);
-    }
 
     // send the message via store with user information
     await sendMessage(messageToSend, userId, role);
@@ -123,27 +134,19 @@ export default function Chatbot() {
 
   const handleNewChat = () => {
     if (messages.length > 0) {
-      setCurrentChatId(null);
+      setCurrentSessionId(null);
       clearMessages();
-      startNewChat(); // ✨ Start a new session with new session ID
+      startNewChat();
     }
   };
 
-  const handleSelectChat = (chatId: string) => {
-    setCurrentChatId(chatId);
-    const saved = localStorage.getItem(`chat_${chatId}`);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      loadMessages(parsed);
-    }
+  const handleSelectChat = (sessionId: string) => {
+    loadChatHistoryBySessionId(sessionId);
   };
 
-  const handleDeleteChat = (chatId: string) => {
-    const updated = chatHistory.filter((c) => c.id !== chatId);
-    setChatHistory(updated);
-    localStorage.setItem("chatHistory", JSON.stringify(updated));
-    localStorage.removeItem(`chat_${chatId}`);
-    if (currentChatId === chatId) setCurrentChatId(null);
+  const handleDeleteChat = (sessionId: string) => {
+    // TODO: Implement delete API call when available
+    console.log("Delete session:", sessionId);
   };
 
   const handleLogout = () => {
@@ -161,8 +164,62 @@ export default function Chatbot() {
     }
   };
 
+  // Handle login state changes to manage z-index
+  useEffect(() => {
+    if (isLoginToggle && isLoginOpenFromChatbot) {
+      // Login is open from chatbot context
+      console.log("Login opened from chatbot");
+    } else if (!isLoginToggle && isLoginOpenFromChatbot) {
+      // Login was closed, reset the flag
+      setLoginOpenFromChatbot(false);
+    }
+  }, [isLoginToggle, isLoginOpenFromChatbot, setLoginOpenFromChatbot]);
+
+  // Handler for opening login from chatbot
+  const handleLoginFromChatbot = () => {
+    setLoginOpenFromChatbot(true);
+    toggleLogin();
+  };
+
+  // Calculate z-index dynamically - lower when login is open from chatbot
+  const chatbotZIndex = isLoginToggle && isLoginOpenFromChatbot ? "z-[40]" : "z-[100]";
+
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-[#232323]">
+    <div className={`fixed inset-0 ${chatbotZIndex} flex flex-col bg-[#232323]`}>
+      {/* Login Prompt Modal */}
+      {showLoginPrompt && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-6">
+          <div className="bg-[#2a2a2a] rounded-2xl p-6 max-w-sm border border-[#A0A0A099] shadow-2xl">
+            <div className="text-center">
+              <div className="inline-block p-4 bg-[#FF660F]/20 rounded-full mb-4">
+                <User2 className="h-10 w-10 text-[#FF660F]" />
+              </div>
+              <h3 className="text-white font-semibold text-xl mb-2">Login to Continue</h3>
+              <p className="text-gray-400 text-sm mb-6">
+                You've reached the message limit for visitors. Please login to continue chatting and access your chat history.
+              </p>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => {
+                    setShowLoginPrompt(false);
+                    handleLoginFromChatbot();
+                  }}
+                  className="w-full bg-[#FF660F] text-white font-semibold py-3 px-6 rounded-lg hover:bg-[#e55a0a] transition-colors"
+                >
+                  Login / Sign Up
+                </button>
+                <button
+                  onClick={() => setShowLoginPrompt(false)}
+                  className="w-full text-gray-400 font-medium py-2 px-6 rounded-lg hover:bg-white/5 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Header */}
       <header className="h-14 md:h-20 bg-[#232323] border-b border-[#FFFFFF40] shadow-[0_2px_4px_0_rgba(255,255,255,0.06)] w-full">
         <div className="flex h-full items-center justify-between px-5 lg:px-20">
@@ -220,7 +277,15 @@ export default function Chatbot() {
                   )}
                 </>
               ) : (
-                <Button variant={"outline"} className="w-full lg:w-[164px] flex items-center justify-center h-6 md:h-11 border rounded-[12px] bg-[#232323] font-semibold text-white border-[#858585] text-[10px] md:text-lg hover:bg-[#FF660F] hover:text-white hover:border-[#FF660F] transition-all duration-200" onClick={() => toggleLogin()}>
+                <Button 
+                  variant={"outline"} 
+                  className="w-full lg:w-[164px] flex items-center justify-center h-6 md:h-11 border rounded-[12px] bg-[#232323] font-semibold text-white border-[#858585] text-[10px] md:text-lg hover:bg-[#FF660F] hover:text-white hover:border-[#FF660F] transition-all duration-200" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleLoginFromChatbot();
+                  }}
+                >
                   Login/Sign Up
                 </Button>
               )}
@@ -235,11 +300,13 @@ export default function Chatbot() {
         <Sidear
           handleNewChat={handleNewChat}
           isSidebarOpen={isSidebarOpen}
-          chatHistory={chatHistory}
-          currentChatId={currentChatId}
+          chatSessions={chatSessions}
+          currentSessionId={currentSessionId}
           handleSelectChat={handleSelectChat}
           handleDeleteChat={handleDeleteChat}
           setIsSidebarOpen={setIsSidebarOpen}
+          isAuthenticated={isAuthenticated}
+          onLoginClick={handleLoginFromChatbot}
         />
 
         {/* Main Chat Area */}
