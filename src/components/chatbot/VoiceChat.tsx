@@ -236,30 +236,31 @@ export default function VoiceChat() {
   };
 
   return (
-    <div className="fixed inset-0 bg-[#202124] z-[200] flex flex-col items-center justify-center p-6 animate-in fade-in-20">
+    <div className="fixed inset-0 bg-[#202124] z-[200] flex flex-col items-center justify-center p-4 md:p-6 animate-in fade-in-20">
 
-      <div className="absolute top-9 left-1/2 -translate-x-1/2 flex items-center gap-3">
-  {isListening && (
-    <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-sm text-white">
-      <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-      <span>Listening</span>
-    </div>
-  )}
-  {isAwaitingResponse && (
-    <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-sm text-white">
-      <span>Thinking</span>
-      <ThinkingDots />
-    </div>
-  )}
-  {isSpeaking && (
-    <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-sm text-white">
-      <span>Speaking</span>
-    </div>
-  )}
-</div>
+      {/* Status indicators - Responsive positioning */}
+      <div className="absolute top-6 md:top-9 left-1/2 -translate-x-1/2 flex items-center gap-2 md:gap-3">
+        {isListening && (
+          <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full text-xs md:text-sm text-white">
+            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+            <span>Listening</span>
+          </div>
+        )}
+        {isAwaitingResponse && (
+          <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full text-xs md:text-sm text-white">
+            <span>Thinking</span>
+            <ThinkingDots />
+          </div>
+        )}
+        {isSpeaking && (
+          <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full text-xs md:text-sm text-white">
+            <span>Speaking</span>
+          </div>
+        )}
+      </div>
 
-
-      <div className="flex-grow flex items-center justify-center">
+      {/* Voice Visualizer - Responsive */}
+      <div className="flex-grow flex items-center justify-center w-full max-w-md md:max-w-2xl">
         <VoiceVisualizer
           volume={isSpeaking ? 0.1 : volume}
           isSpeaking={isSpeaking}
@@ -267,23 +268,24 @@ export default function VoiceChat() {
         />
       </div>
 
-      <div className="w-full flex justify-center items-center gap-6 flex-shrink-0 pt-8">
+      {/* Control buttons - Responsive */}
+      <div className="w-full flex justify-center items-center gap-4 md:gap-6 flex-shrink-0 pt-6 md:pt-8 pb-4 md:pb-0">
         <button
           onClick={handleMicClick}
-          className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 text-white ${
+          className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center transition-all duration-300 text-white ${
             isListening ? 'bg-red-600 shadow-lg shadow-red-500/30' : 'bg-white/10 hover:bg-white/20'
           }`}
           aria-label={isListening ? 'Stop listening' : 'Start listening'}
         >
-          <Mic size={28} />
+          <Mic size={24} className="md:w-7 md:h-7" />
         </button>
 
         <button
           onClick={toggleVoiceChat}
-          className="w-16 h-16 rounded-full flex items-center justify-center bg-[#ea4335] hover:bg-[#d93025] transition-colors text-white"
+          className="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center bg-[#ea4335] hover:bg-[#d93025] transition-colors text-white"
           aria-label="End call"
         >
-          <PhoneOff size={28} />
+          <PhoneOff size={24} className="md:w-7 md:h-7" />
         </button>
       </div>
     </div>
