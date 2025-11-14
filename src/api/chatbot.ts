@@ -29,6 +29,30 @@ interface FrontendMessage {
   followup?: string;
 }
 
+// Session types
+export interface ChatSession {
+  sessionId: string;
+  title: string;
+}
+
+export interface ChatSessionsResponse {
+  userId: string;
+  sessions: ChatSession[];
+}
+
+export interface ChatHistoryMessage {
+  content: string;
+  role: "user" | "ai";
+  timestamp: string;
+  messageId: string;
+}
+
+export interface ChatHistoryResponse {
+  sessionId: string;
+  userId: string;
+  messages: ChatHistoryMessage[];
+}
+
 export const askQuestion = async (
   question: string,
   history: FrontendMessage[],
@@ -52,7 +76,31 @@ export const askQuestion = async (
   return response.data;
 };
 
+// Fetch user's chat sessions
+export const fetchChatSessions = async (userId: string): Promise<ChatSession[]> => {
+  try {
+    const response = await axios.get<ChatSessionsResponse>(
+      `${API_CONFIG.chatbotUrl}/sessions/${userId}`
+    );
+    return response.data.sessions;
+  } catch (error) {
+    console.error("Failed to fetch chat sessions:", error);
+    return [];
+  }
+};
 
+// Fetch chat history for a specific session
+export const fetchChatHistory = async (sessionId: string): Promise<ChatHistoryMessage[]> => {
+  try {
+    const response = await axios.get<ChatHistoryResponse>(
+      `${API_CONFIG.chatbotUrl}/chat/${sessionId}`
+    );
+    return response.data.messages;
+  } catch (error) {
+    console.error("Failed to fetch chat history:", error);
+    return [];
+  }
+};
 
 // The translator function remains the same
 export const transformCounselorData = (apiCounselor: CounsellorFromAPI): AllCounselor => {

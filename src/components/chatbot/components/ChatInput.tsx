@@ -106,70 +106,82 @@ export default function ChatInput({
     }
   };
 
+  // Auto-resize textarea
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    
+    // Reset height to auto to get the correct scrollHeight
+    textarea.style.height = 'auto';
+    
+    // Set new height based on content, with max of 200px (similar to ChatGPT)
+    const newHeight = Math.min(textarea.scrollHeight, 200);
+    textarea.style.height = `${newHeight}px`;
+  }, [input]);
+
   return (
     <div className="max-w-[57.6rem] w-full mx-auto">
-      <div className="flex gap-3 items-end">
-        <div className="relative flex-1 bg-[#232323] rounded-3xl border border-[#A0A0A066] transition-colors">
+      <div className="flex gap-2 md:gap-3 items-end">
+        <div className="relative flex-1 bg-[#232323] rounded-2xl md:rounded-3xl border border-[#A0A0A066] transition-colors">
           <textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder={isListening ? "Listening..." : "Ask me anything..."}
-            className="w-full bg-transparent text-white p-4 resize-none outline-none max-h-32 h-[117px] min-h-[56px]"
-            rows={1}
+            className="w-full bg-transparent text-white text-sm md:text-base p-3 md:p-4 pr-24 md:pr-32 resize-none outline-none overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent min-h-[52px] md:min-h-[56px]"
+            style={{ height: '56px' }}
             disabled={loading}
           />
-          <div className="absolute right-5 bottom-5 flex gap-3 items-center">
-            {/* Mic button (keeps simple layout but with functionality & small visual cue when active) */}
+          <div className="absolute right-3 md:right-5 bottom-1/2 translate-y-1/2 flex gap-2 md:gap-3 items-center">
+            {/* Mic button - Responsive */}
             {isSpeechRecognitionSupported ? (
               <button
                 type="button"
                 onClick={handleMicClick}
-                className={`cursor-pointer flex items-center justify-center w-10 h-10 rounded-full transition-all ${
+                className={`cursor-pointer flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full transition-all ${
                   isListening ? "bg-red-600 text-white shadow-lg" : "bg-gray-800 text-white/90 hover:bg-gray-700"
                 }`}
                 aria-label="Use microphone for dictation"
               >
-                <Mic size={18} />
+                <Mic className="w-4 h-4 md:w-[18px] md:h-[18px]" />
                 {/* subtle pulse overlay when listening */}
-                {isListening && <span className="absolute inline-block w-10 h-10 rounded-full bg-red-500/30 animate-pulse" />}
+                {isListening && <span className="absolute inline-block w-8 h-8 md:w-10 md:h-10 rounded-full bg-red-500/30 animate-pulse" />}
               </button>
             ) : (
               // fallback: keep the same visual button but disabled
               <button
                 type="button"
                 disabled
-                className="cursor-not-allowed flex items-center justify-center w-10 h-10 rounded-full bg-gray-800 text-white/50"
+                className="cursor-not-allowed flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-800 text-white/50"
                 aria-label="Speech not supported"
                 title="Speech recognition not supported"
               >
-                <img src="/voice.svg" alt="voice" className="w-5 h-5" />
+                <img src="/voice.svg" alt="voice" className="w-4 h-4 md:w-5 md:h-5" />
               </button>
             )}
 
-            {/* Optional toggleVoiceChat (keeps function from second snippet) */}
+            {/* Voice Chat Toggle - Hidden on mobile */}
             <button
               type="button"
               onClick={() => toggleVoiceChat()}
-              className="cursor-pointer hidden sm:inline-flex items-center justify-center p-1"
+              className="cursor-pointer hidden sm:inline-flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full hover:bg-white/10 transition-colors"
               aria-label="Toggle voice chat"
             >
-              {/* keep visual small so it doesn't change first file styling */}
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="text-white/90">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="text-white/90 md:w-[18px] md:h-[18px]">
                 <path d="M7.167 15.416V4.583a.75.75 0 0 1 1.5 0v10.833a.75.75 0 0 1-1.5 0Zm4.166-2.5V7.083a.75.75 0 0 1 1.5 0v5.833a.75.75 0 0 1-1.5 0ZM3 11.25V8.75a.75.75 0 0 1 1.5 0v2.5a.75.75 0 0 1-1.5 0Zm12.5 0V8.75a.75.75 0 0 1 1.5 0v2.5a.75.75 0 0 1-1.5 0Z" />
               </svg>
             </button>
 
-            {/* Send button (keeps your same interaction and look) */}
+            {/* Send button - Responsive */}
             <button
               onClick={() => handleLocalSend()}
               disabled={!input.trim() || loading}
-              className="cursor-pointer flex items-center justify-center w-10 h-10 rounded-full transition-colors disabled:opacity-40"
+              className="cursor-pointer flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full transition-colors disabled:opacity-40"
             >
-              {/* prefer existing SVG images if you use them; fallback to lucide icon */}
-              {/* If you prefer the original image icons, uncomment the next line and comment out the lucide icon */}
-              {/* <img src="/send.svg" alt="send" /> */}
-              <SendHorizonal size={18} className={`${input.trim() ? "text-white" : "text-white/50"}`} />
+              <SendHorizonal className={`w-4 h-4 md:w-[18px] md:h-[18px] ${input.trim() ? "text-white" : "text-white/50"}`} />
             </button>
           </div>
         </div>
