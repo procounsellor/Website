@@ -106,17 +106,33 @@ export default function ChatInput({
     }
   };
 
+  // Auto-resize textarea
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    
+    // Reset height to auto to get the correct scrollHeight
+    textarea.style.height = 'auto';
+    
+    // Set new height based on content, with max of 200px (similar to ChatGPT)
+    const newHeight = Math.min(textarea.scrollHeight, 200);
+    textarea.style.height = `${newHeight}px`;
+  }, [input]);
+
   return (
     <div className="max-w-[57.6rem] w-full mx-auto">
       <div className="flex gap-2 md:gap-3 items-end">
         <div className="relative flex-1 bg-[#232323] rounded-2xl md:rounded-3xl border border-[#A0A0A066] transition-colors">
           <textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder={isListening ? "Listening..." : "Ask me anything..."}
-            className="w-full bg-transparent text-white text-sm md:text-base p-3 md:p-4 pr-24 md:pr-32 resize-none outline-none max-h-32 min-h-[52px] md:min-h-[56px]"
-            rows={1}
+            className="w-full bg-transparent text-white text-sm md:text-base p-3 md:p-4 pr-24 md:pr-32 resize-none outline-none overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent min-h-[52px] md:min-h-[56px]"
+            style={{ height: '56px' }}
             disabled={loading}
           />
           <div className="absolute right-3 md:right-5 bottom-1/2 translate-y-1/2 flex gap-2 md:gap-3 items-center">

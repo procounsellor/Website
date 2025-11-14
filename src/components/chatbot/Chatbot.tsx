@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { User2, LogOut, LayoutDashboard, Sparkles,  Square, Menu } from "lucide-react";
+import { User2, LogOut, LayoutDashboard, Sparkles,  Square, Menu, Loader2 } from "lucide-react";
 import SmartImage from "@/components/ui/SmartImage";
 import { Button } from "../ui";
 import toast from "react-hot-toast";
@@ -55,7 +55,8 @@ export default function Chatbot() {
     incrementVisitorMessageCount,
     resetVisitorMessageCount,
     isLoginOpenFromChatbot,
-    setLoginOpenFromChatbot
+    setLoginOpenFromChatbot,
+    isLoadingHistory
   } = useChatStore();
   const { toggleLogin, isAuthenticated, logout, userId, role, isLoginToggle } = useAuthStore();
 
@@ -133,11 +134,9 @@ export default function Chatbot() {
   };
 
   const handleNewChat = () => {
-    if (messages.length > 0) {
-      setCurrentSessionId(null);
-      clearMessages();
-      startNewChat();
-    }
+    // Always clear and start new chat, even if no messages
+    clearMessages();
+    startNewChat(); // This creates a new sessionId and sets it
   };
 
   const handleSelectChat = (sessionId: string) => {
@@ -150,6 +149,9 @@ export default function Chatbot() {
   };
 
   const handleLogout = () => {
+    // Reset chat state before logging out
+    useChatStore.getState().resetChatState();
+    
     logout();
     setIsDropdownOpen(false);
     toggleChatbot();
@@ -349,9 +351,15 @@ export default function Chatbot() {
             <>
               <div className="flex-1 overflow-y-auto bg-[#232323] mt-2 px-3 md:px-6 py-4 md:py-6 scrollbar-hide">
                 <div className="max-w-4xl mx-auto space-y-3 md:space-y-4">
-                  {messages.length === 0 && !loading && <WelcomeMessage />}
+                  {isLoadingHistory ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="h-8 w-8 text-[#FF660F] animate-spin" />
+                    </div>
+                  ) : (
+                    <>
+                      {messages.length === 0 && !loading && <WelcomeMessage />}
 
-                   {messages.map((msg: any, index: number) => {
+                      {messages.map((msg: any, index: number) => {
                     
                     // --- START OF THE FIX ---
                     let formattedText = msg.text;
@@ -443,8 +451,10 @@ export default function Chatbot() {
                     );
                   })}
 
-                  {loading && <TypingIndicator />}
-                  <div ref={messagesEndRef} />
+                      {loading && <TypingIndicator />}
+                      <div ref={messagesEndRef} />
+                    </>
+                  )}
                 </div>
               </div>
 
