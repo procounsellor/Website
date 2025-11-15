@@ -51,7 +51,6 @@ export default function Chatbot() {
     loadChatSessions,
     loadChatHistoryBySessionId,
     currentSessionId,
-    setCurrentSessionId,
     incrementVisitorMessageCount,
     resetVisitorMessageCount,
     isLoginOpenFromChatbot,
