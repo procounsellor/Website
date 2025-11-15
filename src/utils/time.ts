@@ -26,3 +26,22 @@ export const generateTimeSlots = (
   }
   return slots;
 };
+
+export function formatTimeAgo(seconds: number): string {
+  const now = new Date().getTime() / 1000;
+  const diff = now - seconds;
+
+  if (diff < 60) {
+    return `${Math.floor(diff)}s`;
+  } else if (diff < 3600) {
+    return `${Math.floor(diff / 60)}m`;
+  } else if (diff < 86400) {
+    return `${Math.floor(diff / 3600)}h`;
+  } else if (diff < 2592000) {
+    return `${Math.floor(diff / 86400)}d`;
+  } else if (diff < 31536000) {
+    return `${Math.floor(diff / 2592000)}mo`;
+  } else {
+    return `${Math.floor(diff / 31536000)}y`;
+  }
+}

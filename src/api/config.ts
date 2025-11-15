@@ -10,6 +10,7 @@ export const API_CONFIG = {
     getExams: '/api/exams/all',
     getCourses: '/api/courses/all',
     getColleges: '/api/colleges/all',
+    getQuestionsList: '/api/community/dashboard/getQuestionsList'
   },
   defaultTimeout: 10000,
 } as const;
