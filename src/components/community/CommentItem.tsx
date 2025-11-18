@@ -1,0 +1,154 @@
+import React, { useState } from 'react';
+import { Heart } from 'lucide-react';
+import { useAuthStore } from '@/store/AuthStore';
+import { getRepliesForComment, likeComment } from '@/api/community';
+import type { Comment, CommentReply } from '@/types/community';
+import { toast } from 'react-hot-toast';
+import ReplyItem from './ReplyItem';
+
+interface CommentItemProps {
+  comment: Comment;
+  onReplyClick: (commentId: string, userName: string) => void;
+}
+
+const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyClick }) => {
+  const [replies, setReplies] = useState<CommentReply[]>([]);
+  const [areRepliesVisible, setAreRepliesVisible] = useState(false);
+  const [isLoadingReplies, setIsLoadingReplies] = useState(false);
+  
+  const { userId, user } = useAuthStore();
+  const token = localStorage.getItem('jwt');
+
+  const [isLiked, setIsLiked] = useState(comment.commentLikedByMe || false);
+  const [likesCount, setLikesCount] = useState(comment.likesCount || 0);
+
+  const userImage = comment.userPhotoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.userFullName)}`;
+
+  const handleCommentLike = async () => {
+    if (!userId || !token) {
+      toast.error("Please login to like");
+      return;
+    }
+
+    const previousLikedState = isLiked;
+    const previousCount = likesCount;
+
+    setIsLiked(!previousLikedState);
+    setLikesCount(previousLikedState ? previousCount - 1 : previousCount + 1);
+
+    try {
+      const response = await likeComment(
+        userId,
+        comment.commentId,
+        user?.role || 'user',
+        token
+      );
+
+      if (response.status === 'Success') {
+        setIsLiked(response.isLiked);
+      } else {
+        setIsLiked(previousLikedState);
+        setLikesCount(previousCount);
+      }
+    } catch (error) {
+        console.error(error);
+      setIsLiked(previousLikedState);
+      setLikesCount(previousCount);
+      toast.error("Failed to like comment");
+    }
+  };
+
+  const handleViewReplies = async () => {
+    if (areRepliesVisible) {
+      setAreRepliesVisible(false);
+      return;
+    }
+
+    if (replies && replies.length > 0) {
+      setAreRepliesVisible(true);
+      return;
+    }
+
+    if (!userId || !token) return;
+
+    try {
+      setIsLoadingReplies(true);
+      const response = await getRepliesForComment(comment.commentId, userId, token);
+      if (response.status === 'Success') {
+        setReplies(response.data.replies || []);
+        setAreRepliesVisible(true);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoadingReplies(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex gap-3">
+        <img
+          src={userImage}
+          alt={comment.userFullName}
+          className="w-8 h-8 rounded-full bg-[#D9D9D9] flex-shrink-0 mt-1"
+        />
+        <div className="flex flex-col w-full">
+            <span className="font-[Montserrat] font-semibold text-[16px] text-[#242645] leading-[125%]">
+                {comment.userFullName}
+            </span>
+            <p className="font-[Montserrat] font-normal text-[14px] text-[#8C8CA1] leading-[125%] mt-1">
+                {comment.commentText}
+            </p>
+            
+            <div className="flex items-center justify-between mt-2">
+                <div className="flex gap-4 text-sm font-medium text-[#242645]">
+                     <button 
+                        onClick={() => onReplyClick(comment.commentId, comment.userFullName)}
+                        className="hover:underline"
+                     >
+                        Reply
+                     </button>
+                     
+                     <button 
+                        onClick={handleViewReplies}
+                        className="text-[#8C8CA1] hover:text-[#242645] transition-colors"
+                     >
+                        {isLoadingReplies ? 'Loading...' : 
+                          (areRepliesVisible ? 'Hide replies' : 'View replies')
+                        }
+                     </button>
+                </div>
+
+                <button 
+                    onClick={handleCommentLike}
+                    className="flex items-center gap-1 transition-colors hover:opacity-75"
+                >
+                    <Heart size={14} fill={isLiked ? "#F44336" : "none"} color={isLiked ? "#F44336" : "#F44336"} />
+                    <span className={`text-xs font-bold ${isLiked ? "text-[#F44336]" : "text-[#F44336]"}`}>
+                        {likesCount}
+                    </span>
+                </button>
+            </div>
+        </div>
+      </div>
+
+      {areRepliesVisible && replies?.length > 0 && (
+        <div className="pl-12 flex flex-col gap-4 mt-2">
+           {replies.map((reply) => (
+               <ReplyItem 
+                 key={reply.replyId} 
+                 reply={reply} 
+                 onReplyClick={onReplyClick} 
+               />
+           ))}
+        </div>
+      )}
+      {areRepliesVisible && (!replies || replies.length === 0) && !isLoadingReplies && (
+         <div className="pl-12 text-xs text-gray-400 italic">No replies yet.</div>
+      )}
+    </div>
+  );
+};
+
+export default CommentItem;

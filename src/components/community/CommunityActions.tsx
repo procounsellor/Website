@@ -2,20 +2,35 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, MessageCircleQuestionMark , SquarePen, History } from "lucide-react";
 import AskQuestionModal from "@/components/community/AskQuestionModal";
+import { useAuthStore } from "@/store/AuthStore";
 
 export default function CommunityActions() {
   const [isAskModalOpen, setIsAskModalOpen] = useState(false);
   const navigate = useNavigate();
 
+  const { user, toggleLogin } = useAuthStore();
+
   const handleAskClick = () => {
+    if (!user) {
+      toggleLogin();
+      return;
+    }
     setIsAskModalOpen(true);
   };
 
   const handleAnswerClick = () => {
+    if (!user) {
+      toggleLogin();
+      return;
+    }
     navigate('/community/answer');
   };
 
   const handleActivityClick = () => {
+    if (!user) {
+      toggleLogin();
+      return;
+    }
     console.log("Navigate to My Activity page");
     // navigate('/community/my-activity');
   };

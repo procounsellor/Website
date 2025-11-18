@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getQuestionsList } from '@/api/community';
 import { useAuthStore } from '@/store/AuthStore';
 import type { CommunityQuestion } from '@/types/community';
-import QuestionCard from './QuestionCard';
+import AnswerFeedCard from './AnswerFeedCard';
 
 const QuestionList: React.FC = () => {
   const [questions, setQuestions] = useState<CommunityQuestion[]>([]);
@@ -61,7 +61,7 @@ const QuestionList: React.FC = () => {
       <div className="flex flex-col gap-5">
         {questions.length > 0 ? (
           questions.map((question) => (
-            <QuestionCard key={question.questionId} question={question} />
+            <AnswerFeedCard key={question.questionId} question={question} />
           ))
         ) : (
           <div className="p-10 text-center text-gray-500">
