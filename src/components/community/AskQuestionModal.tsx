@@ -1,5 +1,8 @@
-import React, { useState } from "react";
-import { X } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { X, Loader2 } from 'lucide-react';
+import { useAuthStore } from '@/store/AuthStore';
+import { askQuestion } from '@/api/community';
+import { toast } from 'react-hot-toast';
 
 interface AskQuestionModalProps {
   isOpen: boolean;
@@ -13,24 +16,62 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const isSubmitDisabled = !subject || !description;
+  const { userId, user } = useAuthStore();
+  const token = localStorage.getItem('jwt');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const isSubmitDisabled = !subject || !description || isLoading;
+
+  useEffect(() => {
+    if (isOpen) {
+      setSubject('');
+      setDescription('');
+      setIsAnonymous(false);
+      setError(null);
+      setIsLoading(false);
+    }
+  }, [isOpen]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitDisabled) return;
 
-    // should add API call here
-    console.log({
-      subject,
-      description,
-      isAnonymous,
-    });
+    if (!userId || !user || !token) {
+      toast.error('You must be logged in to ask a question.');
+      setError('You must be logged in to ask a question.');
+      return;
+    }
 
-    setSubject("");
-    setDescription("");
-    setIsAnonymous(false);
-    onClose();
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await askQuestion(
+        userId,
+        subject,
+        description,
+        user.role || 'user',
+        token
+      );
+
+      if (response && response.questionId) {
+        toast.success('Question submitted successfully!');
+        setSubject('');
+        setDescription('');
+        setIsAnonymous(false);
+        onClose();
+      } else {
+        throw new Error('Failed to submit question. Invalid response.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'An error occurred.');
+      toast.error(err.message || 'An error occurred.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -47,6 +88,7 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
       >
         <button
           onClick={onClose}
+          disabled={isLoading}
           className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center rounded-full text-black hover:bg-black hover:text-white transition-colors"
           aria-label="Close modal"
         >
@@ -118,6 +160,10 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
             </span>
           </label>
 
+          {error && (
+            <p className="text-sm text-red-500 text-center -mt-2">{error}</p>
+          )}
+
           <button
             type="submit"
             disabled={isSubmitDisabled}
@@ -128,7 +174,14 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
                            : "bg-[#655E95] hover:bg-opacity-90 cursor-pointer"
                        }`}
           >
-            Submit Question
+            {isLoading ? (
+              <>
+                <Loader2 size={20} className="animate-spin mr-2" />
+                Submitting...
+              </>
+            ) : (
+              'Submit Question'
+            )}
           </button>
         </form>
       </div>

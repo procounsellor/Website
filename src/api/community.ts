@@ -1,5 +1,13 @@
 import { API_CONFIG } from './config';
-import type { GetQuestionsListResponse } from '@/types/community';
+import type { 
+  GetQuestionsListResponse, 
+  GetCommunityDashboardResponse, 
+  GetAllAnswersResponse, 
+  AskQuestionResponse, 
+  PostAnswerResponse,
+  GetCommentsResponse,
+  GetRepliesResponse,
+} from '@/types/community';
 
 const { baseUrl } = API_CONFIG;
 
@@ -29,6 +37,418 @@ export async function getQuestionsList(
     return data;
   } catch (error) {
     console.error('Get Questions List Error:', error);
+    throw error;
+  }
+}
+
+export async function getCommunityDashboard(
+  userId: string,
+  token: string,
+  pageToken?: string | null
+): Promise<GetCommunityDashboardResponse> {
+  try {
+    let url = `${baseUrl}${API_CONFIG.endpoints.getCommunityDashboard}?userId=${userId}`;
+    if (pageToken) {
+      url += `&nextPageToken=${pageToken}`;
+    }
+
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to fetch community dashboard. Details: ${errorBody}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Get Community Dashboard Error:', error);
+    throw error;
+  }
+}
+
+export async function getAllAnswersForSpecificQuestion(
+  questionId: string,
+  loggedInUserId: string,
+  token: string,
+  role: string = 'user'
+): Promise<GetAllAnswersResponse> {
+  try {
+    const response = await fetch(
+      `${baseUrl}${API_CONFIG.endpoints.getAllAnswersForQuestion}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          questionId,
+          loggedInUserId,
+          role,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to fetch answers. Details: ${errorBody}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Get All Answers Error:', error);
+    throw error;
+  }
+}
+
+export async function askQuestion(
+  userId: string,
+  subject: string,
+  question: string,
+  role: string,
+  token: string
+): Promise<AskQuestionResponse> {
+  try {
+    const response = await fetch(
+      `${baseUrl}${API_CONFIG.endpoints.askQuestion}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userId,
+          subject,
+          question,
+          role,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to post question. Details: ${errorBody}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Ask Question Error:', error);
+    throw error;
+  }
+}
+
+export async function postAnswer(
+  questionId: string,
+  answer: string,
+  userIdAnswered: string,
+  role: string,
+  token: string,
+  imageFile?: File | null
+): Promise<PostAnswerResponse> {
+  const formData = new FormData();
+  formData.append('questionId', questionId);
+  formData.append('answer', answer);
+  formData.append('userIdAnswered', userIdAnswered);
+  formData.append('role', role);
+  if (imageFile) {
+    formData.append('image', imageFile);
+  }
+
+  try {
+    const response = await fetch(
+      `${baseUrl}${API_CONFIG.endpoints.postAnswer}`,
+      {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to post answer. Details: ${errorBody}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Post Answer Error:', error);
+    throw error;
+  }
+}
+
+export async function getCommentsForAnswer(
+  answerId: string,
+  loggedInUserId: string,
+  token: string
+): Promise<GetCommentsResponse> {
+  try {
+    const response = await fetch(
+      `${baseUrl}${API_CONFIG.endpoints.getComments}?loggedInUserId=${loggedInUserId}&answerId=${answerId}`,
+      {
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+    if (!response.ok) throw new Error('Failed to fetch comments');
+    return await response.json();
+  } catch (error) {
+    console.error('Get Comments Error:', error);
+    throw error;
+  }
+}
+
+export async function getRepliesForComment(
+  commentId: string,
+  loggedInUserId: string,
+  token: string
+): Promise<GetRepliesResponse> {
+  try {
+    const response = await fetch(
+      `${baseUrl}${API_CONFIG.endpoints.getReplies}?loggedInUserId=${loggedInUserId}&commentId=${commentId}`,
+      {
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+    if (!response.ok) throw new Error('Failed to fetch replies');
+    return await response.json();
+  } catch (error) {
+    console.error('Get Replies Error:', error);
+    throw error;
+  }
+}
+
+export async function addComment(
+  userIdCommented: string,
+  answerId: string,
+  commentText: string,
+  role: string,
+  token: string
+): Promise<any> {
+  try {
+    const url = `${baseUrl}${API_CONFIG.endpoints.addComment}`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        userIdCommented,
+        answerId,
+        commentText,
+        role,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to post comment. Details: ${errorBody}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Add Comment Error:', error);
+    throw error;
+  }
+}
+
+export async function addReply(
+  userIdReplied: string,
+  repliedToUserId: string,
+  commentId: string,
+  replyText: string,
+  role: string,
+  token: string
+): Promise<any> {
+  try {
+    const url = `${baseUrl}${API_CONFIG.endpoints.addReply}`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        userIdReplied,
+        repliedToUserId,
+        commentId,
+        replyText,
+        role,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to post reply. Details: ${errorBody}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Add Reply Error:', error);
+    throw error;
+  }
+}
+
+export async function bookmarkQuestion(
+  userId: string,
+  questionId: string,
+  role: string,
+  token: string
+): Promise<{ isBookmarked: boolean; message: string; status: string }> {
+  try {
+    const url = `${baseUrl}${API_CONFIG.endpoints.bookmarkQuestion}`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        userId,
+        questionId,
+        role,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to bookmark question. Details: ${errorBody}`
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Bookmark Question Error:', error);
+    throw error;
+  }
+}
+
+export async function likeAnswer(
+  userId: string,
+  answerId: string,
+  role: string,
+  token: string
+): Promise<{ isLiked: boolean; message: string; status: string }> {
+  try {
+    const url = `${baseUrl}${API_CONFIG.endpoints.likeAnswer}`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        userId,
+        answerId,
+        role,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to like/unlike answer. Details: ${errorBody}`
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Like Answer Error:', error);
+    throw error;
+  }
+}
+
+export async function likeComment(
+  userId: string,
+  commentId: string,
+  role: string,
+  token: string
+): Promise<{ isLiked: boolean; message: string; status: string }> {
+  try {
+    const url = `${baseUrl}${API_CONFIG.endpoints.likeComment}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ userId, commentId, role }),
+    });
+
+    if (!response.ok) throw new Error('Failed to like comment');
+    return await response.json();
+  } catch (error) {
+    console.error('Like Comment Error:', error);
+    throw error;
+  }
+}
+
+export async function likeReply(
+  userId: string,
+  replyId: string,
+  role: string,
+  token: string
+): Promise<{ isLiked: boolean; message: string; status: string }> {
+  try {
+    const url = `${baseUrl}${API_CONFIG.endpoints.likeReply}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ userId, replyId, role }),
+    });
+
+    if (!response.ok) throw new Error('Failed to like reply');
+    return await response.json();
+  } catch (error) {
+    console.error('Like Reply Error:', error);
     throw error;
   }
 }

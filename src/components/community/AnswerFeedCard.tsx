@@ -1,44 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { Bookmark, Pencil } from 'lucide-react';
-import type { QuestionDetailData } from '@/types/community'; 
 import { useAuthStore } from '@/store/AuthStore';
-import { formatTimeAgo } from '@/utils/time';
+import type { CommunityQuestion } from '@/types/community';
 import WriteAnswerModal from './WriteAnswerModal';
 import type { AnswerModalDetails } from './WriteAnswerModal';
 import { bookmarkQuestion } from '@/api/community';
 import { toast } from 'react-hot-toast';
 
-interface QuestionCardProps {
-  questionData: QuestionDetailData;
+interface AnswerFeedCardProps {
+  question: CommunityQuestion;
 }
 
-const QuestionCard: React.FC<QuestionCardProps> = ({ questionData }) => {
+const AnswerFeedCard: React.FC<AnswerFeedCardProps> = ({ question }) => {
   const { user, userId } = useAuthStore();
   const token = localStorage.getItem('jwt');
   const [isWriteAnswerModalOpen, setIsWriteAnswerModalOpen] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(questionData.questionBookmarkedByMe || false);
-
-  useEffect(() => {
-    setIsBookmarked(questionData.questionBookmarkedByMe || false);
-  }, [questionData]);
-
+  const [isBookmarked, setIsBookmarked] = useState(question.questionBookmarkedByMe || false);
   const loggedInUserName = user?.firstName || 'User';
   const loggedInUserImage =
-    user?.photoSmall || `https://ui-avatars.com/api/?name=${encodeURIComponent(loggedInUserName)}`;
+    user?.photoSmall ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(loggedInUserName)}`;
 
-  const askerName = questionData.questionAskedFullName || 'ProCounsel Member';
-  const askerCourse = questionData.questionAskedInterestedCourse || 'Student';
-  const askerImageFromApi = questionData.questionAskedPhotoUrl;
-  const askerImage =
-    askerImageFromApi || 
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(askerName)}`;
-
+  useEffect(() => {
+    setIsBookmarked(question.questionBookmarkedByMe || false);
+  }, [question]);
+  
   const handleWriteAnswerClick = () => {
     setIsWriteAnswerModalOpen(true);
   };
 
   const handleBookmark = async () => {
-    if (!userId || !token) return;
+    if (!userId || !token) {
+      toast.error("Please login to bookmark");
+      return;
+    }
 
     const previousState = isBookmarked;
     setIsBookmarked(!previousState);
@@ -46,7 +41,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questionData }) => {
     try {
       const response = await bookmarkQuestion(
         userId,
-        questionData.questionId,
+        question.questionId,
         user?.role || 'user',
         token
       );
@@ -59,41 +54,27 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questionData }) => {
       }
     } catch (error) {
       setIsBookmarked(previousState);
-      toast.error("Failed to bookmark");
+      toast.error("Failed to update bookmark");
     }
   };
 
   const modalQuestionDetails: AnswerModalDetails = {
-    questionId: questionData.questionId,
-    questionText: questionData.question,
-    askerFullName: questionData.questionAskedFullName,
-    askerPhotoUrl: questionData.questionAskedPhotoUrl,
-    askerInterestedCourse: questionData.questionAskedInterestedCourse,
-    questionTimestamp: questionData.timestamp,
+    questionId: question.questionId,
+    questionText: question.question,
+    askerFullName: 'ProCounsel Member',
+    askerPhotoUrl: null,
+    askerInterestedCourse: 'Student',
+    questionTimestamp: question.timestamp,
   };
 
   return (
     <>
       <div className="w-full max-w-[860px] mx-auto p-5 rounded-lg bg-[#F5F5F7] border border-gray-100">
         <div className="flex justify-between items-start">
-          <div className="flex gap-4">
-            <img
-              src={askerImage}
-              alt={askerName}
-              className="w-[42px] h-[42px] rounded-full object-cover"
-            />
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-medium text-[#242645]">
-                  {askerName}
-                </span>
-                <span className="text-sm text-[#8C8CA1] ml-6">
-                  {formatTimeAgo(questionData.timestamp.seconds)}
-                </span>
-              </div>
-              <span className="text-sm text-[#242645]">{askerCourse}</span>
-            </div>
-          </div>
+          <p className="mt-1 text-xl font-semibold text-[#242645] leading-[26px]">
+            {question.question}
+          </p>
+
           <button 
             onClick={handleBookmark}
             className={`transition-colors ${isBookmarked ? 'text-[#655E95]' : 'text-gray-500 hover:text-indigo-600'}`}
@@ -101,10 +82,6 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questionData }) => {
             <Bookmark size={24} fill={isBookmarked ? "#655E95" : "none"} />
           </button>
         </div>
-
-        <p className="mt-[30px] text-xl font-semibold text-[#242645] leading-[26px]">
-          {questionData.question}
-        </p>
 
         <div className="mt-4 flex flex-col items-center gap-5 pt-4">
           <img
@@ -144,4 +121,4 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questionData }) => {
   );
 };
 
-export default QuestionCard;
+export default AnswerFeedCard;
