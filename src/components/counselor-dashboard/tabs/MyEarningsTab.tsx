@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { getEarnings, getAllOfflineTransactions } from '@/api/counselor-Dashboard';
 import type { User } from '@/types/user';
-import EarningsView from './EarningsView';
-import EarningsSidebar from './EarningsSidebar';
-import CounselorTransactionsTab from './CounselorTransactionsTab';
+import EarningsView from '../EarningsView';
+import EarningsSidebar from '../EarningsSidebar';
+import CounselorTransactionsTab from '../tabs/CounselorTransactionsTab';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 

@@ -461,3 +461,11 @@ export async function getCounselorAppointmentById(counsellorId: string, appointm
     throw error;
   }
 }
+
+
+
+
+// export async function getCoursesByCourseId(counsellorId:string){
+//   const response = await fetch(`${baseUrl}/`)
+
+// }

@@ -1,5 +1,5 @@
 import { X, Clock } from "lucide-react";
-import { Input } from "../ui";
+import { Input } from "../../ui";
 import { useState, useRef, useEffect } from "react";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -11,8 +11,8 @@ import type { User } from "@/types/user";
 import type { OutOfOffice } from "@/types/appointments";
 import toast from "react-hot-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import TimeList from "./TimeList";
-import type { TimeOption } from "./TimeList";
+import TimeList from "../TimeList";
+import type { TimeOption } from "../TimeList";
 
 const generateTimeOptions = (): TimeOption[] => {
   const options: TimeOption[] = [];

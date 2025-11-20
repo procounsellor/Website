@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SendHorizonal, Mic } from "lucide-react";
 import { useVoiceChatStore } from "@/store/VoiceChatStore";
 
@@ -10,7 +10,6 @@ type ChatInputProps = {
   setInput: (value: string) => void;
 };
 
-// feature-detect (works client-side)
 const isSpeechRecognitionSupported =
   typeof window !== "undefined" &&
   (("SpeechRecognition" in window) || ("webkitSpeechRecognition" in window));
@@ -27,7 +26,6 @@ export default function ChatInput({
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any | null>(null);
 
-  // Keep a ref to the latest input so speech appends correctly even if parent updates value
   const inputRef = useRef<string>(input);
   useEffect(() => {
     inputRef.current = input;
@@ -35,7 +33,6 @@ export default function ChatInput({
 
   useEffect(() => {
     if (!isSpeechRecognitionSupported) {
-      // no-op silently if not supported (keeps UI same)
       return;
     }
 
@@ -106,17 +103,16 @@ export default function ChatInput({
     }
   };
 
-  // Auto-resize textarea
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   useEffect(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
     
-    // Reset height to auto to get the correct scrollHeight
+   
     textarea.style.height = 'auto';
-    
-    // Set new height based on content, with max of 200px (similar to ChatGPT)
+  
     const newHeight = Math.min(textarea.scrollHeight, 200);
     textarea.style.height = `${newHeight}px`;
   }, [input]);
@@ -151,7 +147,6 @@ export default function ChatInput({
                 {isListening && <span className="absolute inline-block w-8 h-8 md:w-10 md:h-10 rounded-full bg-red-500/30 animate-pulse" />}
               </button>
             ) : (
-              // fallback: keep the same visual button but disabled
               <button
                 type="button"
                 disabled

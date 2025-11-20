@@ -51,7 +51,7 @@ export default function Chatbot() {
     loadChatSessions,
     loadChatHistoryBySessionId,
     currentSessionId,
-    setCurrentSessionId,
+    // setCurrentSessionId,
     incrementVisitorMessageCount,
     resetVisitorMessageCount,
     isLoginOpenFromChatbot,
@@ -235,19 +235,20 @@ export default function Chatbot() {
               <Menu className="h-6 w-6 text-white" />
             </button>
 
-            <div
-              className="Logo flex cursor-pointer"
-              onClick={() => {
+              <div className="Logo flex items-center cursor-pointer" onClick={() => {
                 toggleChatbot();
-                navigate("/");
-              }}
-            >
-              <SmartImage src="/logo.svg" alt="procounsel_logo" className="h-7 w-7 md:w-11 md:h-12" width={44} height={44} priority />
-              <div className="flex flex-col leading-tight pl-[9px]">
-                <h1 className="text-white font-semibold text-sm md:text-xl">ProCounsel</h1>
-                <span className="font-normal text-gray-400 text-[8px] md:text-[10px]">By CatalystAI</span>
-              </div>
-            </div>
+                 navigate('/');
+                 }}>
+                    <SmartImage src="/logo.png" alt="procounsel_logo" 
+                      className="h-7 w-7 md:w-11 md:h-12 rounded-md"
+                      width={44}
+                      height={44}
+                      priority
+                    />
+                  <div className="flex items-center leading-tight pl-[9px] hover:cursor-pointer" onClick={() => navigate('/')}>
+                       <h1 className="text-white font-semibold text-sm md:text-xl">ProCounsel</h1>
+                    </div>
+                  </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -418,7 +419,7 @@ export default function Chatbot() {
                                   <Link 
                                     className="w-full animate-in fade-in-50 slide-in-from-bottom-4 duration-500" 
                                     style={{ animationDelay: `${idx * 100}ms` }}
-                                    to="/counselors/profile" 
+                                    to="/counsellor-profile" 
                                     state={{ id: c.counsellorId }} 
                                     key={c.counsellorId} 
                                     onClick={toggleChatbot}

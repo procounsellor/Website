@@ -10,16 +10,17 @@ import {
   ClientsTab,
   ReviewsTab,
 } from "@/components/counselor-dashboard";
-import RescheduleOutOfOfficeModal from "@/components/counselor-dashboard/RescheduleOutOfOfficeModal";
-import CancelOutOfOfficeModal from "@/components/counselor-dashboard/CancelOutOfOfficeModal";
+import RescheduleOutOfOfficeModal from "@/components/counselor-dashboard/modals/RescheduleOutOfOfficeModal";
+import CancelOutOfOfficeModal from "@/components/counselor-dashboard/modals/CancelOutOfOfficeModal";
 import type { Appointment, OutOfOffice } from "@/types/appointments";
 import { SquareChevronLeft, SquareChevronRight, ChevronLeft, ChevronRight, Loader2, Clock, SquarePen, ChevronDown, ChevronUp, Plus } from "lucide-react";
-import AppointmentsTab from "@/components/counselor-dashboard/AppointmentsTab";
+import AppointmentsTab from "@/components/counselor-dashboard/tabs/AppointmentsTab";
 import CounselorProfile from "@/components/counselor-dashboard/CounselorProfile";
 import { useQuery, useMutation, useQueryClient  } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import CourseTab from "@/components/counselor-dashboard/tabs/CoursesTab";
 
-type MainTab = "calendar" | "earnings" | "appointments" | "reviews" | "clients";
+type MainTab = "calendar" | "earnings" | "appointments" | "reviews" | "clients" | "courses";
 
 const TABS: { key: MainTab; name: string }[] = [
   { key: "calendar", name: "My Calendar" },
@@ -27,6 +28,7 @@ const TABS: { key: MainTab; name: string }[] = [
   { key: "appointments", name: "Appointments" },
   { key: "reviews", name: "Reviews" },
   { key: "clients", name: "Clients" },
+  { key: "courses", name:"My Courses"}
 ];
 
 const GRID_CONFIG = {
@@ -701,6 +703,11 @@ export default function CounselorDashboard() {
           {mainTab === "clients" && (
             <ClientsTab user={authUser} token={token} />
           )}
+
+          {mainTab === "courses" && (
+            <CourseTab user={authUser} token={token} />
+          )}
+          
         </div>
       </div>
 
