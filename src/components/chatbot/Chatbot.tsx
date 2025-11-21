@@ -334,15 +334,15 @@ export default function Chatbot() {
                 {/* Feature Cards - Responsive Grid - Centered */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                   <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center hover:bg-white/5 transition-colors cursor-pointer">
-                    <img src="/book.svg" alt="Courses" className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
+                    <img src="/book.svg" alt="Courses" className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
                     <p className="text-[13px] md:text-[14px] font-medium text-white">Access premium learning courses.</p>
                   </div>
                   <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center hover:bg-white/5 transition-colors cursor-pointer">
-                    <img src="/cap.svg" alt="Colleges" className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
+                    <img src="/cap.svg" alt="Colleges" className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
                     <p className="text-[13px] md:text-[14px] font-medium text-white">Discover top colleges.</p>
                   </div>
                   <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center hover:bg-white/5 transition-colors cursor-pointer">
-                    <img src="/person.svg" alt="Counselors" className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
+                    <img src="/person.svg" alt="Counselors" className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
                     <p className="text-[13px] md:text-[14px] font-medium text-white">Consult expert counselors.</p>
                   </div>
                 </div>
@@ -416,16 +416,16 @@ export default function Chatbot() {
                             <div className="mt-3 md:mt-4 space-y-2 md:space-y-3">
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
                                 {visibleCounsellors.map((c, idx) => (
-                                  <Link 
+                                  <a
+                                    href={`/counsellor-profile?id=${c.counsellorId}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="w-full animate-in fade-in-50 slide-in-from-bottom-4 duration-500" 
                                     style={{ animationDelay: `${idx * 100}ms` }}
-                                    to="/counsellor-profile" 
-                                    state={{ id: c.counsellorId }} 
-                                    key={c.counsellorId} 
-                                    onClick={toggleChatbot}
+                                    key={c.counsellorId}
                                   >
                                     <ChatbotCounselorCard counselor={c} />
-                                  </Link>
+                                  </a>
                                 ))}
                               </div>
                               
@@ -460,7 +460,7 @@ export default function Chatbot() {
               </div>
 
               {/* Footer with ChatInput and stop button when loading - Responsive */}
-              <div className="pb-3 md:pb-6 lg:pb-[3.75rem] px-3 md:px-4 bg-transparent">
+              <div className="pb-3 md:pb-6 lg:pb-15 px-3 md:px-4 bg-transparent">
                 <div className="max-w-4xl mx-auto">
                   {loading && (
                     <div className="flex justify-center mb-2 md:mb-3">
