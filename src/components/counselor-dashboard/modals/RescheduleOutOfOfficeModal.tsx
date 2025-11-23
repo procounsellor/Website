@@ -1,5 +1,5 @@
 import { X, Clock } from "lucide-react";
-import { Input } from "../ui";
+import { Input } from "../../ui";
 import { useState, useRef, useEffect } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import { updateOutOfOffice } from "@/api/counselor-Dashboard";
@@ -8,9 +8,9 @@ import type { User } from "@/types/user";
 import type { OutOfOffice } from "@/types/appointments";
 import toast from "react-hot-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import TimeList from "./TimeList";
-import type { TimeOption } from "./TimeList";
-import WorkingDaysCalendar from "./WorkingDaysCalendar";
+import TimeList from "../TimeList";
+import type { TimeOption } from "../TimeList";
+import WorkingDaysCalendar from "../WorkingDaysCalendar";
 
 const generateTimeOptions = (): TimeOption[] => {
   const options: TimeOption[] = [];
@@ -269,7 +269,7 @@ export default function RescheduleOutOfOfficeModal({
         className={`absolute right-0 top-0 bottom-0 w-[460px] bg-[#f5f5f7] shadow-xl transform transition-all duration-300 hidden lg:block `}
       >
         <div className="h-full flex flex-col">
-          <div className="flex justify-between items-center h-[4.25rem] bg-white p-7">
+          <div className="flex justify-between items-center h-17 bg-white p-7">
             <h1 className="flex gap-2 text-[16px] font-semibold text-[#343C6A]">
               <span>
                 <img src="/cal.svg" alt="" />
@@ -285,7 +285,7 @@ export default function RescheduleOutOfOfficeModal({
             </button>
           </div>
 
-          <div className="h-auto w-[412px] my-5 mx-auto rounded-[16px] p-4 bg-white border border-[#EFEFEF] flex flex-col gap-4">
+          <div className="h-auto w-[412px] my-5 mx-auto rounded-2xl p-4 bg-white border border-[#EFEFEF] flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <label className="label" htmlFor="dates">
                 Date
@@ -299,12 +299,12 @@ export default function RescheduleOutOfOfficeModal({
                       setShowStartTimeList(false);
                       setShowEndTimeList(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <img
                       src="/cal.svg"
                       alt=""
-                      className="w-4 h-4 flex-shrink-0"
+                      className="w-4 h-4 shrink-0"
                     />
                     <span
                       className="text-[14px] font-medium"
@@ -338,12 +338,12 @@ export default function RescheduleOutOfOfficeModal({
                       setShowStartTimeList(false);
                       setShowEndTimeList(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <img
                       src="/cal.svg"
                       alt=""
-                      className="w-4 h-4 flex-shrink-0"
+                      className="w-4 h-4 shrink-0"
                     />
                     <span
                       className="text-[14px] font-medium"
@@ -384,11 +384,11 @@ export default function RescheduleOutOfOfficeModal({
                       setShowStartCalendar(false);
                       setShowEndCalendar(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <Clock
                       size={16}
-                      className="text-[#6C696980] flex-shrink-0"
+                      className="text-[#6C696980] shrink-0"
                     />
                     <span
                       className="text-[14px] font-medium"
@@ -417,11 +417,11 @@ export default function RescheduleOutOfOfficeModal({
                       setShowStartCalendar(false);
                       setShowEndCalendar(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <Clock
                       size={16}
-                      className="text-[#6C696980] flex-shrink-0"
+                      className="text-[#6C696980] shrink-0"
                     />
                     <span
                       className="text-[14px] font-medium"
@@ -476,7 +476,7 @@ export default function RescheduleOutOfOfficeModal({
 
       {/* Mobile View */}
       <div className="lg:hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-[16px] border border-[#EFEFEF] w-full max-w-[335px] h-auto p-5">
+        <div className="bg-white rounded-2xl border border-[#EFEFEF] w-full max-w-[335px] h-auto p-5">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-semibold text-lg text-[#343C6A]">
               Reschedule Out of Office
@@ -501,12 +501,12 @@ export default function RescheduleOutOfOfficeModal({
                       setShowStartTimeList(false);
                       setShowEndTimeList(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <img
                       src="/cal.svg"
                       alt=""
-                      className="w-4 h-4 flex-shrink-0"
+                      className="w-4 h-4 shrink-0"
                     />
                     <span
                       className="text-[12px] font-medium truncate"
@@ -538,12 +538,12 @@ export default function RescheduleOutOfOfficeModal({
                       setShowStartTimeList(false);
                       setShowEndTimeList(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <img
                       src="/cal.svg"
                       alt=""
-                      className="w-4 h-4 flex-shrink-0"
+                      className="w-4 h-4 shrink-0"
                     />
                     <span
                       className="text-[12px] font-medium truncate"
@@ -580,11 +580,11 @@ export default function RescheduleOutOfOfficeModal({
                       setShowStartCalendar(false);
                       setShowEndCalendar(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <Clock
                       size={16}
-                      className="text-[#6C696980] flex-shrink-0"
+                      className="text-[#6C696980] shrink-0"
                     />
                     <span
                       className="text-[12px] font-medium truncate"
@@ -612,11 +612,11 @@ export default function RescheduleOutOfOfficeModal({
                       setShowStartCalendar(false);
                       setShowEndCalendar(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <Clock
                       size={16}
-                      className="text-[#6C696980] flex-shrink-0"
+                      className="text-[#6C696980] shrink-0"
                     />
                     <span
                       className="text-[12px] font-medium truncate"

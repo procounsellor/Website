@@ -155,7 +155,7 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
       queryClient.invalidateQueries({ queryKey: ['counselorProfile', user.userName] });
       toast.success('Profile updated!');
     },
-    onError: (err) => {
+    onError: (err: unknown) => {
       toast.error(err instanceof Error ? err.message : 'Failed to update profile.');
     }
   });
@@ -168,7 +168,7 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
       queryClient.invalidateQueries({ queryKey: ['counselorProfile', user.userName] });
       toast.success('Photo updated!');
     },
-    onError: (err) => {
+    onError: (err: unknown) => {
       toast.error(err instanceof Error ? err.message : 'Failed to upload photo.');
     }
   });
@@ -235,8 +235,8 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
   const getWorkingDays = () => {
       if (!counselor?.workingDays || counselor.workingDays.length === 0) return "Not specified";
       if (counselor.workingDays.length === 7) return "Mon - Sun";
-      if (counselor.workingDays.length === 5 && ["Saturday", "Sunday"].every(d => !counselor.workingDays.includes(d))) return "Mon - Fri";
-      return counselor.workingDays.map(d => d.slice(0, 3)).join(', ');
+      if (counselor.workingDays.length === 5 && ["Saturday", "Sunday"].every((d: string) => !counselor.workingDays.includes(d))) return "Mon - Fri";
+      return counselor.workingDays.map((d: string) => d.slice(0, 3)).join(', ');
   }
 
   const planStyles = { plus: { textColor: 'text-[#1447E7]', backgroundGradient: 'linear-gradient(266.79deg, rgba(222, 237, 255, 0.4) 0.46%, rgba(126, 136, 211, 0.4) 130.49%)', borderGradient: 'linear-gradient(265.56deg, rgba(113, 142, 191, 0.4) -99.75%, rgba(192, 215, 253, 0.4) 91.52%)' }, pro: { textColor: 'text-[#1447E7]', backgroundGradient: 'linear-gradient(257.67deg, rgba(244, 232, 255, 0.4) 1.56%, rgba(250, 244, 255, 0.4) 100%)', borderGradient: 'linear-gradient(265.56deg, rgba(232, 212, 255, 0.4) -99.75%, rgba(192, 215, 253, 0.4) 91.52%)' }, elite: { textColor: 'text-[#B94C00]', backgroundGradient: 'linear-gradient(257.67deg, rgba(255, 245, 206, 0.4) 1.56%, rgba(255, 250, 230, 0.4) 100%)', borderGradient: 'linear-gradient(265.56deg, rgba(255, 251, 237, 0.4) -99.75%, rgba(234, 197, 145, 0.4) 91.52%)' } };

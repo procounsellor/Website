@@ -3,10 +3,10 @@ import { Loader2 } from 'lucide-react';
 import { getCounselorAppointments, cancelAppointment } from '@/api/counselor-Dashboard';
 import type { CounselorAppointment, CancelAppointmentPayload } from '@/types/appointments';
 import type { User } from '@/types/user';
-import AppointmentCard from './AppointmentCard';
+import AppointmentCard from '../cards/AppointmentCard';
 import toast from 'react-hot-toast';
-import CounselorAppointmentDetailsModal from './CounselorAppointmentDetailsModal';
-import CancelAppointmentModal from './CancelAppointmentModal';
+import CounselorAppointmentDetailsModal from '../modals/CounselorAppointmentDetailsModal';
+import CancelAppointmentModal from '../modals/CancelAppointmentModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 type AppointmentFilter = 'All' | 'Upcoming' | 'Completed' | 'Cancelled';

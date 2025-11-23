@@ -1,6 +1,6 @@
 import type { EarningsData } from '@/types/earnings';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import PlanBreakdownCard from './PlanBreakdownCard';
+import PlanBreakdownCard from './cards/PlanBreakdownCard';
 
 interface EarningsSidebarProps {
   data: EarningsData;

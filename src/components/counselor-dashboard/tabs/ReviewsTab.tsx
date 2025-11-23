@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { Star, Loader2, ChevronRight } from 'lucide-react';
 import { getReviewsForCounselor } from '@/api/counselor-Dashboard';
 import type { User } from '@/types/user';
-import ReviewCard from './ReviewCard';
+import ReviewCard from '../cards/ReviewCard';
 import { useQuery } from '@tanstack/react-query';
-import AllReviewsModal from './AllReviewsModal';
+import AllReviewsModal from './../modals/AllReviewsModal';
 
 const StarRatingSummary = ({ rating }: { rating: number }) => (
     <div className="flex items-center gap-1">

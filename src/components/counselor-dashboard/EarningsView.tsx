@@ -2,9 +2,9 @@ import type { EarningsData } from '@/types/earnings';
 import { Info } from 'lucide-react';
 import EarningsTrendChart from './EarningsTrendChart';
 import { useState } from 'react';
-import CompensationModal from './CompensationModal';
+import CompensationModal from './modals/CompensationModal';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import PlanBreakdownCard from './PlanBreakdownCard';
+import PlanBreakdownCard from './cards/PlanBreakdownCard';
 
 interface EarningsViewProps {
   data: EarningsData;

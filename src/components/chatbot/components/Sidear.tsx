@@ -185,10 +185,18 @@ export default function Sidebar({
         </div>
       )}
 
+      {/* Mobile overlay backdrop */}
+      {isMobile && isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-[150]"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       <div
         ref={sidebarRef}
         className={`bg-[#232323] h-full border-t border-r border-[#A0A0A099] transition-all duration-300 ease-in-out relative ${
-          isMobile ? 'fixed left-0 top-0 z-50' : ''
+          isMobile ? 'fixed left-0 top-0 z-[160]' : ''
         } ${isMobile && !isSidebarOpen ? 'hidden' : ''}`}
         style={{ width: isMobile && isSidebarOpen ? '264px' : isSidebarOpen ? '264px' : '60px' }}
         onTouchStart={handleTouchStart}

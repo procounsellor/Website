@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import {  useNavigate } from "react-router-dom";
 import { User2, LogOut, LayoutDashboard, Sparkles,  Square, Menu, Loader2 } from "lucide-react";
 import SmartImage from "@/components/ui/SmartImage";
 import { Button } from "../ui";
@@ -51,6 +51,7 @@ export default function Chatbot() {
     loadChatSessions,
     loadChatHistoryBySessionId,
     currentSessionId,
+    // setCurrentSessionId,
     incrementVisitorMessageCount,
     resetVisitorMessageCount,
     isLoginOpenFromChatbot,
@@ -189,7 +190,7 @@ export default function Chatbot() {
     <div className={`fixed inset-0 ${chatbotZIndex} flex flex-col bg-[#232323]`}>
       {/* Login Prompt Modal */}
       {showLoginPrompt && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-6">
+        <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/70 p-6">
           <div className="bg-[#2a2a2a] rounded-2xl p-6 max-w-sm border border-[#A0A0A099] shadow-2xl">
             <div className="text-center">
               <div className="inline-block p-4 bg-[#FF660F]/20 rounded-full mb-4">
@@ -234,19 +235,20 @@ export default function Chatbot() {
               <Menu className="h-6 w-6 text-white" />
             </button>
 
-            <div
-              className="Logo flex cursor-pointer"
-              onClick={() => {
+              <div className="Logo flex items-center cursor-pointer" onClick={() => {
                 toggleChatbot();
-                navigate("/");
-              }}
-            >
-              <SmartImage src="/logo.svg" alt="procounsel_logo" className="h-7 w-7 md:w-11 md:h-12" width={44} height={44} priority />
-              <div className="flex flex-col leading-tight pl-[9px]">
-                <h1 className="text-white font-semibold text-sm md:text-xl">ProCounsel</h1>
-                <span className="font-normal text-gray-400 text-[8px] md:text-[10px]">By CatalystAI</span>
-              </div>
-            </div>
+                 navigate('/');
+                 }}>
+                    <SmartImage src="/logo.png" alt="procounsel_logo" 
+                      className="h-7 w-7 md:w-11 md:h-12 rounded-md"
+                      width={44}
+                      height={44}
+                      priority
+                    />
+                  <div className="flex items-center leading-tight pl-[9px] hover:cursor-pointer" onClick={() => navigate('/')}>
+                       <h1 className="text-white font-semibold text-sm md:text-xl">ProCounsel</h1>
+                    </div>
+                  </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -332,15 +334,15 @@ export default function Chatbot() {
                 {/* Feature Cards - Responsive Grid - Centered */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                   <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center hover:bg-white/5 transition-colors cursor-pointer">
-                    <img src="/book.svg" alt="Courses" className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
+                    <img src="/book.svg" alt="Courses" className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
                     <p className="text-[13px] md:text-[14px] font-medium text-white">Access premium learning courses.</p>
                   </div>
                   <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center hover:bg-white/5 transition-colors cursor-pointer">
-                    <img src="/cap.svg" alt="Colleges" className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
+                    <img src="/cap.svg" alt="Colleges" className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
                     <p className="text-[13px] md:text-[14px] font-medium text-white">Discover top colleges.</p>
                   </div>
                   <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center hover:bg-white/5 transition-colors cursor-pointer">
-                    <img src="/person.svg" alt="Counselors" className="w-5 h-5 md:w-6 md:h-6 flex-shrink-0" />
+                    <img src="/person.svg" alt="Counselors" className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
                     <p className="text-[13px] md:text-[14px] font-medium text-white">Consult expert counselors.</p>
                   </div>
                 </div>
@@ -414,16 +416,16 @@ export default function Chatbot() {
                             <div className="mt-3 md:mt-4 space-y-2 md:space-y-3">
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
                                 {visibleCounsellors.map((c, idx) => (
-                                  <Link 
+                                  <a
+                                    href={`/counsellor-profile?id=${c.counsellorId}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="w-full animate-in fade-in-50 slide-in-from-bottom-4 duration-500" 
                                     style={{ animationDelay: `${idx * 100}ms` }}
-                                    to="/counselors/profile" 
-                                    state={{ id: c.counsellorId }} 
-                                    key={c.counsellorId} 
-                                    onClick={toggleChatbot}
+                                    key={c.counsellorId}
                                   >
                                     <ChatbotCounselorCard counselor={c} />
-                                  </Link>
+                                  </a>
                                 ))}
                               </div>
                               
@@ -458,7 +460,7 @@ export default function Chatbot() {
               </div>
 
               {/* Footer with ChatInput and stop button when loading - Responsive */}
-              <div className="pb-3 md:pb-6 lg:pb-[3.75rem] px-3 md:px-4 bg-transparent">
+              <div className="pb-3 md:pb-6 lg:pb-15 px-3 md:px-4 bg-transparent">
                 <div className="max-w-4xl mx-auto">
                   {loading && (
                     <div className="flex justify-center mb-2 md:mb-3">
