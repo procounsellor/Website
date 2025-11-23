@@ -361,7 +361,6 @@ export default function CounselorDashboard() {
                         (selected.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
                         setCurrentDateOffset(diffDays);
                       }}
-                      workingDays={counselor.workingDays || []} 
                     />
                   </div>
                   <div className="mt-4">

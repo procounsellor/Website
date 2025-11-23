@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import {  useNavigate } from "react-router-dom";
 import { User2, LogOut, LayoutDashboard, Sparkles,  Square, Menu, Loader2 } from "lucide-react";
 import SmartImage from "@/components/ui/SmartImage";
 import { Button } from "../ui";
@@ -190,7 +190,7 @@ export default function Chatbot() {
     <div className={`fixed inset-0 ${chatbotZIndex} flex flex-col bg-[#232323]`}>
       {/* Login Prompt Modal */}
       {showLoginPrompt && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-6">
+        <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/70 p-6">
           <div className="bg-[#2a2a2a] rounded-2xl p-6 max-w-sm border border-[#A0A0A099] shadow-2xl">
             <div className="text-center">
               <div className="inline-block p-4 bg-[#FF660F]/20 rounded-full mb-4">

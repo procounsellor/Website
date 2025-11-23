@@ -1,18 +1,14 @@
 import { X, Clock } from "lucide-react";
 import { Input } from "../ui";
 import { useState, useRef, useEffect } from "react";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { setOutOfOffice } from "@/api/counselor-Dashboard";
 import type { User } from "@/types/user";
 import toast from "react-hot-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import TimeList from "./TimeList";
 import type { TimeOption } from "./TimeList";
-
-// --- Helper Functions ---
+import WorkingDaysCalendar from "./WorkingDaysCalendar";
 
 const generateTimeOptions = (): TimeOption[] => {
   const options: TimeOption[] = [];
@@ -80,20 +76,18 @@ const getNextTimeSlot = (time24: string): string => {
 
 const timeOptions = generateTimeOptions();
 
-// --- Component ---
-
 export default function OutOfOfficeDrawer({
   open,
   onClose,
   user,
   token,
-  workingDays, // <-- ADDED PROP
+  workingDays,
 }: {
   open: boolean;
   onClose: () => void;
   user: User;
   token: string;
-  workingDays: string[]; // <-- ADDED PROP TYPE
+  workingDays: string[];
 }) {
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
@@ -112,58 +106,24 @@ export default function OutOfOfficeDrawer({
   const endCalendarRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
-  const sxProps = {
-    "& .MuiPickersCalendarHeader-label": {
-      fontSize: "1rem",
-    },
-    "& .MuiPickersDay-root.Mui-selected": {
-      backgroundColor: "#FA660F",
-      "&:hover": {
-        backgroundColor: "#FA660F",
-      },
-    },
-    "& .MuiPickersDay-root.Mui-selected:focus": {
-      backgroundColor: "#FA660F",
-    },
-    "& .MuiPickersMonth-root.Mui-selected": {
-      backgroundColor: "#FA660F",
-      color: "#ffffff",
-      "&:hover": {
-        backgroundColor: "#FA660F",
-      },
-    },
-    "& .MuiPickersMonth-monthButton.Mui-selected": {
-      backgroundColor: "#FA660F !important",
-      color: "#ffffff !important",
-    },
-  };
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
 
       if (
-        target.closest(".MuiPickersCalendarHeader-root") ||
-        target.closest(".MuiYearCalendar-root") ||
-        target.closest(".MuiMonthCalendar-root") ||
-        target.closest(".MuiDayCalendar-root")
-      ) {
-        return;
-      }
-
-      if (
         startCalendarRef.current &&
-        !startCalendarRef.current.contains(event.target as Node)
+        !startCalendarRef.current.contains(event.target as Node) &&
+        !target.closest("[data-radix-popper-content-wrapper]")
       ) {
         setShowStartCalendar(false);
       }
       if (
         endCalendarRef.current &&
-        !endCalendarRef.current.contains(event.target as Node)
+        !endCalendarRef.current.contains(event.target as Node) &&
+        !target.closest("[data-radix-popper-content-wrapper]")
       ) {
         setShowEndCalendar(false);
       }
-
       if (
         startTimeListRef.current &&
         !startTimeListRef.current.contains(event.target as Node)
@@ -177,7 +137,6 @@ export default function OutOfOfficeDrawer({
         setShowEndTimeList(false);
       }
     };
-
     if (
       showStartCalendar ||
       showEndCalendar ||
@@ -383,17 +342,14 @@ export default function OutOfOfficeDrawer({
 
                   {showStartCalendar && (
                     <div className="absolute top-full left-0 mt-1 z-50 bg-white rounded-lg shadow-lg border border-[#E5E5E5]">
-                      <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DateCalendar
-                          value={startDate}
-                          onChange={(newValue) => {
-                            setStartDate(newValue);
-                            setShowStartCalendar(false);
-                          }}
-                          views={["month", "day"]}
-                          sx={sxProps}
-                        />
-                      </LocalizationProvider>
+                      <WorkingDaysCalendar
+                        selected={startDate ? startDate.toDate() : null}
+                        onSelect={(date) => {
+                          setStartDate(dayjs(date));
+                          setShowStartCalendar(false);
+                        }}
+                        workingDays={workingDays}
+                      />
                     </div>
                   )}
                 </div>
@@ -425,17 +381,15 @@ export default function OutOfOfficeDrawer({
 
                   {showEndCalendar && (
                     <div className="absolute top-full right-0 mt-1 z-50 bg-white rounded-lg shadow-lg border border-[#E5E5E5]">
-                      <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DateCalendar
-                          value={endDate}
-                          onChange={(newValue) => {
-                            setEndDate(newValue);
-                            setShowEndCalendar(false);
-                          }}
-                          views={["month", "day"]}
-                          sx={sxProps}
-                        />
-                      </LocalizationProvider>
+                      <WorkingDaysCalendar
+                        selected={endDate ? endDate.toDate() : null}
+                        onSelect={(date) => {
+                          setEndDate(dayjs(date));
+                          setShowEndCalendar(false);
+                        }}
+                        workingDays={workingDays}
+                        fromDate={startDate ? startDate.toDate() : new Date()}
+                      />
                     </div>
                   )}
                 </div>
@@ -593,17 +547,14 @@ export default function OutOfOfficeDrawer({
                   </div>
                   {showStartCalendar && (
                     <div className="absolute top-full left-0 mt-1 z-50 bg-white rounded-lg shadow-lg border border-[#E5E5E5]">
-                      <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DateCalendar
-                          value={startDate}
-                          onChange={(newValue) => {
-                            setStartDate(newValue);
-                            setShowStartCalendar(false);
-                          }}
-                          views={["month", "day"]}
-                          sx={sxProps}
-                        />
-                      </LocalizationProvider>
+                      <WorkingDaysCalendar
+                        selected={startDate ? startDate.toDate() : null}
+                        onSelect={(date) => {
+                          setStartDate(dayjs(date));
+                          setShowStartCalendar(false);
+                        }}
+                        workingDays={workingDays}
+                      />
                     </div>
                   )}
                 </div>
@@ -632,17 +583,15 @@ export default function OutOfOfficeDrawer({
                   </div>
                   {showEndCalendar && (
                     <div className="absolute top-full right-0 mt-1 z-50 bg-white rounded-lg shadow-lg border border-[#E5E5E5]">
-                      <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DateCalendar
-                          value={endDate}
-                          onChange={(newValue) => {
-                            setEndDate(newValue);
-                            setShowEndCalendar(false);
-                          }}
-                          views={["month", "day"]}
-                          sx={sxProps}
-                        />
-                      </LocalizationProvider>
+                      <WorkingDaysCalendar
+                        selected={endDate ? endDate.toDate() : null}
+                        onSelect={(date) => {
+                          setEndDate(dayjs(date));
+                          setShowEndCalendar(false);
+                        }}
+                        workingDays={workingDays}
+                        fromDate={startDate ? startDate.toDate() : new Date()}
+                      />
                     </div>
                   )}
                 </div>

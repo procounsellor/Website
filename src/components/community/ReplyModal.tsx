@@ -1,0 +1,128 @@
+import React, { useState, useEffect } from 'react';
+import { X, Loader2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { useAuthStore } from '@/store/AuthStore';
+import { addReply } from '@/api/community';
+
+interface ReplyModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  replyToName: string;
+  replyToUserId: string;
+  commentId: string;
+}
+
+const ReplyModal: React.FC<ReplyModalProps> = ({
+  isOpen,
+  onClose,
+  replyToName,
+  replyToUserId,
+  commentId
+}) => {
+  const [replyText, setReplyText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const { userId, user } = useAuthStore();
+  const token = localStorage.getItem('jwt');
+
+  useEffect(() => {
+    if (isOpen) {
+      setReplyText('');
+      setIsLoading(false);
+    }
+  }, [isOpen]);
+
+  const handleSubmit = async () => {
+    if (!replyText.trim() || !userId || !user || !token) return;
+    
+    try {
+      setIsLoading(true);
+      
+      await addReply(
+        userId,
+        replyToUserId,
+        commentId,
+        replyText,
+        user.role || 'user',
+        token
+      );
+
+      toast.success('Reply submitted successfully!');
+      onClose();
+      // Optional: You might want to trigger a refresh of replies in the parent component
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to submit reply');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#23232380] backdrop-blur-[35px]"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-[632px] p-10 bg-white rounded-[16px] shadow-xl border border-[#EFEFEF]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center rounded-full text-black hover:bg-black hover:text-white transition-colors"
+        >
+          <X size={20} />
+        </button>
+
+        <div className="flex flex-col items-center w-full mb-6">
+          <h2 className="text-[20px] font-semibold text-[#343C6A]">Reply</h2>
+        </div>
+
+        <div className="mb-4 flex items-center gap-3">
+             <img 
+                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(replyToName)}`}
+                className="w-8 h-8 rounded-full"
+                alt="User"
+             />
+             <div>
+                 <span className="text-sm text-gray-500">Replying to </span>
+                 <span className="font-semibold text-[#242645]">{replyToName}</span>
+             </div>
+        </div>
+
+        <div className="flex flex-col gap-2 mb-6">
+          <label className="text-base font-semibold text-[#343C6A]">
+            Your Comment
+          </label>
+          <textarea
+            value={replyText}
+            onChange={(e) => setReplyText(e.target.value)}
+            placeholder="Add a comment"
+            className="w-full h-[120px] resize-none bg-[#F5F7FA] border border-[#EFEFEF] rounded-lg p-3
+                       text-base font-medium text-[#242645]
+                       placeholder:text-[#8C8CA180] placeholder:font-normal placeholder:text-sm
+                       focus:outline-none focus:ring-2 focus:ring-[#13097D]"
+          />
+        </div>
+
+        <button
+          onClick={handleSubmit}
+          disabled={!replyText.trim() || isLoading}
+          className={`w-[335px] h-12 mx-auto rounded-xl text-white font-semibold transition-all duration-300
+                     flex items-center justify-center
+                     ${
+                       !replyText.trim() || isLoading
+                         ? 'bg-[#242645] opacity-50 cursor-not-allowed'
+                         : 'bg-[#655E95] hover:bg-opacity-90 cursor-pointer'
+                     }`}
+        >
+          {isLoading ? <Loader2 className="animate-spin mr-2" /> : 'Reply'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default ReplyModal;

@@ -19,7 +19,10 @@ import { SubscriptionPage } from '@/pages/SubscriptionPage';
 import RechargeWallet from '@/pages/RechargeWallet';
 import CounselorDashboard from '@/pages/CounselorDashboard';
 import CollegeDetailsPage from '@/pages/CollegeDetails';
-import CourseDetailsPage from '@/pages/CourseDetailsPage';
+import CourseDetailsPage from '@/pages/CourseDetails';
+import CommunityPage from '@/pages/CommunityPage';
+import AnswerPage from '@/pages/AnswerPage';
+import QuestionDetailPage from '@/pages/QuestionDetailPage';
 const CollegesListingPage = lazy(() => import('@/pages/colleges'));
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const CoursesListingPage = lazy(() => import('@/pages/courses'));
@@ -68,7 +71,9 @@ export default function AppRoutes(){
                                 <Route path="/exams/:id" element={<ExamDetailsPage />} />
                                 <Route path='/subscribe' element={<SubscriptionPage/>}/>
                                 <Route path='/counsellor-dashboard' element={<CounselorDashboard/>}/>
-                                <Route path='/detail/:courseId/:role' element={<CourseDetailsPage/>}/>
+                                <Route path="/community" element={<CommunityPage />} />
+                                <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
+                                <Route path="/community/answer" element={<AnswerPage />} />
                                 <Route element={<ProtectedRoute/>}>
                                 <Route path='/dashboard-student' element={<StudentDashboardPage/>}/>
                                 <Route path='/wallet' element={<RechargeWallet/>}/>

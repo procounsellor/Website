@@ -4,27 +4,16 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { useEffect, useRef, useState } from "react";
 
-const dayNumberToName: { [key: number]: string } = {
-  0: "Sunday",
-  1: "Monday",
-  2: "Tuesday",
-  3: "Wednesday",
-  4: "Thursday",
-  5: "Friday",
-  6: "Saturday",
-};
-
 interface CalendarProps {
   value?: Date;
   onChange?: (date: Date) => void;
-  workingDays?: string[];
 }
 
 export default function DateCalendarReferenceDate({
   value: propValue,
   onChange,
-  workingDays,
-}: CalendarProps = {}) {
+}:
+CalendarProps = {}) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [value, setValue] = useState<Dayjs>(
     propValue ? dayjs(propValue) : dayjs()
@@ -69,19 +58,10 @@ export default function DateCalendarReferenceDate({
     return () => observer.disconnect();
   }, []);
 
-  const shouldDisableDate = (day: Dayjs) => {
-    if (!workingDays || workingDays.length === 0) {
-      return false;
-    }
-    const dayName = dayNumberToName[day.day()];
-    return !workingDays.includes(dayName);
-  };
 
   return (
     <div ref={rootRef} className="proc-calendar">
       <style>{`
-        /* ... (existing styles) ... */
-
         .proc-calendar .MuiPickersMonth-root button.Mui-selected,
         .proc-calendar .MuiMonthPicker-root button.Mui-selected,
         .proc-calendar .MuiPickersMonth-monthButton.Mui-selected {
@@ -120,15 +100,6 @@ export default function DateCalendarReferenceDate({
           scrollbar-width: none !important;
         }
 
-        /* --- ADD THESE STYLES FOR DISABLED DAYS --- */
-        .proc-calendar .MuiPickersDay-root.Mui-disabled {
-          color: #bdbdbd !important; /* light gray text */
-          opacity: 0.6;
-        }
-        
-        .proc-calendar .MuiPickersDay-root.Mui-disabled:not(.Mui-selected) {
-           text-decoration: line-through;
-        }
       `}</style>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <DateCalendar
@@ -143,7 +114,6 @@ export default function DateCalendarReferenceDate({
           }}
           referenceDate={dayjs("2022-04-17")}
           views={["month", "day"]}
-          shouldDisableDate={shouldDisableDate} // <-- ADD THIS PROP
         />
       </LocalizationProvider>
     </div>
