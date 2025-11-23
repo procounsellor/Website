@@ -1,11 +1,13 @@
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, useSearchParams } from 'react-router-dom';
 import { useCounselorById } from '@/hooks/useCounselors';
 
 import { CounselorProfileCard } from '@/components/counselor-details/CounselorProfileCard';
 import { AboutCounselorCard } from '@/components/counselor-details/AboutCounselorCard';
 import { CounselorReviews } from '@/components/counselor-details/CounselorReviews';
+import CounselorCoursesCard from '@/components/counselor-details/CounselorCoursesCard';
 import { FreeCareerAssessmentCard } from '@/components/shared/FreeCareerAssessmentCard';
 import { FeaturedCollegesCard } from '@/components/shared/FeaturedCollegesCard';
+import { LiveSessionCard } from '@/components/counselor-details/LiveSessionCard';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/AuthStore';
 import { getSubscribedCounsellors, addFav, postReview, getReviewsByCounselorId } from '@/api/counsellor';
@@ -27,9 +29,11 @@ type ApiSubscribedCounselor = {
 export default function CounselorDetailsPage() {
   const { id: paramId } = useParams<{ id: string }>();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   type LocationState = { id?: string } | undefined;
   const state = location.state as LocationState;
-  const computedId = paramId || state?.id;
+  const queryId = searchParams.get('id');
+  const computedId = paramId || queryId || state?.id;
   const { counselor, loading, error } = useCounselorById(computedId ?? '');
   const { user, userId, refreshUser, role } = useAuthStore();
   const token = localStorage.getItem('jwt');
@@ -329,7 +333,9 @@ export default function CounselorDetailsPage() {
 
         {/* Right Column */}
         <div className="lg:col-span-1 flex flex-col gap-8">
+          <LiveSessionCard counselorName={counselor.name} />
           <FreeCareerAssessmentCard  counselor={counselor} user={user} onProfileIncomplete={handleProfileIncomplete}/>
+          <CounselorCoursesCard counsellorId={computedId} userRole={role || "user"} />
           <FeaturedCollegesCard />
         </div>
 

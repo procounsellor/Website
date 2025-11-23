@@ -1,5 +1,8 @@
 import { Star, ChevronRight, Info, X, ChevronLeft } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { addCourseReview } from '@/api/course';
+import { useAuthStore } from '@/store/AuthStore';
+import toast from 'react-hot-toast';
 
 interface CourseReview {
   reviewId: string;
@@ -195,14 +198,21 @@ const mockReviews: CourseReview[] = [
 ];
 
 interface CourseReviewsCardProps {
-  courseId?: string;
-  isEnrolled?: boolean;
-  role:'user'| 'student' | 'counselor'
+  courseId: string;
+  isPurchased?: boolean;
+  role?: 'user'| 'student' | 'counselor';
+  reviews?: any[];
+  rating?: number | null;
+  onReviewSubmitted?: () => void;
 }
 
 export default function CourseReviewsCard({ 
-  isEnrolled = false ,
-  role
+  courseId,
+  isPurchased = false,
+  role,
+  reviews: propReviews = [],
+  rating: courseRating,
+  onReviewSubmitted
 }: CourseReviewsCardProps) {
   const [userRating, setUserRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
@@ -213,26 +223,58 @@ export default function CourseReviewsCard({
   const [helpfulReviews, setHelpfulReviews] = useState<Set<string>>(new Set());
   const reviewsPerPage = 10;
 
-  const reviews = mockReviews;
+  const reviews = propReviews.length > 0 ? propReviews : [];
+  const { userId } = useAuthStore();
 
-  const handleSubmitReview = () => {
+  // Check if user already reviewed this course
+  useEffect(() => {
+    if (userId && reviews.length > 0) {
+      const existingReview = reviews.find(r => r.userId === userId);
+      if (existingReview) {
+        setUserHasReviewed(true);
+        setUserRating(existingReview.rating);
+        setReviewText(existingReview.reviewText);
+      }
+    }
+  }, [userId, reviews]);
+
+  const handleSubmitReview = async () => {
     if (userRating === 0) {
-      alert('Please select a rating (1-5 stars)');
+      toast.error('Please select a rating (1-5 stars)');
       return;
     }
     if (!reviewText.trim()) {
-      alert('Please write a review before submitting');
+      toast.error('Please write a review before submitting');
+      return;
+    }
+
+    if (!userId) {
+      toast.error('Please sign in to submit a review');
       return;
     }
 
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Review submitted:', { rating: userRating, text: reviewText });
+    try {
+      await addCourseReview({
+        userId,
+        courseId,
+        rating: userRating,
+        reviewText: reviewText.trim(),
+      });
+      
+      toast.success('Review submitted successfully!');
       setUserHasReviewed(true);
+      
+      // Refresh reviews
+      if (onReviewSubmitted) {
+        onReviewSubmitted();
+      }
+    } catch (error) {
+      console.error('Failed to submit review:', error);
+      toast.error((error as Error).message || 'Failed to submit review. Please try again.');
+    } finally {
       setIsSubmitting(false);
-      alert('Review submitted successfully!');
-    }, 1000);
+    }
   };
 
   const handleHelpful = (reviewId: string) => {
@@ -260,12 +302,12 @@ export default function CourseReviewsCard({
       );
     }
 
-    if (!isEnrolled) {
+    if (!isPurchased) {
       return (
         <div className="mt-4 p-4 bg-blue-50 rounded-lg flex items-center gap-3">
           <Info className="w-6 h-6 text-blue-500 shrink-0" />
           <p className="text-sm text-blue-800">
-            You must be enrolled in this course to write a review.
+            You must purchase this course to write a review.
           </p>
         </div>
       );
@@ -360,9 +402,11 @@ export default function CourseReviewsCard({
   );
 
   // Calculate average rating
-  const averageRating = reviews.length > 0 
-    ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
-    : '0.0';
+  const averageRating = courseRating !== null && courseRating !== undefined
+    ? courseRating.toFixed(1)
+    : reviews.length > 0 
+      ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
+      : '0.0';
 
   // Calculate rating distribution
   const ratingDistribution = [5, 4, 3, 2, 1].map(star => ({

@@ -1,93 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { CourseType } from '@/types/course';
 import CourseCard from '@/components/course-cards/CourseCard';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/AuthStore';
 import CreateCourseCard from '@/components/course-cards/CreateCourseCard';
-
-
-
+import { getCoursesForCounsellorByCounsellorId } from '@/api/course';
+import { Loader2 } from 'lucide-react';
 
 type SubTab = 'PYQ' | 'Test Series' | 'Courses';
-
-
-
-
-const mockCourse:CourseType[] = [
-  {
-    id:"121dd23",
-    name:'Course Name',
-    subject:"Physics",
-    price:"1200",
-    rating:"4.5",
-    reviews:"23",
-    image:'/mockCourse.svg',
-  },
-    {
-    id:"121dd23",
-    name:'Course Name',
-    subject:"Physics",
-    price:"1200",
-    rating:"4.5",
-    reviews:"23",
-    image:'/mockCourse.svg',
-  },
-    {
-    id:"121dd23",
-    name:'Course Name',
-    subject:"Physics",
-    price:"1200",
-    rating:"4.5",
-    reviews:"23",
-    image:'/mockCourse.svg',
-  },
-    {
-    id:"121dd23",
-    name:'Course Name',
-    subject:"Physics",
-    price:"1200",
-    rating:"4.5",
-    reviews:"23",
-    image:'/mockCourse.svg',
-  },
-    {
-    id:"121dd23",
-    name:'Course Name',
-    subject:"Physics",
-    price:"1200",
-    rating:"4.5",
-    reviews:"23",
-    image:'/mockCourse.svg',
-  },
-    {
-    id:"121dd23",
-    name:'Course Name',
-    subject:"Physics",
-    price:"1200",
-    rating:"4.5",
-    reviews:"23",
-    image:'/mockCourse.svg',
-  },
-    {
-    id:"121dd23",
-    name:'Course Name',
-    subject:"Physics",
-    price:"1200",
-    rating:"4.5",
-    reviews:"23",
-    image:'/mockCourse.svg',
-  },
-    {
-    id:"121dd23",
-    name:'Course Name',
-    subject:"Physics",
-    price:"1200",
-    rating:"4.5",
-    reviews:"23",
-    image:'/mockCourse.svg',
-  }
-]
 
 
 
@@ -95,50 +16,24 @@ const mockCourse:CourseType[] = [
 
 export default function CourseTab() {
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('PYQ');
-  const {role} = useAuthStore()
-  const navigate = useNavigate()
+  const { role, userId } = useAuthStore();
+  const navigate = useNavigate();
   const [createCourse, setCreateCourse] = useState(false);
 
-  // const {data, isLoading, error} = useQuery({
-  //   queryKey:["course"],
-  //   queryFn: () => fetch(`url`).then((res)=>res.json()),
-  // })
-  
-
+  const { data: coursesData, isLoading, error } = useQuery({
+    queryKey: ["counsellorCourses", userId],
+    queryFn: () => getCoursesForCounsellorByCounsellorId(userId as string),
+    enabled: !!userId,
+  });
 
   const TABS: SubTab[] = ['PYQ', 'Courses', 'Test Series'];
 
-   
-  // const renderContent = () => {
-  //   if (isLoading) {
-  //     return <div className="text-center py-10 flex justify-center"><Loader2 className="animate-spin" /></div>;
-  //   }
-  //   if (error) {
-  //     return <div className="text-center py-16 text-red-500">{(error as Error).message}</div>;
-  //   }
-    
-  //   return data.length > 0 ? (
-  //     data.map(client => 
-  //       <ClientCard 
-  //           key={client.id} 
-  //           client={client} 
-  //           variant={activeSubTab === 'My Clients' ? 'client' : 'pending'}
-  //           onAccept={() => handleAccept(client)}
-  //           onReject={() => handleReject(client)}
-  //           isResponding={respondingId === client.id && (isAccepting || isRejecting)}
-  //       />
-  //     )
-  //   ) : (
-  //     <div className="text-center py-16 text-gray-500">
-  //         {searchQuery ? `No clients found for "${searchQuery}"` : 
-  //           (activeSubTab === 'My Clients' ? 'You do not have any subscribed clients yet.' : 'There are no pending requests.')
-  //         }
-  //     </div>
-  //   );
-  // };
+  const filteredCourses = coursesData?.data?.filter(
+    course => course.category === activeSubTab
+  ) || [];
 
-  function onClose(){
-    setCreateCourse(false)
+  function onClose() {
+    setCreateCourse(false);
   }
 
 
@@ -175,13 +70,42 @@ export default function CourseTab() {
 
       </div>
 
-      <div className="grid gap-2 grid-cols-2 md:grid-col-4 lg:grid-cols-5 mt-2">
-        {mockCourse.map(course => 
-          <div key={course.id} className='cursor-pointer' onClick={()=>navigate(`/detail/${course.id}/${role}`)}>
-            <CourseCard key={course.id} course={course} role={role? role : "counselor"}/>
-          </div>
-        )}
-      </div>
+      {isLoading ? (
+        <div className="flex justify-center items-center py-20">
+          <Loader2 className="w-10 h-10 animate-spin text-[#13097D]" />
+        </div>
+      ) : error ? (
+        <div className="text-center py-16 text-red-500">
+          {(error as Error).message || 'Failed to load courses'}
+        </div>
+      ) : filteredCourses.length > 0 ? (
+        <div className="grid gap-2 grid-cols-2 md:grid-col-4 lg:grid-cols-5 mt-2">
+          {filteredCourses.map(course => (
+            <div 
+              key={course.courseId} 
+              className='cursor-pointer' 
+              onClick={() => navigate(`/detail/${course.courseId}/${role}`, { state: { from: 'courses' } })}
+            >
+              <CourseCard 
+                course={{
+                  id: course.courseId,
+                  name: course.courseName,
+                  subject: course.category,
+                  price: course.coursePriceAfterDiscount.toString(),
+                  rating: course.rating?.toString() || undefined,
+                  reviews: undefined,
+                  image: course.courseThumbnailUrl,
+                }} 
+                role={role || "counselor"}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-16 text-gray-500">
+          No {activeSubTab} courses created yet.
+        </div>
+      )}
 
       {createCourse && <CreateCourseCard onClose={onClose}/>}
     </div>
