@@ -31,8 +31,7 @@ export default function CommunityActions() {
       toggleLogin();
       return;
     }
-    console.log("Navigate to My Activity page");
-    // navigate('/community/my-activity');
+    navigate('/community/my-activity');
   };
 
   const ActionButton: React.FC<{

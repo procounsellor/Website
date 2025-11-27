@@ -7,6 +7,7 @@ import type {
   PostAnswerResponse,
   GetCommentsResponse,
   GetRepliesResponse,
+  GetMyAnswersResponse,
 } from '@/types/community';
 
 const { baseUrl } = API_CONFIG;
@@ -449,6 +450,242 @@ export async function likeReply(
     return await response.json();
   } catch (error) {
     console.error('Like Reply Error:', error);
+    throw error;
+  }
+}
+
+export async function getMyQuestions(
+  userId: string,
+  token: string
+): Promise<GetCommunityDashboardResponse> {
+  try {
+    const response = await fetch(
+      `${baseUrl}${API_CONFIG.endpoints.getMyQuestions}?userId=${userId}`,
+      {
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to fetch my questions. Details: ${errorBody}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Get My Questions Error:', error);
+    throw error;
+  }
+}
+
+export async function getMyAnswers(
+  userId: string,
+  token: string
+): Promise<GetMyAnswersResponse> {
+  try {
+    const response = await fetch(
+      `${baseUrl}${API_CONFIG.endpoints.getMyAnswers}?userId=${userId}`,
+      {
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to fetch my answers. Details: ${errorBody}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Get My Answers Error:', error);
+    throw error;
+  }
+}
+
+export async function getMyBookmarkedQuestions(
+  userId: string,
+  token: string
+): Promise<GetQuestionsListResponse> {
+  try {
+    const response = await fetch(
+      `${baseUrl}${API_CONFIG.endpoints.getMyBookmarkedQuestions}?userId=${userId}`,
+      {
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to fetch bookmarked questions. Details: ${errorBody}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Get My Bookmarked Questions Error:', error);
+    throw error;
+  }
+}
+
+export async function bookmarkAnswer(
+  userId: string,
+  answerId: string,
+  role: string,
+  token: string
+): Promise<{ isBookmarked: boolean; message: string; status: string }> {
+  try {
+    const url = `${baseUrl}${API_CONFIG.endpoints.bookmarkAnswer}`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        userId,
+        answerId,
+        role,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to bookmark answer. Details: ${errorBody}`
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Bookmark Answer Error:', error);
+    throw error;
+  }
+}
+
+export async function deleteAnswer(
+  answerId: string,
+  token: string
+): Promise<{ message: string; status: string }> {
+  try {
+    const url = `${baseUrl}${API_CONFIG.endpoints.deleteAnswer}`;
+
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        answerId,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to delete answer. Details: ${errorBody}`
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Delete Answer Error:', error);
+    throw error;
+  }
+}
+
+export async function updateAnswer(
+  answerId: string,
+  answer: string,
+  userId: string,
+  role: string,
+  token: string,
+  imageFile?: File | null
+): Promise<PostAnswerResponse> {
+  const formData = new FormData();
+  formData.append('answerId', answerId);
+  formData.append('updatedAnswerText', answer);
+  formData.append('userIdAnswered', userId);
+  formData.append('role', role);
+  if (imageFile) {
+    formData.append('newPhotos', imageFile);
+  }
+
+  try {
+    const response = await fetch(
+      `${baseUrl}${API_CONFIG.endpoints.updateAnswer}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to update answer. Details: ${errorBody}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Update Answer Error:', error);
+    throw error;
+  }
+}
+
+export async function getAnswersByQuestionId(
+  questionId: string,
+  loggedInUserId: string,
+  token: string
+): Promise<GetAllAnswersResponse> {
+  try {
+    const response = await fetch(
+      `${baseUrl}${API_CONFIG.endpoints.getAnswersByQuestionId}?questionId=${questionId}&loggedInUserId=${loggedInUserId}`,
+      {
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to fetch answers. Details: ${errorBody}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Get Answers By Question Id Error:', error);
     throw error;
   }
 }

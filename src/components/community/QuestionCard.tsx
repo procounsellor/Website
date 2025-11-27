@@ -72,6 +72,9 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questionData }) => {
     questionTimestamp: questionData.timestamp,
   };
 
+  // Check if the user has already answered this question
+  const hasUserAnswered = questionData.answerStructure?.some(answer => answer.myAnswer === true) || false;
+
   return (
     <>
       <div className="w-full max-w-[860px] mx-auto p-5 rounded-lg bg-[#F5F5F7] border border-gray-100">
@@ -106,33 +109,35 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questionData }) => {
           {questionData.question}
         </p>
 
-        <div className="mt-4 flex flex-col items-center gap-5 pt-4">
-          <img
-            src={loggedInUserImage}
-            alt="Logged in user"
-            className="w-[42px] h-[42px] rounded-full object-cover"
-          />
-          <div className="text-center">
-            <p className="text-lg font-semibold text-[#242645]">
-              {loggedInUserName}, wanna answer?
-            </p>
-            <p className="text-base text-[#242645] mt-1">
-              People will be glad to see your answer
-            </p>
-          </div>
+        {!hasUserAnswered && (
+          <div className="mt-4 flex flex-col items-center gap-5 pt-4">
+            <img
+              src={loggedInUserImage}
+              alt="Logged in user"
+              className="w-[42px] h-[42px] rounded-full object-cover"
+            />
+            <div className="text-center">
+              <p className="text-lg font-semibold text-[#242645]">
+                {loggedInUserName}, wanna answer?
+              </p>
+              <p className="text-base text-[#242645] mt-1">
+                People will be glad to see your answer
+              </p>
+            </div>
 
-          <button
-            onClick={handleWriteAnswerClick}
-            className="h-[36px] flex items-center justify-center gap-2
-                       rounded-xl border border-[#655E95] 
-                       py-1.5 px-4
-                       text-base font-medium text-[#655E95]
-                       hover:bg-indigo-50"
-          >
-            <Pencil size={18} />
-            <span>Write an answer</span>
-          </button>
-        </div>
+            <button
+              onClick={handleWriteAnswerClick}
+              className="h-[36px] flex items-center justify-center gap-2
+                         rounded-xl border border-[#655E95] 
+                         py-1.5 px-4
+                         text-base font-medium text-[#655E95]
+                         hover:bg-indigo-50"
+            >
+              <Pencil size={18} />
+              <span>Write an answer</span>
+            </button>
+          </div>
+        )}
       </div>
 
       <WriteAnswerModal
