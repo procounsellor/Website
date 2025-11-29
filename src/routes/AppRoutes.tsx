@@ -56,7 +56,7 @@ export default function AppRoutes(){
                         <Route path="/term1" element={<ExternalTermsPage/>} />
                         <Route element={<MainLayout/>}>
                                 <Route path="/" element={<Home/>}/>
-                                <Route path='/buyNow' element={<LandingPage/>}/>
+                                <Route path='/gurucool' element={<LandingPage/>}/>
                                 <Route path="/counsellors" element={<CounselorListingPage/>} />
                                 <Route path="/counsellor-profile" element={<CounselorDetailsPage/>} />
                                 <Route path="/courses" element={<CoursesListingPage/>} />
