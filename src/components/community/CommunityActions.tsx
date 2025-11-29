@@ -91,7 +91,7 @@ export default function CommunityActions() {
                 icon={History}
                 label="My Activity"
                 onClick={handleActivityClick}
-                count={24} 
+                // count={24} 
               />
             </div>
           </div>

@@ -2,7 +2,7 @@ import { MdOutlineFileDownload } from "react-icons/md";
 
 const AppInstallCard = () => {
   return (
-    <section className="bg-[#F5F5F7]  relative overflow-hidden">
+    <section className="bg-[#ECEBF5]  relative overflow-hidden">
       <div className="container max-w-7xl mx-auto flex flex-col md:flex-row items-center px-2 py-4">
         <div className="md:w-1/2 flex flex-col items-center text-center -mt-2">
           <h1 className="text-4xl lg:text-5xl font-extrabold text-[#FA660F] leading-tight">
