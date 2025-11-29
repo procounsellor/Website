@@ -188,9 +188,9 @@ export default function LandingPage() {
       <div className="block md:hidden w-full h-full bg-[#F5F7FA] p-5 mt-14">
         <div className="w-full max-w-sm p-3 bg-white rounded-[12px] border border-[#EFEFEF]">
           <div>
-            <div className="relative flex gap-3">
+            <div className="flex gap-3">
               <div className="bg-[#E3E1EF] w-21 h-21 rounded-xl">
-                <img src="/adityam.svg" alt="" className="absolute bottom-4 left-0" />
+                <img src="/adityam.svg" alt="" className="" />
               </div>
 
               <div className="flex flex-col gap-1.5">

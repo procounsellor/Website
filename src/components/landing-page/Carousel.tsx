@@ -87,7 +87,7 @@ const MobileFeatureList = () => {
 
   return (
     <div
-      className="mx-auto mt-6 p-3"
+      className="mx-auto mt-3 md:mt-6 p-3"
       style={{
         width: '335px',
         borderRadius: '16px',
@@ -214,7 +214,7 @@ export const Carousel = () => {
 
 
   return (
-    <section className="bg-[#F5F5F7] py-12">
+    <section className="bg-[#F5F5F7] py-4 md:py-12">
       <div className="lg:hidden">
         <MobileFeatureList />
       </div>
