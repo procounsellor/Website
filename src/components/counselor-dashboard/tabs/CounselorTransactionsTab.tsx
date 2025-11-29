@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import type { Transaction } from '@/types/earnings'; // Changed from @/types/user
-import CounselorTransactionCard from './CounselorTransactionCard'; // Changed from TransactionCard
+import CounselorTransactionCard from '../cards/CounselorTransactionCard'; // Changed from TransactionCard
 import { Info } from 'lucide-react';
 
 interface TransactionsTabProps {

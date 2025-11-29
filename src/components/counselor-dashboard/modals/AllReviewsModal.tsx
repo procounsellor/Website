@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import ReviewCard from "./ReviewCard";
+import ReviewCard from "../cards/ReviewCard";
 import type { ReviewReceived } from "@/types/counselorDashboard";
 
 interface AllReviewsModalProps {

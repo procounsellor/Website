@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuthStore } from "@/store/AuthStore";
+import { useLocation } from "react-router-dom";
 import { getAllAppointments, getOutOfOffice, getCounselorProfileById, deleteOutOfOffice } from "@/api/counselor-Dashboard";
 import CustomCalendar from "@/components/Calendar";
 import {
@@ -10,16 +11,17 @@ import {
   ClientsTab,
   ReviewsTab,
 } from "@/components/counselor-dashboard";
-import RescheduleOutOfOfficeModal from "@/components/counselor-dashboard/RescheduleOutOfOfficeModal";
-import CancelOutOfOfficeModal from "@/components/counselor-dashboard/CancelOutOfOfficeModal";
+import RescheduleOutOfOfficeModal from "@/components/counselor-dashboard/modals/RescheduleOutOfOfficeModal";
+import CancelOutOfOfficeModal from "@/components/counselor-dashboard/modals/CancelOutOfOfficeModal";
 import type { Appointment, OutOfOffice } from "@/types/appointments";
 import { SquareChevronLeft, SquareChevronRight, ChevronLeft, ChevronRight, Loader2, Clock, SquarePen, ChevronDown, ChevronUp, Plus } from "lucide-react";
-import AppointmentsTab from "@/components/counselor-dashboard/AppointmentsTab";
+import AppointmentsTab from "@/components/counselor-dashboard/tabs/AppointmentsTab";
 import CounselorProfile from "@/components/counselor-dashboard/CounselorProfile";
 import { useQuery, useMutation, useQueryClient  } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import CourseTab from "@/components/counselor-dashboard/tabs/CoursesTab";
 
-type MainTab = "calendar" | "earnings" | "appointments" | "reviews" | "clients";
+type MainTab = "calendar" | "earnings" | "appointments" | "reviews" | "clients" | "courses";
 
 const TABS: { key: MainTab; name: string }[] = [
   { key: "calendar", name: "My Calendar" },
@@ -27,6 +29,7 @@ const TABS: { key: MainTab; name: string }[] = [
   { key: "appointments", name: "Appointments" },
   { key: "reviews", name: "Reviews" },
   { key: "clients", name: "Clients" },
+  { key: "courses", name:"My Courses"}
 ];
 
 const GRID_CONFIG = {
@@ -60,6 +63,7 @@ export default function CounselorDashboard() {
   const authUser = useAuthStore((s) => s.user);
   const authLoading = useAuthStore((s) => s.loading);
   const refreshUser = useAuthStore((s) => s.refreshUser);
+  const location = useLocation();
 
   const [initialized, setInitialized] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -83,6 +87,16 @@ export default function CounselorDashboard() {
     const HOUR = Array.from({ length: 12 }, (_, i) => 9 + i); // 9AM–8PM
     setHours(HOUR);
   }, []);
+
+  useEffect(() => {
+    // Check if there's an activeTab in location state and update mainTab
+    const stateTab = (location.state as any)?.activeTab;
+    if (stateTab) {
+      setMainTab(stateTab);
+      // Clear the state after using it to avoid repeated triggers
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const token = localStorage.getItem("jwt") ?? "";
   const counsellorId = authUser?.userName || localStorage.getItem("phone") || "";
@@ -359,7 +373,6 @@ export default function CounselorDashboard() {
                         (selected.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
                         setCurrentDateOffset(diffDays);
                       }}
-                      workingDays={counselor.workingDays || []} 
                     />
                   </div>
                   <div className="mt-4">
@@ -701,6 +714,11 @@ export default function CounselorDashboard() {
           {mainTab === "clients" && (
             <ClientsTab user={authUser} token={token} />
           )}
+
+          {mainTab === "courses" && (
+            <CourseTab user={authUser} token={token} />
+          )}
+          
         </div>
       </div>
 

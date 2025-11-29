@@ -18,9 +18,14 @@ import { Toaster } from 'react-hot-toast';
 import { SubscriptionPage } from '@/pages/SubscriptionPage';
 import RechargeWallet from '@/pages/RechargeWallet';
 import CounselorDashboard from '@/pages/CounselorDashboard';
-import CounselorSignupPage from '@/pages/CounselorSignupPage';
 import CollegeDetailsPage from '@/pages/CollegeDetails';
 import CourseDetailsPage from '@/pages/CourseDetails';
+import CommunityPage from '@/pages/CommunityPage';
+import AnswerPage from '@/pages/AnswerPage';
+import QuestionDetailPage from '@/pages/QuestionDetailPage';
+import MyActivityPage from '@/pages/MyActivityPage';
+import LandingPage from '@/pages/AdityaLandingPage';
+import CoursePage from '@/pages/CoursePage';
 const CollegesListingPage = lazy(() => import('@/pages/colleges'));
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const CoursesListingPage = lazy(() => import('@/pages/courses'));
@@ -51,6 +56,7 @@ export default function AppRoutes(){
                         <Route path="/term1" element={<ExternalTermsPage/>} />
                         <Route element={<MainLayout/>}>
                                 <Route path="/" element={<Home/>}/>
+                                <Route path='/gurucool' element={<LandingPage/>}/>
                                 <Route path="/counsellors" element={<CounselorListingPage/>} />
                                 <Route path="/counsellor-profile" element={<CounselorDetailsPage/>} />
                                 <Route path="/courses" element={<CoursesListingPage/>} />
@@ -65,10 +71,15 @@ export default function AppRoutes(){
                                 <Route path="/cancellation-refund" element={<CancellationRefundPage/>} />
                                 <Route path="/shipping-exchange" element={<ShippingExchangePage/>} />
                                 <Route path="/sitemap" element={<SitemapPage/>} />
+                                <Route path='/detail/:courseId/:role' element={<CoursePage/>}/>
                                 <Route path="/add-college" element={<AddCollegePage/>} />
                                 <Route path="/exams/:id" element={<ExamDetailsPage />} />
                                 <Route path='/subscribe' element={<SubscriptionPage/>}/>
                                 <Route path='/counsellor-dashboard' element={<CounselorDashboard/>}/>
+                                <Route path="/community" element={<CommunityPage />} />
+                                <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
+                                <Route path="/community/answer" element={<AnswerPage />} />
+                                <Route path="/community/my-activity" element={<MyActivityPage />} />
                                 <Route element={<ProtectedRoute/>}>
                                 <Route path='/dashboard-student' element={<StudentDashboardPage/>}/>
                                 <Route path='/wallet' element={<RechargeWallet/>}/>

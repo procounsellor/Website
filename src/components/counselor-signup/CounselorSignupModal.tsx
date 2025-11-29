@@ -85,7 +85,7 @@ export default function CounselorSignupModal() {
       toast.success('Application submitted successfully! Our team will review your details.', { duration: 2000 });
       localStorage.setItem('hasSubmittedCounselorApp', 'true');
       handleClose();
-      navigate('/counselor-dashboard');
+      navigate('/counsellor-dashboard');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'An unexpected error occurred.', { duration: 2000 });
     } finally {

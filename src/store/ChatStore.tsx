@@ -24,11 +24,11 @@ type ChatState = {
   loading: boolean;
   currentSessionId: string | null;
   chatSessions: ChatSession[];
-  visitorMessageCount: number; // Track messages for visitors
-  isLoginOpenFromChatbot: boolean; // Track if login was opened from chatbot
-  isLoadingSessions: boolean; // Loading state for sessions
-  isLoadingHistory: boolean; // Loading state for history
-  sessionsFetched: boolean; // Track if sessions have been fetched in this session
+  visitorMessageCount: number; 
+  isLoginOpenFromChatbot: boolean; 
+  isLoadingSessions: boolean; 
+  isLoadingHistory: boolean; 
+  sessionsFetched: boolean; 
   toggleChatbot: () => void;
   sendMessage: (question: string, userId?: string | null, userRole?: string | null) => Promise<void>;
   stopGenerating: () => void;
@@ -45,8 +45,6 @@ type ChatState = {
   updateSessionTitle: (sessionId: string, title: string) => void;
 };
 
-// This helper function is moved from your api.ts file
-// because it's only used here now.
 const transformCounselorData = (apiCounselor: any): AllCounselor => {
   const [firstName, ...lastName] = (apiCounselor.fullName || "N/A").split(" ");
   return {
@@ -105,21 +103,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const newSessionId = createNewSession();
     set({ messages: [], currentSessionId: newSessionId });
     
-    // Add new session to the list with "New Chat" title immediately
     get().updateSessionTitle(newSessionId, "New Chat");
     
-    console.log("🆕 New chat session started:", newSessionId);
+    console.log("New chat session started:", newSessionId);
   },
 
   setCurrentSessionId: (sessionId: string | null) => {
     set({ currentSessionId: sessionId });
   },
 
-  // Load chat sessions for authenticated user (with caching)
+
   loadChatSessions: async (userId: string, force: boolean = false) => {
-    // Skip if already fetched in this session (unless forced)
     if (get().sessionsFetched && !force) {
-      console.log("📋 Using cached chat sessions");
+      console.log("Using cached chat sessions");
       return;
     }
     
@@ -127,20 +123,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
     try {
       const sessions = await fetchChatSessions(userId);
       set({ chatSessions: sessions, isLoadingSessions: false, sessionsFetched: true });
-      console.log("📋 Loaded chat sessions:", sessions);
+      console.log("Loaded chat sessions:", sessions);
     } catch (error) {
       console.error("Failed to load chat sessions:", error);
       set({ chatSessions: [], isLoadingSessions: false });
     }
   },
 
-  // Update session title locally (optimistic update)
   updateSessionTitle: (sessionId: string, title: string) => {
     set((state) => {
       const existingSession = state.chatSessions.find(s => s.sessionId === sessionId);
       
       if (existingSession) {
-        // Update existing session title
         return {
           chatSessions: state.chatSessions.map(s =>
             s.sessionId === sessionId ? { ...s, title } : s
@@ -158,13 +152,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
     });
   },
 
-  // Load chat history for a specific session
+
   loadChatHistoryBySessionId: async (sessionId: string) => {
     set({ isLoadingHistory: true });
     try {
       const history = await fetchChatHistory(sessionId);
       
-      // Transform API messages to our Message format
+      
       const transformedMessages: Message[] = history.map((msg) => ({
         text: msg.content,
         isUser: msg.role === "user",
@@ -177,7 +171,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         currentSessionId: sessionId,
         isLoadingHistory: false
       });
-      console.log("💬 Loaded chat history for session:", sessionId);
+      console.log("Loaded chat history for session:", sessionId);
     } catch (error) {
       console.error("Failed to load chat history:", error);
       set({ messages: [], isLoadingHistory: false });
@@ -194,7 +188,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set({ visitorMessageCount: 0 });
   },
 
-  // Reset all chat state (call on logout)
+ 
   resetChatState: () => {
     get().abortController?.abort();
     set({
@@ -208,28 +202,38 @@ export const useChatStore = create<ChatState>((set, get) => ({
       isLoadingHistory: false,
       sessionsFetched: false,
     });
-    console.log("🔄 Chat state reset");
+    console.log("Chat state reset");
   },
 
   sendMessage: async (question: string, userId?: string | null, userRole?: string | null) => {
     get().abortController?.abort();
     const userMessage: Message = { text: question, isUser: true };
     const currentHistory = get().messages;
-    const controller = new AbortController(); // ✨ CREATE a new controller for this request
+    const controller = new AbortController(); 
     const botPlaceholder: Message = { text: "", isUser: false, counsellors: [], followup: "" };
     
-    // ✨ Get session data
-    const sessionData: SessionData = getSessionData(userId, userRole);
+   
+    let sessionId = get().currentSessionId;
+    let sessionData: SessionData;
     
-    // ✨ Track if this is a first message in session (empty message history)
-    const isFirstMessageInSession = currentHistory.length === 0;
-    
-    // ✨ Update current session ID if it's a new chat
-    if (!get().currentSessionId) {
-      set({ currentSessionId: sessionData.sessionId });
+    if (sessionId) {
+      const sessionDataTemp = getSessionData(userId, userRole);
+      sessionData = {
+        ...sessionDataTemp,
+        sessionId: sessionId  // Override with existing session ID
+      };
+      console.log("Using existing session ID:", sessionId);
+    } else {
+      sessionData = getSessionData(userId, userRole);
+      sessionId = sessionData.sessionId;
+      set({ currentSessionId: sessionId });
+      console.log(" Created new session ID:", sessionId);
     }
     
-    console.log("📤 Sending message with session data:", {
+   
+    const isFirstMessageInSession = currentHistory.length === 0;
+    
+    console.log("Sending message with session data:", {
       sessionId: sessionData.sessionId,
       userId: sessionData.userId,
       userType: sessionData.userType,
@@ -245,22 +249,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
     try {
       const historyForAPI = [...currentHistory, userMessage];
 
-      // Format history for API - include all message components
       const formattedHistory = historyForAPI.map((msg) => {
         let content = msg.text;
         
-        // If the message is from the assistant and has a followup, combine them
         if (!msg.isUser && msg.followup) {
           content = `${msg.text} ${msg.followup}`.trim();
         }
         
-        // Build the message object with counsellors data if present
+        // Build the message object with counsellors data 
         const messageObj: any = {
           role: msg.isUser ? 'user' : 'assistant',
           content: content,
         };
         
-        // Include counsellors data in the payload if present
         if (!msg.isUser && msg.counsellors && msg.counsellors.length > 0) {
           messageObj.counsellors = msg.counsellors;
         }
@@ -281,7 +282,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
             userType: sessionData.userType,
             source: sessionData.source,
           }),
-          signal: controller.signal, // ✨ PASS the signal to fetch
+          signal: controller.signal, 
         }
       );
 
@@ -306,7 +307,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n\n");
-        buffer = lines.pop() || ""; // Keep the last, possibly incomplete line
+        buffer = lines.pop() || "";
 
         for (const line of lines) {
           if (line.startsWith("data: ")) {
@@ -314,21 +315,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
             try {
               const eventData = JSON.parse(jsonString);
 
-              // Add a small delay for smoother streaming (mimics ChatGPT)
               await new Promise(resolve => setTimeout(resolve, 10));
 
               set((state) => {
                 const lastMessageIndex = state.messages.length - 1;
-                const newMessages = JSON.parse(JSON.stringify(state.messages)); // Deep copy to ensure re-render
-
+                const newMessages = JSON.parse(JSON.stringify(state.messages)); 
                 switch (eventData.type) {
                   case "text_chunk":
-  // ensure placeholder has streamingRaw buffer
   if (!(newMessages[lastMessageIndex] as any).streamingRaw) {
     (newMessages[lastMessageIndex] as any).streamingRaw = "";
   }
   (newMessages[lastMessageIndex] as any).streamingRaw += eventData.content;
-  // expose raw buffer as visible text
   newMessages[lastMessageIndex].text = (newMessages[lastMessageIndex] as any).streamingRaw;
   break;
 
@@ -351,11 +348,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
         }
       }
     } catch (err: any) {
-      // ✨ Gracefully handle the user-triggered abort action
       if (err.name === 'AbortError') {
         console.log("Fetch aborted by user.");
-        // We remove the placeholder message that was waiting for a response
-        // set(state => ({ messages: state.messages.slice(0, -1) }));
       } else {
         console.error("Streaming failed:", err);
         const errorMessage: Message = { text: "Sorry, I couldn't connect to the server.", isUser: false };
@@ -364,14 +358,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
         }));
       }
     } finally {
-      // ✨ Clean up the controller and loading state
       set({ loading: false, abortController: null });
       
-      // ✨ If this was the first message in session, update session title with the first message
-      // Use the first user message as the title (truncate if too long)
       if (isFirstMessageInSession && sessionData.sessionId) {
         const title = question.length > 50 ? question.substring(0, 50) + "..." : question;
-        console.log("📝 Updating session title from 'New Chat' to:", title);
+        console.log("Updating session title from 'New Chat' to:", title);
         get().updateSessionTitle(sessionData.sessionId, title);
       }
     }

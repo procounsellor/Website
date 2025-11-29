@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import toast from 'react-hot-toast';
-import ClientCard from './ClientCard';
+import ClientCard from '../cards/ClientCard';
 import type { Client, ApiClient, ApiPendingRequest } from '@/types/client';
 import type { User } from '@/types/user';
 import { getSubscribedClients, getPendingRequests, respondToSubscriptionRequest } from '@/api/counselor-Dashboard';
