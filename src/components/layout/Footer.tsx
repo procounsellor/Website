@@ -28,7 +28,7 @@ export default function Footer() {
   };
   
   return (
-    <footer className="bg-gradient-to-b from-[#FCEDE3] to-[#F5C3A3] text-slate-700">
+    <footer className="bg-gradient-to-b from-[#ECEBF5] from-[0%] to-[#13097D4D] to-[100%] text-slate-700">
       <div className="mx-auto max-w-[1440px] px-4 sm:px-8 md:px-16 lg:px-[125px] py-6 sm:py-10">
         <div className="grid grid-cols-1 gap-8 sm:gap-10 md:gap-[50px] md:grid-cols-12">
           <div className="md:col-span-4 space-y-4 sm:space-y-5">

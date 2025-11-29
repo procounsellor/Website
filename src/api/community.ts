@@ -456,11 +456,18 @@ export async function likeReply(
 
 export async function getMyQuestions(
   userId: string,
-  token: string
+  token: string,
+  pageToken?: string | null
 ): Promise<GetCommunityDashboardResponse> {
   try {
+    let url = `${baseUrl}${API_CONFIG.endpoints.getMyQuestions}?userId=${userId}`;
+    const tokenValue = pageToken === null || pageToken === undefined || pageToken === ''
+        ? 'null' 
+        : pageToken; 
+    url += `&nextPageToken=${tokenValue}`;
+
     const response = await fetch(
-      `${baseUrl}${API_CONFIG.endpoints.getMyQuestions}?userId=${userId}`,
+      url,
       {
         headers: {
           'Accept': 'application/json',
