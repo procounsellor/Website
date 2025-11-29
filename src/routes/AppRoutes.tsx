@@ -23,8 +23,9 @@ import CourseDetailsPage from '@/pages/CourseDetails';
 import CommunityPage from '@/pages/CommunityPage';
 import AnswerPage from '@/pages/AnswerPage';
 import QuestionDetailPage from '@/pages/QuestionDetailPage';
-import CoursePage from '@/pages/CoursePage';
+import MyActivityPage from '@/pages/MyActivityPage';
 import LandingPage from '@/pages/AdityaLandingPage';
+import CoursePage from '@/pages/CoursePage';
 const CollegesListingPage = lazy(() => import('@/pages/colleges'));
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const CoursesListingPage = lazy(() => import('@/pages/courses'));
@@ -78,6 +79,7 @@ export default function AppRoutes(){
                                 <Route path="/community" element={<CommunityPage />} />
                                 <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
                                 <Route path="/community/answer" element={<AnswerPage />} />
+                                <Route path="/community/my-activity" element={<MyActivityPage />} />
                                 <Route element={<ProtectedRoute/>}>
                                 <Route path='/dashboard-student' element={<StudentDashboardPage/>}/>
                                 <Route path='/wallet' element={<RechargeWallet/>}/>
