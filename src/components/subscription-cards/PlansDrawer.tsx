@@ -7,9 +7,18 @@ import type { CounselorDetails } from "@/types";
 import { useAuthStore } from "@/store/AuthStore";
 import { useNavigate, useLocation } from "react-router-dom";
 import { transferAmount, subscribeCounselor, manualPaymentApproval, upgradeSubscriptionPlan, type UpgradePlanPayload } from "@/api/wallet";
+import startRecharge from "@/api/wallet";
 import toast from 'react-hot-toast';
 import type { SubscribedCounsellor } from "@/types/user";
 import { ConfirmationModal } from '@/components/shared/ConfirmationModal';
+import AddFundsPanel from '@/components/student-dashboard/AddFundsPanel';
+
+declare global {
+  interface Window {
+    Razorpay: unknown;
+  }
+}
+type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 
 type PlansResponse = {
   benefits?: Array<any>;
@@ -48,10 +57,10 @@ export default function PlansDrawer({
   const [offlineAck, setOfflineAck] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [addFundsOpen, setAddFundsOpen] = useState(false);
   const user = useAuthStore((s) => s.user);
   const refreshUser = useAuthStore((s) => s.refreshUser);
   const navigate = useNavigate();
-  const location = useLocation();
   const getPlanPrice = (planName: string | null | undefined): number => {
     if (!planName || !counselor) return 0;
     const lowerCasePlanName = planName.toLowerCase();
@@ -70,12 +79,8 @@ export default function PlansDrawer({
     const priceNum = isUpgrade ? priceToPay : newPlanPrice;
     
     if (wallet < priceNum) {
-      navigate("/wallet", { 
-        state: { 
-          returnTo: location.pathname, 
-          returnState: { ...location.state, autoOpenPlan: planKey }
-        } 
-      });
+      toast.error('Insufficient balance. Please add funds to your wallet.');
+      setAddFundsOpen(true);
       return;
     }
     if (!counselor?.userName || !user?.userName) {
@@ -153,6 +158,49 @@ export default function PlansDrawer({
     toast.error(e instanceof Error ? e.message : 'An unknown error occurred.', { id: toastId });
   }
 }
+
+  const handleRecharge = async (amount: number) => {
+    if (!amount || amount <= 0) {
+      console.error('A valid amount is required.');
+      return;
+    }
+    try {
+      const order = await startRecharge(user?.userName ?? '', amount);
+      const options = {
+        key: order.keyId,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.orderId,
+        name: "ProCounsel Wallet",
+        description: "Wallet Recharge",
+        notes: { userId: user?.userName },
+        handler: async function () {
+          toast.success("Payment successful. Your balance will be updated shortly.");
+          try {
+            await refreshUser(true);
+          } catch (err) {
+            console.error('Failed to refresh user balance after payment.', err);
+          } finally {
+            setAddFundsOpen(false);
+          }
+        },
+        modal: {
+          ondismiss: function() {
+            console.log('Razorpay modal dismissed.');
+          }
+        },
+        theme: { color: "#3399cc" },
+      };
+
+      const Rz = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
+      const rzp = new Rz(options);
+      rzp.open();
+
+    } catch (error) {
+      console.error("Failed to initiate Razorpay order.", error);
+      toast.error("Could not start the payment process. Please try again later.");
+    }
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -501,6 +549,15 @@ export default function PlansDrawer({
         message={`Are you sure you want to ${isUpgrade ? 'upgrade to' : 'subscribe to'} the ${planTitle} plan for ${(isUpgrade ? priceToPay : newPlanPrice).toLocaleString('en-IN')} ProCoins? This amount will be deducted from your wallet.`}
         confirmText={isUpgrade ? "Yes, Upgrade" : "Yes, Subscribe"}
       />
+      
+      <div className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] transition-opacity duration-300 ${addFundsOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+        <AddFundsPanel
+          isOpen={addFundsOpen}
+          onClose={() => setAddFundsOpen(false)}
+          balance={user?.walletAmount ?? 0}
+          onAddMoney={handleRecharge}
+        />
+      </div>
       </>
   );
 }

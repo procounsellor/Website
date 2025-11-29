@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuthStore } from "@/store/AuthStore";
+import { useLocation } from "react-router-dom";
 import { getAllAppointments, getOutOfOffice, getCounselorProfileById, deleteOutOfOffice } from "@/api/counselor-Dashboard";
 import CustomCalendar from "@/components/Calendar";
 import {
@@ -62,6 +63,7 @@ export default function CounselorDashboard() {
   const authUser = useAuthStore((s) => s.user);
   const authLoading = useAuthStore((s) => s.loading);
   const refreshUser = useAuthStore((s) => s.refreshUser);
+  const location = useLocation();
 
   const [initialized, setInitialized] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -85,6 +87,16 @@ export default function CounselorDashboard() {
     const HOUR = Array.from({ length: 12 }, (_, i) => 9 + i); // 9AM–8PM
     setHours(HOUR);
   }, []);
+
+  useEffect(() => {
+    // Check if there's an activeTab in location state and update mainTab
+    const stateTab = (location.state as any)?.activeTab;
+    if (stateTab) {
+      setMainTab(stateTab);
+      // Clear the state after using it to avoid repeated triggers
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const token = localStorage.getItem("jwt") ?? "";
   const counsellorId = authUser?.userName || localStorage.getItem("phone") || "";

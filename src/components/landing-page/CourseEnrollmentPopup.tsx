@@ -67,7 +67,7 @@ export default function CourseEnrollmentPopup({
 
             <div className="flex gap-2 items-center justify-center">
               <img src="/phone.svg" alt="phone" className="h-6 w-6" />
-              7893453245
+              70047 89484
             </div>
 
             <div className="flex gap-2 items-center justify-center">

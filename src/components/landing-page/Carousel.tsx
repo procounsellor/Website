@@ -214,7 +214,7 @@ export const Carousel = () => {
 
 
   return (
-    <section className="py-12">
+    <section className="bg-[#F5F5F7] py-12">
       <div className="lg:hidden">
         <MobileFeatureList />
       </div>

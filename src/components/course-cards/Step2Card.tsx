@@ -1,8 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdvancedSettingsDrawer from "./AdvancedSettingsDrawer";
 
-export default function () {
+type Step2Data = {
+  courseDurationType: string;
+  coursePrice: string;
+  discount: string;
+  coursePriceAfterDiscount: number;
+};
+
+type Step2CardProps = {
+  data: Step2Data;
+  onChange: (data: Step2Data) => void;
+};
+
+export default function Step2Card({ data, onChange }: Step2CardProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Auto-calculate price after discount
+  useEffect(() => {
+    const price = parseFloat(data.coursePrice) || 0;
+    const discount = parseFloat(data.discount) || 0;
+    const priceAfterDiscount = Math.max(0, price - discount);
+    
+    if (priceAfterDiscount !== data.coursePriceAfterDiscount) {
+      onChange({ ...data, coursePriceAfterDiscount: priceAfterDiscount });
+    }
+  }, [data.coursePrice, data.discount]);
 
   return (
     <>
@@ -17,6 +40,8 @@ export default function () {
         <input
           type="text"
           placeholder="Lifetime Validity"
+          value={data.courseDurationType}
+          onChange={(e) => onChange({ ...data, courseDurationType: e.target.value })}
           className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 w-218"
         />
       </div>
@@ -30,8 +55,10 @@ export default function () {
             Price*
           </label>
           <input
-            type="text"
+            type="number"
             placeholder="₹"
+            value={data.coursePrice}
+            onChange={(e) => onChange({ ...data, coursePrice: e.target.value })}
             className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 max-w-[9.313rem]"
           />
         </div>
@@ -44,8 +71,10 @@ export default function () {
             Discount*
           </label>
           <input
-            type="text"
+            type="number"
             placeholder="₹"
+            value={data.discount}
+            onChange={(e) => onChange({ ...data, discount: e.target.value })}
             className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 max-w-[9.313rem]"
           />
         </div>
@@ -55,12 +84,14 @@ export default function () {
             htmlFor="button"
             className="text-[1rem] font-medium text-[#8C8CA1]"
           >
-            Price*
+            Final Price*
           </label>
           <input
-            type="text"
+            type="number"
             placeholder="₹"
-            className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 max-w-[9.313rem]"
+            value={data.coursePriceAfterDiscount}
+            readOnly
+            className="bg-[#E8E8E8] rounded-[0.75rem] h-12 p-2 max-w-[9.313rem] cursor-not-allowed"
           />
         </div>
       </div>

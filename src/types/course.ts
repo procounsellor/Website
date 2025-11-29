@@ -5,5 +5,6 @@ export interface CourseType{
     rating?:string | null,
     name:string,
     subject:string,
-    price:string
+    price:string,
+    isBookmarked?:boolean
 }

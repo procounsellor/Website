@@ -37,7 +37,7 @@ const GUIDES = [
 
 export function GuidanceSection() {
     return (
-        <section className="py-1 lg:py-1" style={{ marginTop: '1px' }}>
+        <section className="bg-[#F5F5F7] py-1 lg:py-1" style={{ marginTop: '1px' }}>
             
             <h2
                 className="text-center mx-auto mb-8 lg:mb-16 text-2xl lg:text-[40px]"

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/AuthStore';
 import ProfileHeader from '@/components/student-dashboard/ProfileHeader';
 import MyInfoTab from '@/components/student-dashboard/MyInfoTab';
@@ -7,6 +8,7 @@ import { Loader2 } from 'lucide-react';
 import CounsellorsTab from '@/components/student-dashboard/CounsellorsTab';
 import TransactionsTab from '@/components/student-dashboard/TransactionsTab';
 import ReviewsTab from '@/components/student-dashboard/ReviewsTab';
+import MyCoursesTab from '@/components/student-dashboard/tabs/MyCoursesTab';
 import EditProfileModal from '@/components/student-dashboard/EditProfileModal';
 import EditPreferencesModal from '@/components/student-dashboard/EditPreferencesModal';
 import AddFundsPanel from '@/components/student-dashboard/AddFundsPanel';
@@ -22,12 +24,13 @@ declare global {
 }
 type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 
-const TABS = ['My Info', 'Appointments', 'Counsellors', 'Transactions', 'Reviews'];
+const TABS = ['My Info', 'Appointments', 'Counsellors', 'My Courses', 'Transactions', 'Reviews'];
 
 const StudentDashboardPage: React.FC = () => {
   const queryClient = useQueryClient();
   const { userId } = useAuthStore();
   const token = localStorage.getItem('jwt');
+  const location = useLocation();
 
   const [activeTab, setActiveTab] = useState('My Info');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -56,6 +59,19 @@ const StudentDashboardPage: React.FC = () => {
       }
     }
   }, [user, loading]);
+
+  useEffect(() => {
+    const state = location.state as { activeTab?: string; openAddFunds?: boolean };
+    if (state?.activeTab) {
+      setActiveTab(state.activeTab);
+    }
+    if (state?.openAddFunds) {
+      setIsAddFundsOpen(true);
+    }
+    if (state) {
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const {
     mutateAsync: handleUpdateProfile,
@@ -195,6 +211,7 @@ const StudentDashboardPage: React.FC = () => {
           )}
           {activeTab === 'Appointments' && <AppointmentsTab />}
           {activeTab === 'Counsellors' && <CounsellorsTab />}
+          {activeTab === 'My Courses' && <MyCoursesTab />}
           {activeTab === 'Transactions' && (
             <TransactionsTab
               transactions={user.transactions || []}

@@ -1,9 +1,23 @@
 import { useState, useRef, useEffect } from 'react';
 
-export default function Step1Card(){
-    const [category, setCategory] = useState('');
+type Step1Data = {
+    courseName: string;
+    description: string;
+    thumbnail: File | null;
+    category: string;
+    courseTimeHours: string;
+    courseTimeMinutes: string;
+};
+
+type Step1CardProps = {
+    data: Step1Data;
+    onChange: (data: Step1Data) => void;
+};
+
+export default function Step1Card({ data, onChange }: Step1CardProps){
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const options = [
         { value: 'PYQ', label: 'PYQ COURSE' },
@@ -20,24 +34,54 @@ export default function Step1Card(){
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            onChange({ ...data, thumbnail: file });
+        }
+    };
+
     return <div className="flex flex-col gap-5 bg-white max-w-234 p-6 rounded-2xl">
 
 
         <div className="flex flex-col gap-3 items-start">
             <label htmlFor="name"  className='text-[1rem] font-medium text-[#8C8CA1]'>Name*</label>
-            <input type="text" placeholder="Enter your name" className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 w-218" />
+            <input 
+                type="text" 
+                placeholder="Enter course name" 
+                value={data.courseName}
+                onChange={(e) => onChange({ ...data, courseName: e.target.value })}
+                className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 w-218" 
+            />
         </div>
 
           <div className="flex flex-col gap-3 items-start">
             <label htmlFor="description"  className='text-[1rem] font-medium text-[#8C8CA1]'>Description*</label>
-            <textarea placeholder="Enter deacription here" className="bg-[#F5F7FA] rounded-[0.75rem] h-24 p-2 w-218" />
+            <textarea 
+                placeholder="Enter description here" 
+                value={data.description}
+                onChange={(e) => onChange({ ...data, description: e.target.value })}
+                className="bg-[#F5F7FA] rounded-[0.75rem] h-24 p-2 w-218" 
+            />
         </div>
 
 
         <div className="flex flex-col gap-3 items-start">
             <label htmlFor="button" className='text-[1rem] font-medium text-[#8C8CA1]'>Add Thumbnail*</label>
-
-            <button className="flex  items-center gap-2 py-2 px-6 border border-[#13097D] text-[#13097D] rounded-[0.75rem] font-semibold text-[1rem]"><img src="/uploadIcon.svg" alt="" /> Upload</button>
+            <input 
+                ref={fileInputRef}
+                type="file" 
+                accept="image/*"
+                onChange={handleThumbnailUpload}
+                className="hidden"
+            />
+            <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-2 py-2 px-6 border border-[#13097D] text-[#13097D] rounded-[0.75rem] font-semibold text-[1rem] hover:bg-[#13097D] hover:text-white transition-all duration-200"
+            >
+                <img src="/uploadIcon.svg" alt="" /> 
+                {data.thumbnail?.name || 'Upload'}
+            </button>
         </div>
 
 
@@ -48,8 +92,8 @@ export default function Step1Card(){
                 onClick={() => setIsOpen(!isOpen)}
                 className="bg-[#F5F7FA] rounded-[0.75rem] h-12 px-3 py-2 w-[19.438rem] flex items-center justify-between cursor-pointer hover:bg-[#eef0f4] transition-all duration-200"
             >
-                <span className={category ? 'text-[#13097D] font-medium' : 'text-[#8C8CA1]'}>
-                    {category ? options.find(opt => opt.value === category)?.label : 'Select'}
+                <span className={data.category ? 'text-[#13097D] font-medium' : 'text-[#8C8CA1]'}>
+                    {data.category ? options.find(opt => opt.value === data.category)?.label : 'Select'}
                 </span>
                 <svg 
                     className={`w-5 h-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
@@ -67,7 +111,7 @@ export default function Step1Card(){
                         <div
                             key={option.value}
                             onClick={() => {
-                                setCategory(option.value);
+                                onChange({ ...data, category: option.value });
                                 setIsOpen(false);
                             }}
                             className="px-4 py-3 cursor-pointer hover:bg-[#13097D] hover:text-white text-[#13097D] font-medium transition-all duration-150"
@@ -81,14 +125,24 @@ export default function Step1Card(){
 
          <div className="flex flex-col gap-3 items-start">
             <label htmlFor="button" className='text-[1rem] font-medium text-[#8C8CA1]'>Course Duration (Hours)*</label>
-            <input type="text" placeholder="Enter your name" className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 w-55" />
-
-            
+            <input 
+                type="number" 
+                placeholder="0" 
+                value={data.courseTimeHours}
+                onChange={(e) => onChange({ ...data, courseTimeHours: e.target.value })}
+                className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 w-55" 
+            />
         </div>
 
          <div className="flex flex-col gap-3 items-start">
             <label htmlFor="button" className='text-[1rem] font-medium text-[#8C8CA1]'>Course Duration (Minutes)*</label>
-            <input type="text" placeholder="Enter your name" className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 w-55" />
+            <input 
+                type="number" 
+                placeholder="0" 
+                value={data.courseTimeMinutes}
+                onChange={(e) => onChange({ ...data, courseTimeMinutes: e.target.value })}
+                className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 w-55" 
+            />
         </div>
             
        

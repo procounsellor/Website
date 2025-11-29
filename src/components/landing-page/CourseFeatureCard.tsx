@@ -20,17 +20,17 @@ export function CourseFeatureCard({ feature }: CourseFeatureCardProps) {
       }}
     >
       <h3
-        className="text-center py-5 px-10 text-nowrap"
+        className="text-center py-5 px-10 text-nowrap text-clip"
         style={{
           fontFamily: 'Poppins',
           fontWeight: 500,
-          fontSize: '22px',
+          fontSize: '18px',
           lineHeight: '125%',
           color: '#13097D',
           paddingTop: '20px',
           paddingLeft: '60px',
           paddingBottom: '12px',
-          width: '100%',
+          // width: '100%',
         }}
       >
         {feature.title}
@@ -58,7 +58,7 @@ export function CourseFeatureCard({ feature }: CourseFeatureCardProps) {
           style={{
             fontFamily: 'Poppins',
             fontWeight: 500,
-            fontSize: '20px',
+            fontSize: '18px',
             lineHeight: '125%',
             color: '#232323',
           }}

@@ -90,7 +90,7 @@ export default function Footer() {
                   <a href="/contact" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Contact</a>
                 </li>
                 {/* <li>
-                  <a href="/counselor-dashboard" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Add College</a>
+                  <a href="/counsellor-dashboard" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Add College</a>
                 </li> */}
                 <li>
                   <button 
