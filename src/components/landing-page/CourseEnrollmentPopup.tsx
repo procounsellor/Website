@@ -11,7 +11,7 @@ export default function CourseEnrollmentPopup({
 }: CourseEnrollmentPopupProps) {
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]"
       onClick={onClose}
     >
       <div
@@ -46,8 +46,9 @@ export default function CourseEnrollmentPopup({
         </p>
 
         <p className="text-center text-sm text-[#232323] leading-[130%] px-2 mb-6">
+          You will get the WhatsApp group link on your email shortly.
           <br />
-          Our support team will reach out shortly if you need any help.
+          Our support team will reach out if you need any help.
         </p>
 
         <div className="flex flex-col gap-3 items-center mt-4">

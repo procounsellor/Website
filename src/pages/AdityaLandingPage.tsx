@@ -3,7 +3,6 @@ import { useAuthStore } from "@/store/AuthStore";
 import { updateUserProfile } from "@/api/user";
 import { buyCourse } from "@/api/course";
 import EditProfileModal from "@/components/student-dashboard/EditProfileModal";
-import AddFundsPanel from "@/components/student-dashboard/AddFundsPanel";
 import CourseEnrollmentPopup from "@/components/landing-page/CourseEnrollmentPopup";
 import FAQ from "@/components/landing-page/FAQ";
 import { Carousel } from "@/components/landing-page/Carousel";
@@ -28,8 +27,6 @@ export default function LandingPage() {
 
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
-  const [addFundsOpen, setAddFundsOpen] = useState(false);
-  const [requiredAmount, setRequiredAmount] = useState(0);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -59,127 +56,142 @@ export default function LandingPage() {
     setPendingAction(null);
   };
 
-  // Razorpay recharge handler
-  const handleRecharge = async (amount: number) => {
-    if (!amount || amount <= 0) {
-      console.error("A valid amount is required.");
+  // Direct Razorpay payment for course purchase
+  const handleDirectPayment = async (amount: number) => {
+    // Get fresh user data
+    const freshUser = useAuthStore.getState().user;
+    const freshUserId = localStorage.getItem("phone");
+
+    if (!freshUser?.userName || !freshUserId) {
+      toast.error("User information not found. Please try logging in again.");
       return;
     }
+
+    setIsProcessing(true);
+    const loadingToast = toast.loading("Initiating payment...");
+
     try {
-      const order = await startRecharge(user?.userName ?? "", amount);
+      // Create Razorpay order
+      const order = await startRecharge(freshUser.userName, amount);
+      
       const options = {
         key: order.keyId,
         amount: order.amount,
         currency: order.currency,
         order_id: order.orderId,
-        name: "ProCounsel Wallet",
-        description: "Wallet Recharge",
-        notes: { userId: user?.userName },
-        handler: async function () {
-          toast.success("Payment successful. Your balance will be updated shortly.");
+        name: "ProCounsel",
+        description: `${COURSE_NAME} - Course Enrollment`,
+        prefill: {
+          contact: freshUser.phoneNumber || freshUserId || "",
+          email: freshUser.email || "",
+          name: freshUser.firstName ? `${freshUser.firstName} ${freshUser.lastName || ""}`.trim() : "",
+        },
+        notes: { 
+          userId: freshUser.userName,
+          courseId: COURSE_ID,
+          courseName: COURSE_NAME,
+        },
+        handler: async function (response: any) {
+          toast.dismiss(loadingToast);
+          console.log("Payment successful:", response);
+          
+          // Now purchase the course
+          const purchaseToast = toast.loading("Enrolling you in the course...");
+          
           try {
-            await refreshUser(true);
-            setAddFundsOpen(false);
-            // Retry enrollment after successful recharge
-            setTimeout(() => {
-              handleEnroll(requiredAmount);
-            }, 500);
-          } catch (err) {
-            console.error("Failed to refresh user balance after payment.", err);
+            const purchaseResponse = await buyCourse({
+              userId: freshUser.userName,
+              courseId: COURSE_ID,
+              counsellorId: "",
+              price: amount,
+            });
+
+            if (purchaseResponse.status) {
+              toast.success("Enrollment successful!", { id: purchaseToast });
+              await refreshUser(true);
+              setShowSuccessPopup(true);
+            } else {
+              throw new Error(purchaseResponse.message || "Failed to enroll in course");
+            }
+          } catch (error) {
+            console.error("Course purchase error:", error);
+            toast.error(
+              (error as Error).message || "Payment succeeded but enrollment failed. Please contact support.",
+              { id: purchaseToast }
+            );
+          } finally {
+            setIsProcessing(false);
           }
         },
         modal: {
           ondismiss: function () {
-            console.log("Razorpay modal dismissed.");
+            console.log("Razorpay payment dismissed");
+            toast.dismiss(loadingToast);
+            setIsProcessing(false);
           },
         },
-        theme: { color: "#3399cc" },
+        theme: { color: "#13097D" },
       };
+
       const Rz = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
       const rzp = new Rz(options);
+      
       rzp.open();
+      toast.dismiss(loadingToast);
+      
     } catch (error) {
-      console.error("Failed to initiate Razorpay order.", error);
-      toast.error("Could not start the payment process. Please try again later.");
-    }
-  };
-
-  // Purchase course function
-  const purchaseCourse = async (price: number) => {
-    if (!userId) {
-      toast.error("User ID not found");
-      return;
-    }
-
-    setIsProcessing(true);
-    const toastId = toast.loading("Processing your enrollment...");
-
-    try {
-      const response = await buyCourse({
-        userId: userId,
-        courseId: COURSE_ID,
-        counsellorId: "",
-        price: price,
-      });
-
-      if (response.status) {
-        toast.success("Course purchased successfully!", { id: toastId });
-        await refreshUser(true);
-        setShowSuccessPopup(true);
-      } else {
-        throw new Error(response.message || "Failed to purchase course");
-      }
-    } catch (error) {
-      console.error("Purchase error:", error);
-      toast.error((error as Error).message || "Failed to purchase course", {
-        id: toastId,
-      });
-    } finally {
+      console.error("Failed to initiate payment:", error);
+      toast.error("Could not start payment process. Please try again.", { id: loadingToast });
       setIsProcessing(false);
     }
   };
 
-  // Main enrollment handler with all checks
-  const handleEnroll = (amount: number) => {
+  // Enrollment handler with login and name checks (email not required)
+  const handleEnroll = async (amount: number) => {
     const enrollAction = async () => {
-      const freshUserId = localStorage.getItem("phone");
+      // Refresh user data after login
+      console.log("Login successful, refreshing user data...");
+      await refreshUser(true);
+      
+      // Get fresh user data
       const freshUser = useAuthStore.getState().user;
-
-      if (!freshUserId || !freshUser) {
-        toast.error("Could not get user details. Please try again.");
+      
+      // Check if name is provided (email not required)
+      if (!freshUser?.firstName) {
+        console.log("Name missing, showing profile modal...");
+        handleProfileIncomplete(async () => {
+          await handleDirectPayment(amount);
+        });
         return;
       }
-
-      // Check wallet balance
-      const walletBalance = freshUser.walletAmount || 0;
-      if (walletBalance < amount) {
-        const deficit = amount - walletBalance;
-        toast.error(
-          `Insufficient balance. You need ₹${amount} but have ₹${walletBalance}. Please add at least ₹${deficit}.`
-        );
-        setRequiredAmount(amount);
-        setAddFundsOpen(true);
-        return;
-      }
-
-      // All checks passed - purchase course
-      await purchaseCourse(amount);
+      
+      // Small delay to ensure state is updated
+      setTimeout(async () => {
+        console.log("Opening payment...");
+        await handleDirectPayment(amount);
+      }, 300);
     };
 
-    // Check 1: User must be logged in
+    // Check if user is logged in
     if (!isAuthenticated) {
+      // Set flag to skip onboarding (course/state selection) for this landing page
+      const { setIsCounselorSignupFlow } = useAuthStore.getState();
+      setIsCounselorSignupFlow(true);
+      
       toggleLogin(enrollAction);
       return;
     }
 
-    // Check 2: Profile must be complete
-    if (!user?.firstName || !user?.email) {
-      handleProfileIncomplete(enrollAction);
+    // Check if name is provided (email not required)
+    if (!user?.firstName) {
+      handleProfileIncomplete(async () => {
+        await handleDirectPayment(amount);
+      });
       return;
     }
 
-    // All checks passed
-    enrollAction();
+    // User is logged in and has name, open payment directly
+    await handleDirectPayment(amount);
   };
 
   return (
@@ -286,7 +298,7 @@ export default function LandingPage() {
       <GuidanceSection />
       <FAQ />
 
-      {/* Profile Completion Modal */}
+      {/* Profile Modal - Email optional on /gurucool route */}
       {user && (
         <EditProfileModal
           isOpen={isEditProfileModalOpen}
@@ -294,22 +306,9 @@ export default function LandingPage() {
           user={user}
           onUpdate={handleUpdateProfile}
           onUploadComplete={() => {}}
+          isMandatory={true}
         />
       )}
-
-      {/* Add Funds Panel */}
-      <div
-        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] transition-opacity duration-300 ${
-          addFundsOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-      >
-        <AddFundsPanel
-          isOpen={addFundsOpen}
-          onClose={() => setAddFundsOpen(false)}
-          balance={user?.walletAmount ?? 0}
-          onAddMoney={handleRecharge}
-        />
-      </div>
 
       {/* Success Popup */}
       {showSuccessPopup && (
