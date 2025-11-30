@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import type { User } from '@/types/user';
 import { X, SquarePen, ChevronLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -16,6 +17,13 @@ interface EditProfileModalProps {
 }
 
 const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClose, onUpdate, isMandatory = false }) => {
+  const location = useLocation();
+  const isGuruCoolPage = location.pathname === '/gurucool';
+  
+  // On gurucool: email required but NO verification needed
+  // On other pages: email optional unless isMandatory is true
+  const skipEmailVerification = isGuruCoolPage;
+  
   const [firstName, setFirstName] = useState(user.firstName);
   const [lastName, setLastName] = useState(user.lastName);
   const [email, setEmail] = useState(user.email);
@@ -27,15 +35,22 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+
   const handleClose = () => {
     // If mandatory, only allow closing if name and email are filled
-    if (isMandatory) {
+    if (isMandatory && !skipEmailVerification) {
       if (!firstName.trim() || !email.trim()) {
         toast.error('Please complete your profile with name and email before continuing.');
         return;
       }
       if (email !== user.email && !isEmailVerified) {
         toast.error('Please verify your email before continuing.');
+        return;
+      }
+    } else if (isMandatory || skipEmailVerification) {
+      // For gurucool page, require name and email but no verification
+      if (!firstName.trim() || !email.trim()) {
+        toast.error('Please enter your name and email before continuing.');
         return;
       }
     }
@@ -122,15 +137,25 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firstName.trim() || !email.trim()) {
-      toast.error('Please fill in all required fields.');
-      return;
-    }
+    
+    // For gurucool page, require name and email but skip verification
+    if (skipEmailVerification) {
+      if (!firstName.trim() || !email.trim()) {
+        toast.error('Please enter your name and email.');
+        return;
+      }
+    } else {
+      // For other pages, require both name and email
+      if (!firstName.trim() || !email.trim()) {
+        toast.error('Please fill in all required fields.');
+        return;
+      }
 
-    // Check if email has changed and needs verification
-    if (email !== user.email && !isEmailVerified) {
-      toast.error('Please verify your email before saving.');
-      return;
+      // Check if email has changed and needs verification
+      if (email !== user.email && !isEmailVerified) {
+        toast.error('Please verify your email before saving.');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -142,7 +167,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
         console.log('✅ Photo uploaded successfully');
       }
       
-      await onUpdate({ firstName, lastName, email });
+      await onUpdate({ firstName, lastName, email: email || user.email || "" });
       console.log('✅ Profile updated successfully');
       
       // The parent component (MainLayout) will handle closing the modal
@@ -226,26 +251,29 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-[#2F303280] mb-1">
-                Email {isMandatory && <span className="text-red-500">*</span>}
+                Email {(isMandatory || skipEmailVerification) && <span className="text-red-500">*</span>}
               </label>
               <div className="relative h-11">
                 <input 
                   type="email"
                   value={email}
                   onChange={handleEmailChange}
-                  required={isMandatory}
+                  required={isMandatory || skipEmailVerification}
                   className="h-full w-full px-4 pr-20 bg-white border border-[#EFEFEF] rounded-xl text-base text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
+                  placeholder={skipEmailVerification ? "Enter your email" : ""}
                 />
-                <button 
-                  type="button"
-                  onClick={handleVerifyEmail} 
-                  disabled={isEmailVerified || !email || isSubmitting}
-                  className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold ${
-                    isEmailVerified ? 'text-green-600 cursor-default' : 'text-blue-600 hover:text-blue-800 disabled:opacity-50'
-                  }`}
-                >
-                  {isEmailVerified ? '✓ Verified' : 'Verify'}
-                </button>
+                {!skipEmailVerification && (
+                  <button 
+                    type="button"
+                    onClick={handleVerifyEmail} 
+                    disabled={isEmailVerified || !email || isSubmitting}
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold ${
+                      isEmailVerified ? 'text-green-600 cursor-default' : 'text-blue-600 hover:text-blue-800 disabled:opacity-50'
+                    }`}
+                  >
+                    {isEmailVerified ? '✓ Verified' : 'Verify'}
+                  </button>
+                )}
               </div>
             </div>
             <div className="pt-6">
@@ -302,27 +330,29 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
               </div>
               <div className="md:col-span-2">
                 <label className="block text-xs font-semibold text-[#2F303280] mb-2">
-                  Email {isMandatory && <span className="text-red-500">*</span>}
+                  Email {(isMandatory || skipEmailVerification) && <span className="text-red-500">*</span>}
                 </label>
                 <div className="relative h-12">
                   <input 
                     type="email"
                     value={email}
                     onChange={handleEmailChange}
-                    required={isMandatory}
-                    placeholder="shubham@gmail.com"
+                    required={isMandatory || skipEmailVerification}
+                    placeholder={skipEmailVerification ? "Enter your email" : "shubham@gmail.com"}
                     className="w-full h-full px-3 pr-20 bg-white border border-[#EFEFEF] rounded-xl text-base text-[#718EBF] placeholder-[#718EBF]"
                   />
-                  <button 
-                    type="button"
-                    onClick={handleVerifyEmail} 
-                    disabled={isEmailVerified || !email || isSubmitting}
-                    className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold ${
-                      isEmailVerified ? 'text-green-600 cursor-default' : 'text-blue-600 hover:text-blue-800 disabled:opacity-50'
-                    }`}
-                  >
-                    {isEmailVerified ? '✓ Verified' : 'Verify'}
-                  </button>
+                  {!skipEmailVerification && (
+                    <button 
+                      type="button"
+                      onClick={handleVerifyEmail} 
+                      disabled={isEmailVerified || !email || isSubmitting}
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold ${
+                        isEmailVerified ? 'text-green-600 cursor-default' : 'text-blue-600 hover:text-blue-800 disabled:opacity-50'
+                      }`}
+                    >
+                      {isEmailVerified ? '✓ Verified' : 'Verify'}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
