@@ -23,9 +23,9 @@ const CourseBannerSection: React.FC = () => {
 
     return (
         <section className="bg-white py-8 md:py-16">
-            <div className="container mx-auto px-34">
+            <div className="container mx-auto px-4 md:px-38">
                 <div className="relative overflow-hidden rounded-xl p-6 md:p-12 lg:p-16" 
-                     style={{ background: 'linear-gradient(176.34deg, #634557 4.61%, #DCC1CA 90.05%)' }}>
+                    style={{ background: 'linear-gradient(176.34deg, #634557 4.61%, #DCC1CA 90.05%)' }}>
                     <div className="z-10 relative">
                         <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white mb-2 md:mb-4">
                             Explore Our Comprehensive Range of Courses By :
@@ -44,7 +44,7 @@ const CourseBannerSection: React.FC = () => {
                             <p className="text-base sm:text-lg font-semibold text-white">
                                 51.8K subscribers
                             </p>
-                        </div>
+                        </div>                   
                         <div className="flex flex-wrap gap-2 md:hidden mb-6">
                             <StatBubble count="5K" text="Ongoing Courses" />
                             <StatBubble count="150K" text="Active Students" />
