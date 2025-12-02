@@ -5,7 +5,7 @@ import "./PlansDrawer.css";
 import { useState, useEffect } from "react";
 import type { CounselorDetails } from "@/types";
 import { useAuthStore } from "@/store/AuthStore";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { transferAmount, subscribeCounselor, manualPaymentApproval, upgradeSubscriptionPlan, type UpgradePlanPayload } from "@/api/wallet";
 import startRecharge from "@/api/wallet";
 import toast from 'react-hot-toast';
@@ -332,7 +332,7 @@ export default function PlansDrawer({
                     <img
                       src={counselor?.photoUrlSmall}
                       alt=""
-                      className="h-[72px] w-[72px] rounded-[8px]"
+                      className="h-[72px] w-[72px] rounded-xl"
                     />
                     <h1 className="flex flex-col gap-2 text-base font-semibold text-[#343C6A]">
                       {`${counselor?.firstName} ${counselor?.lastName}`}
@@ -415,7 +415,7 @@ export default function PlansDrawer({
 
               <Badge
                 variant="outline"
-                className="bg-[rgba(234,92,25,0.1)] text-xs text-[rgb(236,94,26)] rounded-[16px] px-4 py-1 h-6"
+                className="bg-[rgba(234,92,25,0.1)] text-xs text-[rgb(236,94,26)] rounded-2xl px-4 py-1 h-6"
               >
                 Limited Access
               </Badge>
@@ -449,7 +449,7 @@ export default function PlansDrawer({
 
                 return features.map((feat, idx) => (
                   <div key={idx} className="flex items-start gap-3">
-                    <img src="/tick.svg" alt="" className="mt-1 flex-shrink-0" />
+                    <img src="/tick.svg" alt="" className="mt-1 shrink-0" />
                     <p className="text-sm text-[#232323]">{feat}</p>
                   </div>
                 ));
@@ -550,7 +550,7 @@ export default function PlansDrawer({
         confirmText={isUpgrade ? "Yes, Upgrade" : "Yes, Subscribe"}
       />
       
-      <div className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] transition-opacity duration-300 ${addFundsOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+      <div className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-100 transition-opacity duration-300 ${addFundsOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <AddFundsPanel
           isOpen={addFundsOpen}
           onClose={() => setAddFundsOpen(false)}

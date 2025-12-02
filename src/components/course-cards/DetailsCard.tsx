@@ -16,7 +16,7 @@ type DetailsCardProps = {
     isUserOrStudent?: boolean;
 };
 
-export default function ({role, courseId, course, courseDetails, isPurchased, isBookmarked, onBookmark, onBuyCourse, isBookmarking, isBuying, isUserOrStudent}: DetailsCardProps){
+export default function ({role, course, courseDetails, isPurchased, isBookmarked, onBookmark, onBuyCourse, isBookmarking, isBuying, isUserOrStudent}: DetailsCardProps){
     const duration = courseDetails 
         ? `${courseDetails.courseTimeHours}h ${courseDetails.courseTimeMinutes}min` 
         : "N/A";
@@ -28,8 +28,8 @@ export default function ({role, courseId, course, courseDetails, isPurchased, is
     return <div className="max-w-7xl mx-auto">
         <div className="relative flex gap-3">
             <div className="flex gap-3 flex-1">
-                <div className="relative flex-shrink-0">
-                    <img src={course.image} alt="" className="w-[7.5rem] h-[7.5rem] rounded-lg object-cover"/>
+                <div className="relative shrink-0">
+                    <img src={course.image} alt="" className="w-30 h-30 rounded-lg object-cover"/>
                     {isUserOrStudent && onBookmark && (
                         <button
                             onClick={onBookmark}

@@ -27,7 +27,7 @@ export function DashboardCounselorCard({ counselor }: CounselorCardProps){
         <div className="flex items-center text-xs sm:text-sm text-gray-600 gap-4 my-2">
             <span className="flex items-center gap-1">
                 <Star className="w-4 h-4 text-yellow-500" fill="currentColor"/>
-                {counselor.rating ?? 'N/A'} | {counselor.numberOfRatings}
+                {counselor.rating ?? 'N/A'}
             </span>
             <span className="flex items-center gap-1">
                 <TbBriefcase2 className="w-4 h-4 text-blue-500"/>

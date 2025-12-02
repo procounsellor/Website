@@ -1,13 +1,14 @@
 import { 
   AllCounselorSection,
-  CollegeSection, 
+  // CollegeSection, 
   CounselorSection,
-  CourseSection,
+  // CourseSection,
   DiscoverSection,
   ExamSection,
   Hero, 
 } from "@/components";
 import AppInstallCard from "@/components/cards/AppInstallCard";
+import CourseBannerSection from "@/components/sections/CourseBannerSection";
 import { useEffect } from "react";
 
 export default function Home(){
@@ -21,9 +22,10 @@ export default function Home(){
         <CounselorSection/>
         <DiscoverSection/>
         <AllCounselorSection/>
-        <CourseSection/>
+        <CourseBannerSection/>
+        {/* <CourseSection/> */}
         <ExamSection/>
-        <CollegeSection/>
+        {/* <CollegeSection/> */}
         <AppInstallCard/>
         </>
     );

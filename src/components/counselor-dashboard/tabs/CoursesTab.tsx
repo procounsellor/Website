@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { CourseType } from '@/types/course';
+// import type { CourseType } from '@/types/course';
 import CourseCard from '@/components/course-cards/CourseCard';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/AuthStore';
@@ -10,11 +10,15 @@ import { Loader2 } from 'lucide-react';
 
 type SubTab = 'PYQ' | 'Test Series' | 'Courses';
 
+type CourseTabProps = {
+  user: any,
+  token: string;
+}
 
 
 
-
-export default function CourseTab() {
+export default function CourseTab(props: CourseTabProps) {
+  const { user: _user, token: _token } = props;
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('PYQ');
   const { role, userId } = useAuthStore();
   const navigate = useNavigate();
