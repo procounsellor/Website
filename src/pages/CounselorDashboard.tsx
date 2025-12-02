@@ -284,7 +284,7 @@ export default function CounselorDashboard() {
         <div className="px-4 md:px-10 pb-6">
           <div className="relative flex flex-col items-center md:flex-row md:justify-between md:items-start">
             <div className="flex flex-col md:flex-row items-center md:items-start w-full">
-              <div className="flex-shrink-0 w-32 h-32 md:w-48 md:h-48 rounded-full border-[4px] border-white bg-gray-300 overflow-hidden shadow-lg -mt-16 md:-mt-24">
+              <div className="shrink-0 w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-white bg-gray-300 overflow-hidden shadow-lg -mt-16 md:-mt-24">
                 <img
                   src={
                     counselor.photoUrl ||
@@ -341,7 +341,7 @@ export default function CounselorDashboard() {
                     mainTab === tab.key
                       ? "border-[#13097D] text-[#13097D]"
                       : "border-transparent text-[#8C8CA1] hover:text-gray-700 hover:border-gray-300"
-                  } whitespace-nowrap py-3 px-2 border-b-[3px] font-semibold text-[12px] md:text-sm transition-colors flex-shrink-0`}
+                  } whitespace-nowrap py-3 px-2 border-b-[3px] font-semibold text-[12px] md:text-sm transition-colors shrink-0`}
                 >
                   {tab.name}
                 </button>
@@ -355,12 +355,12 @@ export default function CounselorDashboard() {
         <div>
           {mainTab === "calendar" && (
             <>
-              <div className="w-full bg-white h-auto lg:h-[658px] rounded-[16px] hidden lg:grid grid-cols-1 lg:grid-cols-[351px_1fr] border border-[#EFEFEF]">
+              <div className="w-full bg-white h-auto lg:h-[658px] rounded-2xl hidden lg:grid grid-cols-1 lg:grid-cols-[351px_1fr] border border-[#EFEFEF]">
                 <div className="border-b lg:border-b-0 lg:border-r border-[#EDEDED] p-4 flex flex-col">
                   <h1 className="font-semiBold text-[20px] text-[#13097D] mb-2">
                     Calendar
                   </h1>
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <CustomCalendar
                       value={selectedDate}
                       onChange={(date: Date) => {
@@ -397,7 +397,7 @@ export default function CounselorDashboard() {
                 </div>
 
                 <div className="flex flex-col overflow-hidden h-[600px] lg:h-auto">
-                  <div className="flex py-4 px-4 items-center gap-6 flex-shrink-0">
+                  <div className="flex py-4 px-4 items-center gap-6 shrink-0">
                     <h1 className="text-[#13097D] font-semibold text-[16px]">
                       {getDateLabel()}
                     </h1>
@@ -454,7 +454,7 @@ export default function CounselorDashboard() {
                         />
                         <div className="flex" style={{ paddingRight: "16px" }}>
                           <div
-                            className="border-r border-[#EDEDED] flex-shrink-0"
+                            className="border-r border-[#EDEDED] shrink-0"
                             style={{ width: GRID_CONFIG.timeColumnWidth }}
                           >
                             <div
@@ -626,10 +626,10 @@ export default function CounselorDashboard() {
 
               {/* mobile view*/}
               <div className="block lg:hidden w-full relative" onClick={(e) => e.stopPropagation()}>
-                <div className="w-full max-w-[335px] h-[39px] mx-auto p-1 bg-white rounded-[16px] flex items-center justify-around shadow">
+                <div className="w-full max-w-[335px] h-[39px] mx-auto p-1 bg-white rounded-2xl flex items-center justify-around shadow">
                   <button
                     onClick={() => setActiveTab("meetings")}
-                    className={`flex-1 rounded-[24px] py-1 px-4 text-center text-[12px] transition-all ${
+                    className={`flex-1 rounded-3xl py-1 px-4 text-center text-[12px] transition-all ${
                       activeTab === "meetings"
                         ? "bg-[#E8E7F2] text-[#13097D] font-semibold"
                         : "bg-transparent text-[#8C8CA1] font-medium"
@@ -639,7 +639,7 @@ export default function CounselorDashboard() {
                   </button>
                   <button
                     onClick={() => setActiveTab("other")}
-                    className={`flex-1 rounded-[24px] py-1 px-4 text-center text-[12px] transition-all ${
+                    className={`flex-1 rounded-3xl py-1 px-4 text-center text-[12px] transition-all ${
                       activeTab === "other"
                         ? "bg-[#E8E7F2] text-[#13097D] font-semibold"
                         : "bg-transparent text-[#8C8CA1] font-medium"
@@ -852,7 +852,7 @@ const MobileMeetingsView = ({
   };
 
   return (
-    <div className="w-full bg-white rounded-[16px] p-4 border border-[#EFEFEF] shadow">
+    <div className="w-full bg-white rounded-2xl p-4 border border-[#EFEFEF] shadow">
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-semibold text-base text-[#13097D]">This Week</h3>
         <div className="flex items-center gap-2">
@@ -914,7 +914,7 @@ const MobileMeetingsView = ({
       )}
 
       <div
-        className="w-full p-2 h-7 bg-[#F9FAFB] border border-[#EFEFEF] rounded-[8px] flex justify-center items-center cursor-pointer"
+        className="w-full p-2 h-7 bg-[#F9FAFB] border border-[#EFEFEF] rounded-xl flex justify-center items-center cursor-pointer"
         onClick={() => setIsMonthViewOpen(!isMonthViewOpen)}
       >
         {isMonthViewOpen ? (
@@ -929,7 +929,7 @@ const MobileMeetingsView = ({
           appointmentsForDay.map((appt) => (
             <div
               key={appt.appointmentId}
-              className="w-full h-10 bg-[#F9FAFB] rounded-[8px] px-3 py-2 flex items-center justify-between cursor-pointer"
+              className="w-full h-10 bg-[#F9FAFB] rounded-xl px-3 py-2 flex items-center justify-between cursor-pointer"
               onClick={() => onAppointmentClick(appt)}
             >
               <div className="flex items-center gap-3">
