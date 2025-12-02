@@ -131,7 +131,7 @@ export function ExamSection() {
             <div className="flex gap-3 px-3 lg:px-6 lg:gap-6">
               {exams?.map((exam)=>(
                 <div key={exam.id}
-                className="flex-shrink-0 w-[170px] lg:w-[282px] cursor-pointer"
+                className="shrink-0 w-[170px] lg:w-[282px] cursor-pointer"
                 onClick={()=> handleExamClick(exam.id)}
                 >
                   <AcademicCard

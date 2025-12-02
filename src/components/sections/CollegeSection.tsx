@@ -124,7 +124,7 @@ export function CollegeSection() {
             <div className="flex gap-3 px-3 lg:px-6 lg:gap-6 py-1">
               {colleges?.map((college)=>(
                 <div key={college.id}
-                className="flex-shrink-0 w-[170px] lg:w-[282px]"
+                className="shrink-0 w-[170px] lg:w-[282px]"
                 >
                   <AcademicCard
                   imageAlt={college.name}

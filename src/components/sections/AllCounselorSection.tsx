@@ -107,7 +107,7 @@ export function AllCounselorSection() {
                 {[...Array(6)].map((_, index) => (
                   <div
                     key={index}
-                    className="min-w-0 flex-shrink-0 flex-grow-0 basis-[54%] pl-4 sm:basis-[48%] md:basis-[35%] lg:basis-[30%]"
+                    className="min-w-0 shrink-0 grow-0 basis-[54%] pl-4 sm:basis-[48%] md:basis-[35%] lg:basis-[30%]"
                   >
                     <AllCounselorCardSkeleton />
                   </div>
@@ -165,13 +165,12 @@ export function AllCounselorSection() {
       className="w-full py-6"
       style={{ background: "#F5F5F7" }}
     >
-      <div className="max-w-[1200px] mx-auto pl-5  lg:px-0">
+      <div className="max-w-[1200px] mx-auto pl-5 lg:px-0">
         <div className="mb-8 flex items-center pr-5 justify-between">
             <h2 className="font-semibold text-[16px] lg:text-[28px]">
               Counsellors
             </h2>
             <a className="flex gap-2 lg:hidden cursor-pointer" onClick={() => navigate('/counsellors')}>See All <img src="/seeAll.svg" className="h-5"/></a>
-
              <Button 
               variant="outline" 
               className="group hidden lg:flex hover:cursor-pointer font-semibold border-2 border-black/50 text-black/80 hover:bg-black hover:text-white transition-all duration-300 px-6 py-3 text-base whitespace-nowrap"
@@ -183,11 +182,11 @@ export function AllCounselorSection() {
 
         <div className="relative">
           <div className="overflow-x-hidden py-4 px-0.5" ref={emblaRef}>
-            <div className="flex gap-3 px-3 lg:px-6 lg:gap-6">
+            <div className="flex gap-4 lg:gap-6 px-3 lg:px-6">
               {counselors.map((counselor) => (
                 <div
                   key={counselor.counsellorId}
-                  className="flex-shrink-0 w-[170px] lg:w-[282px]"
+                  className="shrink-0 w-[170px] lg:w-[282px]"
                 >
                   <Link to={`/counsellor-profile`} state={{ id: counselor.counsellorId }} className="block">
                     <AllCounselorCard counselor={counselor} />
@@ -197,7 +196,6 @@ export function AllCounselorSection() {
             </div>
           </div>
         </div>
-
 
         <div className="flex justify-center mt-6 gap-2">
           {Array.from(
@@ -216,8 +214,6 @@ export function AllCounselorSection() {
             )
           )}
         </div>
-
-
       </div>
     </section>
   );
