@@ -23,7 +23,7 @@ declare global {
 }
 type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 
-export default function CourseDetailsPage() {
+export default function CoursePage() {
   const { courseId, role: roleParam } = useParams();
   const { userId, user, role: userRole } = useAuthStore();
   const navigate = useNavigate();

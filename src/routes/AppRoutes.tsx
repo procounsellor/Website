@@ -23,6 +23,8 @@ import CourseDetailsPage from '@/pages/CourseDetails';
 import CommunityPage from '@/pages/CommunityPage';
 import AnswerPage from '@/pages/AnswerPage';
 import QuestionDetailPage from '@/pages/QuestionDetailPage';
+import CoursePage from '@/pages/CoursePage';
+import LiveSessions from '@/pages/LiveSessions';
 const CollegesListingPage = lazy(() => import('@/pages/colleges'));
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const CoursesListingPage = lazy(() => import('@/pages/courses'));
@@ -59,6 +61,7 @@ export default function AppRoutes(){
                                 <Route path="/courses/:id" element={<CourseDetailsPage/>} />
                                 <Route path="/colleges" element={<CollegesListingPage />} />
                                 <Route path="/colleges/:id" element={<CollegeDetailsPage/>} />
+                                <Route path='/live-sessions' element={<LiveSessions/>}/>
                                 <Route path="/exams" element={<ExamsListingPage />} />
                                 <Route path="/about" element={<AboutPage/>} />
                                 <Route path="/contact" element={<ContactPage/>} />
@@ -67,6 +70,7 @@ export default function AppRoutes(){
                                 <Route path="/cancellation-refund" element={<CancellationRefundPage/>} />
                                 <Route path="/shipping-exchange" element={<ShippingExchangePage/>} />
                                 <Route path="/sitemap" element={<SitemapPage/>} />
+                                <Route path='/detail/:courseId/:role' element={<CoursePage/>}/>
                                 <Route path="/add-college" element={<AddCollegePage/>} />
                                 <Route path="/exams/:id" element={<ExamDetailsPage />} />
                                 <Route path='/subscribe' element={<SubscriptionPage/>}/>

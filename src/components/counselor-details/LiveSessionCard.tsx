@@ -1,68 +1,83 @@
 import { Video, Users, Clock } from 'lucide-react';
-import { useLiveStreamStore } from '@/store/LiveStreamStore';
-import { useState } from 'react';
-import type { StreamPlatform } from '@/store/LiveStreamStore';
+import { useState, useEffect } from 'react';
+import StreamViewer from '@/components/live/StreamViewer';
 
 interface LiveSessionCardProps {
   counselorName?: string;
 }
 
+interface ActiveStream {
+  id: string;
+  counselorName: string;
+  youtubeVideoId: string;
+  title: string;
+  createdAt: string;
+  isLive: boolean;
+}
+
 export function LiveSessionCard({ counselorName = "Counselor" }: LiveSessionCardProps) {
-  const { startStream } = useLiveStreamStore();
-  const [showPlatformModal, setShowPlatformModal] = useState(false);
-  const [selectedPlatform, setSelectedPlatform] = useState<StreamPlatform | null>(null);
-  const [videoLink, setVideoLink] = useState('');
+  const [activeStream, setActiveStream] = useState<ActiveStream | null>(null);
+  const [showViewer, setShowViewer] = useState(false);
+  const [ws, setWs] = useState<WebSocket | null>(null);
 
-  const handlePlatformSelect = (platform: StreamPlatform) => {
-    setSelectedPlatform(platform);
-  };
+  // Connect to WebSocket to get active streams
+  useEffect(() => {
+    const websocket = new WebSocket('ws://localhost:4001');
+    
+    websocket.onopen = () => {
+      console.log('Connected to WebSocket');
+      // Request active streams
+      websocket.send(JSON.stringify({ type: 'get_active_streams' }));
+    };
 
-  const handleStartStream = () => {
-    if (!selectedPlatform || !videoLink.trim()) return;
-    
-    // Extract video ID from link
-    let videoId = videoLink.trim();
-    
-    if (selectedPlatform === 'youtube') {
-      // Extract YouTube video ID from various URL formats
-      const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/live\/)([^"&?\/\s]{11})/;
-      const match = videoLink.match(youtubeRegex);
-      if (match && match[1]) {
-        videoId = match[1];
-      }
-    } else {
-      // Extract Livepeer playback ID from URL or use directly if it's just the ID
-      // Supports: https://lvpr.tv/?v=PLAYBACK_ID, playback ID directly, or broadcast URL
-      const playbackIdRegex = /[?&]v=([a-z0-9]+)/;
-      const broadcastRegex = /broadcast\/([a-z0-9-]+)/;
+    websocket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
       
-      const playbackMatch = videoLink.match(playbackIdRegex);
-      const broadcastMatch = videoLink.match(broadcastRegex);
-      
-      if (playbackMatch && playbackMatch[1]) {
-        videoId = playbackMatch[1];
-      } else if (broadcastMatch && broadcastMatch[1]) {
-        videoId = broadcastMatch[1];
-      } else if (/^[a-z0-9]+$/.test(videoLink)) {
-        // If it's just the playback ID without URL
-        videoId = videoLink;
+      if (data.type === 'active_streams') {
+        // Find stream for this counselor
+        const counselorStream = data.streams.find(
+          (stream: ActiveStream) => stream.counselorName === counselorName && stream.isLive
+        );
+        setActiveStream(counselorStream || null);
       }
-    }
-    
-    startStream(
-      selectedPlatform,
-      videoId,
-      `Live Session with ${counselorName}`,
-      'Join our interactive career counseling session'
-    );
-    setShowPlatformModal(false);
-    setSelectedPlatform(null);
-    setVideoLink('');
-  };
+    };
+
+    setWs(websocket);
+
+    // Poll for active streams every 10 seconds
+    const interval = setInterval(() => {
+      if (websocket.readyState === WebSocket.OPEN) {
+        websocket.send(JSON.stringify({ type: 'get_active_streams' }));
+      }
+    }, 10000);
+
+    return () => {
+      clearInterval(interval);
+      websocket.close();
+    };
+  }, [counselorName]);
 
   const handleJoinLive = () => {
-    setShowPlatformModal(true);
+    if (activeStream) {
+      setShowViewer(true);
+    }
   };
+
+  // If no active stream, don't show the card
+  if (!activeStream) {
+    return null;
+  }
+
+  if (showViewer) {
+    return (
+      <StreamViewer
+        youtubeVideoId={activeStream.youtubeVideoId}
+        streamTitle={activeStream.title}
+        counselorName={activeStream.counselorName}
+        onClose={() => setShowViewer(false)}
+      />
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300">
@@ -133,105 +148,6 @@ export function LiveSessionCard({ counselorName = "Counselor" }: LiveSessionCard
           Free for subscribed members
         </p>
       </div>
-
-      {/* Platform Selection Modal */}
-      {showPlatformModal && (
-        <div 
-          className="fixed inset-0 bg-black/30 z-999 flex items-center justify-center p-4"
-          onClick={() => {
-            setShowPlatformModal(false);
-            setSelectedPlatform(null);
-            setVideoLink('');
-          }}
-        >
-          <div 
-            className="bg-white rounded shadow-lg max-w-md w-full p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Choose Streaming Platform</h3>
-
-            <p className="text-sm text-gray-700 mb-4">
-              Select a platform and enter the stream link
-            </p>
-
-            <div className="space-y-3 mb-4">
-              {/* YouTube Option */}
-              <label className="flex items-center gap-3 p-3 border border-gray-300 rounded cursor-pointer hover:bg-gray-50">
-                <input
-                  type="radio"
-                  name="platform"
-                  value="youtube"
-                  checked={selectedPlatform === 'youtube'}
-                  onChange={() => handlePlatformSelect('youtube')}
-                  className="w-4 h-4"
-                />
-                <div className="flex-1">
-                  <div className="font-medium text-gray-900">YouTube</div>
-                  <div className="text-xs text-gray-600">Enter YouTube video link</div>
-                </div>
-              </label>
-
-              {/* Livepeer Option */}
-              <label className="flex items-center gap-3 p-3 border border-gray-300 rounded cursor-pointer hover:bg-gray-50">
-                <input
-                  type="radio"
-                  name="platform"
-                  value="livepeer"
-                  checked={selectedPlatform === 'livepeer'}
-                  onChange={() => handlePlatformSelect('livepeer')}
-                  className="w-4 h-4"
-                />
-                <div className="flex-1">
-                  <div className="font-medium text-gray-900">Livepeer</div>
-                  <div className="text-xs text-gray-600">Enter Livepeer Playback ID</div>
-                </div>
-              </label>
-            </div>
-
-            {selectedPlatform && (
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  {selectedPlatform === 'youtube' ? 'YouTube Video Link' : 'Livepeer Playback ID'}
-                </label>
-                <input
-                  type="text"
-                  value={videoLink}
-                  onChange={(e) => setVideoLink(e.target.value)}
-                  placeholder={selectedPlatform === 'youtube' 
-                    ? 'https://youtube.com/watch?v=...' 
-                    : '9d41sjbxr2g23onl'}
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                {selectedPlatform === 'livepeer' && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Note: The stream must be actively broadcasting to play
-                  </p>
-                )}
-              </div>
-            )}
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  setShowPlatformModal(false);
-                  setSelectedPlatform(null);
-                  setVideoLink('');
-                }}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleStartStream}
-                disabled={!selectedPlatform || !videoLink.trim()}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                Start Stream
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

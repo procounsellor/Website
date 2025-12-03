@@ -20,8 +20,9 @@ import CounselorProfile from "@/components/counselor-dashboard/CounselorProfile"
 import { useQuery, useMutation, useQueryClient  } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import CourseTab from "@/components/counselor-dashboard/tabs/CoursesTab";
+import SessionsTab from "@/components/counselor-dashboard/tabs/SessionsTab";
 
-type MainTab = "calendar" | "earnings" | "appointments" | "reviews" | "clients" | "courses";
+type MainTab = "calendar" | "earnings" | "appointments" | "reviews" | "clients" | "courses" | "sessions";
 
 const TABS: { key: MainTab; name: string }[] = [
   { key: "calendar", name: "My Calendar" },
@@ -29,7 +30,8 @@ const TABS: { key: MainTab; name: string }[] = [
   { key: "appointments", name: "Appointments" },
   { key: "reviews", name: "Reviews" },
   { key: "clients", name: "Clients" },
-  { key: "courses", name:"My Courses"}
+  { key: "courses", name:"My Courses"},
+  { key: "sessions", name: "Sessions" }
 ];
 
 const GRID_CONFIG = {
@@ -717,6 +719,9 @@ export default function CounselorDashboard() {
 
           {mainTab === "courses" && (
             <CourseTab user={authUser} token={token} />
+          )}
+          {mainTab === "sessions" && (
+            <SessionsTab user={authUser} token={token} />
           )}
           
         </div>

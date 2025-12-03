@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Minimize2, Maximize2, MessageCircle, Heart, ThumbsUp, Share2, Users, Clock } from 'lucide-react';
+import { X, MessageCircle, Heart, ThumbsUp, Share2, Users, Clock } from 'lucide-react'; // Minimize2, Maximize2 removed
 import { cn } from '@/lib/utils';
 import { useLiveStreamStore } from '@/store/LiveStreamStore';
 import type { StreamPlatform } from '@/store/LiveStreamStore';
@@ -41,13 +41,13 @@ declare const YT: {
 interface LiveStreamViewProps {
   platform: StreamPlatform;
   videoId: string;
-  embedUrl?: string;
+  embedUrl?: string;          // kept, but no longer used for iframe
   streamTitle?: string;
   description?: string;
   isLive?: boolean;
   scheduledTime?: Date;
   onClose?: () => void;
-  allowMinimize?: boolean;
+  allowMinimize?: boolean;    // kept so existing callers don’t break
 }
 
 interface Reaction {
@@ -74,25 +74,26 @@ export default function LiveStreamView({
   isLive = true,
   scheduledTime: _scheduledTime,
   onClose,
-  allowMinimize = true
+  allowMinimize = true,      // unused now, safe to keep
 }: LiveStreamViewProps) {
-  const { minimizeStream, closeStream } = useLiveStreamStore();
-  const { isMinimized } = useLiveStreamStore();
-  const [localMinimized, setLocalMinimized] = useState(isMinimized);
+  const { closeStream } = useLiveStreamStore(); // minimizeStream removed
+  // const { isMinimized } = useLiveStreamStore();
+
   const [showChat, setShowChat] = useState(true);
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [viewerCount, setViewerCount] = useState(234);
+  const [ytLoading, setYtLoading] = useState(platform === 'youtube');
+  const [ytPlaying, setYtPlaying] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    { id: '1', user: 'Rahul Kumar', message: 'Great session! Very informative 🎓', timestamp: new Date(), avatar: 'RK' },
-    { id: '2', user: 'Priya Sharma', message: 'Can you talk about engineering colleges?', timestamp: new Date(), avatar: 'PS' },
-    { id: '3', user: 'Amit Patel', message: 'This is exactly what I needed!', timestamp: new Date(), avatar: 'AP' },
+    { id: '1', user: 'Nishant Sagar', message: 'Great session! Very informative 🎓', timestamp: new Date(), avatar: 'NS' },
+    { id: '2', user: 'Aswini Verma', message: 'Can you talk about engineering colleges?', timestamp: new Date(), avatar: 'AV' },
+    { id: '3', user: 'Ashutosh Kumar', message: 'This is exactly what I needed!', timestamp: new Date(), avatar: 'AK' },
   ]);
   const [messageInput, setMessageInput] = useState('');
   const [streamDuration, setStreamDuration] = useState(0);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
 
-  // Simulate viewer count fluctuation
   useEffect(() => {
     const interval = setInterval(() => {
       setViewerCount(prev => prev + Math.floor(Math.random() * 10 - 3));
@@ -100,17 +101,15 @@ export default function LiveStreamView({
     return () => clearInterval(interval);
   }, []);
 
-  // Stream duration counter
   useEffect(() => {
     if (isLive) {
       const interval = setInterval(() => {
         setStreamDuration(prev => prev + 1);
-      }, 60000); // Update every minute
+      }, 60000); 
       return () => clearInterval(interval);
     }
   }, [isLive]);
 
-  // Auto-scroll chat
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -150,23 +149,20 @@ export default function LiveStreamView({
     return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
   };
 
-  // Load YouTube IFrame API (only for YouTube platform)
+  // YouTube only
   useEffect(() => {
     if (platform !== 'youtube') return;
 
-    // Check if API is already loaded
     if (window.YT && window.YT.Player) {
       initPlayer();
       return;
     }
 
-    // Load the API
     const tag = document.createElement('script');
     tag.src = 'https://www.youtube.com/iframe_api';
     const firstScriptTag = document.getElementsByTagName('script')[0];
     firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
 
-    // Set up callback
     window.onYouTubeIframeAPIReady = () => {
       initPlayer();
     };
@@ -181,7 +177,6 @@ export default function LiveStreamView({
   const initPlayer = () => {
     if (!window.YT || !window.YT.Player) return;
 
-    // Calculate dimensions to fit the video properly
     const container = document.getElementById('yt-player');
     if (!container) return;
 
@@ -197,16 +192,16 @@ export default function LiveStreamView({
         showinfo: 0,
         playsinline: 1,
         iv_load_policy: 3,
-        fs: 1, // Enable fullscreen
         disablekb: 1,
+        fs:1,
         cc_load_policy: 0,
         mute: 0,
       },
       events: {
         onReady: (event: YTPlayerEvent) => {
+          setYtLoading(false);
+          setYtPlaying(true);
           event.target.playVideo();
-          
-          // Get the iframe and apply object-fit style
           const iframe = container.querySelector('iframe');
           if (iframe) {
             iframe.style.position = 'absolute';
@@ -216,6 +211,14 @@ export default function LiveStreamView({
             iframe.style.width = '100%';
             iframe.style.height = '100%';
             iframe.style.objectFit = 'contain';
+          }
+        },
+        onStateChange: (event: any) => {
+          if (event.data === 1) {
+            setYtPlaying(true);
+            setYtLoading(false);
+          } else if (event.data === 2 || event.data === 3 || event.data === 0) {
+            setYtPlaying(false);
           }
         },
       },
@@ -229,67 +232,12 @@ export default function LiveStreamView({
     });
   };
 
-  // Sync local state with store
-  useEffect(() => {
-    setLocalMinimized(isMinimized);
-  }, [isMinimized]);
-
-  const handleMinimize = () => {
-    minimizeStream();
-    setLocalMinimized(true);
-  };
-
-  const handleMaximize = () => {
-    useLiveStreamStore.getState().maximizeStream();
-    setLocalMinimized(false);
-  };
-
   const handleClose = () => {
     closeStream();
     if (onClose) onClose();
   };
 
-  // Minimized view (Picture-in-Picture style)
-  if (localMinimized) {
-    return (
-      <div className="fixed bottom-6 right-6 z-999 w-80 h-48 bg-black rounded-xl shadow-2xl overflow-hidden border-2 border-[#FF660F] animate-in slide-in-from-bottom-4">
-        <div className="relative w-full h-full">
-          <iframe
-            src={platform === 'youtube' 
-              ? `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0&playsinline=1&mute=0`
-              : embedUrl}
-            className="w-full h-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-          {/* Click blocker for minimized view */}
-          <div className="absolute inset-0 pointer-events-none z-10" />
-          <div className="absolute top-2 right-2 flex gap-2 z-50">
-            <button
-              onClick={handleMaximize}
-              className="bg-black/70 hover:bg-black/90 text-white p-2 rounded-lg backdrop-blur-sm transition-all"
-            >
-              <Maximize2 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleClose}
-              className="bg-red-500/70 hover:bg-red-500 text-white p-2 rounded-lg backdrop-blur-sm transition-all"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-          {isLive && (
-            <div className="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 rounded-md text-xs font-bold flex items-center gap-1">
-              <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
-              LIVE
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
-  // Full screen view
   return (
     <div className="fixed inset-0 z-100 bg-linear-to-br from-gray-900 via-black to-gray-900 overflow-hidden">
       {/* Background blur overlay */}
@@ -300,27 +248,16 @@ export default function LiveStreamView({
         <div className="flex items-center gap-4">
           <button
             onClick={handleClose}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all backdrop-blur-sm border border-white/10"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg.white/20 text-white transition-all backdrop-blur-sm border border-white/10"
           >
             <X className="w-5 h-5" />
             <span className="hidden sm:inline font-medium">Leave</span>
           </button>
           
-          <button
-            onClick={() => {
-              const playerEl = document.getElementById('yt-player');
-              if (playerEl?.requestFullscreen) {
-                playerEl.requestFullscreen();
-              }
-            }}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all backdrop-blur-sm border border-white/10"
-          >
-            <Maximize2 className="w-5 h-5" />
-            <span className="hidden sm:inline font-medium">Fullscreen</span>
-          </button>
+          {/* Fullscreen button removed */}
 
           {isLive && (
-            <div className="flex items-center gap-2 bg-red-600/90 backdrop-blur-sm px-3 py-1.5 rounded-md animate-pulse">
+            <div className="flex items.center gap-2 bg-red-600/90 backdrop-blur-sm px-3 py-1.5 rounded-md animate-pulse">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
@@ -356,14 +293,7 @@ export default function LiveStreamView({
             <MessageCircle className="w-5 h-5" />
           </button>
 
-          {allowMinimize && (
-            <button
-              onClick={handleMinimize}
-              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all backdrop-blur-sm border border-white/10"
-            >
-              <Minimize2 className="w-5 h-5" />
-            </button>
-          )}
+          {/* Minimize button removed */}
         </div>
       </header>
 
@@ -375,61 +305,70 @@ export default function LiveStreamView({
         )}>
           {/* Player Container */}
           <div className="relative flex-1 bg-black flex items-center justify-center overflow-hidden">
-              <div className="relative w-full h-full flex items-center justify-center">
-                {platform === 'youtube' ? (
-                  /* YouTube Player - using IFrame API for better control */
-                  <>
-                    <div 
-                      id="yt-player" 
-                      className="w-full h-full"
-                      style={{
-                        aspectRatio: '16/9',
-                        maxWidth: '100%',
-                        maxHeight: '100%'
-                      }}
-                    ></div>
-                    
-                    {/* Click Blocker - Prevents ALL user interaction with YouTube player */}
-                    <div 
-                      className="absolute inset-0 z-20 cursor-default"
-                      style={{ 
-                        pointerEvents: 'auto',
-                        background: 'transparent'
-                      }}
-                      title="Live Stream"
-                    />
-                  </>
-                ) : (
-                  /* Livepeer Player - direct iframe embed */
-                  <iframe
-                    src={embedUrl}
+            <div className="relative w-full h-full flex items-center justify-center">
+              {platform === 'youtube' ? (
+                <>
+                  <div 
+                    id="yt-player" 
                     className="w-full h-full"
                     style={{
                       aspectRatio: '16/9',
                       maxWidth: '100%',
-                      maxHeight: '100%',
-                      border: 'none'
+                      maxHeight: '100%'
                     }}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                    allowFullScreen
+                  ></div>
+                  
+                  <div 
+                    className="absolute inset-0 z-20 cursor-default"
+                    style={{ 
+                      pointerEvents: 'auto',
+                      background: 'transparent'
+                    }}
+                    title="Live Stream"
                   />
-                )}
-                
-                {/* Floating Reactions */}
-                {reactions.map((reaction) => (
-                  <div
-                    key={reaction.id}
-                    className="absolute bottom-20 text-4xl animate-[float_3s_ease-out_forwards] pointer-events-none z-10"
-                    style={{
-                      left: `${reaction.x}%`,
-                      animationDelay: '0ms'
+                  {(ytLoading || !ytPlaying) && (
+                    <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/90">
+                      <svg className="animate-spin mb-4" width="48" height="48" viewBox="0 0 50 50">
+                        <circle cx="25" cy="25" r="20" fill="none" stroke="#FA660F" strokeWidth="5" strokeLinecap="round" strokeDasharray="31.4 31.4"/>
+                      </svg>
+                    </div>
+                  )}
+
+                  <div 
+                    className="absolute bottom-0 right-0 z-30 flex items-end justify-end"
+                    style={{ 
+                      width: '200px',
+                      height: '60px',
+                      pointerEvents: 'none',
+                      background: 'transparent'
                     }}
                   >
-                    {reaction.emoji}
+                    <div style={{background: 'rgba(0,0,0,1)', borderTopLeftRadius: '12px', padding: '6px 10px 4px 12px', width:'200px', height:'40px' ,  display: "block"}}>
+                      {/* branding */}
+                      <h1>ProCounsel</h1>
+                    </div>
                   </div>
-                ))}
-              </div>
+                </>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white/60 text-sm">
+                  Live stream available on YouTube only.
+                </div>
+              )}
+              
+              {reactions.map((reaction) => (
+                <div
+                  key={reaction.id}
+                  className="absolute bottom-20 text-4xl animate-[float_3s_ease-out_forwards] pointer-events-none z-10"
+                  style={{
+                    left: `${reaction.x}%`,
+                    animationDelay: '0ms'
+                  }}
+                >
+                  {reaction.emoji}
+                </div>
+              ))}
             </div>
+          </div>
 
           {/* Stream Info & Reactions */}
           <div className="bg-black/60 backdrop-blur-sm border-t border-white/10 p-2">
@@ -450,19 +389,19 @@ export default function LiveStreamView({
               </button>
               <button
                 onClick={() => addReaction('🎓')}
-                className="px-2 py-1 rounded-md bg-white/10 hover:bg-[#FF660F]/30 text-white transition-all shrink-0"
+                className="px-2 py-1 rounded-md bg.white/10 hover:bg-[#FF660F]/30 text-white transition-all shrink-0"
               >
                 🎓
               </button>
               <button
                 onClick={() => addReaction('👏')}
-                className="px-2 py-1 rounded-md bg-white/10 hover:bg-yellow-500/30 text-white transition-all shrink-0"
+                className="px-2 py-1 rounded-md bg.white/10 hover:bg-yellow-500/30 text-white transition-all shrink-0"
               >
                 👏
               </button>
               <button
                 onClick={() => addReaction('🔥')}
-                className="px-2 py-1 rounded-md bg-white/10 hover:bg-orange-500/30 text-white transition-all shrink-0"
+                className="px-2 py-1 rounded-md bg.white/10 hover:bg-orange-500/30 text-white transition-all shrink-0"
               >
                 🔥
               </button>
@@ -478,68 +417,68 @@ export default function LiveStreamView({
           </div>
         </div>
 
-          {/* Chat Sidebar */}
-          {showChat && (
-            <div className="absolute lg:relative right-0 top-0 bottom-0 w-full sm:w-96 bg-black/40 backdrop-blur-xl flex flex-col animate-in slide-in-from-right duration-300">
-              {/* Chat Header */}
-              <div className="flex items-center justify-between p-4 border-b border-white/10">
-                <div>
-                  <h3 className="text-white font-bold">Live Chat</h3>
-                  <p className="text-white/60 text-sm">{viewerCount} participants</p>
+        {/* Chat Sidebar */}
+        {showChat && (
+          <div className="absolute lg:relative right-0 top-0 bottom-0 w-full sm:w-96 bg-black/40 backdrop-blur-xl flex flex-col animate-in slide-in-from-right duration-300">
+            {/* Chat Header */}
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <div>
+                <h3 className="text-white font-bold">Live Chat</h3>
+                <p className="text-white/60 text-sm">{viewerCount} participants</p>
+              </div>
+              <button
+                onClick={() => setShowChat(false)}
+                className="lg:hidden p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Chat Messages */}
+            <div
+              ref={chatContainerRef}
+              className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
+            >
+              {chatMessages.map((msg) => (
+                <div key={msg.id} className="flex gap-3 animate-in slide-in-from-bottom-2">
+                  <div className="w-8 h-8 rounded-full bg-linear-to-br from-[#FF660F] to-orange-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                    {msg.avatar}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2 mb-1">
+                      <span className="text-white font-semibold text-sm">{msg.user}</span>
+                      <span className="text-white/40 text-xs">
+                        {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <p className="text-white/80 text-sm wrap-break-word">{msg.message}</p>
+                  </div>
                 </div>
+              ))}
+            </div>
+
+            {/* Chat Input */}
+            <div className="p-4 border-t border-white/10">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={messageInput}
+                  onChange={(e) => setMessageInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                  placeholder="Send a message..."
+                  className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#FF660F] focus:border-transparent transition-all"
+                />
                 <button
-                  onClick={() => setShowChat(false)}
-                  className="lg:hidden p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all"
+                  onClick={sendMessage}
+                  disabled={!messageInput.trim()}
+                  className="px-6 py-3 bg-[#FF660F] hover:bg-[#FF660F]/90 disabled:bg-white/10 disabled:text-white/40 text-white font-semibold rounded-lg transition-all disabled:cursor-not-allowed"
                 >
-                  <X className="w-5 h-5" />
+                  Send
                 </button>
               </div>
-
-              {/* Chat Messages */}
-              <div
-                ref={chatContainerRef}
-                className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
-              >
-                {chatMessages.map((msg) => (
-                  <div key={msg.id} className="flex gap-3 animate-in slide-in-from-bottom-2">
-                    <div className="w-8 h-8 rounded-full bg-linear-to-br from-[#FF660F] to-orange-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
-                      {msg.avatar}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline gap-2 mb-1">
-                        <span className="text-white font-semibold text-sm">{msg.user}</span>
-                        <span className="text-white/40 text-xs">
-                          {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                      <p className="text-white/80 text-sm wrap-break-word">{msg.message}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Chat Input */}
-              <div className="p-4 border-t border-white/10">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                    placeholder="Send a message..."
-                    className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#FF660F] focus:border-transparent transition-all"
-                  />
-                  <button
-                    onClick={sendMessage}
-                    disabled={!messageInput.trim()}
-                    className="px-6 py-3 bg-[#FF660F] hover:bg-[#FF660F]/90 disabled:bg-white/10 disabled:text-white/40 text-white font-semibold rounded-lg transition-all disabled:cursor-not-allowed"
-                  >
-                    Send
-                  </button>
-                </div>
-              </div>
             </div>
-          )}
+          </div>
+        )}
       </div>
 
       {/* Custom animations */}
