@@ -25,6 +25,8 @@ import AnswerPage from '@/pages/AnswerPage';
 import QuestionDetailPage from '@/pages/QuestionDetailPage';
 import CoursePage from '@/pages/CoursePage';
 import LiveSessions from '@/pages/LiveSessions';
+import MyActivityPage from '@/pages/MyActivityPage';
+import LandingPage from '@/pages/AdityaLandingPage';
 const CollegesListingPage = lazy(() => import('@/pages/colleges'));
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const CoursesListingPage = lazy(() => import('@/pages/courses'));
@@ -55,6 +57,7 @@ export default function AppRoutes(){
                         <Route path="/term1" element={<ExternalTermsPage/>} />
                         <Route element={<MainLayout/>}>
                                 <Route path="/" element={<Home/>}/>
+                                <Route path='/gurucool' element={<LandingPage/>}/>
                                 <Route path="/counsellors" element={<CounselorListingPage/>} />
                                 <Route path="/counsellor-profile" element={<CounselorDetailsPage/>} />
                                 <Route path="/courses" element={<CoursesListingPage/>} />
@@ -78,6 +81,7 @@ export default function AppRoutes(){
                                 <Route path="/community" element={<CommunityPage />} />
                                 <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
                                 <Route path="/community/answer" element={<AnswerPage />} />
+                                <Route path="/community/my-activity" element={<MyActivityPage />} />
                                 <Route element={<ProtectedRoute/>}>
                                 <Route path='/dashboard-student' element={<StudentDashboardPage/>}/>
                                 <Route path='/wallet' element={<RechargeWallet/>}/>

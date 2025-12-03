@@ -1,4 +1,4 @@
-import { EllipsisVertical, X, ChevronRight, FolderPlus, FileVideo, FileText } from "lucide-react";
+import { EllipsisVertical, X, ChevronRight, FileText } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import toast from 'react-hot-toast';
 
@@ -83,7 +83,7 @@ export default function Step3Card({ courseId }: Step3CardProps) {
     }
   };
 
-  const handleFileUpload = (type: 'video' | 'doc' | 'image') => {
+  const handleFileUpload = () => {
     setShowAddDropdown(false);
     fileInputRef.current?.click();
   };
@@ -226,14 +226,14 @@ export default function Step3Card({ courseId }: Step3CardProps) {
                 <span className="font-medium text-[#242645]">Folder</span>
               </button>
               <button
-                onClick={() => handleFileUpload('video')}
+                onClick={handleFileUpload}
                 className="w-full px-4 py-3 flex items-center gap-3 hover:bg-[#f5f5f7] transition-colors text-left"
               >
                 <img src="/video.svg" alt="video-icon" />
                 <span className="font-medium text-[#242645]">Video</span>
               </button>
               <button
-                onClick={() => handleFileUpload('doc')}
+                onClick={handleFileUpload}
                 className="w-full px-4 py-3 flex items-center gap-3 hover:bg-[#f5f5f7] transition-colors text-left"
               >
                 <img src="/pdf.svg" alt="pdf-icon" />

@@ -159,3 +159,29 @@ export interface GetRepliesResponse {
   nextPageToken: string | null;
   status: string;
 }
+
+export interface MyAnswerItem {
+  userId: string;
+  role: string;
+  fullName: string;
+  photoUrl: string | null;
+  interestedCourse: string;
+  question: string;
+  questionId: string;
+  questionTimestamp: FirebaseTimestamp;
+  questionViews: number;
+  answerCount: number;
+  myAnswerId: string;
+  myAnswer: string;
+  likesCountOnAnswer: number;
+  commentCountOnAnswer: number;
+  answerPhotoUrl: string | null;
+  commentIdsList: string[];
+  answerLikedByMe: boolean;
+}
+
+export interface GetMyAnswersResponse {
+  data: MyAnswerItem[];
+  nextPageToken: string | null;
+  status: string;
+}

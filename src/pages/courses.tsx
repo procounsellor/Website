@@ -289,7 +289,7 @@ export default function CoursesListingPage() {
     <div className="bg-gray-50 pt-20 min-h-screen">
       <main className="container mx-auto px-4 py-4">
         <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
-          <aside className="lg:w-[312px] lg:flex-shrink-0 lg:sticky lg:top-24 lg:self-start">
+          <aside className="lg:w-[312px] lg:shrink-0 lg:sticky lg:top-24 lg:self-start">
             <div className="flex justify-center gap-6 items-center px-4 h-14 w-full sm:hidden">
               <div className="text-[#13097D] text-[16px] flex items-center gap-2">
                 <img src="./filter.svg" alt="filter_icon" className="w-6 h-6" />
@@ -321,10 +321,10 @@ export default function CoursesListingPage() {
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-4 pb-20">
                   {/* Sort Section */}
-                  <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px] mb-3">
+                  <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl mb-3">
                     <h3 className="text-[#242645] font-medium">Sort By</h3>
                     <Select value={selectedSort} onValueChange={setSelectedSort}>
-                      <SelectTrigger className="w-full h-[44px] border border-[#efefef] bg-white rounded-[8px] px-3">
+                      <SelectTrigger className="w-full h-11 border border-[#efefef] bg-white rounded-xl px-3">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -341,7 +341,7 @@ export default function CoursesListingPage() {
 
                   <div className="space-y-4">
                     {/* Duration Filter */}
-                    <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
+                    <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl">
                       <div className="flex justify-between text-[#242645]">
                         <p>Duration</p>
                         <button onClick={() => setDurationToggle(!durationToggle)}>
@@ -349,7 +349,7 @@ export default function CoursesListingPage() {
                         </button>
                       </div>
                       {durationToggle && (
-                        <div className="flex flex-col gap-[16px] text-[#232323]">
+                        <div className="flex flex-col gap-4 text-[#232323]">
                           <hr className="h-px"/>
                           {durationOptions.slice(0, 7).map((duration) => (
                             <div key={duration} className="flex gap-2 items-center">
@@ -367,7 +367,7 @@ export default function CoursesListingPage() {
                     </div>
 
                     {/* Stream/Type Filter */}
-                    <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
+                    <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl">
                       <div className="flex justify-between text-[#242645]">
                         <p>Stream</p>
                         <button onClick={() => setTypeToggle(!typeToggle)}>
@@ -375,7 +375,7 @@ export default function CoursesListingPage() {
                         </button>
                       </div>
                       {typeToggle && (
-                        <div className="flex flex-col gap-[16px] text-[#232323]">
+                        <div className="flex flex-col gap-4 text-[#232323]">
                           <hr className="h-px"/>
                           {typeOptions.slice(0, 7).map((type) => (
                             <div key={type} className="flex gap-2 items-center">
@@ -393,7 +393,7 @@ export default function CoursesListingPage() {
                     </div>
 
                     {/* Level Filter */}
-                    <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
+                    <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl">
                       <div className="flex justify-between text-[#242645]">
                         <p>Level</p>
                         <button onClick={() => setLevelToggle(!levelToggle)}>
@@ -401,7 +401,7 @@ export default function CoursesListingPage() {
                         </button>
                       </div>
                       {levelToggle && (
-                        <div className="flex flex-col gap-[16px] text-[#232323]">
+                        <div className="flex flex-col gap-4 text-[#232323]">
                           <hr className="h-px"/>
                           {levelOptions.slice(0, 7).map((level) => (
                             <div key={level} className="flex gap-2 items-center">
@@ -419,7 +419,7 @@ export default function CoursesListingPage() {
                     </div>
 
                     {/* Course Name Filter */}
-                    <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
+                    <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl">
                       <div className="flex justify-between text-[#242645]">
                         <p>Courses</p>
                         <button onClick={() => setCourseToggle(!courseToggle)}>
@@ -427,9 +427,9 @@ export default function CoursesListingPage() {
                         </button>
                       </div>
                       {courseToggle && (
-                        <div className="flex flex-col gap-[16px] text-[#232323]">
+                        <div className="flex flex-col gap-4 text-[#232323]">
                           <hr className="h-px"/>
-                          <div className="flex items-center gap-2 px-3 rounded-md w-full h-[40px] border border-[#efefef] bg-white">
+                          <div className="flex items-center gap-2 px-3 rounded-md w-full h-10 border border-[#efefef] bg-white">
                             <Search size={15} className="text-[#343C6A]"/>
                             <input
                               type="text"
@@ -487,7 +487,7 @@ export default function CoursesListingPage() {
             
             <div className={`${mobileFilterOpen ? 'flex' : 'hidden'} lg:flex flex-col gap-6 w-full max-h-[calc(100vh-7rem)] overflow-y-auto scrollbar-hide`}>
               <div className="flex justify-between w-full h-full max-w-[312px] max-h-[88px] 
-                p-5 bg-white border-[1px] border-[#E6E6E6] rounded-[8px]"
+                p-5 bg-white border border-[#E6E6E6] rounded-xl"
               >
                 <h2 className="flex gap-2">
                   <img src="./filter.svg" alt="filter_icon" 
@@ -495,11 +495,11 @@ export default function CoursesListingPage() {
                   />
                   Filters
                 </h2>
-                <div className="bg-[#13097D] text-white w-7 h-7 flex items-center justify-center rounded-[4px]">{filterCount}</div>
+                <div className="bg-[#13097D] text-white w-7 h-7 flex items-center justify-center rounded-lg">{filterCount}</div>
               </div>
 
               
-              <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
+              <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
                 <div 
                   className="flex justify-between text-[#242645] cursor-pointer"
                   onClick={() => setDurationToggle(!durationToggle)}
@@ -514,7 +514,7 @@ export default function CoursesListingPage() {
                   : <ChevronRight className="w-6 h-6"/>}
                 </div>
                 {durationToggle && (
-                  <div className="flex flex-col gap-[16px] text-[#232323]">
+                  <div className="flex flex-col gap-4 text-[#232323]">
                     <hr className="h-px"/>
                     {durationOptions.slice(0, 7).map((duration) => (
                       <div key={duration} className="flex gap-2 items-center">
@@ -565,7 +565,7 @@ export default function CoursesListingPage() {
               </div> */}
 
               
-              <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
+              <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
                 <div 
                   className="flex justify-between text-[#242645] cursor-pointer"
                   onClick={() => setLevelToggle(!levelToggle)}
@@ -580,7 +580,7 @@ export default function CoursesListingPage() {
                   : <ChevronRight className="w-6 h-6"/>}
                 </div>
                 {levelToggle && (
-                  <div className="flex flex-col gap-[16px] text-[#232323]">
+                  <div className="flex flex-col gap-4 text-[#232323]">
                     <hr className="h-px"/>
                     {levelOptions.slice(0, 7).map((level) => (
                       <div key={level} className="flex gap-2 items-center">
@@ -598,7 +598,7 @@ export default function CoursesListingPage() {
               </div>
 
               
-              <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
+              <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
                 <div 
                   className="flex justify-between text-[#242645] cursor-pointer"
                   onClick={() => setCourseToggle(!courseToggle)}
@@ -613,9 +613,9 @@ export default function CoursesListingPage() {
                   : <ChevronRight className="w-6 h-6"/>}
                 </div>
                 {courseToggle && (
-                  <div className="flex flex-col gap-[16px] text-[#232323]">
+                  <div className="flex flex-col gap-4 text-[#232323]">
                     <hr className="h-px"/>
-                    <div className="flex items-center gap-2 px-3 rounded-md w-[272px] h-[40px] border border-[#efefef] bg-white">
+                    <div className="flex items-center gap-2 px-3 rounded-md w-[272px] h-10 border border-[#efefef] bg-white">
                       <Search size={15} className="text-[#343C6A]"/>
                       <input
                         type="text"
@@ -668,11 +668,11 @@ export default function CoursesListingPage() {
               <div className="hidden sm:flex items-center gap-3">
                 <p className="font-medium text-[16px] text-[#525055]">Sort By:</p>
                 <Select value={selectedSort} onValueChange={setSelectedSort}>
-                  <SelectTrigger className="w-[220px] h-[44px] border border-[#efefef] bg-white rounded-[8px] px-3 text-[16px] text-[#333] justify-between">
+                  <SelectTrigger className="w-[220px] h-11 border border-[#efefef] bg-white rounded-xl px-3 text-[16px] text-[#333] justify-between">
                     <SelectValue placeholder="Popularity" className="text-[#525055] text-[16px]"/>
                   </SelectTrigger>
                   <SelectContent
-                    className="w-[220px] bg-white border border-[#efefef] rounded-[8px] shadow-lg z-[100] max-h-[200px] overflow-y-auto"
+                    className="w-[220px] bg-white border border-[#efefef] rounded-xl shadow-lg z-100 max-h-[200px] overflow-y-auto"
                     position="popper"
                     sideOffset={4}
                   >

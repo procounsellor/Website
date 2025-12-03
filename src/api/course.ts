@@ -416,6 +416,7 @@ export async function buyCourse(
   data: BuyCourseRequest
 ): Promise<BuyCourseResponse> {
   const token = localStorage.getItem('jwt');
+  // data.counsellorId = '0000000091'
 
   const response = await fetch(
     `${API_CONFIG.baseUrl}/api/counsellorCourses/buyCourse`,

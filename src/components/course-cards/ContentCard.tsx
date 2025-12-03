@@ -1,5 +1,5 @@
-import { Lock, ChevronRight, X, Play, FileText, Download } from "lucide-react";
-import { useAuthStore } from "@/store/AuthStore";
+import { Lock, ChevronRight, X } from "lucide-react";
+// import { useAuthStore } from "@/store/AuthStore";
 import type { CourseContent } from "@/api/course";
 import { useState } from "react";
 
@@ -33,7 +33,7 @@ export default function ContentCard({
   isPurchased = false,
   userRole
 }: ContentCardProps) {
-  const { role } = useAuthStore();
+  // const { role } = useAuthStore();
   const shouldBlurContent = !isPurchased && (userRole === 'user' || userRole === 'student');
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [modalPath, setModalPath] = useState<string[]>(['root']);
@@ -138,7 +138,7 @@ export default function ContentCard({
           {currentItems.map((item) => (
             <div 
               key={item.courseContentId} 
-              className={`h-[56px] bg-[#F5F5F5] w-90 rounded-[12px] flex justify-between items-center p-4 cursor-pointer hover:bg-gray-200`}
+              className={`h-14 bg-[#F5F5F5] w-90 rounded-[12px] flex justify-between items-center p-4 cursor-pointer hover:bg-gray-200`}
               onClick={() => handleItemClick(item)}
             >
               <div className="flex gap-3">
@@ -268,7 +268,7 @@ export default function ContentCard({
                   {modalItems.map((item) => (
                     <div 
                       key={item.courseContentId} 
-                      className="h-[56px] bg-[#F5F5F5] rounded-[12px] flex justify-between items-center p-4 cursor-pointer hover:bg-gray-200"
+                      className="h-14 bg-[#F5F5F5] rounded-[12px] flex justify-between items-center p-4 cursor-pointer hover:bg-gray-200"
                       onClick={() => handleModalItemClick(item)}
                     >
                       <div className="flex gap-3 flex-1 min-w-0">

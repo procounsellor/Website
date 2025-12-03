@@ -68,13 +68,13 @@ interface ChatMessage {
 export default function LiveStreamView({
   platform,
   videoId,
-  embedUrl,
+  // embedUrl,
   streamTitle: _streamTitle = "Live Career Counseling Session",
   description: _description = "Join us for an interactive session on career guidance and college admissions",
   isLive = true,
   scheduledTime: _scheduledTime,
   onClose,
-  allowMinimize = true,      // unused now, safe to keep
+  // allowMinimize = true,      // unused now, safe to keep
 }: LiveStreamViewProps) {
   const { closeStream } = useLiveStreamStore(); // minimizeStream removed
   // const { isMinimized } = useLiveStreamStore();

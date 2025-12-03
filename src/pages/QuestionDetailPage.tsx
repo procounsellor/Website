@@ -15,37 +15,37 @@ export default function QuestionDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchDetails = async () => {
     if (!questionId || !userId || !token) {
       setError('Missing required information to load this page.');
       setIsLoading(false);
       return;
     }
 
-    const fetchDetails = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await getAllAnswersForSpecificQuestion(
-          questionId,
-          userId,
-          token,
-          user?.role || 'user'
-        );
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await getAllAnswersForSpecificQuestion(
+        questionId,
+        userId,
+        token,
+        user?.role || 'user'
+      );
 
-        if (response.status === 'Success') {
-          setDetails(response.data);
-        } else {
-          setError('Failed to load question details.');
-        }
-      } catch (err) {
-        console.error(err);
-        setError('An error occurred while fetching question details.');
-      } finally {
-        setIsLoading(false);
+      if (response.status === 'Success') {
+        setDetails(response.data);
+      } else {
+        setError('Failed to load question details.');
       }
-    };
+    } catch (err) {
+      console.error(err);
+      setError('An error occurred while fetching question details.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchDetails();
   }, [questionId, userId, token, user]);
 
@@ -77,7 +77,7 @@ export default function QuestionDetailPage() {
 
               {details.answerStructure.length > 0 ? (
                 details.answerStructure.map((answer) => (
-                  <AnswerCard key={answer.answerId} answer={answer} />
+                  <AnswerCard key={answer.answerId} answer={answer} onAnswerUpdated={fetchDetails} />
                 ))
               ) : (
                 <div className="p-10 text-center text-gray-500">
