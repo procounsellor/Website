@@ -273,6 +273,13 @@ export interface AllCounselor {
   plusAmount?: number;
   proAmount?: number;
   eliteAmount?: number;
+  expertise?: string[];
+  description?: string;
+  organisationName?: string;
+  email?: string;
+  fullOfficeAddress?: any; 
+  officeStartTime?: string;
+  officeEndTime?: string;
 }
 
 export interface CousrseApiLogin{
