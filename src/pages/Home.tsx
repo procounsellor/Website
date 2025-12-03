@@ -3,7 +3,7 @@ import {
   // CollegeSection, 
   CounselorSection,
   // CourseSection,
-  DiscoverSection,
+  // DiscoverSection,
   ExamSection,
   Hero, 
 } from "@/components";
@@ -20,9 +20,10 @@ export default function Home(){
         <>
         <Hero/>
         <CounselorSection/>
-        <DiscoverSection/>
-        <AllCounselorSection/>
+        {/* <DiscoverSection/> */}
         <CourseBannerSection/>
+        <AllCounselorSection/>
+        
         {/* <CourseSection/> */}
         <ExamSection/>
         {/* <CollegeSection/> */}
