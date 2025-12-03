@@ -1,5 +1,3 @@
-// useChatStore.ts
-
 import { create } from "zustand";
 import type { AllCounselor } from "@/types/academic";
 import { API_CONFIG } from "@/api/config";
@@ -15,6 +13,8 @@ export interface Message {
   isUser: boolean;
   counsellors?: AllCounselor[];
   followup?: string;
+  // Added this property to avoid using 'as any'
+  streamingRaw?: string;
 }
 
 type ChatState = {
@@ -24,11 +24,11 @@ type ChatState = {
   loading: boolean;
   currentSessionId: string | null;
   chatSessions: ChatSession[];
-  visitorMessageCount: number; 
-  isLoginOpenFromChatbot: boolean; 
-  isLoadingSessions: boolean; 
-  isLoadingHistory: boolean; 
-  sessionsFetched: boolean; 
+  visitorMessageCount: number;
+  isLoginOpenFromChatbot: boolean;
+  isLoadingSessions: boolean;
+  isLoadingHistory: boolean;
+  sessionsFetched: boolean;
   toggleChatbot: () => void;
   sendMessage: (question: string, userId?: string | null, userRole?: string | null) => Promise<void>;
   stopGenerating: () => void;
@@ -45,6 +45,7 @@ type ChatState = {
   updateSessionTitle: (sessionId: string, title: string) => void;
 };
 
+// --- HELPER: Transform API Data to Frontend Type ---
 const transformCounselorData = (apiCounselor: any): AllCounselor => {
   const [firstName, ...lastName] = (apiCounselor.fullName || "N/A").split(" ");
   return {
@@ -55,12 +56,23 @@ const transformCounselorData = (apiCounselor: any): AllCounselor => {
     rating: apiCounselor.rating || 0,
     ratePerYear: apiCounselor.plusAmount || 5000,
     experience: `${apiCounselor.experience || 0}`,
-    languagesKnow: (apiCounselor.languagesKnown || "English").split(", "),
-    city: apiCounselor.city || apiCounselor.state || "N/A",
+    languagesKnow: Array.isArray(apiCounselor.languagesKnow) 
+      ? apiCounselor.languagesKnow 
+      : (apiCounselor.languagesKnown || "English").split(", "),
+    city: apiCounselor.city || "N/A",
     numberOfRatings: `${apiCounselor.reviewCount || 0}`,
+    
+    expertise: apiCounselor.expertise || [],
+    description: apiCounselor.description,
+    organisationName: apiCounselor.organisationName,
+    email: apiCounselor.email,
+    fullOfficeAddress: apiCounselor.fullOfficeAddress || {},
+    states: apiCounselor.stateOfCounsellor || [], 
+    workingDays: apiCounselor.workingDays || [],
+    officeStartTime: apiCounselor.officeStartTime,
+    officeEndTime: apiCounselor.officeEndTime,
   };
 };
-
 
 export const useChatStore = create<ChatState>((set, get) => ({
   abortController: null,
@@ -102,20 +114,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
   startNewChat: () => {
     const newSessionId = createNewSession();
     set({ messages: [], currentSessionId: newSessionId });
-    
     get().updateSessionTitle(newSessionId, "New Chat");
-    
-    console.log("New chat session started:", newSessionId);
+    console.log("🆕 New chat session started:", newSessionId);
   },
 
   setCurrentSessionId: (sessionId: string | null) => {
     set({ currentSessionId: sessionId });
   },
 
-
   loadChatSessions: async (userId: string, force: boolean = false) => {
     if (get().sessionsFetched && !force) {
-      console.log("Using cached chat sessions");
+      console.log("📋 Using cached chat sessions");
       return;
     }
     
@@ -123,7 +132,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     try {
       const sessions = await fetchChatSessions(userId);
       set({ chatSessions: sessions, isLoadingSessions: false, sessionsFetched: true });
-      console.log("Loaded chat sessions:", sessions);
+      console.log("📋 Loaded chat sessions:", sessions);
     } catch (error) {
       console.error("Failed to load chat sessions:", error);
       set({ chatSessions: [], isLoadingSessions: false });
@@ -133,7 +142,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
   updateSessionTitle: (sessionId: string, title: string) => {
     set((state) => {
       const existingSession = state.chatSessions.find(s => s.sessionId === sessionId);
-      
       if (existingSession) {
         return {
           chatSessions: state.chatSessions.map(s =>
@@ -141,7 +149,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
           )
         };
       } else {
-        // Add new session at the top
         return {
           chatSessions: [
             { sessionId, title, updatedAt: new Date().toISOString() },
@@ -152,13 +159,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
     });
   },
 
-
   loadChatHistoryBySessionId: async (sessionId: string) => {
     set({ isLoadingHistory: true });
     try {
       const history = await fetchChatHistory(sessionId);
-      
-      
       const transformedMessages: Message[] = history.map((msg) => ({
         text: msg.content,
         isUser: msg.role === "user",
@@ -171,7 +175,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         currentSessionId: sessionId,
         isLoadingHistory: false
       });
-      console.log("Loaded chat history for session:", sessionId);
+      console.log("💬 Loaded chat history for session:", sessionId);
     } catch (error) {
       console.error("Failed to load chat history:", error);
       set({ messages: [], isLoadingHistory: false });
@@ -188,7 +192,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set({ visitorMessageCount: 0 });
   },
 
- 
   resetChatState: () => {
     get().abortController?.abort();
     set({
@@ -202,42 +205,26 @@ export const useChatStore = create<ChatState>((set, get) => ({
       isLoadingHistory: false,
       sessionsFetched: false,
     });
-    console.log("Chat state reset");
+    console.log("🔄 Chat state reset");
   },
 
   sendMessage: async (question: string, userId?: string | null, userRole?: string | null) => {
     get().abortController?.abort();
     const userMessage: Message = { text: question, isUser: true };
     const currentHistory = get().messages;
-    const controller = new AbortController(); 
+    const controller = new AbortController();
     const botPlaceholder: Message = { text: "", isUser: false, counsellors: [], followup: "" };
     
-   
-    let sessionId = get().currentSessionId;
-    let sessionData: SessionData;
-    
-    if (sessionId) {
-      const sessionDataTemp = getSessionData(userId, userRole);
-      sessionData = {
-        ...sessionDataTemp,
-        sessionId: sessionId  // Override with existing session ID
-      };
-      console.log("Using existing session ID:", sessionId);
-    } else {
-      sessionData = getSessionData(userId, userRole);
-      sessionId = sessionData.sessionId;
-      set({ currentSessionId: sessionId });
-      console.log(" Created new session ID:", sessionId);
-    }
-    
-   
+    const sessionData: SessionData = getSessionData(userId, userRole);
     const isFirstMessageInSession = currentHistory.length === 0;
     
-    console.log("Sending message with session data:", {
+    if (!get().currentSessionId) {
+      set({ currentSessionId: sessionData.sessionId });
+    }
+    
+    console.log("📤 Sending message with session data:", {
       sessionId: sessionData.sessionId,
       userId: sessionData.userId,
-      userType: sessionData.userType,
-      source: sessionData.source,
     });
     
     set((state) => ({
@@ -249,29 +236,44 @@ export const useChatStore = create<ChatState>((set, get) => ({
     try {
       const historyForAPI = [...currentHistory, userMessage];
 
+      // --- CRITICAL LOGIC FOR CONTEXT MEMORY ---
       const formattedHistory = historyForAPI.map((msg) => {
         let content = msg.text;
-        
+
         if (!msg.isUser && msg.followup) {
-          content = `${msg.text} ${msg.followup}`.trim();
+          content = `${content}\n\n[Followup Question Asked: ${msg.followup}]`;
         }
-        
-        // Build the message object with counsellors data 
-        const messageObj: any = {
+
+        if (!msg.isUser && msg.counsellors && msg.counsellors.length > 0) {
+          const counselorContextData = msg.counsellors.map(c => ({
+            name: `${c.firstName || ''} ${c.lastName || ''}`.trim(),
+            email: c.email,
+            city: c.city,
+            state: c.states,
+            experience: c.experience,
+            rating: c.rating,
+            expertise: c.expertise,
+            languages: c.languagesKnow,
+            description: c.description,
+            organisation: c.organisationName,
+            workingDays: c.workingDays,
+            officeHours: `${c.officeStartTime || 'N/A'} - ${c.officeEndTime || 'N/A'}`
+          }));
+          
+          const contextString = JSON.stringify(counselorContextData);
+          content = `${content}\n\n[CONTEXT_DATA: ${contextString}]`;
+        }
+
+        return {
           role: msg.isUser ? 'user' : 'assistant',
           content: content,
         };
-        
-        if (!msg.isUser && msg.counsellors && msg.counsellors.length > 0) {
-          messageObj.counsellors = msg.counsellors;
-        }
-        
-        return messageObj;
       });
+      // -----------------------------------------
 
-      // Use the native fetch API for streaming
+      // [IMPROVEMENT] Removed question from URL to support long messages
       const response = await fetch(
-        `${API_CONFIG.chatbotUrl}/ask?question=${encodeURIComponent(question)}`,
+        `${API_CONFIG.chatbotUrl}/ask`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -282,26 +284,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
             userType: sessionData.userType,
             source: sessionData.source,
           }),
-          signal: controller.signal, 
+          signal: controller.signal,
         }
       );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      if (!response.body) {
-        throw new Error("Response body is null");
-      }
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.body) throw new Error("Response body is null");
       
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
 
       while (true) {
-        if (get().abortController?.signal.aborted) {
-            console.log("Stream reading stopped by abort signal.");
-            break;
-        }
+        if (get().abortController?.signal.aborted) break;
+        
         const { done, value } = await reader.read();
         if (done) break;
 
@@ -314,27 +310,44 @@ export const useChatStore = create<ChatState>((set, get) => ({
             const jsonString = line.substring(6);
             try {
               const eventData = JSON.parse(jsonString);
-
+              
+              // Tiny delay for smoother UX
               await new Promise(resolve => setTimeout(resolve, 10));
 
               set((state) => {
                 const lastMessageIndex = state.messages.length - 1;
-                const newMessages = JSON.parse(JSON.stringify(state.messages)); 
+                const newMessages = JSON.parse(JSON.stringify(state.messages));
+
                 switch (eventData.type) {
                   case "text_chunk":
-  if (!(newMessages[lastMessageIndex] as any).streamingRaw) {
-    (newMessages[lastMessageIndex] as any).streamingRaw = "";
-  }
-  (newMessages[lastMessageIndex] as any).streamingRaw += eventData.content;
-  newMessages[lastMessageIndex].text = (newMessages[lastMessageIndex] as any).streamingRaw;
-  break;
+                    if (!newMessages[lastMessageIndex].streamingRaw) {
+                      newMessages[lastMessageIndex].streamingRaw = "";
+                    }
+                    
+                    newMessages[lastMessageIndex].streamingRaw += eventData.content;
+                    
+                    let cleanText = newMessages[lastMessageIndex].streamingRaw;
+                    
+                    // 1. Remove hidden context tags (Existing)
+                    cleanText = cleanText.replace(/\[CONTEXT_DATA:[\s\S]*?\]/g, "");
+                    cleanText = cleanText.replace(/\[Followup Question Asked:[\s\S]*?\]/g, "");
+                    
+                    // --- NEW FIX: Remove Leaked JSON Arrays ---
+                    // This regex removes blocks starting with [{"name": which is the specific leak pattern
+                    cleanText = cleanText.replace(/\[\s*\{"name":[\s\S]*?\}\s*\]/g, "");
+                    // ------------------------------------------
+
+                    newMessages[lastMessageIndex].text = cleanText;
+                    break;
 
                   case "counsellors":
                     newMessages[lastMessageIndex].counsellors = eventData.data.map(transformCounselorData);
                     break;
+                    
                   case "followup":
                     newMessages[lastMessageIndex].followup = eventData.data;
                     break;
+                    
                   case "error":
                     newMessages[lastMessageIndex].text = eventData.content;
                     break;
@@ -362,7 +375,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       
       if (isFirstMessageInSession && sessionData.sessionId) {
         const title = question.length > 50 ? question.substring(0, 50) + "..." : question;
-        console.log("Updating session title from 'New Chat' to:", title);
         get().updateSessionTitle(sessionData.sessionId, title);
       }
     }
