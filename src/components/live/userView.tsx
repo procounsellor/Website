@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, MessageCircle, Heart, ThumbsUp, Share2, Users, Clock } from 'lucide-react'; // Minimize2, Maximize2 removed
+import { X, MessageCircle, Heart, ThumbsUp, Users, Clock } from 'lucide-react'; // Minimize2, Maximize2 removed
 import { cn } from '@/lib/utils';
 import { useLiveStreamStore } from '@/store/LiveStreamStore';
 import type { StreamPlatform } from '@/store/LiveStreamStore';
@@ -76,14 +76,14 @@ export default function LiveStreamView({
   onClose,
   // allowMinimize = true,      // unused now, safe to keep
 }: LiveStreamViewProps) {
-  const { closeStream } = useLiveStreamStore(); // minimizeStream removed
+  const { closeStream /* , minimizeStream */ } = useLiveStreamStore(); // minimizeStream removed
   // const { isMinimized } = useLiveStreamStore();
 
   const [showChat, setShowChat] = useState(true);
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [viewerCount, setViewerCount] = useState(234);
   const [ytLoading, setYtLoading] = useState(platform === 'youtube');
-  const [ytPlaying, setYtPlaying] = useState(false);
+  const [ytPlaying, setYtPlaying] = useState(false); // Play/pause state for internal tracking
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     { id: '1', user: 'Nishant Sagar', message: 'Great session! Very informative 🎓', timestamp: new Date(), avatar: 'NS' },
     { id: '2', user: 'Aswini Verma', message: 'Can you talk about engineering colleges?', timestamp: new Date(), avatar: 'AV' },
@@ -192,15 +192,15 @@ export default function LiveStreamView({
         showinfo: 0,
         playsinline: 1,
         iv_load_policy: 3,
-        disablekb: 1,
-        fs:1,
+        disablekb: 1, // Disable keyboard controls
+        fs:0,
         cc_load_policy: 0,
         mute: 0,
       },
       events: {
         onReady: (event: YTPlayerEvent) => {
           setYtLoading(false);
-          setYtPlaying(true);
+          // setYtPlaying(true); // Don't track playing state if pause is disabled
           event.target.playVideo();
           const iframe = container.querySelector('iframe');
           if (iframe) {
@@ -217,20 +217,21 @@ export default function LiveStreamView({
           if (event.data === 1) {
             setYtPlaying(true);
             setYtLoading(false);
-          } else if (event.data === 2 || event.data === 3 || event.data === 0) {
-            setYtPlaying(false);
-          }
+          } 
+          /* else if (event.data === 2 || event.data === 3 || event.data === 0) { // Disallow pause/stop tracking
+            // setYtPlaying(false); 
+          } */
         },
       },
     });
   };
   
-  const handleCopyLink = () => {
-    const currentUrl = window.location.href;
-    navigator.clipboard.writeText(currentUrl).then(() => {
-      alert('Live stream link copied to clipboard!');
-    });
-  };
+  // const handleCopyLink = () => {
+  //   const currentUrl = window.location.href;
+  //   navigator.clipboard.writeText(currentUrl).then(() => {
+  //     alert('Live stream link copied to clipboard!');
+  //   });
+  // };
 
   const handleClose = () => {
     closeStream();
@@ -352,10 +353,10 @@ export default function LiveStreamView({
               ) : platform === 'livepeer' ? (
                 <iframe
                     // The videoId prop contains the playback ID
-                    src={`https://lvpr.tv/?v=${videoId}`}
+                    src={`https://lvpr.tv/?v=${videoId}&controls=false&autoplay=true&muted=false`}
                     title={_streamTitle}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media;"
+                    // allowFullScreen
                     className="w-full h-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-contain"
                 ></iframe>
               ) : (
@@ -415,13 +416,13 @@ export default function LiveStreamView({
                 🔥
               </button>
               
-              <button 
+              {/* <button 
                 onClick={handleCopyLink}
                 className="ml-auto flex items-center gap-1 px-2 py-1 rounded-md bg-[#FF660F] hover:bg-[#FF660F]/90 text-white transition-all text-xs shrink-0"
               >
                 <Share2 className="w-3 h-3" />
                 <span>Copy</span>
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

@@ -5,7 +5,7 @@ interface LiveSessionCardProps {
   counselorName?: string;
 }
 
-const FIXED_PLAYBACK_ID = 'fd34x9ikeq8nmi2n';
+const FIXED_PLAYBACK_ID = '2b82klu2uvtq84b3';
 const STREAM_PLATFORM = 'livepeer';
 
 export function LiveSessionCard({ counselorName = "Counselor" }: LiveSessionCardProps) {
