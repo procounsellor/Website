@@ -9,6 +9,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { generateTimeSlots } from '@/utils/time';
 import toast from 'react-hot-toast';
 
+
 const LANGUAGES_OPTIONS = [
   { label: 'English', value: 'English' },
   { label: 'Hindi', value: 'Hindi' },
@@ -113,6 +114,8 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
+
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -174,6 +177,8 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
   });
   
   const isUpdating = isUpdatingProfile || isUploadingPhoto;
+
+
 
   if (!isOpen) return null;
 
@@ -343,12 +348,13 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
                  )}
               </div>
 
-              <hr className="my-6 md:my-8 border-t border-[#E5E5E5]" />
 
-              {/* --- EDITABLE FIELDS GRID (Updated) --- */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 md:gap-y-6">
-                
-                {/* Bio field, only visible on mobile when editing */}
+
+              <div className="my-6 md:my-8">
+                  {/* --- EDITABLE FIELDS GRID (Updated) --- */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 md:gap-y-6">
+              
+              {/* Bio field, only visible on mobile when editing */}
                 {isEditing && (
                   <div className="block md:hidden">
                     <EditableField 
@@ -421,6 +427,9 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
                 </div>
               </div>
               
+
+              </div>
+              
               {isEditing && (
                 <div className="sticky md:static bottom-0 -mx-4 -mb-4 md:mx-0 md:mb-0 p-4 bg-white md:mt-8 
                               flex flex-col md:flex-row md:justify-end gap-4 border-t border-gray-100">
@@ -442,7 +451,7 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
             </>
           )}
         </div>
-      </div>
+        </div>
     </div>
   );
 }
