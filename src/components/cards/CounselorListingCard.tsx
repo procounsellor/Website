@@ -32,6 +32,13 @@ export function CounselorCard({ counselor, isFavourite, onToggleFavourite }: Cou
     onToggleFavourite(counselor.id);
   };
 
+  const formatPrice = (amount: number): string => {
+    if (amount === 0) {
+      return 'N/A';
+    }
+    return amount.toLocaleString("en-IN");
+  };
+
   return (
   <Link to={`/counsellor-profile`} state={{ id: counselor.id }} className="flex h-full">
     <div className="flex w-full max-w-sm flex-col overflow-hidden rounded-lg cursor-pointer border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg">
@@ -58,7 +65,7 @@ export function CounselorCard({ counselor, isFavourite, onToggleFavourite }: Cou
         </button>
       </div>
 
-      <div className="flex flex-grow flex-col gap-3 p-4 pt-3">
+      <div className="flex grow flex-col gap-3 p-4 pt-3">
         <div className="flex flex-col gap-1.5">
           {counselor.verified && (
             <div className="flex items-center gap-2 font-medium text-[#3AAF3C]">
@@ -71,15 +78,15 @@ export function CounselorCard({ counselor, isFavourite, onToggleFavourite }: Cou
 
         <div className="flex flex-col gap-2 text-sm text-[#8C8CA1]">
           <div className="flex items-center gap-3">
-            <Briefcase className="h-4 w-4 flex-shrink-0 text-[#8C8CA1]"/>
+            <Briefcase className="h-4 w-4 shrink-0 text-[#8C8CA1]"/>
             <span>{counselor.specialization}</span>
           </div>
           <div className="flex items-center gap-3">
-            <MapPin className="h-4 w-4 flex-shrink-0 text-[#8C8CA1]"/>
+            <MapPin className="h-4 w-4 shrink-0 text-[#8C8CA1]"/>
             <span>{counselor.location}</span>
           </div>
           <div className="flex items-center gap-3">
-            <Languages className="h-4 w-4 flex-shrink-0 text-[#8C8CA1]"/>
+            <Languages className="h-4 w-4 shrink-0 text-[#8C8CA1]"/>
             <span className="truncate">{counselor.languages.join(" | ")}</span>
           </div>
         </div>
@@ -94,27 +101,27 @@ export function CounselorCard({ counselor, isFavourite, onToggleFavourite }: Cou
       </div>
       
       <div className="mt-auto flex items-center justify-center gap-3 p-4 pt-0">
-        <button className="flex h-[50px] flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border border-transparent bg-gradient-to-r from-[rgba(222,237,255,0.4)] to-[rgba(126,136,211,0.4)] shadow-sm transition-all duration-200">
+        <button className="flex h-[50px] flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border border-transparent bg-linear-to-r from-[rgba(222,237,255,0.4)] to-[rgba(126,136,211,0.4)] shadow-sm transition-all duration-200">
           <span className="font-semibold text-sm text-[#1447E7]">Plus</span>
           <div className="flex items-center gap-1 text-[#1447E7] text-sm">
             <img src="/coin.svg" alt="coin" className="w-3.5 h-3.5" />
-            <span>{counselor.pricing.plus.toLocaleString("en-IN")}</span>
+            <span>{formatPrice(counselor.pricing.plus)}</span>
           </div>
         </button>
 
-        <button className="flex h-[50px] flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border border-transparent bg-gradient-to-r from-[rgba(244,232,255,0.4)] to-[rgba(250,244,255,0.4)] shadow-sm transition-all duration-200">
+        <button className="flex h-[50px] flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border border-transparent bg-linear-to-r from-[rgba(244,232,255,0.4)] to-[rgba(250,244,255,0.4)] shadow-sm transition-all duration-200">
           <span className="font-semibold text-[#8200DA] text-sm">Pro</span>
           <div className="flex items-center gap-1 text-[#8200DA] text-sm">
             <img src="/coin.svg" alt="coin" className="w-3.5 h-3.5" />
-            <span>{counselor.pricing.pro.toLocaleString("en-IN")}</span>
+            <span>{formatPrice(counselor.pricing.pro)}</span>
           </div>
         </button>
 
-        <button className="flex h-[50px] flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border border-transparent bg-gradient-to-r from-[rgba(255,245,206,0.4)] to-[rgba(255,250,230,0.4)] shadow-sm transition-all duration-200">
+        <button className="flex h-[50px] flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border border-transparent bg-linear-to-r from-[rgba(255,245,206,0.4)] to-[rgba(255,250,230,0.4)] shadow-sm transition-all duration-200">
           <span className="font-semibold text-[#B94C00] text-sm">Elite</span>
           <div className="flex items-center gap-1 text-[#B94C00] text-sm">
             <img src="/coin.svg" alt="coin" className="w-3.5 h-3.5" />
-            <span>{counselor.pricing.elite.toLocaleString("en-IN")}</span>
+            <span>{formatPrice(counselor.pricing.elite)}</span>
           </div>
         </button>
       </div>

@@ -82,9 +82,9 @@ function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
         ? availability
         : ["Mon", "Tue", "Wed", "Thu", "Fri"],
     pricing: {
-      plus: apiCounselor.plusAmount || apiCounselor.ratePerYear || 5000,
-      pro: apiCounselor.proAmount || (apiCounselor.ratePerYear || 5000) * 2,
-      elite: apiCounselor.eliteAmount || (apiCounselor.ratePerYear || 5000) * 5,
+      plus: apiCounselor.plusAmount || 0, 
+      pro: apiCounselor.proAmount || 0,
+      elite: apiCounselor.eliteAmount || 0,
     },
   };
 }
@@ -423,7 +423,7 @@ export default function CounselorListingPage() {
           return false;
       }
 
-      const counselorRate = counselor.ratePerYear || 5000;
+      const counselorRate = counselor.ratePerYear || 0;
       if (minPrice && counselorRate < parseInt(minPrice)) return false;
       if (maxPrice && counselorRate > parseInt(maxPrice)) return false;
 
@@ -451,12 +451,12 @@ export default function CounselorListingPage() {
     switch (selectedSort) {
       case "price-low":
         sorted.sort(
-          (a, b) => (a.ratePerYear || 5000) - (b.ratePerYear || 5000)
+          (a, b) => (a.ratePerYear || 0) - (b.ratePerYear || 0)
         );
         break;
       case "price-high":
         sorted.sort(
-          (a, b) => (b.ratePerYear || 5000) - (a.ratePerYear || 5000)
+          (a, b) => (b.ratePerYear || 0) - (a.ratePerYear || 0)
         );
         break;
       case "popularity":
@@ -519,7 +519,7 @@ export default function CounselorListingPage() {
     <div className="bg-gray-50 pt-20 min-h-screen">
       <main className="container mx-auto px-4 py-4">
         <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
-          <aside className="lg:w-[312px] lg:flex-shrink-0 lg:sticky lg:top-24 lg:self-start">
+          <aside className="lg:w-[312px] lg:shrink-0 lg:sticky lg:top-24 lg:self-start">
             <div className="flex justify-center gap-6 items-center px-4 h-14 w-full sm:hidden">
               <div className="text-[#13097D] text-[16px] flex items-center gap-2">
                 <img src="./filter.svg" alt="filter_icon" className="w-6 h-6" />
@@ -549,13 +549,13 @@ export default function CounselorListingPage() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 pb-20">
-                  <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px] mb-3">
+                  <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl mb-3">
                     <h3 className="text-[#242645] font-medium">Sort By</h3>
                     <Select
                       value={selectedSort}
                       onValueChange={setSelectedSort}
                     >
-                      <SelectTrigger className="w-full h-[44px] border border-[#efefef] bg-white rounded-[8px] px-3">
+                      <SelectTrigger className="w-full h-11 border border-[#efefef] bg-white rounded-xl px-3">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -571,7 +571,7 @@ export default function CounselorListingPage() {
                   </div>
 
                   <div className="space-y-4">
-                    <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
+                    <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl">
                       <div className="flex justify-between text-[#242645]">
                         <p>Experience</p>
                         <button
@@ -585,7 +585,7 @@ export default function CounselorListingPage() {
                         </button>
                       </div>
                       {experienceToggle && (
-                        <div className="flex flex-col gap-[16px] text-[#232323]">
+                        <div className="flex flex-col gap-4 text-[#232323]">
                           <hr className="h-px" />
                           {experienceOptions.slice(0, 7).map((option) => (
                             <div
@@ -612,7 +612,7 @@ export default function CounselorListingPage() {
                       )}
                     </div>
 
-                    <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
+                    <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl">
                       <div className="flex justify-between text-[#242645]">
                         <p>Languages</p>
                         <button
@@ -626,7 +626,7 @@ export default function CounselorListingPage() {
                         </button>
                       </div>
                       {languageToggle && (
-                        <div className="flex flex-col gap-[16px] text-[#232323]">
+                        <div className="flex flex-col gap-4 text-[#232323]">
                           <hr className="h-px" />
                           {languageOptions.slice(0, 7).map((language) => (
                             <div
@@ -648,7 +648,7 @@ export default function CounselorListingPage() {
                       )}
                     </div>
 
-                    <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
+                    <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl">
                       <div className="flex justify-between text-[#242645]">
                         <p>City</p>
                         <button onClick={() => setCityToggle(!cityToggle)}>
@@ -660,9 +660,9 @@ export default function CounselorListingPage() {
                         </button>
                       </div>
                       {cityToggle && (
-                        <div className="flex flex-col gap-[16px] text-[#232323]">
+                        <div className="flex flex-col gap-4 text-[#232323]">
                           <hr className="h-px" />
-                          <div className="flex items-center gap-2 px-3 rounded-md w-full h-[40px] border border-[#efefef] bg-white">
+                          <div className="flex items-center gap-2 px-3 rounded-md w-full h-10 border border-[#efefef] bg-white">
                             <Search size={15} className="text-[#343C6A]" />
                             <input
                               type="text"
@@ -710,7 +710,7 @@ export default function CounselorListingPage() {
                       )}
                     </div>
 
-                    <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
+                    <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl">
                       <div className="flex justify-between text-[#242645]">
                         <div className="flex items-center gap-2">
                           <p>Price</p>
@@ -721,7 +721,7 @@ export default function CounselorListingPage() {
                                 <img
                                   src="/coin.svg"
                                   alt="coin"
-                                  className="w-3 h-3 flex-shrink-0"
+                                  className="w-3 h-3 shrink-0"
                                 />
                                 1 = ₹1
                               </span>
@@ -737,18 +737,18 @@ export default function CounselorListingPage() {
                         </button>
                       </div>
                       {priceToggle && (
-                        <div className="flex flex-col gap-[16px] text-[#232323]">
+                        <div className="flex flex-col gap-4 text-[#232323]">
                           <hr className="h-px" />
                           <div className="flex gap-3">
                             <div className="flex flex-col gap-2">
                               <p className="font-medium text-[14px]">
                                 Min Price
                               </p>
-                              <div className="rounded-[12px] flex-1 h-[36px] border border-[#efefef] bg-white flex items-center px-3 gap-1.5">
+                              <div className="rounded-[12px] flex-1 h-9 border border-[#efefef] bg-white flex items-center px-3 gap-1.5">
                                 <img
                                   src="/coin.svg"
                                   alt="coin"
-                                  className="w-3.5 h-3.5 flex-shrink-0 opacity-60"
+                                  className="w-3.5 h-3.5 shrink-0 opacity-60"
                                 />
                                 <input
                                   type="text"
@@ -763,11 +763,11 @@ export default function CounselorListingPage() {
                               <p className="text-[14px] font-medium">
                                 Max Price
                               </p>
-                              <div className="rounded-[12px] flex-1 h-[36px] border border-[#efefef] bg-white flex items-center px-3 gap-1.5">
+                              <div className="rounded-[12px] flex-1 h-9 border border-[#efefef] bg-white flex items-center px-3 gap-1.5">
                                 <img
                                   src="/coin.svg"
                                   alt="coin"
-                                  className="w-3.5 h-3.5 flex-shrink-0 opacity-60"
+                                  className="w-3.5 h-3.5 shrink-0 opacity-60"
                                 />
                                 <input
                                   type="text"
@@ -783,7 +783,7 @@ export default function CounselorListingPage() {
                       )}
                     </div>
 
-                    <div className="flex flex-col gap-[16px] bg-white p-5 w-full rounded-[8px]">
+                    <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl">
                       <div className="flex justify-between text-[#242645]">
                         <p>Working Days</p>
                         <button
@@ -799,9 +799,9 @@ export default function CounselorListingPage() {
                         </button>
                       </div>
                       {workingDaysToggle && (
-                        <div className="flex flex-col gap-[16px] text-[#232323]">
+                        <div className="flex flex-col gap-4 text-[#232323]">
                           <hr className="h-px" />
-                          <div className="flex flex-wrap gap-[10px]">
+                          <div className="flex flex-wrap gap-2.5">
                             {days.map((day) => {
                               const isSelected = selected.includes(day);
                               return (
@@ -852,7 +852,7 @@ export default function CounselorListingPage() {
             >
               <div
                 className="flex justify-between w-full h-full max-w-[312px] max-h-[88px] 
-            p-5 bg-white border-[1px] border-[#E6E6E6] rounded-[8px]"
+            p-5 bg-white border border-[#E6E6E6] rounded-xl"
               >
                 <h2 className="flex gap-2">
                   <img
@@ -862,12 +862,12 @@ export default function CounselorListingPage() {
                   />
                   Filters
                 </h2>
-                <div className="bg-[#13097D] text-white w-7 h-7 flex items-center justify-center rounded-[4px]">
+                <div className="bg-[#13097D] text-white w-7 h-7 flex items-center justify-center rounded-lg">
                   {filterCount}
                 </div>
               </div>
 
-              <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
+              <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
                 <div
                   className="flex justify-between text-[#242645] cursor-pointer"
                   onClick={() => setExperienceToggle(!experienceToggle)}
@@ -886,7 +886,7 @@ export default function CounselorListingPage() {
                 </div>
 
                 {experienceToggle && (
-                  <div className="flex flex-col gap-[16px] text-[#232323]">
+                  <div className="flex flex-col gap-4 text-[#232323]">
                     <hr className="h-px" />
                     {experienceOptions.slice(0, 7).map((option) => (
                       <div key={option.id} className="flex gap-2 items-center">
@@ -908,7 +908,7 @@ export default function CounselorListingPage() {
                 )}
               </div>
 
-              <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
+              <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
                 <div
                   className="flex justify-between text-[#242645] cursor-pointer"
                   onClick={() => setLanguageToggle(!languageToggle)}
@@ -927,7 +927,7 @@ export default function CounselorListingPage() {
                 </div>
 
                 {languageToggle && (
-                  <div className="flex flex-col gap-[16px] text-[#232323]">
+                  <div className="flex flex-col gap-4 text-[#232323]">
                     <hr className="h-px" />
                     {languageOptions.slice(0, 7).map((language) => (
                       <div key={language} className="flex gap-2 items-center">
@@ -944,7 +944,7 @@ export default function CounselorListingPage() {
                 )}
               </div>
 
-              <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
+              <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
                 <div
                   className="flex justify-between text-[#242645] cursor-pointer"
                   onClick={() => setCityToggle(!cityToggle)}
@@ -963,10 +963,10 @@ export default function CounselorListingPage() {
                 </div>
 
                 {cityToggle && (
-                  <div className="flex flex-col gap-[16px] text-[#232323]">
+                  <div className="flex flex-col gap-4 text-[#232323]">
                     <hr className="h-px" />
 
-                    <div className="flex items-center gap-2 px-3 rounded-md w-[272px] h-[40px] border border-[#efefef] bg-white">
+                    <div className="flex items-center gap-2 px-3 rounded-md w-[272px] h-10 border border-[#efefef] bg-white">
                       <Search size={15} className="text-[#343C6A]" />
                       <input
                         type="text"
@@ -1008,7 +1008,7 @@ export default function CounselorListingPage() {
                 )}
               </div>
 
-              <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
+              <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
                 <div
                   className="flex justify-between text-[#242645] cursor-pointer"
                   onClick={() => setPriceToggle(!priceToggle)}
@@ -1022,7 +1022,7 @@ export default function CounselorListingPage() {
                           <img
                             src="/coin.svg"
                             alt="coin"
-                            className="w-3 h-3 flex-shrink-0"
+                            className="w-3 h-3 shrink-0"
                           />
                           1 = ₹1
                         </span>
@@ -1040,17 +1040,17 @@ export default function CounselorListingPage() {
                 </div>
 
                 {priceToggle && (
-                  <div className="flex flex-col gap-[16px] text-[#232323]">
+                  <div className="flex flex-col gap-4 text-[#232323]">
                     <hr className="h-px" />
 
                     <div className="flex gap-3">
                       <div className="flex flex-col gap-2">
                         <p className="font-medium text-[14px]">Min Price</p>
-                        <div className="rounded-[12px] w-[128px] h-[36px] border border-[#efefef] bg-white flex items-center px-3 gap-1.5">
+                        <div className="rounded-[12px] w-32 h-9 border border-[#efefef] bg-white flex items-center px-3 gap-1.5">
                           <img
                             src="/coin.svg"
                             alt="coin"
-                            className="w-3.5 h-3.5 flex-shrink-0 opacity-60"
+                            className="w-3.5 h-3.5 shrink-0 opacity-60"
                           />
                           <input
                             type="text"
@@ -1064,11 +1064,11 @@ export default function CounselorListingPage() {
 
                       <div className="flex flex-col gap-2">
                         <p className="text-[14px] font-medium">Max Price</p>
-                        <div className="rounded-[12px] w-[128px] h-[36px] border border-[#efefef] bg-white flex items-center px-3 gap-1.5">
+                        <div className="rounded-[12px] w-32 h-9 border border-[#efefef] bg-white flex items-center px-3 gap-1.5">
                           <img
                             src="/coin.svg"
                             alt="coin"
-                            className="w-3.5 h-3.5 flex-shrink-0 opacity-60"
+                            className="w-3.5 h-3.5 shrink-0 opacity-60"
                           />
                           <input
                             type="text"
@@ -1084,7 +1084,7 @@ export default function CounselorListingPage() {
                 )}
               </div>
 
-              <div className="flex flex-col gap-[16px] bg-white p-5 w-full max-w-[312px] rounded-[8px] border-[1px] border-[#E6E6E6]">
+              <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
                 <div
                   className="flex justify-between text-[#242645] cursor-pointer"
                   onClick={() => setWorkingDaysToggle(!workingDaysToggle)}
@@ -1103,10 +1103,10 @@ export default function CounselorListingPage() {
                 </div>
 
                 {workingDaysToggle && (
-                  <div className="flex flex-col gap-[16px] text-[#232323]">
+                  <div className="flex flex-col gap-4 text-[#232323]">
                     <hr className="h-px" />
 
-                    <div className="flex flex-wrap gap-[10px]">
+                    <div className="flex flex-wrap gap-2.5">
                       {days.map((day) => {
                         const isSelected = selected.includes(day);
                         return (
@@ -1152,7 +1152,7 @@ export default function CounselorListingPage() {
                 </p>
 
                 <Select value={selectedSort} onValueChange={setSelectedSort}>
-                  <SelectTrigger className="w-[220px] h-[44px] border border-[#efefef] bg-white rounded-[8px] px-3 text-[16px] text-[#333] justify-between">
+                  <SelectTrigger className="w-[220px] h-11 border border-[#efefef] bg-white rounded-xl px-3 text-[16px] text-[#333] justify-between">
                     <SelectValue
                       placeholder="Popularity"
                       className="text-[#525055] text-[16px]"
@@ -1160,7 +1160,7 @@ export default function CounselorListingPage() {
                   </SelectTrigger>
 
                   <SelectContent
-                    className="w-[220px] bg-white border border-[#efefef] rounded-[8px] shadow-lg z-[100] max-h-[200px] overflow-y-auto"
+                    className="w-[220px] bg-white border border-[#efefef] rounded-xl shadow-lg z-100 max-h-[200px] overflow-y-auto"
                     position="popper"
                     sideOffset={4}
                   >
