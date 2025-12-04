@@ -349,6 +349,15 @@ export default function LiveStreamView({
                     </div>
                   </div>
                 </>
+              ) : platform === 'livepeer' ? (
+                <iframe
+                    // The videoId prop contains the playback ID
+                    src={`https://lvpr.tv/?v=${videoId}`}
+                    title={_streamTitle}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-contain"
+                ></iframe>
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-white/60 text-sm">
                   Live stream available on YouTube only.
