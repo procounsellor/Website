@@ -137,6 +137,20 @@ export default function SessionsTab({ user, token }: SessionsTabProps) {
       return;
     }
     
+    // Check if session has ended (only for SCHEDULED_LIVE with endTime)
+    if (selectedSession.type === 'SCHEDULED_LIVE' && selectedSession.endTime && selectedSession.date) {
+      const now = new Date();
+      const sessionDate = new Date(selectedSession.date);
+      const [endHours, endMinutes] = selectedSession.endTime.split(':').map(Number);
+      const sessionEndTime = new Date(sessionDate);
+      sessionEndTime.setHours(endHours, endMinutes, 0, 0);
+      
+      if (now > sessionEndTime) {
+        toast.error('This session has already ended. You cannot join after the scheduled end time.');
+        return;
+      }
+    }
+    
     setStreamKey(selectedSession.streamKey);
     setStreamTitle(selectedSession.title);
     setCurrentSessionId(selectedSession.liveSessionId);

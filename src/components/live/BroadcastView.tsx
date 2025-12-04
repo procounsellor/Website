@@ -1,6 +1,6 @@
 import * as Broadcast from '@livepeer/react/broadcast';
 import { getIngest } from '@livepeer/react/external';
-import { X, Mic, MicOff, Video as VideoIcon, VideoOff, Monitor, MonitorOff, Radio, MessageCircle, Users, Clock, Share2 } from 'lucide-react';
+import { X, Mic, MicOff, Video as VideoIcon, VideoOff, Monitor, MonitorOff, Radio, MessageCircle, Users, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useRef, useEffect } from 'react';
 import { setSessionLive, endSessionLive } from '@/lib/firebase';
@@ -60,24 +60,14 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
   const lastAudioStateRef = useRef<'on' | 'off'>('on');
   const lastScreenShareStateRef = useRef<'on' | 'off'>('off');
 
-  // Log stream details and set up Firebase
+  // Set up Firebase
   useEffect(() => {
-    const ingestUrl = getIngest(streamKey);
-    console.log('=== BROADCAST SETUP ===');
-    console.log('Stream Key:', streamKey);
-    console.log('Ingest URL:', ingestUrl);
-    console.log('Live Session ID:', liveSessionId);
-    
     // Check if mic permissions are available
     navigator.mediaDevices.getUserMedia({ audio: true, video: true })
       .then(stream => {
-        console.log('✅ Media permissions granted');
-        console.log('Audio tracks:', stream.getAudioTracks());
-        console.log('Video tracks:', stream.getVideoTracks());
         stream.getTracks().forEach(track => track.stop());
       })
       .catch(err => {
-        console.error('❌ Media permission error:', err);
       });
 
     // Handle browser close/tab close/refresh
@@ -97,19 +87,15 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
   // Monitor broadcast controls and AGGRESSIVELY stop ALL tracks when disabled
   useEffect(() => {
     const stopAllCameraTracks = () => {
-      console.log('=== STOPPING ALL CAMERA TRACKS ===');
       let stoppedCount = 0;
       
       // CRITICAL: Get ALL video elements globally
       const allVideoElements = Array.from(document.querySelectorAll('video'));
-      console.log(`Found ${allVideoElements.length} video elements to check`);
       
       allVideoElements.forEach((video: HTMLVideoElement, index) => {
-        console.log(`Checking video element ${index}:`, video.srcObject);
         if (video.srcObject instanceof MediaStream) {
           const stream = video.srcObject;
           const videoTracks = stream.getVideoTracks();
-          console.log(`Video ${index} has ${videoTracks.length} video tracks`);
           
           videoTracks.forEach(track => {
             const label = track.label.toLowerCase();
@@ -117,69 +103,54 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
                                   label.includes('display') || label.includes('window') || label.includes('tab');
             
             if (!isScreenTrack && track.readyState === 'live') {
-              console.log(`STOPPING camera track: ${track.label} (readyState: ${track.readyState})`);
               track.stop();
               stoppedCount++;
-              console.log(`After stop - readyState: ${track.readyState}`);
             }
           });
           
           // FORCE cleanup: remove ALL tracks from stream and null the source
           const remainingLive = stream.getTracks().filter(t => t.readyState === 'live');
-          console.log(`Video ${index} has ${remainingLive.length} remaining live tracks after camera stop`);
           if (remainingLive.length === 0) {
-            console.log(`Nulling srcObject for video ${index}`);
             video.srcObject = null;
           }
         }
       });
       
-      console.log(`✅ Stopped ${stoppedCount} camera tracks total`);
     };
 
     const stopAllAudioTracks = () => {
-      console.log('=== STOPPING ALL AUDIO TRACKS ===');
       let stoppedCount = 0;
       
       // Check ALL media elements (video and audio)
       const allMediaElements = Array.from(document.querySelectorAll('video, audio'));
-      console.log(`Found ${allMediaElements.length} media elements to check`);
       
       allMediaElements.forEach((el, index) => {
         const mediaEl = el as HTMLVideoElement | HTMLAudioElement;
         if (mediaEl.srcObject instanceof MediaStream) {
           const stream = mediaEl.srcObject;
           const audioTracks = stream.getAudioTracks();
-          console.log(`Media ${index} has ${audioTracks.length} audio tracks`);
           
           audioTracks.forEach((track: MediaStreamTrack) => {
             if (track.readyState === 'live') {
-              console.log(`STOPPING audio track: ${track.label} (readyState: ${track.readyState})`);
               track.stop();
               stoppedCount++;
-              console.log(`After stop - readyState: ${track.readyState}`);
             }
           });
           
           // FORCE cleanup
           const remainingLive = stream.getTracks().filter(t => t.readyState === 'live');
-          console.log(`Media ${index} has ${remainingLive.length} remaining live tracks after audio stop`);
           if (remainingLive.length === 0) {
-            console.log(`Nulling srcObject for media ${index}`);
             mediaEl.srcObject = null;
           }
         }
       });
       
-      console.log(`✅ Stopped ${stoppedCount} audio tracks total`);
     };
 
     const stopAllScreenTracks = () => {
-      console.log('=== STOPPING ALL SCREEN SHARE TRACKS ===');
       let stoppedCount = 0;
       
       const allVideoElements = Array.from(document.querySelectorAll('video'));
-      console.log(`Found ${allVideoElements.length} video elements to check for screen share`);
       
       allVideoElements.forEach((video: HTMLVideoElement, index) => {
         if (video.srcObject instanceof MediaStream) {
@@ -192,24 +163,19 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
                                   label.includes('display') || label.includes('window') || label.includes('tab');
             
             if (isScreenTrack && track.readyState === 'live') {
-              console.log(`STOPPING screen track: ${track.label} (readyState: ${track.readyState})`);
               track.stop();
               stoppedCount++;
-              console.log(`After stop - readyState: ${track.readyState}`);
             }
           });
           
           // FORCE cleanup
           const remainingLive = stream.getTracks().filter(t => t.readyState === 'live');
-          console.log(`Video ${index} has ${remainingLive.length} remaining live tracks after screen stop`);
           if (remainingLive.length === 0) {
-            console.log(`Nulling srcObject for video ${index}`);
             video.srcObject = null;
           }
         }
       });
       
-      console.log(`✅ Stopped ${stoppedCount} screen share tracks total`);
     };
 
     const interval = setInterval(() => {
@@ -220,7 +186,6 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
       if (videoButton) {
         const currentState = videoButton.getAttribute('data-state') as 'on' | 'off';
         if (currentState === 'off' && lastVideoStateRef.current === 'on') {
-          console.log('🔴 VIDEO BUTTON TOGGLED OFF - Stopping camera');
           stopAllCameraTracks();
         }
         lastVideoStateRef.current = currentState;
@@ -231,7 +196,6 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
       if (audioButton) {
         const currentState = audioButton.getAttribute('data-state') as 'on' | 'off';
         if (currentState === 'off' && lastAudioStateRef.current === 'on') {
-          console.log('🔴 AUDIO BUTTON TOGGLED OFF - Stopping audio');
           stopAllAudioTracks();
         }
         lastAudioStateRef.current = currentState;
@@ -242,8 +206,7 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
       if (screenButton) {
         const currentState = screenButton.getAttribute('data-state') as 'on' | 'off';
         if (currentState === 'off' && lastScreenShareStateRef.current === 'on') {
-          console.log('🔴 SCREEN SHARE BUTTON TOGGLED OFF - Stopping screen share');
-          stopAllScreenTracks();
+          stopAllScreenShareTracks();
         }
         lastScreenShareStateRef.current = currentState;
       }
@@ -258,12 +221,10 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
   useEffect(() => {
     // Cleanup function that runs when component unmounts
     return () => {
-      console.log('=== CLEANING UP BROADCAST ON UNMOUNT ===');
       
       // Stop all active streams from ref
       activeStreamsRef.current.forEach(stream => {
         stream.getTracks().forEach(track => {
-          console.log('Stopping ref track:', track.kind, track.label, track.readyState);
           track.stop();
         });
       });
@@ -271,7 +232,6 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
       // Stop screen share if exists
       if (screenShareStreamRef.current) {
         screenShareStreamRef.current.getTracks().forEach(track => {
-          console.log('Stopping screen share track:', track.label);
           track.stop();
         });
       }
@@ -280,7 +240,6 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
       document.querySelectorAll('video').forEach((video: HTMLVideoElement) => {
         if (video.srcObject instanceof MediaStream) {
           video.srcObject.getTracks().forEach(track => {
-            console.log('Force stopping video track:', track.kind, track.readyState);
             track.stop();
           });
           video.srcObject = null;
@@ -290,7 +249,6 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
       document.querySelectorAll('audio').forEach((audio: HTMLAudioElement) => {
         if (audio.srcObject instanceof MediaStream) {
           audio.srcObject.getTracks().forEach(track => {
-            console.log('Force stopping audio track:', track.kind, track.readyState);
             track.stop();
           });
           audio.srcObject = null;
@@ -343,19 +301,13 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
     }
   };
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.origin);
-  };
-
   const stopAllMediaTracks = () => {
-    console.log('=== STOPPING ALL MEDIA TRACKS ===');
     setIsCleaningUp(true);
     
     // Stop all media tracks
     document.querySelectorAll('video').forEach((video: HTMLVideoElement) => {
       if (video.srcObject instanceof MediaStream) {
         video.srcObject.getTracks().forEach(track => {
-          console.log('EXIT: Stopping track:', track.kind, track.label);
           track.stop();
         });
         video.srcObject = null;
@@ -365,7 +317,6 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
     document.querySelectorAll('audio').forEach((audio: HTMLAudioElement) => {
       if (audio.srcObject instanceof MediaStream) {
         audio.srcObject.getTracks().forEach(track => {
-          console.log('EXIT: Stopping track:', track.kind, track.label);
           track.stop();
         });
         audio.srcObject = null;
@@ -378,7 +329,11 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
   };
 
   const handleEndStream = async () => {
-    console.log('=== ENDING STREAM ===');
+    // Stop the Livepeer broadcast
+    const enableButton = document.querySelector('[data-livepeer-enabled-trigger]') as HTMLButtonElement;
+    if (enableButton && enableButton.getAttribute('data-state') === 'on') {
+      enableButton.click(); // Toggle off to stop broadcast
+    }
     
     // Stop all media
     stopAllMediaTracks();
@@ -391,11 +346,8 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
   };
 
   const handleGoLive = async () => {
-    console.log('🚀 Starting broadcast with stream key:', streamKey);
-    
     const enableButton = document.querySelector('[data-livepeer-enabled-trigger]') as HTMLButtonElement;
     if (!enableButton) {
-      console.error('❌ Enable button not found');
       toast.error('Failed to start broadcast');
       return;
     }
@@ -410,9 +362,6 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
     
     // Clear initial system message and allow chat
     setChatMessages([]);
-    
-    toast.success('🔴 Broadcasting to Livepeer!');
-    console.log('✅ Broadcast started');
   };
 
   // Suppress unused param warnings
@@ -425,11 +374,12 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
           
           {/* Header */}
           <header className="relative z-10 flex items-center justify-between px-6 py-4 bg-black/60 backdrop-blur-lg border-b border-white/5">
-            <div className="flex items-center gap-4">
+            {/* Left Side - Main Controls */}
+            <div className="flex items-center gap-3">
               {!broadcastStarted ? (
                 <button
                   onClick={handleGoLive}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600/90 hover:bg-red-700 text-white transition-all border border-red-500/50 font-semibold"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white transition-all shadow-lg shadow-red-600/30 font-semibold"
                 >
                   <Radio className="w-5 h-5" />
                   <span className="hidden sm:inline">Go Live</span>
@@ -437,56 +387,56 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
               ) : (
                 <button
                   onClick={() => setShowEndConfirmation(true)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600/90 hover:bg-red-700 text-white transition-all border border-red-500/50 font-semibold"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-linear-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white transition-all shadow-lg font-semibold border border-white/10"
                 >
                   <X className="w-5 h-5" />
-                  <span className="hidden sm:inline">End Stream</span>
+                  <span className="hidden sm:inline">End Broadcast</span>
                 </button>
               )}
-              
-              <Broadcast.StatusIndicator matcher="live" className="flex items-center gap-2 bg-red-600/90 backdrop-blur-sm px-3 py-1.5 rounded-md animate-pulse">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                </span>
-                <span className="font-bold text-white text-xs">LIVE</span>
-              </Broadcast.StatusIndicator>
-              
-              <Broadcast.StatusIndicator matcher="pending" className="flex items-center gap-2 bg-yellow-600/90 backdrop-blur-sm px-3 py-1.5 rounded-md">
-                 <span className="font-bold text-white text-xs">CONNECTING...</span>
-              </Broadcast.StatusIndicator>
 
-              <div className="hidden md:flex items-center gap-1.5 text-white/70">
-                <Users className="w-3.5 h-3.5" />
+              <div className="hidden md:flex items-center gap-2 text-white/70 px-3 py-1.5 rounded-lg bg-white/5">
+                <Users className="w-4 h-4" />
                 <span className="text-sm font-medium text-white">{viewerCount.toLocaleString()}</span>
                 <span className="text-xs">watching</span>
               </div>
 
               {streamDuration > 0 && (
-                <div className="hidden lg:flex items-center gap-2 text-white/60 text-sm">
+                <div className="hidden lg:flex items-center gap-2 text-white/60 text-sm px-3 py-1.5 rounded-lg bg-white/5">
                   <Clock className="w-4 h-4" />
-                  <span>Started {formatDuration(streamDuration)} ago</span>
+                  <span>{formatDuration(streamDuration)}</span>
                 </div>
               )}
             </div>
 
-            <div className="flex items-center gap-4">
+            {/* Right Side - Status & Chat */}
+            <div className="flex items-center gap-3">
                {/* Hidden enabled trigger - auto-started by handleGoLive */}
                <Broadcast.EnabledTrigger 
                  data-livepeer-enabled-trigger
                  className="hidden"
                />
+              
+              <Broadcast.StatusIndicator matcher="live" className="flex items-center gap-2 bg-red-600 backdrop-blur-sm px-4 py-2 rounded-full animate-pulse shadow-lg shadow-red-600/50">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                </span>
+                <span className="font-bold text-white text-sm">LIVE</span>
+              </Broadcast.StatusIndicator>
+              
+              <Broadcast.StatusIndicator matcher="pending" className="flex items-center gap-2 bg-yellow-600 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
+                 <span className="font-bold text-white text-sm">CONNECTING...</span>
+              </Broadcast.StatusIndicator>
 
                <button
-                onClick={() => broadcastStarted && setShowChat(!showChat)}
-                disabled={!broadcastStarted}
+                onClick={() => setShowChat(!showChat)}
                 className={cn(
-                  "p-2 rounded-lg transition-all border",
-                  showChat && broadcastStarted
-                    ? "bg-[#13097D] text-white border-[#13097D]" 
-                    : "bg-white/5 text-white/80 border-white/10 hover:bg-white/10 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  "p-2.5 rounded-lg transition-all border shadow-md",
+                  showChat
+                    ? "bg-[#13097D] text-white border-[#13097D] shadow-[#13097D]/50" 
+                    : "bg-white/10 text-white border-white/10 hover:bg-white/20"
                 )}
-                title={!broadcastStarted ? "Go live to enable chat" : "Toggle chat"}
+                title="Toggle chat"
               >
                 <MessageCircle className="w-5 h-5" />
               </button>
@@ -549,25 +499,16 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
                     </div>
                 </div>
 
-                {/* View Bar (Bottom) - Similar to userView but for broadcaster */}
-                <div className="bg-black/50 backdrop-blur-md border-t border-white/5 p-3">
-                    <div className="flex items-center gap-2">
-                        {/* Reactions are removed as per request, but keeping the structure for consistency */}
+                {/* View Bar (Bottom) */}
+                <div className="bg-black/50 backdrop-blur-md border-t border-white/5 p-4 h-[76px] flex items-center">
+                    <div className="flex items-center gap-2 w-full">
                         <div className="flex-1"></div>
-                        
-                        <button 
-                            onClick={handleCopyLink}
-                            className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-medium transition-all shrink-0 border border-white/10"
-                        >
-                            <Share2 className="w-3 h-3" />
-                            <span>Copy Link</span>
-                        </button>
                     </div>
                 </div>
              </div>
 
              {/* Chat Sidebar */}
-             {showChat && broadcastStarted && (
+             {showChat && (
                 <div className="absolute lg:relative right-0 top-0 bottom-0 w-full sm:w-96 bg-black/50 backdrop-blur-xl flex flex-col animate-in slide-in-from-right duration-300 border-l border-white/5">
                     {/* Chat Header */}
                     <div className="flex items-center justify-between p-4 border-b border-white/5 bg-black/20">
@@ -682,7 +623,11 @@ export default function BroadcastView(props: BroadcastViewProps) {
           height: 720,
           frameRate: 30
         }}
-        audio={true}
+        audio={{
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }}
       >
         <BroadcastContent {...props} />
       </Broadcast.Root>
