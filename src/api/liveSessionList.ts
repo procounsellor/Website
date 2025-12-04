@@ -150,3 +150,58 @@ export const startScheduledLive = async (
 
   return response.json();
 };
+
+export interface UpdateSessionPayload {
+  counsellorId: string;
+  liveSessionId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+}
+
+export const updateLiveSession = async (
+  payload: UpdateSessionPayload,
+  token: string
+): Promise<{ success: boolean; message: string }> => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/counsellorLiveSession/updateSchedule`,
+    {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to update live session');
+  }
+
+  return response.json();
+};
+
+export const cancelLiveSession = async (
+  counsellorId: string,
+  liveSessionId: string,
+  token: string
+): Promise<{ success: boolean; message: string }> => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/counsellorLiveSession/cancel?counsellorId=${counsellorId}&liveSessionId=${liveSessionId}`,
+    {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to cancel live session');
+  }
+
+  return response.json();
+};
