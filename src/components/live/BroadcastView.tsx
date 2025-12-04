@@ -175,7 +175,7 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
     //     }
     //   });
       
-    // };
+    };
 
     const interval = setInterval(() => {
       if (isCleaningUp) return;
