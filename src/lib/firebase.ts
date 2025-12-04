@@ -2,14 +2,14 @@ import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, set, onDisconnect, serverTimestamp } from 'firebase/database';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDb_zz0woAHGNq8W1RlU-0giJaT3vstJ44",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "procounsellor-71824.firebaseapp.com",
-  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL || "https://procounsellor-71824-default-rtdb.firebaseio.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "procounsellor-71824",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "procounsellor-71824.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1000407154647",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1000407154647:web:0cc6c26e11d212a233d592",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-B3YPBQMY6L"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
