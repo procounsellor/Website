@@ -60,12 +60,24 @@ export default function PlansCard({
   const [drawerOpen, setDrawerOpen] = useState(!!initialSelectedPlan);
   const planHierarchy = ['plus','pro','elite'];
 
+  const formatPlanPrice = (priceString: string | undefined): string => {
+    if (priceString == null || priceString.trim() === '') return 'N/A';
+    const priceNum = Number(priceString);
+    if (isNaN(priceNum) || priceNum === 0) {
+        return 'N/A';
+    }
+    return priceString;
+  };
+
   const currentPlanIndex = (isUpgrade && currentPlan?.plan)
     ? planHierarchy.indexOf(currentPlan.plan.toLowerCase())
     : -1;
 
   const rowHeight = "h-14 md:h-16"; 
   const headerRowHeight = "h-20 md:h-24";
+
+  const selectedPlanPrice = formatPlanPrice((plan?.prices as any)?.[selected ?? ""]);
+  const isSelectedPlanAvailable = selectedPlanPrice !== 'N/A';
 
   return (
     <div className="bg-white w-full max-w-[1092px] p-2 md:pl-6 md:pr-6 md:py-6 rounded-[20px]">
@@ -106,9 +118,9 @@ export default function PlansCard({
                     if (isDisabled) return;
                     setSelected(isSelected ? null : col.key)
                   }}
-                  className={`flex-1 p-2 md:p-4 transition-colors duration-150 rounded-[16px] text-center border-2 box-border ${
+                  className={`flex-1 p-2 md:p-4 transition-colors duration-150 rounded-2xl text-center border-2 box-border ${
                     isSelected
-                      ? "border-[#EC5E1A] bg-gradient-to-b from-[#FFF4EB] to-[#FFF1E6]"
+                      ? "border-[#EC5E1A] bg-linear-to-b from-[#FFF4EB] to-[#FFF1E6]"
                       : "border-transparent bg-transparent"
                   } ${
                     isDisabled ? "opacity-50 cursor-not-allowed" : ""
@@ -133,7 +145,7 @@ export default function PlansCard({
                         isSelected ? "text-[#EC5E1A]" : "text-[#13097D]"
                       } text-sm md:text-xl font-semibold mt-1`}
                     >
-                      {(plan?.prices as any)?.[col.key]}
+                      {formatPlanPrice((plan?.prices as any)?.[col.key])}
                     </p>
                   </div>
 
@@ -158,15 +170,15 @@ export default function PlansCard({
         <button
           type="button"
           onClick={() => {
-            if (!selected) return;
+            if (!selected || !isSelectedPlanAvailable) return;
             setDrawerOpen(true);
           }}
           className={`w-full lg:w-[586px] h-12 rounded-md text-base md:text-lg font-semibold transition-colors duration-150 ${
-            selected
+            selected && isSelectedPlanAvailable
               ? "bg-[#EC5E1A] text-white"
               : "bg-white text-[#EC5E1A] border border-[#EC5E1A] opacity-50 cursor-not-allowed"
           }`}
-          disabled={!selected}
+          disabled={!selected || !isSelectedPlanAvailable}
         >
           Buy Membership
         </button>

@@ -33,7 +33,7 @@ const ExamsListingPage = lazy(() => import('@/pages/exams'));
 const CounselorDetailsPage = lazy(() => import('@/pages/CounselorDetailsPage'));
 const ExamDetailsPage = lazy(() => import('@/pages/ExamDetailsPage'));
 const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
-
+const LiveSessionsPage = lazy(() => import('@/pages/LiveSessionsPage'));
 
 
 
@@ -75,6 +75,7 @@ export default function AppRoutes(){
                                 <Route path="/add-college" element={<AddCollegePage/>} />
                                 <Route path="/exams/:id" element={<ExamDetailsPage />} />
                                 <Route path='/subscribe' element={<SubscriptionPage/>}/>
+                                <Route path='/live-sessions' element={<LiveSessionsPage/>}/>
                                 <Route path='/counsellor-dashboard' element={<CounselorDashboard/>}/>
                                 <Route path="/community" element={<CommunityPage />} />
                                 <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
