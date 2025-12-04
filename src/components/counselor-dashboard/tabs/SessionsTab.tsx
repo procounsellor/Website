@@ -5,7 +5,8 @@ import BroadcastView from '@/components/live/BroadcastView';
 import ScheduleLiveModal from '@/components/counselor-details/ScheduleLiveModal';
 import SessionCard from '@/components/counselor-dashboard/SessionCard';
 import SessionDetailsModal from '@/components/counselor-dashboard/SessionDetailsModal';
-import { getAllLiveSessions, getUpcomingLiveSessions, getLiveSessionById, startScheduledLive, type LiveSessionItem, type LiveSessionDetail } from '@/api/liveSessionList';
+import EditSessionModal from '@/components/counselor-dashboard/EditSessionModal';
+import { getAllLiveSessions, getUpcomingLiveSessions, getLiveSessionById, startScheduledLive, updateLiveSession, cancelLiveSession, type LiveSessionItem, type LiveSessionDetail } from '@/api/liveSessionList';
 import type { User } from '@/types/user';
 
 interface SessionsTabProps {
@@ -26,6 +27,9 @@ export default function SessionsTab({ user, token }: SessionsTabProps) {
   const [selectedSession, setSelectedSession] = useState<LiveSessionDetail | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [loadingSessionId, setLoadingSessionId] = useState<string | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [sessionToEdit, setSessionToEdit] = useState<LiveSessionItem | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (user?.userName && token) {
@@ -140,6 +144,81 @@ export default function SessionsTab({ user, token }: SessionsTabProps) {
     setShowBroadcast(true);
   };
 
+  const handleEditSession = (session: LiveSessionItem) => {
+    setSessionToEdit(session);
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async (data: { date: string; startTime: string; endTime: string }) => {
+    if (!sessionToEdit || !user?.userName) return;
+    
+    setIsUpdating(true);
+    const loadingToast = toast.loading('Updating session...');
+    
+    try {
+      const response = await updateLiveSession(
+        {
+          counsellorId: user.userName,
+          liveSessionId: sessionToEdit.liveSessionId,
+          date: data.date,
+          startTime: data.startTime,
+          endTime: data.endTime,
+        },
+        token
+      );
+
+      toast.dismiss(loadingToast);
+      
+      if (response.success) {
+        toast.success('Session updated successfully!');
+        setShowEditModal(false);
+        setSessionToEdit(null);
+        await fetchSessions(); // Refresh the list
+      } else {
+        toast.error(response.message || 'Failed to update session');
+      }
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error('Failed to update session. Please try again.');
+      console.error('Update session error:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDeleteSession = async (session: LiveSessionItem) => {
+    if (!user?.userName) return;
+    
+    const confirmed = window.confirm(
+      `Are you sure you want to cancel "${session.title}"? This action cannot be undone.`
+    );
+    
+    if (!confirmed) return;
+    
+    const loadingToast = toast.loading('Cancelling session...');
+    
+    try {
+      const response = await cancelLiveSession(
+        user.userName,
+        session.liveSessionId,
+        token
+      );
+
+      toast.dismiss(loadingToast);
+      
+      if (response.success) {
+        toast.success('Session cancelled successfully!');
+        await fetchSessions(); // Refresh the list
+      } else {
+        toast.error(response.message || 'Failed to cancel session');
+      }
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error('Failed to cancel session. Please try again.');
+      console.error('Cancel session error:', error);
+    }
+  };
+
   if (showBroadcast && streamKey && currentSessionId) {
     return (
       <BroadcastView 
@@ -210,6 +289,8 @@ export default function SessionsTab({ user, token }: SessionsTabProps) {
               onJoin={handleViewSession}
               canJoin={true}
               isLoading={loadingSessionId === session.liveSessionId}
+              onEdit={handleEditSession}
+              onDelete={handleDeleteSession}
             />
           ))}
         </div>
@@ -247,6 +328,18 @@ export default function SessionsTab({ user, token }: SessionsTabProps) {
         loading={loadingDetails}
         canJoin={canJoinSession(selectedSession).canJoin}
         joinMessage={canJoinSession(selectedSession).message}
+      />
+
+      {/* Edit Session Modal */}
+      <EditSessionModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSessionToEdit(null);
+        }}
+        session={sessionToEdit}
+        onSave={handleSaveEdit}
+        loading={isUpdating}
       />
     </div>
   );

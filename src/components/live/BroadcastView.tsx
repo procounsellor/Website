@@ -1,9 +1,10 @@
-import { getIngest } from '@livepeer/react/external';
 import * as Broadcast from '@livepeer/react/broadcast';
+import { getIngest } from '@livepeer/react/external';
 import { X, Mic, MicOff, Video as VideoIcon, VideoOff, Monitor, MonitorOff, Radio, MessageCircle, Users, Clock, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useRef, useEffect } from 'react';
 import { setSessionLive, endSessionLive } from '@/lib/firebase';
+import toast from 'react-hot-toast';
 
 interface BroadcastViewProps {
   streamKey: string;
@@ -22,29 +23,21 @@ interface ChatMessage {
   avatar: string;
 }
 
-export default function BroadcastView({ streamKey, counselorId, streamTitle, liveSessionId, onClose }: BroadcastViewProps) {
-  const ingestUrl = getIngest(streamKey);
+// Inner component to access broadcast context
+function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, onClose }: BroadcastViewProps) {
   const [showChat, setShowChat] = useState(true);
   const [viewerCount, setViewerCount] = useState(0);
   const [streamDuration, setStreamDuration] = useState(0);
   const [showEndConfirmation, setShowEndConfirmation] = useState(false);
-  const [isLive, setIsLive] = useState(false);
+  const [broadcastStarted, setBroadcastStarted] = useState(false);
   const streamStartTime = useRef<number>(Date.now());
   const [messageInput, setMessageInput] = useState('');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
-      id: '1',
-      user: 'Host',
-      message: 'Welcome to the live session! Feel free to ask questions.',
+      id: '0',
+      user: 'System',
+      message: 'Click "Go Live" to start broadcasting and enable chat',
       timestamp: Date.now(),
-      isHost: true,
-      avatar: 'H'
-    },
-    {
-      id: '2',
-      user: 'Student A',
-      message: 'Hello! Excited to learn today.',
-      timestamp: Date.now() + 1000,
       isHost: false,
       avatar: 'SA'
     },
@@ -69,12 +62,11 @@ export default function BroadcastView({ streamKey, counselorId, streamTitle, liv
 
   // Log stream details and set up Firebase
   useEffect(() => {
+    const ingestUrl = getIngest(streamKey);
     console.log('=== BROADCAST SETUP ===');
     console.log('Stream Key:', streamKey);
     console.log('Ingest URL:', ingestUrl);
     console.log('Live Session ID:', liveSessionId);
-    
-    // Note: We'll set Firebase live status when user clicks "Go Live"
     
     // Check if mic permissions are available
     navigator.mediaDevices.getUserMedia({ audio: true, video: true })
@@ -100,7 +92,7 @@ export default function BroadcastView({ streamKey, counselorId, streamTitle, liv
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [streamKey, ingestUrl, liveSessionId]);
+  }, [streamKey, liveSessionId]);
 
   // Monitor broadcast controls and AGGRESSIVELY stop ALL tracks when disabled
   useEffect(() => {
@@ -220,22 +212,6 @@ export default function BroadcastView({ streamKey, counselorId, streamTitle, liv
       console.log(`✅ Stopped ${stoppedCount} screen share tracks total`);
     };
 
-    // DIAGNOSTIC: Log all media tracks every 2 seconds
-    const diagnosticInterval = setInterval(() => {
-      if (isCleaningUp) return;
-      
-      console.log('📊 DIAGNOSTIC REPORT:');
-      document.querySelectorAll('video').forEach((video, i) => {
-        if (video.srcObject instanceof MediaStream) {
-          const stream = video.srcObject;
-          console.log(`  Video ${i}:`, {
-            videoTracks: stream.getVideoTracks().map(t => ({ label: t.label, state: t.readyState, enabled: t.enabled })),
-            audioTracks: stream.getAudioTracks().map(t => ({ label: t.label, state: t.readyState, enabled: t.enabled }))
-          });
-        }
-      });
-    }, 2000);
-
     const interval = setInterval(() => {
       if (isCleaningUp) return;
 
@@ -275,7 +251,6 @@ export default function BroadcastView({ streamKey, counselorId, streamTitle, liv
 
     return () => {
       clearInterval(interval);
-      clearInterval(diagnosticInterval);
     };
   }, [isCleaningUp]);
 
@@ -416,21 +391,28 @@ export default function BroadcastView({ streamKey, counselorId, streamTitle, liv
   };
 
   const handleGoLive = async () => {
-    console.log('=== GOING LIVE ===');
+    console.log('🚀 Starting broadcast with stream key:', streamKey);
     
-    // Start the broadcast
     const enableButton = document.querySelector('[data-livepeer-enabled-trigger]') as HTMLButtonElement;
-    if (enableButton && enableButton.getAttribute('data-state') === 'off') {
-      console.log('Starting broadcast...');
-      enableButton.click();
+    if (!enableButton) {
+      console.error('❌ Enable button not found');
+      toast.error('Failed to start broadcast');
+      return;
     }
     
-    // Mark as live
-    setIsLive(true);
+    // Click to start WebRTC broadcast
+    enableButton.click();
+    setBroadcastStarted(true);
     streamStartTime.current = Date.now();
     
-    // Set session as live in Firebase (will auto-set to false on disconnect)
+    // Update Firebase session status
     await setSessionLive(liveSessionId);
+    
+    // Clear initial system message and allow chat
+    setChatMessages([]);
+    
+    toast.success('🔴 Broadcasting to Livepeer!');
+    console.log('✅ Broadcast started');
   };
 
   // Suppress unused param warnings
@@ -438,23 +420,13 @@ export default function BroadcastView({ streamKey, counselorId, streamTitle, liv
   void streamTitle;
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0f0f0f] overflow-hidden flex flex-col">
-
-      <Broadcast.Root 
-        ingestUrl={ingestUrl}
-        video={{
-          width: 1280,
-          height: 720,
-          frameRate: 30
-        }}
-        audio={true}
-      >
+    <>
         <Broadcast.Container className="w-full h-full relative flex flex-col">
           
           {/* Header */}
           <header className="relative z-10 flex items-center justify-between px-6 py-4 bg-black/60 backdrop-blur-lg border-b border-white/5">
             <div className="flex items-center gap-4">
-              {!isLive ? (
+              {!broadcastStarted ? (
                 <button
                   onClick={handleGoLive}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600/90 hover:bg-red-700 text-white transition-all border border-red-500/50 font-semibold"
@@ -506,15 +478,15 @@ export default function BroadcastView({ streamKey, counselorId, streamTitle, liv
                />
 
                <button
-                onClick={() => isLive && setShowChat(!showChat)}
-                disabled={!isLive}
+                onClick={() => broadcastStarted && setShowChat(!showChat)}
+                disabled={!broadcastStarted}
                 className={cn(
                   "p-2 rounded-lg transition-all border",
-                  showChat && isLive
+                  showChat && broadcastStarted
                     ? "bg-[#13097D] text-white border-[#13097D]" 
                     : "bg-white/5 text-white/80 border-white/10 hover:bg-white/10 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 )}
-                title={!isLive ? "Go live to enable chat" : "Toggle chat"}
+                title={!broadcastStarted ? "Go live to enable chat" : "Toggle chat"}
               >
                 <MessageCircle className="w-5 h-5" />
               </button>
@@ -595,7 +567,7 @@ export default function BroadcastView({ streamKey, counselorId, streamTitle, liv
              </div>
 
              {/* Chat Sidebar */}
-             {showChat && isLive && (
+             {showChat && broadcastStarted && (
                 <div className="absolute lg:relative right-0 top-0 bottom-0 w-full sm:w-96 bg-black/50 backdrop-blur-xl flex flex-col animate-in slide-in-from-right duration-300 border-l border-white/5">
                     {/* Chat Header */}
                     <div className="flex items-center justify-between p-4 border-b border-white/5 bg-black/20">
@@ -664,7 +636,6 @@ export default function BroadcastView({ streamKey, counselorId, streamTitle, liv
           </div>
 
         </Broadcast.Container>
-      </Broadcast.Root>
       
       {/* End Stream Confirmation Modal */}
       {showEndConfirmation && (
@@ -694,7 +665,27 @@ export default function BroadcastView({ streamKey, counselorId, streamTitle, liv
           </div>
         </div>
       )}
+    </>
+  );
+}
 
+// Wrapper component that provides Broadcast.Root context
+export default function BroadcastView(props: BroadcastViewProps) {
+  const ingestUrl = getIngest(props.streamKey);
+  
+  return (
+    <div className="fixed inset-0 z-50 bg-[#0f0f0f] overflow-hidden flex flex-col">
+      <Broadcast.Root 
+        ingestUrl={ingestUrl}
+        video={{
+          width: 1280,
+          height: 720,
+          frameRate: 30
+        }}
+        audio={true}
+      >
+        <BroadcastContent {...props} />
+      </Broadcast.Root>
     </div>
   );
 }
