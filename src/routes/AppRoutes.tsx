@@ -24,7 +24,6 @@ import CommunityPage from '@/pages/CommunityPage';
 import AnswerPage from '@/pages/AnswerPage';
 import QuestionDetailPage from '@/pages/QuestionDetailPage';
 import CoursePage from '@/pages/CoursePage';
-import LiveSessions from '@/pages/LiveSessions';
 import MyActivityPage from '@/pages/MyActivityPage';
 import LandingPage from '@/pages/AdityaLandingPage';
 const CollegesListingPage = lazy(() => import('@/pages/colleges'));
@@ -64,7 +63,6 @@ export default function AppRoutes(){
                                 <Route path="/courses/:id" element={<CourseDetailsPage/>} />
                                 <Route path="/colleges" element={<CollegesListingPage />} />
                                 <Route path="/colleges/:id" element={<CollegeDetailsPage/>} />
-                                <Route path='/live-sessions' element={<LiveSessions/>}/>
                                 <Route path="/exams" element={<ExamsListingPage />} />
                                 <Route path="/about" element={<AboutPage/>} />
                                 <Route path="/contact" element={<ContactPage/>} />
