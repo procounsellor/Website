@@ -67,8 +67,7 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
       .then(stream => {
         stream.getTracks().forEach(track => track.stop());
       })
-      .catch(err => {
-      });
+      .catch();
 
     // Handle browser close/tab close/refresh
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -92,7 +91,7 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
       // CRITICAL: Get ALL video elements globally
       const allVideoElements = Array.from(document.querySelectorAll('video'));
       
-      allVideoElements.forEach((video: HTMLVideoElement, index) => {
+      allVideoElements.forEach((video: HTMLVideoElement) => {
         if (video.srcObject instanceof MediaStream) {
           const stream = video.srcObject;
           const videoTracks = stream.getVideoTracks();
@@ -124,7 +123,7 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
       // Check ALL media elements (video and audio)
       const allMediaElements = Array.from(document.querySelectorAll('video, audio'));
       
-      allMediaElements.forEach((el, index) => {
+      allMediaElements.forEach((el) => {
         const mediaEl = el as HTMLVideoElement | HTMLAudioElement;
         if (mediaEl.srcObject instanceof MediaStream) {
           const stream = mediaEl.srcObject;
@@ -148,33 +147,33 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
     };
 
     const stopAllScreenTracks = () => {
-      let stoppedCount = 0;
+    //   let stoppedCount = 0;
       
-      const allVideoElements = Array.from(document.querySelectorAll('video'));
+    //   const allVideoElements = Array.from(document.querySelectorAll('video'));
       
-      allVideoElements.forEach((video: HTMLVideoElement, index) => {
-        if (video.srcObject instanceof MediaStream) {
-          const stream = video.srcObject;
-          const videoTracks = stream.getVideoTracks();
+    //   allVideoElements.forEach((video: HTMLVideoElement, index) => {
+    //     if (video.srcObject instanceof MediaStream) {
+    //       const stream = video.srcObject;
+    //       const videoTracks = stream.getVideoTracks();
           
-          videoTracks.forEach(track => {
-            const label = track.label.toLowerCase();
-            const isScreenTrack = label.includes('screen') || label.includes('monitor') || 
-                                  label.includes('display') || label.includes('window') || label.includes('tab');
+    //       videoTracks.forEach(track => {
+    //         const label = track.label.toLowerCase();
+    //         const isScreenTrack = label.includes('screen') || label.includes('monitor') || 
+    //                               label.includes('display') || label.includes('window') || label.includes('tab');
             
-            if (isScreenTrack && track.readyState === 'live') {
-              track.stop();
-              stoppedCount++;
-            }
-          });
+    //         if (isScreenTrack && track.readyState === 'live') {
+    //           track.stop();
+    //           stoppedCount++;
+    //         }
+    //       });
           
-          // FORCE cleanup
-          const remainingLive = stream.getTracks().filter(t => t.readyState === 'live');
-          if (remainingLive.length === 0) {
-            video.srcObject = null;
-          }
-        }
-      });
+    //       // FORCE cleanup
+    //       const remainingLive = stream.getTracks().filter(t => t.readyState === 'live');
+    //       if (remainingLive.length === 0) {
+    //         video.srcObject = null;
+    //       }
+    //     }
+    //   });
       
     };
 
@@ -206,7 +205,7 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
       if (screenButton) {
         const currentState = screenButton.getAttribute('data-state') as 'on' | 'off';
         if (currentState === 'off' && lastScreenShareStateRef.current === 'on') {
-          stopAllScreenShareTracks();
+          stopAllScreenTracks();
         }
         lastScreenShareStateRef.current = currentState;
       }

@@ -19,6 +19,22 @@ interface OngoingSessionsResponse {
     data: LiveSession[];
 }
 
+export interface DetailedLiveSession {
+    liveSessionId: string;
+    counsellorId: string;
+    type: 'DIRECT_LIVE' | 'SCHEDULED';
+    date: string | null;
+    startTime: string | null;
+    endTime: string | null;
+    title: string;
+    forWhom: string;
+    description: string;
+    broadcastId: string;
+    youtubeVideoId: string;
+    playbackId: string;
+    createdAt: { seconds: number; nanos: number };
+}
+
 export async function getAllOngoingLiveSessions(): Promise<LiveSession[]> {
     const { userId } = useAuthStore.getState();
     const token = localStorage.getItem('jwt');
@@ -55,6 +71,88 @@ export async function getAllOngoingLiveSessions(): Promise<LiveSession[]> {
 
     } catch (error) {
         console.error("Error fetching ongoing sessions:", error);
+        return [];
+    }
+}
+
+export async function getLiveSessionById(counsellorId: string, liveSessionId: string): Promise<DetailedLiveSession | null> {
+    const { userId } = useAuthStore.getState();
+    const token = localStorage.getItem('jwt');
+
+    if (!userId || !token || !counsellorId || !liveSessionId) {
+        console.error("Missing required identifiers for live session detail.");
+        return null;
+    }
+
+    const url = `${API_CONFIG.baseUrl}/api/counsellorLiveSession/getLiveSessionByIdForUser?counsellorId=${counsellorId}&liveSessionId=${liveSessionId}&userId=${userId}`;
+    
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                'Content-Type' : 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`HTTP ${response.status}: Failed to fetch session details. Details: ${errorBody}`);
+        }
+        const data = await response.json();
+        if (data.success && data.data) {
+            return data.data;
+        } else {
+            throw new Error(data.message || "Server returned failure message for session details.");
+        }
+
+    } catch (error) {
+        console.error("Error fetching session details:", error);
+        return null;
+    }
+}
+
+export async function getAllUpcomingLiveSessions(): Promise<LiveSession[]> {
+    const { userId } = useAuthStore.getState();
+    const token = localStorage.getItem('jwt');
+
+    if (!userId || !token) {
+        return [];
+    }
+
+    const url = `${API_CONFIG.baseUrl}/api/counsellorLiveSession/getAllUpcomingCourseLiveSessionsForUser?userId=${userId}`;
+    
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json', 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type' : 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.text();
+            console.error(`HTTP ${response.status}: Failed to fetch upcoming sessions. Details: ${errorBody}`);
+            return [];
+        }
+        
+        const data = await response.json();
+
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+            return data.data.map((session: any) => ({
+                ...session,
+                date: session.date, 
+                startTime: session.startTime,
+            })) as LiveSession[];
+        } else {
+            return [];
+        }
+
+    } catch (error) {
+        console.error("Error fetching upcoming sessions:", error);
         return [];
     }
 }
