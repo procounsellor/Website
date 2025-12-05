@@ -3,6 +3,7 @@ import { X, MessageCircle, Heart, ThumbsUp, Users, Clock } from 'lucide-react'; 
 import { cn } from '@/lib/utils';
 import { useLiveStreamStore } from '@/store/LiveStreamStore';
 import type { StreamPlatform } from '@/store/LiveStreamStore';
+// import { getLiveChatsOfSession, sendMessageInLiveSession, type LiveChatMessage } from '@/api/liveSessions';
 
 // Declare YouTube IFrame API types
 declare global {
@@ -47,7 +48,8 @@ interface LiveStreamViewProps {
   isLive?: boolean;
   scheduledTime?: Date;
   onClose?: () => void;
-  allowMinimize?: boolean;    // kept so existing callers don’t break
+  allowMinimize?: boolean;    // kept so existing callers don't break
+  liveSessionId?: string;      // for chat functionality
 }
 
 interface Reaction {
@@ -74,6 +76,7 @@ export default function LiveStreamView({
   isLive = true,
   scheduledTime: _scheduledTime,
   onClose,
+  liveSessionId = '',
   // allowMinimize = true,      // unused now, safe to keep
 }: LiveStreamViewProps) {
   const { closeStream /* , minimizeStream */ } = useLiveStreamStore(); // minimizeStream removed
@@ -84,13 +87,14 @@ export default function LiveStreamView({
   const [viewerCount, setViewerCount] = useState(234);
   const [ytLoading, setYtLoading] = useState(platform === 'youtube');
   const [ytPlaying, setYtPlaying] = useState(false); // Play/pause state for internal tracking
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+  const [chatMessages, /*setChatMessages*/] = useState<ChatMessage[]>([
     { id: '1', user: 'Nishant Sagar', message: 'Great session! Very informative 🎓', timestamp: new Date(), avatar: 'NS' },
     { id: '2', user: 'Aswini Verma', message: 'Can you talk about engineering colleges?', timestamp: new Date(), avatar: 'AV' },
     { id: '3', user: 'Ashutosh Kumar', message: 'This is exactly what I needed!', timestamp: new Date(), avatar: 'AK' },
   ]);
   const [messageInput, setMessageInput] = useState('');
   const [streamDuration, setStreamDuration] = useState(0);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
 
@@ -112,11 +116,47 @@ export default function LiveStreamView({
 
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      const container = chatContainerRef.current;
+      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+      
+      // Only auto-scroll if user is near bottom (like YouTube)
+      if (isNearBottom) {
+        container.scrollTop = container.scrollHeight;
+      }
     }
   }, [chatMessages]);
 
-  const addReaction = (emoji: string) => {
+  // Fetch chat messages every 5 seconds
+  // const fetchChatsRef = useRef<(() => Promise<void>) | null>(null);
+
+  useEffect(() => {
+    if (!liveSessionId) return;
+
+    const fetchChats = async () => {
+      // const messages = await getLiveChatsOfSession(liveSessionId);
+      // const formattedMessages: ChatMessage[] = messages.map((msg: LiveChatMessage) => ({
+      //   id: msg.messageId,
+      //   user: msg.fullName,
+      //   message: msg.message,
+      //   timestamp: new Date(msg.timestamp),
+      //   avatar: msg.fullName.substring(0, 2).toUpperCase()
+      // }));
+      // setChatMessages(formattedMessages);
+    };
+
+    // fetchChatsRef.current = fetchChats;
+
+    // Initial fetch
+    fetchChats();
+
+  //   // Poll every 5 seconds
+    const interval = setInterval(fetchChats, 5000);
+
+    return () => clearInterval(interval);
+  }, [liveSessionId]);
+
+  const addReaction = async (emoji: string) => {
+    // Show floating animation
     const newReaction: Reaction = {
       id: Math.random().toString(36),
       emoji,
@@ -127,19 +167,36 @@ export default function LiveStreamView({
     setTimeout(() => {
       setReactions(prev => prev.filter(r => r.id !== newReaction.id));
     }, 3000);
+
+    // Send emoji as message to chat
+    // if (liveSessionId) {
+    //   await sendMessageInLiveSession(liveSessionId, emoji);
+    //   // Fetch messages immediately
+    //   if (fetchChatsRef.current) {
+    //     await fetchChatsRef.current();
+    //   }
+    // }
   };
 
-  const sendMessage = () => {
-    if (messageInput.trim()) {
-      const newMessage: ChatMessage = {
-        id: Date.now().toString(),
-        user: 'You',
-        message: messageInput,
-        timestamp: new Date(),
-        avatar: 'YO'
-      };
-      setChatMessages(prev => [...prev, newMessage]);
+  const sendMessage = async () => {
+    if (messageInput.trim() && liveSessionId && !isSendingMessage) {
+      setIsSendingMessage(true);
+      // const messageToSend = messageInput;
       setMessageInput('');
+      
+      // const success = await sendMessageInLiveSession(liveSessionId, messageToSend);
+      
+      // if (success) {
+      //   // Fetch messages immediately after successful send
+      //   if (fetchChatsRef.current) {
+      //     await fetchChatsRef.current();
+      //   }
+      // } else {
+      //   // Revert message if failed
+      //   setMessageInput(messageToSend);
+      // }
+      
+      setIsSendingMessage(false);
     }
   };
 

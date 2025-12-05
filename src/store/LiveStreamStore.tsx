@@ -10,7 +10,8 @@ interface LiveStreamState {
   embedUrl: string; // Full embed URL for Livepeer
   streamTitle: string;
   description: string;
-  startStream: (platform: StreamPlatform, videoId: string, title: string, description: string) => void;
+  liveSessionId: string; // For chat functionality
+  startStream: (platform: StreamPlatform, videoId: string, title: string, description: string, liveSessionId?: string) => void;
   closeStream: () => void;
   minimizeStream: () => void;
   maximizeStream: () => void;
@@ -24,8 +25,9 @@ export const useLiveStreamStore = create<LiveStreamState>((set) => ({
   embedUrl: '',
   streamTitle: '',
   description: '',
+  liveSessionId: '',
   
-  startStream: (platform, videoId, title, description) => {
+  startStream: (platform, videoId, title, description, liveSessionId = '') => {
     // For Livepeer, use the correct iframe embed URL format
     const embedUrl = platform === 'livepeer' 
       ? `https://lvpr.tv?v=${videoId}&autoplay=true`
@@ -38,7 +40,8 @@ export const useLiveStreamStore = create<LiveStreamState>((set) => ({
       videoId,
       embedUrl,
       streamTitle: title,
-      description: description
+      description: description,
+      liveSessionId
     });
   },
   
@@ -50,7 +53,8 @@ export const useLiveStreamStore = create<LiveStreamState>((set) => ({
       videoId: '',
       embedUrl: '',
       streamTitle: '',
-      description: ''
+      description: '',
+      liveSessionId: ''
     }),
   
   minimizeStream: () => 

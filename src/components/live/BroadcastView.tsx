@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { useState, useRef, useEffect } from 'react';
 import { setSessionLive, endSessionLive } from '@/lib/firebase';
 import toast from 'react-hot-toast';
+// import { getLiveChatsOfSession, sendMessageInLiveSession, type LiveChatMessage } from '@/api/liveSessions';
 
 interface BroadcastViewProps {
   streamKey: string;
@@ -32,24 +33,8 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
   const [broadcastStarted, setBroadcastStarted] = useState(false);
   const streamStartTime = useRef<number>(Date.now());
   const [messageInput, setMessageInput] = useState('');
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    {
-      id: '0',
-      user: 'System',
-      message: 'Click "Go Live" to start broadcasting and enable chat',
-      timestamp: Date.now(),
-      isHost: false,
-      avatar: 'SA'
-    },
-    {
-      id: '3',
-      user: 'Student B',
-      message: 'Can you explain the topic slowly?',
-      timestamp: Date.now() + 2000,
-      isHost: false,
-      avatar: 'SB'
-    }
-  ]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Store active media streams for cleanup
@@ -259,9 +244,45 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
   // Auto-scroll chat
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      const container = chatContainerRef.current;
+      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+      
+      // Only auto-scroll if user is near bottom (like YouTube)
+      if (isNearBottom) {
+        container.scrollTop = container.scrollHeight;
+      }
     }
   }, [chatMessages]);
+
+  // Fetch chat messages every 5 seconds
+  // const fetchChatsRef = useRef<(() => Promise<void>) | null>(null);
+
+  // useEffect(() => {
+  //   if (!liveSessionId) return;
+
+  //   const fetchChats = async () => {
+  //     const messages = await getLiveChatsOfSession(liveSessionId);
+  //     const formattedMessages: ChatMessage[] = messages.map((msg: LiveChatMessage) => ({
+  //       id: msg.messageId,
+  //       user: msg.fullName,
+  //       message: msg.message,
+  //       timestamp: msg.timestamp,
+  //       isHost: msg.userId === counselorId, // Check if message is from counselor
+  //       avatar: msg.fullName.substring(0, 2).toUpperCase()
+  //     }));
+  //     setChatMessages(formattedMessages);
+  //   };
+
+  //   fetchChatsRef.current = fetchChats;
+
+  //   // Initial fetch
+  //   fetchChats();
+
+  //   // Poll every 5 seconds
+  //   const interval = setInterval(fetchChats, 5000);
+
+  //   return () => clearInterval(interval);
+  // }, [liveSessionId]);
 
   // Simulate viewer count updates
   useEffect(() => {
@@ -285,18 +306,26 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
     return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
   };
 
-  const handleSendMessage = () => {
-    if (messageInput.trim()) {
-      const newMessage: ChatMessage = {
-        id: Date.now().toString(),
-        user: 'Host',
-        message: messageInput,
-        timestamp: Date.now(),
-        isHost: true,
-        avatar: 'H'
-      };
-      setChatMessages(prev => [...prev, newMessage]);
+  const handleSendMessage = async () => {
+    if (messageInput.trim() && liveSessionId && !isSendingMessage) {
+      setIsSendingMessage(true);
+      // const messageToSend = messageInput;
       setMessageInput('');
+      
+      // const success = await sendMessageInLiveSession(liveSessionId, messageToSend);
+      
+      // if (success) {
+      //   // Fetch messages immediately after successful send
+      //   if (fetchChatsRef.current) {
+      //     await fetchChatsRef.current();
+      //   }
+      // } else {
+      //   // Revert message if failed
+      //   setMessageInput(messageToSend);
+      //   toast.error('Failed to send message');
+      // }
+      
+      setIsSendingMessage(false);
     }
   };
 
