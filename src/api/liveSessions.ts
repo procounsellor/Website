@@ -19,6 +19,22 @@ interface OngoingSessionsResponse {
     data: LiveSession[];
 }
 
+export interface DetailedLiveSession {
+    liveSessionId: string;
+    counsellorId: string;
+    type: 'DIRECT_LIVE' | 'SCHEDULED';
+    date: string | null;
+    startTime: string | null;
+    endTime: string | null;
+    title: string;
+    forWhom: string;
+    description: string;
+    broadcastId: string;
+    youtubeVideoId: string;
+    playbackId: string;
+    createdAt: { seconds: number; nanos: number };
+}
+
 export async function getAllOngoingLiveSessions(): Promise<LiveSession[]> {
     const { userId } = useAuthStore.getState();
     const token = localStorage.getItem('jwt');
@@ -59,31 +75,16 @@ export async function getAllOngoingLiveSessions(): Promise<LiveSession[]> {
     }
 }
 
-export interface LiveChatMessage {
-    messageId: string;
-    userId: string;
-    fullName: string;
-    message: string;
-    timestamp: number;
-}
-
-interface SendMessageResponse {
-    success: boolean;
-    message: string;
-}
-
-export async function getLiveChatsOfSession(liveSessionId: string): Promise<LiveChatMessage[]> {
+export async function getLiveSessionById(counsellorId: string, liveSessionId: string): Promise<DetailedLiveSession | null> {
     const { userId } = useAuthStore.getState();
     const token = localStorage.getItem('jwt');
 
-    if (!userId || !token) {
-        console.error("Authentication check failed: userId or token missing.");
-        return [];
+    if (!userId || !token || !counsellorId || !liveSessionId) {
+        console.error("Missing required identifiers for live session detail.");
+        return null;
     }
 
-    const url = `${API_CONFIG.baseUrl}/api/counsellorLiveSession/getLiveChatsOfASession?userId=${userId}&liveSessionId=${liveSessionId}`;
-    
-    console.log('Fetching chats:', { url, userId, liveSessionId });
+    const url = `${API_CONFIG.baseUrl}/api/counsellorLiveSession/getLiveSessionByIdForUser?counsellorId=${counsellorId}&liveSessionId=${liveSessionId}&userId=${userId}`;
     
     try {
         const response = await fetch(url, {
@@ -91,74 +92,67 @@ export async function getLiveChatsOfSession(liveSessionId: string): Promise<Live
             headers: {
                 'Accept': 'application/json',
                 'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
+                'Content-Type' : 'application/json',
             },
         });
 
-        console.log('Fetch chats response:', response.status, response.ok);
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`HTTP ${response.status}: Failed to fetch session details. Details: ${errorBody}`);
+        }
+        const data = await response.json();
+        if (data.success && data.data) {
+            return data.data;
+        } else {
+            throw new Error(data.message || "Server returned failure message for session details.");
+        }
+
+    } catch (error) {
+        console.error("Error fetching session details:", error);
+        return null;
+    }
+}
+
+export async function getAllUpcomingLiveSessions(): Promise<LiveSession[]> {
+    const { userId } = useAuthStore.getState();
+    const token = localStorage.getItem('jwt');
+
+    if (!userId || !token) {
+        return [];
+    }
+
+    const url = `${API_CONFIG.baseUrl}/api/counsellorLiveSession/getAllUpcomingCourseLiveSessionsForUser?userId=${userId}`;
+    
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json', 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type' : 'application/json',
+            },
+        });
 
         if (!response.ok) {
             const errorBody = await response.text();
-            console.error('Fetch chats error:', errorBody);
-            throw new Error(`HTTP ${response.status}: Failed to fetch chats. Details: ${errorBody}`);
+            console.error(`HTTP ${response.status}: Failed to fetch upcoming sessions. Details: ${errorBody}`);
+            return [];
         }
         
         const data = await response.json();
-        console.log('Fetch chats success:', data);
 
-        // API returns array directly
-        if (Array.isArray(data)) {
-            return data as LiveChatMessage[];
-        } else if (data.success && data.data) {
-            return data.data;
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+            return data.data.map((session: any) => ({
+                ...session,
+                date: session.date, 
+                startTime: session.startTime,
+            })) as LiveSession[];
         } else {
             return [];
         }
 
     } catch (error) {
-        console.error("Error fetching live chats:", error);
+        console.error("Error fetching upcoming sessions:", error);
         return [];
-    }
-}
-
-export async function sendMessageInLiveSession(liveSessionId: string, message: string): Promise<boolean> {
-    const { userId } = useAuthStore.getState();
-    const token = localStorage.getItem('jwt');
-
-    if (!userId || !token) {
-        console.error("Authentication check failed: userId or token missing.");
-        return false;
-    }
-
-    const url = `${API_CONFIG.baseUrl}/api/counsellorLiveSession/sendMessageInLiveSession?userId=${userId}&liveSessionId=${liveSessionId}`;
-    
-    console.log('Sending message:', { url, message, userId, liveSessionId });
-    
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ message }),
-        });
-
-        console.log('Send message response:', response.status, response.ok);
-
-        if (!response.ok) {
-            const errorBody = await response.text();
-            console.error('Send message error:', errorBody);
-            throw new Error(`HTTP ${response.status}: Failed to send message. Details: ${errorBody}`);
-        }
-        
-        const data: SendMessageResponse = await response.json();
-        console.log('Send message success:', data);
-        return data.success;
-
-    } catch (error) {
-        console.error("Error sending message:", error);
-        return false;
     }
 }
