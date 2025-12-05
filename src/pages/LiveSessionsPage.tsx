@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 import { unlockScroll } from '@/lib/scrollLock';
 import { getAllOngoingLiveSessions } from '@/api/liveSessions';
 import type { LiveSession } from '@/api/liveSessions';
+import { useLiveStreamStore } from '@/store/LiveStreamStore';
 
 interface OngoingSessionAvatarProps {
   session: LiveSession;
 }
 
 function OngoingSessionAvatar({ session }: OngoingSessionAvatarProps) {
+  const { startStream } = useLiveStreamStore();
+  
   const getAvatarUrl = (photoUrl: string | null, fullName: string) => {
     if (photoUrl) return photoUrl;
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=E0E7FF&color=4F46E5`;
@@ -15,9 +18,20 @@ function OngoingSessionAvatar({ session }: OngoingSessionAvatarProps) {
 
   const avatarUrl = getAvatarUrl(session.counsellorPhotoUrl, session.counsellorFullName);
 
+  const handleAvatarClick = () => {
+    startStream(
+      'livepeer',
+      session.playbackId,
+      session.title,
+      `${session.description} • By ${session.counsellorFullName}`,
+      session.liveSessionId
+    );
+  };
+
   return (
     <div 
-      className="relative shrink-0 cursor-pointer transition-transform duration-300 hover:scale-[1.05]"
+      className="relative shrink-0 cursor-pointer"
+      onClick={handleAvatarClick}
       // The 120x120 container with a 32px gap between items
       style={{ width: '120px', height: '120px' }} 
     >

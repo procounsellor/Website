@@ -16,6 +16,8 @@ import AppInstallBanner from "@/components/shared/AppInstallBanner";
 import EditProfileModal from "@/components/student-dashboard/EditProfileModal";
 import { useEffect } from "react";
 import { updateUserProfile } from '@/api/user';
+import { useLiveStreamStore } from "@/store/LiveStreamStore";
+import LiveStreamView from "@/components/live/userView";
 
 export default function MainLayout(){
   const { 
@@ -37,6 +39,7 @@ export default function MainLayout(){
   const { refreshUser } = useAuthStore();
   const { isChatbotOpen, toggleChatbot } = useChatStore();
   const { isVoiceChatOpen} = useVoiceChatStore();
+  const { isStreamActive, platform, videoId, streamTitle, description, liveSessionId } = useLiveStreamStore();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -179,6 +182,17 @@ export default function MainLayout(){
 
       {isChatbotOpen && <Chatbot />}
       {isVoiceChatOpen && <VoiceChat />}
+      
+      {isStreamActive && (
+        <LiveStreamView
+          platform={platform}
+          videoId={videoId}
+          streamTitle={streamTitle}
+          description={description}
+          isLive={true}
+          liveSessionId={liveSessionId}
+        />
+      )}
     </div>
   );
 }
