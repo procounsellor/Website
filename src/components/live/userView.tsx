@@ -3,7 +3,7 @@ import { X, MessageCircle, Heart, ThumbsUp, Users, Clock } from 'lucide-react'; 
 import { cn } from '@/lib/utils';
 import { useLiveStreamStore } from '@/store/LiveStreamStore';
 import type { StreamPlatform } from '@/store/LiveStreamStore';
-import { getLiveChatsOfSession, sendMessageInLiveSession, type LiveChatMessage } from '@/api/liveSessions';
+// import { getLiveChatsOfSession, sendMessageInLiveSession, type LiveChatMessage } from '@/api/liveSessions';
 
 // Declare YouTube IFrame API types
 declare global {
@@ -87,7 +87,7 @@ export default function LiveStreamView({
   const [viewerCount, setViewerCount] = useState(234);
   const [ytLoading, setYtLoading] = useState(platform === 'youtube');
   const [ytPlaying, setYtPlaying] = useState(false); // Play/pause state for internal tracking
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+  const [chatMessages, /*setChatMessages*/] = useState<ChatMessage[]>([
     { id: '1', user: 'Nishant Sagar', message: 'Great session! Very informative 🎓', timestamp: new Date(), avatar: 'NS' },
     { id: '2', user: 'Aswini Verma', message: 'Can you talk about engineering colleges?', timestamp: new Date(), avatar: 'AV' },
     { id: '3', user: 'Ashutosh Kumar', message: 'This is exactly what I needed!', timestamp: new Date(), avatar: 'AK' },
@@ -127,29 +127,29 @@ export default function LiveStreamView({
   }, [chatMessages]);
 
   // Fetch chat messages every 5 seconds
-  const fetchChatsRef = useRef<(() => Promise<void>) | null>(null);
+  // const fetchChatsRef = useRef<(() => Promise<void>) | null>(null);
 
   useEffect(() => {
     if (!liveSessionId) return;
 
     const fetchChats = async () => {
-      const messages = await getLiveChatsOfSession(liveSessionId);
-      const formattedMessages: ChatMessage[] = messages.map((msg: LiveChatMessage) => ({
-        id: msg.messageId,
-        user: msg.fullName,
-        message: msg.message,
-        timestamp: new Date(msg.timestamp),
-        avatar: msg.fullName.substring(0, 2).toUpperCase()
-      }));
-      setChatMessages(formattedMessages);
+      // const messages = await getLiveChatsOfSession(liveSessionId);
+      // const formattedMessages: ChatMessage[] = messages.map((msg: LiveChatMessage) => ({
+      //   id: msg.messageId,
+      //   user: msg.fullName,
+      //   message: msg.message,
+      //   timestamp: new Date(msg.timestamp),
+      //   avatar: msg.fullName.substring(0, 2).toUpperCase()
+      // }));
+      // setChatMessages(formattedMessages);
     };
 
-    fetchChatsRef.current = fetchChats;
+    // fetchChatsRef.current = fetchChats;
 
     // Initial fetch
     fetchChats();
 
-    // Poll every 5 seconds
+  //   // Poll every 5 seconds
     const interval = setInterval(fetchChats, 5000);
 
     return () => clearInterval(interval);
@@ -169,32 +169,32 @@ export default function LiveStreamView({
     }, 3000);
 
     // Send emoji as message to chat
-    if (liveSessionId) {
-      await sendMessageInLiveSession(liveSessionId, emoji);
-      // Fetch messages immediately
-      if (fetchChatsRef.current) {
-        await fetchChatsRef.current();
-      }
-    }
+    // if (liveSessionId) {
+    //   await sendMessageInLiveSession(liveSessionId, emoji);
+    //   // Fetch messages immediately
+    //   if (fetchChatsRef.current) {
+    //     await fetchChatsRef.current();
+    //   }
+    // }
   };
 
   const sendMessage = async () => {
     if (messageInput.trim() && liveSessionId && !isSendingMessage) {
       setIsSendingMessage(true);
-      const messageToSend = messageInput;
+      // const messageToSend = messageInput;
       setMessageInput('');
       
-      const success = await sendMessageInLiveSession(liveSessionId, messageToSend);
+      // const success = await sendMessageInLiveSession(liveSessionId, messageToSend);
       
-      if (success) {
-        // Fetch messages immediately after successful send
-        if (fetchChatsRef.current) {
-          await fetchChatsRef.current();
-        }
-      } else {
-        // Revert message if failed
-        setMessageInput(messageToSend);
-      }
+      // if (success) {
+      //   // Fetch messages immediately after successful send
+      //   if (fetchChatsRef.current) {
+      //     await fetchChatsRef.current();
+      //   }
+      // } else {
+      //   // Revert message if failed
+      //   setMessageInput(messageToSend);
+      // }
       
       setIsSendingMessage(false);
     }

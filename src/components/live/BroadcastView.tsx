@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { useState, useRef, useEffect } from 'react';
 import { setSessionLive, endSessionLive } from '@/lib/firebase';
 import toast from 'react-hot-toast';
-import { getLiveChatsOfSession, sendMessageInLiveSession, type LiveChatMessage } from '@/api/liveSessions';
+// import { getLiveChatsOfSession, sendMessageInLiveSession, type LiveChatMessage } from '@/api/liveSessions';
 
 interface BroadcastViewProps {
   streamKey: string;
@@ -255,34 +255,34 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
   }, [chatMessages]);
 
   // Fetch chat messages every 5 seconds
-  const fetchChatsRef = useRef<(() => Promise<void>) | null>(null);
+  // const fetchChatsRef = useRef<(() => Promise<void>) | null>(null);
 
-  useEffect(() => {
-    if (!liveSessionId) return;
+  // useEffect(() => {
+  //   if (!liveSessionId) return;
 
-    const fetchChats = async () => {
-      const messages = await getLiveChatsOfSession(liveSessionId);
-      const formattedMessages: ChatMessage[] = messages.map((msg: LiveChatMessage) => ({
-        id: msg.messageId,
-        user: msg.fullName,
-        message: msg.message,
-        timestamp: msg.timestamp,
-        isHost: msg.userId === counselorId, // Check if message is from counselor
-        avatar: msg.fullName.substring(0, 2).toUpperCase()
-      }));
-      setChatMessages(formattedMessages);
-    };
+  //   const fetchChats = async () => {
+  //     const messages = await getLiveChatsOfSession(liveSessionId);
+  //     const formattedMessages: ChatMessage[] = messages.map((msg: LiveChatMessage) => ({
+  //       id: msg.messageId,
+  //       user: msg.fullName,
+  //       message: msg.message,
+  //       timestamp: msg.timestamp,
+  //       isHost: msg.userId === counselorId, // Check if message is from counselor
+  //       avatar: msg.fullName.substring(0, 2).toUpperCase()
+  //     }));
+  //     setChatMessages(formattedMessages);
+  //   };
 
-    fetchChatsRef.current = fetchChats;
+  //   fetchChatsRef.current = fetchChats;
 
-    // Initial fetch
-    fetchChats();
+  //   // Initial fetch
+  //   fetchChats();
 
-    // Poll every 5 seconds
-    const interval = setInterval(fetchChats, 5000);
+  //   // Poll every 5 seconds
+  //   const interval = setInterval(fetchChats, 5000);
 
-    return () => clearInterval(interval);
-  }, [liveSessionId]);
+  //   return () => clearInterval(interval);
+  // }, [liveSessionId]);
 
   // Simulate viewer count updates
   useEffect(() => {
@@ -309,21 +309,21 @@ function BroadcastContent({ streamKey, counselorId, streamTitle, liveSessionId, 
   const handleSendMessage = async () => {
     if (messageInput.trim() && liveSessionId && !isSendingMessage) {
       setIsSendingMessage(true);
-      const messageToSend = messageInput;
+      // const messageToSend = messageInput;
       setMessageInput('');
       
-      const success = await sendMessageInLiveSession(liveSessionId, messageToSend);
+      // const success = await sendMessageInLiveSession(liveSessionId, messageToSend);
       
-      if (success) {
-        // Fetch messages immediately after successful send
-        if (fetchChatsRef.current) {
-          await fetchChatsRef.current();
-        }
-      } else {
-        // Revert message if failed
-        setMessageInput(messageToSend);
-        toast.error('Failed to send message');
-      }
+      // if (success) {
+      //   // Fetch messages immediately after successful send
+      //   if (fetchChatsRef.current) {
+      //     await fetchChatsRef.current();
+      //   }
+      // } else {
+      //   // Revert message if failed
+      //   setMessageInput(messageToSend);
+      //   toast.error('Failed to send message');
+      // }
       
       setIsSendingMessage(false);
     }
