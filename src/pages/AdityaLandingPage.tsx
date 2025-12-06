@@ -19,7 +19,7 @@ type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 
 const COURSE_ID = "a997f3a9-4a36-4395-9f90-847b739fb225";
 const COURSE_NAME = "MHT-CET Mastery Course";
-const COURSE_PRICE = 1999;
+const COURSE_PRICE = 2999;
 
 export default function LandingPage() {
   const { user, userId, isAuthenticated, toggleLogin, refreshUser } = useAuthStore();
@@ -213,7 +213,7 @@ export default function LandingPage() {
                 <img src="/ratingandduration.svg" alt="" />
 
                 <p className="flex gap-2 items-center">
-                  <img src="/2999.svg" alt="" className="h-[15px]" />
+                  <img src="/4,999.svg" alt="" className="h-[15px]" />
                   <span className="text-[1rem] text-[#232323] font-semibold">
                     ₹{COURSE_PRICE.toLocaleString("en-IN")}
                   </span>
@@ -278,7 +278,7 @@ export default function LandingPage() {
                 {isProcessing ? "Processing..." : "Enroll Now"}
               </button>
               <p className="flex gap-2 items-center">
-                <img src="/2999.svg" alt="" className="h-5" />
+                <img src="/4,999.svg" alt="" className="h-5" />
                 <span className="text-[1.25rem] font-semibold text-[#232323]">
                   ₹{COURSE_PRICE.toLocaleString("en-IN")}
                 </span>
