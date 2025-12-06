@@ -79,7 +79,8 @@ export function LiveSessionCard({ counselorName = "Counselor" }: LiveSessionCard
 
         <button
           onClick={handleJoinLive}
-          className="w-full bg-linear-to-r from-[#FF660F] to-orange-600 hover:from-[#FF660F]/90 hover:to-orange-600/90 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group"
+          disabled={true}
+          className="w-full cursor-not-allowed bg-linear-to-r from-[#FF660F] to-orange-600 hover:from-[#FF660F]/90 hover:to-orange-600/90 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group"
         >
           <Video className="w-5 h-5 group-hover:scale-110 transition-transform" />
           <span>Join Live Session</span>
