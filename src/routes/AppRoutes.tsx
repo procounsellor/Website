@@ -1,4 +1,3 @@
-
 import { Suspense, lazy } from 'react';
 import MainLayout from "@/layouts/MainLayout";
 import Home from "@/pages/Home";
@@ -26,6 +25,8 @@ import QuestionDetailPage from '@/pages/QuestionDetailPage';
 import CoursePage from '@/pages/CoursePage';
 import MyActivityPage from '@/pages/MyActivityPage';
 import LandingPage from '@/pages/AdityaLandingPage';
+
+// --- EXISTING LAZY IMPORTS ---
 const CollegesListingPage = lazy(() => import('@/pages/colleges'));
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const CoursesListingPage = lazy(() => import('@/pages/courses'));
@@ -35,7 +36,8 @@ const ExamDetailsPage = lazy(() => import('@/pages/ExamDetailsPage'));
 const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
 const LiveSessionsPage = lazy(() => import('@/pages/LiveSessionsPage'));
 
-
+// --- NEW IMPORT HERE ---
+const FilteredUsersPage = lazy(() => import('@/pages/FilteredUsersPage')); 
 
 export default function AppRoutes(){
     return(
@@ -54,6 +56,7 @@ export default function AppRoutes(){
                      <Routes>
                         <Route path="/privacy1" element={<ExternalPrivacyPage/>} />
                         <Route path="/term1" element={<ExternalTermsPage/>} />
+                        
                         <Route element={<MainLayout/>}>
                                 <Route path="/" element={<Home/>}/>
                                 <Route path='/gurucool' element={<LandingPage/>}/>
@@ -81,9 +84,14 @@ export default function AppRoutes(){
                                 <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
                                 <Route path="/community/answer" element={<AnswerPage />} />
                                 <Route path="/community/my-activity" element={<MyActivityPage />} />
+                                
+                                {/* --- NEW ROUTE ADDED HERE --- */}
+                                {/* Access this via http://yourwebsite.com/dashboard/filter-users */}
+                                <Route path="/dashboard/filter-users" element={<FilteredUsersPage />} />
+
                                 <Route element={<ProtectedRoute/>}>
-                                <Route path='/dashboard-student' element={<StudentDashboardPage/>}/>
-                                <Route path='/wallet' element={<RechargeWallet/>}/>
+                                    <Route path='/dashboard-student' element={<StudentDashboardPage/>}/>
+                                    <Route path='/wallet' element={<RechargeWallet/>}/>
                                 </Route>
                          </Route>
                      </Routes>
