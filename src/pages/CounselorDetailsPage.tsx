@@ -7,7 +7,7 @@ import { CounselorReviews } from '@/components/counselor-details/CounselorReview
 import CounselorCoursesCard from '@/components/counselor-details/CounselorCoursesCard';
 import { FreeCareerAssessmentCard } from '@/components/shared/FreeCareerAssessmentCard';
 import { FeaturedCollegesCard } from '@/components/shared/FeaturedCollegesCard';
-import { LiveSessionCard } from '@/components/counselor-details/LiveSessionCard';
+// import { LiveSessionCard } from '@/components/counselor-details/LiveSessionCard';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/AuthStore';
 import { getSubscribedCounsellors, addFav, postReview, getReviewsByCounselorId } from '@/api/counsellor';
@@ -333,7 +333,7 @@ export default function CounselorDetailsPage() {
 
         {/* Right Column */}
         <div className="lg:col-span-1 flex flex-col gap-8">
-          <LiveSessionCard counselorName={`${counselor.firstName} ${counselor.lastName}`} />
+          {/* <LiveSessionCard counselorName={`${counselor.firstName} ${counselor.lastName}`} /> */}
           <FreeCareerAssessmentCard  counselor={counselor} user={user} onProfileIncomplete={handleProfileIncomplete}/>
           <CounselorCoursesCard counsellorId={computedId} userRole={role || "user"} />
           <FeaturedCollegesCard />
