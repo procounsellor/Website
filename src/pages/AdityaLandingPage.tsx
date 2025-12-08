@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuthStore } from "@/store/AuthStore";
 import { updateUserProfile } from "@/api/user";
-import { buyCourse } from "@/api/course";
+import { buyCourse, getBoughtCourses } from "@/api/course";
 import EditProfileModal from "@/components/student-dashboard/EditProfileModal";
 import CourseEnrollmentPopup from "@/components/landing-page/CourseEnrollmentPopup";
 import FAQ from "@/components/landing-page/FAQ";
@@ -9,6 +9,7 @@ import { Carousel } from "@/components/landing-page/Carousel";
 import { GuidanceSection } from "@/components/landing-page/GuidanceSection";
 import toast from "react-hot-toast";
 import startRecharge from "@/api/wallet";
+import { useQuery } from '@tanstack/react-query';
 
 declare global {
   interface Window {
@@ -29,6 +30,18 @@ export default function LandingPage() {
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const { data: boughtCoursesData, isLoading: isLoadingBought } = useQuery({
+    queryKey: ['boughtCourses', userId],
+    queryFn: () => getBoughtCourses(userId as string),
+    enabled: !!userId && isAuthenticated,
+    staleTime: 5000, 
+  });
+  const isCoursePurchased = boughtCoursesData?.data?.some(
+    (course) => course.courseId === COURSE_ID
+  ) ?? false;
+  
+  const isButtonDisabled = isProcessing || isLoadingBought || isCoursePurchased;
 
   const handleProfileIncomplete = (action: () => void) => {
     setPendingAction(() => action);
@@ -148,6 +161,10 @@ export default function LandingPage() {
 
   // Enrollment handler with login and name checks (email not required)
   const handleEnroll = async (amount: number) => {
+    if (isCoursePurchased) {
+      toast.error("You are already enrolled in this course.");
+      return;
+    }
     const enrollAction = async () => {
       // Refresh user data after login
       console.log("Login successful, refreshing user data...");
@@ -271,12 +288,18 @@ export default function LandingPage() {
 
             <div className="flex gap-3 pt-5">
               <button
-                onClick={() => handleEnroll(COURSE_PRICE)}
-                disabled={isProcessing}
-                className="text-white text-[0.875rem] font-medium bg-[#13097D] hover:bg-[#0d0659] active:bg-[#0a0447] py-2.5 px-10 rounded-[5px] disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg"
-              >
-                {isProcessing ? "Processing..." : "Enroll Now"}
-              </button>
+            onClick={() => handleEnroll(COURSE_PRICE)}
+            disabled={isButtonDisabled} 
+            className="w-full bg-blue-700 hover:bg-blue-800 active:bg-blue-900 rounded-[12px] text-white font-medium text-[14px] py-2.5 mt-3.5 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
+          >
+            {isLoadingBought 
+              ? "Checking enrollment..." 
+              : isCoursePurchased
+                ? "Already Enrolled"
+                : isProcessing
+                  ? "Processing..." 
+                  : "Enroll Now"}
+          </button>
               <p className="flex gap-2 items-center">
                 <img src="/4,999.svg" alt="" className="h-5" />
                 <span className="text-[1.25rem] font-semibold text-[#232323]">

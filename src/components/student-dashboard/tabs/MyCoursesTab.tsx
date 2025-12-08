@@ -9,7 +9,7 @@ import { Loader2 } from 'lucide-react';
 type SubTab = 'Purchased' | 'Saved';
 
 export default function MyCoursesTab() {
-  const [activeSubTab, setActiveSubTab] = useState<SubTab>('Saved');
+  const [activeSubTab, setActiveSubTab] = useState<SubTab>('Purchased');
   const { userId, role } = useAuthStore();
   const navigate = useNavigate();
 
@@ -25,7 +25,7 @@ export default function MyCoursesTab() {
     enabled: !!userId && activeSubTab === 'Saved',
   });
 
-  const TABS: SubTab[] = ['Saved', 'Purchased'];
+  const TABS: SubTab[] = ['Purchased', 'Saved'];
 
   const currentData = activeSubTab === 'Purchased' ? purchasedData : bookmarkedData;
   const isLoading = activeSubTab === 'Purchased' ? loadingPurchased : loadingBookmarked;
