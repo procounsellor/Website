@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { API_CONFIG } from "@/api/config";
 import { Calendar, Clock, MapPin, BookOpen, Globe } from 'lucide-react'; // Icons for better UI
 
@@ -243,7 +243,7 @@ const FilteredUsersPage = () => {
                    
                    {/* Card Header */}
                    <div className="p-5 flex items-start gap-4 border-b border-gray-50">
-                     <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg flex-shrink-0">
+                     <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg shrink-0">
                        {user.photoSmall ? (
                          <img src={user.photoSmall} alt={user.firstName} className="h-full w-full rounded-full object-cover" />
                        ) : (
@@ -264,7 +264,7 @@ const FilteredUsersPage = () => {
                    </div>
 
                    {/* Card Body */}
-                   <div className="p-5 space-y-3 flex-grow">
+                   <div className="p-5 space-y-3 grow">
                      <div className="flex items-start gap-2 text-sm text-gray-600">
                        <BookOpen className="h-4 w-4 mt-0.5 text-gray-400" />
                        <span className="font-medium text-gray-900">Course:</span> {user.interestedCourse || "N/A"}
