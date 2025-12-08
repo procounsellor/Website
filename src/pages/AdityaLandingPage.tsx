@@ -240,10 +240,16 @@ export default function LandingPage() {
           </div>
           <button
             onClick={() => handleEnroll(COURSE_PRICE)}
-            disabled={isProcessing}
+            disabled={isButtonDisabled}
             className="w-full bg-blue-700 hover:bg-blue-800 active:bg-blue-900 rounded-[12px] text-white font-medium text-[14px] py-2.5 mt-3.5 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
           >
-            {isProcessing ? "Processing..." : "Enroll Now"}
+            {isLoadingBought 
+              ? "Checking enrollment..." 
+              : isCoursePurchased
+                ? "Already Enrolled"
+                : isProcessing
+                  ? "Processing..." 
+                  : "Enroll Now"}
           </button>
 
           <hr className="h-px bg-#EFEFEF mt-4 mb-2" />
