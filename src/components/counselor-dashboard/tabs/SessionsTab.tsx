@@ -1,360 +1,256 @@
-import { useState, useEffect } from 'react';
-import {  Calendar, Loader2 } from 'lucide-react';
-import toast from 'react-hot-toast';
-import BroadcastView from '@/components/live/BroadcastView';
-import ScheduleLiveModal from '@/components/counselor-details/ScheduleLiveModal';
-import SessionCard from '@/components/counselor-dashboard/SessionCard';
-import SessionDetailsModal from '@/components/counselor-dashboard/SessionDetailsModal';
-import EditSessionModal from '@/components/counselor-dashboard/EditSessionModal';
-import { getAllLiveSessions, getUpcomingLiveSessions, getLiveSessionById, startScheduledLive, updateLiveSession, cancelLiveSession, type LiveSessionItem, type LiveSessionDetail } from '@/api/liveSessionList';
-import type { User } from '@/types/user';
+import { useState, useEffect, useRef } from 'react';
+import { X, MessageCircle, Users, Radio } from 'lucide-react';
+import type { User } from "@/types/user";
+import { listenToChatMessages } from '@/lib/firebase';
 
 interface SessionsTabProps {
   user: User | null;
   token: string;
 }
 
-export default function SessionsTab({ user, token }: SessionsTabProps) {
-  const [sessionSubTab, setSessionSubTab] = useState<'all' | 'upcoming'>('all');
-  const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [showBroadcast, setShowBroadcast] = useState(false);
-  const [streamKey, setStreamKey] = useState('');
-  const [streamTitle, setStreamTitle] = useState('');
-  const [currentSessionId, setCurrentSessionId] = useState('');
-  const [sessions, setSessions] = useState<LiveSessionItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [selectedSession, setSelectedSession] = useState<LiveSessionDetail | null>(null);
-  const [loadingDetails, setLoadingDetails] = useState(false);
-  const [loadingSessionId, setLoadingSessionId] = useState<string | null>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [sessionToEdit, setSessionToEdit] = useState<LiveSessionItem | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
+interface ChatMessage {
+  messageId: string;
+  userId: string;
+  fullName: string;
+  message: string;
+  timestamp: number;
+  userPhotoUrl?: string;
+}
 
+interface SessionInfo {
+  liveSessionId: string;
+  title: string;
+  startedAt: any;
+}
+
+export default function SessionsTab({ user }: SessionsTabProps) {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
+  const [showFullScreen, setShowFullScreen] = useState(false);
+  const [newMessageIds, setNewMessageIds] = useState<Set<string>>(new Set());
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  const messageQueueRef = useRef<ChatMessage[]>([]);
+  const isProcessingRef = useRef(false);
+  const previousMessageCountRef = useRef(0);
+
+  // Process message queue with delay
+  const processMessageQueue = () => {
+    if (isProcessingRef.current || messageQueueRef.current.length === 0) return;
+    
+    isProcessingRef.current = true;
+    const nextMsg = messageQueueRef.current.shift();
+    
+    if (nextMsg) {
+      setMessages(prev => [...prev, nextMsg]);
+      setNewMessageIds(prev => new Set(prev).add(nextMsg.messageId));
+      
+      // Remove "new" indicator after 8 seconds
+      setTimeout(() => {
+        setNewMessageIds(prev => {
+          const updated = new Set(prev);
+          updated.delete(nextMsg.messageId);
+          return updated;
+        });
+      }, 8000);
+      
+      // Wait 4 seconds before processing next message (much slower, readable)
+      setTimeout(() => {
+        isProcessingRef.current = false;
+        processMessageQueue();
+      }, 4000); // 4 second delay between messages
+    } else {
+      isProcessingRef.current = false;
+    }
+  };
+
+  // Listen to Firebase and queue new messages for gradual display
   useEffect(() => {
-    if (user?.userName && token) {
-      fetchSessions();
-    }
-  }, [sessionSubTab, user?.userName, token]);
-
-  const fetchSessions = async () => {
-    setLoading(true);
-    try {
-      const response = sessionSubTab === 'upcoming' 
-        ? await getUpcomingLiveSessions(user!.userName, token)
-        : await getAllLiveSessions(user!.userName, token);
-      
-      if (response.success) {
-        setSessions(response.data || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch sessions:', error);
-      setSessions([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const canJoinSession = (session: LiveSessionDetail | null): { canJoin: boolean; message: string } => {
-    if (!session) return { canJoin: false, message: 'Session not found' };
-    
-    // Hide join button for DIRECT_LIVE sessions (counselor creates these to go live)
-    if (session.type === 'DIRECT_LIVE') {
-      return { canJoin: false, message: 'This session was created for direct streaming' };
-    }
-    
-    // Scheduled sessions can always be joined
-    return { canJoin: true, message: '' };
-  };
-
-  const handleViewSession = async (session: LiveSessionItem) => {
-    setLoadingSessionId(session.liveSessionId);
-    setLoadingDetails(true);
-    setShowDetailsModal(true);
-    try {
-      // First get initial session details to check type
-      const initialResponse = await getLiveSessionById(user!.userName, session.liveSessionId, token);
-      
-      if (!initialResponse.success) {
-        toast.error('Failed to load session details');
-        setShowDetailsModal(false);
-        return;
-      }
-
-      // If it's a scheduled session, MUST call startScheduledLive FIRST to generate stream key
-      if (initialResponse.data.type === 'SCHEDULED_LIVE') {
-        try {
-          console.log('Starting scheduled live session...');
-          const startResponse = await startScheduledLive(user!.userName, session.liveSessionId, token);
-          console.log('Start scheduled live response:', startResponse);
-          
-          // Now fetch the session again to get the generated streamKey
-          const updatedResponse = await getLiveSessionById(user!.userName, session.liveSessionId, token);
-          if (updatedResponse.success) {
-            console.log('Updated session with streamKey:', updatedResponse.data);
-            setSelectedSession(updatedResponse.data);
-          } else {
-            toast.error('Failed to get updated session details');
-            setSelectedSession(initialResponse.data);
-          }
-        } catch (error) {
-          console.error('StartScheduledLive error:', error);
-          toast.error('Failed to start live session');
-          setShowDetailsModal(false);
-        }
-      } else {
-        // For DIRECT_LIVE, just use the initial response
-        setSelectedSession(initialResponse.data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch session details:', error);
-      toast.error('Failed to load session details');
-      setShowDetailsModal(false);
-    } finally {
-      setLoadingDetails(false);
-      setLoadingSessionId(null);
-    }
-  };
-
-  const handleSessionCreated = async () => {
-    // Silently refetch sessions in background without showing loading state
-    try {
-      const response = sessionSubTab === 'upcoming' 
-        ? await getUpcomingLiveSessions(user!.userName, token)
-        : await getAllLiveSessions(user!.userName, token);
-      
-      if (response.success) {
-        setSessions(response.data || []);
-      }
-    } catch (error) {
-      console.error('Failed to refetch sessions:', error);
-    }
-  };
-
-  const handleJoinLive = () => {
-    if (!selectedSession?.streamKey || selectedSession.streamKey.trim() === '') {
-      toast.error('Stream key not available yet. Please try again in a moment.');
-      return;
-    }
-    
-    // Check if session has ended (only for SCHEDULED_LIVE with endTime)
-    if (selectedSession.type === 'SCHEDULED_LIVE' && selectedSession.endTime && selectedSession.date) {
-      const now = new Date();
-      const sessionDate = new Date(selectedSession.date);
-      const [endHours, endMinutes] = selectedSession.endTime.split(':').map(Number);
-      const sessionEndTime = new Date(sessionDate);
-      sessionEndTime.setHours(endHours, endMinutes, 0, 0);
-      
-      if (now > sessionEndTime) {
-        toast.error('This session has already ended. You cannot join after the scheduled end time.');
-        return;
-      }
-    }
-    
-    setStreamKey(selectedSession.streamKey);
-    setStreamTitle(selectedSession.title);
-    setCurrentSessionId(selectedSession.liveSessionId);
-    setShowDetailsModal(false);
-    setShowBroadcast(true);
-  };
-
-  const handleEditSession = (session: LiveSessionItem) => {
-    setSessionToEdit(session);
-    setShowEditModal(true);
-  };
-
-  const handleSaveEdit = async (data: { date: string; startTime: string; endTime: string }) => {
-    if (!sessionToEdit || !user?.userName) return;
-    
-    setIsUpdating(true);
-    const loadingToast = toast.loading('Updating session...');
-    
-    try {
-      const response = await updateLiveSession(
-        {
-          counsellorId: user.userName,
-          liveSessionId: sessionToEdit.liveSessionId,
-          date: data.date,
-          startTime: data.startTime,
-          endTime: data.endTime,
-        },
-        token
-      );
-
-      toast.dismiss(loadingToast);
-      
-      if (response.success) {
-        toast.success('Session updated successfully!');
-        setShowEditModal(false);
-        setSessionToEdit(null);
-        await fetchSessions(); // Refresh the list
-      } else {
-        toast.error(response.message || 'Failed to update session');
-      }
-    } catch (error) {
-      toast.dismiss(loadingToast);
-      toast.error('Failed to update session. Please try again.');
-      console.error('Update session error:', error);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleDeleteSession = async (session: LiveSessionItem) => {
     if (!user?.userName) return;
-    
-    const confirmed = window.confirm(
-      `Are you sure you want to cancel "${session.title}"? This action cannot be undone.`
-    );
-    
-    if (!confirmed) return;
-    
-    const loadingToast = toast.loading('Cancelling session...');
-    
-    try {
-      const response = await cancelLiveSession(
-        user.userName,
-        session.liveSessionId,
-        token
-      );
 
-      toast.dismiss(loadingToast);
-      
-      if (response.success) {
-        toast.success('Session cancelled successfully!');
-        await fetchSessions(); // Refresh the list
-      } else {
-        toast.error(response.message || 'Failed to cancel session');
-      }
-    } catch (error) {
-      toast.dismiss(loadingToast);
-      toast.error('Failed to cancel session. Please try again.');
-      console.error('Cancel session error:', error);
-    }
+    // Listen to real-time chat messages from Firebase
+    // liveSessionId is the counsellorId (user.userName)
+    const unsubscribe = listenToChatMessages(
+      user.userName, // counsellorId serves as liveSessionId
+      (msgs) => {
+        // Queue new messages for gradual display
+        if (msgs.length > previousMessageCountRef.current) {
+          const newMessages = msgs.slice(previousMessageCountRef.current);
+          newMessages.forEach(msg => {
+            messageQueueRef.current.push(msg);
+          });
+          processMessageQueue();
+          previousMessageCountRef.current = msgs.length;
+        } else if (msgs.length < previousMessageCountRef.current) {
+          // Session restarted or messages cleared
+          setMessages(msgs);
+          messageQueueRef.current = [];
+          previousMessageCountRef.current = msgs.length;
+        }
+      },
+      (info) => setSessionInfo(info)
+    );
+
+    return () => unsubscribe();
+  }, [user?.userName]);
+
+  const formatTime = (timestamp: number) => {
+    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  if (showBroadcast && streamKey && currentSessionId) {
-    return (
-      <BroadcastView 
-        streamKey={streamKey} 
-        streamTitle={streamTitle}
-        liveSessionId={currentSessionId}
-        counselorId={user?.userName || ''}
-        onClose={() => {
-          setShowBroadcast(false);
-          setStreamKey('');
-          setStreamTitle('');
-          setCurrentSessionId('');
-          // Refetch sessions to update status
-          fetchSessions();
-        }} 
-      />
-    );
-  }
+  const getAvatarInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
 
-  return (
-    <div className="md:bg-white md:py-5 md:px-4 md:rounded-2xl md:border md:border-[#EFEFEF]">
-      <div className="bg-white p-2 rounded-xl border border-[#EFEFEF] md:bg-transparent md:p-0 md:border-none md:mb-5">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
+  // Full screen chat view
+  const FullScreenChatView = () => (
+    <div className="fixed inset-0 z-50 bg-white">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-8 py-5 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <button
-              onClick={() => setSessionSubTab('all')}
-              className={`flex-1 md:flex-none px-4 py-2 text-[12px] md:text-base font-medium rounded-full transition-colors duration-200 ${
-                sessionSubTab === 'all' 
-                ? 'bg-[#E8E7F2] text-[#13097D]' 
-                : 'bg-transparent text-gray-500 hover:text-gray-800'
-              }`}
+              onClick={() => setShowFullScreen(false)}
+              className="text-gray-500 hover:text-gray-700 transition-colors"
             >
-              All Sessions
+              <X className="w-6 h-6" />
             </button>
-            <button
-              onClick={() => setSessionSubTab('upcoming')}
-              className={`flex-1 md:flex-none px-4 py-2 text-[12px] md:text-base font-medium rounded-full transition-colors duration-200 ${
-                sessionSubTab === 'upcoming' 
-                ? 'bg-[#E8E7F2] text-[#13097D]' 
-                : 'bg-transparent text-gray-500 hover:text-gray-800'
-              }`}
-            >
-              Upcoming
-            </button>
+            <div className="flex items-center gap-3">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+              </span>
+              <span className="text-red-500 font-bold text-base">LIVE</span>
+            </div>
           </div>
-          
-          <button
-            onClick={() => setShowScheduleModal(true)}
-            className="flex bg-[#655E95] hover:bg-[#655E95]/90 rounded-2xl md:rounded-[0.75rem] cursor-pointer text-clip border text-xs py-2 lg:py-3 px-3 lg:px-6 text-white items-center justify-center lg:font-semibold"
-          >
-            Create Session
-          </button>
+          <div className="flex items-center gap-2 text-gray-600">
+            <Users className="w-5 h-5" />
+            <span className="text-base">{messages.length} messages</span>
+          </div>
         </div>
       </div>
 
-      {/* Sessions List */}
-      {loading ? (
-        <div className="flex flex-col items-center justify-center h-[400px]">
-          <Loader2 className="w-8 h-8 text-[#13097D] animate-spin" />
-          <p className="text-gray-500 mt-3">Loading sessions...</p>
-        </div>
-      ) : sessions.length > 0 ? (
-        <div className="grid gap-3 mt-3">
-          {sessions.map((session) => (
-            <SessionCard
-              key={session.liveSessionId}
-              session={session}
-              onJoin={handleViewSession}
-              canJoin={true}
-              isLoading={loadingSessionId === session.liveSessionId}
-              onEdit={handleEditSession}
-              onDelete={handleDeleteSession}
-            />
-          ))}
+      {/* Chat Messages - Newest on top */}
+      <div 
+        ref={chatContainerRef}
+        className="h-[calc(100vh-80px)] overflow-y-auto px-8 py-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center text-gray-400">
+              <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <p className="text-xl">No messages yet</p>
+              <p className="text-base mt-2">Messages will appear here in real-time</p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-0">
+            {[...messages].reverse().map((msg) => {
+              const isNew = newMessageIds.has(msg.messageId);
+              return (
+                <div 
+                  key={msg.messageId}
+                  className={`flex gap-4 px-4 py-4 border-b border-gray-100 transition-colors ${
+                    isNew ? 'bg-orange-50' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="w-12 h-12 rounded-full bg-linear-to-br from-[#FF660F] to-orange-600 flex items-center justify-center text-white text-base font-semibold shrink-0 relative">
+                    {getAvatarInitials(msg.fullName)}
+                    {isNew && (
+                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2 mb-2">
+                      <span className="font-semibold text-gray-900 text-lg">{msg.fullName}</span>
+                      <span className="text-gray-500 text-sm">{formatTime(msg.timestamp)}</span>
+                    </div>
+                    <p className="text-gray-700 text-lg leading-relaxed">{msg.message}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // Main SessionsTab view
+  if (showFullScreen) {
+    return <FullScreenChatView />;
+  }
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      {!sessionInfo || messages.length === 0 ? (
+        // No live session
+        <div className="text-center py-16">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-50 mb-4">
+            <Radio className="w-10 h-10 text-gray-300" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-700 mb-2">No Live Session</h3>
+          <p className="text-gray-500">Start a live session to see chat messages here</p>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center h-[400px] text-center border border-gray-200 rounded-xl bg-gray-50/50 mt-2">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <Calendar className="w-8 h-8 text-gray-400" />
+        // Active live session - Chat messages
+        <div>
+          {/* Header with fullscreen button */}
+          <div className="flex items-center justify-between mb-6 pb-4 border-b">
+            <div className="flex items-center gap-3">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+              </span>
+              <h2 className="text-lg font-semibold text-gray-800">Live Session Chat</h2>
+              <span className="text-sm text-gray-500">({messages.length})</span>
+            </div>
+            <button
+              onClick={() => setShowFullScreen(true)}
+              className="p-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
+              title="Open fullscreen"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+              </svg>
+            </button>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900">No sessions found</h3>
-          <p className="text-gray-500 max-w-xs mt-1">
-            Get started by creating your first live stream session for your students.
-          </p>
+
+          {/* Messages list - scrollable, newest on top */}
+          <div 
+            ref={chatContainerRef}
+            className="space-y-4 max-h-[calc(100vh-300px)] overflow-y-auto scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {[...messages].reverse().map((msg) => {
+              const isNew = newMessageIds.has(msg.messageId);
+              return (
+                <div 
+                  key={msg.messageId} 
+                  className={`flex gap-3 animate-in fade-in slide-in-from-top-2 duration-300 py-2 ${isNew ? 'bg-orange-50 rounded-lg px-3' : ''}`}
+                >
+                  <div className="w-10 h-10 rounded-full bg-linear-to-br from-[#FF660F] to-orange-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 relative">
+                    {getAvatarInitials(msg.fullName)}
+                    {isNew && (
+                      <span className="absolute -top-1 -right-1 text-[9px] font-bold text-white bg-orange-500 px-1.5 py-0.5 rounded-full leading-none shadow-sm">
+                        NEW
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2 mb-1.5">
+                      <span className="font-semibold text-gray-900 text-base">{msg.fullName}</span>
+                      <span className="text-gray-500 text-sm">{formatTime(msg.timestamp)}</span>
+                    </div>
+                    <p className="text-gray-700 text-base leading-relaxed">{msg.message}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
-
-      {/* Schedule Live Modal */}
-      <ScheduleLiveModal
-        isOpen={showScheduleModal}
-        onClose={() => setShowScheduleModal(false)}
-        counsellorId={user?.userName || ''}
-        counselorName={`${user?.firstName || ''} ${user?.lastName || ''}`}
-        token={token}
-        onSessionCreated={handleSessionCreated}
-      />
-
-      {/* Session Details Modal */}
-      <SessionDetailsModal
-        isOpen={showDetailsModal}
-        onClose={() => {
-          setShowDetailsModal(false);
-          setSelectedSession(null);
-        }}
-        session={selectedSession}
-        onJoinLive={handleJoinLive}
-        loading={loadingDetails}
-        canJoin={canJoinSession(selectedSession).canJoin}
-        joinMessage={canJoinSession(selectedSession).message}
-      />
-
-      {/* Edit Session Modal */}
-      <EditSessionModal
-        isOpen={showEditModal}
-        onClose={() => {
-          setShowEditModal(false);
-          setSessionToEdit(null);
-        }}
-        session={sessionToEdit}
-        onSave={handleSaveEdit}
-        loading={isUpdating}
-      />
     </div>
   );
 }
