@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, update, remove, onDisconnect, serverTimestamp } from 'firebase/database';
+import { getDatabase, ref, update, remove, onDisconnect, serverTimestamp, onValue, type DataSnapshot } from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -16,21 +16,18 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
-/**
- * Set session as live and auto-set to false on disconnect
- * Uses update() to only modify specific fields without removing existing data
- */
+
 export const setSessionLive = (liveSessionId: string) => {
   const sessionRef = ref(database, `liveSessionsStatus/${liveSessionId}`);
   
-  // Update only specific fields - preserves other existing data
+ 
   update(sessionRef, {
     isLive: true,
     startedAt: serverTimestamp(),
     lastUpdated: serverTimestamp()
   });
   
-  // Automatically update to false when user disconnects
+  
   onDisconnect(sessionRef).update({
     isLive: false,
     endedAt: serverTimestamp(),
@@ -46,6 +43,46 @@ export const endSessionLive = async (liveSessionId: string) => {
   const sessionRef = ref(database, `liveSessionsStatus/${liveSessionId}`);
   
   await remove(sessionRef);
+};
+
+/**
+ * Listen to chat messages for a counselor's live session
+ * @param liveSessionId - The liveSessionId (which is the counsellorId)
+ */
+export const listenToChatMessages = (
+  liveSessionId: string,
+  onMessages: (messages: any[]) => void,
+  onSessionInfo: (info: { liveSessionId: string; title: string; startedAt: any } | null) => void
+) => {
+  const chatRef = ref(database, `liveSessionChats/${liveSessionId}`);
+  
+  return onValue(chatRef, (snapshot: DataSnapshot) => {
+    const data = snapshot.val();
+    
+    if (!data) {
+      onSessionInfo(null);
+      onMessages([]);
+      return;
+    }
+    
+    // Extract session info
+    const { liveSessionId, title, startedAt, messages } = data;
+    onSessionInfo({ liveSessionId, title, startedAt });
+    
+    // Convert messages object to array
+    if (messages) {
+      const messageArray = Object.entries(messages).map(([id, msg]: [string, any]) => ({
+        messageId: id,
+        ...msg
+      }));
+      
+      // Sort by timestamp
+      messageArray.sort((a, b) => a.timestamp - b.timestamp);
+      onMessages(messageArray);
+    } else {
+      onMessages([]);
+    }
+  });
 };
 
 export { database, ref, update, remove, onDisconnect };
