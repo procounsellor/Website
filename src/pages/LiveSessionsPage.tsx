@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { unlockScroll } from '@/lib/scrollLock';
-import { getAllOngoingLiveSessions } from '@/api/liveSessions';
 import type { LiveSession } from '@/api/liveSessions';
 import { OngoingSessionModal } from '@/components/live/OngoingSessionModal';
 import { useLiveStreamStore } from '@/store/LiveStreamStore';
-// import { getAllUpcomingLiveSessions } from '@/api/liveSessions';
-// import { UpcomingSessionModal } from '@/components/live/UpcomingSessionModal';
+import { UpcomingSessionModal } from '@/components/live/UpcomingSessionModal';
+import { listenToLiveSessionsStatus } from '@/lib/firebase';
+import { getBoughtCourses } from '@/api/course';
+import { useAuthStore } from '@/store/AuthStore';
 
 const getAvatarUrl = (photoUrl: string | null, fullName: string) => {
     if (photoUrl) return photoUrl;
@@ -55,167 +56,237 @@ function OngoingSessionAvatar({ session, onClick }: OngoingSessionAvatarProps) {
     );
 }
 
-// interface UpcomingSessionItemProps {
-//     session: LiveSession;
-//     onClick: (counsellorId: string, liveSessionId: string, counsellorName: string) => void;
-// }
+interface UpcomingSessionItemProps {
+    session: LiveSession;
+    onClick: (counsellorId: string, liveSessionId: string, counsellorName: string) => void;
+}
 
-// function UpcomingSessionItem({ session, onClick }: UpcomingSessionItemProps) {
-//     const avatarUrl = getAvatarUrl(session.counsellorPhotoUrl, session.counsellorFullName);
+function UpcomingSessionItem({ session, onClick }: UpcomingSessionItemProps) {
+    const avatarUrl = getAvatarUrl(session.counsellorPhotoUrl, session.counsellorFullName);
     
-//     const formatDate = (): string => {
-//         const apiDate = (session as any).date; 
-//         if (!apiDate) return 'N/A';
-//         try {
-//             const parts = apiDate.split('-');
-//             const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])); 
+    const formatDate = (): string => {
+        const apiDate = (session as any).date; 
+        if (!apiDate) return 'N/A';
+        try {
+            const parts = apiDate.split('-');
+            const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])); 
             
-//             if (isNaN(d.getTime())) return 'N/A';
+            if (isNaN(d.getTime())) return 'N/A';
             
-//             const dateStr = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
-//             const weekday = d.toLocaleDateString('en-US', { weekday: 'long' });
+            const dateStr = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+            const weekday = d.toLocaleDateString('en-US', { weekday: 'long' });
             
-//             return `${dateStr}, ${weekday}`;
-//         } catch {
-//             return 'N/A'; 
-//         }
-//     };
+            return `${dateStr}, ${weekday}`;
+        } catch {
+            return 'N/A'; 
+        }
+    };
     
-//     const formatTime = (): string => {
-//         const apiTime = (session as any).startTime; 
-//         if (!apiTime) return 'N/A';
-//         try {
-//             const [hours, minutes] = apiTime.split(':').map(Number);
-//             const dummyDate = new Date();
-//             dummyDate.setHours(hours);
-//             dummyDate.setMinutes(minutes);
+    const formatTime = (): string => {
+        const apiTime = (session as any).startTime; 
+        if (!apiTime) return 'N/A';
+        try {
+            const [hours, minutes] = apiTime.split(':').map(Number);
+            const dummyDate = new Date();
+            dummyDate.setHours(hours);
+            dummyDate.setMinutes(minutes);
             
-//             const formattedTime = dummyDate.toLocaleTimeString('en-US', {
-//                 hour: '2-digit',
-//                 minute: '2-digit',
-//                 hour12: true,
-//             }).replace(/\s(AM|PM)$/, ''); 
+            const formattedTime = dummyDate.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+            }).replace(/\s(AM|PM)$/, ''); 
 
-//             const ampm = hours >= 12 ? 'PM' : 'AM';
-//             const endHours = hours;
-//             const endMinutes = minutes + 30;
-//             const formattedEndHours = endHours % 12 || 12;
-//             const formattedEndMinutes = endMinutes % 60;
-//             const finalEndAmpm = (endMinutes >= 60 && endHours === 11) ? 'PM' : ampm;
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const endHours = hours;
+            const endMinutes = minutes + 30;
+            const formattedEndHours = endHours % 12 || 12;
+            const formattedEndMinutes = endMinutes % 60;
+            const finalEndAmpm = (endMinutes >= 60 && endHours === 11) ? 'PM' : ampm;
 
-//             return `${formattedTime}-${formattedEndHours}:${formattedEndMinutes.toString().padStart(2, '0')} ${finalEndAmpm}`; 
-//         } catch {
-//             return 'N/A';
-//         }
-//     };
+            return `${formattedTime}-${formattedEndHours}:${formattedEndMinutes.toString().padStart(2, '0')} ${finalEndAmpm}`; 
+        } catch {
+            return 'N/A';
+        }
+    };
 
-//     const handleClick = () => {
-//         onClick(session.counsellorId, session.liveSessionId, session.counsellorFullName);
-//     };
+    const handleClick = () => {
+        onClick(session.counsellorId, session.liveSessionId, session.counsellorFullName);
+    };
 
-//     return (
-//         <div onClick={handleClick} className="flex items-center justify-between py-4 transition-shadow hover:shadow-md">
-//             <div className="flex items-start gap-4 w-1/2 min-w-0 pr-4"> 
-//                 <img 
-//                     src={avatarUrl} 
-//                     alt={session.counsellorFullName} 
-//                     className="w-[81px] h-[81px] rounded-xl object-cover shrink-0" 
-//                 />
+    return (
+        <div onClick={handleClick} className="flex items-center justify-between py-4 transition-shadow hover:shadow-md">
+            <div className="flex items-start gap-4 w-1/2 min-w-0 pr-4"> 
+                <img 
+                    src={avatarUrl} 
+                    alt={session.counsellorFullName} 
+                    className="w-[81px] h-[81px] rounded-xl object-cover shrink-0" 
+                />
                 
-//                 <div className="flex flex-col min-w-0 pt-1">
-//                     <h3 className="text-xl font-semibold text-[#242645] leading-[125%] truncate">
-//                         {session.counsellorFullName}
-//                     </h3>
-//                     <p className="text-base font-medium text-[#8C8CA1] leading-[125%] truncate mt-1">
-//                         {session.description || session.title}
-//                     </p>
-//                 </div>
-//             </div>
+                <div className="flex flex-col min-w-0 pt-1">
+                    <h3 className="text-xl font-semibold text-[#242645] leading-[125%] truncate">
+                        {session.counsellorFullName}
+                    </h3>
+                    <p className="text-base font-medium text-[#8C8CA1] leading-[125%] truncate mt-1">
+                        {session.description || session.title}
+                    </p>
+                </div>
+            </div>
 
-//             <div className="flex items-center text-gray-700 font-normal text-base shrink-0 w-1/2 pr-4 sm:pr-0"> 
-//                 <div className="flex flex-col w-40 text-left shrink-0">
-//                     <span className="text-xl font-semibold text-[#242645] leading-[125%] mb-1 hidden sm:block">
-//                         Date
-//                     </span>
-//                     <span className="text-base font-medium text-[#8C8CA1] leading-[125%] whitespace-nowrap">
-//                         {formatDate()}
-//                     </span>
-//                 </div>
+            <div className="flex items-center text-gray-700 font-normal text-base shrink-0 w-1/2 pr-4 sm:pr-0"> 
+                <div className="flex flex-col w-40 text-left shrink-0">
+                    <span className="text-xl font-semibold text-[#242645] leading-[125%] mb-1 hidden sm:block">
+                        Date
+                    </span>
+                    <span className="text-base font-medium text-[#8C8CA1] leading-[125%] whitespace-nowrap">
+                        {formatDate()}
+                    </span>
+                </div>
                 
-//                 <div className="flex flex-col w-40 text-left ml-16 shrink-0"> 
-//                     <span className="text-xl font-semibold text-[#242645] leading-[125%] mb-1 hidden sm:block">
-//                         Time
-//                     </span>
-//                     <span className="text-base font-medium text-[#8C8CA1] leading-[125%] whitespace-nowrap">
-//                         {formatTime()}
-//                     </span>
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// }
+                <div className="flex flex-col w-40 text-left ml-16 shrink-0"> 
+                    <span className="text-xl font-semibold text-[#242645] leading-[125%] mb-1 hidden sm:block">
+                        Time
+                    </span>
+                    <span className="text-base font-medium text-[#8C8CA1] leading-[125%] whitespace-nowrap">
+                        {formatTime()}
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 export default function LiveSessionsPage() {
     const { startStream } = useLiveStreamStore.getState();
+    const { userId } = useAuthStore();
     const [ongoingSessions, setOngoingSessions] = useState<LiveSession[]>([]);
-    // const [upcomingSessions, setUpcomingSessions] = useState<LiveSession[]>([]);
+    const [upcomingSessions] = useState<LiveSession[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedSession, setSelectedSession] = useState<{ id: string, counsellorId: string, name: string } | null>(null);
-    // const [isUpcomingModalOpen, setIsUpcomingModalOpen] = useState(false);
-    // const [selectedUpcomingSession, setSelectedUpcomingSession] = useState<{ id: string, counsellorId: string, name: string } | null>(null);
+    const [selectedSession, setSelectedSession] = useState<{ id: string, counsellorId: string, name: string, playbackId: string, title: string, description: string } | null>(null);
+    const [isUpcomingModalOpen, setIsUpcomingModalOpen] = useState(false);
+    const [selectedUpcomingSession, setSelectedUpcomingSession] = useState<{ id: string, counsellorId: string, name: string } | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [error] = useState<string | null>(null);
+    const [boughtCourseIds, setBoughtCourseIds] = useState<Set<string>>(new Set());
     
+    // Fetch bought courses on mount
     useEffect(() => {
-        unlockScroll();
-        
-        const fetchSessions = async () => {
+        const fetchBoughtCourses = async () => {
+            if (!userId) {
+                return;
+            }
+            
             try {
-                setLoading(true);
-                setError(null);
-                const [ongoing] = await Promise.all([
-                    getAllOngoingLiveSessions(),
-                    // getAllUpcomingLiveSessions(),
-                ]);
-                
-                setOngoingSessions(ongoing);
-                // setUpcomingSessions(upcoming);
+                const response = await getBoughtCourses(userId);
+                const courseIds = new Set(
+                    response.data.map((course: any) => course.courseId?.toString() || '')
+                );
+                setBoughtCourseIds(courseIds);
             } catch (err) {
-                console.error("Failed to fetch sessions:", err);
-                setError("Failed to load ongoing sessions. Please try again.");
-            } finally {
-                setLoading(false);
+                console.error("Failed to fetch bought courses:", err);
             }
         };
 
-        fetchSessions();
-    }, []);
+        fetchBoughtCourses();
+    }, [userId]);
+
+    // Listen to Firebase real-time live sessions
+    useEffect(() => {
+        unlockScroll();
+        
+        const unsubscribe = listenToLiveSessionsStatus((allLives) => {
+            const msNow = Date.now();
+            const filteredSessions: LiveSession[] = [];
+
+            Object.entries(allLives).forEach(([key, value]: [string, any]) => {
+                if (!value || typeof value !== 'object') return;
+
+                const forWhom = value.forWhom?.toString() || '';
+                const courseId = value.courseId?.toString() || '';
+                
+                // Handle timestamp in both seconds and milliseconds
+                let updatedAtMs = value.updatedAt || 0;
+                if (updatedAtMs < 10000000000) {
+                    // If timestamp is less than 10 billion, it's in seconds, convert to ms
+                    updatedAtMs = updatedAtMs * 1000;
+                }
+                
+                const timeDiff = Math.abs(msNow - updatedAtMs);
+                const isLive = value.isLive === true && timeDiff < 15000;
+
+                if (!isLive) return;
+
+                // Filter by course ownership
+                if (forWhom === 'COURSE') {
+                    if (!boughtCourseIds.has(courseId)) {
+                        return;
+                    }
+                }
+
+                // Extract YouTube video ID from youtubeWatchUrl or use as-is
+                let videoId = '';
+                if (value.youtubeWatchUrl) {
+                    const match = value.youtubeWatchUrl.match(/[?&]v=([^&]+)/);
+                    videoId = match ? match[1] : value.youtubeWatchUrl;
+                }
+
+                // Create session object with actual Firebase fields
+                filteredSessions.push({
+                    liveSessionId: value.liveSessionId || key,
+                    counsellorId: value.counsellorId || key,
+                    counsellorFullName: value.counsellorFullName || 'Counselor',
+                    counsellorPhotoUrl: value.counsellorPhotoUrl || null,
+                    liveSince: value.startedAt ? new Date(value.startedAt).toISOString() : new Date().toISOString(),
+                    title: value.title || 'Live Session',
+                    description: value.description || '',
+                    playbackId: videoId,
+                    forWhom: forWhom as any
+                });
+            });
+
+            setOngoingSessions(filteredSessions);
+            setLoading(false);
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, [boughtCourseIds]);
 
     const handleAvatarClick = (counsellorId: string, liveSessionId: string, counsellorName: string) => {
-        setSelectedSession({ 
+        // Find the full session data
+        const session = ongoingSessions.find(s => s.liveSessionId === liveSessionId);
+        if (session) {
+            setSelectedSession({ 
+                id: liveSessionId, 
+                counsellorId: counsellorId, 
+                name: counsellorName,
+                playbackId: session.playbackId,
+                title: session.title,
+                description: session.description
+            });
+            setIsModalOpen(true);
+        }
+    };
+
+    const handleUpcomingCardClick = (counsellorId: string, liveSessionId: string, counsellorName: string) => {
+        setSelectedUpcomingSession({ 
             id: liveSessionId, 
             counsellorId: counsellorId, 
             name: counsellorName 
         });
-        setIsModalOpen(true);
+        setIsUpcomingModalOpen(true);
     };
-
-    // const handleUpcomingCardClick = (counsellorId: string, liveSessionId: string, counsellorName: string) => {
-    //     setSelectedUpcomingSession({ 
-    //         id: liveSessionId, 
-    //         counsellorId: counsellorId, 
-    //         name: counsellorName 
-    //     });
-    //     setIsUpcomingModalOpen(true);
-    // };
 
     const handleJoinStream = (playbackId: string) => {
         if (!selectedSession) return;
         startStream(
-            'livepeer', 
+            'youtube', 
             playbackId,
             `Live Session with ${selectedSession.name}`,
-            'Join our interactive session'
+            'Join our interactive session',
+            selectedSession.id,
+            selectedSession.counsellorId
         );
         setIsModalOpen(false);
     };
@@ -251,45 +322,45 @@ export default function LiveSessionsPage() {
         );
     };
 
-    // const renderUpcomingContent = () => {
-    //     if (loading) {
-    //         return <div className="p-8 text-center text-gray-600">Loading upcoming sessions...</div>;
-    //     }
+    const renderUpcomingContent = () => {
+        if (loading) {
+            return <div className="p-8 text-center text-gray-600">Loading upcoming sessions...</div>;
+        }
 
-    //     if (error) {
-    //         return <div className="p-8 text-center text-red-500">{error}</div>;
-    //     }
+        if (error) {
+            return <div className="p-8 text-center text-red-500">{error}</div>;
+        }
 
-    //     if (upcomingSessions.length === 0) {
-    //         return (
-    //             <div className="p-10 bg-white rounded-xl shadow-lg border border-gray-200 text-center">
-    //                 <p className="text-xl text-gray-600 font-semibold">
-    //                     No upcoming sessions are currently scheduled.
-    //                 </p>
-    //             </div>
-    //         );
-    //     }
+        if (upcomingSessions.length === 0) {
+            return (
+                <div className="p-10 bg-white rounded-xl shadow-lg border border-gray-200 text-center">
+                    <p className="text-xl text-gray-600 font-semibold">
+                        No upcoming sessions are currently scheduled.
+                    </p>
+                </div>
+            );
+        }
         
-    //     return (
-    //         <div className="flex flex-col">
-    //             {upcomingSessions.map((session, index) => (
-    //                 <div key={session.liveSessionId}>
-    //                     <UpcomingSessionItem session={session} onClick={handleUpcomingCardClick} />
+        return (
+            <div className="flex flex-col">
+                {upcomingSessions.map((session, index) => (
+                    <div key={session.liveSessionId}>
+                        <UpcomingSessionItem session={session} onClick={handleUpcomingCardClick} />
                         
-    //                     {index < upcomingSessions.length - 1 && (
-    //                         <hr style={{ 
-    //                             borderColor: '#E6E6E7',
-    //                             borderWidth: '1px',
-    //                             opacity: 1,
-    //                             margin: '0 0 0 0',
-    //                             width: '100%',
-    //                         }} />
-    //                     )}
-    //                 </div>
-    //             ))}
-    //         </div>
-    //     );
-    // };
+                        {index < upcomingSessions.length - 1 && (
+                            <hr style={{ 
+                                borderColor: '#E6E6E7',
+                                borderWidth: '1px',
+                                opacity: 1,
+                                margin: '0 0 0 0',
+                                width: '100%',
+                            }} />
+                        )}
+                    </div>
+                ))}
+            </div>
+        );
+    };
 
     return (
         <div className="bg-gray-50 pt-20 md:pt-28 pb-8 px-4 min-h-screen">
@@ -308,7 +379,7 @@ export default function LiveSessionsPage() {
 
                 {renderOngoingContent()}
 
-                {/* <h2 
+                <h2 
                     className="text-2xl font-medium mt-12 mb-6"
                     style={{ 
                         color: '#13097D',
@@ -318,8 +389,8 @@ export default function LiveSessionsPage() {
                     }}
                 >
                     Upcoming Sessions
-                </h2> */}
-                {/* {renderUpcomingContent()} */}
+                </h2>
+                {renderUpcomingContent()}
                 
             </main>
             <OngoingSessionModal
@@ -329,14 +400,20 @@ export default function LiveSessionsPage() {
                 counsellorId={selectedSession?.counsellorId ?? null}
                 counsellorName={selectedSession?.name ?? 'Counselor'}
                 onJoinStream={handleJoinStream}
+                fakeSessionData={selectedSession ? {
+                    title: selectedSession.title,
+                    description: selectedSession.description,
+                    playbackId: selectedSession.playbackId,
+                    liveSince: new Date().toISOString()
+                } : null}
             />
-            {/* <UpcomingSessionModal
+            <UpcomingSessionModal
                 isOpen={isUpcomingModalOpen}
                 onClose={() => setIsUpcomingModalOpen(false)}
                 liveSessionId={selectedUpcomingSession?.id ?? null}
                 counsellorId={selectedUpcomingSession?.counsellorId ?? null}
                 counsellorName={selectedUpcomingSession?.name ?? 'Counselor'}
-            /> */}
+            />
         </div>
     );
 }

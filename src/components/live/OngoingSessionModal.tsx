@@ -11,6 +11,12 @@ interface OngoingSessionModalProps {
     counsellorId: string | null;
     counsellorName: string; 
     onJoinStream: (playbackId: string) => void;
+    fakeSessionData?: {
+        title: string;
+        description: string;
+        playbackId: string;
+        liveSince: string;
+    } | null;
 }
 
 export function OngoingSessionModal({
@@ -20,11 +26,34 @@ export function OngoingSessionModal({
     counsellorId,
     counsellorName,
     onJoinStream,
+    fakeSessionData,
 }: OngoingSessionModalProps) {
     const [sessionDetails, setSessionDetails] = useState<DetailedLiveSession | null>(null);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        // If fake session data is provided, use it directly
+        if (isOpen && fakeSessionData) {
+            setSessionDetails({
+                liveSessionId: liveSessionId || '',
+                counsellorId: counsellorId || '',
+                type: 'DIRECT_LIVE',
+                date: null,
+                startTime: null,
+                endTime: null,
+                title: fakeSessionData.title,
+                forWhom: 'GENERAL',
+                description: fakeSessionData.description,
+                broadcastId: '',
+                youtubeVideoId: fakeSessionData.playbackId,
+                playbackId: fakeSessionData.playbackId,
+                createdAt: { seconds: Date.now() / 1000, nanos: 0 }
+            } as DetailedLiveSession);
+            setLoading(false);
+            return;
+        }
+
+        // Otherwise fetch from API
         if (isOpen && liveSessionId && counsellorId) {
             setLoading(true);
             const fetchDetails = async () => {
@@ -43,7 +72,7 @@ export function OngoingSessionModal({
         } else if (!isOpen) {
             setSessionDetails(null);
         }
-    }, [isOpen, liveSessionId, counsellorId]);
+    }, [isOpen, liveSessionId, counsellorId, fakeSessionData]);
 
     if (!isOpen) return null;
 

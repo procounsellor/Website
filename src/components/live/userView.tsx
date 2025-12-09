@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, MessageCircle, Heart, ThumbsUp, Users, Clock } from 'lucide-react'; // Minimize2, Maximize2 removed
+import { X, MessageCircle, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLiveStreamStore } from '@/store/LiveStreamStore';
-import type { StreamPlatform } from '@/store/LiveStreamStore';
-// import { getLiveChatsOfSession, sendMessageInLiveSession, type LiveChatMessage } from '@/api/liveSessions';
+import { useAuthStore } from '@/store/AuthStore';
+import { listenToChatMessages } from '@/lib/firebase';
+import { sendMessageInLiveSession } from '@/api/liveSessions';
 
-// Declare YouTube IFrame API types
+// YouTube IFrame API types
 declare global {
   interface Window {
     YT: typeof YT;
@@ -39,532 +40,434 @@ declare const YT: {
   ) => YTPlayer;
 };
 
-interface LiveStreamViewProps {
-  platform: StreamPlatform;
-  videoId: string;
-  embedUrl?: string;          // kept, but no longer used for iframe
-  streamTitle?: string;
-  description?: string;
-  isLive?: boolean;
-  scheduledTime?: Date;
-  onClose?: () => void;
-  allowMinimize?: boolean;    // kept so existing callers don't break
-  liveSessionId?: string;      // for chat functionality
-}
-
-interface Reaction {
-  id: string;
-  emoji: string;
-  x: number;
+interface ChatMessage {
+  messageId: string;
+  userId: string;
+  userName?: string;
+  fullName?: string;
+  message: string;
   timestamp: number;
 }
 
-interface ChatMessage {
-  id: string;
-  user: string;
-  message: string;
-  timestamp: Date;
-  avatar?: string;
-}
+// Helper function to extract YouTube video ID from URL or return as-is if already an ID
+const extractYouTubeVideoId = (urlOrId: string): string => {
+  if (!urlOrId) return '';
+  
+  // If it's already just an ID (11 characters, alphanumeric), return it
+  if (/^[a-zA-Z0-9_-]{11}$/.test(urlOrId)) {
+    return urlOrId;
+  }
+  
+  // Try to extract from various YouTube URL formats
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/live\/)([a-zA-Z0-9_-]{11})/,
+    /^.*(?:youtu.be\/|v\/|e\/|u\/\w+\/|embed\/|v=)([a-zA-Z0-9_-]{11})/
+  ];
+  
+  for (const pattern of patterns) {
+    const match = urlOrId.match(pattern);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+  
+  // If no pattern matches, return the original (might already be an ID)
+  return urlOrId;
+};
 
-export default function LiveStreamView({
-  platform,
-  videoId,
-  // embedUrl,
-  streamTitle: _streamTitle = "Live Career Counseling Session",
-  description: _description = "Join us for an interactive session on career guidance and college admissions",
-  isLive = true,
-  scheduledTime: _scheduledTime,
-  onClose,
-  liveSessionId = '',
-  // allowMinimize = true,      // unused now, safe to keep
-}: LiveStreamViewProps) {
-  const { closeStream /* , minimizeStream */ } = useLiveStreamStore(); // minimizeStream removed
-  // const { isMinimized } = useLiveStreamStore();
-
+export default function LiveStreamView() {
+  const { closeStream, videoId: rawVideoId, streamTitle, description, counsellorId, liveSessionId } = useLiveStreamStore();
+  const { userId } = useAuthStore();
+  
+  // Extract clean video ID
+  const videoId = extractYouTubeVideoId(rawVideoId);
+  
   const [showChat, setShowChat] = useState(true);
-  const [reactions, setReactions] = useState<Reaction[]>([]);
-  const [viewerCount, setViewerCount] = useState(234);
-  const [ytLoading, setYtLoading] = useState(platform === 'youtube');
-  const [ytPlaying, setYtPlaying] = useState(false); // Play/pause state for internal tracking
-  const [chatMessages, /*setChatMessages*/] = useState<ChatMessage[]>([
-    { id: '1', user: 'Nishant Sagar', message: 'Great session! Very informative 🎓', timestamp: new Date(), avatar: 'NS' },
-    { id: '2', user: 'Aswini Verma', message: 'Can you talk about engineering colleges?', timestamp: new Date(), avatar: 'AV' },
-    { id: '3', user: 'Ashutosh Kumar', message: 'This is exactly what I needed!', timestamp: new Date(), avatar: 'AK' },
-  ]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [messageInput, setMessageInput] = useState('');
-  const [streamDuration, setStreamDuration] = useState(0);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [ytLoading, setYtLoading] = useState(true);
+  const [sessionInfo, setSessionInfo] = useState<{ title: string; startedAt: any } | null>(null);
+  
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
+  const messageQueueRef = useRef<ChatMessage[]>([]);
+  const processingQueueRef = useRef(false);
 
+  // Load YouTube IFrame API
   useEffect(() => {
-    const interval = setInterval(() => {
-      setViewerCount(prev => prev + Math.floor(Math.random() * 10 - 3));
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
 
-  useEffect(() => {
-    if (isLive) {
-      const interval = setInterval(() => {
-        setStreamDuration(prev => prev + 1);
-      }, 60000); 
-      return () => clearInterval(interval);
+      window.onYouTubeIframeAPIReady = () => {
+        initializePlayer();
+      };
+    } else {
+      initializePlayer();
     }
-  }, [isLive]);
-
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      const container = chatContainerRef.current;
-      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
-      
-      // Only auto-scroll if user is near bottom (like YouTube)
-      if (isNearBottom) {
-        container.scrollTop = container.scrollHeight;
-      }
-    }
-  }, [chatMessages]);
-
-  // Fetch chat messages every 5 seconds
-  // const fetchChatsRef = useRef<(() => Promise<void>) | null>(null);
-
-  useEffect(() => {
-    if (!liveSessionId) return;
-
-    const fetchChats = async () => {
-      // const messages = await getLiveChatsOfSession(liveSessionId);
-      // const formattedMessages: ChatMessage[] = messages.map((msg: LiveChatMessage) => ({
-      //   id: msg.messageId,
-      //   user: msg.fullName,
-      //   message: msg.message,
-      //   timestamp: new Date(msg.timestamp),
-      //   avatar: msg.fullName.substring(0, 2).toUpperCase()
-      // }));
-      // setChatMessages(formattedMessages);
-    };
-
-    // fetchChatsRef.current = fetchChats;
-
-    // Initial fetch
-    fetchChats();
-
-  //   // Poll every 5 seconds
-    const interval = setInterval(fetchChats, 5000);
-
-    return () => clearInterval(interval);
-  }, [liveSessionId]);
-
-  const addReaction = async (emoji: string) => {
-    // Show floating animation
-    const newReaction: Reaction = {
-      id: Math.random().toString(36),
-      emoji,
-      x: Math.random() * 80 + 10,
-      timestamp: Date.now()
-    };
-    setReactions(prev => [...prev, newReaction]);
-    setTimeout(() => {
-      setReactions(prev => prev.filter(r => r.id !== newReaction.id));
-    }, 3000);
-
-    // Send emoji as message to chat
-    // if (liveSessionId) {
-    //   await sendMessageInLiveSession(liveSessionId, emoji);
-    //   // Fetch messages immediately
-    //   if (fetchChatsRef.current) {
-    //     await fetchChatsRef.current();
-    //   }
-    // }
-  };
-
-  const sendMessage = async () => {
-    if (messageInput.trim() && liveSessionId && !isSendingMessage) {
-      setIsSendingMessage(true);
-      // const messageToSend = messageInput;
-      setMessageInput('');
-      
-      // const success = await sendMessageInLiveSession(liveSessionId, messageToSend);
-      
-      // if (success) {
-      //   // Fetch messages immediately after successful send
-      //   if (fetchChatsRef.current) {
-      //     await fetchChatsRef.current();
-      //   }
-      // } else {
-      //   // Revert message if failed
-      //   setMessageInput(messageToSend);
-      // }
-      
-      setIsSendingMessage(false);
-    }
-  };
-
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-  };
-
-  // YouTube only
-  useEffect(() => {
-    if (platform !== 'youtube') return;
-
-    if (window.YT && window.YT.Player) {
-      initPlayer();
-      return;
-    }
-
-    const tag = document.createElement('script');
-    tag.src = 'https://www.youtube.com/iframe_api';
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-
-    window.onYouTubeIframeAPIReady = () => {
-      initPlayer();
-    };
 
     return () => {
       if (playerRef.current) {
         playerRef.current.destroy();
+        playerRef.current = null;
       }
     };
-  }, [videoId, platform]);
+  }, [videoId]);
 
-  const initPlayer = () => {
-    if (!window.YT || !window.YT.Player) return;
+  const initializePlayer = () => {
+    if (!videoId) return;
 
-    const container = document.getElementById('yt-player');
-    if (!container) return;
-
-    playerRef.current = new window.YT.Player('yt-player', {
-      height: '100%',
-      width: '100%',
-      videoId: videoId,
-      playerVars: {
-        autoplay: 1,
-        controls: 0,
-        modestbranding: 1,
-        rel: 0,
-        showinfo: 0,
-        playsinline: 1,
-        iv_load_policy: 3,
-        disablekb: 1, // Disable keyboard controls
-        fs:0,
-        cc_load_policy: 0,
-        mute: 0,
-      },
-      events: {
-        onReady: (event: YTPlayerEvent) => {
-          setYtLoading(false);
-          // setYtPlaying(true); // Don't track playing state if pause is disabled
-          event.target.playVideo();
-          const iframe = container.querySelector('iframe');
-          if (iframe) {
-            iframe.style.position = 'absolute';
-            iframe.style.top = '50%';
-            iframe.style.left = '50%';
-            iframe.style.transform = 'translate(-50%, -50%)';
-            iframe.style.width = '100%';
-            iframe.style.height = '100%';
-            iframe.style.objectFit = 'contain';
-          }
+    try {
+      playerRef.current = new YT.Player('youtube-player', {
+        height: '100%',
+        width: '100%',
+        videoId: videoId,
+        playerVars: {
+          autoplay: 1,
+          controls: 0, // Disable all controls
+          disablekb: 1, // Disable keyboard controls
+          modestbranding: 1,
+          rel: 0,
+          fs: 0, // Disable fullscreen button
+          playsinline: 1, // Play inline on mobile
+          origin: window.location.origin,
         },
-        onStateChange: (event: any) => {
-          if (event.data === 1) {
-            setYtPlaying(true);
+        events: {
+          onReady: () => {
             setYtLoading(false);
-          } 
-          /* else if (event.data === 2 || event.data === 3 || event.data === 0) { // Disallow pause/stop tracking
-            // setYtPlaying(false); 
-          } */
+          },
         },
-      },
-    });
+      });
+    } catch (error) {
+      console.error('Error initializing YouTube player:', error);
+      setYtLoading(false);
+    }
   };
-  
-  // const handleCopyLink = () => {
-  //   const currentUrl = window.location.href;
-  //   navigator.clipboard.writeText(currentUrl).then(() => {
-  //     alert('Live stream link copied to clipboard!');
-  //   });
-  // };
+
+  // Listen to Firebase chat messages
+  useEffect(() => {
+    if (!liveSessionId) return;
+
+    const unsubscribe = listenToChatMessages(
+      liveSessionId,
+      (messages: ChatMessage[]) => {
+        // Add new messages to queue
+        messages.forEach((msg) => {
+          const exists = messageQueueRef.current.some(
+            (queuedMsg) => queuedMsg.messageId === msg.messageId
+          );
+          if (!exists) {
+            messageQueueRef.current.push(msg);
+          }
+        });
+
+        // Process queue if not already processing
+        if (!processingQueueRef.current) {
+          processMessageQueue();
+        }
+      },
+      (info) => {
+        setSessionInfo(info);
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [liveSessionId]);
+
+  // Process message queue with delays
+  const processMessageQueue = async () => {
+    if (processingQueueRef.current) return;
+    processingQueueRef.current = true;
+
+    while (messageQueueRef.current.length > 0) {
+      const nextMessage = messageQueueRef.current.shift();
+      if (nextMessage) {
+        setChatMessages((prev) => {
+          // Check if message already exists by Firebase ID
+          const existsById = prev.some((msg) => msg.messageId === nextMessage.messageId);
+          if (existsById) return prev;
+          
+          // Check if this is a duplicate of a recently sent message by this user
+          // (same user, same message text, within 10 seconds)
+          const isDuplicate = nextMessage.userId === userId && 
+                             prev.some((msg) => 
+                               msg.userId === userId && 
+                               msg.message === nextMessage.message &&
+                               Math.abs(msg.timestamp - nextMessage.timestamp) < 10000
+                             );
+          
+          if (isDuplicate) {
+            // Replace temp message with real Firebase message
+            return prev.map(msg => {
+              if (msg.userId === userId && 
+                  msg.message === nextMessage.message &&
+                  msg.messageId.startsWith('temp-') &&
+                  Math.abs(msg.timestamp - nextMessage.timestamp) < 10000) {
+                return nextMessage; // Replace with real message that has proper fullName
+              }
+              return msg;
+            });
+          }
+          
+          return [...prev, nextMessage];
+        });
+
+        // Wait 4 seconds before showing next message
+        if (messageQueueRef.current.length > 0) {
+          await new Promise((resolve) => setTimeout(resolve, 4000));
+        }
+      }
+    }
+
+    processingQueueRef.current = false;
+  };
+
+  // Auto-scroll chat to bottom
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
+  const handleSendMessage = async () => {
+    if (!messageInput.trim() || isSendingMessage || !userId) return;
+
+    const messageText = messageInput.trim();
+    const tempMessageId = `temp-${Date.now()}`;
+    const currentUser = useAuthStore.getState().user;
+    
+    // Immediately show sender's own message
+    const tempMessage: ChatMessage = {
+      messageId: tempMessageId,
+      userId: userId,
+      fullName: (currentUser?.fullName as string) || 'You',
+      message: messageText,
+      timestamp: Date.now()
+    };
+    
+    setChatMessages(prev => [...prev, tempMessage]);
+    setMessageInput('');
+    setIsSendingMessage(true);
+
+    try {
+      await sendMessageInLiveSession(counsellorId, userId, messageText);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      // Remove temp message on error
+      setChatMessages(prev => prev.filter(m => m.messageId !== tempMessageId));
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
 
   const handleClose = () => {
+    if (playerRef.current) {
+      playerRef.current.destroy();
+      playerRef.current = null;
+    }
     closeStream();
-    if (onClose) onClose();
   };
 
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
+  const getInitials = (fullName: string | undefined, userName: string | undefined) => {
+    const name = fullName || userName;
+    if (!name) return 'U';
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   return (
-    <div className="fixed inset-0 z-100 bg-linear-to-br from-gray-900 via-black to-gray-900 overflow-hidden">
-      {/* Background blur overlay */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwxMDIsMTUsMC4wNSkiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20" />
-
-      {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-6 py-4 bg-black/40 backdrop-blur-xl border-b border-white/10">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={handleClose}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg.white/20 text-white transition-all backdrop-blur-sm border border-white/10"
-          >
-            <X className="w-5 h-5" />
-            <span className="hidden sm:inline font-medium">Leave</span>
-          </button>
-          
-          {/* Fullscreen button removed */}
-
-          {isLive && (
-            <div className="flex items.center gap-2 bg-red-600/90 backdrop-blur-sm px-3 py-1.5 rounded-md animate-pulse">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-              </span>
-              <span className="font-bold text-white text-xs">LIVE</span>
+    <div className="fixed inset-0 z-50 bg-white flex flex-col">
+      {/* Top Bar */}
+      <div className="relative z-20 bg-white border-b border-gray-200 shadow-sm">
+        <div className="flex items-center justify-between px-4 py-3">
+          {/* Left Section */}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleClose}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
+            >
+              <X className="w-4 h-4" />
+              <span className="text-sm font-medium hidden sm:inline">Exit</span>
+            </button>
+            
+            <div className="flex items-center gap-2 bg-[#FA660F] px-3 py-1 rounded-md shadow-md">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+              <span className="text-white text-xs font-bold uppercase">Live</span>
             </div>
-          )}
-
-          <div className="hidden md:flex items-center gap-2 text-white/80">
-            <Users className="w-4 h-4" />
-            <span className="font-semibold text-white">{viewerCount.toLocaleString()}</span>
-            <span className="text-sm">watching</span>
           </div>
 
-          {isLive && streamDuration > 0 && (
-            <div className="hidden lg:flex items-center gap-2 text-white/60 text-sm">
-              <Clock className="w-4 h-4" />
-              <span>Started {formatDuration(streamDuration)} ago</span>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
+          {/* Right Section */}
           <button
             onClick={() => setShowChat(!showChat)}
             className={cn(
-              "p-2 rounded-lg transition-all backdrop-blur-sm border",
+              "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors text-sm font-medium",
               showChat 
-                ? "bg-[#FF660F] text-white border-[#FF660F]" 
-                : "bg-white/10 text-white border-white/10 hover:bg-white/20"
+                ? "bg-[#FA660F] hover:bg-[#FA660F]/90 text-white shadow-md" 
+                : "bg-gray-100 hover:bg-gray-200 text-gray-700"
             )}
           >
-            <MessageCircle className="w-5 h-5" />
+            <MessageCircle className="w-4 h-4" />
+            <span className="hidden sm:inline">Chat</span>
           </button>
-
-          {/* Minimize button removed */}
         </div>
-      </header>
+      </div>
 
       {/* Main Content Area */}
-      <div className="relative flex h-[calc(100vh-80px)]">
-        {/* Video Player Section */}
-        <div className={cn(
-          "relative flex-1 flex flex-col transition-all duration-300 bg-black/40 backdrop-blur-xl border-r border-white/10"
-        )}>
-          {/* Player Container */}
-          <div className="relative flex-1 bg-black flex items-center justify-center overflow-hidden">
-            <div className="relative w-full h-full flex items-center justify-center">
-              {platform === 'youtube' ? (
-                <>
-                  <div 
-                    id="yt-player" 
-                    className="w-full h-full"
-                    style={{
-                      aspectRatio: '16/9',
-                      maxWidth: '100%',
-                      maxHeight: '100%'
-                    }}
-                  ></div>
-                  
-                  <div 
-                    className="absolute inset-0 z-20 cursor-default"
-                    style={{ 
-                      pointerEvents: 'auto',
-                      background: 'transparent'
-                    }}
-                    title="Live Stream"
-                  />
-                  {(ytLoading || !ytPlaying) && (
-                    <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/90">
-                      <svg className="animate-spin mb-4" width="48" height="48" viewBox="0 0 50 50">
-                        <circle cx="25" cy="25" r="20" fill="none" stroke="#FA660F" strokeWidth="5" strokeLinecap="round" strokeDasharray="31.4 31.4"/>
-                      </svg>
-                    </div>
-                  )}
-
-                  <div 
-                    className="absolute bottom-0 right-0 z-30 flex items-end justify-end"
-                    style={{ 
-                      width: '200px',
-                      height: '60px',
-                      pointerEvents: 'none',
-                      background: 'transparent'
-                    }}
-                  >
-                    <div style={{background: 'rgba(0,0,0,1)', borderTopLeftRadius: '12px', padding: '6px 10px 4px 12px', width:'200px', height:'40px' ,  display: "block"}}>
-                      {/* branding */}
-                      <h1>ProCounsel</h1>
-                    </div>
-                  </div>
-                </>
-              ) : platform === 'livepeer' ? (
-                <iframe
-                    // The videoId prop contains the playback ID
-                    src={`https://lvpr.tv/?v=${videoId}&controls=false&autoplay=true&muted=false`}
-                    title={_streamTitle}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media;"
-                    // allowFullScreen
-                    className="w-full h-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-contain"
-                ></iframe>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-white/60 text-sm">
-                  Live stream available on YouTube only.
-                </div>
-              )}
-              
-              {reactions.map((reaction) => (
-                <div
-                  key={reaction.id}
-                  className="absolute bottom-20 text-4xl animate-[float_3s_ease-out_forwards] pointer-events-none z-10"
-                  style={{
-                    left: `${reaction.x}%`,
-                    animationDelay: '0ms'
-                  }}
-                >
-                  {reaction.emoji}
-                </div>
-              ))}
+      <div className="flex-1 flex flex-col sm:flex-row overflow-hidden">
+        {/* Video and Info Section */}
+        <div className="flex-none sm:flex-1 flex flex-col overflow-hidden">
+          {/* Video Player */}
+          <div className="relative bg-black shrink-0">
+            {ytLoading && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-10">
+                <div className="w-16 h-16 border-4 border-gray-300 border-t-[#FA660F] rounded-full animate-spin mb-4"></div>
+                <p className="text-gray-400 text-sm">Loading live stream...</p>
+              </div>
+            )}
+            
+            {/* Video Player - 16:9 aspect ratio with 90deg rotation */}
+            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+              <div 
+                id="youtube-player" 
+                className="absolute inset-0" 
+                style={{ 
+                  transform: 'rotate(90deg)',
+                  transformOrigin: 'center center'
+                }} 
+              />
+              {/* Overlay to prevent clicks and interactions */}
+              <div className="absolute inset-0 z-10 cursor-default" style={{ pointerEvents: 'auto' }} />
             </div>
           </div>
 
-          {/* Stream Info & Reactions */}
-          <div className="bg-black/60 backdrop-blur-sm border-t border-white/10 p-2">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => addReaction('❤️')}
-                className="flex items-center gap-1 px-2 py-1 rounded-md bg-white/10 hover:bg-red-500/30 text-white transition-all text-xs shrink-0"
-              >
-                <Heart className="w-3 h-3" />
-                <span>Love</span>
-              </button>
-              <button
-                onClick={() => addReaction('👍')}
-                className="flex items-center gap-1 px-2 py-1 rounded-md bg-white/10 hover:bg-blue-500/30 text-white transition-all text-xs shrink-0"
-              >
-                <ThumbsUp className="w-3 h-3" />
-                <span>Like</span>
-              </button>
-              <button
-                onClick={() => addReaction('🎓')}
-                className="px-2 py-1 rounded-md bg.white/10 hover:bg-[#FF660F]/30 text-white transition-all shrink-0"
-              >
-                🎓
-              </button>
-              <button
-                onClick={() => addReaction('👏')}
-                className="px-2 py-1 rounded-md bg.white/10 hover:bg-yellow-500/30 text-white transition-all shrink-0"
-              >
-                👏
-              </button>
-              <button
-                onClick={() => addReaction('🔥')}
-                className="px-2 py-1 rounded-md bg.white/10 hover:bg-orange-500/30 text-white transition-all shrink-0"
-              >
-                🔥
-              </button>
-              
-              {/* <button 
-                onClick={handleCopyLink}
-                className="ml-auto flex items-center gap-1 px-2 py-1 rounded-md bg-[#FF660F] hover:bg-[#FF660F]/90 text-white transition-all text-xs shrink-0"
-              >
-                <Share2 className="w-3 h-3" />
-                <span>Copy</span>
-              </button> */}
+          {/* Video Info Section */}
+          <div className="bg-white shrink-0 sm:border-t sm:border-gray-200 border-b sm:border-b-0 border-gray-200">
+            <div className="px-3 sm:px-6 py-1.5 sm:py-3">
+              <h1 className="text-gray-900 text-sm sm:text-lg font-bold truncate">
+                {sessionInfo?.title || streamTitle}
+              </h1>
+              <p className="text-gray-600 text-xs sm:text-sm line-clamp-1 sm:line-clamp-2">
+                {description}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Chat Sidebar */}
+        {/* Chat Panel */}
         {showChat && (
-          <div className="absolute lg:relative right-0 top-0 bottom-0 w-full sm:w-96 bg-black/40 backdrop-blur-xl flex flex-col animate-in slide-in-from-right duration-300">
-            {/* Chat Header */}
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
-              <div>
-                <h3 className="text-white font-bold">Live Chat</h3>
-                <p className="text-white/60 text-sm">{viewerCount} participants</p>
-              </div>
-              <button
-                onClick={() => setShowChat(false)}
-                className="lg:hidden p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
+          <div className="flex flex-col flex-1 sm:flex-none sm:w-[340px] lg:w-[400px] sm:border-l border-gray-200 min-h-0">
             {/* Chat Messages */}
+            <style>{`
+              .hide-scrollbar::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
             <div
               ref={chatContainerRef}
-              className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
+              className="flex-1 overflow-y-auto px-2 pt-0 pb-2 bg-white hide-scrollbar flex flex-col min-h-0"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none'
+              }}
             >
-              {chatMessages.map((msg) => (
-                <div key={msg.id} className="flex gap-3 animate-in slide-in-from-bottom-2">
-                  <div className="w-8 h-8 rounded-full bg-linear-to-br from-[#FF660F] to-orange-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
-                    {msg.avatar}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2 mb-1">
-                      <span className="text-white font-semibold text-sm">{msg.user}</span>
-                      <span className="text-white/40 text-xs">
-                        {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    <p className="text-white/80 text-sm wrap-break-word">{msg.message}</p>
-                  </div>
+              {chatMessages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center flex-1 text-center px-4">
+                  <MessageCircle className="w-8 sm:w-12 h-8 sm:h-12 text-gray-300 mb-2" />
+                  <p className="text-gray-600 text-xs sm:text-sm">Welcome to live chat!</p>
                 </div>
-              ))}
+              ) : (
+                <div className="flex flex-col">
+                  {chatMessages.map((msg) => (
+                    <div key={msg.messageId} className="px-2 py-1 hover:bg-gray-50 rounded">
+                      <div className="flex gap-2 sm:gap-3">
+                        <div className="shrink-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-linear-to-br from-[#FA660F] to-[#13097D] flex items-center justify-center text-white text-[10px] sm:text-xs font-bold mt-1">
+                          {getInitials(msg.fullName, msg.userName)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
+                            <span className="text-[11px] sm:text-xs font-semibold text-gray-900">
+                              {msg.fullName || msg.userName || 'Anonymous'}
+                            </span>
+                            <span className="text-[10px] sm:text-xs text-gray-500">
+                              {formatTime(msg.timestamp)}
+                            </span>
+                          </div>
+                          <p className="text-xs sm:text-sm text-gray-800 wrap-break-word mt-0.5">{msg.message}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Chat Input */}
-            <div className="p-4 border-t border-white/10">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                  placeholder="Send a message..."
-                  className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#FF660F] focus:border-transparent transition-all"
-                />
-                <button
-                  onClick={sendMessage}
-                  disabled={!messageInput.trim()}
-                  className="px-6 py-3 bg-[#FF660F] hover:bg-[#FF660F]/90 disabled:bg-white/10 disabled:text-white/40 text-white font-semibold rounded-lg transition-all disabled:cursor-not-allowed"
-                >
-                  Send
-                </button>
+            {/* Input Area - aligned with title section height */}
+            <div className="border-t border-gray-200 bg-white shrink-0">
+              <div className="px-3 sm:px-6 py-3 sm:py-4 flex items-center">
+                {userId ? (
+                  <div className="flex gap-2 items-center flex-1">
+                    <input
+                      type="text"
+                      value={messageInput}
+                      onChange={(e) => setMessageInput(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="Say something..."
+                      disabled={isSendingMessage}
+                      className="flex-1 bg-gray-50 text-gray-900 rounded-full px-3 sm:px-4 py-2 text-xs sm:text-sm placeholder:text-gray-500 focus:outline-none focus:bg-gray-100 disabled:opacity-50 border border-gray-200"
+                    />
+                    <button
+                      onClick={handleSendMessage}
+                      disabled={!messageInput.trim() || isSendingMessage}
+                      className="shrink-0 w-8 h-8 sm:w-9 sm:h-9 bg-[#FA660F] hover:bg-[#FA660F]/90 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-full transition-colors flex items-center justify-center"
+                    >
+                      <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-center py-2 flex-1">
+                    <p className="text-gray-500 text-xs sm:text-sm">Sign in to chat</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         )}
-      </div>
 
-      {/* Custom animations */}
-      <style>{`
-        @keyframes float {
-          0% {
-            transform: translateY(0) scale(1);
-            opacity: 1;
-          }
-          50% {
-            transform: translateY(-100px) scale(1.2);
-            opacity: 0.8;
-          }
-          100% {
-            transform: translateY(-200px) scale(0.8);
-            opacity: 0;
-          }
-        }
-      `}</style>
+        {/* Floating Chat Button (Mobile) */}
+        {!showChat && (
+          <button
+            onClick={() => setShowChat(true)}
+            className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-[#FA660F] hover:bg-[#FA660F]/90 text-white rounded-full shadow-2xl flex items-center justify-center z-30 transition-transform active:scale-95"
+          >
+            <MessageCircle className="w-6 h-6" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }

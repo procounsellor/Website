@@ -12,7 +12,6 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
@@ -82,6 +81,21 @@ export const listenToChatMessages = (
     } else {
       onMessages([]);
     }
+  });
+};
+
+/**
+ * Listen to all live sessions status in real-time
+ * @param onSessions - Callback with all live sessions
+ */
+export const listenToLiveSessionsStatus = (
+  onSessions: (sessions: Record<string, any>) => void
+) => {
+  const statusRef = ref(database, 'liveSessionsStatus');
+  
+  return onValue(statusRef, (snapshot: DataSnapshot) => {
+    const data = snapshot.val();
+    onSessions(data || {});
   });
 };
 
