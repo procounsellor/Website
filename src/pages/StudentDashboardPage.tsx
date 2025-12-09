@@ -192,7 +192,7 @@ const StudentDashboardPage: React.FC = () => {
                   activeTab === tab
                     ? 'border-[#13097D] text-[#13097D]'
                     : 'border-transparent text-[#8C8CA1] hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-3 px-2 border-b-[3px] font-semibold text-[12px] md:text-sm transition-colors flex-shrink-0`}
+                } whitespace-nowrap py-3 px-2 border-b-[3px] font-semibold text-[12px] md:text-sm transition-colors shrink-0`}
               >
                 {tab}
               </button>
