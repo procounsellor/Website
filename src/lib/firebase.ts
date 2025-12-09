@@ -54,19 +54,24 @@ export const listenToChatMessages = (
   onSessionInfo: (info: { liveSessionId: string; title: string; startedAt: any } | null) => void
 ) => {
   const chatRef = ref(database, `liveSessionChats/${liveSessionId}`);
+  console.log('🔗 Firebase listener attached to path:', `liveSessionChats/${liveSessionId}`);
   
   return onValue(chatRef, (snapshot: DataSnapshot) => {
     const data = snapshot.val();
+    console.log('📡 Firebase snapshot received:', data);
     
     if (!data) {
+      console.log('⚠️ No data at path:', `liveSessionChats/${liveSessionId}`);
       onSessionInfo(null);
       onMessages([]);
       return;
     }
     
     // Extract session info
-    const { liveSessionId, title, startedAt, messages } = data;
-    onSessionInfo({ liveSessionId, title, startedAt });
+    const { liveSessionId: sessionId, title, startedAt, messages } = data;
+    console.log('📋 Session info:', { sessionId, title, startedAt });
+    console.log('💬 Messages object:', messages);
+    onSessionInfo({ liveSessionId: sessionId, title, startedAt });
     
     // Convert messages object to array
     if (messages) {
@@ -77,6 +82,7 @@ export const listenToChatMessages = (
       
       // Sort by timestamp
       messageArray.sort((a, b) => a.timestamp - b.timestamp);
+      console.log('✅ Processed messages array:', messageArray);
       onMessages(messageArray);
     } else {
       onMessages([]);

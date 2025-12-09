@@ -91,8 +91,6 @@ export default function LiveStreamView() {
   
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
-  const messageQueueRef = useRef<ChatMessage[]>([]);
-  const processingQueueRef = useRef(false);
 
   // Load YouTube IFrame API
   useEffect(() => {
@@ -154,20 +152,24 @@ export default function LiveStreamView() {
     const unsubscribe = listenToChatMessages(
       liveSessionId,
       (messages: ChatMessage[]) => {
-        // Add new messages to queue
-        messages.forEach((msg) => {
-          const exists = messageQueueRef.current.some(
-            (queuedMsg) => queuedMsg.messageId === msg.messageId
-          );
-          if (!exists) {
-            messageQueueRef.current.push(msg);
+        console.log('🔥 Firebase messages received:', messages.length, messages);
+        
+        // Set all messages directly, replacing the queue system
+        setChatMessages((prevMessages) => {
+          // Get all existing message IDs
+          const existingIds = new Set(prevMessages.map(m => m.messageId));
+          
+          // Keep existing messages and add new ones from Firebase
+          const newMessages = messages.filter(msg => !existingIds.has(msg.messageId));
+          
+          console.log('➕ Adding new messages:', newMessages.length);
+          
+          if (newMessages.length > 0) {
+            return [...prevMessages, ...newMessages].sort((a, b) => a.timestamp - b.timestamp);
           }
+          
+          return prevMessages;
         });
-
-        // Process queue if not already processing
-        if (!processingQueueRef.current) {
-          processMessageQueue();
-        }
       },
       (info) => {
         setSessionInfo(info);
@@ -178,54 +180,6 @@ export default function LiveStreamView() {
       unsubscribe();
     };
   }, [liveSessionId]);
-
-  // Process message queue with delays
-  const processMessageQueue = async () => {
-    if (processingQueueRef.current) return;
-    processingQueueRef.current = true;
-
-    while (messageQueueRef.current.length > 0) {
-      const nextMessage = messageQueueRef.current.shift();
-      if (nextMessage) {
-        setChatMessages((prev) => {
-          // Check if message already exists by Firebase ID
-          const existsById = prev.some((msg) => msg.messageId === nextMessage.messageId);
-          if (existsById) return prev;
-          
-          // Check if this is a duplicate of a recently sent message by this user
-          // (same user, same message text, within 10 seconds)
-          const isDuplicate = nextMessage.userId === userId && 
-                             prev.some((msg) => 
-                               msg.userId === userId && 
-                               msg.message === nextMessage.message &&
-                               Math.abs(msg.timestamp - nextMessage.timestamp) < 10000
-                             );
-          
-          if (isDuplicate) {
-            // Replace temp message with real Firebase message
-            return prev.map(msg => {
-              if (msg.userId === userId && 
-                  msg.message === nextMessage.message &&
-                  msg.messageId.startsWith('temp-') &&
-                  Math.abs(msg.timestamp - nextMessage.timestamp) < 10000) {
-                return nextMessage; // Replace with real message that has proper fullName
-              }
-              return msg;
-            });
-          }
-          
-          return [...prev, nextMessage];
-        });
-
-        // Wait 4 seconds before showing next message
-        if (messageQueueRef.current.length > 0) {
-          await new Promise((resolve) => setTimeout(resolve, 4000));
-        }
-      }
-    }
-
-    processingQueueRef.current = false;
-  };
 
   // Auto-scroll chat to bottom
   useEffect(() => {
