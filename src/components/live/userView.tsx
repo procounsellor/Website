@@ -350,14 +350,18 @@ export default function LiveStreamView() {
               </div>
             )}
             
-            {/* Video Player - 16:9 aspect ratio with 90deg rotation */}
-            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+            {/* Video Player - 16:9 aspect ratio with 90deg counter-clockwise rotation, full area */}
+            <div className="relative w-full overflow-hidden" style={{ paddingBottom: '56.25%' }}>
               <div 
                 id="youtube-player" 
-                className="absolute inset-0" 
+                className="absolute" 
                 style={{ 
-                  transform: 'rotate(90deg)',
-                  transformOrigin: 'center center'
+                  transform: 'rotate(-90deg)',
+                  transformOrigin: 'center center',
+                  width: '177.78%',
+                  height: '177.78%',
+                  left: '-38.89%',
+                  top: '-38.89%'
                 }} 
               />
               {/* Overlay to prevent clicks and interactions */}
