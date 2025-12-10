@@ -76,7 +76,7 @@ const extractYouTubeVideoId = (urlOrId: string): string => {
 };
 
 export default function LiveStreamView() {
-  const { closeStream, videoId: rawVideoId, streamTitle, description, counsellorId, liveSessionId } = useLiveStreamStore();
+  const { closeStream, videoId: rawVideoId, streamTitle, description, counsellorId } = useLiveStreamStore();
   const { userId } = useAuthStore();
   
   // Extract clean video ID
@@ -147,29 +147,31 @@ export default function LiveStreamView() {
 
   // Listen to Firebase chat messages
   useEffect(() => {
-    if (!liveSessionId) return;
+    if (!counsellorId) return;
+
+    let previousMessageCount = 0;
 
     const unsubscribe = listenToChatMessages(
-      liveSessionId,
+      counsellorId, // Use counsellorId instead of liveSessionId
       (messages: ChatMessage[]) => {
         console.log('🔥 Firebase messages received:', messages.length, messages);
         
-        // Set all messages directly, replacing the queue system
-        setChatMessages((prevMessages) => {
-          // Get all existing message IDs
-          const existingIds = new Set(prevMessages.map(m => m.messageId));
-          
-          // Keep existing messages and add new ones from Firebase
-          const newMessages = messages.filter(msg => !existingIds.has(msg.messageId));
-          
-          console.log('➕ Adding new messages:', newMessages.length);
-          
-          if (newMessages.length > 0) {
-            return [...prevMessages, ...newMessages].sort((a, b) => a.timestamp - b.timestamp);
-          }
-          
-          return prevMessages;
-        });
+        // Check if we have new messages
+        if (messages.length > previousMessageCount) {
+          // Add only the new messages
+          const newMessages = messages.slice(previousMessageCount);
+          console.log('➕ Adding new messages:', newMessages);
+          setChatMessages(prev => [...prev, ...newMessages]);
+          previousMessageCount = messages.length;
+        } else if (messages.length < previousMessageCount) {
+          // Session restarted or messages cleared
+          setChatMessages(messages);
+          previousMessageCount = messages.length;
+        } else if (previousMessageCount === 0) {
+          // Initial load
+          setChatMessages(messages);
+          previousMessageCount = messages.length;
+        }
       },
       (info) => {
         setSessionInfo(info);
@@ -179,7 +181,7 @@ export default function LiveStreamView() {
     return () => {
       unsubscribe();
     };
-  }, [liveSessionId]);
+  }, [counsellorId]);
 
   // Auto-scroll chat to bottom
   useEffect(() => {
