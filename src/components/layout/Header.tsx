@@ -206,7 +206,7 @@ export default function Header(){
 
                                                 <button
                                                     onClick={() => handleNewHeaderNavigation('/live-sessions')}
-                                                    className="w-full md:hidden flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100"
+                                                    className="w-full md:hidden  flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100"
                                                 >
                                                     <TvMinimalPlay size={16} />
                                                     Live Sessions

@@ -3,8 +3,9 @@ import { X, MessageCircle, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLiveStreamStore } from '@/store/LiveStreamStore';
 import { useAuthStore } from '@/store/AuthStore';
-import { listenToChatMessages } from '@/lib/firebase';
+import { listenToChatMessages, listenToCounselorLiveStatus } from '@/lib/firebase';
 import { sendMessageInLiveSession } from '@/api/liveSessions';
+import LiveEndedPopup from './LiveEndedPopup';
 
 // YouTube IFrame API types
 declare global {
@@ -88,6 +89,7 @@ export default function LiveStreamView() {
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [ytLoading, setYtLoading] = useState(true);
   const [sessionInfo, setSessionInfo] = useState<{ title: string; startedAt: any } | null>(null);
+  const [showLiveEndedPopup, setShowLiveEndedPopup] = useState(false);
   
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
@@ -161,7 +163,20 @@ export default function LiveStreamView() {
           // Add only the new messages
           const newMessages = messages.slice(previousMessageCount);
           console.log('➕ Adding new messages:', newMessages);
-          setChatMessages(prev => [...prev, ...newMessages]);
+          
+          setChatMessages(prev => {
+            // Remove temp messages that match the new real messages
+            const filteredPrev = prev.filter(msg => 
+              !msg.messageId.startsWith('temp-') || 
+              !newMessages.some(newMsg => 
+                newMsg.userId === msg.userId && 
+                newMsg.message === msg.message &&
+                Math.abs(newMsg.timestamp - msg.timestamp) < 5000 // Within 5 seconds
+              )
+            );
+            return [...filteredPrev, ...newMessages];
+          });
+          
           previousMessageCount = messages.length;
         } else if (messages.length < previousMessageCount) {
           // Session restarted or messages cleared
@@ -182,6 +197,55 @@ export default function LiveStreamView() {
       unsubscribe();
     };
   }, [counsellorId]);
+
+  // Listen to counselor's live status and auto-close if session ends
+  useEffect(() => {
+    if (!counsellorId) return;
+
+    const unsubscribe = listenToCounselorLiveStatus(
+      counsellorId,
+      (isLive, lastUpdated) => {
+        console.log('🎥 Live status update:', { counsellorId, isLive, lastUpdated, type: typeof lastUpdated });
+        
+        if (!isLive) {
+          if (!lastUpdated) {
+            console.log('🛑 Stream ended (no data) - closing immediately');
+            // No data means session was deleted, close immediately
+            if (playerRef.current) {
+              playerRef.current.destroy();
+              playerRef.current = null;
+            }
+            closeStream();
+            setShowLiveEndedPopup(true);
+          } else {
+            const now = Date.now();
+            const lastUpdatedMs = typeof lastUpdated === 'number' ? lastUpdated : lastUpdated;
+            const secondsSinceUpdate = (now - lastUpdatedMs) / 1000;
+            
+            console.log('⏰ Stream ended - now:', now, 'lastUpdated:', lastUpdatedMs, 'seconds:', secondsSinceUpdate);
+            
+            // If stream ended more than 15 seconds ago
+            if (secondsSinceUpdate > 15) {
+              console.log('🛑 Closing stream and showing popup');
+              // Close stream immediately and show popup
+              if (playerRef.current) {
+                playerRef.current.destroy();
+                playerRef.current = null;
+              }
+              closeStream();
+              setShowLiveEndedPopup(true);
+            } else {
+              console.log('⏳ Waiting... only', secondsSinceUpdate.toFixed(1), 'seconds since update');
+            }
+          }
+        }
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [counsellorId, closeStream]);
 
   // Auto-scroll chat to bottom
   useEffect(() => {
@@ -428,6 +492,15 @@ export default function LiveStreamView() {
           </button>
         )}
       </div>
+
+      {/* Live Ended Popup */}
+      {showLiveEndedPopup && (
+        <LiveEndedPopup
+          onClose={() => {
+            setShowLiveEndedPopup(false);
+          }}
+        />
+      )}
     </div>
   );
 }

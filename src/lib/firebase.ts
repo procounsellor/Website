@@ -67,7 +67,6 @@ export const listenToChatMessages = (
       return;
     }
     
-    // Extract session info
     const { liveSessionId: sessionId, title, startedAt, messages } = data;
     console.log('📋 Session info:', { sessionId, title, startedAt });
     console.log('💬 Messages object:', messages);
@@ -102,6 +101,36 @@ export const listenToLiveSessionsStatus = (
   return onValue(statusRef, (snapshot: DataSnapshot) => {
     const data = snapshot.val();
     onSessions(data || {});
+  });
+};
+
+/**
+ * Listen to a specific counselor's live session status
+ * @param counsellorId - The counselor ID to monitor
+ * @param onStatusChange - Callback when status changes
+ */
+export const listenToCounselorLiveStatus = (
+  counsellorId: string,
+  onStatusChange: (isLive: boolean, lastUpdated: number | null) => void
+) => {
+  const statusRef = ref(database, `liveSessionsStatus/${counsellorId}`);
+  
+  return onValue(statusRef, (snapshot: DataSnapshot) => {
+    const data = snapshot.val();
+    
+    console.log('🔍 Firebase status data:', data);
+    
+    if (!data) {
+      onStatusChange(false, null);
+      return;
+    }
+    
+    const isLive = data.isLive || false;
+    const lastUpdated = data.lastUpdated || data.endedAt || null;
+    
+    console.log('📊 Parsed status:', { isLive, lastUpdated, raw: data });
+    
+    onStatusChange(isLive, lastUpdated);
   });
 };
 
