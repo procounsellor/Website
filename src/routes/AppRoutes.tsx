@@ -74,13 +74,13 @@ export default function AppRoutes(){
                                 <Route path="/add-college" element={<AddCollegePage/>} />
                                 <Route path="/exams/:id" element={<ExamDetailsPage />} />
                                 <Route path='/subscribe' element={<SubscriptionPage/>}/>
-                                <Route path='/live-sessions' element={<LiveSessionsPage/>}/>
                                 <Route path='/counsellor-dashboard' element={<CounselorDashboard/>}/>
                                 <Route path="/community" element={<CommunityPage />} />
                                 <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
                                 <Route path="/community/answer" element={<AnswerPage />} />
                                 <Route path="/community/my-activity" element={<MyActivityPage />} />
                                 <Route element={<ProtectedRoute/>}>
+                                    <Route path='/live-sessions' element={<LiveSessionsPage/>}/>
                                     <Route path='/dashboard-student' element={<StudentDashboardPage/>}/>
                                     <Route path='/wallet' element={<RechargeWallet/>}/>
                                 </Route>
