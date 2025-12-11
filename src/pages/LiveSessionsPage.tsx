@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { unlockScroll } from '@/lib/scrollLock';
-import { getAllOngoingLiveSessions } from '@/api/liveSessions';
 import type { LiveSession } from '@/api/liveSessions';
 import { OngoingSessionModal } from '@/components/live/OngoingSessionModal';
 import { useLiveStreamStore } from '@/store/LiveStreamStore';
-// import { getAllUpcomingLiveSessions } from '@/api/liveSessions';
 // import { UpcomingSessionModal } from '@/components/live/UpcomingSessionModal';
+import { listenToLiveSessionsStatus } from '@/lib/firebase';
+import { getBoughtCourses } from '@/api/course';
+import { useAuthStore } from '@/store/AuthStore';
 
 const getAvatarUrl = (photoUrl: string | null, fullName: string) => {
     if (photoUrl) return photoUrl;
@@ -157,47 +158,115 @@ function OngoingSessionAvatar({ session, onClick }: OngoingSessionAvatarProps) {
 
 export default function LiveSessionsPage() {
     const { startStream } = useLiveStreamStore.getState();
+    const { userId } = useAuthStore();
     const [ongoingSessions, setOngoingSessions] = useState<LiveSession[]>([]);
-    // const [upcomingSessions, setUpcomingSessions] = useState<LiveSession[]>([]);
+    // const [upcomingSessions] = useState<LiveSession[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedSession, setSelectedSession] = useState<{ id: string, counsellorId: string, name: string } | null>(null);
+    const [selectedSession, setSelectedSession] = useState<{ id: string, counsellorId: string, name: string, playbackId: string, title: string, description: string } | null>(null);
     // const [isUpcomingModalOpen, setIsUpcomingModalOpen] = useState(false);
     // const [selectedUpcomingSession, setSelectedUpcomingSession] = useState<{ id: string, counsellorId: string, name: string } | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [error] = useState<string | null>(null);
+    const [boughtCourseIds, setBoughtCourseIds] = useState<Set<string>>(new Set());
     
+    // Fetch bought courses on mount
     useEffect(() => {
-        unlockScroll();
-        
-        const fetchSessions = async () => {
+        const fetchBoughtCourses = async () => {
+            if (!userId) {
+                return;
+            }
+            
             try {
-                setLoading(true);
-                setError(null);
-                const [ongoing] = await Promise.all([
-                    getAllOngoingLiveSessions(),
-                    // getAllUpcomingLiveSessions(),
-                ]);
-                
-                setOngoingSessions(ongoing);
-                // setUpcomingSessions(upcoming);
+                const response = await getBoughtCourses(userId);
+                const courseIds = new Set(
+                    response.data.map((course: any) => course.courseId?.toString() || '')
+                );
+                setBoughtCourseIds(courseIds);
             } catch (err) {
-                console.error("Failed to fetch sessions:", err);
-                setError("Failed to load ongoing sessions. Please try again.");
-            } finally {
-                setLoading(false);
+                console.error("Failed to fetch bought courses:", err);
             }
         };
 
-        fetchSessions();
-    }, []);
+        fetchBoughtCourses();
+    }, [userId]);
+
+    // Listen to Firebase real-time live sessions
+    useEffect(() => {
+        unlockScroll();
+        
+        const unsubscribe = listenToLiveSessionsStatus((allLives) => {
+            const msNow = Date.now();
+            const filteredSessions: LiveSession[] = [];
+
+            Object.entries(allLives).forEach(([key, value]: [string, any]) => {
+                if (!value || typeof value !== 'object') return;
+
+                const forWhom = value.forWhom?.toString() || '';
+                const courseId = value.courseId?.toString() || '';
+                
+                // Handle timestamp in both seconds and milliseconds
+                let updatedAtMs = value.updatedAt || 0;
+                if (updatedAtMs < 10000000000) {
+                    // If timestamp is less than 10 billion, it's in seconds, convert to ms
+                    updatedAtMs = updatedAtMs * 1000;
+                }
+                
+                const timeDiff = Math.abs(msNow - updatedAtMs);
+                const isLive = value.isLive === true && timeDiff < 15000;
+
+                if (!isLive) return;
+
+                // Filter by course ownership
+                if (forWhom === 'COURSE') {
+                    if (!boughtCourseIds.has(courseId)) {
+                        return;
+                    }
+                }
+
+                // Extract YouTube video ID from youtubeWatchUrl or use as-is
+                let videoId = '';
+                if (value.youtubeWatchUrl) {
+                    const match = value.youtubeWatchUrl.match(/[?&]v=([^&]+)/);
+                    videoId = match ? match[1] : value.youtubeWatchUrl;
+                }
+
+                // Create session object with actual Firebase fields
+                filteredSessions.push({
+                    liveSessionId: value.liveSessionId || key,
+                    counsellorId: value.counsellorId || key,
+                    counsellorFullName: value.counsellorFullName || 'Counselor',
+                    counsellorPhotoUrl: value.counsellorPhotoUrl || null,
+                    liveSince: value.startedAt ? new Date(value.startedAt).toISOString() : new Date().toISOString(),
+                    title: value.title || 'Live Session',
+                    description: value.description || '',
+                    playbackId: videoId,
+                    forWhom: forWhom as any
+                });
+            });
+
+            setOngoingSessions(filteredSessions);
+            setLoading(false);
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, [boughtCourseIds]);
 
     const handleAvatarClick = (counsellorId: string, liveSessionId: string, counsellorName: string) => {
-        setSelectedSession({ 
-            id: liveSessionId, 
-            counsellorId: counsellorId, 
-            name: counsellorName 
-        });
-        setIsModalOpen(true);
+        // Find the full session data
+        const session = ongoingSessions.find(s => s.liveSessionId === liveSessionId);
+        if (session) {
+            setSelectedSession({ 
+                id: liveSessionId, 
+                counsellorId: counsellorId, 
+                name: counsellorName,
+                playbackId: session.playbackId,
+                title: session.title,
+                description: session.description
+            });
+            setIsModalOpen(true);
+        }
     };
 
     // const handleUpcomingCardClick = (counsellorId: string, liveSessionId: string, counsellorName: string) => {
@@ -212,10 +281,12 @@ export default function LiveSessionsPage() {
     const handleJoinStream = (playbackId: string) => {
         if (!selectedSession) return;
         startStream(
-            'livepeer', 
+            'youtube', 
             playbackId,
             `Live Session with ${selectedSession.name}`,
-            'Join our interactive session'
+            'Join our interactive session',
+            selectedSession.id,
+            selectedSession.counsellorId
         );
         setIsModalOpen(false);
     };
@@ -318,8 +389,8 @@ export default function LiveSessionsPage() {
                     }}
                 >
                     Upcoming Sessions
-                </h2> */}
-                {/* {renderUpcomingContent()} */}
+                </h2>
+                {renderUpcomingContent()} */}
                 
             </main>
             <OngoingSessionModal
@@ -329,6 +400,12 @@ export default function LiveSessionsPage() {
                 counsellorId={selectedSession?.counsellorId ?? null}
                 counsellorName={selectedSession?.name ?? 'Counselor'}
                 onJoinStream={handleJoinStream}
+                fakeSessionData={selectedSession ? {
+                    title: selectedSession.title,
+                    description: selectedSession.description,
+                    playbackId: selectedSession.playbackId,
+                    liveSince: new Date().toISOString()
+                } : null}
             />
             {/* <UpcomingSessionModal
                 isOpen={isUpcomingModalOpen}

@@ -20,7 +20,7 @@ type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 
 const COURSE_ID = "a997f3a9-4a36-4395-9f90-847b739fb225";
 const COURSE_NAME = "MHT-CET Mastery Course";
-const COURSE_PRICE = 2999;
+const COURSE_PRICE = 2499;
 
 export default function LandingPage() {
   const { user, userId, isAuthenticated, toggleLogin, refreshUser } = useAuthStore();

@@ -39,7 +39,7 @@ export default function MainLayout(){
   const { refreshUser } = useAuthStore();
   const { isChatbotOpen, toggleChatbot } = useChatStore();
   const { isVoiceChatOpen} = useVoiceChatStore();
-  const { isStreamActive, platform, videoId, streamTitle, description, liveSessionId } = useLiveStreamStore();
+  const { isStreamActive } = useLiveStreamStore();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -183,16 +183,7 @@ export default function MainLayout(){
       {isChatbotOpen && <Chatbot />}
       {isVoiceChatOpen && <VoiceChat />}
       
-      {isStreamActive && (
-        <LiveStreamView
-          platform={platform}
-          videoId={videoId}
-          streamTitle={streamTitle}
-          description={description}
-          isLive={true}
-          liveSessionId={liveSessionId}
-        />
-      )}
+      {isStreamActive && <LiveStreamView />}
     </div>
   );
 }

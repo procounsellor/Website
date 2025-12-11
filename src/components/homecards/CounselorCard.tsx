@@ -24,15 +24,16 @@ export function CounselorCard({ counselor }: CounselorCardProps) {
       fullName
     )}&background=6B7280&color=ffffff&size=400`;
   const languages = counselor.languagesKnow || ["English"];
-  const experience = counselor.experience
-    ? `${counselor.experience} Years`
+  const experienceValue = counselor.experience?.toString().match(/\d+/)?.[0];
+  const experience = experienceValue
+    ? `${experienceValue} Years`
     : "Entry Level";
   const description = languages.slice(0, 2).join(" | ");
 
   return (
     <div
       className="flex flex-col  w-[170px] lg:w-[282px] h-[221px]
-    lg:h-[366px] p-[10px] transition-all duration-300  hover:shadow-lg
+    lg:h-[366px] p-2.5 transition-all duration-300  hover:shadow-lg
      bg-white shadow-[0px_0px_4px_0px_#23232340] rounded-[12px] lg:rounded-[20px]"
     >
       <img

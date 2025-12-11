@@ -77,10 +77,20 @@ export default function ({role, course, courseDetails, isPurchased, isBookmarked
                         <img src="/coin.svg" alt="" className="w-5 h-5"/>
                         <h3 className="text-[#07B02E] text-[1.5rem] font-bold">{courseDetails?.coursePriceAfterDiscount || course.price}</h3>
                     </div>
-                    {courseDetails?.discount && courseDetails.discount > 0 && courseDetails.coursePrice > 0 && (
+                    {courseDetails?.coursePrice && courseDetails.coursePriceAfterDiscount && courseDetails.coursePrice > courseDetails.coursePriceAfterDiscount && (
                         <div className="flex gap-2 items-center">
                             <span className="text-[#8C8CA1] text-sm line-through">₹{courseDetails.coursePrice}</span>
-                            <span className="text-[#07B02E] text-sm font-semibold">{Math.round((courseDetails.discount / courseDetails.coursePrice) * 100)}% off</span>
+                            <span className="text-[#07B02E] text-sm font-semibold">
+                                {(() => {
+                                    const discount = Math.round(((courseDetails.coursePrice - courseDetails.coursePriceAfterDiscount) / courseDetails.coursePrice) * 100);
+                                    console.log('Discount calc:', { 
+                                        coursePrice: courseDetails.coursePrice, 
+                                        coursePriceAfterDiscount: courseDetails.coursePriceAfterDiscount,
+                                        calculated: discount 
+                                    });
+                                    return discount;
+                                })()}% off
+                            </span>
                         </div>
                     )}
                 </div>

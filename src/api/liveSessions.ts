@@ -75,6 +75,54 @@ export async function getAllOngoingLiveSessions(): Promise<LiveSession[]> {
     }
 }
 
+/**
+ * Get counselor's own ongoing live session
+ */
+export async function getCounselorOngoingSession(counsellorId: string): Promise<LiveSession | null> {
+    const token = localStorage.getItem('jwt');
+
+    if (!counsellorId || !token) {
+        console.error("Authentication check failed: counsellorId or token missing.");
+        return null;
+    }
+
+    const url = `${API_CONFIG.baseUrl}/api/counsellorLiveSession/getCounsellorOwnOngoingLiveSession?counsellorId=${counsellorId}`;
+    
+    console.log('Fetching counselor ongoing session:', { url, counsellorId });
+    
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        console.log('Counselor session response:', response.status, response.ok);
+
+        if (!response.ok) {
+            const errorBody = await response.text();
+            console.error('Counselor session error:', errorBody);
+            return null;
+        }
+        
+        const data = await response.json();
+        console.log('Counselor session data:', data);
+
+        if (data.success && data.data) {
+            return data.data;
+        } else {
+            return null;
+        }
+
+    } catch (error) {
+        console.error("Error fetching counselor session:", error);
+        return null;
+    }
+}
+
 export async function getLiveSessionById(counsellorId: string, liveSessionId: string): Promise<DetailedLiveSession | null> {
     const { userId } = useAuthStore.getState();
     const token = localStorage.getItem('jwt');
@@ -154,5 +202,47 @@ export async function getAllUpcomingLiveSessions(): Promise<LiveSession[]> {
     } catch (error) {
         console.error("Error fetching upcoming sessions:", error);
         return [];
+    }
+}
+
+/**
+ * Send a message in a live session chat
+ */
+export async function sendMessageInLiveSession(
+    counsellorId: string, 
+    userId: string, 
+    message: string
+): Promise<void> {
+    const token = localStorage.getItem('jwt');
+
+    if (!token || !counsellorId || !userId || !message) {
+        throw new Error("Missing required parameters for sending message.");
+    }
+
+    const url = `${API_CONFIG.baseUrl}/api/counsellorLiveSession/sendMessageInLiveSession?userId=${userId}&counsellorId=${counsellorId}`;
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message }),
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`HTTP ${response.status}: Failed to send message. Details: ${errorBody}`);
+        }
+
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.message || "Failed to send message.");
+        }
+    } catch (error) {
+        console.error("Error sending message:", error);
+        throw error;
     }
 }
