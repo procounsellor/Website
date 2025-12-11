@@ -10,6 +10,7 @@ import { GuidanceSection } from "@/components/landing-page/GuidanceSection";
 import toast from "react-hot-toast";
 import startRecharge from "@/api/wallet";
 import { useQuery } from '@tanstack/react-query';
+import { FaWhatsapp  } from "react-icons/fa";
 
 declare global {
   interface Window {
@@ -21,6 +22,7 @@ type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 const COURSE_ID = "a997f3a9-4a36-4395-9f90-847b739fb225";
 const COURSE_NAME = "MHT-CET Mastery Course";
 const COURSE_PRICE = 2499;
+const WHATSAPP_GROUP_LINK = "https://chat.whatsapp.com/JahmZvJ4vslJTxX9thZDK6";
 
 export default function LandingPage() {
   const { user, userId, isAuthenticated, toggleLogin, refreshUser } = useAuthStore();
@@ -41,8 +43,6 @@ export default function LandingPage() {
     (course) => course.courseId === COURSE_ID
   ) ?? false;
   
-  const isButtonDisabled = isProcessing || isLoadingBought || isCoursePurchased;
-
   const handleProfileIncomplete = (action: () => void) => {
     setPendingAction(() => action);
     setIsEditProfileModalOpen(true);
@@ -211,6 +211,58 @@ export default function LandingPage() {
     await handleDirectPayment(amount);
   };
 
+  const WhatsAppButton = ({ mobile = false }: { mobile?: boolean }) => (
+    <a
+      href={WHATSAPP_GROUP_LINK}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`
+        w-full flex items-center justify-center gap-2 
+        bg-[#25D366] text-white font-medium 
+        rounded-[12px] transition-all duration-300 transform 
+        hover:bg-[#1EBE59] active:scale-[0.98]
+        ${mobile ? 'text-[14px] py-2.5 mt-2' : 'text-[16px] py-2 mt-2'}
+      `}
+    >
+      <FaWhatsapp  size={mobile ? 20 : 20} />
+      <span>Join WhatsApp Group Now!</span>
+    </a>
+  );
+
+  const EnrollmentButton = ({ mobile = false }: { mobile?: boolean }) => {
+    const commonClasses = `
+      w-full rounded-[12px] text-white font-medium disabled:cursor-not-allowed transition-all 
+      duration-300 transform 
+      ${mobile ? 'text-[14px] py-2.5 mt-3.5' : 'text-lg py-3'}
+    `;
+
+    if (isCoursePurchased) {
+        return (
+            <button
+                disabled={true}
+                className={`${commonClasses} bg-gray-400`}
+            >
+                Already Enrolled
+            </button>
+        );
+    }
+    
+    return (
+        <button
+            onClick={() => handleEnroll(COURSE_PRICE)}
+            disabled={isProcessing || isLoadingBought}
+            className={`${commonClasses} bg-blue-700 hover:bg-blue-800 active:bg-blue-900 cursor-pointer hover:scale-[1.02] active:scale-[0.98]`}
+        >
+            {isLoadingBought 
+              ? "Checking enrollment..." 
+              : isProcessing
+                ? "Processing..." 
+                : "Enroll Now"}
+        </button>
+    );
+  };
+
+
   return (
     <div className="mx-auto mt-1 md:mt-20">
       {/* Mobile version */}
@@ -238,19 +290,11 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-          <button
-            onClick={() => handleEnroll(COURSE_PRICE)}
-            disabled={isButtonDisabled}
-            className="w-full bg-blue-700 hover:bg-blue-800 active:bg-blue-900 rounded-[12px] text-white font-medium text-[14px] py-2.5 mt-3.5 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
-          >
-            {isLoadingBought 
-              ? "Checking enrollment..." 
-              : isCoursePurchased
-                ? "Already Enrolled"
-                : isProcessing
-                  ? "Processing..." 
-                  : "Enroll Now"}
-          </button>
+          
+          <div className="flex flex-col gap-1">
+            <EnrollmentButton mobile={true} />
+            {isCoursePurchased && <WhatsAppButton mobile={true} />}
+          </div>
 
           <hr className="h-px bg-#EFEFEF mt-4 mb-2" />
 
@@ -293,19 +337,11 @@ export default function LandingPage() {
             </div>
 
             <div className="flex gap-3 pt-5">
-              <button
-            onClick={() => handleEnroll(COURSE_PRICE)}
-            disabled={isButtonDisabled} 
-            className="w-full bg-blue-700 hover:bg-blue-800 active:bg-blue-900 rounded-[12px] text-white font-medium text-[14px] py-2.5 mt-3.5 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
-          >
-            {isLoadingBought 
-              ? "Checking enrollment..." 
-              : isCoursePurchased
-                ? "Already Enrolled"
-                : isProcessing
-                  ? "Processing..." 
-                  : "Enroll Now"}
-          </button>
+              <div className="flex flex-col w-full">
+                <EnrollmentButton />
+                {isCoursePurchased && <WhatsAppButton />}
+              </div>
+              
               <p className="flex gap-2 items-center">
                 <img src="/4,999.svg" alt="" className="h-5" />
                 <span className="text-[1.25rem] font-semibold text-[#232323]">
