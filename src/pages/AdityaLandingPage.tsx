@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/AuthStore";
 import { updateUserProfile } from "@/api/user";
 import { buyCourse, getBoughtCourses } from "@/api/course";
@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import startRecharge from "@/api/wallet";
 import { useQuery } from '@tanstack/react-query';
 import { FaWhatsapp  } from "react-icons/fa";
+import { useSearchParams } from "react-router-dom";
 
 declare global {
   interface Window {
@@ -23,10 +24,22 @@ const COURSE_ID = "a997f3a9-4a36-4395-9f90-847b739fb225";
 const COURSE_NAME = "MHT-CET Mastery Course";
 const COURSE_PRICE = 2499;
 const WHATSAPP_GROUP_LINK = "https://chat.whatsapp.com/JahmZvJ4vslJTxX9thZDK6";
+const TARGET_REFERRAL_CODE = "SPARKKSIR";
 
 export default function LandingPage() {
   const { user, userId, isAuthenticated, toggleLogin, refreshUser } = useAuthStore();
   const token = localStorage.getItem("jwt");
+  const [searchParams] = useSearchParams(); 
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    const refParam = searchParams.get('ref');
+    if (refParam === TARGET_REFERRAL_CODE) {
+      setReferralCode(refParam);
+    } else {
+      setReferralCode(null);
+    }
+  }, [searchParams]);
 
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
@@ -56,7 +69,11 @@ export default function LandingPage() {
     if (!userId || !token) {
       throw new Error("User not authenticated");
     }
-    await updateUserProfile(userId, updatedData, token);
+    const payload = { 
+        ...updatedData,
+        ...(referralCode && { referralCode: referralCode })
+    };
+    await updateUserProfile(userId, payload, token);
     await refreshUser(true);
     if (pendingAction) {
       pendingAction();
@@ -178,6 +195,10 @@ export default function LandingPage() {
         console.log("Name missing, showing profile modal...");
         handleProfileIncomplete(async () => {
           await handleDirectPayment(amount);
+          if (referralCode && freshUser?.userName && token && !freshUser.referralCode) {
+              await updateUserProfile(freshUser.userName, { referralCode }, token);
+              await refreshUser(true);
+          }
         });
         return;
       }
@@ -186,6 +207,10 @@ export default function LandingPage() {
       setTimeout(async () => {
         console.log("Opening payment...");
         await handleDirectPayment(amount);
+        if (referralCode && user?.userName && token && !user.referralCode) {
+            await updateUserProfile(user.userName, { referralCode }, token);
+            await refreshUser(true);
+        }
       }, 300);
     };
 
@@ -203,12 +228,20 @@ export default function LandingPage() {
     if (!user?.firstName) {
       handleProfileIncomplete(async () => {
         await handleDirectPayment(amount);
+        if (referralCode && user?.userName && token && !user.referralCode) {
+            await updateUserProfile(user.userName, { referralCode }, token);
+            await refreshUser(true);
+        }
       });
       return;
     }
 
     // User is logged in and has name, open payment directly
     await handleDirectPayment(amount);
+    if (referralCode && user?.userName && token && !user.referralCode) {
+        await updateUserProfile(user.userName, { referralCode }, token);
+        await refreshUser(true);
+    }
   };
 
   const WhatsAppButton = ({ mobile = false }: { mobile?: boolean }) => (
@@ -265,6 +298,11 @@ export default function LandingPage() {
 
   return (
     <div className="mx-auto mt-1 md:mt-20">
+    {referralCode && (
+          <div className="block md:hidden text-center text-sm font-medium text-gray-600 mb-3 px-4">
+              Enrolling via **{referralCode}** referral link.
+          </div>
+      )}
       {/* Mobile version */}
       <div className="block md:hidden w-full h-full bg-[#F5F7FA] p-5 mt-14">
         <div className="w-full max-w-sm p-3 bg-white rounded-[12px] border border-[#EFEFEF]">
@@ -349,6 +387,11 @@ export default function LandingPage() {
                 </span>
               </p>
             </div>
+            {referralCode && (
+                <div className="text-sm font-medium text-gray-600 mt-2">
+                    Enrolling via **{referralCode}** referral link.
+                </div>
+            )}
           </div>
 
           <div>
