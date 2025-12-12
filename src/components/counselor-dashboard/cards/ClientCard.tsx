@@ -44,7 +44,7 @@ export default function ClientCard({ client, variant, onAccept, onReject, isResp
                 <img 
                     src={client.imageUrl} 
                     alt={client.name} 
-                    className="w-11 h-11 rounded-md object-cover flex-shrink-0" 
+                    className="w-11 h-11 rounded-md object-cover shrink-0" 
                 />
                 <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-sm text-[#242645] truncate">{client.name}</h4>
@@ -52,7 +52,7 @@ export default function ClientCard({ client, variant, onAccept, onReject, isResp
                 </div>
             </div>
             {variant === 'pending' && onAccept && onReject && (
-                <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                <div className="flex items-center gap-2 shrink-0 ml-2">
                     <button
                         onClick={onReject}
                         disabled={isResponding}
@@ -111,7 +111,7 @@ export default function ClientCard({ client, variant, onAccept, onReject, isResp
       <div className="hidden md:block py-6">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
           <div className="md:col-span-3 flex items-center gap-4">
-            <img src={client.imageUrl} alt={client.name} className="w-20 h-20 rounded-lg object-cover flex-shrink-0" />
+            <img src={client.imageUrl} alt={client.name} className="w-20 h-20 rounded-lg object-cover shrink-0" />
             <div className="min-w-0 flex-1">
               <h4 className="font-semibold text-xl text-[#242645] truncate">{client.name}</h4>
               <p className="font-medium text-base text-[#8C8CA1] truncate">{client.course}</p>
@@ -120,18 +120,18 @@ export default function ClientCard({ client, variant, onAccept, onReject, isResp
 
           {client.plan && (
             <div className={`flex items-center gap-6 ${client.interestedStates && client.interestedStates.length > 0 && variant === 'client' ? 'md:col-span-7' : 'md:col-span-7'}`}>
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <h5 className="font-semibold text-lg text-[#242645]">Plan</h5>
                 <p className="font-medium text-base text-[#8C8CA1] capitalize">{formatPlanName(client.plan)}</p>
               </div>
               {client.amount && (
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <h5 className="font-semibold text-lg text-[#242645]">Amount</h5>
                   <p className="font-medium text-base text-[#8C8CA1]">₹{client.amount}</p>
                 </div>
               )}
               {client.createdAt && variant === 'pending' && (
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <h5 className="font-semibold text-lg text-[#242645]">Requested</h5>
                   <div className="flex items-center gap-1.5 text-[#8C8CA1]">
                     <Clock size={16} />
@@ -155,7 +155,7 @@ export default function ClientCard({ client, variant, onAccept, onReject, isResp
               <button
                 onClick={onReject}
                 disabled={isResponding}
-                className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+                className="w-8 h-8 flex items-center hover:cursor-pointer justify-center rounded-full border border-gray-300 text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
                 aria-label="Reject"
               >
                 <X size={20} />
@@ -163,7 +163,7 @@ export default function ClientCard({ client, variant, onAccept, onReject, isResp
               <button
                 onClick={onAccept}
                 disabled={isResponding}
-                className="w-8 h-8 flex items-center justify-center rounded-full border border-[#13097D] text-[#13097D] hover:bg-green-50 hover:text-green-600 transition-colors disabled:opacity-50"
+                className="w-8 h-8 flex items-center justify-center hover:cursor-pointer rounded-full border border-[#13097D] text-[#13097D] hover:bg-green-50 hover:text-green-600 transition-colors disabled:opacity-50"
                 aria-label="Accept"
               >
                 {isResponding ? <Loader2 className="animate-spin" size={16} /> : <Check size={20} />}

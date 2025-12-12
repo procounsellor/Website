@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { X } from "lucide-react";
 
 interface AddFundsPanelProps {
   isOpen: boolean;
@@ -10,15 +10,21 @@ interface AddFundsPanelProps {
 }
 
 const formatCurrency = (amount: number) => {
-  return amount.toLocaleString('en-IN');
+  return amount.toLocaleString("en-IN");
 };
 
-const AddFundsPanel: React.FC<AddFundsPanelProps> = ({ isOpen, onClose, balance, onAddMoney, isProcessing }) => {
-  const [amount, setAmount] = useState('');
+const AddFundsPanel: React.FC<AddFundsPanelProps> = ({
+  isOpen,
+  onClose,
+  balance,
+  onAddMoney,
+  isProcessing,
+}) => {
+  const [amount, setAmount] = useState("");
 
   useEffect(() => {
     if (!isOpen) {
-      setAmount('');
+      setAmount("");
     }
   }, [isOpen]);
 
@@ -32,15 +38,15 @@ const AddFundsPanel: React.FC<AddFundsPanelProps> = ({ isOpen, onClose, balance,
   return (
     <>
       <div
-        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[99] transition-opacity duration-300 ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-99 transition-opacity duration-300 ${
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
       />
 
       <div
         className={`
-          fixed z-[100] bg-white shadow-2xl transition-all duration-300 ease-in-out
+          fixed z-100 bg-white shadow-2xl transition-all duration-300 ease-in-out
           
           /* Mobile: Centered modal */
           inset-x-4 top-1/2 -translate-y-1/2 rounded-2xl max-h-[90vh] overflow-y-auto
@@ -50,14 +56,19 @@ const AddFundsPanel: React.FC<AddFundsPanelProps> = ({ isOpen, onClose, balance,
           
           ${
             isOpen
-              ? 'opacity-100 scale-100 md:translate-x-0'
-              : 'opacity-0 pointer-events-none scale-95 md:translate-x-full'
+              ? "opacity-100 scale-100 md:translate-x-0"
+              : "opacity-0 pointer-events-none scale-95 md:translate-x-full"
           }
         `}
       >
         <div className="flex items-center justify-between h-[68px] px-6 border-b border-[#EFEFEF]">
-          <h2 className="text-lg font-semibold text-[#343C6A]">Wallet Balance</h2>
-          <button onClick={onClose} className="p-2 rounded-md transition-colors hover:bg-gray-100">
+          <h2 className="text-lg font-semibold text-[#343C6A]">
+            Wallet Balance
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-md transition-colors hover:bg-gray-100 hover:cursor-pointer"
+          >
             <X size={24} className="text-gray-600" />
           </button>
         </div>
@@ -68,7 +79,9 @@ const AddFundsPanel: React.FC<AddFundsPanelProps> = ({ isOpen, onClose, balance,
               Available ProCoins
             </h3>
             <div className="flex items-center justify-center px-4 h-[49px] bg-white border border-[#EFEFEF] rounded-2xl">
-              <span className="font-semibold text-lg text-green-600 flex items-center gap-1">{balance} <img src="/coin.svg" alt="" /></span>
+              <span className="font-semibold text-lg text-green-600 flex items-center gap-1">
+                {balance} <img src="/coin.svg" alt="" />
+              </span>
             </div>
           </div>
 
@@ -77,16 +90,21 @@ const AddFundsPanel: React.FC<AddFundsPanelProps> = ({ isOpen, onClose, balance,
               Add Money to Your Wallet
             </h3>
             <div className="p-4 border border-[#EFEFEF] rounded-2xl">
-              <div className="relative flex items-center justify-center h-[40px] bg-[#F5F5F5] border border-[#EFEFEF] rounded-[10px]">
-                {amount && <img src="/coin.svg" alt="coin" className="w-5 h-5 mr-1" />}
+              <div className="relative flex items-center justify-center h-10 bg-[#F5F5F5] border border-[#EFEFEF] rounded-[10px]">
+                {amount && (
+                  <img src="/coin.svg" alt="coin" className="w-5 h-5 mr-1" />
+                )}
                 <input
-                  type="number"
-                  min={0}
+                  type="numeric"
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  onChange={(e) => {
+                    setAmount(e.target.value)
+                  }}
+                  min={0}
+                  max={500000}
                   placeholder="Enter Amount"
-                  className="no-spinner bg-transparent text-center text-lg font-semibold placeholder:text-[#23232380] focus:outline-none w-auto flex-shrink-0"
-                  style={{ width: amount ? `${amount.length + 1}ch` : 'auto' }}
+                  className="no-spinner bg-transparent text-center text-lg font-semibold  placeholder:text-[#23232380] focus:outline-none  shrink-0"
+                  style={{ width: amount ? `${amount.length + 1}ch` : "auto" }}
                 />
               </div>
               <div className="flex flex-wrap justify-center md:justify-between my-4 gap-2">
@@ -99,18 +117,19 @@ const AddFundsPanel: React.FC<AddFundsPanelProps> = ({ isOpen, onClose, balance,
                       const currentAmount = Number(amount) || 0;
                       setAmount(String(currentAmount + preset));
                     }}
-                    className="flex-1 min-w-[100px] h-[40px] border border-[#13097D] rounded-[10px] text-[#13097D] font-semibold text-sm text-center hover:bg-[#13097D] hover:text-white transition-colors md:flex-none md:w-[117px] flex items-center justify-center gap-1"
+                    className="flex-1 min-w-[100px] h-10 border border-[#13097D] rounded-[10px] text-[#13097D] font-semibold text-sm text-center hover:bg-[#13097D] hover:text-white transition-colors md:flex-none md:w-[117px] flex items-center justify-center gap-1"
                   >
-                    + <img src="/coin.svg" alt="coin" className="w-4 h-4" /> {formatCurrency(preset)}
+                    + <img src="/coin.svg" alt="coin" className="w-4 h-4" />{" "}
+                    {formatCurrency(preset)}
                   </button>
                 ))}
               </div>
               <button
                 onClick={handleAddClick}
                 disabled={!amount || Number(amount) <= 0 || isProcessing}
-                className="w-full h-[42px] bg-[#FA660F] rounded-[12px] text-white font-semibold text-sm disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors"
+                className="w-full h-[42px] bg-[#FA660F] rounded-[12px] text-white font-semibold text-sm disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors hover:cursor-pointer"
               >
-                {isProcessing ? 'Processing...' : 'Add Money'}
+                {isProcessing ? "Processing..." : "Add Money"}
               </button>
             </div>
           </div>

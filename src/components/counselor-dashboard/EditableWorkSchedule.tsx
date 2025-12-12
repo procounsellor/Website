@@ -21,7 +21,7 @@ interface EditableWorkScheduleProps {
 const InfoField = ({ label, value }: { label: string; value: string }) => (
   <div>
     <label className="text-xs md:text-sm text-[#232323]">{label}</label>
-    <div className="mt-1 md:mt-2 w-full min-h-[48px] md:min-h-[40px] flex items-center px-4 py-2 rounded-lg md:rounded-md border border-[#EFEFEF] md:border-gray-200 bg-[#F9FAFB] md:bg-white cursor-not-allowed">
+    <div className="mt-1 md:mt-2 w-full min-h-12 md:min-h-10 flex items-center px-4 py-2 rounded-lg md:rounded-md border border-[#EFEFEF] md:border-gray-200 bg-[#F9FAFB] md:bg-white cursor-not-allowed">
       <p className="font-normal md:font-medium text-sm md:text-base text-[#718EBF]">{value}</p>
     </div>
   </div>
@@ -121,8 +121,8 @@ export default function EditableWorkSchedule({
               <label className="text-xs md:text-sm text-[#858585] md:text-[#232323]">Working days & Time</label>
               <Popover.Button
                 className={`
-                  mt-1 md:mt-2 w-full min-h-[48px] md:min-h-[40px] flex items-center justify-between px-4 py-2 rounded-lg md:rounded-md border
-                  border-[#EFEFEF] md:border-gray-200 bg-[#F9FAFB] md:bg-white text-left
+                  mt-1 md:mt-2 w-full min-h-12 md:min-h-10 flex items-center justify-between px-4 py-2 rounded-lg md:rounded-md border
+                  border-[#EFEFEF] md:border-gray-200 bg-[#F9FAFB] md:bg-white text-left hover:cursor-pointer
                 `}
               >
                 <span className="font-normal md:font-medium text-sm md:text-base text-gray-800">
@@ -159,7 +159,7 @@ export default function EditableWorkSchedule({
                             >
                               <input
                                 type="checkbox"
-                                className="w-4 h-4 rounded text-[#13097D] focus:ring-indigo-400"
+                                className="w-4 h-4 rounded text-[#13097D] focus:ring-indigo-400 cursor-pointer"
                                 checked={(data.workingDays || []).includes(option.value)}
                                 onChange={() => handleDayToggle(option.value)}
                               />

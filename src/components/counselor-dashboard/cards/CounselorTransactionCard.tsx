@@ -62,7 +62,7 @@ const CounselorTransactionCard: React.FC<TransactionCardProps> = ({ transaction 
     let isOfflineCredit = false;
 
     if (isFailed) {
-      icon = <XCircle className="w-10 h-10 text-[#EE1C1F] sm:w-12 sm:h-12 bg-[#EE1C1F26] rounded-full p-1.5 sm:p-2 flex-shrink-0" />;
+      icon = <XCircle className="w-10 h-10 text-[#EE1C1F] sm:w-12 sm:h-12 bg-[#EE1C1F26] rounded-full p-1.5 sm:p-2 shrink-0" />;
       amountColor = 'text-[#EE1C1F]';
       
       mobileLine1 = 'Payment Failed';
@@ -72,7 +72,7 @@ const CounselorTransactionCard: React.FC<TransactionCardProps> = ({ transaction 
       desktopDescription = 'Procounsel';
 
     } else if (isCredit) {
-      icon = <ArrowDownCircle className="w-10 h-10 text-[#28A745] sm:w-12 sm:h-12 bg-[#28A74526] rounded-full p-1.5 sm:p-2 flex-shrink-0" />;
+      icon = <ArrowDownCircle className="w-10 h-10 text-[#28A745] sm:w-12 sm:h-12 bg-[#28A74526] rounded-full p-1.5 sm:p-2 shrink-0" />;
       amountColor = 'text-[#28A745]';
 
       let creditSource = 'Bank';
@@ -110,7 +110,7 @@ const CounselorTransactionCard: React.FC<TransactionCardProps> = ({ transaction 
       desktopDescription = creditSource;
 
     } else { // debit
-      icon = <ArrowUpCircle className="w-10 h-10 text-blue-500 sm:w-12 sm:h-12 bg-blue-50 rounded-full p-1.5 sm:p-2 flex-shrink-0" />;
+      icon = <ArrowUpCircle className="w-10 h-10 text-blue-500 sm:w-12 sm:h-12 bg-blue-50 rounded-full p-1.5 sm:p-2 shrink-0" />;
       mobileLine1 = 'Paid to';
       mobileLine2 = (transaction.description || '').replace(/^Paid to /i, '');
       desktopTitle = transaction.description || 'Paid to Procounsel';
@@ -139,7 +139,7 @@ const CounselorTransactionCard: React.FC<TransactionCardProps> = ({ transaction 
           </div>
         </div>
 
-        <div className="flex flex-col items-end flex-shrink-0">
+        <div className="flex flex-col items-end shrink-0">
           <p className={`font-medium text-base ${amountColor} flex items-center justify-end`}>
             {showProCoin ? (
               <>
@@ -161,9 +161,9 @@ const CounselorTransactionCard: React.FC<TransactionCardProps> = ({ transaction 
 
       {/*desktop view*/}
       <div className="hidden sm:flex items-center gap-4 w-full py-6">
-        <div className="flex items-center gap-4 w-[40%] flex-shrink-0">
+        <div className="flex items-center gap-4 w-[40%] shrink-0">
           {icon}
-          <div className="flex-grow overflow-hidden">
+          <div className="grow overflow-hidden">
             <h4 className="font-semibold text-lg text-[#242645]">{desktopTitle}</h4>
             <p className="text-base font-medium text-[#8C8CA1] truncate" title={desktopDescription || ''}>
                 {desktopDescription || 'No description'}

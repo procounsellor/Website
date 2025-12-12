@@ -13,7 +13,9 @@ interface Props {
 const MorningSlots: FC<Props> = ({ slots, selectedSlot = null, onSelectSlot = () => {}, isOpen = false, onToggle = () => {}, disabledSlotIds = new Set<string>() }) => {
     
   return (
-    <div className="flex flex-col gap-[16px] bg-white border-[1px] border-[#f5f5f5] shadow-md p-5 w-full rounded-[12px]">
+    <div className="flex flex-col gap-4 bg-white border border-[#f5f5f5] shadow-md p-5 w-full rounded-[12px] hover:cursor-pointer"
+    onClick={onToggle}
+    >
       <div className="flex justify-between text-[#242645]">
         <p className="flex gap-6 text-[#343c6a] text-[16px] font-medium">
           <span className="bg-[#343c6a] h-6 w-6 p-0.5 rounded-md">
@@ -21,16 +23,19 @@ const MorningSlots: FC<Props> = ({ slots, selectedSlot = null, onSelectSlot = ()
           </span>
           Morning Slots
         </p>
-        <button onClick={onToggle}>
+        <button onClick={e => {
+          e.stopPropagation()
+          onToggle()
+        }}>
           {isOpen ? (
-            <ChevronDown className="w-6 h-6 text-[#3537b4]" />
+            <ChevronDown className="w-6 h-6 text-[#3537b4] hover:cursor-pointer" />
           ) : (
-            <ChevronRight className="w-6 h-6 text-[#3537b4]" />
+            <ChevronRight className="w-6 h-6 text-[#3537b4] hover:cursor-pointer" />
           )}
         </button>
       </div>
   {isOpen && (
-        <div className="flex flex-col gap-[16px] text-[#232323]">
+        <div className="flex flex-col gap-4 text-[#232323]" onClick={e => e.stopPropagation()}>
           <hr className="h-px" />
             <div className="grid lg:grid-cols-3 gap-2">
             {slots.map((u) => {

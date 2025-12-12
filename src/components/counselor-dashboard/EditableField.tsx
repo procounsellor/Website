@@ -66,7 +66,7 @@ export default function EditableField({
                 name={name}
                 value={singleValue}
                 onChange={onChange}
-                className="w-full font-normal md:font-medium text-sm md:text-base text-gray-800 bg-transparent focus:outline-none min-h-[80px] resize-y"
+                className="w-full font-normal md:font-medium text-sm md:text-base text-gray-800 bg-transparent focus:outline-none min-h-20 resize-none overflow-auto"
                 rows={3}
               />
             )}
@@ -83,7 +83,7 @@ export default function EditableField({
                 name={name}
                 value={singleValue}
                 onChange={onChange}
-                className="w-full h-full min-h-[48px] md:min-h-[40px] px-4 py-2 font-normal md:font-medium text-sm md:text-base text-gray-800 bg-transparent focus:outline-none rounded-lg md:rounded-md appearance-none cursor-pointer"
+                className="w-full h-full min-h-12 md:min-h-10 px-4 py-2 font-normal md:font-medium text-sm md:text-base text-gray-800 bg-transparent focus:outline-none rounded-lg md:rounded-md appearance-none cursor-pointer"
               >
                 <option value="" disabled>Select {label}</option>
                 {selectOptions.map(option => (

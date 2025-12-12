@@ -110,14 +110,14 @@ const LoginCard: React.FC = () => {
         <div className="bg-white rounded-2xl shadow-xl flex w-full max-w-md md:max-w-5xl max-h-[90vh] relative overflow-hidden flex-col md:flex-row">
           <button 
             onClick={() => toggleLogin()}
-            className="absolute top-2 right-2 md:top-4 md:right-4 z-10 p-2 md:p-1.5 rounded-full transition-colors duration-200 hover:bg-black group"
+            className="absolute top-2 right-2 md:top-4 md:right-4 z-10 p-2 md:p-1.5 rounded-full transition-colors duration-200 hover:bg-black hover:cursor-pointer group"
           >
             <X className="h-5 w-5 text-gray-500 transition-colors duration-200 group-hover:text-white" />
           </button>
 
           <div className="w-full md:w-1/2 p-6 md:p-12 bg-[#F5F7FA] overflow-y-auto">
             <div className="flex items-center mb-6 md:mb-8">
-              <img src="/favicon.png" alt="ProCounsel Logo Icon" className="h-10 md:h-12" />
+              <img src="/logo.png" alt="ProCounsel Logo Icon" className="h-10 md:h-12 rounded-lg" />
               <div className="ml-2">
                 <p className="font-bold text-base md:text-lg text-black">ProCounsel</p>
               </div>
@@ -129,7 +129,7 @@ const LoginCard: React.FC = () => {
                   <h1 className="text-2xl md:text-3xl font-semibold text-[#13097D] whitespace-nowrap">Log in or Sign up</h1>
                   <a href="/contact" className="text-xs md:text-sm underline text-gray-500 hover:text-gray-700 ml-auto whitespace-nowrap cursor-pointer">Need Help?</a>
                 </div>
-                <div className="flex items-center bg-white border border-gray-300 rounded-xl w-full md:max-w-[444px] h-[44px] px-3 mb-6 md:mb-12 focus-within:border-[#FA660F] focus-within:ring-1 focus-within:ring-[#FA660F]">
+                <div className="flex items-center bg-white border border-gray-300 rounded-xl w-full md:max-w-[444px] h-11 px-3 mb-6 md:mb-12 focus-within:border-[#FA660F] focus-within:ring-1 focus-within:ring-[#FA660F]">
                   <div className="flex items-center cursor-pointer">
                     <img src="/india.png" alt="India Flag" className="h-5 w-5 mr-2" />
                     <span className="text-black mr-1 text-sm md:text-base">+91</span>
@@ -159,7 +159,7 @@ const LoginCard: React.FC = () => {
                 <button 
                   onClick={handleSendOtp}
                   disabled={isLoading || phone.length !== 10}
-                  className="w-full md:max-w-[444px] h-[44px] bg-[#FA660F] text-white rounded-xl font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full md:max-w-[444px] h-11 bg-[#FA660F] text-white rounded-xl font-semibold hover:bg-orange-600 hover:cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Sending...' : 'Continue'}
                 </button>
@@ -174,7 +174,7 @@ const LoginCard: React.FC = () => {
                   <h1 className="text-2xl md:text-3xl font-semibold text-[#13097D] whitespace-nowrap">Enter OTP</h1>
                   <button 
                     onClick={handleBackToPhone}
-                    className="text-xs md:text-sm underline text-gray-500 hover:underline ml-auto whitespace-nowrap"
+                    className="text-xs md:text-sm underline text-gray-500 hover:underline ml-auto whitespace-nowrap hover:cursor-pointer"
                   >
                     Change Number
                   </button>
@@ -203,7 +203,7 @@ const LoginCard: React.FC = () => {
                 <button 
                   onClick={handleResendOtp}
                   disabled={isLoading || resendTimer > 0}
-                  className={`w-full md:max-w-[444px] h-[44px] rounded-xl font-semibold transition-colors ${
+                  className={`w-full md:max-w-[444px] h-11 rounded-xl font-semibold transition-colors hover:cursor-pointer ${
                     resendTimer > 0 
                       ? 'text-gray-400 cursor-not-allowed' 
                       : 'text-[#FA660F] hover:bg-orange-50'
@@ -237,7 +237,7 @@ const LoginCard: React.FC = () => {
                 <button
                   key={index}
                   onClick={() => setActiveIndex(index)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
+                  className={`h-2 rounded-full transition-all duration-300 hover:cursor-pointer ${
                     activeIndex === index ? 'w-6 bg-[#13097D]' : 'w-2 bg-gray-400'
                   }`}
                 />

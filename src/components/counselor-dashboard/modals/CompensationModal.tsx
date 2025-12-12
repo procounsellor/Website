@@ -77,7 +77,7 @@ export default function CompensationModal({ isOpen, onClose, data }: Compensatio
       <div className="relative w-[335px] md:w-[480px] bg-white rounded-2xl shadow-lg overflow-hidden">
         <div className="bg-[#F9FAFB] p-4 md:p-5 border-b border-[#EFEFEF]">
           <div className="flex items-center gap-2 md:gap-4">
-            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#F1FDF6] border border-[#C9F7DD] flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#F1FDF6] border border-[#C9F7DD] flex items-center justify-center shrink-0">
               <TrendingUp className="text-[#28A745] w-5 h-5" />
             </div>
             <h2 className="font-medium text-sm md:text-base text-[#232323]">Compensation Details</h2>
@@ -106,7 +106,7 @@ export default function CompensationModal({ isOpen, onClose, data }: Compensatio
 
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-black rounded-full transition-all duration-200 hover:bg-black hover:text-white hover:ring-2 hover:ring-black"
+          className="absolute top-4 hover:cursor-pointer right-4 w-8 h-8 flex items-center justify-center text-black rounded-full transition-all duration-200 hover:bg-black hover:text-white hover:ring-2 hover:ring-black"
         >
           <X size={20} />
         </button>

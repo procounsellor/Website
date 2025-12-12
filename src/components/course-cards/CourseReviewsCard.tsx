@@ -89,113 +89,7 @@ const formatTimeAgo = (timestamp: { seconds: number; nanos: number }) => {
   return 'just now';
 };
 
-// Mock data for course reviews
-// const mockReviews: CourseReview[] = [
-//   {
-//     reviewId: '1',
-//     userId: 'user1',
-//     userFullName: 'Priya Sharma',
-//     userPhotoUrl: '',
-//     rating: 5,
-//     reviewText: 'Excellent course! The content is comprehensive and well-structured. The instructor explains complex concepts in a very easy-to-understand manner. Highly recommended for anyone looking to master this subject.',
-//     timestamp: {
-//       seconds: Date.now() / 1000 - 86400 * 2, // 2 days ago
-//       nanos: 0,
-//     },
-//     helpful: 24,
-//   },
-//   {
-//     reviewId: '2',
-//     userId: 'user2',
-//     userFullName: 'Rahul Verma',
-//     userPhotoUrl: '',
-//     rating: 4,
-//     reviewText: 'Great course overall! The teaching methodology is practical and the examples are relevant. Would have given 5 stars if there were more practice exercises included.',
-//     timestamp: {
-//       seconds: Date.now() / 1000 - 86400 * 5, // 5 days ago
-//       nanos: 0,
-//     },
-//     helpful: 18,
-//   },
-//   {
-//     reviewId: '3',
-//     userId: 'user3',
-//     userFullName: 'Anjali Patel',
-//     userPhotoUrl: '',
-//     rating: 5,
-//     reviewText: 'This course exceeded my expectations! The instructor is knowledgeable and engaging. The real-world applications and case studies make learning so much more meaningful.',
-//     timestamp: {
-//       seconds: Date.now() / 1000 - 86400 * 7, // 1 week ago
-//       nanos: 0,
-//     },
-//     helpful: 31,
-//   },
-//   {
-//     reviewId: '4',
-//     userId: 'user4',
-//     userFullName: 'Karan Singh',
-//     userPhotoUrl: '',
-//     rating: 4,
-//     reviewText: 'Very informative course with up-to-date content. The pace is good and the materials provided are helpful. Looking forward to more advanced courses from this instructor.',
-//     timestamp: {
-//       seconds: Date.now() / 1000 - 86400 * 10, // 10 days ago
-//       nanos: 0,
-//     },
-//     helpful: 15,
-//   },
-//   {
-//     reviewId: '5',
-//     userId: 'user5',
-//     userFullName: 'Sneha Reddy',
-//     userPhotoUrl: '',
-//     rating: 5,
-//     reviewText: 'Absolutely loved this course! The step-by-step approach made learning easy and enjoyable. The instructor is patient and answers all queries promptly. Worth every penny!',
-//     timestamp: {
-//       seconds: Date.now() / 1000 - 86400 * 14, // 2 weeks ago
-//       nanos: 0,
-//     },
-//     helpful: 27,
-//   },
-//   {
-//     reviewId: '6',
-//     userId: 'user6',
-//     userFullName: 'Aditya Kumar',
-//     userPhotoUrl: '',
-//     rating: 4,
-//     reviewText: 'Good content and well-organized. The instructor has deep knowledge of the subject. Could benefit from more interactive sessions and quizzes.',
-//     timestamp: {
-//       seconds: Date.now() / 1000 - 86400 * 21, // 3 weeks ago
-//       nanos: 0,
-//     },
-//     helpful: 12,
-//   },
-//   {
-//     reviewId: '7',
-//     userId: 'user7',
-//     userFullName: 'Neha Gupta',
-//     userPhotoUrl: '',
-//     rating: 5,
-//     reviewText: 'Outstanding course! The curriculum is well-designed and covers everything from basics to advanced topics. The practical assignments helped me apply what I learned immediately.',
-//     timestamp: {
-//       seconds: Date.now() / 1000 - 86400 * 28, // 4 weeks ago
-//       nanos: 0,
-//     },
-//     helpful: 35,
-//   },
-//   {
-//     reviewId: '8',
-//     userId: 'user8',
-//     userFullName: 'Vikram Joshi',
-//     userPhotoUrl: '',
-//     rating: 5,
-//     reviewText: 'Highly recommend this course! Clear explanations, practical examples, and excellent support. This has significantly improved my understanding of the subject.',
-//     timestamp: {
-//       seconds: Date.now() / 1000 - 86400 * 35, // 5 weeks ago
-//       nanos: 0,
-//     },
-//     helpful: 22,
-//   },
-// ];
+
 
 interface CourseReviewsCardProps {
   courseId: string;
@@ -346,7 +240,7 @@ export default function CourseReviewsCard({
           disabled={isSubmitting}
         />
         <button
-          className="self-start px-6 py-2 bg-[#13097D] text-white font-semibold rounded-lg hover:bg-opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="self-start px-6 py-2 bg-[#13097D] text-white font-semibold rounded-lg hover:cursor-pointer hover:bg-opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleSubmitReview}
           disabled={isSubmitting}
         >
@@ -464,7 +358,7 @@ export default function CourseReviewsCard({
           <h2 className="text-xl font-bold text-[#343C6A]">Recent Reviews</h2>
           <button 
             onClick={() => setShowAllReviewsModal(true)}
-            className="flex items-center gap-1 text-sm font-semibold text-[#343C6A] hover:underline"
+            className="flex items-center gap-1 text-sm font-semibold text-[#343C6A] hover:underline hover:cursor-pointer"
           >
             See All <ChevronRight className="w-4 h-4" />
           </button>
@@ -502,7 +396,7 @@ export default function CourseReviewsCard({
                   setShowAllReviewsModal(false);
                   setCurrentPage(1);
                 }}
-                className="text-gray-500 hover:text-gray-700 transition"
+                className="text-gray-500 hover:text-gray-700 transition hover:cursor-pointer"
               >
                 <X className="w-6 h-6" />
               </button>

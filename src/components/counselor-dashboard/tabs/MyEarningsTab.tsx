@@ -23,11 +23,6 @@ export default function MyEarningsTab({ user, token }: Props) {
     enabled: !!user.userName && !!token,
   });
 
-  // const { data: profileData, isLoading: isLoadingProfile } = useQuery({
-  //   queryKey: ['counselorProfile', user.userName],
-  //   queryFn: () => getCounselorProfileById(user.userName, token),
-  //   enabled: !!user.userName && !!token,
-  // });
 
   const { data: offlineTransactionsData, isLoading: isLoadingOfflineTx } = useQuery({
     queryKey: ['counselorOfflineTransactions', user.userName],
@@ -86,7 +81,7 @@ export default function MyEarningsTab({ user, token }: Props) {
               activeTab === 'Earnings'
                 ? 'border-[#13097D] text-[#13097D]'
                 : 'border-transparent text-[#8C8CA1] hover:text-gray-700'
-            } whitespace-nowrap py-3 px-1 border-b-2 font-semibold text-xs lg:text-base transition-colors`}
+            } whitespace-nowrap py-3 px-1 border-b-2 font-semibold text-xs lg:text-base transition-colors hover:cursor-pointer`}
           >
             Earnings
           </button>
@@ -96,7 +91,7 @@ export default function MyEarningsTab({ user, token }: Props) {
               activeTab === 'Transactions'
                 ? 'border-[#13097D] text-[#13097D]'
                 : 'border-transparent text-[#8C8CA1] hover:text-gray-700'
-            } whitespace-nowrap py-3 px-1 border-b-2 font-semibold text-xs lg:text-base transition-colors`}
+            } whitespace-nowrap py-3 px-1 border-b-2 font-semibold text-xs lg:text-base transition-colors hover:cursor-pointer`}
           >
             Transactions
           </button>

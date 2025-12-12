@@ -33,7 +33,7 @@ export default function ReviewCard({ review }: ReviewCardProps) {
           </div>
         </div>
       </div>
-      <p className="mt-4 text-sm text-[#232323] font-medium leading-tight flex-grow">
+      <p className="mt-4 text-sm text-[#232323] font-medium leading-tight grow">
         {review.reviewText}
       </p>
       <p className="mt-auto text-xs text-[#C3C3C3] font-medium">{review.timeAgo}</p>

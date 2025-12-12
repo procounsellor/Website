@@ -131,7 +131,7 @@ export default function OtpVerificationModal({
             <button
               onClick={handleResendClick}
               disabled={resendTimer > 0 || isLoading}
-              className="text-sm md:text-base text-gray-600 hover:text-orange-600 disabled:text-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
+              className="text-sm md:text-base text-gray-600 hover:cursor-pointer hover:text-orange-600 disabled:text-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
             >
               Resend OTP {resendTimer > 0 && `in 00:${String(resendTimer).padStart(2, '0')}`}
             </button>
@@ -140,7 +140,7 @@ export default function OtpVerificationModal({
           <button
             onClick={handleVerification}
             disabled={isLoading}
-            className="w-full h-11 md:h-12 bg-[#FA660F] text-white rounded-xl font-semibold text-sm md:text-base hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            className="w-full h-11 md:h-12 bg-[#FA660F] text-white rounded-xl font-semibold text-sm md:text-base hover:bg-orange-600 hover:cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
             {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Verify OTP'}
           </button>

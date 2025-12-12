@@ -61,6 +61,8 @@ export default function PlansDrawer({
   const user = useAuthStore((s) => s.user);
   const refreshUser = useAuthStore((s) => s.refreshUser);
   const navigate = useNavigate();
+  const  fullName = (counselor?.firstName ?? '') + (counselor?.lastName ?? '')
+  const userImageFallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=E0E7FF&color=4F46E5&size=128`;
   const getPlanPrice = (planName: string | null | undefined): number => {
     if (!planName || !counselor) return 0;
     const lowerCasePlanName = planName.toLowerCase();
@@ -238,7 +240,7 @@ export default function PlansDrawer({
                 onClick={onClose}
                 aria-label="Close"
               >
-                <X className="group-hover:text-white text-gray-500" size={17} />
+                <X className="group-hover:text-white group-hover:cursor-pointer text-gray-500" size={17} />
               </button>
             </div>
 
@@ -278,7 +280,7 @@ export default function PlansDrawer({
                     <span className="font-medium">
                       (bank transfer, UPI, cash){" "}
                     </span>
-                    to pay the counselor directly.
+                    to pay the counsellor directly.
                   </span>
                 </h1>
               </div>
@@ -312,7 +314,7 @@ export default function PlansDrawer({
                     type="checkbox"
                     checked={offlineAck}
                     onChange={(e) => setOfflineAck(e.target.checked)}
-                    className="w-4 h-4 text-[#ff660a] bg-gray-100 border-gray-300 rounded-sm"
+                    className="w-5 h-5 text-[#ff660a] bg-gray-100 border-gray-300 rounded-sm hover:cursor-pointer"
                   />
 
                   <p className=" text-[#232323]">
@@ -330,8 +332,8 @@ export default function PlansDrawer({
                 <div className="flex items-start justify-between">
                   <div className="flex gap-3 items-center">
                     <img
-                      src={counselor?.photoUrlSmall}
-                      alt=""
+                      src={counselor?.photoUrlSmall || userImageFallback}
+                      alt={counselor?.firstName}
                       className="h-[72px] w-[72px] rounded-xl"
                     />
                     <h1 className="flex flex-col gap-2 text-base font-semibold text-[#343C6A]">
@@ -339,7 +341,7 @@ export default function PlansDrawer({
                       <span className="text-[#718EBF] text-xs font-normal">{`${counselor?.fullOfficeAddress.city} ${counselor?.organisationName}`}</span>
                     </h1>
                   </div>
-                  <img src="/fav.svg" alt="" className="cursor-pointer" />
+                  {/* <img src="/fav.svg" alt="" className="cursor-pointer" /> */}
                 </div>
 
                 <button
@@ -349,7 +351,7 @@ export default function PlansDrawer({
                   className={`my-4 py-3 px-2 rounded-[12px] flex items-center justify-center text-base font-semibold w-full
                     ${
                     offlineAck
-                      ? 'bg-[#EA5C19] text-white cursor-pointer'
+                      ? 'bg-[#EA5C19] text-white hover:cursor-pointer'
                       : 'bg-[#919191] text-white cursor-not-allowed'
                   }`}
                 >
@@ -359,7 +361,7 @@ export default function PlansDrawer({
                 <div className="flex justify-center">
                   <div
                     onClick={() => setPayingOffline(!payingOffline)}
-                    className="cursor-pointer mb-20 md:mb-[190px] mt-3 text-xs font-normal text-[#707070]"
+                    className="hover:cursor-pointer mb-20 md:mb-[190px] mt-3 text-xs font-normal text-[#707070]"
                   >
                     Click here to return to online payment
                   </div>
@@ -398,7 +400,7 @@ export default function PlansDrawer({
               onClick={onClose}
               aria-label="Close"
             >
-              <X className="group-hover:text-white text-gray-500" size={17} />
+              <X className="group-hover:text-white group-hover:cursor-pointer text-gray-500" size={17} />
             </button>
           </div>
 
@@ -409,7 +411,7 @@ export default function PlansDrawer({
                 <img src="/plus.svg" alt="" />
                 <h1 className="flex flex-col  text-[#343C6A] text-base md:text-lg font-semibold">
                   {" "}
-                  {planTitle} <span className="text-sm">{price}</span>
+                  {planTitle} <span className="text-sm flex gap-1"><img src="/coin.svg" alt="procoin-icon" />{price}</span>
                 </h1>
               </div>
 
@@ -464,8 +466,8 @@ export default function PlansDrawer({
                   <img src="/planImage.svg" alt="plan icon" />
                   <span>{planTitle} Plan</span>
                 </div>
-                <span className="text-base font-medium text-[#232323]">
-                  &#8377;{newPlanPrice.toLocaleString('en-IN')}
+                <span className="text-base font-medium text-[#232323] flex gap-1">
+                  <img src="/coin.svg" alt="procoin-icon" />{newPlanPrice.toLocaleString('en-IN')}
                 </span>
               </div>
 
@@ -474,8 +476,8 @@ export default function PlansDrawer({
                   <img src="/wallet.svg" alt="wallet icon" />
                   <p>Wallet Balance</p>
                 </div>
-                <span className="text-base font-medium text-[#232323]">
-                  &#8377;{(user?.walletAmount ?? 0).toLocaleString('en-IN')}
+                <span className="text-base font-medium text-[#232323] flex gap-1">
+                  <img src="/coin.svg" alt="procoin-icon" />{(user?.walletAmount ?? 0).toLocaleString('en-IN')}
                 </span>
               </div>
 
@@ -484,8 +486,8 @@ export default function PlansDrawer({
                   <div className="flex gap-2 items-center text-green-600">
                     <p><span className="capitalize">{currentPlan?.plan}</span> Plan Credit</p>
                   </div>
-                  <span className="text-base font-medium text-green-600">
-                    - &#8377;{currentPlanPrice.toLocaleString('en-IN')}
+                  <span className="text-base font-medium text-green-600 flex gap-1">
+                    - <img src="/coin.svg" alt="procoin-icon" />{currentPlanPrice.toLocaleString('en-IN')}
                   </span>
                 </div>
               )}
@@ -493,8 +495,8 @@ export default function PlansDrawer({
               <hr className="my-2 border-gray-300" />
               <div className="flex justify-between items-center">
                 <p className="text-base font-bold text-[#343C6A]">Price to Pay</p>
-                <span className="text-xl font-bold text-orange-600">
-                  &#8377;{(isUpgrade ? priceToPay : newPlanPrice).toLocaleString('en-IN')}
+                <span className="text-xl font-bold text-orange-600 flex gap-1">
+                  <img src="/coin.svg" alt="procoin-icon" />{(isUpgrade ? priceToPay : newPlanPrice).toLocaleString('en-IN')}
                 </span>
               </div>
             </div>
@@ -503,7 +505,7 @@ export default function PlansDrawer({
               onClick={() => setIsConfirmModalOpen(true)}
               disabled={approved}
               aria-disabled={approved}
-              className={`${approved ? 'bg-[#919191]': 'bg-[#EA5C19]'} cursor-pointer w-full md:w-[404px] my-5 py-3 px-2 rounded-[12px] flex items-center justify-center text-base text-white font-semibold`}
+              className={`${approved ? 'bg-[#919191]': 'bg-[#EA5C19]'} hover:cursor-pointer w-full md:w-[404px] my-5 py-3 px-2 rounded-[12px] flex items-center justify-center text-base text-white font-semibold`}
             >
               Subscribe
             </button>
@@ -521,10 +523,10 @@ export default function PlansDrawer({
              ):(
                <div
                 onClick={() => setPayingOffline(!payingOffline)}
-                className="flex gap-2 p-2.5 bg-[#F0F2F5] cursor-pointer border border-[#E5E7EB] rounded-[12px] w-auto md:w-[130px]"
+                className="flex gap-2 p-2.5 bg-[#F0F2F5] hover:cursor-pointer border border-[#E5E7EB] rounded-[12px] w-auto md:w-[130px]"
               >
-                <img src="/pay.svg" alt="" />
-                <button className="text-[#232323] cursor-pointer text-sm font-medium">
+                <img src="/pay.svg" alt="pay-offline" />
+                <button className="text-[#232323] hover:cursor-pointer text-sm font-medium">
                   Pay offline
                 </button>
               </div>

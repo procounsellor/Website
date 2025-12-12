@@ -47,7 +47,7 @@ export default function BookingConfirmationCard({ counselorName = 'Ashutosh Kuma
     >
       <div 
         onClick={(e) => e.stopPropagation()} 
-        className="bg-[#F5F7FA] w-full h-full md:h-auto flex flex-col md:max-w-[747px] md:max-h-[667px] md:rounded-[16px] relative p-4 md:p-[42px] pb-[60px] md:pb-[86px] gap-4 md:gap-6 overflow-y-auto custom-scrollbar"
+        className="bg-[#F5F7FA] w-full h-full md:h-auto flex flex-col md:max-w-[747px] md:max-h-[667px] md:rounded-2xl relative p-4 md:p-[42px] pb-[60px] md:pb-[86px] gap-4 md:gap-6 overflow-y-auto custom-scrollbar"
       >
         <style>{`
           .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -67,7 +67,7 @@ export default function BookingConfirmationCard({ counselorName = 'Ashutosh Kuma
             onClick={() => onClose?.()}
             className="absolute top-4 right-4 z-10 p-1.5 rounded-full hover:bg-black group"
           >
-            <X className="h-5 w-5 text-gray-500 group-hover:text-white" />
+            <X className="h-5 w-5 text-gray-500 group-hover:text-white hover:cursor-pointer" />
           </button>
         </div>
 
@@ -79,10 +79,10 @@ export default function BookingConfirmationCard({ counselorName = 'Ashutosh Kuma
             <img src="/greentick.svg" alt="" className="w-[50px] h-[50px] md:w-[62px] md:h-[62px] animate-pulse"/>
           </div>
           <h1 className="text-xl md:text-2xl text-[#3537b4] font-semibold text-center">Appointment Confirmed</h1>
-          <p className="text-[14px] md:text-[16px] text-[#718ebf] font-medium text-center px-4">Thank you for booking! Your subscription has been activated.</p>
+          <p className="text-[14px] md:text-[16px] text-[#718ebf] font-medium text-center px-4">Thank you for booking! Your appointment has been confirmed.</p>
         </div>
 
-        <div className="flex flex-col gap-4 bg-white w-full max-w-[482px] md:h-[331px] border-[1px] border-[#f5f5f5] rounded-[12px] p-4">
+        <div className="flex flex-col gap-4 bg-white w-full max-w-[482px] md:h-[331px] border border-[#f5f5f5] rounded-[12px] p-4">
 
           <div className="flex gap-2 items-center">
             <img src={counselorImage || DEFAULT_COUNSELOR_IMAGE} alt={counselorName} className="w-12 h-12 md:w-16 md:h-16 rounded-[10px] object-cover" />
@@ -92,14 +92,14 @@ export default function BookingConfirmationCard({ counselorName = 'Ashutosh Kuma
           <div className="flex flex-col md:flex-row justify-between bg-[#f5f5f5] w-full md:w-[450px] md:h-[66px] items-start md:items-center gap-3 md:gap-0 px-4 md:px-10 py-3 md:py-0 rounded-[12px]">
 
             <div className="flex gap-2 items-center">
-              <div className="bg-[#c3f9d966]/40 h-8 w-8 flex items-center justify-center rounded-full flex-shrink-0">
+              <div className="bg-[#c3f9d966]/40 h-8 w-8 flex items-center justify-center rounded-full shrink-0">
               <img src="/calander.svg" alt="" className="h-[22px] w-[22px]"/>
               </div>
               <p className="flex flex-col text-[#8C8CA1] font-normal text-[13px] md:text-[14px]">Date <span className="text-[#232323] text-[15px] md:text-[16px] font-medium">{formatDate(appointmentDate)}</span></p>
             </div>
 
             <div className="flex gap-2 items-center">
-              <div className="bg-[#C3F9D966]/40 h-8 w-8 flex items-center justify-center rounded-full flex-shrink-0">
+              <div className="bg-[#C3F9D966]/40 h-8 w-8 flex items-center justify-center rounded-full shrink-0">
               <img src="/calander.svg" alt="" className="h-[22px] w-[22px]"/>
 
               </div>
@@ -128,11 +128,11 @@ export default function BookingConfirmationCard({ counselorName = 'Ashutosh Kuma
 
         <div className="flex flex-col gap-3 md:gap-4 items-center">
 
-          <div className="bg-[#ffffff] shadow-[#232323]/15 w-12 h-12 md:w-14 md:h-[56px] flex justify-center items-center rounded-[12px]">
+          <div className="bg-[#ffffff] shadow-[#232323]/15 w-12 h-12 md:w-14 md:h-14 flex justify-center items-center rounded-[12px]">
           <img src="/text.svg" alt="text" className="w-8 h-8 md:w-10 md:h-10" />
           </div>
 
-          <p className="flex flex-col items-center gap-2 text-[#232323] font-semibold text-[15px] md:text-[16px] text-center">Need Help
+          <p className="flex flex-col items-center gap-2 text-[#232323] font-semibold text-[15px] md:text-[16px] text-center">Need Help?
             <span className="text-[#718ebf] text-[13px] md:text-[14px] font-medium px-4">Our team is here to assist you any questions</span>
           </p>
 

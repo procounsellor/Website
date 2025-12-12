@@ -324,6 +324,14 @@ export default function CounselorListingPage() {
     const allCities = counselors.map((c) => c.city).filter(Boolean) as string[];
     return [...new Set(allCities)].sort();
   }, [counselors]);
+  
+  const filteredCityOptions = useMemo(() => {
+    return cityOptions.filter(
+      (city) =>
+        city &&
+        city.toLowerCase().includes(citySearch.toLowerCase())
+    );
+  }, [cityOptions, citySearch]);
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   useEffect(() => {
@@ -336,7 +344,7 @@ export default function CounselorListingPage() {
       (maxPrice ? 1 : 0);
     setFilterCount(count);
     if (isMounted.current) {
-      setCurrentPage((prev: number) => prev);
+      setCurrentPage(1);
     } else {
       isMounted.current = true;
     }
@@ -348,6 +356,12 @@ export default function CounselorListingPage() {
     minPrice,
     maxPrice,
   ]);
+  
+  useEffect(() => {
+    if (isMounted.current) {
+      setCurrentPage(1);
+    }
+  }, [selectedSort]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -576,6 +590,7 @@ export default function CounselorListingPage() {
                         <p>Experience</p>
                         <button
                           onClick={() => setExperienceToggle(!experienceToggle)}
+                          className="cursor-pointer"
                         >
                           {experienceToggle ? (
                             <ChevronDown className="w-6 h-6" />
@@ -590,15 +605,14 @@ export default function CounselorListingPage() {
                           {experienceOptions.slice(0, 7).map((option) => (
                             <div
                               key={option.id}
-                              className="flex gap-2 items-center"
+                              className="flex gap-2 items-center cursor-pointer"
+                              onClick={() => toggleExperienceFilter(option.id)}
                             >
                               <input
                                 type="checkbox"
                                 checked={experienceFilters.includes(option.id)}
-                                onChange={() =>
-                                  toggleExperienceFilter(option.id)
-                                }
-                                className="w-5 h-5"
+                                onChange={() => {}}
+                                className="w-5 h-5 cursor-pointer pointer-events-none"
                               />
                               <p className="flex flex-col font-medium text-[14px]">
                                 {option.label}
@@ -631,13 +645,14 @@ export default function CounselorListingPage() {
                           {languageOptions.slice(0, 7).map((language) => (
                             <div
                               key={language}
-                              className="flex gap-2 items-center"
+                              className="flex gap-2 items-center cursor-pointer"
+                              onClick={() => toggleLanguageFilter(language)}
                             >
                               <input
                                 type="checkbox"
                                 checked={languageFilters.includes(language)}
-                                onChange={() => toggleLanguageFilter(language)}
-                                className="w-5 h-5"
+                                onChange={() => {}}
+                                className="w-5 h-5 cursor-pointer pointer-events-none"
                               />
                               <p className="font-medium text-[14px]">
                                 {language}
@@ -684,13 +699,14 @@ export default function CounselorListingPage() {
                             .map((city) => (
                               <div
                                 key={city}
-                                className="flex gap-2 items-center"
+                                className="flex gap-2 items-center cursor-pointer"
+                                onClick={() => toggleCityFilter(city)}
                               >
                                 <input
                                   type="checkbox"
                                   checked={cityFilters.includes(city)}
-                                  onChange={() => toggleCityFilter(city)}
-                                  className="w-5 h-5"
+                                  onChange={() => {}}
+                                  className="w-5 h-5 cursor-pointer pointer-events-none"
                                 />
                                 <p className="font-medium text-[14px]">
                                   {city}
@@ -699,7 +715,7 @@ export default function CounselorListingPage() {
                             ))}
                           <hr className="h-px" />
                           <p className="font-normal text-[14px]">
-                            {cityOptions.length} Cities
+                            {citySearch ? filteredCityOptions.length : cityOptions.length} Cities
                           </p>
                           {!citySearch && cityOptions.length > 7 && (
                             <p className="font-normal text-[12px] text-gray-500">
@@ -956,9 +972,9 @@ export default function CounselorListingPage() {
                     )}
                   </div>
                   {cityToggle ? (
-                    <ChevronDown className="w-6 h-6" />
+                    <ChevronDown className="w-6 h-6 cursor-pointer" />
                   ) : (
-                    <ChevronRight className="w-6 h-6" />
+                    <ChevronRight className="w-6 h-6 cursor-pointer" />
                   )}
                 </div>
 
@@ -984,12 +1000,16 @@ export default function CounselorListingPage() {
                       )
                       .slice(0, citySearch ? cityOptions.length : 7)
                       .map((city) => (
-                        <div key={city} className="flex gap-2 items-center">
+                        <div 
+                          key={city} 
+                          className="flex gap-2 items-center cursor-pointer"
+                          onClick={() => toggleCityFilter(city)}
+                        >
                           <input
                             type="checkbox"
                             checked={cityFilters.includes(city)}
-                            onChange={() => toggleCityFilter(city)}
-                            className="w-5 h-5 cursor-pointer"
+                            onChange={() => {}}
+                            className="w-5 h-5 cursor-pointer pointer-events-none"
                           />
                           <p className="font-medium text-[14px]">{city}</p>
                         </div>
@@ -997,7 +1017,7 @@ export default function CounselorListingPage() {
 
                     <hr className="h-px" />
                     <p className="font-normal text-[14px]">
-                      {cityOptions.length} Cities
+                      {citySearch ? filteredCityOptions.length : cityOptions.length} Cities
                     </p>
                     {!citySearch && cityOptions.length > 7 && (
                       <p className="font-normal text-[12px] text-gray-500">
@@ -1152,7 +1172,7 @@ export default function CounselorListingPage() {
                 </p>
 
                 <Select value={selectedSort} onValueChange={setSelectedSort}>
-                  <SelectTrigger className="w-[220px] h-11 border border-[#efefef] bg-white rounded-xl px-3 text-[16px] text-[#333] justify-between">
+                  <SelectTrigger className="w-[220px] h-11 border border-[#efefef] bg-white rounded-xl px-3 text-[16px] text-[#333] justify-between hover:cursor-pointer">
                     <SelectValue
                       placeholder="Popularity"
                       className="text-[#525055] text-[16px]"
@@ -1172,7 +1192,7 @@ export default function CounselorListingPage() {
                         <SelectItem
                           key={type.value}
                           value={type.value}
-                          className="flex justify-between items-center gap-6 px-3 py-2 text-[16px] text-[#525055] cursor-pointer focus:bg-gray-100 hover:bg-gray-50"
+                          className="flex justify-between items-center gap-6 px-3 py-2 text-[16px] text-[#525055] cursor-pointer focus:bg-gray-100 hover:bg-gray-50 hover:cursor-pointer"
                         >
                           {type.label}
                         </SelectItem>

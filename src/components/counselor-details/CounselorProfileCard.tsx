@@ -216,7 +216,7 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
                 <h1 className="text-2xl font-bold text-[#343C6A]">{fullName}</h1>
                 <p className="text-md text-[#718EBF] mt-1">{counselor.fullOfficeAddress?.city || 'Location not specified'}</p>
               </div>
-              <BookmarkButton className="p-2" />
+              <BookmarkButton className="p-2 hover:cursor-pointer" />
             </div>
             <div className="mt-4 flex items-center justify-center sm:justify-start gap-x-8 gap-y-4 text-gray-700">
               <div className="flex items-center gap-3">
@@ -271,7 +271,7 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
                 <button
                   onClick={() => handleSubscribeClick(true)}
                   disabled={isCurrentUserCounselor}
-                  className={`w-full sm:flex-1 font-semibold py-3 px-6 rounded-lg border-2 flex items-center justify-center gap-2 ${isCurrentUserCounselor ? 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed' : 'text-[#3537B4] border-[#3537B4] hover:bg-blue-50'}`}
+                  className={`w-full sm:flex-1 font-semibold py-3 px-6 rounded-lg border-2 flex items-center justify-center gap-2 ${isCurrentUserCounselor ? 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed' : 'text-[#3537B4] border-[#3537B4] hover:bg-blue-50 hover:cursor-pointer'}`}
                 >
                   <Zap className="w-5 h-5 text-orange-500" /> Upgrade to <span className="capitalize">{upgradePlan}</span> Plan
                 </button>
@@ -304,7 +304,7 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
                 onClick={() => handleSubscribeClick(false)}
                 disabled={pendingApproval || isCurrentUserCounselor}
                 aria-disabled={pendingApproval || isCurrentUserCounselor}
-                className={`w-full sm:flex-1 font-semibold py-3 px-6 rounded-lg transition-colors ${pendingApproval ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : isCurrentUserCounselor ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : 'bg-[#3537B4] text-white hover:bg-blue-700'}`}
+                className={`w-full sm:flex-1 font-semibold py-3 px-6 rounded-lg transition-colors ${pendingApproval ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : isCurrentUserCounselor ? 'bg-gray-300 text-gray-700 cursor-not-allowed' : 'bg-[#3537B4] text-white hover:bg-blue-700 hover:cursor-pointer'}`}
               >
                  {pendingApproval ? 'Request Pending' : isCurrentUserCounselor ? 'Cannot Subscribe' : 'Subscribe Now'}
               </button>

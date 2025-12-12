@@ -26,9 +26,9 @@ type Step2Data = {
 
 export default function CreateCourseCard({onClose}:any){
   const [step, setStep] = useState<number>(1);
-  const [courseId, setCourseId] = useState<string | null>('8273006f-0cf8-402f-a58e-911c246332f5'); // Using provided courseId
+  const [courseId, setCourseId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [courseCreated, setCourseCreated] = useState(false); // Track if course is already created
+  const [courseCreated, setCourseCreated] = useState(false);
   const {userId} = useAuthStore()
 
   const [step1Data, setStep1Data] = useState<Step1Data>({
@@ -60,10 +60,10 @@ export default function CreateCourseCard({onClose}:any){
       toast.error('Please upload a thumbnail');
       return false;
     }
-    if (!step1Data.category) {
-      toast.error('Please select a category');
-      return false;
-    }
+    // if (!step1Data.category) {
+    //   toast.error('Please select a category');
+    //   return false;
+    // }
     if (!step1Data.courseTimeHours || !step1Data.courseTimeMinutes) {
       toast.error('Please enter course duration');
       return false;
@@ -106,7 +106,7 @@ export default function CreateCourseCard({onClose}:any){
         counsellorId,
         courseName: step1Data.courseName,
         description: step1Data.description,
-        category: step1Data.category,
+        category: 'COURSE',
         courseTimeHours: parseInt(step1Data.courseTimeHours),
         courseTimeMinutes: parseInt(step1Data.courseTimeMinutes),
         courseDurationType: step2Data.courseDurationType,
@@ -119,10 +119,9 @@ export default function CreateCourseCard({onClose}:any){
 
       if (response.status && response.courseId) {
         setCourseId(response.courseId);
-        setCourseCreated(true); // Mark as created
+        setCourseCreated(true); 
         toast.success('Course created successfully! Now add your content.', { id: toastId });
         
-        // Move to step 3 after a brief delay to show success message
         setTimeout(() => {
           setStep(3);
         }, 500);
@@ -158,7 +157,7 @@ export default function CreateCourseCard({onClose}:any){
         className="hidden md:flex items-center flex-col gap-8 w-full max-w-250 max-h-fit bg-[#F5F7FA] rounded-2xl shadow-xl p-6 relative"
         onClick={(e) => e.stopPropagation()}
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 hover:cursor-pointer">
           <X size={20} />
         </button>
 
@@ -222,7 +221,7 @@ export default function CreateCourseCard({onClose}:any){
               }
             }}
             disabled={isLoading}
-            className='flex items-center gap-3 py-2 px-6 border bg-[#655E95] font-semibold rounded-[12px] text-[1rem] text-white hover:bg-[#534a7d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'>
+            className='flex items-center gap-3 py-2 px-6 border bg-[#655E95] font-semibold rounded-[12px] text-[1rem] text-white hover:bg-[#534a7d] hover:cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed'>
                 {step === 3 ? (isLoading ? 'Publishing...' : 'Publish') : isLoading ? 'Creating...' : step === 2 ? 'Create Course' : 'Next'}
                 <ChevronRight/>
             </button>

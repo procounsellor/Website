@@ -45,7 +45,7 @@ const CounselorTransactionsTab: React.FC<TransactionsTabProps> = ({ transactions
           <button
             key={tab}
             onClick={() => setActiveFilter(tab)}
-            className={`flex-1 text-center px-3 py-1.5 sm:flex-none sm:w-auto sm:px-4 sm:py-2 text-sm sm:text-base font-medium rounded-full transition-colors duration-200 ${
+            className={`flex-1 text-center hover:cursor-pointer px-3 py-1.5 sm:flex-none sm:w-auto sm:px-4 sm:py-2 text-sm sm:text-base font-medium rounded-full transition-colors duration-200 ${
               activeFilter === tab 
               ? 'bg-[#E8E7F2] text-[#13097D]' 
               : 'bg-transparent text-[#13097D]'
@@ -72,7 +72,7 @@ const CounselorTransactionsTab: React.FC<TransactionsTabProps> = ({ transactions
       </div>
       {hasFailedTransactions && (
         <div className="mt-6 p-4 bg-gray-50 rounded-lg flex items-center gap-3">
-          <Info className="w-5 h-5 text-gray-500 flex-shrink-0" />
+          <Info className="w-5 h-5 text-gray-500 shrink-0" />
           <p className="text-sm text-gray-600">
             If an amount was deducted for a failed transaction, it will be automatically refunded to the source account within 5-7 working days.
           </p>

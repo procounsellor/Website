@@ -62,7 +62,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, onEdit }) => {
             <StarRating rating={review.rating} />
           </div>
         </div>
-        <button className="flex items-center gap-2 text-xs font-semibold text-[#13097D] hover:opacity-80 transition-opacity" onClick={() => onEdit(review)}>
+        <button className="flex items-center gap-2 text-xs hover:cursor-pointer font-semibold text-[#13097D] hover:opacity-80 transition-opacity" onClick={() => onEdit(review)}>
           <Edit className="w-4 h-4" />
           Edit
         </button>

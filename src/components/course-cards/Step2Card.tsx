@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import AdvancedSettingsDrawer from "./AdvancedSettingsDrawer";
+import { useEffect } from "react";
 
 type Step2Data = {
   courseDurationType: string;
@@ -14,9 +13,7 @@ type Step2CardProps = {
 };
 
 export default function Step2Card({ data, onChange }: Step2CardProps) {
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // Auto-calculate price after discount
   useEffect(() => {
     const price = parseFloat(data.coursePrice) || 0;
     const discount = parseFloat(data.discount) || 0;
@@ -27,7 +24,7 @@ export default function Step2Card({ data, onChange }: Step2CardProps) {
     }
   }, [data.coursePrice, data.discount]);
 
-  return (
+  return (// Auto-calculate price after discount
     <>
     <div className="flex flex-col gap-5 bg-white max-w-234 min-h-[29.688rem] p-6 rounded-2xl">
       <div className="flex flex-col gap-3 items-start">
@@ -95,21 +92,7 @@ export default function Step2Card({ data, onChange }: Step2CardProps) {
           />
         </div>
       </div>
-
-      <div className="flex flex-col gap-3 items-start">
-        <button 
-          onClick={() => setDrawerOpen(true)}
-          className="flex  items-center gap-2 py-2 px-6 border border-[#13097D] text-[#13097D] rounded-[0.75rem] font-semibold text-[1rem] hover:bg-[#13097D] hover:text-white transition-all duration-200"
-        >
-           Advanced Settings
-        </button>
-      </div>
     </div>
-
-    <AdvancedSettingsDrawer 
-      open={drawerOpen}
-      onClose={() => setDrawerOpen(false)}
-    />
     </>
   );
 }

@@ -95,7 +95,7 @@ export default function StateSelectionStep({ selectedStates, onStateSelect }: St
                     <button
                         key={state.name}
                         onClick={() => onStateSelect(state.name)}
-                        className={`relative flex flex-col items-center justify-center rounded-xl border p-3 md:p-6 transition-colors duration-200 ${
+                      className={`relative flex flex-col items-center justify-center rounded-xl border p-3 md:p-6 transition-colors duration-200 cursor-pointer ${
                             isSelected ? 'border-transparent bg-[#13097D] text-white' : 'bg-white hover:shadow-lg border-gray-200'
                         }`}
                     >

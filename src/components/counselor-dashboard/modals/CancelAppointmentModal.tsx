@@ -31,7 +31,7 @@ export default function CancelAppointmentModal({
 
   return (
     <div 
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-opacity-50 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-100 flex items-center justify-center bg-opacity-50 backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <div 
@@ -40,7 +40,7 @@ export default function CancelAppointmentModal({
       >
         <button 
           onClick={onClose} 
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
+          className="absolute top-4 right-4 hover:cursor-pointer text-gray-400 hover:text-gray-700"
           disabled={isSubmitting}
         >
           <X size={20} />
@@ -63,14 +63,14 @@ export default function CancelAppointmentModal({
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="w-full flex-1 px-6 py-3 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50"
+            className="w-full flex-1 px-6 py-3 bg-white border hover:cursor-pointer border-gray-300 text-gray-700 font-semibold rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50"
           >
             Go Back
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting || !reason}
-            className="w-full flex-1 px-6 py-3 bg-gray-500 text-white font-semibold rounded-lg text-sm hover:bg-gray-600 disabled:bg-gray-400"
+            className="w-full flex-1 px-6 py-3 bg-gray-500 hover:cursor-pointer text-white font-semibold rounded-lg text-sm hover:bg-gray-600 disabled:bg-gray-400"
           >
             {isSubmitting ? 'Cancelling...' : 'Yes, Cancel'}
           </button>

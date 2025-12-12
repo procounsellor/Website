@@ -17,7 +17,7 @@ export default function CancelOutOfOfficeModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      className="fixed inset-0 z-100 flex items-center justify-center p-4"
       onClick={onClose}
     >
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
@@ -27,14 +27,14 @@ export default function CancelOutOfOfficeModal({
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 hover:cursor-pointer"
           disabled={isSubmitting}
         >
           <X size={20} />
         </button>
 
         <div className="flex items-center gap-4">
-          <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full bg-red-100">
+          <div className="shrink-0 w-12 h-12 flex items-center justify-center rounded-full bg-red-100">
             <AlertTriangle size={24} className="text-red-600" />
           </div>
           <div>
@@ -52,14 +52,14 @@ export default function CancelOutOfOfficeModal({
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="w-full flex-1 px-6 py-3 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50"
+            className="w-full flex-1 px-6 py-3 hover:cursor-pointer bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50"
           >
             Go Back
           </button>
           <button
             onClick={onConfirm}
             disabled={isSubmitting}
-            className="w-full flex-1 px-6 py-3 bg-red-600 text-white font-semibold rounded-lg text-sm hover:bg-red-700 disabled:bg-red-400"
+            className="w-full flex-1 px-6 py-3 hover:cursor-pointer bg-red-600 text-white font-semibold rounded-lg text-sm hover:bg-red-700 disabled:bg-red-400"
           >
             {isSubmitting ? "Cancelling..." : "Yes, Cancel"}
           </button>

@@ -23,7 +23,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onEditClick }) => {
         <div className="relative flex flex-col items-center md:flex-row md:justify-between md:items-start">
           
           <div className="flex flex-col md:flex-row items-center md:items-start w-full">
-            <div className="flex-shrink-0 w-32 h-32 md:w-48 md:h-48 rounded-full border-[4px] border-white bg-gray-300 overflow-hidden shadow-lg -mt-16 md:-mt-24">
+            <div className="flex-shrink-0 w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-white bg-gray-300 overflow-hidden shadow-lg -mt-16 md:-mt-24">
               <img
                 src={user.photo || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=EBF4FF&color=0D47A1`}
                 alt={`${user.firstName} ${user.lastName}`}
@@ -46,7 +46,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onEditClick }) => {
           <div className="hidden md:block md:pt-6">
             <button 
             onClick={onEditClick}
-            className="flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-[#343C6A] rounded-xl text-[#343C6A] font-medium text-base hover:bg-gray-100 transition-colors shadow-sm whitespace-nowrap">
+            className="flex items-center hover:cursor-pointer justify-center gap-2 py-2.5 px-4 bg-white border border-[#343C6A] rounded-xl text-[#343C6A] font-medium text-base hover:bg-gray-100 transition-colors shadow-sm whitespace-nowrap">
               <SquarePen size={20} />
               <span>Edit Profile</span>
             </button>
