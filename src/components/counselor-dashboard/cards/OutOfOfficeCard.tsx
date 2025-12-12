@@ -87,7 +87,7 @@ export function OutOfOfficeCard({
   };
 
   return (
-    <div className="bg-white h-[188px] w-full border border-[#EFEFEF] shadow-md rounded-[16px] p-4 relative">
+    <div className="bg-white h-[188px] w-full border border-[#EFEFEF] shadow-md rounded-2xl p-4 relative">
       <div className="flex justify-between">
         <div
           style={{
@@ -104,7 +104,7 @@ export function OutOfOfficeCard({
         {showMenu && (
           <button
             onClick={handleMenuClick}
-            className="p-1 rounded-full hover:bg-gray-100"
+            className="p-1 rounded-full hover:cursor-pointer hover:bg-gray-100"
           >
             <EllipsisVertical size={18} />
           </button>
@@ -118,7 +118,7 @@ export function OutOfOfficeCard({
               e.stopPropagation();
               onReschedule(outOfOffice);
             }}
-            className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg"
+            className="block w-full text-left hover:cursor-pointer px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg"
           >
             Reschedule
           </button>
@@ -127,7 +127,7 @@ export function OutOfOfficeCard({
               e.stopPropagation();
               onCancel(outOfOffice);
             }}
-            className="block w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-gray-50 rounded-b-lg"
+            className="block w-full text-left hover:cursor-pointer px-4 py-3 text-sm text-red-600 hover:bg-gray-50 rounded-b-lg"
           >
             Cancel
           </button>

@@ -290,7 +290,7 @@ export default function OutOfOfficeDrawer({
         className={`absolute right-0 top-0 bottom-0 w-[460px] bg-[#f5f5f7] shadow-xl transform transition-all duration-300 hidden lg:block `}
       >
         <div className="h-full flex flex-col">
-          <div className="flex justify-between items-center h-[4.25rem] bg-white p-7">
+          <div className="flex justify-between items-center h-17 bg-white p-7">
             <h1 className="flex gap-2 text-[16px] font-semibold text-[#343C6A]">
               <span>
                 <img src="/cal.svg" alt="" />
@@ -302,11 +302,11 @@ export default function OutOfOfficeDrawer({
               onClick={onClose}
               aria-label="Close"
             >
-              <X className="group-hover:text-white text-gray-500" size={17} />
+              <X className="group-hover:text-white group-hover:cursor-pointer text-gray-500" size={17} />
             </button>
           </div>
 
-          <div className="h-auto w-[412px] my-5 mx-auto rounded-[16px] p-4 bg-white border border-[#EFEFEF] flex flex-col gap-4">
+          <div className="h-auto w-[412px] my-5 mx-auto rounded-2xl p-4 bg-white border border-[#EFEFEF] flex flex-col gap-4">
             {/* Date pickers */}
             <div className="flex flex-col gap-2">
               <label className="label" htmlFor="dates">
@@ -321,12 +321,12 @@ export default function OutOfOfficeDrawer({
                       setShowStartTimeList(false);
                       setShowEndTimeList(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 hover:cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <img
                       src="/cal.svg"
                       alt=""
-                      className="w-4 h-4 flex-shrink-0"
+                      className="w-4 h-4 shrink-0"
                     />
                     <span
                       className="text-[14px] font-medium"
@@ -362,12 +362,12 @@ export default function OutOfOfficeDrawer({
                       setShowStartTimeList(false);
                       setShowEndTimeList(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <img
                       src="/cal.svg"
                       alt=""
-                      className="w-4 h-4 flex-shrink-0"
+                      className="w-4 h-4 shrink-0"
                     />
                     <span
                       className="text-[14px] font-medium"
@@ -410,11 +410,11 @@ export default function OutOfOfficeDrawer({
                       setShowStartCalendar(false);
                       setShowEndCalendar(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 hover:cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <Clock
                       size={16}
-                      className="text-[#6C696980] flex-shrink-0"
+                      className="text-[#6C696980] shrink-0"
                     />
                     <span
                       className="text-[14px] font-medium"
@@ -443,11 +443,11 @@ export default function OutOfOfficeDrawer({
                       setShowStartCalendar(false);
                       setShowEndCalendar(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <Clock
                       size={16}
-                      className="text-[#6C696980] flex-shrink-0"
+                      className="text-[#6C696980] shrink-0"
                     />
                     <span
                       className="text-[14px] font-medium"
@@ -485,14 +485,14 @@ export default function OutOfOfficeDrawer({
             <div className="flex gap-4">
               <button
                 onClick={onClose}
-                className="w-[182px] h-[42px] border border-[#FA660F] text-[#FA660F] font-semibold text-[14px] rounded-[12px]"
+                className="w-[182px] h-[42px] hover:cursor-pointer border border-[#FA660F] text-[#FA660F] font-semibold text-[14px] rounded-[12px]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || isFormIncomplete}
-                className="w-[182px] h-[42px] bg-[#FA660F] text-white font-semibold text-[14px] rounded-[12px] disabled:bg-orange-300 disabled:cursor-not-allowed"
+                className="w-[182px] h-[42px] bg-[#FA660F] hover:cursor-pointer  text-white font-semibold text-[14px] rounded-[12px] disabled:bg-orange-300 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Scheduling..." : "Schedule Now"}
               </button>
@@ -503,7 +503,7 @@ export default function OutOfOfficeDrawer({
 
       {/* mobile View*/}
       <div className="lg:hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-[16px] border border-[#EFEFEF] w-full max-w-[335px] h-auto p-5">
+        <div className="bg-white rounded-2xl border border-[#EFEFEF] w-full max-w-[335px] h-auto p-5">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-semibold text-lg text-[#343C6A]">
               Schedule out of office
@@ -529,12 +529,12 @@ export default function OutOfOfficeDrawer({
                       setShowStartTimeList(false);
                       setShowEndTimeList(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <img
                       src="/cal.svg"
                       alt=""
-                      className="w-4 h-4 flex-shrink-0"
+                      className="w-4 h-4 shrink-0"
                     />
                     <span
                       className="text-[12px] font-medium truncate"
@@ -567,12 +567,12 @@ export default function OutOfOfficeDrawer({
                       setShowStartTimeList(false);
                       setShowEndTimeList(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <img
                       src="/cal.svg"
                       alt=""
-                      className="w-4 h-4 flex-shrink-0"
+                      className="w-4 h-4 shrink-0"
                     />
                     <span
                       className="text-[12px] font-medium truncate"
@@ -610,11 +610,11 @@ export default function OutOfOfficeDrawer({
                       setShowStartCalendar(false);
                       setShowEndCalendar(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <Clock
                       size={16}
-                      className="text-[#6C696980] flex-shrink-0"
+                      className="text-[#6C696980] shrink-0"
                     />
                     <span
                       className="text-[12px] font-medium truncate"
@@ -643,11 +643,11 @@ export default function OutOfOfficeDrawer({
                       setShowStartCalendar(false);
                       setShowEndCalendar(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <Clock
                       size={16}
-                      className="text-[#6C696980] flex-shrink-0"
+                      className="text-[#6C696980] shrink-0"
                     />
                     <span
                       className="text-[12px] font-medium truncate"

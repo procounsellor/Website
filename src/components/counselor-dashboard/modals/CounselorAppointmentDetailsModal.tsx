@@ -71,7 +71,7 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
 
     if (isCancelled) {
       return (
-        <span className="font-medium text-[#EE1C1F] capitalize flex items-center gap-1">
+        <span className="font-medium text-[#EE1C1F] capitalize flex items-center gap-1 hover:cursor-pointer">
           <XCircle size={16} /> {statusText}
         </span>
       );
@@ -132,18 +132,18 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
   };
 
   return (
-    <div className="fixed inset-0 z-[100] md:bg-opacity-50 md:backdrop-blur-sm flex items-center justify-center">
+    <div className="fixed inset-0 z-100 md:bg-opacity-50 md:backdrop-blur-sm flex items-center justify-center">
 
       {/* Mobile View */}
       <div className="md:hidden h-full w-full bg-[#F5F7FA] flex flex-col">
-        <header className="flex-shrink-0 flex items-center p-4 bg-white border-b border-gray-200">
+        <header className="shrink-0 flex items-center p-4 bg-white border-b border-gray-200">
           <button onClick={onClose} className="p-2 mr-2">
             <ChevronLeft size={24} className="text-gray-700" />
           </button>
           <h2 className="text-lg font-semibold text-[#343C6A]">{modalTitle}</h2>
         </header>
 
-        <div className="flex-grow overflow-y-auto p-4 space-y-6">
+        <div className="grow overflow-y-auto p-4 space-y-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
             <div className="flex items-center gap-3">
               <img
@@ -192,7 +192,7 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
           </div>
 
           <div className="text-center p-4 bg-white rounded-xl border border-gray-100">
-             <h3 className="font-semibold text-gray-800">Need Help</h3>
+             <h3 className="font-semibold text-gray-800">Need Help?</h3>
              <p className="text-sm text-gray-500 mt-1 mb-4">Our team is here to assist you with any questions</p>
              <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
                 <a href="tel:7004789484" className="text-sm font-medium text-gray-700">📞 70047 89484</a>
@@ -207,7 +207,7 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
         className="hidden md:block w-full max-w-md bg-white rounded-xl shadow-xl p-6 relative"
         onClick={(e) => e.stopPropagation()}
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 hover:cursor-pointer">
           <X size={20} />
         </button>
         <h2 className="text-lg font-semibold text-[#343C6A]">{modalTitle}</h2>
@@ -254,7 +254,7 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
             </div>
           </div>
           <div className="text-center p-4 bg-white rounded-xl border border-gray-100">
-             <h3 className="font-semibold text-gray-800">Need Help</h3>
+             <h3 className="font-semibold text-gray-800">Need Help?</h3>
              <p className="text-sm text-gray-500 mt-1 mb-4">Our team is here to assist you with any questions</p>
              <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
                 <a href="tel:7004789484" className="text-sm font-medium text-gray-700">📞 70047 89484</a>

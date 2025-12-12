@@ -50,7 +50,7 @@ const EditCourseView: React.FC<EditCourseViewProps> = ({
               <button
                 key={course.courseId}
                 onClick={() => onCourseSelect(course.name)}
-                className={`relative transform rounded-xl border p-3 md:p-5 text-center transition-all duration-200 ${
+                className={`relative transform rounded-xl border p-3 md:p-5 text-center transition-all duration-200 hover:cursor-pointer ${
                   isSelected 
                     ? 'border-[#FA660F] bg-orange-50 shadow-lg ring-2 ring-[#FA660F] ring-offset-0' 
                     : 'bg-white hover:shadow-lg border-gray-200'
@@ -59,7 +59,7 @@ const EditCourseView: React.FC<EditCourseViewProps> = ({
                 <img src={course.imageStorage} alt={`${course.name} icon`} className="mb-2 md:mb-4 h-16 w-16 md:h-24 md:w-24 object-contain mx-auto" />
                 <h3 className={`text-sm md:text-lg font-bold ${isSelected ? 'text-[#FA660F]' : 'text-gray-800'} line-clamp-2`}>
                   {course.name}
-                </h3>
+                </h3> 
                 <p className={`text-xs md:text-sm ${isSelected ? 'text-orange-600' : 'text-gray-500'} line-clamp-1`}>
                   {course.duration}
                 </p>
@@ -80,7 +80,7 @@ const EditCourseView: React.FC<EditCourseViewProps> = ({
         <div className="flex justify-center md:justify-end">
           <button
             onClick={onSubmit}
-            className="w-full md:w-auto rounded-lg bg-[#FA660F] px-6 md:px-12 py-2.5 md:py-3 font-semibold text-white transition-colors hover:bg-orange-600 disabled:bg-orange-300 md:min-w-[160px] text-sm md:text-base"
+            className="w-full md:w-auto rounded-lg bg-[#FA660F] px-6 md:px-12 py-2.5 md:py-3 font-semibold text-white transition-colors hover:bg-orange-600 hover:cursor-pointer disabled:bg-orange-300 md:min-w-[160px] text-sm md:text-base"
             disabled={!selectedCourse || isSubmitting}
           >
             {isSubmitting ? <Loader2 className="animate-spin w-5 h-5 mx-auto" /> : 'Update Course'}
@@ -129,7 +129,7 @@ const EditStatesView: React.FC<EditStatesViewProps> = ({
             <button
               key={state.name}
               onClick={() => onStateSelect(state.name)}
-              className={`relative flex flex-col items-center justify-center rounded-xl border p-3 md:p-6 transition-colors duration-200
+              className={`relative flex flex-col items-center justify-center hover:cursor-pointer rounded-xl border p-3 md:p-6 transition-colors duration-200
                 ${
                   isSelected(state.name) ? 'border-transparent bg-[#13097D] text-white' : 'bg-white hover:shadow-lg border-gray-200'
                 }`}
@@ -151,7 +151,7 @@ const EditStatesView: React.FC<EditStatesViewProps> = ({
         <div className="flex justify-center md:justify-end">
           <button
             onClick={onSubmit}
-            className="w-full md:w-auto rounded-lg bg-[#FA660F] px-6 md:px-12 py-2.5 md:py-3 font-semibold text-white transition-colors hover:bg-orange-600 disabled:bg-orange-300 md:min-w-[160px] text-sm md:text-base"
+            className="w-full md:w-auto rounded-lg hover:cursor-pointer bg-[#FA660F] px-6 md:px-12 py-2.5 md:py-3 font-semibold text-white transition-colors hover:bg-orange-600 disabled:bg-orange-300 md:min-w-[160px] text-sm md:text-base"
             disabled={isSubmitting}
           >
             {isSubmitting ? <Loader2 className="animate-spin w-5 h-5 mx-auto" /> : 'Update States'}
@@ -220,7 +220,7 @@ const EditPreferencesModal: React.FC<EditPreferencesModalProps> = ({ mode, curre
         className="relative w-full max-w-4xl rounded-2xl bg-[#F5F7FA] p-4 md:p-8 shadow-lg flex flex-col max-h-[95vh] md:max-h-[90vh] h-auto md:h-[700px]"
         onClick={(e) => e.stopPropagation()}
       >
-        <button onClick={onClose} className="absolute top-3 right-3 md:top-4 md:right-4 text-gray-600 hover:text-gray-900 z-10 p-1"><X size={20} className="md:w-6 md:h-6" /></button>
+        <button onClick={onClose} className="absolute top-3 right-3 md:top-4 md:right-4 text-gray-600 hover:cursor-pointer hover:text-gray-900 z-10 p-1"><X size={20} className="md:w-6 md:h-6" /></button>
         
         {mode === 'course' && (
           <EditCourseView

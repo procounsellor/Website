@@ -102,7 +102,7 @@ export default function FAQ() {
                 type="button"
                 onClick={() => toggle(i)}
                 aria-expanded={isOpen}
-                className="w-full flex items-center justify-between gap-4 text-left focus:outline-none"
+                className="w-full flex items-center justify-between gap-4 text-left focus:outline-none hover:cursor-pointer"
               >
                 <h2
                   className={`flex-1 text-[#262626] ${

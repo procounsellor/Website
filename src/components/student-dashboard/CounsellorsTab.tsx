@@ -175,7 +175,7 @@ const CounsellorsTab: React.FC = () => {
           <button
             key={tab}
             onClick={() => setActiveFilter(tab)}
-            className={`w-full px-3 py-1.5 sm:w-auto sm:px-4 sm:py-2 text-xs sm:text-base font-medium rounded-full transition-colors duration-200 ${
+            className={`w-full px-3 py-1.5 sm:w-auto sm:px-4 sm:py-2 text-xs sm:text-base font-medium rounded-full transition-colors duration-200 hover:cursor-pointer ${
               activeFilter === tab ? 'bg-[#E8E7F2] text-[#13097D]' : 'bg-transparent text-[#13097D]'
             }`}
           >

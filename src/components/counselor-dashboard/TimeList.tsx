@@ -31,13 +31,14 @@ export default function TimeList({
               key={option.value}
               onClick={() => onSelect(option.value)}
               className={`
-                w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors
+                w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors cursor-pointer
                 ${
                   selectedValue === option.value
                     ? "bg-[#13097D] text-white font-medium"
                     : "text-gray-700 hover:bg-gray-100"
                 }
               `}
+              aria-pressed={selectedValue === option.value}
             >
               {option.label}
             </button>

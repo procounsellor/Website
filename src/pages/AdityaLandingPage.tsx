@@ -335,7 +335,7 @@ export default function LandingPage() {
           user={user}
           onUpdate={handleUpdateProfile}
           onUploadComplete={() => {}}
-          isMandatory={true}
+          // isMandatory={true}
         />
       )}
 

@@ -277,7 +277,7 @@ export default function RescheduleOutOfOfficeModal({
               Reschedule Out of Office
             </h1>
             <button
-              className="flex items-center cursor-pointer justify-center group hover:bg-[#232323] rounded-full w-6 h-6"
+              className="flex items-center hover:cursor-pointer justify-center group hover:bg-[#232323] rounded-full w-6 h-6"
               onClick={onClose}
               aria-label="Close"
             >
@@ -299,7 +299,10 @@ export default function RescheduleOutOfOfficeModal({
                       setShowStartTimeList(false);
                       setShowEndTimeList(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 hover:cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setShowStartCalendar(!showStartCalendar); } }}
                   >
                     <img
                       src="/cal.svg"
@@ -338,7 +341,10 @@ export default function RescheduleOutOfOfficeModal({
                       setShowStartTimeList(false);
                       setShowEndTimeList(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 hover:cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setShowEndCalendar(!showEndCalendar); } }}
                   >
                     <img
                       src="/cal.svg"
@@ -384,7 +390,10 @@ export default function RescheduleOutOfOfficeModal({
                       setShowStartCalendar(false);
                       setShowEndCalendar(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 hover:cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setShowStartTimeList(!showStartTimeList); } }}
                   >
                     <Clock
                       size={16}
@@ -417,7 +426,10 @@ export default function RescheduleOutOfOfficeModal({
                       setShowStartCalendar(false);
                       setShowEndCalendar(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 hover:cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setShowEndTimeList(!showEndTimeList); } }}
                   >
                     <Clock
                       size={16}
@@ -455,17 +467,17 @@ export default function RescheduleOutOfOfficeModal({
                 onChange={(e) => setReason(e.target.value)}
               />
             </div>
-            <div className="flex gap-4">
+              <div className="flex gap-4">
               <button
                 onClick={onClose}
-                className="w-[182px] h-[42px] border border-[#FA660F] text-[#FA660F] font-semibold text-[14px] rounded-[12px]"
+                className="w-[182px] h-[42px] border border-[#FA660F] text-[#FA660F] font-semibold text-[14px] rounded-[12px] hover:cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || isFormIncomplete}
-                className="w-[182px] h-[42px] bg-[#FA660F] text-white font-semibold text-[14px] rounded-[12px] disabled:bg-orange-300 disabled:cursor-not-allowed"
+                className="w-[182px] h-[42px] bg-[#FA660F] text-white font-semibold text-[14px] rounded-[12px] hover:cursor-pointer disabled:bg-orange-300 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Updating..." : "Update Schedule"}
               </button>
@@ -483,7 +495,7 @@ export default function RescheduleOutOfOfficeModal({
             </h3>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-black"
+              className="text-gray-500 hover:text-black hover:cursor-pointer"
             >
               <X size={20} />
             </button>
@@ -501,7 +513,10 @@ export default function RescheduleOutOfOfficeModal({
                       setShowStartTimeList(false);
                       setShowEndTimeList(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setShowStartCalendar(!showStartCalendar); } }}
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 hover:cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <img
                       src="/cal.svg"
@@ -538,7 +553,10 @@ export default function RescheduleOutOfOfficeModal({
                       setShowStartTimeList(false);
                       setShowEndTimeList(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setShowEndCalendar(!showEndCalendar); } }}
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 hover:cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <img
                       src="/cal.svg"
@@ -580,7 +598,10 @@ export default function RescheduleOutOfOfficeModal({
                       setShowStartCalendar(false);
                       setShowEndCalendar(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setShowStartTimeList(!showStartTimeList); } }}
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 hover:cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <Clock
                       size={16}
@@ -612,7 +633,10 @@ export default function RescheduleOutOfOfficeModal({
                       setShowStartCalendar(false);
                       setShowEndCalendar(false);
                     }}
-                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setShowEndTimeList(!showEndTimeList); } }}
+                    className="w-full h-9 rounded-md border border-[#E5E5E5] bg-white px-2 hover:cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
                   >
                     <Clock
                       size={16}
@@ -651,13 +675,13 @@ export default function RescheduleOutOfOfficeModal({
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || isFormIncomplete}
-                className="w-full h-[42px] bg-[#FA660F] text-white font-semibold text-[14px] rounded-[12px] disabled:bg-orange-300 disabled:cursor-not-allowed"
+                className="w-full h-[42px] bg-[#FA660F] text-white font-semibold text-[14px] rounded-[12px] hover:cursor-pointer disabled:bg-orange-300 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Updating..." : "Update Schedule"}
               </button>
               <button
                 onClick={onClose}
-                className="w-full h-[42px] border border-[#FA660F] text-[#FA660F] font-semibold text-[14px] rounded-[12px]"
+                className="w-full h-[42px] border border-[#FA660F] text-[#FA660F] font-semibold text-[14px] rounded-[12px] hover:cursor-pointer"
               >
                 Go Back
               </button>

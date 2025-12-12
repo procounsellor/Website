@@ -26,9 +26,7 @@ import CoursePage from '@/pages/CoursePage';
 import MyActivityPage from '@/pages/MyActivityPage';
 import LandingPage from '@/pages/AdityaLandingPage';
 
-const CollegesListingPage = lazy(() => import('@/pages/colleges'));
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
-const CoursesListingPage = lazy(() => import('@/pages/courses'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
 const CounselorDetailsPage = lazy(() => import('@/pages/CounselorDetailsPage'));
 const ExamDetailsPage = lazy(() => import('@/pages/ExamDetailsPage'));
@@ -58,9 +56,7 @@ export default function AppRoutes(){
                                 <Route path='/gurucool' element={<LandingPage/>}/>
                                 <Route path="/counsellors" element={<CounselorListingPage/>} />
                                 <Route path="/counsellor-profile" element={<CounselorDetailsPage/>} />
-                                <Route path="/courses" element={<CoursesListingPage/>} />
                                 <Route path="/courses/:id" element={<CourseDetailsPage/>} />
-                                <Route path="/colleges" element={<CollegesListingPage />} />
                                 <Route path="/colleges/:id" element={<CollegeDetailsPage/>} />
                                 <Route path="/exams" element={<ExamsListingPage />} />
                                 <Route path="/about" element={<AboutPage/>} />

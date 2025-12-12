@@ -71,7 +71,7 @@ export function FreeCareerAssessmentCard({counselor, user, onProfileIncomplete}:
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
         <div className="flex justify-between items-center gap-2">
             <h3 className="text-base md:text-lg font-semibold md:font-bold text-[#343C6A]">Free Career Assessment</h3>
-            <span className="flex-shrink-0 flex items-center gap-1 bg-[#FFF9D9] text-gray-700 text-xs font-semibold px-2 py-1 rounded-full">
+            <span className="shrink-0 flex items-center gap-1 bg-[#FFF9D9] text-gray-700 text-xs font-semibold px-2 py-1 rounded-full">
                 <img 
                   src="/flame.gif" 
                   alt="Flame animation" 
@@ -83,7 +83,7 @@ export function FreeCareerAssessmentCard({counselor, user, onProfileIncomplete}:
         <button
           onClick={handleBookingClick}
           disabled={isCurrentUserCounselor}
-          className={`mt-4 w-full text-white text-xs md:text-base font-semibold py-2.5 rounded-lg transition-colors ${
+          className={`mt-4 w-full text-white text-xs md:text-base font-semibold py-2.5 rounded-lg hover:cursor-pointer transition-colors ${
             isCurrentUserCounselor
             ? 'bg-gray-300 text-gray-700 cursor-not-allowed'
             : 'bg-[#FA660F] hover:bg-orange-600'

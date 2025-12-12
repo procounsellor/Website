@@ -16,7 +16,7 @@ interface NewHeaderButtonProps {
 const NewHeaderButton: React.FC<NewHeaderButtonProps> = ({ label, onClick }) => (
     <button
         onClick={onClick}
-        className="hidden md:block text-sm font-semibold text-gray-700 hover:text-[#FF660F] transition-colors duration-200 px-2 py-1"
+        className="hidden md:block hover:cursor-pointer text-sm font-semibold text-gray-700 hover:text-[#FF660F] transition-colors duration-200 px-2 py-1"
     >
         {label}
     </button>
@@ -186,7 +186,7 @@ export default function Header(){
                                     <>
                                         <button
                                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                            className="p-2 rounded-full hover:bg-gray-200 transition-colors"
+                                            className="p-2 hover:cursor-pointer rounded-full hover:bg-gray-200 transition-colors"
                                         >
                                             <User2 className="h-6 w-6 text-gray-700" />
                                         </button>
@@ -198,7 +198,7 @@ export default function Header(){
                                             >
                                                 <button
                                                     onClick={handleProfileNavigation}
-                                                    className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100"
+                                                    className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 hover:cursor-pointer"
                                                 >
                                                     <LayoutDashboard size={16} />
                                                     <span>Profile</span>
@@ -222,7 +222,7 @@ export default function Header(){
 
                                                 <button
                                                     onClick={handleLogout}
-                                                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:cursor-pointer"
                                                 >
                                                     <LogOut size={16} />
                                                     Logout
@@ -233,7 +233,7 @@ export default function Header(){
                                 ) : (
                                     <Button
                                         variant="outline"
-                                        className="h-8 md:h-11 border rounded-[12px] font-semibold text-[#FF660F] border-[#FF660F] text-[10px] md:text-lg hover:bg-[#FF660F] hover:text-white px-3 md:px-4"
+                                        className="h-8 md:h-11 border rounded-[12px] font-semibold text-[#FF660F] hover:cursor-pointer border-[#FF660F] text-[10px] md:text-lg hover:bg-[#FF660F] hover:text-white px-3 md:px-4"
                                         onClick={() => toggleLogin()}
                                     >
                                         Login/Sign Up

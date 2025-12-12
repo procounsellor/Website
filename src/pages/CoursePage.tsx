@@ -186,7 +186,7 @@ export default function CoursePage() {
       <div className="max-w-7xl mx-auto mb-4">
         <button
           onClick={handleBack}
-          className="flex items-center gap-2 text-[#13097D] hover:text-[#0d0659] font-medium transition-colors mb-4"
+          className="flex items-center gap-2 text-[#13097D] hover:text-[#0d0659] font-medium transition-colors mb-4 hover:cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
           Back

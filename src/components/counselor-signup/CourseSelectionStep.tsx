@@ -95,7 +95,7 @@ export default function CourseSelectionStep({ selectedCourses, onCourseSelect }:
                     <button
                         key={course.courseId}
                         onClick={() => onCourseSelect(course.name)}
-                        className={`relative transform rounded-xl border p-3 md:p-5 text-center transition-all duration-200 ${
+                      className={`relative transform rounded-xl border p-3 md:p-5 text-center transition-all duration-200 cursor-pointer ${
                             isSelected 
                               ? 'border-[#FA660F] bg-orange-50 shadow-lg ring-2 ring-[#FA660F] ring-offset-0' 
                               : 'bg-white hover:shadow-lg border-gray-200'

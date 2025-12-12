@@ -81,7 +81,7 @@ export default function AppointmentCard({ appointment, onCancel, onCardClick, is
             >
               <button 
                 onClick={handleCancel}
-                className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+                className="block w-full text-left px-4 hover:cursor-pointer py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
               >
                 Cancel Appointment
               </button>
@@ -89,7 +89,7 @@ export default function AppointmentCard({ appointment, onCancel, onCardClick, is
         )}
 
         <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
+          <div className="w-14 h-14 rounded-lg bg-gray-200 overflow-hidden shrink-0">
             <img
               src={imageUrl}
               alt={userFullName}
@@ -130,7 +130,7 @@ export default function AppointmentCard({ appointment, onCancel, onCardClick, is
       >
           <div className="grid grid-cols-12 gap-4 items-center">
                 <div className="col-span-5 flex items-center gap-4 min-w-0">
-                  <div className="w-20 h-20 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
+                  <div className="w-20 h-20 rounded-lg bg-gray-200 overflow-hidden shrink-0">
                       <img
                           src={imageUrl}
                           alt={userFullName}
@@ -156,7 +156,7 @@ export default function AppointmentCard({ appointment, onCancel, onCardClick, is
               <div className="col-span-2 flex items-center justify-end gap-4">
                   {getStatusContent(status)}
                   {showMenu && (
-                    <button className="text-gray-500 p-2 rounded-full hover:bg-gray-100 z-20"
+                    <button className="text-gray-500 p-2 rounded-full hover:bg-gray-100 hover:cursor-pointer z-20"
                         onClick={(e) => {
                            e.stopPropagation();
                            onMenuToggle();
@@ -171,7 +171,7 @@ export default function AppointmentCard({ appointment, onCancel, onCardClick, is
                       >
                         <button 
                           onClick={handleCancel}
-                          className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+                          className="block w-full hover:cursor-pointer text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
                         >
                           Cancel Appointment
                         </button>

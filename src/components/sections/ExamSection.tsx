@@ -154,7 +154,7 @@ export function ExamSection() {
               <button
                 key={index}
                 onClick={() => emblaApi && emblaApi.scrollTo(index * 2)}
-                className={`h-2 rounded-full transition-all duration-300 ${
+                className={`h-2 rounded-full transition-all duration-300 hover:cursor-pointer ${
                   Math.floor(selectedIndex / 2) === index
                     ? "w-6 bg-[#13097D]"
                     : "w-2 bg-gray-400"

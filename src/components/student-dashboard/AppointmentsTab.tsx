@@ -135,7 +135,7 @@ const AppointmentsTab: React.FC = () => {
             <button
               key={tab}
               onClick={() => setActiveFilter(tab)}
-              className={`px-4 py-2 text-sm md:text-base font-medium rounded-full transition-colors duration-200 ${
+              className={`px-4 py-2 text-sm md:text-base font-medium rounded-full transition-colors duration-200 hover:cursor-pointer ${
                 activeFilter === tab 
                 ? 'bg-[#E8E7F2] text-[#13097D]' 
                 : 'bg-transparent text-[#8C8CA1] md:text-[#13097D] hover:text-[#13097D]'

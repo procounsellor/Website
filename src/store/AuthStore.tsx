@@ -43,6 +43,8 @@ type AuthState = {
   isProfileCompletionOpen: boolean;
   returnToPath: string | null;
   isCounselorSignupFlow: boolean;
+  tempJwt: string | null;
+  tempPhone: string | null;
   toggleLogin: (onSuccess?: () => void) => void;
   toggleCounselorSignup: () => void;
   openCounselorSignupForm: () => void;
@@ -65,6 +67,9 @@ type AuthState = {
   setNeedsProfileCompletion: (value: boolean) => void;
   checkProfileCompletion: () => boolean;
   clearOnLoginSuccess: () => void;
+  setTempJwt: (jwt: string | null, phone: string | null) => void;
+  completeOnboarding: () => void;
+  cancelOnboarding: () => void;
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -86,6 +91,8 @@ export const useAuthStore = create<AuthState>()(
       isProfileCompletionOpen: false,
       returnToPath: null,
       isCounselorSignupFlow: false,
+      tempJwt: null,
+      tempPhone: null,
       setPendingAction: (fn) => set({ pendingAction: fn }),
       bookingTriggered: false,
       setBookingTriggered: (value) => set({ bookingTriggered: value }),
@@ -93,6 +100,28 @@ export const useAuthStore = create<AuthState>()(
       setNeedsOnboarding: (value) => set({ needsOnboarding: value }),
       setNeedsProfileCompletion: (value) => set({ needsProfileCompletion: value }),
       setIsCounselorSignupFlow: (value) => set({ isCounselorSignupFlow: value }),
+      setTempJwt: (jwt, phone) => set({ tempJwt: jwt, tempPhone: phone }),
+      
+      completeOnboarding: () => {
+        const { tempJwt, tempPhone } = get();
+        if (tempJwt && tempPhone) {
+          localStorage.setItem('jwt', tempJwt);
+          localStorage.setItem('phone', tempPhone);
+          set({ tempJwt: null, tempPhone: null, needsOnboarding: false });
+        }
+      },
+      
+      cancelOnboarding: () => {
+        set({ 
+          tempJwt: null, 
+          tempPhone: null, 
+          needsOnboarding: false,
+          isAuthenticated: false,
+          userId: null,
+          user: null,
+          role: null
+        });
+      },
       
       checkProfileCompletion: () => {
         const state = get();
@@ -147,9 +176,11 @@ export const useAuthStore = create<AuthState>()(
 
   const uid =
     state.userId ??
+    state.tempPhone ??
     (typeof window !== "undefined" ? localStorage.getItem("phone") : null);
   const token =
-    typeof window !== "undefined" ? localStorage.getItem("jwt") : null;
+    state.tempJwt ??
+    (typeof window !== "undefined" ? localStorage.getItem("jwt") : null);
   const role =
     state.role ??
     (typeof window !== "undefined" ? localStorage.getItem("role") : null);
@@ -203,17 +234,8 @@ export const useAuthStore = create<AuthState>()(
         set({ userId: phone, isAuthenticated: true, role });
         localStorage.setItem("role", role);
 
-        try {
-          if (data?.jwtToken) {
-            localStorage.setItem("jwt", data.jwtToken);
-          }
-          if (phone) {
-            localStorage.setItem("phone", phone);
-          }
-        } catch (err) {
-          console.error("Failed to save JWT/phone:", err);
-        }
-
+        // Check if user needs onboarding first
+        let needsOnboarding = false;
         try {
           const isProfileIncomplete = await checkUrl(phone, data?.jwt ?? data?.jwtToken);
           console.log('🔍 isUserDetailsNull API response:', isProfileIncomplete);
@@ -221,16 +243,41 @@ export const useAuthStore = create<AuthState>()(
           if (isCounselorSignupFlow) {
             console.log('User is in counselor signup flow, skipping onboarding');
             set({ userExist: false, needsOnboarding: false });
+            needsOnboarding = false;
           } else if (isProfileIncomplete === true) {
-            console.log('Setting needsOnboarding to TRUE');
+            console.log('Setting needsOnboarding to TRUE - keeping JWT in memory');
             set({ userExist: true, needsOnboarding: true });
+            needsOnboarding = true;
           } else {
             console.log('Setting needsOnboarding to FALSE');
             set({ userExist: false, needsOnboarding: false });
+            needsOnboarding = false;
           }
         } catch (err) {
           console.error('checkUrl failed:', err);
           set({ userExist: false, needsOnboarding: false });
+          needsOnboarding = false;
+        }
+
+        // For new users (needs onboarding), store JWT in memory only
+        // For existing users, store in localStorage
+        try {
+          if (needsOnboarding) {
+            // Store in memory for new users
+            console.log('📝 Storing JWT in memory for new user');
+            set({ tempJwt: data?.jwtToken, tempPhone: phone });
+          } else {
+            // Store in localStorage for existing users
+            console.log('📝 Storing JWT in localStorage for existing user');
+            if (data?.jwtToken) {
+              localStorage.setItem("jwt", data.jwtToken);
+            }
+            if (phone) {
+              localStorage.setItem("phone", phone);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to save JWT/phone:", err);
         }
 
         try {
@@ -261,8 +308,12 @@ export const useAuthStore = create<AuthState>()(
             if (user) {
               user.role = user.role.toLowerCase();
               
-              const needsCompletion = !user.firstName || !user.email;
-              console.log('🔍 Profile check - firstName:', user.firstName, 'email:', user.email, 'needsCompletion:', needsCompletion);
+              const { needsOnboarding: userNeedsOnboarding } = get();
+              
+              // Only check profile completion for existing users (not in onboarding)
+              // New users will complete profile during onboarding
+              const needsCompletion = userNeedsOnboarding && (!user.firstName || !user.email);
+              console.log('🔍 Profile check - firstName:', user.firstName, 'email:', user.email, 'needsOnboarding:', userNeedsOnboarding, 'needsCompletion:', needsCompletion);
               
               set({
                 user,
@@ -320,6 +371,8 @@ export const useAuthStore = create<AuthState>()(
           returnToPath: null,
           pendingAction: null,
           isCounselorSignupFlow: false,
+          tempJwt: null,
+          tempPhone: null,
         });
       },
     }),

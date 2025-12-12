@@ -105,7 +105,7 @@ export default function AppointmentsTab({ user, token }: Props) {
               <button
                 key={tab}
                 onClick={() => setActiveFilter(tab)}
-                className={`px-4 py-2 text-sm md:text-base font-medium rounded-full transition-colors duration-200 whitespace-nowrap ${
+                className={`px-4 py-2 text-sm md:text-base font-medium rounded-full transition-colors duration-200 whitespace-nowrap hover:cursor-pointer ${
                   activeFilter === tab
                   ? 'bg-[#E8E7F2] text-[#13097D]'
                   : 'bg-transparent text-gray-500 hover:text-gray-800'

@@ -74,12 +74,12 @@ export default function RescheduleAppointmentModal({
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[60]"
+        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-60"
         onClick={onClose}
       />
 
       <div
-        className="fixed bg-white rounded-[16px] shadow-lg z-[70] p-5"
+        className="fixed bg-white rounded-2xl shadow-lg z-70 p-5"
         style={{
           width: "580px",
           height: "275px",
@@ -104,9 +104,9 @@ export default function RescheduleAppointmentModal({
             <label className="text-[16px] mb-2" htmlFor="date">Date</label>
             <div 
               onClick={() => setShowCalendar(!showCalendar)}
-              className="w-[182px] h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+              className="w-[182px] h-9 rounded-md border border-[#E5E5E5] bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
             >
-              <img src="/cal.svg" alt="" className="w-4 h-4 flex-shrink-0" />
+              <img src="/cal.svg" alt="" className="w-4 h-4 shrink-0" />
               <span 
                 className="text-[14px] font-medium"
                 style={{ 
@@ -162,9 +162,9 @@ export default function RescheduleAppointmentModal({
             <label className="text-[16px] mb-2 block text-[#232323] font-medium" htmlFor="startTime">From</label>
             <div 
               onClick={() => setShowStartTimePicker(!showStartTimePicker)}
-              className="w-[150px] h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+              className="w-[150px] h-9 rounded-md border border-[#E5E5E5] hover:cursor-pointer bg-white px-2 cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
             >
-              <Clock size={16} className="flex-shrink-0 text-gray-500" />
+              <Clock size={16} className="shrink-0 text-gray-500" />
               <span 
                 className="text-[14px] font-medium"
                 style={{ color: '#232323' }}
@@ -182,7 +182,7 @@ export default function RescheduleAppointmentModal({
                       setSelectedStartTime(time);
                       setShowStartTimePicker(false);
                     }}
-                    className={`px-4 py-2 cursor-pointer hover:bg-[#FA660F]/10 text-sm ${
+                    className={`px-4 py-2 hover:cursor-pointer hover:bg-[#FA660F]/10 text-sm ${
                       selectedStartTime === time ? 'bg-[#FA660F]/20 font-medium' : ''
                     }`}
                   >
@@ -197,9 +197,9 @@ export default function RescheduleAppointmentModal({
             <label className="text-[16px] mb-2 block text-[#232323] font-medium" htmlFor="endTime">To</label>
             <div 
               onClick={() => setShowEndTimePicker(!showEndTimePicker)}
-              className="w-[150px] h-9 rounded-md border border-[#E5E5E5] bg-white px-[8px] cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
+              className="w-[150px] h-9 rounded-md border border-[#E5E5E5] bg-white px-2 hover:cursor-pointer hover:border-[#FA660F] transition-colors flex items-center gap-2"
             >
-              <Clock size={16} className="flex-shrink-0 text-gray-500" />
+              <Clock size={16} className="shrink-0 text-gray-500" />
               <span 
                 className="text-[14px] font-medium"
                 style={{ color: '#232323' }}
@@ -217,7 +217,7 @@ export default function RescheduleAppointmentModal({
                       setSelectedEndTime(time);
                       setShowEndTimePicker(false);
                     }}
-                    className={`px-4 py-2 cursor-pointer hover:bg-[#FA660F]/10 text-sm ${
+                    className={`px-4 py-2 cursor-pointer hover:bg-[#FA660F]/10 text-sm hover:cursor-pointer ${
                       selectedEndTime === time ? 'bg-[#FA660F]/20 font-medium' : ''
                     }`}
                   >
@@ -232,13 +232,13 @@ export default function RescheduleAppointmentModal({
         <div className="flex justify-end gap-4 mt-[60px]">
           <button
             onClick={onConfirm}
-            className="px-6 py-2 bg-[#FA660F] text-white rounded-lg font-medium hover:bg-[#e55d0e] transition-colors"
+            className="px-6 py-2 bg-[#FA660F] text-white rounded-lg hover:cursor-pointer font-medium hover:bg-[#e55d0e] transition-colors"
           >
             Reschedule
           </button>
           <button
             onClick={onClose}
-            className="px-6 py-2 border border-[#FA660F] text-[#FA660F] rounded-lg font-medium hover:bg-[#FA660F]/5 transition-colors"
+            className="px-6 py-2 border border-[#FA660F] text-[#FA660F] hover:cursor-pointer rounded-lg font-medium hover:bg-[#FA660F]/5 transition-colors"
           >
             Cancel
           </button>

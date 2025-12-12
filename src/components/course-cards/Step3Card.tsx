@@ -182,7 +182,7 @@ export default function Step3Card({ courseId }: Step3CardProps) {
         <div className="flex items-center gap-1">
           <button
             onClick={() => handleNavigateTo(0)}
-            className="text-[1.25rem] font-medium text-[#9499B2] hover:text-[#13097D] transition-colors"
+            className="text-[1.25rem] font-medium text-[#9499B2] hover:text-[#13097D] transition-colors cursor-pointer"
           >
             Content
           </button>
@@ -193,7 +193,7 @@ export default function Step3Card({ courseId }: Step3CardProps) {
                 <div key={index} className="flex items-center gap-1">
                   <button
                     onClick={() => handleNavigateTo(index + 1)}
-                    className="text-[1.25rem] font-medium text-[#13097D] hover:underline transition-colors"
+                    className="text-[1.25rem] font-medium text-[#13097D] hover:underline transition-colors cursor-pointer"
                   >
                     {path}
                   </button>
@@ -208,7 +208,7 @@ export default function Step3Card({ courseId }: Step3CardProps) {
         <div className="relative" ref={dropdownRef}>
           <button 
             onClick={() => setShowAddDropdown(!showAddDropdown)}
-            className="flex items-center gap-2 py-2 px-6 border border-[#13097D] text-[#13097D] rounded-[0.75rem] font-semibold text-[1rem] hover:bg-[#13097D] hover:text-white transition-all duration-200"
+            className="flex items-center gap-2 py-2 px-6 border border-[#13097D] text-[#13097D] rounded-[0.75rem] font-semibold text-[1rem] hover:bg-[#13097D] hover:text-white transition-all duration-200 cursor-pointer"
           >
             Add
           </button>
@@ -220,21 +220,21 @@ export default function Step3Card({ courseId }: Step3CardProps) {
                   setShowFolderInput(true);
                   setShowAddDropdown(false);
                 }}
-                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-[#f5f5f7] transition-colors text-left"
+                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-[#f5f5f7] transition-colors text-left cursor-pointer"
               >
                 <img src="/folder.svg" alt="folder-icon"/>
                 <span className="font-medium text-[#242645]">Folder</span>
               </button>
               <button
                 onClick={handleFileUpload}
-                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-[#f5f5f7] transition-colors text-left"
+                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-[#f5f5f7] transition-colors text-left cursor-pointer"
               >
                 <img src="/video.svg" alt="video-icon" />
                 <span className="font-medium text-[#242645]">Video</span>
               </button>
               <button
                 onClick={handleFileUpload}
-                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-[#f5f5f7] transition-colors text-left"
+                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-[#f5f5f7] transition-colors text-left cursor-pointer"
               >
                 <img src="/pdf.svg" alt="pdf-icon" />
                 <span className="font-medium text-[#242645]">Document</span>
@@ -258,7 +258,7 @@ export default function Step3Card({ courseId }: Step3CardProps) {
           />
           <button
             onClick={handleCreateFolder}
-            className="px-4 py-2 bg-[#13097D] text-white rounded-lg font-medium hover:bg-[#0f0760] transition-colors"
+            className="px-4 py-2 bg-[#13097D] text-white rounded-lg font-medium hover:bg-[#0f0760] transition-colors cursor-pointer"
           >
             Create
           </button>
@@ -267,7 +267,7 @@ export default function Step3Card({ courseId }: Step3CardProps) {
               setShowFolderInput(false);
               setNewFolderName('');
             }}
-            className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -342,11 +342,14 @@ function FileItemComponent({ item, onOpen }: { item: FileItem; onOpen: (item: Fi
   };
 
   return (
-    <div 
+    <div
       className={`flex py-3 px-4 bg-[#f5f5f7] justify-between h-14 rounded-2xl items-center ${
-        item.type === 'folder' ? 'cursor-pointer hover:bg-[#ebebed]' : ''
+        item.type === 'folder' ? 'cursor-pointer hover:cursor-pointer hover:bg-[#ebebed]' : ''
       } transition-colors`}
       onClick={() => item.type === 'folder' && onOpen(item)}
+      role={item.type === 'folder' ? 'button' : undefined}
+      tabIndex={item.type === 'folder' ? 0 : undefined}
+      onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && item.type === 'folder') { onOpen(item); } }}
     >
       <div className="flex gap-2 items-center">
         {getIcon()}
@@ -390,7 +393,7 @@ function UploadProgressComponent({ upload, onCancel }: { upload: UploadItem; onC
         </div>
         <button
           onClick={() => onCancel(upload.id)}
-          className="group hover:bg-gray-900 h-5 w-5 flex items-center justify-center hover:text-white rounded-full transition-colors duration-200"
+          className="group hover:bg-gray-900 h-5 w-5 flex items-center justify-center hover:text-white rounded-full transition-colors duration-200 cursor-pointer"
           aria-label="Cancel upload"
         >
           <X className="w-4 h-4 text-gray-600 group-hover:text-white" />
