@@ -137,7 +137,7 @@ export function CounselorReviews({ reviews,isSubscribed, onSubmitReview, userRev
     if (!isSubscribed) {
       return (
         <div className="mt-4 p-4 bg-blue-50 rounded-lg flex items-center gap-3">
-          <Info className="w-6 h-6 text-blue-500 flex-shrink-0" />
+          <Info className="w-6 h-6 text-blue-500 shrink-0" />
           <p className="text-sm text-blue-800">
             You must be subscribed to this counsellor to write a review.
           </p>
@@ -153,7 +153,7 @@ export function CounselorReviews({ reviews,isSubscribed, onSubmitReview, userRev
             {reviewText}
           </p>
           <button
-            className="self-start px-6 py-2 bg-[#13097D] text-white font-semibold rounded-lg hover:bg-gray-700 transition"
+            className="self-start px-6 py-2 bg-[#13097D] text-white font-semibold rounded-lg hover:bg-gray-700 hover:cursor-pointer transition"
             onClick={() => setIsEditing(true)}
             disabled={isSubmitting}
           >
@@ -180,7 +180,7 @@ export function CounselorReviews({ reviews,isSubscribed, onSubmitReview, userRev
         />
         <div className="flex flex-wrap gap-4 items-center">
           <button
-            className="self-start px-6 py-2 bg-[#13097D] text-white font-semibold rounded-lg hover:bg-opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="self-start px-6 py-2 bg-[#13097D] text-white font-semibold rounded-lg hover:bg-opacity-90 hover:cursor-pointer transition disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleLocalSubmit}
             disabled={isSubmitting}
           >
@@ -191,7 +191,7 @@ export function CounselorReviews({ reviews,isSubscribed, onSubmitReview, userRev
           </button>
           {isEditing && (
             <button
-              className="self-start px-6 py-2 bg-transparent text-gray-600 font-semibold rounded-lg hover:bg-gray-100 transition"
+              className="self-start px-6 py-2 bg-transparent text-gray-600 font-semibold rounded-lg hover:bg-gray-100 hover:cursor-pointer transition"
               onClick={handleCancelEdit}
               disabled={isSubmitting}
             >
@@ -222,7 +222,7 @@ export function CounselorReviews({ reviews,isSubscribed, onSubmitReview, userRev
           <img 
             src={review.userPhotoUrl || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(review.userFullName || 'Procounsel User') + '&background=13097D&color=fff&size=128'} 
             alt={review.userFullName || 'Procounsel User'} 
-            className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+            className="w-12 h-12 rounded-full object-cover shrink-0"
           />
           <div className="flex-1 min-w-0">
             <div className="flex justify-between items-start gap-2 mb-2">
@@ -253,7 +253,7 @@ export function CounselorReviews({ reviews,isSubscribed, onSubmitReview, userRev
           <h2 className="text-xl font-bold text-[#343C6A]">Recent Reviews</h2>
           <button 
             onClick={() => setShowAllReviewsModal(true)}
-            className="flex items-center gap-1 text-sm font-semibold text-[#343C6A] hover:underline"
+            className="flex items-center gap-1 text-sm font-semibold text-[#343C6A] hover:underline hover:cursor-pointer"
           >
             See All <ChevronRight className="w-4 h-4" />
           </button>
@@ -292,7 +292,7 @@ export function CounselorReviews({ reviews,isSubscribed, onSubmitReview, userRev
                   setShowAllReviewsModal(false);
                   setCurrentPage(1);
                 }}
-                className="text-gray-500 hover:text-gray-700 transition"
+                className="text-gray-500 hover:text-gray-700 hover:cursor-pointer transition"
               >
                 <X className="w-6 h-6" />
               </button>

@@ -13,15 +13,14 @@ interface EditProfileModalProps {
   onClose: () => void;
   onUpdate: (updatedData: { firstName: string; lastName: string; email: string }) => Promise<void>;
   onUploadComplete: () => void;
-  isMandatory?: boolean; // New prop to indicate if this is mandatory after first login
+  // isMandatory?: boolean; 
 }
 
-const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClose, onUpdate, isMandatory = false }) => {
+const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClose, onUpdate, }) => {
+  const isMandatory = false
   const location = useLocation();
   const isGuruCoolPage = location.pathname === '/gurucool';
-  
-  // On gurucool: email required but NO verification needed
-  // On other pages: email optional unless isMandatory is true
+
   const skipEmailVerification = isGuruCoolPage;
   
   const [firstName, setFirstName] = useState(user.firstName);
@@ -197,14 +196,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
         onClick={handlePhotoEditClick}
         className={`absolute bottom-1 right-1 bg-white rounded-md flex items-center justify-center border shadow-sm hover:bg-gray-100 ${isMobile ? 'w-5 h-5 p-0.5' : 'w-8 h-8'}`}
       >
-        <SquarePen size={isMobile ? 14 : 16} className="text-[#343C6A]" />
+        <SquarePen size={isMobile ? 14 : 16} className="text-[#343C6A] cursor-pointer" />
       </button>
     </div>
   );
 
   return (
     <div 
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-opacity-50 backdrop-blur-sm"
+      className="fixed inset-0 z-100 flex items-center justify-center bg-opacity-50 backdrop-blur-sm"
     >
       <input
         type="file"
@@ -214,7 +213,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
         style={{ display: 'none' }}
       />
       <div className="md:hidden h-full w-full bg-[#F5F5F7] flex flex-col">
-        <header className="flex-shrink-0 flex items-center p-4 bg-white border-b border-gray-200">
+        <header className="shrink-0 flex items-center p-4 bg-white border-b border-gray-200">
           <button onClick={handleClose} className="p-2 mr-2" type="button">
             <ChevronLeft size={24} className="text-gray-700" />
           </button>
@@ -224,7 +223,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
           )}
         </header>
 
-        <div className="flex-grow overflow-y-auto p-8">
+        <div className="grow overflow-y-auto p-8">
           <ProfilePicture isMobile />
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -235,7 +234,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
               <input 
                 type="text"
                 value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
+                onChange={(e) => setFirstName(e.target.value.trim())}
                 required={isMandatory}
                 className="w-full h-11 px-4 bg-white border border-[#EFEFEF] rounded-xl text-base text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
               />
@@ -245,7 +244,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
               <input 
                 type="text"
                 value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
+                onChange={(e) => setLastName(e.target.value.trim())}
                 className="w-full h-11 px-4 bg-white border border-[#EFEFEF] rounded-xl text-base text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -268,7 +267,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
                     onClick={handleVerifyEmail} 
                     disabled={isEmailVerified || !email || isSubmitting}
                     className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold ${
-                      isEmailVerified ? 'text-green-600 cursor-default' : 'text-blue-600 hover:text-blue-800 disabled:opacity-50'
+                      isEmailVerified ? 'text-green-600 cursor-default' : 'text-blue-600 hover:text-blue-800 hover:cursor-pointer disabled:opacity-50'
                     }`}
                   >
                     {isEmailVerified ? '✓ Verified' : 'Verify'}
@@ -280,7 +279,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
                <button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full h-12 bg-[#FA660F] text-white font-semibold text-base rounded-xl hover:bg-orange-600 transition-colors disabled:bg-orange-300"
+                  className="w-full h-12 bg-[#FA660F] text-white font-semibold text-base rounded-xl hover:bg-orange-600 hover:cursor-pointer transition-colors disabled:bg-orange-300"
                 >
                   {isSubmitting ? 'Updating...' : 'Update Profile'}
                </button>
@@ -294,7 +293,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
         onClick={(e) => e.stopPropagation()}
         className="hidden md:block relative w-[747px] h-auto bg-[#F5F7FA] rounded-2xl shadow-lg border border-[#EFEFEF] py-6 px-[42px]"
       >
-        <button onClick={handleClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-800" type="button">
+        <button onClick={handleClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 hover:cursor-pointer" type="button">
           <X size={24} />
         </button>
         <div className="flex items-center justify-between mb-8">
@@ -314,7 +313,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
                 <input 
                   type="text"
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  onChange={(e) => setFirstName(e.target.value.trim())}
                   required={isMandatory}
                   className="w-full h-12 px-3 bg-white border border-[#EFEFEF] rounded-xl text-base text-[#718EBF] placeholder-[#718EBF]"
                 />
@@ -324,7 +323,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
                 <input 
                   type="text"
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  onChange={(e) => setLastName(e.target.value.trim())}
                   className="w-full h-12 px-3 bg-white border border-[#EFEFEF] rounded-xl text-base text-[#718EBF] placeholder-[#718EBF]"
                 />
               </div>
@@ -338,7 +337,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
                     value={email}
                     onChange={handleEmailChange}
                     required={isMandatory || skipEmailVerification}
-                    placeholder={skipEmailVerification ? "Enter your email" : "shubham@gmail.com"}
+                    placeholder={skipEmailVerification ? "Enter your email" : "your@email.com"}
                     className="w-full h-full px-3 pr-20 bg-white border border-[#EFEFEF] rounded-xl text-base text-[#718EBF] placeholder-[#718EBF]"
                   />
                   {!skipEmailVerification && (
@@ -347,7 +346,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
                       onClick={handleVerifyEmail} 
                       disabled={isEmailVerified || !email || isSubmitting}
                       className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold ${
-                        isEmailVerified ? 'text-green-600 cursor-default' : 'text-blue-600 hover:text-blue-800 disabled:opacity-50'
+                        isEmailVerified ? 'text-green-600 cursor-default' : 'text-blue-600 hover:text-blue-800 hover:cursor-pointer disabled:opacity-50'
                       }`}
                     >
                       {isEmailVerified ? '✓ Verified' : 'Verify'}
@@ -360,7 +359,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
                <button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-[50%] h-12 bg-[#FA660F] text-white font-semibold text-base rounded-xl hover:bg-orange-600 transition-colors"
+                  className="w-[50%] h-12 bg-[#FA660F] text-white font-semibold text-base rounded-xl hover:cursor-pointer hover:bg-orange-600 transition-colors"
                 >
                   {isSubmitting ? 'Updating...' : 'Update Profile'}
                </button>

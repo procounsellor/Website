@@ -34,7 +34,7 @@ export default function ({role, course, courseDetails, isPurchased, isBookmarked
                         <button
                             onClick={onBookmark}
                             disabled={isBookmarking}
-                            className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/30 backdrop-blur-md transition-colors hover:bg-black/50"
+                            className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/30 backdrop-blur-md transition-colors hover:bg-black/50 hover:cursor-pointer"
                             aria-label="Bookmark course"
                         >
                             <Bookmark className={`h-4 w-4 text-white transition-colors ${isBookmarked ? 'fill-current' : ''}`} />
@@ -99,7 +99,7 @@ export default function ({role, course, courseDetails, isPurchased, isBookmarked
                     <button
                         onClick={onBuyCourse}
                         disabled={isBuying}
-                        className="px-6 py-2.5 bg-[#13097D] hover:bg-[#0d0659] text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full"
+                        className="px-6 py-2.5 bg-[#13097D] hover:bg-[#0d0659] text-white rounded-lg font-semibold transition-colors hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed w-full"
                     >
                         {isBuying ? 'Processing...' : 'Buy Course'}
                     </button>

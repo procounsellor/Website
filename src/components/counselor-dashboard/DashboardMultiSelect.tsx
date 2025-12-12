@@ -60,8 +60,8 @@ export default function DashboardMultiSelect({
     <div className="relative font-montserrat" ref={dropdownRef}>
         <button
             type="button"
-            onClick={() => setIsOpen(!isOpen)}
-            className="w-full min-h-[48px] md:min-h-[40px] h-auto px-4 py-2 rounded-xl text-left bg-white flex items-center justify-between"
+              onClick={() => setIsOpen(!isOpen)}
+              className="w-full min-h-[48px] md:min-h-[40px] h-auto px-4 py-2 rounded-xl text-left bg-white flex items-center justify-between hover:cursor-pointer"
         >
             <div 
               className="flex flex-wrap items-center gap-1"

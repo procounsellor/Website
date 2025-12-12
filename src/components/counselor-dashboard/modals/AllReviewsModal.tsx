@@ -28,16 +28,16 @@ export default function AllReviewsModal({
       />
 
       <div 
-        className="relative bg-white rounded-[16px] border border-[#EFEFEF] w-full max-w-md lg:max-w-lg max-h-[80vh] flex flex-col"
+        className="relative bg-white rounded-2xl border border-[#EFEFEF] w-full max-w-md lg:max-w-lg max-h-[80vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center p-5 border-b border-[#EFEFEF] flex-shrink-0">
+        <div className="flex justify-between items-center p-5 border-b border-[#EFEFEF] shrink-0">
           <h3 className="font-semibold text-lg text-[#343C6A]">
             All Reviews ({reviews.length})
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-black"
+            className="text-gray-500 hover:text-black hover:cursor-pointer"
           >
             <X size={20} />
           </button>

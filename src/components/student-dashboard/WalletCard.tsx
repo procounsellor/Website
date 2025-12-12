@@ -35,7 +35,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ balance, onAddFunds }) => {
 
       <button 
         onClick={onAddFunds}
-        className="w-full py-2.5 px-4 bg-white border border-[#13097D] rounded-lg text-[#242645] text-sm font-medium hover:bg-gray-100 transition-colors flex items-center justify-center gap-2">
+        className="w-full py-2.5 px-4 bg-white border border-[#13097D] hover:cursor-pointer rounded-lg text-[#242645] text-sm font-medium hover:bg-gray-100 transition-colors flex items-center justify-center gap-2">
         <Plus size={18} />
         Add funds
       </button>

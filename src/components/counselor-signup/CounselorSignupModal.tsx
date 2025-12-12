@@ -147,11 +147,11 @@ export default function CounselorSignupModal() {
                 onCourseSelect={handleCourseSelect}
               />
             </div>
-            <div className="pt-4 md:pt-6 flex justify-center flex-shrink-0">
+            <div className="pt-4 md:pt-6 flex justify-center shrink-0">
               <button
                 onClick={handleNextStep}
                 disabled={(formData.expertise?.length ?? 0) === 0}
-                className="w-full md:w-[444px] h-11 text-white rounded-xl font-semibold text-base transition-colors disabled:bg-[#ACACAC] bg-[#FA660F] hover:bg-orange-700"
+                className="w-full md:w-[444px] h-11 text-white rounded-xl font-semibold text-base transition-colors disabled:bg-[#ACACAC] bg-[#FA660F] hover:bg-orange-700 hover:cursor-pointer"
               >
                 Next
               </button>
@@ -167,11 +167,11 @@ export default function CounselorSignupModal() {
                 onStateSelect={handleStateSelect}
               />
             </div>
-            <div className="pt-4 md:pt-6 flex justify-center flex-shrink-0">
+            <div className="pt-4 md:pt-6 flex justify-center shrink-0">
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || (formData.stateOfCounsellor?.length ?? 0) === 0}
-                className="w-full md:w-[444px] h-11 text-white rounded-xl font-semibold text-base transition-colors disabled:bg-[#ACACAC] bg-[#FA660F] hover:bg-orange-600 flex items-center justify-center"
+                className="w-full md:w-[444px] h-11 text-white rounded-xl font-semibold text-base transition-colors disabled:bg-[#ACACAC] bg-[#FA660F] hover:bg-orange-600 hover:cursor-pointer flex items-center justify-center"
               >
                 {isSubmitting ? <Loader2 className="animate-spin" /> : 'Submit Application'}
               </button>
@@ -191,16 +191,16 @@ export default function CounselorSignupModal() {
         <div className="w-full max-w-[932px] h-auto max-h-[92vh] md:max-h-[90vh] bg-white rounded-xl md:rounded-2xl shadow-xl p-3 md:p-10 flex flex-col relative">
           <button 
             onClick={handleClose}
-            className="absolute top-3 right-3 md:top-4 md:right-4 z-10 w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full text-gray-600 hover:bg-black hover:text-white transition-all duration-200"
+            className="absolute top-3 right-3 md:top-4 md:right-4 z-10 w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full text-gray-600 hover:bg-black hover:text-white transition-all duration-200 hover:cursor-pointer"
           >
             <X className="h-5 w-5 md:h-6 md:w-6" />
           </button>
 
-          <div className="flex items-center justify-between mb-3 md:mb-4 flex-shrink-0">
+          <div className="flex items-center justify-between mb-3 md:mb-4 shrink-0">
             <div className="flex items-center gap-2 md:gap-4">
               <button 
                 onClick={step === 1 ? handleClose : handlePrevStep} 
-                className="text-[#343C6A] hover:opacity-75 transition-opacity p-1 -ml-1"
+                className="text-[#343C6A] hover:opacity-75 transition-opacity p-1 -ml-1 hover:cursor-pointer"
               >
                 <ChevronLeft size={22} className="md:w-6 md:h-6" />
               </button>
@@ -210,13 +210,13 @@ export default function CounselorSignupModal() {
               <span className="text-xs md:text-sm font-medium text-[#232323]">Step {step} of 3</span>
               <div className="flex items-center gap-1 md:gap-2 mt-1 md:mt-2">
                 {[1, 2, 3].map(s => (
-                  <div key={s} className={`w-10 md:w-[70px] h-[4px] md:h-[7px] rounded-full transition-colors ${step >= s ? 'bg-[#FA660F]' : 'bg-[#E9E9E9]'}`}></div>
+                  <div key={s} className={`w-10 md:w-[70px] h-1 md:h-[7px] rounded-full transition-colors ${step >= s ? 'bg-[#FA660F]' : 'bg-[#E9E9E9]'}`}></div>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="border-t border-gray-200 my-3 md:my-4 flex-shrink-0"></div>
+          <div className="border-t border-gray-200 my-3 md:my-4 shrink-0"></div>
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             {renderStepContent()}
           </div>

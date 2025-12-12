@@ -145,19 +145,19 @@ export default function MainLayout(){
         <EditProfileModal
           isOpen={isProfileCompletionOpen}
           onClose={() => {
-            console.log('🚪 MainLayout: Closing profile modal via X button');
-            // Only allow closing if not mandatory or if profile is complete
-            if (!user.firstName || !user.email) {
-              console.log('⚠️ Profile completion is mandatory, cannot close');
-              return;
-            }
+            // console.log('🚪 MainLayout: Closing profile modal via X button');
+            // // Only allow closing if not mandatory or if profile is complete
+            // if (!user.firstName || !user.email) {
+            //   console.log('⚠️ Profile completion is mandatory, cannot close');
+            //   return;
+            // }
             setIsProfileCompletionOpen(false);
             setNeedsProfileCompletion(false);
           }}
           user={user}
           onUpdate={handleProfileUpdate}
           onUploadComplete={() => {}}
-          isMandatory={needsProfileCompletion} // Pass mandatory flag
+          // isMandatory={needsProfileCompletion} 
         />
       )}
       
@@ -174,7 +174,7 @@ export default function MainLayout(){
       
       <button
         onClick={toggleChatbot}
-        className="fixed bottom-6 right-6 bg-[#FA660F] text-white w-16 h-16 flex items-center justify-center rounded-full shadow-lg z-50 hover:bg-orange-600 transition-all duration-300 transform hover:scale-110"
+        className="fixed bottom-6 right-6 bg-[#FA660F] hover:cursor-pointer text-white w-16 h-16 flex items-center justify-center rounded-full shadow-lg z-50 hover:bg-orange-600 transition-all duration-300 transform hover:scale-110"
         aria-label="Toggle Chatbot"
       >
         <MessageSquare size={32} />

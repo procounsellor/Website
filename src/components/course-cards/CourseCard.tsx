@@ -18,7 +18,7 @@ export default function CourseCard({ course, role, onBookmark, showBookmark = fa
 
   return (
     <div className="relative flex flex-col gap-3 max-w-56 p-3 border-[#efefef] border rounded-[0.75rem] bg-white">
-      <img src={course.image} alt="" className="max-w-50" />
+      <img src={course.image} alt="" className="max-w-50 min-h-50" />
       {showBookmark && (role === 'user' || role === 'student') && (
         <button
           onClick={handleBookmarkClick}
@@ -29,7 +29,7 @@ export default function CourseCard({ course, role, onBookmark, showBookmark = fa
         </button>
       )}
       <p className="flex justify-between lg:text-[1rem] font-medium text-[#718EBF]">
-        {course.subject}
+        {"COURSE"}
         {course.rating && course.reviews && (
           <span className="flex text-[#343C6A]">
             {course.rating}
@@ -37,7 +37,7 @@ export default function CourseCard({ course, role, onBookmark, showBookmark = fa
           </span>
         )}
       </p>
-      <h1 className="text-[#242645] font-semibold text-[0.90rem] md:text-[1rem] lg:text-[1.25rem]">{course.name}- Name</h1>
+      <h1 className="text-[#242645] font-semibold text-[0.90rem] md:text-[1rem] lg:text-[1.25rem]">{course.name}</h1>
 
       <div className="flex gap-0.5 items-center">
         <img src="/coin.svg" alt="" />

@@ -98,7 +98,7 @@ const EditReviewModal: React.FC<EditReviewModalProps> = ({
         <button
           onClick={onClose}
           disabled={isSubmitting}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-transparent text-black flex items-center justify-center transition-colors hover:bg-black hover:text-white disabled:opacity-50"
+          className="absolute top-4 right-4 w-8 h-8 hover:cursor-pointer rounded-full bg-transparent text-black flex items-center justify-center transition-colors hover:bg-black hover:text-white disabled:opacity-50"
           aria-label="Close modal"
         >
           <X className="w-5 h-5" />
@@ -133,7 +133,7 @@ const EditReviewModal: React.FC<EditReviewModalProps> = ({
           disabled={!isButtonEnabled}
           className={`w-full h-12 mt-5 rounded-xl font-semibold text-white text-base transition-colors flex items-center justify-center
             ${isButtonEnabled
-              ? 'bg-[#13097D] hover:bg-opacity-90'
+              ? 'bg-[#13097D] hover:bg-opacity-90 hover:cursor-pointer'
               : 'bg-[#ACACAC] cursor-not-allowed'
             }`}
         >

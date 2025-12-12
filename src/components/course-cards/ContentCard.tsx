@@ -138,16 +138,22 @@ export default function ContentCard({
           {currentItems.map((item) => (
             <div 
               key={item.courseContentId} 
-              className={`h-14 bg-[#F5F5F5] w-90 rounded-[12px] flex justify-between items-center p-4 cursor-pointer hover:bg-gray-200`}
+              className={`relative group h-14 bg-[#F5F5F5] w-90 rounded-[12px] flex justify-between items-center p-4 hover:cursor-pointer hover:bg-gray-200`}
               onClick={() => handleItemClick(item)}
             >
-              <div className="flex gap-3">
+              <div className="flex gap-3 flex-1 min-w-0">
                 {getFileIcon(item.type)}
-                <div className="flex flex-col">
-                  <h1 className="text-[1rem] font-semibold text-[#242645]">
+                <div className="flex flex-col min-w-0">
+                  <h1 className="text-[1rem] font-semibold text-[#242645] truncate" title={item.name}>
                     {item.name}
                   </h1>
-                  <p className="text-[0.875rem] font-normal text-[#8C8CA1]">
+                  {/* Tooltip preview on hover */}
+                  {/* <div className="absolute left-1/2 -translate-x-1/2 -top-10 hidden group-hover:block z-50">
+                    <div className="bg-[#232323] text-white text-xs px-2 py-1 rounded shadow-md max-w-[280px] truncate">
+                      {item.name}
+                    </div>
+                  </div> */}
+                  <p className="text-[0.875rem] font-normal text-[#8C8CA1] truncate" title={getItemDescription(item)}>
                     {getItemDescription(item)}
                   </p>
                 </div>
@@ -239,8 +245,8 @@ export default function ContentCard({
                       onClick={() => handleModalBreadcrumbClick(index)}
                       className={`${
                         index === modalPath.length - 1
-                          ? 'text-[#13097D] font-semibold text-lg'
-                          : 'text-gray-500 hover:text-[#13097D]'
+                          ? 'text-[#13097D] font-semibold text-lg hover:cursor-pointer'
+                          : 'text-gray-500 hover:text-[#13097D] hover:cursor-pointer'
                       }`}
                     >
                       {folder === 'root' ? 'Home' : folder}
@@ -253,7 +259,7 @@ export default function ContentCard({
                   setShowFolderModal(false);
                   setModalPath(['root']);
                 }}
-                className="text-gray-500 hover:text-gray-700 transition ml-4"
+                className="text-gray-500 hover:text-gray-700 transition ml-4 hover:cursor-pointer"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -266,26 +272,31 @@ export default function ContentCard({
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {modalItems.map((item) => (
-                    <div 
-                      key={item.courseContentId} 
-                      className="h-14 bg-[#F5F5F5] rounded-[12px] flex justify-between items-center p-4 cursor-pointer hover:bg-gray-200"
-                      onClick={() => handleModalItemClick(item)}
-                    >
-                      <div className="flex gap-3 flex-1 min-w-0">
-                        {getFileIcon(item.type)}
-                        <div className="flex flex-col min-w-0">
-                          <h1 className="text-[1rem] font-semibold text-[#242645] truncate">
-                            {item.name}
-                          </h1>
-                          <p className="text-[0.875rem] font-normal text-[#8C8CA1]">
-                            {getItemDescription(item)}
-                          </p>
+                      <div 
+                        key={item.courseContentId} 
+                        className="relative group h-14 bg-[#F5F5F5] rounded-[12px] flex justify-between items-center p-4 cursor-pointer hover:bg-gray-200"
+                        onClick={() => handleModalItemClick(item)}
+                      >
+                        <div className="flex gap-3 flex-1 min-w-0">
+                          {getFileIcon(item.type)}
+                          <div className="flex flex-col min-w-0">
+                            <h1 className="text-[1rem] font-semibold text-[#242645] truncate" title={item.name}>
+                              {item.name}
+                            </h1>
+                            <div className="absolute left-1/2 -translate-x-1/2 -top-10 hidden group-hover:block z-50">
+                              <div className="bg-[#232323] text-white text-xs px-2 py-1 rounded shadow-md max-w-[280px] truncate">
+                                {item.name}
+                              </div>
+                            </div>
+                            <p className="text-[0.875rem] font-normal text-[#8C8CA1] truncate" title={getItemDescription(item)}>
+                              {getItemDescription(item)}
+                            </p>
+                          </div>
                         </div>
-                      </div>
 
-                      {item.type === 'folder' && <ChevronRight className="text-gray-400 shrink-0" />}
-                    </div>
-                  ))}
+                        {item.type === 'folder' && <ChevronRight className="text-gray-400 shrink-0" />}
+                      </div>
+                    ))}
                 </div>
               )}
             </div>

@@ -3,8 +3,9 @@ import { X, MessageCircle, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLiveStreamStore } from '@/store/LiveStreamStore';
 import { useAuthStore } from '@/store/AuthStore';
-import { listenToChatMessages } from '@/lib/firebase';
+import { listenToChatMessages, listenToCounselorLiveStatus } from '@/lib/firebase';
 import { sendMessageInLiveSession } from '@/api/liveSessions';
+import LiveEndedPopup from './LiveEndedPopup';
 
 // YouTube IFrame API types
 declare global {
@@ -76,7 +77,7 @@ const extractYouTubeVideoId = (urlOrId: string): string => {
 };
 
 export default function LiveStreamView() {
-  const { closeStream, videoId: rawVideoId, streamTitle, description, counsellorId, liveSessionId } = useLiveStreamStore();
+  const { closeStream, videoId: rawVideoId, streamTitle, description, counsellorId } = useLiveStreamStore();
   const { userId } = useAuthStore();
   
   // Extract clean video ID
@@ -88,6 +89,7 @@ export default function LiveStreamView() {
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [ytLoading, setYtLoading] = useState(true);
   const [sessionInfo, setSessionInfo] = useState<{ title: string; startedAt: any } | null>(null);
+  const [showLiveEndedPopup, setShowLiveEndedPopup] = useState(false);
   
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
@@ -147,29 +149,44 @@ export default function LiveStreamView() {
 
   // Listen to Firebase chat messages
   useEffect(() => {
-    if (!liveSessionId) return;
+    if (!counsellorId) return;
+
+    let previousMessageCount = 0;
 
     const unsubscribe = listenToChatMessages(
-      liveSessionId,
+      counsellorId, // Use counsellorId instead of liveSessionId
       (messages: ChatMessage[]) => {
         console.log('🔥 Firebase messages received:', messages.length, messages);
         
-        // Set all messages directly, replacing the queue system
-        setChatMessages((prevMessages) => {
-          // Get all existing message IDs
-          const existingIds = new Set(prevMessages.map(m => m.messageId));
+        // Check if we have new messages
+        if (messages.length > previousMessageCount) {
+          // Add only the new messages
+          const newMessages = messages.slice(previousMessageCount);
+          console.log('➕ Adding new messages:', newMessages);
           
-          // Keep existing messages and add new ones from Firebase
-          const newMessages = messages.filter(msg => !existingIds.has(msg.messageId));
+          setChatMessages(prev => {
+            // Remove temp messages that match the new real messages
+            const filteredPrev = prev.filter(msg => 
+              !msg.messageId.startsWith('temp-') || 
+              !newMessages.some(newMsg => 
+                newMsg.userId === msg.userId && 
+                newMsg.message === msg.message &&
+                Math.abs(newMsg.timestamp - msg.timestamp) < 5000 // Within 5 seconds
+              )
+            );
+            return [...filteredPrev, ...newMessages];
+          });
           
-          console.log('➕ Adding new messages:', newMessages.length);
-          
-          if (newMessages.length > 0) {
-            return [...prevMessages, ...newMessages].sort((a, b) => a.timestamp - b.timestamp);
-          }
-          
-          return prevMessages;
-        });
+          previousMessageCount = messages.length;
+        } else if (messages.length < previousMessageCount) {
+          // Session restarted or messages cleared
+          setChatMessages(messages);
+          previousMessageCount = messages.length;
+        } else if (previousMessageCount === 0) {
+          // Initial load
+          setChatMessages(messages);
+          previousMessageCount = messages.length;
+        }
       },
       (info) => {
         setSessionInfo(info);
@@ -179,7 +196,56 @@ export default function LiveStreamView() {
     return () => {
       unsubscribe();
     };
-  }, [liveSessionId]);
+  }, [counsellorId]);
+
+  // Listen to counselor's live status and auto-close if session ends
+  useEffect(() => {
+    if (!counsellorId) return;
+
+    const unsubscribe = listenToCounselorLiveStatus(
+      counsellorId,
+      (isLive, lastUpdated) => {
+        console.log('🎥 Live status update:', { counsellorId, isLive, lastUpdated, type: typeof lastUpdated });
+        
+        if (!isLive) {
+          if (!lastUpdated) {
+            console.log('🛑 Stream ended (no data) - closing immediately');
+            // No data means session was deleted, close immediately
+            if (playerRef.current) {
+              playerRef.current.destroy();
+              playerRef.current = null;
+            }
+            closeStream();
+            setShowLiveEndedPopup(true);
+          } else {
+            const now = Date.now();
+            const lastUpdatedMs = typeof lastUpdated === 'number' ? lastUpdated : lastUpdated;
+            const secondsSinceUpdate = (now - lastUpdatedMs) / 1000;
+            
+            console.log('⏰ Stream ended - now:', now, 'lastUpdated:', lastUpdatedMs, 'seconds:', secondsSinceUpdate);
+            
+            // If stream ended more than 15 seconds ago
+            if (secondsSinceUpdate > 15) {
+              console.log('🛑 Closing stream and showing popup');
+              // Close stream immediately and show popup
+              if (playerRef.current) {
+                playerRef.current.destroy();
+                playerRef.current = null;
+              }
+              closeStream();
+              setShowLiveEndedPopup(true);
+            } else {
+              console.log('⏳ Waiting... only', secondsSinceUpdate.toFixed(1), 'seconds since update');
+            }
+          }
+        }
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [counsellorId, closeStream]);
 
   // Auto-scroll chat to bottom
   useEffect(() => {
@@ -426,6 +492,15 @@ export default function LiveStreamView() {
           </button>
         )}
       </div>
+
+      {/* Live Ended Popup */}
+      {showLiveEndedPopup && (
+        <LiveEndedPopup
+          onClose={() => {
+            setShowLiveEndedPopup(false);
+          }}
+        />
+      )}
     </div>
   );
 }

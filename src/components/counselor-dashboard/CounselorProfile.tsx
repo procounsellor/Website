@@ -253,7 +253,7 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
         <div className="sticky top-0 md:static z-10 bg-white flex items-center justify-between p-4 md:p-0 border-b border-gray-100 md:border-none">
           <button
             onClick={onClose}
-            className="block md:hidden text-gray-800"
+            className="block md:hidden text-gray-800 hover:cursor-pointer"
           >
             <ChevronLeft size={24} />
           </button>
@@ -262,14 +262,14 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
           </h2>
           <div className="md:absolute md:top-7 md:right-7">
             {!isEditing ? (
-              <button 
+                <button 
                 onClick={() => {
                   if (counselor) { 
                     setEditableData(counselor);
                     setIsEditing(true);
                   }
-                }} 
-                className="block md:hidden text-[#13097D]"
+                } } 
+                className="block md:hidden text-[#13097D] hover:cursor-pointer"
               >
                 <Edit size={18} />
               </button>
@@ -277,10 +277,10 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
               <div className="w-6 h-6 block md:hidden"></div>
             )}
             
-            <button
+              <button
               onClick={onClose}
               className="w-10 h-10 rounded-full items-center justify-center text-gray-800 transition-colors duration-200
-                         bg-gray-100 hover:bg-black hover:text-white
+                         bg-gray-100 hover:bg-black hover:text-white hover:cursor-pointer
                          hidden md:flex"
             >
               <X size={24} />
@@ -293,7 +293,7 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
           {isLoading ? ( <div className="h-[574px] flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-orange-500" /></div> ) : !counselor ? ( <div className="h-[574px] flex items-center justify-center">Failed to load profile.</div> ) : (
             <>
               <div className="relative flex flex-col items-center md:flex-row md:items-start gap-4 md:gap-8">
-                <div className="relative w-24 h-24 md:w-[155px] md:h-[155px] flex-shrink-0">
+                <div className="relative w-24 h-24 md:w-[155px] md:h-[155px] shrink-0">
                   <img
                     src={previewUrl || counselor.photoUrl || '/counselor.png'}
                     alt={`${counselor.firstName} ${counselor.lastName}`}
@@ -303,7 +303,7 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
                     <>
                       <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="absolute bottom-0 right-0 md:bottom-1 md:right-1 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition-colors"
+                        className="absolute bottom-0 right-0 md:bottom-1 md:right-1 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition-colors hover:cursor-pointer"
                         aria-label="Edit profile picture"
                       >
                         <PenSquare className="w-4 h-4 md:w-5 md:h-5 text-[#13097D]" />
@@ -341,7 +341,7 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
                       }
                     }} className="absolute top-0 right-0 items-center gap-2 text-[#13097D] font-semibold text-sm md:text-base
                                 /* This class hides it on mobile */
-                                hidden md:flex"> 
+                                hidden md:flex hover:cursor-pointer"> 
                         <Edit size={18} />
                         <span className="hidden md:block">Edit</span>
                     </button>
@@ -434,15 +434,15 @@ export default function CounselorProfile({ isOpen, onClose, user, token }: Couns
                 <div className="sticky md:static bottom-0 -mx-4 -mb-4 md:mx-0 md:mb-0 p-4 bg-white md:mt-8 
                               flex flex-col md:flex-row md:justify-end gap-4 border-t border-gray-100">
                     <button 
-                        onClick={() => setIsEditing(false)}
-                        className="flex-1 md:flex-none px-6 py-2.5 md:py-2 rounded-lg border border-gray-300 text-gray-700 font-semibold block"
+                      onClick={() => setIsEditing(false)}
+                      className="flex-1 md:flex-none px-6 py-2.5 md:py-2 rounded-lg border border-gray-300 text-gray-700 font-semibold block hover:cursor-pointer"
                     >
                         Cancel
                     </button>
                     <button 
                         onClick={handleUpdate}
                         disabled={isUpdating}
-                        className="flex-1 md:flex-none md:w-auto px-6 py-2.5 text-nowrap md:py-2 rounded-lg bg-[#13097D] text-white font-semibold flex items-center justify-center gap-2 disabled:bg-indigo-300"
+                      className="flex-1 md:flex-none md:w-auto px-6 py-2.5 text-nowrap md:py-2 rounded-lg bg-[#13097D] text-white font-semibold flex items-center justify-center gap-2 disabled:bg-indigo-300 hover:cursor-pointer"
                     >
                         {isUpdating ? <Loader2 className="animate-spin" /> : 'Update Profile'}
                     </button>
