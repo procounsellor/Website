@@ -298,11 +298,6 @@ export default function LandingPage() {
 
   return (
     <div className="mx-auto mt-1 md:mt-20">
-    {referralCode && (
-          <div className="block md:hidden text-center text-sm font-medium text-gray-600 mb-3 px-4">
-              Enrolling via **{referralCode}** referral link.
-          </div>
-      )}
       {/* Mobile version */}
       <div className="block md:hidden w-full h-full bg-[#F5F7FA] p-5 mt-14">
         <div className="w-full max-w-sm p-3 bg-white rounded-[12px] border border-[#EFEFEF]">
@@ -387,11 +382,6 @@ export default function LandingPage() {
                 </span>
               </p>
             </div>
-            {referralCode && (
-                <div className="text-sm font-medium text-gray-600 mt-2">
-                    Enrolling via **{referralCode}** referral link.
-                </div>
-            )}
           </div>
 
           <div>
