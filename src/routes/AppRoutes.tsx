@@ -27,9 +27,7 @@ import MyActivityPage from '@/pages/MyActivityPage';
 import LandingPage from '@/pages/AdityaLandingPage';
 import PromoPage from '@/pages/PromoPage';
 
-const CollegesListingPage = lazy(() => import('@/pages/colleges'));
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
-const CoursesListingPage = lazy(() => import('@/pages/courses'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
 const CounselorDetailsPage = lazy(() => import('@/pages/CounselorDetailsPage'));
 const ExamDetailsPage = lazy(() => import('@/pages/ExamDetailsPage'));
@@ -59,9 +57,7 @@ export default function AppRoutes(){
                                 <Route path='/gurucool' element={<LandingPage/>}/>
                                 <Route path="/counsellors" element={<CounselorListingPage/>} />
                                 <Route path="/counsellor-profile" element={<CounselorDetailsPage/>} />
-                                <Route path="/courses" element={<CoursesListingPage/>} />
                                 <Route path="/courses/:id" element={<CourseDetailsPage/>} />
-                                <Route path="/colleges" element={<CollegesListingPage />} />
                                 <Route path="/colleges/:id" element={<CollegeDetailsPage/>} />
                                 <Route path="/exams" element={<ExamsListingPage />} />
                                 <Route path="/about" element={<AboutPage/>} />
@@ -75,7 +71,6 @@ export default function AppRoutes(){
                                 <Route path="/add-college" element={<AddCollegePage/>} />
                                 <Route path="/exams/:id" element={<ExamDetailsPage />} />
                                 <Route path='/subscribe' element={<SubscriptionPage/>}/>
-                                <Route path='/live-sessions' element={<LiveSessionsPage/>}/>
                                 <Route path='/counsellor-dashboard' element={<CounselorDashboard/>}/>
                                 <Route path="/community" element={<CommunityPage />} />
                                 <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
@@ -84,6 +79,7 @@ export default function AppRoutes(){
                                 <Route path='/promo' element={<PromoPage/>}/>
                                 <Route element={<ProtectedRoute/>}>
                                     <Route path='/dashboard-student' element={<StudentDashboardPage/>}/>
+                                     <Route path='/live-sessions' element={<LiveSessionsPage/>}/>
                                     <Route path='/wallet' element={<RechargeWallet/>}/>
                                 </Route>
                          </Route>
