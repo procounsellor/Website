@@ -30,6 +30,7 @@ interface UpdateUserPayload {
   firstName?: string;
   lastName?: string;
   email?: string;
+  referralCode?: string;
 }
 
 export async function updateUserProfile(
