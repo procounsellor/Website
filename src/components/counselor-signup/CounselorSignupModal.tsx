@@ -17,6 +17,7 @@ const initialFormData: CounselorFormData = {
   email: '',
   password: '',
   organisation: '',
+  city: '',
   languagesKnown: [],
   workingDays: [],
   officeStartTime: '',
