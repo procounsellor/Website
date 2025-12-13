@@ -95,10 +95,21 @@ const AddFundsPanel: React.FC<AddFundsPanelProps> = ({
                   <img src="/coin.svg" alt="coin" className="w-5 h-5 mr-1" />
                 )}
                 <input
-                  type="numeric"
+                  type="number"
                   value={amount}
                   onChange={(e) => {
-                    setAmount(e.target.value)
+                    const value = e.target.value;
+
+                    if (value === "") {
+                      setAmount("");
+                      return;
+                    }
+
+                    const num = Number(value);
+
+                    if (num <= 500000) {
+                      setAmount(value);
+                    }
                   }}
                   min={0}
                   max={500000}
@@ -115,9 +126,12 @@ const AddFundsPanel: React.FC<AddFundsPanelProps> = ({
                     onClick={(e) => {
                       e.preventDefault();
                       const currentAmount = Number(amount) || 0;
+                      if(Number(amount)>=500000){
+                        return
+                      }
                       setAmount(String(currentAmount + preset));
                     }}
-                    className="flex-1 min-w-[100px] h-10 border border-[#13097D] rounded-[10px] text-[#13097D] font-semibold text-sm text-center hover:bg-[#13097D] hover:text-white transition-colors md:flex-none md:w-[117px] flex items-center justify-center gap-1"
+                    className="flex-1 min-w-[100px] h-10 border border-[#13097D] rounded-[10px] text-[#13097D] font-semibold text-sm text-center hover:cursor-pointer hover:bg-[#13097D] hover:text-white transition-colors md:flex-none md:w-[117px] flex items-center justify-center gap-1"
                   >
                     + <img src="/coin.svg" alt="coin" className="w-4 h-4" />{" "}
                     {formatCurrency(preset)}

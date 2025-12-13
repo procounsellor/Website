@@ -1,12 +1,12 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { academicApi } from "@/api/academic";
-import type { ExamApiResponse, CollegeApiResponse, CourseApiResponse, AllCounselor } from "@/types/academic";
+import type { ExamApiResponse, AllCounselor } from "@/types/academic";
 
 export interface SearchResult {
   id: string;
   name: string;
-  type: 'exam' | 'college' | 'course' | 'counselor';
+  type: 'exam' | 'counsellor';
   subtitle?: string; 
   imageUrl?: string;
   description?: string;
@@ -44,10 +44,8 @@ export const useSearchStore = create<SearchState>()(
         set({ isSearching: true, query });
 
         try {
-          const [exams, colleges, courses, counselors] = await Promise.all([
+          const [exams, counselors] = await Promise.all([
             academicApi.getExams().catch(() => []),
-            academicApi.getColleges().catch(() => []),
-            academicApi.getCourses().catch(() => []),
             academicApi.getLoggedOutCounsellors().catch(() => [])
           ]);
 
@@ -69,36 +67,6 @@ export const useSearchStore = create<SearchState>()(
             }
           });
 
-          colleges.forEach((college: CollegeApiResponse) => {
-            if (college.collegeName?.toLowerCase().includes(searchLower) ||
-                college.collegesLocationCity?.toLowerCase().includes(searchLower) ||
-                college.collegesLocationState?.toLowerCase().includes(searchLower) ||
-                college.collegeType?.toLowerCase().includes(searchLower)) {
-              results.push({
-                id: college.collegeId,
-                name: college.collegeName,
-                type: 'college',
-                subtitle: `${college.collegesLocationCity}, ${college.collegesLocationState} • ${college.collegeType}`,
-                imageUrl: college.logoUrl,
-                url: `/colleges/${college.collegeId}`
-              });
-            }
-          });
-
-          courses.forEach((course: CourseApiResponse) => {
-            if (course.courseName?.toLowerCase().includes(searchLower) ||
-                course.courseType?.toLowerCase().includes(searchLower) ||
-                course.duration?.toLowerCase().includes(searchLower)) {
-              results.push({
-                id: course.courseId,
-                name: course.courseName,
-                type: 'course',
-                subtitle: `Duration: ${course.duration} • ${course.courseType}`,
-                imageUrl: course.coursePhotoUrl,
-                url: `/courses/${course.courseId}`
-              });
-            }
-          });
 
           counselors.forEach((counselor: AllCounselor) => {
             const fullName = `${counselor.firstName} ${counselor.lastName}`;
@@ -109,7 +77,7 @@ export const useSearchStore = create<SearchState>()(
               results.push({
                 id: counselor.counsellorId,
                 name: fullName,
-                type: 'counselor',
+                type: 'counsellor',
                 subtitle: `${counselor.city} • ${counselor.languagesKnow?.join(', ')}`,
                 imageUrl: counselor.photoUrlSmall || undefined,
                 url: `/counselors/${counselor.counsellorId}`

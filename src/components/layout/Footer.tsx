@@ -53,7 +53,7 @@ export default function Footer() {
               <div className="flex items-start gap-3">
                 <img src={locationIcon} alt="Location" className="h-5 w-5 sm:h-6 sm:w-6 shrink-0 mt-0.5" />
                 <p className="font-montserrat font-normal text-sm sm:text-base leading-tight text-[#180033] max-w-full sm:max-w-[280px]">
-                  The Address Commercia, Shop No. 427, Near Hinjewadi Bridge, Wakad-411057
+                  The Address Commercia, Office No. 427, Near Hinjewadi Bridge, Wakad-411057
                 </p>
               </div>
               <div className="flex items-center gap-3">

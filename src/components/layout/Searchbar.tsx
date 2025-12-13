@@ -55,7 +55,7 @@ export function SearchBar({
             : 'py-3 scale-100'
         } ${className}`}
       >
-        <Search className="w-2.5 h-2.5 lg:h-6 lg:w-6  text-[#FF660F] flex-shrink-0" />
+        <Search className="w-2.5 h-2.5 lg:h-6 lg:w-6  text-[#FF660F] shrink-0" />
         <input
           ref={inputRef}
           type="text"

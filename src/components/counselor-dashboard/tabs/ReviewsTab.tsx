@@ -77,7 +77,7 @@ export default function ReviewsTab({ user, token, counselorRating }: Props) {
           {reviews.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {reviews.slice(0, 6).map(review => (
-                      <ReviewCard key={review.id} review={review} />
+                      <ReviewCard key={review.reviewId} review={review} />
                   ))}
               </div>
           ) : (

@@ -1,4 +1,4 @@
-import {useRef } from "react";
+import { useRef } from "react";
 
 type Step1Data = {
   courseName: string;
@@ -14,9 +14,15 @@ type Step1CardProps = {
   onChange: (data: Step1Data) => void;
 };
 
+const clampNumber = (value: string, min: number, max: number) => {
+  if (value === "") return "";
+  const num = Number(value);
+  if (isNaN(num)) return "";
+  return Math.min(Math.max(num, min), max).toString();
+};
+
 export default function Step1Card({ data, onChange }: Step1CardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-
 
   const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -74,9 +80,13 @@ export default function Step1Card({ data, onChange }: Step1CardProps) {
         />
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-2 py-2 px-6 border border-[#13097D] text-[#13097D] hover:cursor-pointer rounded-[0.75rem] font-semibold text-[1rem] hover:bg-[#13097D] hover:text-white transition-all duration-200"
+          className="group flex items-center gap-2 py-2 px-6 border border-[#13097D] text-[#13097D] hover:cursor-pointer rounded-[0.75rem] font-semibold text-[1rem] hover:bg-[#13097D] hover:text-white transition-all duration-200"
         >
-          <img src="/uploadIcon.svg" alt="" />
+          <img
+            src="/uploadIcon.svg"
+            alt=""
+            className="transition-all duration-200 group-hover:invert group-hover:brightness-0"
+          />
           {data.thumbnail?.name || "Upload"}
         </button>
       </div>
@@ -93,8 +103,13 @@ export default function Step1Card({ data, onChange }: Step1CardProps) {
             type="number"
             placeholder="0"
             value={data.courseTimeHours}
+            min={0}
+            max={999}
             onChange={(e) =>
-              onChange({ ...data, courseTimeHours: e.target.value })
+              onChange({
+                ...data,
+                courseTimeHours: clampNumber(e.target.value, 0, 999),
+              })
             }
             className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 w-55"
           />
@@ -111,8 +126,13 @@ export default function Step1Card({ data, onChange }: Step1CardProps) {
             type="number"
             placeholder="0"
             value={data.courseTimeMinutes}
+            min={0}
+            max={59}
             onChange={(e) =>
-              onChange({ ...data, courseTimeMinutes: e.target.value })
+              onChange({
+                ...data,
+                courseTimeMinutes: clampNumber(e.target.value, 0, 59),
+              })
             }
             className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 w-55"
           />
