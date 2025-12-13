@@ -176,7 +176,7 @@ export default function CreateCourseCard({onClose}:any){
             }
           }
             disabled={step === 1}
-            className='flex gap-3 items-center py-2 px-6 border rounded-[12px] font-semibold text-[#655E95] border-[#655E95] disabled:opacity-50 disabled:cursor-not-allowed'>
+            className='flex gap-3 items-center py-2 px-6 border hover:cursor-pointer rounded-[12px] font-semibold text-[#655E95] border-[#655E95] disabled:opacity-50 disabled:cursor-not-allowed'>
                 <ChevronLeft/>
                 Prev
             </button>

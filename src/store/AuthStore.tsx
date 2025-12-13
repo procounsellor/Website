@@ -98,31 +98,33 @@ export const useAuthStore = create<AuthState>()(
       setBookingTriggered: (value) => set({ bookingTriggered: value }),
       setReturnToPath: (path) => set({ returnToPath: path }),
       setNeedsOnboarding: (value) => set({ needsOnboarding: value }),
-      setNeedsProfileCompletion: (value) => set({ needsProfileCompletion: value }),
-      setIsCounselorSignupFlow: (value) => set({ isCounselorSignupFlow: value }),
+      setNeedsProfileCompletion: (value) =>
+        set({ needsProfileCompletion: value }),
+      setIsCounselorSignupFlow: (value) =>
+        set({ isCounselorSignupFlow: value }),
       setTempJwt: (jwt, phone) => set({ tempJwt: jwt, tempPhone: phone }),
-      
+
       completeOnboarding: () => {
         const { tempJwt, tempPhone } = get();
         if (tempJwt && tempPhone) {
-          localStorage.setItem('jwt', tempJwt);
-          localStorage.setItem('phone', tempPhone);
+          localStorage.setItem("jwt", tempJwt);
+          localStorage.setItem("phone", tempPhone);
           set({ tempJwt: null, tempPhone: null, needsOnboarding: false });
         }
       },
-      
+
       cancelOnboarding: () => {
-        set({ 
-          tempJwt: null, 
-          tempPhone: null, 
+        set({
+          tempJwt: null,
+          tempPhone: null,
           needsOnboarding: false,
           isAuthenticated: false,
           userId: null,
           user: null,
-          role: null
+          role: null,
         });
       },
-      
+
       checkProfileCompletion: () => {
         const state = get();
         if (!state.user) return true;
@@ -134,90 +136,102 @@ export const useAuthStore = create<AuthState>()(
       toggleLogin: (onSuccess?: () => void) =>
         set((state) => ({
           isLoginToggle: !state.isLoginToggle,
-          onLoginSuccess: !state.isLoginToggle ? (onSuccess || null) : null,
+          onLoginSuccess: !state.isLoginToggle ? onSuccess || null : null,
         })),
 
       toggleCounselorSignup: () =>
-        set((state) => ({
-          isCounselorSignupOpen: !state.isCounselorSignupOpen,
-        })),
-
-      openCounselorSignupForm: () =>
-        set({ 
-          isCounselorSignupOpen: false,
-          isCounselorSignupFormOpen: true 
+        set((state) => {
+          if (state.role === "counselor") return state;
+          if (!state.isAuthenticated) return { isLoginToggle: true };
+          return { isCounselorSignupOpen: true };
         }),
 
-      closeCounselorSignupForm: () =>
-        set({ isCounselorSignupFormOpen: false }),
+      openCounselorSignupForm: () =>
+        set({
+          isCounselorSignupOpen: false,
+          isCounselorSignupFormOpen: true,
+        }),
+
+      closeCounselorSignupForm: () => set({ isCounselorSignupFormOpen: false }),
 
       toggleProfileCompletion: () =>
         set((state) => ({
           isProfileCompletionOpen: !state.isProfileCompletionOpen,
         })),
 
-      setIsProfileCompletionOpen: (value) => set({ isProfileCompletionOpen: value }),
+      setIsProfileCompletionOpen: (value) =>
+        set({ isProfileCompletionOpen: value }),
 
       setUser: (user) =>
         set({
           user,
           userId: user ? user.userName ?? null : null,
           role: user ? (user.role.toLowerCase() as AuthState["role"]) : null,
+          isCounselorSignupOpen:
+            user?.role?.toLowerCase() === "counselor"
+              ? false
+              : get().isCounselorSignupOpen,
+
+          isCounselorSignupFormOpen:
+            user?.role?.toLowerCase() === "counselor"
+              ? false
+              : get().isCounselorSignupFormOpen,
         }),
 
       refreshUser: async (force = false) => {
-  const state = get();
+        const state = get();
 
-  if (state.loading && !force) {
-    return state.user;
-  }
+        if (state.loading && !force) {
+          return state.user;
+        }
 
-  set({ loading: true });
+        set({ loading: true });
 
-  const uid =
-    state.userId ??
-    state.tempPhone ??
-    (typeof window !== "undefined" ? localStorage.getItem("phone") : null);
-  const token =
-    state.tempJwt ??
-    (typeof window !== "undefined" ? localStorage.getItem("jwt") : null);
-  const role =
-    state.role ??
-    (typeof window !== "undefined" ? localStorage.getItem("role") : null);
+        const uid =
+          state.userId ??
+          state.tempPhone ??
+          (typeof window !== "undefined"
+            ? localStorage.getItem("phone")
+            : null);
+        const token =
+          state.tempJwt ??
+          (typeof window !== "undefined" ? localStorage.getItem("jwt") : null);
+        const role =
+          state.role ??
+          (typeof window !== "undefined" ? localStorage.getItem("role") : null);
 
-  if (!uid || !token) {
-    set({ loading: false });
-    return null;
-  }
+        if (!uid || !token) {
+          set({ loading: false });
+          return null;
+        }
 
-  if (!force && state.user) {
-    set({ loading: false });
-    return state.user;
-  }
+        if (!force && state.user) {
+          set({ loading: false });
+          return state.user;
+        }
 
-  try {
-    if (role === "counselor") {
-      const counselorData = await getCounselorProfileById(uid, token);
-      if (counselorData) {
-        const mapped = mapCounselorToUser(counselorData);
-        set({ user: mapped, role: "counselor" });
-        return mapped;
-      }
-      throw new Error("Counselor profile not found");
-    }
+        try {
+          if (role === "counselor") {
+            const counselorData = await getCounselorProfileById(uid, token);
+            if (counselorData) {
+              const mapped = mapCounselorToUser(counselorData);
+              set({ user: mapped, role: "counselor" });
+              return mapped;
+            }
+            throw new Error("Counselor profile not found");
+          }
 
-    const user = await getUserProfile(uid, token);
-    user.role = user.role.toLowerCase();
-    set({ user, role: user.role as AuthState["role"] });
-    return user;
-  } catch (err) {
-    get().logout();
-    return null;
-  } finally {
-    set({ loading: false });
-  }
-},
-
+          const user = await getUserProfile(uid, token);
+          user.role = user.role.toLowerCase();
+          set({ user, role: user.role as AuthState["role"] });
+          return user;
+        } catch (err) {
+          get().logout();
+          return null;
+        } finally {
+          set({ loading: false });
+        }
+      },
 
       sendOtp: async (phone: string) => {
         await sendOtp(phone);
@@ -237,24 +251,34 @@ export const useAuthStore = create<AuthState>()(
         // Check if user needs onboarding first
         let needsOnboarding = false;
         try {
-          const isProfileIncomplete = await checkUrl(phone, data?.jwt ?? data?.jwtToken);
-          console.log('🔍 isUserDetailsNull API response:', isProfileIncomplete);
+          const isProfileIncomplete = await checkUrl(
+            phone,
+            data?.jwt ?? data?.jwtToken
+          );
+          console.log(
+            "🔍 isUserDetailsNull API response:",
+            isProfileIncomplete
+          );
           const { isCounselorSignupFlow } = get();
           if (isCounselorSignupFlow) {
-            console.log('User is in counselor signup flow, skipping onboarding');
+            console.log(
+              "User is in counselor signup flow, skipping onboarding"
+            );
             set({ userExist: false, needsOnboarding: false });
             needsOnboarding = false;
           } else if (isProfileIncomplete === true) {
-            console.log('Setting needsOnboarding to TRUE - keeping JWT in memory');
+            console.log(
+              "Setting needsOnboarding to TRUE - keeping JWT in memory"
+            );
             set({ userExist: true, needsOnboarding: true });
             needsOnboarding = true;
           } else {
-            console.log('Setting needsOnboarding to FALSE');
+            console.log("Setting needsOnboarding to FALSE");
             set({ userExist: false, needsOnboarding: false });
             needsOnboarding = false;
           }
         } catch (err) {
-          console.error('checkUrl failed:', err);
+          console.error("checkUrl failed:", err);
           set({ userExist: false, needsOnboarding: false });
           needsOnboarding = false;
         }
@@ -264,11 +288,11 @@ export const useAuthStore = create<AuthState>()(
         try {
           if (needsOnboarding) {
             // Store in memory for new users
-            console.log('📝 Storing JWT in memory for new user');
+            console.log("📝 Storing JWT in memory for new user");
             set({ tempJwt: data?.jwtToken, tempPhone: phone });
           } else {
             // Store in localStorage for existing users
-            console.log('📝 Storing JWT in localStorage for existing user');
+            console.log("📝 Storing JWT in localStorage for existing user");
             if (data?.jwtToken) {
               localStorage.setItem("jwt", data.jwtToken);
             }
@@ -282,7 +306,10 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           if (!isUser) {
-            const counselorData = await getCounselorProfileById(phone, data.jwtToken);
+            const counselorData = await getCounselorProfileById(
+              phone,
+              data.jwtToken
+            );
 
             if (counselorData) {
               const mapped = mapCounselorToUser(counselorData);
@@ -299,7 +326,7 @@ export const useAuthStore = create<AuthState>()(
                 onLoginSuccess();
                 set({ onLoginSuccess: null });
               }
-              
+
               set({ isCounselorSignupFlow: false });
             }
           } else {
@@ -307,14 +334,24 @@ export const useAuthStore = create<AuthState>()(
 
             if (user) {
               user.role = user.role.toLowerCase();
-              
+
               const { needsOnboarding: userNeedsOnboarding } = get();
-              
+
               // Only check profile completion for existing users (not in onboarding)
               // New users will complete profile during onboarding
-              const needsCompletion = userNeedsOnboarding && (!user.firstName || !user.email);
-              console.log('🔍 Profile check - firstName:', user.firstName, 'email:', user.email, 'needsOnboarding:', userNeedsOnboarding, 'needsCompletion:', needsCompletion);
-              
+              const needsCompletion =
+                userNeedsOnboarding && (!user.firstName || !user.email);
+              console.log(
+                "🔍 Profile check - firstName:",
+                user.firstName,
+                "email:",
+                user.email,
+                "needsOnboarding:",
+                userNeedsOnboarding,
+                "needsCompletion:",
+                needsCompletion
+              );
+
               set({
                 user,
                 role: user.role as AuthState["role"],
@@ -382,16 +419,24 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) =>
         Object.fromEntries(
           Object.entries(state).filter(([key]) =>
-            ['user', 'userId', 'role', 'isAuthenticated', 'userExist', 'needsOnboarding', 'needsProfileCompletion'].includes(key)
+            [
+              "user",
+              "userId",
+              "role",
+              "isAuthenticated",
+              "userExist",
+              "needsOnboarding",
+              "needsProfileCompletion",
+            ].includes(key)
           )
         ),
       onRehydrateStorage: () => (state, error) => {
-  if (!error && state) {
-    setTimeout(() => {
-      state.loading = false;
-    }, 100);
-  }
-},
+        if (!error && state) {
+          setTimeout(() => {
+            state.loading = false;
+          }, 100);
+        }
+      },
     }
   )
 );

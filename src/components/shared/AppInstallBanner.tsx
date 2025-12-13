@@ -75,7 +75,7 @@ export default function AppInstallBanner() {
         <div className="relative flex gap-4">
           <button
             onClick={handleDismiss}
-            className="absolute -top-2 -right-2 p-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500"
+            className="absolute -top-2 -right-2 p-1 rounded-full hover:cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-500"
             aria-label="Dismiss app download banner"
           >
             <X size={16} />

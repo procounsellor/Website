@@ -277,7 +277,7 @@ export default function CourseReviewsCard({
             <p className="text-[#232323] text-sm font-normal mt-2 leading-relaxed">{review.reviewText}</p>
             {role !== 'counselor' && (
               <div className="mt-3 flex items-center gap-4">
-                <button
+                {/* <button
                   onClick={() => handleHelpful(review.reviewId)}
                   className={`text-xs font-medium transition-colors ${
                     helpfulReviews.has(review.reviewId)
@@ -285,8 +285,9 @@ export default function CourseReviewsCard({
                       : 'text-gray-500 hover:text-[#13097D]'
                   }`}
                 >
-                  👍 Helpful ({review.helpful + (helpfulReviews.has(review.reviewId) ? 1 : 0)})
-                </button>
+                  👍 Helpful {review.helpful}
+                  ({review.helpful + (helpfulReviews.has(review.reviewId) ? 1 : 0)})
+                </button> */}
               </div>
             )}
           </div>

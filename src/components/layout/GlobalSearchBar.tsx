@@ -13,7 +13,7 @@ type GlobalSearchBarProps = {
 };
 
 export function GlobalSearchBar({
-  placeholder = "Search Courses, Colleges, Counsellor...",
+  placeholder = "Search Courses, Exams and Counsellors...",
   className = "",
   debounceTime = 500,
   showBackdrop = false,
