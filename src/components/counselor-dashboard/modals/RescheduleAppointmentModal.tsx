@@ -93,7 +93,7 @@ export default function RescheduleAppointmentModal({
           <h1 className="text-[20px] font-semibold text-[#343C6A]">Reschedule Meeting</h1>
           <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1 hover:bg-[#262626] group rounded-full transition-colors"
+          className="absolute top-4 right-4 p-1 hover:cursor-pointer hover:bg-[#262626] group rounded-full transition-colors"
         >
           <X size={18} className="text-gray-500 group-hover:text-white" />
         </button>

@@ -82,11 +82,12 @@ export default function CounselorDashboard() {
   const [openOooMenuId, setOpenOooMenuId] = useState<string | null>(null);
   const [rescheduleOoo, setRescheduleOoo] = useState<OutOfOffice | null>(null);
   const [cancelOoo, setCancelOoo] = useState<OutOfOffice | null>(null);
+  
 
   const queryClient = useQueryClient(); 
 
   useEffect(() => {
-    const HOUR = Array.from({ length: 12 }, (_, i) => 9 + i); // 9AM–8PM
+    const HOUR = Array.from({ length: 12 }, (_, i) => 8 + i); // 9AM–8PM
     setHours(HOUR);
   }, []);
 

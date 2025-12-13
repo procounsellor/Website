@@ -205,13 +205,13 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onCardCl
                       >
                         <button 
                           onClick={handleCancel}
-                          className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg"
+                          className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:cursor-pointer hover:bg-gray-50 rounded-t-lg"
                         >
                           Cancel
                         </button>
                         <button 
                           onClick={handleReschedule}
-                          className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-b-lg"
+                          className="block w-full text-left px-4 py-3 text-sm hover:cursor-pointer text-gray-700 hover:bg-gray-50 rounded-b-lg"
                         >
                           Reschedule
                         </button>

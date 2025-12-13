@@ -219,7 +219,7 @@ export default function AppointmentDetailsModal({ isOpen, onClose, appointment, 
         className="hidden md:block w-full max-w-md bg-white rounded-xl shadow-xl p-6 relative"
         onClick={(e) => e.stopPropagation()}
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:cursor-pointer hover:text-gray-700">
           <X size={20} />
         </button>
         <h2 className="text-xl font-semibold text-[#343C6A] mb-6">{modalTitle}</h2>
@@ -269,7 +269,7 @@ export default function AppointmentDetailsModal({ isOpen, onClose, appointment, 
             </div>
           </div>
           <div className="text-center p-4 bg-white rounded-xl border border-gray-100">
-             <h3 className="font-semibold text-gray-800">Need Help</h3>
+             <h3 className="font-semibold text-gray-800">Need Help?</h3>
              <p className="text-sm text-gray-500 mt-1 mb-4">Our team is here to assist you with any questions</p>
              <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
                 <a href="tel:7004789484" className="text-sm font-medium text-gray-700">📞 70047 89484</a>

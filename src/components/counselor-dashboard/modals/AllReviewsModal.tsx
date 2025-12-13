@@ -1,11 +1,11 @@
 import { X } from "lucide-react";
 import ReviewCard from "../cards/ReviewCard";
-import type { ReviewReceived } from "@/types/counselorDashboard";
+import type { ApiReviewReceived } from "@/types/counselorDashboard";
 
 interface AllReviewsModalProps {
   open: boolean;
   onClose: () => void;
-  reviews: ReviewReceived[];
+  reviews: ApiReviewReceived[];
 }
 
 export default function AllReviewsModal({
@@ -47,7 +47,7 @@ export default function AllReviewsModal({
           <div className="flex flex-col gap-4">
             {reviews.length > 0 ? (
               reviews.map((review) => (
-                <ReviewCard key={review.id} review={review} />
+                <ReviewCard key={review.reviewId} review={review} />
               ))
             ) : (
               <p className="text-center text-gray-500 py-10">No reviews found.</p>

@@ -96,7 +96,7 @@ export default function OtpVerificationModal({
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-auto">
         <div className="p-4 md:p-6 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-lg md:text-xl font-bold text-gray-800">{title}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-100 transition-colors">
+          <button onClick={onClose} className="p-1.5 rounded-full hover:cursor-pointer hover:bg-gray-100 transition-colors">
             <X className="h-5 w-5 md:h-6 md:w-6 text-gray-600" />
           </button>
         </div>
