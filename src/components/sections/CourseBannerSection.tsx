@@ -1,6 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom'; 
 import { ArrowUpRight } from 'lucide-react';
+import { useAuthStore } from '@/store/AuthStore';
+import toast from 'react-hot-toast';
 
 const COURSE_EXPLORE_PATH = "/gurucool"; 
 const AADITYA_IMAGE_PATH = "./aaditya-banner.png"; 
@@ -8,18 +10,23 @@ const SUBSCRIBER_AVATARS_PATH = "./subscribers.png";
 
 const CourseBannerSection: React.FC = () => {
     const navigate = useNavigate();
+    const { isAuthenticated, toggleLogin } = useAuthStore();
+
     const handleExploreClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault(); 
         navigate(COURSE_EXPLORE_PATH);
     };
+    
+    const handleLiveSessionClick = () => {
+        if (isAuthenticated) {
+            navigate('/live-sessions');
+        } else {
+            toast.error("Please log in to explore live sessions.", { duration: 3000 });
+            const onSuccess = () => navigate('/live-sessions');
+            toggleLogin(onSuccess);
+        }
+    };
 
-    // const StatBubble: React.FC<{ count: string; text: string; }> = ({ count, text }) => (
-    //     <div className="bg-black/30 text-white flex items-center p-2 pl-3 pr-4 rounded-full text-xs"
-    //          style={{ background: 'rgba(0, 0, 0, 0.3)', backdropFilter: 'blur(2px)' }}>
-    //         <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg>
-    //         <span className="font-semibold whitespace-nowrap">{count} {text}</span>
-    //     </div>
-    // );
 
     return (
         <section className="bg-white py-8 md:py-16">
@@ -45,12 +52,8 @@ const CourseBannerSection: React.FC = () => {
                                 52.5K subscribers
                             </p>
                         </div>                   
-                        {/* <div className="flex flex-wrap gap-2 md:hidden mb-6">
-                            <StatBubble count="5K" text="Ongoing Courses" />
-                            <StatBubble count="150K" text="Active Students" />
-                        </div> */}
 
-                        <div className="flex flex-col sm:flex-row gap-3 md:gap-4"> {/* FIXED LAYOUT */}
+                        <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                             <a 
                                 href={COURSE_EXPLORE_PATH}
                                 onClick={handleExploreClick}
@@ -62,7 +65,7 @@ const CourseBannerSection: React.FC = () => {
                             </a>
                             
                             <button
-                                onClick={() => navigate('/live-sessions')}
+                                onClick={handleLiveSessionClick}
                                 className="inline-flex items-center justify-center px-4 py-2 sm:px-6 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-lg shadow-sm transition cursor-pointer duration-150 ease-in-out"
                                 style={{ background: 'white', color: '#B68D9D' }} 
                             >
@@ -100,13 +103,6 @@ const CourseBannerSection: React.FC = () => {
                             alt="Aaditya [COEP] Counselor"
                             className="absolute bottom-0 right-0 h-full object-cover z-10"
                         />
-                                                
-                        {/* <div className="absolute top-10 right-8 z-20">
-                            <StatBubble count="5K" text="Ongoing Courses" />
-                        </div>
-                        <div className="absolute bottom-10 right-8 z-20">
-                            <StatBubble count="150K" text="Active Students" />
-                        </div> */}
                     </div>
                 </div>
             </div>

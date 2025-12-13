@@ -16,6 +16,7 @@ export interface CounselorFormData {
   email: string;
   password: string;
   organisation: string;
+  city: string;
   languagesKnown: string[];
   workingDays: string[];
   officeStartTime: string;

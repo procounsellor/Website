@@ -9,8 +9,8 @@ import { Carousel } from "@/components/landing-page/Carousel";
 import { GuidanceSection } from "@/components/landing-page/GuidanceSection";
 import toast from "react-hot-toast";
 import startRecharge from "@/api/wallet";
-import { useQuery } from '@tanstack/react-query';
-import { FaWhatsapp  } from "react-icons/fa";
+import { useQuery } from "@tanstack/react-query";
+import { FaWhatsapp } from "react-icons/fa";
 import { useSearchParams } from "react-router-dom";
 
 declare global {
@@ -24,17 +24,29 @@ const COURSE_ID = "a997f3a9-4a36-4395-9f90-847b739fb225";
 const COURSE_NAME = "MHT-CET Mastery Course";
 const COURSE_PRICE = 2499;
 const WHATSAPP_GROUP_LINK = "https://chat.whatsapp.com/JahmZvJ4vslJTxX9thZDK6";
-const TARGET_REFERRAL_CODE = "SPARKKSIR";
+const TARGET_REFERRAL_CODES = [
+  "SPARKKSIR",
+  "Member1",
+  "Member2",
+  "Member3",
+  "Member4",
+  "Member5",
+  "Member6",
+  "Member7",
+  "Member8",
+  "Member9",
+  "Member10",
+];
 
 export default function LandingPage() {
   const { user, userId, isAuthenticated, toggleLogin, refreshUser } = useAuthStore();
   const token = localStorage.getItem("jwt");
-  const [searchParams] = useSearchParams(); 
+  const [searchParams] = useSearchParams();
   const [referralCode, setReferralCode] = useState<string | null>(null);
 
   useEffect(() => {
-    const refParam = searchParams.get('ref');
-    if (refParam === TARGET_REFERRAL_CODE) {
+    const refParam = searchParams.get("ref");
+    if (refParam&& TARGET_REFERRAL_CODES.includes(refParam)) {
       setReferralCode(refParam);
     } else {
       setReferralCode(null);
@@ -46,16 +58,36 @@ export default function LandingPage() {
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const { data: boughtCoursesData, isLoading: isLoadingBought } = useQuery({
-    queryKey: ['boughtCourses', userId],
-    queryFn: () => getBoughtCourses(userId as string),
-    enabled: !!userId && isAuthenticated,
-    staleTime: 5000, 
+  // Counselor logic
+  const storeRole = useAuthStore((s) => s.role);
+  const isCounselor = storeRole === "counselor";
+
+  const isUserLoaded = user !== null && user !== undefined;
+
+  // Prevent API calls for counselors
+  const {
+    data: boughtCoursesData,
+    isLoading: isLoadingBought,
+    refetch,
+  } = useQuery({
+    queryKey: ["boughtCourses", userId],
+    queryFn: () => {
+      if (isCounselor) {
+        return Promise.resolve({
+          data: [],
+          status: true,
+          message: "Counselor cannot buy courses",
+        });
+      }
+      return getBoughtCourses(userId as string);
+    },
+    enabled: isUserLoaded && !!userId && isAuthenticated && !isCounselor,
+    staleTime: 5000,
   });
-  const isCoursePurchased = boughtCoursesData?.data?.some(
-    (course) => course.courseId === COURSE_ID
-  ) ?? false;
-  
+
+  const isCoursePurchased =
+    boughtCoursesData?.data?.some((course) => course.courseId === COURSE_ID) ?? false;
+
   const handleProfileIncomplete = (action: () => void) => {
     setPendingAction(() => action);
     setIsEditProfileModalOpen(true);
@@ -66,15 +98,16 @@ export default function LandingPage() {
     lastName: string;
     email: string;
   }) => {
-    if (!userId || !token) {
-      throw new Error("User not authenticated");
-    }
-    const payload = { 
-        ...updatedData,
-        ...(referralCode && { referralCode: referralCode })
+    if (!userId || !token) throw new Error("User not authenticated");
+
+    const payload = {
+      ...updatedData,
+      ...(referralCode && { referralCode }),
     };
+
     await updateUserProfile(userId, payload, token);
     await refreshUser(true);
+    if (isAuthenticated) refetch();
     if (pendingAction) {
       pendingAction();
       setPendingAction(null);
@@ -86,13 +119,11 @@ export default function LandingPage() {
     setPendingAction(null);
   };
 
-  // Direct Razorpay payment for course purchase
   const handleDirectPayment = async (amount: number) => {
-    // Get fresh user data
     const freshUser = useAuthStore.getState().user;
-    const freshUserId = localStorage.getItem("phone");
+    const freshPhone = localStorage.getItem("phone");
 
-    if (!freshUser?.userName || !freshUserId) {
+    if (!freshUser?.userName || !freshPhone) {
       toast.error("User information not found. Please try logging in again.");
       return;
     }
@@ -101,9 +132,8 @@ export default function LandingPage() {
     const loadingToast = toast.loading("Initiating payment...");
 
     try {
-      // Create Razorpay order
       const order = await startRecharge(freshUser.userName, amount);
-      
+
       const options = {
         key: order.keyId,
         amount: order.amount,
@@ -112,22 +142,19 @@ export default function LandingPage() {
         name: "ProCounsel",
         description: `${COURSE_NAME} - Course Enrollment`,
         prefill: {
-          contact: freshUser.phoneNumber || freshUserId || "",
+          contact: freshUser.phoneNumber || freshPhone,
           email: freshUser.email || "",
-          name: freshUser.firstName ? `${freshUser.firstName} ${freshUser.lastName || ""}`.trim() : "",
+          name: `${freshUser.firstName || ""} ${freshUser.lastName || ""}`.trim(),
         },
-        notes: { 
+        notes: {
           userId: freshUser.userName,
           courseId: COURSE_ID,
           courseName: COURSE_NAME,
         },
-        handler: async function (response: any) {
+        handler: async () => {
           toast.dismiss(loadingToast);
-          console.log("Payment successful:", response);
-          
-          // Now purchase the course
           const purchaseToast = toast.loading("Enrolling you in the course...");
-          
+
           try {
             const purchaseResponse = await buyCourse({
               userId: freshUser.userName,
@@ -138,15 +165,15 @@ export default function LandingPage() {
 
             if (purchaseResponse.status) {
               toast.success("Enrollment successful!", { id: purchaseToast });
+              refetch();
               await refreshUser(true);
               setShowSuccessPopup(true);
             } else {
-              throw new Error(purchaseResponse.message || "Failed to enroll in course");
+              throw new Error(purchaseResponse.message || "Enrollment failed");
             }
           } catch (error) {
-            console.error("Course purchase error:", error);
             toast.error(
-              (error as Error).message || "Payment succeeded but enrollment failed. Please contact support.",
+              (error as Error).message || "Payment succeeded but enrollment failed.",
               { id: purchaseToast }
             );
           } finally {
@@ -154,8 +181,7 @@ export default function LandingPage() {
           }
         },
         modal: {
-          ondismiss: function () {
-            console.log("Razorpay payment dismissed");
+          ondismiss: () => {
             toast.dismiss(loadingToast);
             setIsProcessing(false);
           },
@@ -163,85 +189,68 @@ export default function LandingPage() {
         theme: { color: "#13097D" },
       };
 
-      const Rz = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
-      const rzp = new Rz(options);
-      
+      const RZ = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
+      const rzp = new RZ(options);
       rzp.open();
       toast.dismiss(loadingToast);
-      
-    } catch (error) {
-      console.error("Failed to initiate payment:", error);
-      toast.error("Could not start payment process. Please try again.", { id: loadingToast });
+    } catch {
+      toast.error("Could not start payment process. Please try again.");
       setIsProcessing(false);
     }
   };
 
-  // Enrollment handler with login and name checks (email not required)
   const handleEnroll = async (amount: number) => {
-    if (isCoursePurchased) {
-      toast.error("You are already enrolled in this course.");
-      return;
-    }
-    const enrollAction = async () => {
-      // Refresh user data after login
-      console.log("Login successful, refreshing user data...");
-      await refreshUser(true);
-      
-      // Get fresh user data
-      const freshUser = useAuthStore.getState().user;
-      
-      // Check if name is provided (email not required)
-      if (!freshUser?.firstName) {
-        console.log("Name missing, showing profile modal...");
-        handleProfileIncomplete(async () => {
-          await handleDirectPayment(amount);
-          if (referralCode && freshUser?.userName && token && !freshUser.referralCode) {
-              await updateUserProfile(freshUser.userName, { referralCode }, token);
-              await refreshUser(true);
-          }
-        });
-        return;
-      }
-      
-      // Small delay to ensure state is updated
-      setTimeout(async () => {
-        console.log("Opening payment...");
-        await handleDirectPayment(amount);
-        if (referralCode && user?.userName && token && !user.referralCode) {
-            await updateUserProfile(user.userName, { referralCode }, token);
-            await refreshUser(true);
-        }
-      }, 300);
-    };
-
-    // Check if user is logged in
     if (!isAuthenticated) {
-      // Set flag to skip onboarding (course/state selection) for this landing page
-      const { setIsCounselorSignupFlow } = useAuthStore.getState();
-      setIsCounselorSignupFlow(true);
-      
-      toggleLogin(enrollAction);
-      return;
-    }
-
-    // Check if name is provided (email not required)
-    if (!user?.firstName) {
-      handleProfileIncomplete(async () => {
-        await handleDirectPayment(amount);
-        if (referralCode && user?.userName && token && !user.referralCode) {
-            await updateUserProfile(user.userName, { referralCode }, token);
-            await refreshUser(true);
+      toggleLogin(async () => {
+        await refreshUser(true);
+        let tries = 0;
+        while (
+          (!useAuthStore.getState().isAuthenticated ||
+           !useAuthStore.getState().user ||
+           !useAuthStore.getState().userId) &&
+          tries < 20
+        ) {
+          await new Promise(res => setTimeout(res, 100));
+          tries++;
         }
+
       });
       return;
     }
 
-    // User is logged in and has name, open payment directly
-    await handleDirectPayment(amount);
-    if (referralCode && user?.userName && token && !user.referralCode) {
-        await updateUserProfile(user.userName, { referralCode }, token);
-        await refreshUser(true);
+    if (isCounselor) {
+      toast.error("Counsellors cannot enroll in this course.");
+      return;
     }
+
+    if (isCoursePurchased) {
+      toast.error("You are already enrolled.");
+      return;
+    }
+
+    await refreshUser(true);
+    const freshUser = useAuthStore.getState().user;
+
+    if (freshUser?.role?.toLowerCase() === "counselor") {
+      toast.error("Counsellors cannot enroll.");
+      return;
+    }
+
+    const result = await refetch();
+    const nowPurchased =
+      result.data?.data?.some((c) => c.courseId === COURSE_ID) ?? false;
+
+    if (nowPurchased) {
+      toast.error("You are already enrolled.");
+      return;
+    }
+
+    if (!freshUser?.firstName) {
+      handleProfileIncomplete(async () => handleDirectPayment(amount));
+      return;
+    }
+
+    await handleDirectPayment(amount);
   };
 
   const WhatsAppButton = ({ mobile = false }: { mobile?: boolean }) => (
@@ -249,66 +258,49 @@ export default function LandingPage() {
       href={WHATSAPP_GROUP_LINK}
       target="_blank"
       rel="noopener noreferrer"
-      className={`
-        w-full flex items-center justify-center gap-2 
-        bg-[#25D366] text-white font-medium 
-        rounded-[12px] transition-all duration-300 transform 
-        hover:bg-[#1EBE59] active:scale-[0.98]
-        ${mobile ? 'text-[14px] py-2.5 mt-2' : 'text-[16px] py-2 mt-2'}
-      `}
+      className={`w-full flex items-center justify-center gap-2 bg-[#25D366] text-white font-medium rounded-[12px] transition-all duration-300 cursor-pointer hover:bg-[#1EBE59] ${
+        mobile ? "text-[14px] py-2.5 mt-2" : "text-[16px] py-2 mt-2"
+      }`}
     >
-      <FaWhatsapp  size={mobile ? 20 : 20} />
-      <span>Join WhatsApp Group Now!</span>
+      <FaWhatsapp size={20} /> <span>Join WhatsApp Group Now!</span>
     </a>
   );
 
   const EnrollmentButton = ({ mobile = false }: { mobile?: boolean }) => {
-    const commonClasses = `
-      w-full rounded-[12px] text-white font-medium disabled:cursor-not-allowed transition-all 
-      duration-300 transform 
-      ${mobile ? 'text-[14px] py-2.5 mt-3.5' : 'text-lg py-3'}
-    `;
+    const classes = `w-full rounded-[12px] text-white font-medium disabled:cursor-not-allowed transition-all ${
+      mobile ? "text-[14px] py-2.5 mt-3.5" : "text-lg py-3"
+    }`;
 
-    if (isCoursePurchased) {
-        return (
-            <button
-                disabled={true}
-                className={`${commonClasses} bg-gray-400`}
-            >
-                Already Enrolled
-            </button>
-        );
-    }
-    
+    if (isCounselor)
+      return <button disabled className={`${classes} bg-red-500`}>Counsellors cannot enroll</button>;
+
+    if (isCoursePurchased)
+      return <button disabled className={`${classes} bg-gray-400`}>Already Enrolled</button>;
+
     return (
-        <button
-            onClick={() => handleEnroll(COURSE_PRICE)}
-            disabled={isProcessing || isLoadingBought}
-            className={`${commonClasses} bg-blue-700 hover:bg-blue-800 active:bg-blue-900 cursor-pointer hover:scale-[1.02] active:scale-[0.98]`}
-        >
-            {isLoadingBought 
-              ? "Checking enrollment..." 
-              : isProcessing
-                ? "Processing..." 
-                : "Enroll Now"}
-        </button>
+      <button
+        onClick={() => handleEnroll(COURSE_PRICE)}
+        disabled={isProcessing || isLoadingBought}
+        className={`${classes} bg-blue-700 cursor-pointer hover:bg-blue-800`}
+      >
+        {isLoadingBought ? "Checking enrollment..." : isProcessing ? "Processing..." : "Enroll Now"}
+      </button>
     );
   };
 
-
   return (
     <div className="mx-auto mt-1 md:mt-20">
-      {/* Mobile version */}
+      {/* Mobile */}
       <div className="block md:hidden w-full h-full bg-[#F5F7FA] p-5 mt-14">
         <div className="w-full max-w-sm p-3 bg-white rounded-[12px] border border-[#EFEFEF]">
           <div>
             <div className="flex gap-3">
               <div className="bg-[#E3E1EF] w-21 h-21 rounded-xl">
-                <img src="/adityam.svg" alt="" className="" />
+                <img src="/adityam.svg" alt="" />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <h1 className="flex flex-col text-[0.875rem] font-semibold text-[#343C6A]">
+                <h1 className="text-[0.875rem] font-semibold text-[#343C6A]">
                   GuruCool Crash Course for <span>MHT-CET 2026 | Aaditya Coep</span>
                 </h1>
 
@@ -316,65 +308,60 @@ export default function LandingPage() {
 
                 <p className="flex gap-2 items-center">
                   <img src="/4,999.svg" alt="" className="h-[15px]" />
-                  <span className="text-[1rem] text-[#232323] font-semibold">
-                    ₹{COURSE_PRICE.toLocaleString("en-IN")}
+                  <span className="text-[1rem] font-semibold text-[#232323]">
+                    ₹{COURSE_PRICE}
                   </span>
                 </p>
               </div>
             </div>
           </div>
-          
-          <div className="flex flex-col gap-1">
-            <EnrollmentButton mobile={true} />
-            {isCoursePurchased && <WhatsAppButton mobile={true} />}
-          </div>
+
+          <EnrollmentButton mobile />
+          {isCoursePurchased && <WhatsAppButton mobile />}
 
           <hr className="h-px bg-#EFEFEF mt-4 mb-2" />
 
-          <div>
-            <h1 className="text-[0.875rem] font-semibold text-[#343C6A]">
-              Course Description
-            </h1>
-            <p className="text-xs font-normal text-[#8C8CA1]">
-              The course is structured to ensure fast learning, solid revision, and maximum
-              marks with minimum confusion.
-            </p>
-          </div>
+          <h1 className="text-[0.875rem] font-semibold text-[#343C6A]">
+            Course Description
+          </h1>
+          <p className="text-xs text-[#8C8CA1]">
+            The course is structured for fast learning, solid revision, and maximum marks.
+          </p>
         </div>
       </div>
 
-      {/* Desktop version */}
-      <div className="hidden md:block w-full h-[34.313rem] bg-[#13097D1F] md:p-5 font-sans">
+      {/* Desktop */}
+      <div className="hidden md:block w-full h-[34.313rem] bg-[#13097D1F] md:p-5">
         <div className="flex justify-between max-w-7xl h-[24.313rem] bg-white rounded-2xl mx-auto mt-16 px-10 pt-10">
           <div className="flex flex-col gap-3">
-            <h1 className="flex flex-col text-[#13097D] font-semibold md:text-3xl lg:text-[2rem]">
+            <h1 className="text-[#13097D] font-semibold md:text-3xl lg:text-[2rem]">
               GuruCool Crash Course for MHT-CET <span>2026 | Aaditya Coep</span>
             </h1>
-            <p className="flex flex-col text-[#232323] text-[1rem] font-medium">
-              The course is structured to ensure fast learning, solid revision, and{" "}
-              <span>maximum marks with minimum confusion.</span>
+
+            <p className="text-[#232323] text-[1rem] font-medium">
+              The course is structured to ensure fast learning, solid revision, and maximum marks.
             </p>
 
             <div className="flex gap-5">
               <div className="flex flex-col">
                 <p className="flex gap-2 items-center">
-                  <img src="/star.svg" alt="" />{" "}
+                  <img src="/star.svg" alt="" />
                   <span className="text-[#13097D] text-[1.25rem] font-semibold">4.7</span>
                 </p>
-                <span className="text-[1rem] font-medium text-[#232323]">Course Rating</span>
+                <span className="text-[1rem] font-medium">Course Rating</span>
               </div>
+
               <div className="flex flex-col">
                 <p className="text-[#13097D] text-[1.25rem] font-semibold">4 Months</p>
-                <span className="text-[1rem] font-medium text-[#232323]">Course Duration</span>
+                <span className="text-[1rem] font-medium">Course Duration</span>
               </div>
             </div>
 
             <div className="flex gap-3 pt-5">
-              <div className="flex flex-col w-full">
+              <div className="flex flex-col w-[450px]">
                 <EnrollmentButton />
                 {isCoursePurchased && <WhatsAppButton />}
               </div>
-              
               <p className="flex gap-2 items-center">
                 <img src="/4,999.svg" alt="" className="h-5" />
                 <span className="text-[1.25rem] font-semibold text-[#232323]">
@@ -396,7 +383,6 @@ export default function LandingPage() {
       <GuidanceSection />
       <FAQ />
 
-      {/* Profile Modal - Email optional on /gurucool route */}
       {user && (
         <EditProfileModal
           isOpen={isEditProfileModalOpen}
@@ -404,15 +390,16 @@ export default function LandingPage() {
           user={user}
           onUpdate={handleUpdateProfile}
           onUploadComplete={() => {}}
-          // isMandatory={true}
         />
       )}
 
-      {/* Success Popup */}
       {showSuccessPopup && (
         <CourseEnrollmentPopup
           courseName={COURSE_NAME}
-          onClose={() => setShowSuccessPopup(false)}
+          onClose={() => {
+            setShowSuccessPopup(false);
+            window.location.reload();
+          }}
         />
       )}
     </div>

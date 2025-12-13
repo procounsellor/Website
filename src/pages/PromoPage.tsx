@@ -297,7 +297,7 @@ export default function PromoPage() {
                   }}
                 >
                   <SmartImage
-                    src="src/assets/avatars/promophoto.png"
+                    src="/promophoto.png"
                     alt="Course Hero"
                     className="w-full h-full rounded-xl object-cover"
                     width={400}
