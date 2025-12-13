@@ -176,8 +176,15 @@ export default function ProfileDetailsStep({
                   onChange={(selection) => handleMultiSelectChange('languagesKnown', selection)}
                 />
             </FormField>
-            <FormField label="Organisation">
-                <input type="text" name="organisation" placeholder="Organisation" value={formData.organisation} onChange={handleChange} className="h-12 w-full px-4 border border-[#13097D66] rounded-xl placeholder:text-[#6C696980] placeholder:font-medium focus:outline-none focus:border-orange-500 focus:ring-0"/>
+            <FormField label="City">
+                <input 
+                  type="text" 
+                  name="city"
+                  placeholder="City" 
+                  value={formData.city}
+                  onChange={handleChange} 
+                  className="h-12 w-full px-4 border border-[#13097D66] rounded-xl placeholder:text-[#6C696980] placeholder:font-medium focus:outline-none focus:border-orange-500 focus:ring-0"
+                />
             </FormField>
             <FormField label="Office Start Time">
                 <TimePicker
