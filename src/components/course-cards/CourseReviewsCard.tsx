@@ -114,7 +114,6 @@ export default function CourseReviewsCard({
   const [showAllReviewsModal, setShowAllReviewsModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [userHasReviewed, setUserHasReviewed] = useState(false);
-  const [helpfulReviews, setHelpfulReviews] = useState<Set<string>>(new Set());
   const reviewsPerPage = 10;
 
   const reviews = propReviews.length > 0 ? propReviews : [];
@@ -169,18 +168,6 @@ export default function CourseReviewsCard({
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleHelpful = (reviewId: string) => {
-    setHelpfulReviews(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(reviewId)) {
-        newSet.delete(reviewId);
-      } else {
-        newSet.add(reviewId);
-      }
-      return newSet;
-    });
   };
 
   const renderReviewForm = () => {
@@ -275,21 +262,6 @@ export default function CourseReviewsCard({
             </div>
             <StarRating rating={review.rating} />
             <p className="text-[#232323] text-sm font-normal mt-2 leading-relaxed">{review.reviewText}</p>
-            {role !== 'counselor' && (
-              <div className="mt-3 flex items-center gap-4">
-                {/* <button
-                  onClick={() => handleHelpful(review.reviewId)}
-                  className={`text-xs font-medium transition-colors ${
-                    helpfulReviews.has(review.reviewId)
-                      ? 'text-[#13097D]'
-                      : 'text-gray-500 hover:text-[#13097D]'
-                  }`}
-                >
-                  👍 Helpful {review.helpful}
-                  ({review.helpful + (helpfulReviews.has(review.reviewId) ? 1 : 0)})
-                </button> */}
-              </div>
-            )}
           </div>
         </div>
       </div>
