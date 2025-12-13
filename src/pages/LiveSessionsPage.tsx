@@ -3,7 +3,6 @@ import { unlockScroll } from '@/lib/scrollLock';
 import type { LiveSession } from '@/api/liveSessions';
 import { OngoingSessionModal } from '@/components/live/OngoingSessionModal';
 import { useLiveStreamStore } from '@/store/LiveStreamStore';
-// import { UpcomingSessionModal } from '@/components/live/UpcomingSessionModal';
 import { listenToLiveSessionsStatus } from '@/lib/firebase';
 import { getBoughtCourses } from '@/api/course';
 import { useAuthStore } from '@/store/AuthStore';
@@ -56,116 +55,29 @@ function OngoingSessionAvatar({ session, onClick }: OngoingSessionAvatarProps) {
     );
 }
 
-// interface UpcomingSessionItemProps {
-//     session: LiveSession;
-//     onClick: (counsellorId: string, liveSessionId: string, counsellorName: string) => void;
-// }
-
-// function UpcomingSessionItem({ session, onClick }: UpcomingSessionItemProps) {
-//     const avatarUrl = getAvatarUrl(session.counsellorPhotoUrl, session.counsellorFullName);
-    
-//     const formatDate = (): string => {
-//         const apiDate = (session as any).date; 
-//         if (!apiDate) return 'N/A';
-//         try {
-//             const parts = apiDate.split('-');
-//             const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])); 
-            
-//             if (isNaN(d.getTime())) return 'N/A';
-            
-//             const dateStr = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
-//             const weekday = d.toLocaleDateString('en-US', { weekday: 'long' });
-            
-//             return `${dateStr}, ${weekday}`;
-//         } catch {
-//             return 'N/A'; 
-//         }
-//     };
-    
-//     const formatTime = (): string => {
-//         const apiTime = (session as any).startTime; 
-//         if (!apiTime) return 'N/A';
-//         try {
-//             const [hours, minutes] = apiTime.split(':').map(Number);
-//             const dummyDate = new Date();
-//             dummyDate.setHours(hours);
-//             dummyDate.setMinutes(minutes);
-            
-//             const formattedTime = dummyDate.toLocaleTimeString('en-US', {
-//                 hour: '2-digit',
-//                 minute: '2-digit',
-//                 hour12: true,
-//             }).replace(/\s(AM|PM)$/, ''); 
-
-//             const ampm = hours >= 12 ? 'PM' : 'AM';
-//             const endHours = hours;
-//             const endMinutes = minutes + 30;
-//             const formattedEndHours = endHours % 12 || 12;
-//             const formattedEndMinutes = endMinutes % 60;
-//             const finalEndAmpm = (endMinutes >= 60 && endHours === 11) ? 'PM' : ampm;
-
-//             return `${formattedTime}-${formattedEndHours}:${formattedEndMinutes.toString().padStart(2, '0')} ${finalEndAmpm}`; 
-//         } catch {
-//             return 'N/A';
-//         }
-//     };
-
-//     const handleClick = () => {
-//         onClick(session.counsellorId, session.liveSessionId, session.counsellorFullName);
-//     };
-
-//     return (
-//         <div onClick={handleClick} className="flex items-center justify-between py-4 transition-shadow hover:shadow-md">
-//             <div className="flex items-start gap-4 w-1/2 min-w-0 pr-4"> 
-//                 <img 
-//                     src={avatarUrl} 
-//                     alt={session.counsellorFullName} 
-//                     className="w-[81px] h-[81px] rounded-xl object-cover shrink-0" 
-//                 />
-                
-//                 <div className="flex flex-col min-w-0 pt-1">
-//                     <h3 className="text-xl font-semibold text-[#242645] leading-[125%] truncate">
-//                         {session.counsellorFullName}
-//                     </h3>
-//                     <p className="text-base font-medium text-[#8C8CA1] leading-[125%] truncate mt-1">
-//                         {session.description || session.title}
-//                     </p>
-//                 </div>
-//             </div>
-
-//             <div className="flex items-center text-gray-700 font-normal text-base shrink-0 w-1/2 pr-4 sm:pr-0"> 
-//                 <div className="flex flex-col w-40 text-left shrink-0">
-//                     <span className="text-xl font-semibold text-[#242645] leading-[125%] mb-1 hidden sm:block">
-//                         Date
-//                     </span>
-//                     <span className="text-base font-medium text-[#8C8CA1] leading-[125%] whitespace-nowrap">
-//                         {formatDate()}
-//                     </span>
-//                 </div>
-                
-//                 <div className="flex flex-col w-40 text-left ml-16 shrink-0"> 
-//                     <span className="text-xl font-semibold text-[#242645] leading-[125%] mb-1 hidden sm:block">
-//                         Time
-//                     </span>
-//                     <span className="text-base font-medium text-[#8C8CA1] leading-[125%] whitespace-nowrap">
-//                         {formatTime()}
-//                     </span>
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// }
-
 export default function LiveSessionsPage() {
     const { startStream } = useLiveStreamStore.getState();
-    const { userId } = useAuthStore();
+    const { userId, isAuthenticated, loading, toggleLogin } = useAuthStore();
+
+    useEffect(() => {
+        if (!loading && !isAuthenticated) {
+            const onSuccess = () => window.location.reload(); 
+            toggleLogin(onSuccess);
+        }
+    }, [loading, isAuthenticated, toggleLogin]);
+    
+    if (loading || !isAuthenticated) {
+        return (
+            <div className="flex items-center justify-center w-full h-screen text-gray-500">
+                {loading ? 'Loading user state...' : 'Redirecting for login...'}
+            </div>
+        );
+    }
+
     const [ongoingSessions, setOngoingSessions] = useState<LiveSession[]>([]);
-    // const [upcomingSessions] = useState<LiveSession[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedSession, setSelectedSession] = useState<{ id: string, counsellorId: string, name: string, playbackId: string, title: string, description: string } | null>(null);
-    // const [isUpcomingModalOpen, setIsUpcomingModalOpen] = useState(false);
-    // const [selectedUpcomingSession, setSelectedUpcomingSession] = useState<{ id: string, counsellorId: string, name: string } | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loadingSessions, setLoadingSessions] = useState(true);
     const [error] = useState<string | null>(null);
     const [boughtCourseIds, setBoughtCourseIds] = useState<Set<string>>(new Set());
     
@@ -245,7 +157,7 @@ export default function LiveSessionsPage() {
             });
 
             setOngoingSessions(filteredSessions);
-            setLoading(false);
+            setLoadingSessions(false);
         });
 
         return () => {
@@ -269,15 +181,6 @@ export default function LiveSessionsPage() {
         }
     };
 
-    // const handleUpcomingCardClick = (counsellorId: string, liveSessionId: string, counsellorName: string) => {
-    //     setSelectedUpcomingSession({ 
-    //         id: liveSessionId, 
-    //         counsellorId: counsellorId, 
-    //         name: counsellorName 
-    //     });
-    //     setIsUpcomingModalOpen(true);
-    // };
-
     const handleJoinStream = (playbackId: string) => {
         if (!selectedSession) return;
         startStream(
@@ -293,7 +196,7 @@ export default function LiveSessionsPage() {
 
 
     const renderOngoingContent = () => {
-        if (loading) {
+        if (loadingSessions) {
             return <div className="p-8 text-center text-gray-600">Loading ongoing sessions...</div>;
         }
 
@@ -322,46 +225,6 @@ export default function LiveSessionsPage() {
         );
     };
 
-    // const renderUpcomingContent = () => {
-    //     if (loading) {
-    //         return <div className="p-8 text-center text-gray-600">Loading upcoming sessions...</div>;
-    //     }
-
-    //     if (error) {
-    //         return <div className="p-8 text-center text-red-500">{error}</div>;
-    //     }
-
-    //     if (upcomingSessions.length === 0) {
-    //         return (
-    //             <div className="p-10 bg-white rounded-xl shadow-lg border border-gray-200 text-center">
-    //                 <p className="text-xl text-gray-600 font-semibold">
-    //                     No upcoming sessions are currently scheduled.
-    //                 </p>
-    //             </div>
-    //         );
-    //     }
-        
-    //     return (
-    //         <div className="flex flex-col">
-    //             {upcomingSessions.map((session, index) => (
-    //                 <div key={session.liveSessionId}>
-    //                     <UpcomingSessionItem session={session} onClick={handleUpcomingCardClick} />
-                        
-    //                     {index < upcomingSessions.length - 1 && (
-    //                         <hr style={{ 
-    //                             borderColor: '#E6E6E7',
-    //                             borderWidth: '1px',
-    //                             opacity: 1,
-    //                             margin: '0 0 0 0',
-    //                             width: '100%',
-    //                         }} />
-    //                     )}
-    //                 </div>
-    //             ))}
-    //         </div>
-    //     );
-    // };
-
     return (
         <div className="bg-gray-50 pt-20 md:pt-28 pb-8 px-4 min-h-screen">
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -378,19 +241,6 @@ export default function LiveSessionsPage() {
                 </h1>
 
                 {renderOngoingContent()}
-
-                {/* <h2 
-                    className="text-2xl font-medium mt-12 mb-6"
-                    style={{ 
-                        color: '#13097D',
-                        fontFamily: 'Poppins', 
-                        fontWeight: 500,
-                        lineHeight: '125%',
-                    }}
-                >
-                    Upcoming Sessions
-                </h2>
-                {renderUpcomingContent()} */}
                 
             </main>
             <OngoingSessionModal
@@ -407,13 +257,6 @@ export default function LiveSessionsPage() {
                     liveSince: new Date().toISOString()
                 } : null}
             />
-            {/* <UpcomingSessionModal
-                isOpen={isUpcomingModalOpen}
-                onClose={() => setIsUpcomingModalOpen(false)}
-                liveSessionId={selectedUpcomingSession?.id ?? null}
-                counsellorId={selectedUpcomingSession?.counsellorId ?? null}
-                counsellorName={selectedUpcomingSession?.name ?? 'Counselor'}
-            /> */}
         </div>
     );
 }
