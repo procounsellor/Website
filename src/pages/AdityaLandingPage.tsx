@@ -24,7 +24,19 @@ const COURSE_ID = "a997f3a9-4a36-4395-9f90-847b739fb225";
 const COURSE_NAME = "MHT-CET Mastery Course";
 const COURSE_PRICE = 2499;
 const WHATSAPP_GROUP_LINK = "https://chat.whatsapp.com/JahmZvJ4vslJTxX9thZDK6";
-const TARGET_REFERRAL_CODE = "SPARKKSIR";
+const TARGET_REFERRAL_CODES = [
+  "SPARKKSIR",
+  "Member1",
+  "Member2",
+  "Member3",
+  "Member4",
+  "Member5",
+  "Member6",
+  "Member7",
+  "Member8",
+  "Member9",
+  "Member10",
+];
 
 export default function LandingPage() {
   const { user, userId, isAuthenticated, toggleLogin, refreshUser } = useAuthStore();
@@ -34,7 +46,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     const refParam = searchParams.get("ref");
-    if (refParam === TARGET_REFERRAL_CODE) {
+    if (refParam&& TARGET_REFERRAL_CODES.includes(refParam)) {
       setReferralCode(refParam);
     } else {
       setReferralCode(null);
