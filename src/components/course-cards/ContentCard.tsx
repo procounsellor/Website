@@ -1,7 +1,41 @@
-import { Lock, ChevronRight, X } from "lucide-react";
+import { Lock, ChevronRight } from "lucide-react";
 // import { useAuthStore } from "@/store/AuthStore";
 import type { CourseContent } from "@/api/course";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+
+// YouTube IFrame API types
+declare global {
+  interface Window {
+    YT: typeof YT;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
+
+interface YTPlayer {
+  playVideo: () => void;
+  pauseVideo: () => void;
+  destroy: () => void;
+}
+
+interface YTPlayerEvent {
+  target: YTPlayer;
+}
+
+declare const YT: {
+  Player: new (
+    elementId: string,
+    config: {
+      height: string;
+      width: string;
+      videoId: string;
+      playerVars: Record<string, number | string>;
+      events: {
+        onReady?: (event: YTPlayerEvent) => void;
+        onStateChange?: (event: YTPlayerEvent) => void;
+      };
+    }
+  ) => YTPlayer;
+};
 
 type ContentCardProps = {
   courseContents?: CourseContent[];
@@ -17,6 +51,8 @@ const getFileIcon = (type: string) => {
       return <img src="/folder.svg" alt="" />;
     case 'video':
       return <img src="/video.svg" alt="" />;
+    case 'link':
+      return <img src="/video.svg" alt="" />; // YouTube/video link
     case 'doc':
       return <img src="/pdf.svg" alt="" />;
     case 'image':
@@ -24,6 +60,31 @@ const getFileIcon = (type: string) => {
     default:
       return <img src="/pdf.svg" alt="" />;
   }
+};
+
+// Helper to extract YouTube video ID
+const extractYouTubeVideoId = (urlOrId: string): string => {
+  if (!urlOrId) return '';
+  
+  // If it's already just an ID (11 characters), return it
+  if (/^[a-zA-Z0-9_-]{11}$/.test(urlOrId)) {
+    return urlOrId;
+  }
+  
+  // Extract from various YouTube URL formats
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/live\/)([a-zA-Z0-9_-]{11})/,
+    /^.*(?:youtu.be\/|v\/|e\/|u\/\w+\/|embed\/|v=)([a-zA-Z0-9_-]{11})/
+  ];
+  
+  for (const pattern of patterns) {
+    const match = urlOrId.match(pattern);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+  
+  return urlOrId;
 };
 
 export default function ContentCard({ 
@@ -35,17 +96,85 @@ export default function ContentCard({
 }: ContentCardProps) {
   // const { role } = useAuthStore();
   const shouldBlurContent = !isPurchased && (userRole === 'user' || userRole === 'student');
-  const [showFolderModal, setShowFolderModal] = useState(false);
-  const [modalPath, setModalPath] = useState<string[]>(['root']);
   const [showFilePreview, setShowFilePreview] = useState(false);
   const [selectedFile, setSelectedFile] = useState<CourseContent | null>(null);
+  const playerRef = useRef<YTPlayer | null>(null);
 
-  const getCurrentPathString = () => currentPath.join('/');
-  const getModalPathString = () => modalPath.join('/');
+  // Initialize YouTube player when a link/video is selected
+  useEffect(() => {
+    if (!selectedFile || (selectedFile.type !== 'link' && selectedFile.type !== 'video')) {
+      return;
+    }
+
+    const playerId = `player-${selectedFile.courseContentId}`;
+    
+    // Load YouTube IFrame API if not already loaded
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+
+      window.onYouTubeIframeAPIReady = () => {
+        initializePlayer(playerId);
+      };
+    } else {
+      initializePlayer(playerId);
+    }
+
+    return () => {
+      if (playerRef.current) {
+        playerRef.current.destroy();
+        playerRef.current = null;
+      }
+    };
+  }, [selectedFile]);
+
+  const initializePlayer = (playerId: string) => {
+    if (!selectedFile) return;
+
+    const videoId = selectedFile.type === 'link' 
+      ? extractYouTubeVideoId(selectedFile.documentUrl || '')
+      : '';
+
+    if (!videoId && selectedFile.type === 'link') return;
+
+    try {
+      playerRef.current = new YT.Player(playerId, {
+        height: '100%',
+        width: '100%',
+        videoId: videoId,
+        playerVars: {
+          autoplay: 1,
+          controls: 1, // Enable play/pause and skip controls
+          disablekb: 1, // Disable keyboard shortcuts (prevents YouTube shortcuts)
+          modestbranding: 1, // Minimal YouTube branding
+          rel: 0, // Don't show related videos
+          fs: 0, // Disable fullscreen button (prevents going to YouTube)
+          playsinline: 1, // Play inline on mobile
+          iv_load_policy: 3, // Disable video annotations
+          origin: window.location.origin,
+        },
+        events: {
+          onReady: () => {
+            console.log('YouTube player ready');
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Error initializing YouTube player:', error);
+    }
+  };
+
+  const getCurrentPathString = () => {
+    // Remove 'Contents' from path for data filtering since it's UI-only
+    // E.g., ['root', 'Contents', 'Live Sessions'] -> 'root/Live Sessions'
+    const pathWithoutContents = currentPath.filter(p => p !== 'Contents');
+    return pathWithoutContents.join('/');
+  };
 
   // Show items at current path
   const currentItems = courseContents.filter(item => item.parentPath === getCurrentPathString());
-  const modalItems = courseContents.filter(item => item.parentPath === getModalPathString());
 
   const formatFileSize = (bytes?: number | null) => {
     if (!bytes) return 'Unknown size';
@@ -56,7 +185,7 @@ export default function ContentCard({
   const getItemDescription = (item: CourseContent) => {
     if (item.type === 'folder') {
       const childItems = courseContents.filter(c => c.parentPath === item.path);
-      const videos = childItems.filter(c => c.type === 'video').length;
+      const videos = childItems.filter(c => c.type === 'video' || c.type === 'link').length;
       const docs = childItems.filter(c => c.type === 'doc' || c.type === 'image').length;
       
       const parts = [];
@@ -65,36 +194,31 @@ export default function ContentCard({
       
       return parts.length > 0 ? parts.join(', ') : '0 items';
     }
+    // Show descriptive text for links instead of file size
+    if (item.type === 'link') {
+      return 'Video link';
+    }
     return formatFileSize(item.fileSize);
   };
 
+
   const handleItemClick = (item: CourseContent) => {
     if (item.type === 'folder') {
-      setModalPath(['root', item.name]);
-      setShowFolderModal(true);
-    } else if (item.type === 'video') {
+      // Navigate into folder by using its actual path
+      // Convert item.path to array format, e.g., "root/Live Sessions" -> ['root', 'Contents', 'Live Sessions']
+      const pathParts = item.path.split('/');
+      // Insert 'Contents' after 'root' for UI consistency
+      const newPath = ['root', 'Contents', ...pathParts.slice(1)];
+      if (setCurrentPath) {
+        setCurrentPath(newPath);
+      }
+    } else if (item.type === 'video' || item.type === 'link' || item.type === 'image') {
+      // Open file preview
       setSelectedFile(item);
       setShowFilePreview(true);
-    } else if (item.documentUrl) {
+    } else if (item.type === 'doc' && item.documentUrl) {
+      // Open PDF in new tab for better viewing
       window.open(item.documentUrl, '_blank');
-    }
-  };
-
-  const handleModalItemClick = (item: CourseContent) => {
-    if (item.type === 'folder') {
-      const newPath = [...modalPath, item.name];
-      setModalPath(newPath);
-    } else if (item.type === 'video') {
-      setSelectedFile(item);
-      setShowFilePreview(true);
-    } else if (item.documentUrl) {
-      window.open(item.documentUrl, '_blank');
-    }
-  };
-
-  const handleModalBreadcrumbClick = (index: number) => {
-    if (index < modalPath.length - 1) {
-      setModalPath(modalPath.slice(0, index + 1));
     }
   };
 
@@ -117,13 +241,13 @@ export default function ContentCard({
                 {index > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
                 <button
                   onClick={() => handleBreadcrumbClick(index)}
-                  className={`${
+                  className={`cursor-pointer ${
                     index === currentPath.length - 1
                       ? 'text-[#13097D] font-semibold'
                       : 'text-gray-500 hover:text-[#13097D]'
                   }`}
                 >
-                  {folder === 'root' ? 'Home' : folder}
+                  {folder === 'root' ? 'Home' : folder === 'Contents' ? 'Contents' : folder}
                 </button>
               </div>
             ))}
@@ -131,175 +255,176 @@ export default function ContentCard({
         )}
       </div>
       
-      {currentItems.length === 0 ? (
-        <p className="text-[#8C8CA1] text-center py-8">No content available</p>
-      ) : (
-        <div className={`flex gap-4 flex-wrap ${shouldBlurContent ? "blur-md pointer-events-none" : ""}`}>
-          {currentItems.map((item) => (
+      {/* Show single "Contents" folder if we're at root */}
+      {currentPath.length === 1 && currentPath[0] === 'root' ? (
+        courseContents.filter(item => item.parentPath === 'root').length === 0 ? (
+          <p className="text-[#8C8CA1] text-center py-8">No content available</p>
+        ) : (
+          <div className={`flex gap-4 flex-wrap ${shouldBlurContent ? "blur-md pointer-events-none" : ""}`}>
             <div 
-              key={item.courseContentId} 
-              className={`relative group h-14 bg-[#F5F5F5] w-90 rounded-[12px] flex justify-between items-center p-4 hover:cursor-pointer hover:bg-gray-200`}
-              onClick={() => handleItemClick(item)}
+              className="relative group h-14 bg-[#F5F5F5] w-90 rounded-[12px] flex justify-between items-center p-4 cursor-pointer hover:bg-gray-200"
+              onClick={() => setCurrentPath && setCurrentPath(['root', 'Contents'])}
             >
               <div className="flex gap-3 flex-1 min-w-0">
-                {getFileIcon(item.type)}
+                <img src="/folder.svg" alt="" className="w-6 h-6" />
                 <div className="flex flex-col min-w-0">
-                  <h1 className="text-[1rem] font-semibold text-[#242645] truncate" title={item.name}>
-                    {item.name}
+                  <h1 className="text-[1rem] font-semibold text-[#242645] truncate">
+                    Contents
                   </h1>
-                  {/* Tooltip preview on hover */}
-                  {/* <div className="absolute left-1/2 -translate-x-1/2 -top-10 hidden group-hover:block z-50">
-                    <div className="bg-[#232323] text-white text-xs px-2 py-1 rounded shadow-md max-w-[280px] truncate">
-                      {item.name}
-                    </div>
-                  </div> */}
-                  <p className="text-[0.875rem] font-normal text-[#8C8CA1] truncate" title={getItemDescription(item)}>
-                    {getItemDescription(item)}
+                  <p className="text-[0.875rem] font-normal text-[#8C8CA1] truncate">
+                    {courseContents.filter(item => item.parentPath === 'root').length} item(s)
                   </p>
                 </div>
               </div>
-
-              {item.type === 'folder' && <ChevronRight className="text-gray-400" />}
+              <ChevronRight className="text-gray-400" />
             </div>
-          ))}
-        </div>
+          </div>
+        )
+      ) : currentPath.length === 2 && currentPath[1] === 'Contents' ? (
+        /* Show only root-level content when inside "Contents" folder */
+        courseContents.filter(item => item.parentPath === 'root').length === 0 ? (
+          <p className="text-[#8C8CA1] text-center py-8">No content available</p>
+        ) : (
+          <div className={`flex gap-4 flex-wrap ${shouldBlurContent ? "blur-md pointer-events-none" : ""}`}>
+            {courseContents.filter(item => item.parentPath === 'root').map((item) => (
+              <div 
+                key={item.courseContentId} 
+                className={`relative group h-14 bg-[#F5F5F5] w-90 rounded-[12px] flex justify-between items-center p-4 cursor-pointer hover:bg-gray-200`}
+                onClick={() => handleItemClick(item)}
+              >
+                <div className="flex gap-3 flex-1 min-w-0">
+                  {getFileIcon(item.type)}
+                  <div className="flex flex-col min-w-0">
+                    <h1 className="text-[1rem] font-semibold text-[#242645] truncate" title={item.name}>
+                      {item.name}
+                    </h1>
+                    <p className="text-[0.875rem] font-normal text-[#8C8CA1] truncate" title={getItemDescription(item)}>
+                      {getItemDescription(item)}
+                    </p>
+                  </div>
+                </div>
+                {item.type === 'folder' && <ChevronRight className="text-gray-400" />}
+              </div>
+            ))}
+          </div>
+        )
+      ) : (
+        /* Show items at current path for deeper navigation */
+        currentItems.length === 0 ? (
+          <p className="text-[#8C8CA1] text-center py-8">No content in this folder</p>
+        ) : (
+          <div className={`flex gap-4 flex-wrap ${shouldBlurContent ? "blur-md pointer-events-none" : ""}`}>
+            {currentItems.map((item) => (
+              <div 
+                key={item.courseContentId} 
+                className={`relative group h-14 bg-[#F5F5F5] w-90 rounded-[12px] flex justify-between items-center p-4 cursor-pointer hover:bg-gray-200`}
+                onClick={() => handleItemClick(item)}
+              >
+                <div className="flex gap-3 flex-1 min-w-0">
+                  {getFileIcon(item.type)}
+                  <div className="flex flex-col min-w-0">
+                    <h1 className="text-[1rem] font-semibold text-[#242645] truncate" title={item.name}>
+                      {item.name}
+                    </h1>
+                    <p className="text-[0.875rem] font-normal text-[#8C8CA1] truncate" title={getItemDescription(item)}>
+                      {getItemDescription(item)}
+                    </p>
+                  </div>
+                </div>
+                {item.type === 'folder' && <ChevronRight className="text-gray-400" />}
+              </div>
+            ))}
+          </div>
+        )
       )}
 
       {shouldBlurContent && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 rounded-2xl">
           <Lock className="w-12 h-12 text-[#343C6A] mb-3" />
-          <p className="text-[#343C6A] font-semibold text-lg">
-            Purchase the course to access content
+          <h3 className="text-lg font-semibold text-[#343C6A] mb-1">
+            Content Locked
+          </h3>
+          <p className="text-sm text-[#8C8CA1] mb-4">
+            Purchase this course to access all content
           </p>
         </div>
       )}
 
-      {/* File Preview Modal */}
+      {/* Inline Video/Image Player - Shows instead of file list when selected */}
       {showFilePreview && selectedFile && (
-        <div 
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
-          onClick={() => {
-            setShowFilePreview(false);
-            setSelectedFile(null);
-          }}
-        >
-          <div 
-            className="relative w-full max-w-5xl"
-            onClick={(e) => e.stopPropagation()}
+        <div className="mt-4">
+          {/* Back Button */}
+          <button
+            onClick={() => {
+              setShowFilePreview(false);
+              setSelectedFile(null);
+            }}
+            className="flex items-center gap-2 mb-4 px-4 py-2 text-[#13097D] hover:bg-[#13097D]/10 rounded-lg transition cursor-pointer"
           >
-            <button 
-              onClick={() => {
-                setShowFilePreview(false);
-                setSelectedFile(null);
-              }}
-              className="absolute -top-12 right-0 text-white hover:text-gray-300 transition z-10"
-            >
-              <X className="w-8 h-8" />
-            </button>
+            <ChevronRight className="w-5 h-5 rotate-180" />
+            <span className="font-semibold">Back to files</span>
+          </button>
 
-            {selectedFile.type === 'video' ? (
-              <video 
-                controls 
-                autoPlay
-                className="w-full max-h-[80vh] rounded-lg"
-                src={selectedFile.documentUrl || ''}
-              >
-                Your browser does not support the video tag.
-              </video>
+          {/* Content Title */}
+          <h2 className="text-xl font-bold text-[#343C6A] mb-4">{selectedFile.name}</h2>
+
+          {/* Content Player/Viewer */}
+          <div className="relative w-full bg-black rounded-lg overflow-hidden shadow-lg">
+            {selectedFile.type === 'link' || selectedFile.type === 'video' ? (
+              <>
+                {/* Video Player with rotation */}
+                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                  <div 
+                    id={`player-${selectedFile.courseContentId}`}
+                    className="absolute" 
+                    style={{ 
+                      transform: 'rotate(-90deg)',
+                      transformOrigin: 'center center',
+                      width: '177.78%',
+                      height: '177.78%',
+                      left: '-38.89%',
+                      top: '-38.89%'
+                    }} 
+                  />
+                  {/* Overlay to prevent direct YouTube interactions */}
+                  <div className="absolute inset-0 z-10 cursor-default" style={{ pointerEvents: 'auto' }} />
+                </div>
+                
+                {/* Custom Controls Below Video - Large and Visible */}
+                <div className="bg-white border-t-4 border-[#FA660F] p-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <button
+                    onClick={() => playerRef.current?.playVideo()}
+                    className="w-full sm:w-auto px-8 py-4 bg-[#FA660F] hover:bg-[#e55e0e] text-white rounded-xl font-bold text-lg transition shadow-lg flex items-center justify-center gap-3 cursor-pointer"
+                  >
+                    <span className="text-2xl">▶</span>
+                    <span>Play Video</span>
+                  </button>
+                  <button
+                    onClick={() => playerRef.current?.pauseVideo()}
+                    className="w-full sm:w-auto px-8 py-4 bg-[#13097D] hover:bg-[#0f0660] text-white rounded-xl font-bold text-lg transition shadow-lg flex items-center justify-center gap-3 cursor-pointer"
+                  >
+                    <span className="text-2xl">⏸</span>
+                    <span>Pause Video</span>
+                  </button>
+                </div>
+              </>
             ) : selectedFile.type === 'image' ? (
+              /* Image Viewer */
               <img 
                 src={selectedFile.documentUrl || ''} 
                 alt={selectedFile.name}
-                className="w-full max-h-[80vh] object-contain rounded-lg"
+                className="w-full h-auto"
               />
             ) : null}
-
-            <div className="mt-4 text-white text-center">
-              <h2 className="text-xl font-semibold mb-2">{selectedFile.name}</h2>
-              <p className="text-sm text-gray-300">{formatFileSize(selectedFile.fileSize)}</p>
-            </div>
           </div>
-        </div>
-      )}
 
-      {/* Folder Modal */}
-      {showFolderModal && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => {
-            setShowFolderModal(false);
-            setModalPath(['root']);
-          }}
-        >
-          <div 
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <div className="flex items-center gap-2 text-sm flex-1">
-                {modalPath.map((folder, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    {index > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
-                    <button
-                      onClick={() => handleModalBreadcrumbClick(index)}
-                      className={`${
-                        index === modalPath.length - 1
-                          ? 'text-[#13097D] font-semibold text-lg hover:cursor-pointer'
-                          : 'text-gray-500 hover:text-[#13097D] hover:cursor-pointer'
-                      }`}
-                    >
-                      {folder === 'root' ? 'Home' : folder}
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <button 
-                onClick={() => {
-                  setShowFolderModal(false);
-                  setModalPath(['root']);
-                }}
-                className="text-gray-500 hover:text-gray-700 transition ml-4 hover:cursor-pointer"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="flex-1 overflow-y-auto p-6">
-              {modalItems.length === 0 ? (
-                <p className="text-[#8C8CA1] text-center py-8">No content in this folder</p>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {modalItems.map((item) => (
-                      <div 
-                        key={item.courseContentId} 
-                        className="relative group h-14 bg-[#F5F5F5] rounded-[12px] flex justify-between items-center p-4 cursor-pointer hover:bg-gray-200"
-                        onClick={() => handleModalItemClick(item)}
-                      >
-                        <div className="flex gap-3 flex-1 min-w-0">
-                          {getFileIcon(item.type)}
-                          <div className="flex flex-col min-w-0">
-                            <h1 className="text-[1rem] font-semibold text-[#242645] truncate" title={item.name}>
-                              {item.name}
-                            </h1>
-                            <div className="absolute left-1/2 -translate-x-1/2 -top-10 hidden group-hover:block z-50">
-                              <div className="bg-[#232323] text-white text-xs px-2 py-1 rounded shadow-md max-w-[280px] truncate">
-                                {item.name}
-                              </div>
-                            </div>
-                            <p className="text-[0.875rem] font-normal text-[#8C8CA1] truncate" title={getItemDescription(item)}>
-                              {getItemDescription(item)}
-                            </p>
-                          </div>
-                        </div>
-
-                        {item.type === 'folder' && <ChevronRight className="text-gray-400 shrink-0" />}
-                      </div>
-                    ))}
-                </div>
-              )}
-            </div>
+          {/* Info */}
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+            <p className="text-sm text-gray-600">
+              {selectedFile.type === 'link' || selectedFile.type === 'video' 
+                ? 'Video is optimized for learning. Use the controls below the video to play/pause.'
+                : 'View or download this file for your studies.'}
+            </p>
           </div>
         </div>
       )}
