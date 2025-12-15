@@ -106,6 +106,7 @@ export default function ContentCard({
   const [duration, setDuration] = useState(0);
   const [showControls, setShowControls] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [pdfFullscreen, setPdfFullscreen] = useState(false);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const fullscreenPlayerRef = useRef<YTPlayer | null>(null);
 
@@ -658,12 +659,30 @@ export default function ContentCard({
                 </div>
               </div>
             ) : selectedFile.type === 'image' ? (
-              /* Image Viewer */
-              <img 
-                src={selectedFile.documentUrl || ''} 
-                alt={selectedFile.name}
-                className="w-full h-auto"
-              />
+              /* Image Viewer - inline display */
+              <div className="relative">
+                <img 
+                  src={selectedFile.documentUrl || ''} 
+                  alt={selectedFile.name}
+                  className="w-full h-auto max-h-[70vh] object-contain"
+                />
+              </div>
+            ) : selectedFile.type === 'doc' ? (
+              /* PDF Viewer - Click to open fullscreen */
+              <div className="bg-gray-100 p-8 md:p-12 text-center rounded-lg">
+                <svg className="w-20 h-20 mx-auto mb-4 text-[#13097D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">PDF Document</h3>
+                <p className="text-sm text-gray-600 mb-6">Open in fullscreen viewer</p>
+                <button
+                  onClick={() => setPdfFullscreen(true)}
+                  className="px-8 py-3 bg-[#13097D] text-white rounded-lg font-semibold hover:bg-[#0d0659] transition cursor-pointer inline-flex items-center gap-2"
+                >
+                  <Maximize className="w-5 h-5" />
+                  Open PDF
+                </button>
+              </div>
             ) : null}
           </div>
 
@@ -671,8 +690,10 @@ export default function ContentCard({
           <div className="mt-4 p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600">
               {selectedFile.type === 'link' || selectedFile.type === 'video' 
-                ? 'Video is optimized for learning. Use the controls below the video to play/pause.'
-                : 'View or download this file for your studies.'}
+                ? 'Video is optimized for learning. Use the controls to play/pause and navigate.'
+                : selectedFile.type === 'image'
+                ? 'Image displayed above. Use browser zoom if needed.'
+                : 'PDF document displayed above. Scroll to read all pages.'}
             </p>
           </div>
         </div>
@@ -792,6 +813,33 @@ export default function ContentCard({
                 <span>← →: Skip 10s</span>
                 <span>F: Fullscreen</span>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Fullscreen PDF Viewer */}
+      {pdfFullscreen && selectedFile && selectedFile.type === 'doc' && (
+        <div className="fixed inset-0 z-[100] bg-black">
+          <div className="absolute inset-0 flex flex-col">
+            {/* Header with close button */}
+            <div className="bg-[#13097D] text-white px-4 py-3 flex items-center justify-between shrink-0">
+              <h3 className="font-semibold text-sm md:text-base truncate">{selectedFile.name}</h3>
+              <button
+                onClick={() => setPdfFullscreen(false)}
+                className="p-2 hover:bg-white/10 rounded-lg transition cursor-pointer"
+              >
+                <Minimize className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* PDF Viewer using Google Docs Viewer */}
+            <div className="flex-1 bg-gray-100">
+              <iframe
+                src={`https://docs.google.com/viewer?url=${encodeURIComponent(selectedFile.documentUrl || '')}&embedded=true`}
+                className="w-full h-full border-0"
+                title={selectedFile.name}
+              />
             </div>
           </div>
         </div>
