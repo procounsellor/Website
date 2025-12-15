@@ -10,9 +10,11 @@ import {
   buyCourse
 } from "@/api/course";
 import { useAuthStore } from "@/store/AuthStore";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Edit, Plus, X } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import EditCourseModal from "@/components/course-cards/EditCourseModal";
+import Step3Card from "@/components/course-cards/Step3Card";
 import AddFundsPanel from '@/components/student-dashboard/AddFundsPanel';
 import startRecharge from '@/api/wallet';
 
@@ -31,6 +33,8 @@ export default function CoursePage() {
   const queryClient = useQueryClient();
   const [currentPath, setCurrentPath] = useState<string[]>(['root']);
   const [addFundsOpen, setAddFundsOpen] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showContentManager, setShowContentManager] = useState(false);
 
   // Use actual user role from auth store, fallback to route param
   const role = userRole || roleParam || 'user';
@@ -55,6 +59,21 @@ export default function CoursePage() {
 
   const isBookmarked = courseDetails?.bookmarkedByMe === true;
   const isPurchased = courseDetails?.purchasedByMe === true;
+  
+  // If counselor can access course via getCounsellorCourseByCourseId API, they own it
+  // The API endpoint validates ownership, so we just check if they're a counselor
+  const isCourseOwner = isCounselor;
+  
+  // Debug logging
+  console.log('🔍 Course Ownership Debug:', {
+    isCounselor,
+    userRole: role,
+    userId,
+    isCourseOwner,
+    message: isCounselor 
+      ? 'Counselor viewing their own course via getCounsellorCourseByCourseId' 
+      : 'User/Student viewing course'
+  });
 
   const bookmarkMutation = useMutation({
     mutationFn: () => bookmarkCourse({ userId: userId as string, courseId: courseId as string }),
@@ -207,14 +226,34 @@ export default function CoursePage() {
         isUserOrStudent={isUserOrStudent && !!user && !!userId}
       />
 
-      <div className="max-w-7xl mx-auto mt-6 py-4 mb-4">
+      {/* Course Owner Controls */}
+      {isCourseOwner && (
+        <div className="max-w-7xl mx-auto mt-6 flex gap-3 justify-end">
+          <button
+            onClick={() => setShowEditModal(true)}
+            className="flex items-center gap-2 px-6 py-2 bg-white border-2 border-[#13097D] text-[#13097D] rounded-lg font-semibold hover:bg-[#13097D] hover:text-white transition-all cursor-pointer"
+          >
+            <Edit className="w-5 h-5" />
+            Edit Course
+          </button>
+          <button
+            onClick={() => setShowContentManager(true)}
+            className="flex items-center gap-2 px-6 py-2 bg-[#13097D] text-white rounded-lg font-semibold hover:bg-opacity-90 transition cursor-pointer"
+          >
+            <Plus className="w-5 h-5" />
+            Manage Content
+          </button>
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto px-4 md:px-6 mt-6 py-4 mb-4">
         <h1 className="text-[1.25rem] text-[#343C6A] font-semibold mb-4">Course Description</h1>
         <p className="text-[1rem] font-normal text-[#8C8CA1]">
           {courseDetails.description}
         </p>
       </div>
 
-      <div className="max-w-7xl mx-auto mb-6">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 mb-6">
         <ContentCard 
           courseContents={courseDetails.courseContents}
           currentPath={currentPath}
@@ -224,7 +263,7 @@ export default function CoursePage() {
         />
       </div>
 
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
         <CourseReviewsCard 
           courseId={courseId as string}
           isPurchased={isPurchased || isCounselor}
@@ -277,6 +316,50 @@ export default function CoursePage() {
           }}
         />
       </div>
+
+      {/* Edit Course Modal */}
+      {showEditModal && courseDetails && (
+        <EditCourseModal
+          courseDetails={courseDetails}
+          counsellorId={userId as string}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['courseDetails', courseId, userId, role] });
+          }}
+        />
+      )}
+
+      {/* Manage Content Modal */}
+      {showContentManager && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-[#343C6A]">Manage Course Content</h2>
+              <button onClick={() => setShowContentManager(false)} className="hover:text-gray-700 transition cursor-pointer">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6">
+              <Step3Card 
+                courseId={courseId || ''}
+              />
+            </div>
+            
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  queryClient.invalidateQueries({ queryKey: ['courseDetails', courseId, userId, role] });
+                  setShowContentManager(false);
+                }}
+                className="px-6 py-2 bg-[#13097D] text-white rounded-lg font-semibold hover:bg-opacity-90 transition cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
