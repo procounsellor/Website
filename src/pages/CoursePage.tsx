@@ -246,14 +246,14 @@ export default function CoursePage() {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto mt-6 py-4 mb-4">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 mt-6 py-4 mb-4">
         <h1 className="text-[1.25rem] text-[#343C6A] font-semibold mb-4">Course Description</h1>
         <p className="text-[1rem] font-normal text-[#8C8CA1]">
           {courseDetails.description}
         </p>
       </div>
 
-      <div className="max-w-7xl mx-auto mb-6">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 mb-6">
         <ContentCard 
           courseContents={courseDetails.courseContents}
           currentPath={currentPath}
@@ -263,7 +263,7 @@ export default function CoursePage() {
         />
       </div>
 
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
         <CourseReviewsCard 
           courseId={courseId as string}
           isPurchased={isPurchased || isCounselor}
