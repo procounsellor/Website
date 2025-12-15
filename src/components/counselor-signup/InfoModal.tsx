@@ -7,7 +7,7 @@ import { X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function InfoModal() {
-  const { isCounselorSignupOpen, toggleCounselorSignup, openCounselorSignupForm, isAuthenticated, toggleLogin, role, setIsCounselorSignupFlow, user } = useAuthStore();
+  const { isCounselorSignupOpen, toggleCounselorSignup, closeCounsellorSignup, openCounselorSignupForm, isAuthenticated, toggleLogin, role, setIsCounselorSignupFlow, user } = useAuthStore();
   const navigate = useNavigate();
 
   const [info, setInfo] = useState<CounselorPageInfo | null>(null);
@@ -81,7 +81,7 @@ export default function InfoModal() {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 md:p-4">
       <div className="bg-white rounded-xl md:rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] flex flex-col relative">
         <button 
-            onClick={toggleCounselorSignup} 
+            onClick={closeCounsellorSignup} 
             className="absolute top-3 right-3 md:top-4 md:right-4 z-10 w-9 h-9 md:w-10 md:h-10 hover:cursor-pointer flex items-center justify-center bg-black rounded-full text-white hover:bg-gray-800 transition-colors"
         >
             <X className="h-5 w-5 md:h-6 md:w-6" />

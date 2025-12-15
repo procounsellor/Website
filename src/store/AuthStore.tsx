@@ -46,6 +46,7 @@ type AuthState = {
   tempJwt: string | null;
   tempPhone: string | null;
   toggleLogin: (onSuccess?: () => void) => void;
+  closeCounsellorSignup: () => void
   toggleCounselorSignup: () => void;
   openCounselorSignupForm: () => void;
   closeCounselorSignupForm: () => void;
@@ -145,6 +146,13 @@ export const useAuthStore = create<AuthState>()(
           if (!state.isAuthenticated) return { isLoginToggle: true };
           return { isCounselorSignupOpen: true };
         }),
+
+        closeCounsellorSignup: () => 
+          set({
+            isCounselorSignupOpen: false,
+            isCounselorSignupFormOpen: false,
+
+          }),
 
       openCounselorSignupForm: () =>
         set({
