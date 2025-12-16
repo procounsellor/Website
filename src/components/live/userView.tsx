@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, MessageCircle, Send } from 'lucide-react';
+import { X, MessageCircle, Send, Maximize2, Smartphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLiveStreamStore } from '@/store/LiveStreamStore';
 import { useAuthStore } from '@/store/AuthStore';
@@ -90,9 +90,12 @@ export default function LiveStreamView() {
   const [ytLoading, setYtLoading] = useState(true);
   const [sessionInfo, setSessionInfo] = useState<{ title: string; startedAt: any } | null>(null);
   const [showLiveEndedPopup, setShowLiveEndedPopup] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
+  const [showTopBar, setShowTopBar] = useState(true);
   
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
+  const topBarTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Track user joining the live session
   useEffect(() => {
@@ -108,6 +111,64 @@ export default function LiveStreamView() {
       console.log('👋 User left live session:', { counsellorId, userId });
     };
   }, [counsellorId, userId]);
+
+  // Detect orientation (for mobile landscape mode)
+  useEffect(() => {
+    const checkOrientation = () => {
+      // Check if in landscape mode on mobile/tablet (< 1024px)
+      const isInLandscape = window.innerWidth < 1024 && window.innerWidth > window.innerHeight;
+      setIsLandscape(isInLandscape);
+    };
+
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
+  }, []);
+
+  // Auto-hide top bar in landscape mode
+  useEffect(() => {
+    if (isLandscape) {
+      // Hide top bar after 3 seconds in landscape
+      const timer = setTimeout(() => {
+        setShowTopBar(false);
+      }, 3000);
+      
+      topBarTimerRef.current = timer;
+      
+      return () => {
+        if (topBarTimerRef.current) {
+          clearTimeout(topBarTimerRef.current);
+        }
+      };
+    } else {
+      // Always show top bar when not in landscape
+      setShowTopBar(true);
+    }
+  }, [isLandscape]);
+
+  const handleVideoClick = () => {
+    if (isLandscape) {
+      // Toggle top bar visibility on click in landscape mode
+      setShowTopBar(prev => !prev);
+      
+      // If showing, auto-hide again after 3 seconds
+      if (!showTopBar) {
+        const timer = setTimeout(() => {
+          setShowTopBar(false);
+        }, 3000);
+        
+        if (topBarTimerRef.current) {
+          clearTimeout(topBarTimerRef.current);
+        }
+        topBarTimerRef.current = timer;
+      }
+    }
+  };
 
   // Viewer count listener commented out - hidden from user view
   // useEffect(() => {
@@ -324,6 +385,46 @@ export default function LiveStreamView() {
     }
   };
 
+  const handleRotateToLandscape = async () => {
+    try {
+      // Request fullscreen
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        await elem.requestFullscreen();
+      }
+      
+      // Lock to landscape orientation if supported
+      if (screen.orientation && (screen.orientation as any).lock) {
+        try {
+          await (screen.orientation as any).lock('landscape');
+        } catch (err) {
+          console.log('Orientation lock not supported:', err);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to enter fullscreen:', err);
+    }
+  };
+
+  const handleExitFullscreen = async () => {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      }
+      
+      // Unlock orientation if supported
+      if (screen.orientation && (screen.orientation as any).unlock) {
+        try {
+          (screen.orientation as any).unlock();
+        } catch (err) {
+          console.log('Orientation unlock not supported:', err);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to exit fullscreen:', err);
+    }
+  };
+
   const handleClose = () => {
     if (playerRef.current) {
       playerRef.current.destroy();
@@ -354,9 +455,10 @@ export default function LiveStreamView() {
 
   return (
     <div className="fixed inset-0 z-50 bg-white flex flex-col">
-      {/* Top Bar */}
-      <div className="relative z-20 bg-white border-b border-gray-200 shadow-sm">
-        <div className="flex items-center justify-between px-4 py-3">
+      {/* Top Bar - auto-hide in landscape */}
+      {showTopBar && (
+        <div className="relative z-20 bg-white border-b border-gray-200 shadow-sm">
+          <div className="flex items-center justify-between px-4 py-3">
           {/* Left Section */}
           <div className="flex items-center gap-4">
             <button
@@ -382,27 +484,61 @@ export default function LiveStreamView() {
           </div>
 
           {/* Right Section */}
-          <button
-            onClick={() => setShowChat(!showChat)}
-            className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors text-sm font-medium cursor-pointer",
-              showChat 
-                ? "bg-[#FA660F] hover:bg-[#FA660F]/90 text-white shadow-md" 
-                : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+          <div className="flex items-center gap-2">
+            {/* Exit fullscreen/Portrait - show only in landscape mode */}
+            {isLandscape && (
+              <button
+                onClick={handleExitFullscreen}
+                className="lg:hidden flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
+                title="Back to portrait"
+              >
+                <Smartphone className="w-4 h-4" />
+              </button>
             )}
-          >
-            <MessageCircle className="w-4 h-4" />
-            <span className="hidden sm:inline">Chat</span>
-          </button>
+            
+            {/* Fullscreen - show only in portrait mode on mobile */}
+            {!isLandscape && (
+              <button
+                onClick={handleRotateToLandscape}
+                className="lg:hidden flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
+                title="Fullscreen"
+              >
+                <Maximize2 className="w-4 h-4" />
+              </button>
+            )}
+            
+            <button
+              onClick={() => setShowChat(!showChat)}
+              className={cn(
+                "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors text-sm font-medium cursor-pointer",
+                showChat 
+                  ? "bg-[#FA660F] hover:bg-[#FA660F]/90 text-white shadow-md" 
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+              )}
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span className="hidden sm:inline">Chat</span>
+            </button>
+          </div>
         </div>
       </div>
+      )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col sm:flex-row overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Video and Info Section */}
-        <div className="flex-none sm:flex-1 flex flex-col overflow-hidden">
+        <div className={cn(
+          "flex flex-col overflow-hidden",
+          isLandscape ? "flex-1" : "flex-none lg:flex-1"
+        )}>
           {/* Video Player */}
-          <div className="relative bg-black flex-1 flex items-center justify-center overflow-hidden">
+          <div 
+            className={cn(
+              "relative bg-black overflow-hidden",
+              isLandscape ? "flex-1" : "aspect-video lg:flex-1 lg:aspect-auto"
+            )}
+            onClick={handleVideoClick}
+          >
             {ytLoading && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-10">
                 <div className="w-16 h-16 border-4 border-gray-300 border-t-[#FA660F] rounded-full animate-spin mb-4"></div>
@@ -410,18 +546,29 @@ export default function LiveStreamView() {
               </div>
             )}
             
-            {/* Video Player - 16:9 aspect ratio with 90deg counter-clockwise rotation, full area */}
-            <div className="relative w-full h-full overflow-hidden">
+            {/* Video Player - rotation in desktop and mobile portrait */}
+            <div className="relative w-full h-full overflow-hidden flex items-center justify-center">
               <div 
                 id="youtube-player" 
-                className="absolute" 
-                style={{ 
-                  transform: 'rotate(-90deg)',
-                  transformOrigin: 'center center',
-                  width: '177.78%',
-                  height: '177.78%',
-                  left: '-38.89%',
-                  top: '-38.89%'
+                className="absolute lg:transform-gpu" 
+                style={{
+                  // Apply rotation in:
+                  // 1. Desktop (lg+): Always rotate
+                  // 2. Mobile Portrait: Rotate to fit vertical screen
+                  // 3. Mobile Landscape: NO rotation, natural display
+                  ...(typeof window !== 'undefined' && (window.innerWidth >= 1024 || !isLandscape) ? {
+                    transform: 'rotate(-90deg)',
+                    transformOrigin: 'center center',
+                    width: '177.78%',
+                    height: '177.78%',
+                    left: '-38.89%',
+                    top: '-38.89%'
+                  } : {
+                    width: '100%',
+                    height: '100%',
+                    left: '0',
+                    top: '0'
+                  })
                 }} 
               />
               {/* Overlay to prevent clicks and interactions */}
@@ -429,22 +576,29 @@ export default function LiveStreamView() {
             </div>
           </div>
 
-          {/* Video Info Section */}
-          <div className="bg-white shrink-0 sm:border-t sm:border-gray-200 border-b sm:border-b-0 border-gray-200">
-            <div className="px-3 sm:px-6 py-1.5 sm:py-3">
-              <h1 className="text-gray-900 text-sm sm:text-lg font-bold truncate">
-                {sessionInfo?.title || streamTitle}
-              </h1>
-              <p className="text-gray-600 text-xs sm:text-sm line-clamp-1 sm:line-clamp-2">
-                {description}
-              </p>
+          {/* Video Info Section - hidden in landscape mode */}
+          {!isLandscape && (
+            <div className="bg-white shrink-0 lg:border-t lg:border-gray-200 border-b lg:border-b-0 border-gray-200">
+              <div className="px-3 lg:px-6 py-1.5 lg:py-3">
+                <h1 className="text-gray-900 text-sm lg:text-lg font-bold truncate">
+                  {sessionInfo?.title || streamTitle}
+                </h1>
+                <p className="text-gray-600 text-xs lg:text-sm line-clamp-1 lg:line-clamp-2">
+                  {description}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Chat Panel */}
         {showChat && (
-          <div className="flex flex-col flex-1 sm:flex-none sm:w-[340px] lg:w-[400px] sm:border-l border-gray-200 min-h-0">
+          <div className={cn(
+            "flex flex-col border-gray-200 min-h-0",
+            isLandscape 
+              ? "absolute left-0 top-0 bottom-0 w-1/2 max-w-md bg-white border-r-2 border-gray-300 shadow-2xl z-20" 
+              : "flex-1 lg:flex-none lg:w-[340px] xl:w-[400px] lg:border-l"
+          )}>
             {/* Chat Messages */}
             <style>{`
               .hide-scrollbar::-webkit-scrollbar {
@@ -520,16 +674,6 @@ export default function LiveStreamView() {
               </div>
             </div>
           </div>
-        )}
-
-        {/* Floating Chat Button (Mobile) */}
-        {!showChat && (
-          <button
-            onClick={() => setShowChat(true)}
-            className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-[#FA660F] hover:bg-[#FA660F]/90 text-white rounded-full shadow-2xl flex items-center justify-center z-30 transition-transform active:scale-95"
-          >
-            <MessageCircle className="w-6 h-6" />
-          </button>
         )}
       </div>
 
