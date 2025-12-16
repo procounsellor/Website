@@ -198,6 +198,9 @@ export default function CoursePage() {
       : undefined,
     image: courseDetails?.courseThumbnailUrl || '',
     isBookmarked: isBookmarked,
+    courseTimeHours: courseDetails.courseTimeHours || 0,
+    courseTimeMinutes: courseDetails.courseTimeMinutes || 0,
+    
   };
 
   return (
@@ -228,27 +231,29 @@ export default function CoursePage() {
 
       {/* Course Owner Controls */}
       {isCourseOwner && (
-        <div className="max-w-7xl mx-auto mt-6 flex gap-3 justify-end">
+        <div className="max-w-7xl mx-auto mt-4 md:mt-6 flex gap-2 md:gap-3 justify-end px-4 md:px-0">
           <button
             onClick={() => setShowEditModal(true)}
-            className="flex items-center gap-2 px-6 py-2 bg-white border-2 border-[#13097D] text-[#13097D] rounded-lg font-semibold hover:bg-[#13097D] hover:text-white transition-all cursor-pointer"
+            className="flex items-center gap-1 md:gap-2 px-3 py-1.5 md:px-6 md:py-2 bg-white border-2 border-[#13097D] text-[#13097D] rounded-lg text-xs md:text-base font-semibold hover:bg-[#13097D] hover:text-white transition-all cursor-pointer"
           >
-            <Edit className="w-5 h-5" />
-            Edit Course
+            <Edit className="w-4 h-4 md:w-5 md:h-5" />
+            <span className="hidden sm:inline">Edit Course</span>
+            <span className="sm:hidden">Edit</span>
           </button>
           <button
             onClick={() => setShowContentManager(true)}
-            className="flex items-center gap-2 px-6 py-2 bg-[#13097D] text-white rounded-lg font-semibold hover:bg-opacity-90 transition cursor-pointer"
+            className="flex items-center gap-1 md:gap-2 px-3 py-1.5 md:px-6 md:py-2 bg-[#13097D] text-white rounded-lg text-xs md:text-base font-semibold hover:bg-opacity-90 transition cursor-pointer"
           >
-            <Plus className="w-5 h-5" />
-            Manage Content
+            <Plus className="w-4 h-4 md:w-5 md:h-5" />
+            <span className="hidden sm:inline">Manage Content</span>
+            <span className="sm:hidden">Manage</span>
           </button>
         </div>
       )}
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 mt-6 py-4 mb-4">
-        <h1 className="text-[1.25rem] text-[#343C6A] font-semibold mb-4">Course Description</h1>
-        <p className="text-[1rem] font-normal text-[#8C8CA1]">
+        <h1 className="text-[0.875rem] md:text-[1.25rem] text-[#343C6A] font-semibold mb-4">Course Description</h1>
+        <p className="text-xs md:text-[1rem] font-normal text-[#8C8CA1]">
           {courseDetails.description}
         </p>
       </div>
@@ -331,28 +336,28 @@ export default function CoursePage() {
 
       {/* Manage Content Modal */}
       {showContentManager && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-[#343C6A]">Manage Course Content</h2>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-2 md:p-4">
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-3 md:p-6 border-b border-gray-200">
+              <h2 className="text-base md:text-2xl font-bold text-[#343C6A]">Manage Course Content</h2>
               <button onClick={() => setShowContentManager(false)} className="hover:text-gray-700 transition cursor-pointer">
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5 md:w-6 md:h-6" />
               </button>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-3 md:p-6">
               <Step3Card 
                 courseId={courseId || ''}
               />
             </div>
             
-            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+            <div className="p-3 md:p-6 border-t border-gray-200 flex justify-end gap-2 md:gap-3">
               <button
                 onClick={() => {
                   queryClient.invalidateQueries({ queryKey: ['courseDetails', courseId, userId, role] });
                   setShowContentManager(false);
                 }}
-                className="px-6 py-2 bg-[#13097D] text-white rounded-lg font-semibold hover:bg-opacity-90 transition cursor-pointer"
+                className="px-4 py-1.5 md:px-6 md:py-2 bg-[#13097D] text-white rounded-lg text-sm md:text-base font-semibold hover:bg-opacity-90 transition cursor-pointer"
               >
                 Done
               </button>

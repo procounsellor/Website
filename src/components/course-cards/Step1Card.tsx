@@ -32,11 +32,11 @@ export default function Step1Card({ data, onChange }: Step1CardProps) {
   };
 
   return (
-    <div className="flex flex-col gap-5 bg-white max-w-234 p-6 rounded-2xl">
-      <div className="flex flex-col gap-3 items-start">
+    <div className="flex flex-col gap-3 md:gap-5 bg-white w-full max-w-234 p-3 md:p-6 rounded-2xl">
+      <div className="flex flex-col gap-2 md:gap-3 items-start w-full">
         <label
           htmlFor="name"
-          className="text-[1rem] font-medium text-[#8C8CA1]"
+          className="text-sm md:text-[1rem] font-medium text-[#8C8CA1]"
         >
           Name*
         </label>
@@ -45,14 +45,14 @@ export default function Step1Card({ data, onChange }: Step1CardProps) {
           placeholder="Enter course name"
           value={data.courseName}
           onChange={(e) => onChange({ ...data, courseName: e.target.value })}
-          className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 w-218"
+          className="bg-[#F5F7FA] rounded-[0.75rem] h-10 md:h-12 p-2 w-full text-sm md:text-base"
         />
       </div>
 
-      <div className="flex flex-col gap-3 items-start">
+      <div className="flex flex-col gap-2 md:gap-3 items-start w-full">
         <label
           htmlFor="description"
-          className="text-[1rem] font-medium text-[#8C8CA1]"
+          className="text-sm md:text-[1rem] font-medium text-[#8C8CA1]"
         >
           Description*
         </label>
@@ -60,14 +60,14 @@ export default function Step1Card({ data, onChange }: Step1CardProps) {
           placeholder="Enter description here"
           value={data.description}
           onChange={(e) => onChange({ ...data, description: e.target.value })}
-          className="bg-[#F5F7FA] rounded-[0.75rem] h-24 p-2 w-218"
+          className="bg-[#F5F7FA] rounded-[0.75rem] h-20 md:h-24 p-2 w-full text-sm md:text-base resize-none"
         />
       </div>
 
-      <div className="flex flex-col gap-3 items-start">
+      <div className="flex flex-col gap-2 md:gap-3 items-start w-full">
         <label
           htmlFor="button"
-          className="text-[1rem] font-medium text-[#8C8CA1]"
+          className="text-sm md:text-[1rem] font-medium text-[#8C8CA1]"
         >
           Add Thumbnail*
         </label>
@@ -80,22 +80,22 @@ export default function Step1Card({ data, onChange }: Step1CardProps) {
         />
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="group flex items-center gap-2 py-2 px-6 border border-[#13097D] text-[#13097D] hover:cursor-pointer rounded-[0.75rem] font-semibold text-[1rem] hover:bg-[#13097D] hover:text-white transition-all duration-200"
+          className="group flex items-center gap-1 md:gap-2 py-1.5 md:py-2 px-3 md:px-6 border border-[#13097D] text-[#13097D] hover:cursor-pointer rounded-[0.75rem] font-semibold text-xs md:text-[1rem] hover:bg-[#13097D] hover:text-white transition-all duration-200"
         >
           <img
             src="/uploadIcon.svg"
             alt=""
-            className="transition-all duration-200 group-hover:invert group-hover:brightness-0"
+            className="w-4 h-4 md:w-5 md:h-5 transition-all duration-200 group-hover:invert group-hover:brightness-0"
           />
-          {data.thumbnail?.name || "Upload"}
+          <span className="truncate max-w-[200px]">{data.thumbnail?.name || "Upload"}</span>
         </button>
       </div>
 
-      <div className="flex gap-5">
-        <div className="flex flex-col gap-3 items-start">
+      <div className="flex flex-col md:flex-row gap-3 md:gap-5 w-full">
+        <div className="flex flex-col gap-2 md:gap-3 items-start flex-1">
           <label
             htmlFor="button"
-            className="text-[1rem] font-medium text-[#8C8CA1]"
+            className="text-sm md:text-[1rem] font-medium text-[#8C8CA1]"
           >
             Course Duration (Hours)*
           </label>
@@ -111,14 +111,14 @@ export default function Step1Card({ data, onChange }: Step1CardProps) {
                 courseTimeHours: clampNumber(e.target.value, 0, 999),
               })
             }
-            className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 w-55"
+            className="bg-[#F5F7FA] rounded-[0.75rem] h-10 md:h-12 p-2 w-full text-sm md:text-base"
           />
         </div>
 
-        <div className="flex flex-col gap-3 items-start">
+        <div className="flex flex-col gap-2 md:gap-3 items-start flex-1">
           <label
             htmlFor="button"
-            className="text-[1rem] font-medium text-[#8C8CA1]"
+            className="text-sm md:text-[1rem] font-medium text-[#8C8CA1]"
           >
             Course Duration (Minutes)*
           </label>
@@ -134,7 +134,7 @@ export default function Step1Card({ data, onChange }: Step1CardProps) {
                 courseTimeMinutes: clampNumber(e.target.value, 0, 59),
               })
             }
-            className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 w-55"
+            className="bg-[#F5F7FA] rounded-[0.75rem] h-10 md:h-12 p-2 w-full text-sm md:text-base"
           />
         </div>
       </div>

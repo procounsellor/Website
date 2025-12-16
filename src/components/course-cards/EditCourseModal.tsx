@@ -130,34 +130,34 @@ export default function EditCourseModal({
   };
 
   return (
-    <div className="fixed inset-0 z-70 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-70 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 md:p-4">
       <div
-        className="hidden md:flex items-center flex-col gap-8 w-full max-w-250 max-h-fit bg-[#F5F7FA] rounded-2xl shadow-xl p-6 relative"
+        className="flex items-center flex-col gap-4 md:gap-8 w-full max-w-250 max-h-[95vh] md:max-h-fit bg-[#F5F7FA] rounded-2xl shadow-xl p-4 md:p-6 relative overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 hover:cursor-pointer"
+          className="absolute top-2 right-2 md:top-4 md:right-4 text-gray-400 hover:text-gray-700 hover:cursor-pointer z-10"
         >
           <X size={20} />
         </button>
 
-        <h1 className="text-[#343C6A] text-2xl font-semibold">Edit Course</h1>
+        <h1 className="text-[#343C6A] text-lg md:text-2xl font-semibold">Edit Course</h1>
 
         {/* Step Indicator */}
-        <div className="flex items-center gap-4">
-          <div className={`flex items-center justify-center w-10 h-10 rounded-full ${step >= 1 ? 'bg-[#655E95] text-white' : 'bg-gray-300 text-gray-600'} font-semibold`}>
+        <div className="flex items-center gap-2 md:gap-4">
+          <div className={`flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full ${step >= 1 ? 'bg-[#655E95] text-white' : 'bg-gray-300 text-gray-600'} text-sm md:text-base font-semibold`}>
             1
           </div>
-          <div className={`w-16 h-1 ${step >= 2 ? 'bg-[#655E95]' : 'bg-gray-300'}`} />
-          <div className={`flex items-center justify-center w-10 h-10 rounded-full ${step >= 2 ? 'bg-[#655E95] text-white' : 'bg-gray-300 text-gray-600'} font-semibold`}>
+          <div className={`w-12 md:w-16 h-1 ${step >= 2 ? 'bg-[#655E95]' : 'bg-gray-300'}`} />
+          <div className={`flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full ${step >= 2 ? 'bg-[#655E95] text-white' : 'bg-gray-300 text-gray-600'} text-sm md:text-base font-semibold`}>
             2
           </div>
         </div>
 
         {currentCard()}
 
-        <div className="flex justify-between w-full">
+        <div className="flex justify-between w-full gap-2 md:gap-4">
           <button
             onClick={() => {
               if (step > 1) {
@@ -165,10 +165,10 @@ export default function EditCourseModal({
               }
             }}
             disabled={step === 1}
-            className="flex gap-3 items-center py-2 px-6 border hover:cursor-pointer rounded-[12px] font-semibold text-[#655E95] border-[#655E95] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex gap-1 md:gap-3 items-center py-1.5 md:py-2 px-3 md:px-6 border hover:cursor-pointer rounded-[12px] text-xs md:text-base font-semibold text-[#655E95] border-[#655E95] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <ChevronLeft />
-            Prev
+            <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
+            <span className="hidden sm:inline">Prev</span>
           </button>
 
           <button
@@ -184,10 +184,10 @@ export default function EditCourseModal({
               }
             }}
             disabled={isLoading}
-            className="flex items-center gap-3 py-2 px-6 border bg-[#655E95] font-semibold rounded-[12px] text-[1rem] text-white hover:bg-[#534a7d] hover:cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-1 md:gap-3 py-1.5 md:py-2 px-3 md:px-6 border bg-[#655E95] font-semibold rounded-[12px] text-xs md:text-[1rem] text-white hover:bg-[#534a7d] hover:cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {step === 2 ? (isLoading ? 'Updating...' : 'Update Course') : 'Next'}
-            <ChevronRight />
+            <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
           </button>
         </div>
       </div>
