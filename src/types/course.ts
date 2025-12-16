@@ -7,4 +7,6 @@ export interface CourseType{
     subject:string,
     price:string,
     isBookmarked?:boolean
+     courseTimeHours: number,
+    courseTimeMinutes: number,
 }

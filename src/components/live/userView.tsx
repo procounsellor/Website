@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, MessageCircle, Send } from 'lucide-react';
+import { X, MessageCircle, Send, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLiveStreamStore } from '@/store/LiveStreamStore';
 import { useAuthStore } from '@/store/AuthStore';
-import { listenToChatMessages, listenToCounselorLiveStatus } from '@/lib/firebase';
+import { listenToChatMessages, listenToCounselorLiveStatus, trackUserJoined, trackUserLeft, listenToViewerCount } from '@/lib/firebase';
 import { sendMessageInLiveSession } from '@/api/liveSessions';
 import LiveEndedPopup from './LiveEndedPopup';
 
@@ -90,9 +90,42 @@ export default function LiveStreamView() {
   const [ytLoading, setYtLoading] = useState(true);
   const [sessionInfo, setSessionInfo] = useState<{ title: string; startedAt: any } | null>(null);
   const [showLiveEndedPopup, setShowLiveEndedPopup] = useState(false);
+  const [viewerCount, setViewerCount] = useState(0);
   
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
+
+  // Track user joining the live session
+  useEffect(() => {
+    if (!counsellorId || !userId) return;
+
+    // Track user joined
+    trackUserJoined(counsellorId, userId);
+    console.log('📍 User joined live session:', { counsellorId, userId });
+
+    // Cleanup: track user left when component unmounts
+    return () => {
+      trackUserLeft(counsellorId, userId);
+      console.log('👋 User left live session:', { counsellorId, userId });
+    };
+  }, [counsellorId, userId]);
+
+  // Listen to viewer count
+  useEffect(() => {
+    if (!counsellorId) return;
+
+    console.log('🔍 UserView listening to viewer count for counsellorId:', counsellorId);
+
+    const unsubscribe = listenToViewerCount(
+      counsellorId,
+      (count) => {
+        console.log('👥 UserView viewer count update:', count);
+        setViewerCount(count);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [counsellorId]);
 
   // Load YouTube IFrame API
   useEffect(() => {
@@ -329,15 +362,22 @@ export default function LiveStreamView() {
           <div className="flex items-center gap-4">
             <button
               onClick={handleClose}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
               <span className="text-sm font-medium hidden sm:inline">Exit</span>
             </button>
             
-            <div className="flex items-center gap-2 bg-[#FA660F] px-3 py-1 rounded-md shadow-md">
-              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-              <span className="text-white text-xs font-bold uppercase">Live</span>
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="flex items-center gap-2 bg-[#FA660F] px-3 py-1 rounded-md shadow-md">
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                <span className="text-white text-xs font-bold uppercase">Live</span>
+              </div>
+              
+              <div className="flex items-center gap-1.5 bg-gray-100 px-2.5 py-1 rounded-md">
+                <Eye className="w-3.5 h-3.5 text-gray-600" />
+                <span className="text-xs font-semibold text-gray-700">{viewerCount}</span>
+              </div>
             </div>
           </div>
 
@@ -345,7 +385,7 @@ export default function LiveStreamView() {
           <button
             onClick={() => setShowChat(!showChat)}
             className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors text-sm font-medium",
+              "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors text-sm font-medium cursor-pointer",
               showChat 
                 ? "bg-[#FA660F] hover:bg-[#FA660F]/90 text-white shadow-md" 
                 : "bg-gray-100 hover:bg-gray-200 text-gray-700"
