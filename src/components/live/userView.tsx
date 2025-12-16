@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, MessageCircle, Send, Eye } from 'lucide-react';
+import { X, MessageCircle, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLiveStreamStore } from '@/store/LiveStreamStore';
 import { useAuthStore } from '@/store/AuthStore';
-import { listenToChatMessages, listenToCounselorLiveStatus, trackUserJoined, trackUserLeft, listenToViewerCount } from '@/lib/firebase';
+import { listenToChatMessages, listenToCounselorLiveStatus, trackUserJoined, trackUserLeft } from '@/lib/firebase';
 import { sendMessageInLiveSession } from '@/api/liveSessions';
 import LiveEndedPopup from './LiveEndedPopup';
 
@@ -90,7 +90,6 @@ export default function LiveStreamView() {
   const [ytLoading, setYtLoading] = useState(true);
   const [sessionInfo, setSessionInfo] = useState<{ title: string; startedAt: any } | null>(null);
   const [showLiveEndedPopup, setShowLiveEndedPopup] = useState(false);
-  const [viewerCount, setViewerCount] = useState(0);
   
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
@@ -110,22 +109,22 @@ export default function LiveStreamView() {
     };
   }, [counsellorId, userId]);
 
-  // Listen to viewer count
-  useEffect(() => {
-    if (!counsellorId) return;
-
-    console.log('🔍 UserView listening to viewer count for counsellorId:', counsellorId);
-
-    const unsubscribe = listenToViewerCount(
-      counsellorId,
-      (count) => {
-        console.log('👥 UserView viewer count update:', count);
-        setViewerCount(count);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [counsellorId]);
+  // Viewer count listener commented out - hidden from user view
+  // useEffect(() => {
+  //   if (!counsellorId) return;
+  //
+  //   console.log('🔍 UserView listening to viewer count for counsellorId:', counsellorId);
+  //
+  //   const unsubscribe = listenToViewerCount(
+  //     counsellorId,
+  //     (count) => {
+  //       console.log('👥 UserView viewer count update:', count);
+  //       setViewerCount(count);
+  //     }
+  //   );
+  //
+  //   return () => unsubscribe();
+  // }, [counsellorId]);
 
   // Load YouTube IFrame API
   useEffect(() => {
@@ -374,10 +373,11 @@ export default function LiveStreamView() {
                 <span className="text-white text-xs font-bold uppercase">Live</span>
               </div>
               
-              <div className="flex items-center gap-1.5 bg-gray-100 px-2.5 py-1 rounded-md">
+              {/* Viewer count hidden from user view */}
+              {/* <div className="flex items-center gap-1.5 bg-gray-100 px-2.5 py-1 rounded-md">
                 <Eye className="w-3.5 h-3.5 text-gray-600" />
                 <span className="text-xs font-semibold text-gray-700">{viewerCount}</span>
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -402,7 +402,7 @@ export default function LiveStreamView() {
         {/* Video and Info Section */}
         <div className="flex-none sm:flex-1 flex flex-col overflow-hidden">
           {/* Video Player */}
-          <div className="relative bg-black shrink-0">
+          <div className="relative bg-black flex-1 flex items-center justify-center overflow-hidden">
             {ytLoading && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-10">
                 <div className="w-16 h-16 border-4 border-gray-300 border-t-[#FA660F] rounded-full animate-spin mb-4"></div>
@@ -411,7 +411,7 @@ export default function LiveStreamView() {
             )}
             
             {/* Video Player - 16:9 aspect ratio with 90deg counter-clockwise rotation, full area */}
-            <div className="relative w-full overflow-hidden" style={{ paddingBottom: '56.25%' }}>
+            <div className="relative w-full h-full overflow-hidden">
               <div 
                 id="youtube-player" 
                 className="absolute" 
