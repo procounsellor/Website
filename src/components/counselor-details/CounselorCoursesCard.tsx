@@ -78,6 +78,8 @@ export default function CounselorCoursesCard({ counsellorId, userRole = "user" }
                   rating: course.rating?.toString() || undefined,
                   reviews: undefined,
                   image: course.courseThumbnailUrl,
+                  courseTimeHours: (course as any).courseTimeHours || 0,
+                  courseTimeMinutes: (course as any).courseTimeMinutes || 0,
                 }} 
                 role={userRole}
               />

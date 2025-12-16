@@ -26,11 +26,11 @@ export default function Step2Card({ data, onChange }: Step2CardProps) {
 
   return (// Auto-calculate price after discount
     <>
-    <div className="flex flex-col gap-5 bg-white max-w-234 min-h-[29.688rem] p-6 rounded-2xl">
-      <div className="flex flex-col gap-3 items-start">
+    <div className="flex flex-col gap-3 md:gap-5 bg-white w-full max-w-234 min-h-[20rem] md:min-h-[29.688rem] p-3 md:p-6 rounded-2xl">
+      <div className="flex flex-col gap-2 md:gap-3 items-start w-full">
         <label
           htmlFor="name"
-          className="text-[1rem] font-medium text-[#8C8CA1]"
+          className="text-sm md:text-[1rem] font-medium text-[#8C8CA1]"
         >
           Course Duration Type*
         </label>
@@ -39,15 +39,15 @@ export default function Step2Card({ data, onChange }: Step2CardProps) {
           placeholder="Lifetime Validity"
           value={data.courseDurationType}
           onChange={(e) => onChange({ ...data, courseDurationType: e.target.value })}
-          className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 w-218"
+          className="bg-[#F5F7FA] rounded-[0.75rem] h-10 md:h-12 p-2 w-full text-sm md:text-base"
         />
       </div>
 
-      <div className="flex gap-5">
-        <div className="flex flex-col gap-3 items-start">
+      <div className="flex flex-col md:flex-row gap-3 md:gap-5 w-full">
+        <div className="flex flex-col gap-2 md:gap-3 items-start flex-1">
           <label
             htmlFor="button"
-            className="text-[1rem] font-medium text-[#8C8CA1]"
+            className="text-sm md:text-[1rem] font-medium text-[#8C8CA1]"
           >
             Price*
           </label>
@@ -56,14 +56,14 @@ export default function Step2Card({ data, onChange }: Step2CardProps) {
             placeholder="₹"
             value={data.coursePrice}
             onChange={(e) => onChange({ ...data, coursePrice: e.target.value })}
-            className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 max-w-[9.313rem]"
+            className="bg-[#F5F7FA] rounded-[0.75rem] h-10 md:h-12 p-2 w-full text-sm md:text-base"
           />
         </div>
 
-        <div className="flex flex-col gap-3 items-start">
+        <div className="flex flex-col gap-2 md:gap-3 items-start flex-1">
           <label
             htmlFor="button"
-            className="text-[1rem] font-medium text-[#8C8CA1]"
+            className="text-sm md:text-[1rem] font-medium text-[#8C8CA1]"
           >
             Discount*
           </label>
@@ -72,14 +72,14 @@ export default function Step2Card({ data, onChange }: Step2CardProps) {
             placeholder="₹"
             value={data.discount}
             onChange={(e) => onChange({ ...data, discount: e.target.value })}
-            className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 max-w-[9.313rem]"
+            className="bg-[#F5F7FA] rounded-[0.75rem] h-10 md:h-12 p-2 w-full text-sm md:text-base"
           />
         </div>
 
-        <div className="flex flex-col gap-3 items-start">
+        <div className="flex flex-col gap-2 md:gap-3 items-start flex-1">
           <label
             htmlFor="button"
-            className="text-[1rem] font-medium text-[#8C8CA1]"
+            className="text-sm md:text-[1rem] font-medium text-[#8C8CA1]"
           >
             Final Price*
           </label>
@@ -88,7 +88,7 @@ export default function Step2Card({ data, onChange }: Step2CardProps) {
             placeholder="₹"
             value={data.coursePriceAfterDiscount}
             readOnly
-            className="bg-[#E8E8E8] rounded-[0.75rem] h-12 p-2 max-w-[9.313rem] cursor-not-allowed"
+            className="bg-[#E8E8E8] rounded-[0.75rem] h-10 md:h-12 p-2 w-full text-sm md:text-base cursor-not-allowed"
           />
         </div>
       </div>

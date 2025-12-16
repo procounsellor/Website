@@ -27,66 +27,37 @@ export default function SessionsTab({ user }: SessionsTabProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
   const [showFullScreen, setShowFullScreen] = useState(false);
-  const [newMessageIds, setNewMessageIds] = useState<Set<string>>(new Set());
+  const [latestMessageId, setLatestMessageId] = useState<string | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
-
-  const messageQueueRef = useRef<ChatMessage[]>([]);
-  const isProcessingRef = useRef(false);
   const previousMessageCountRef = useRef(0);
 
-  // Process message queue with delay
-  const processMessageQueue = () => {
-    if (isProcessingRef.current || messageQueueRef.current.length === 0) return;
-    
-    isProcessingRef.current = true;
-    const nextMsg = messageQueueRef.current.shift();
-    
-    if (nextMsg) {
-      setMessages(prev => [...prev, nextMsg]);
-      setNewMessageIds(prev => new Set(prev).add(nextMsg.messageId));
-      
-      // Remove "new" indicator after 8 seconds
-      setTimeout(() => {
-        setNewMessageIds(prev => {
-          const updated = new Set(prev);
-          updated.delete(nextMsg.messageId);
-          return updated;
-        });
-      }, 8000);
-      
-      // Wait 4 seconds before processing next message (much slower, readable)
-      setTimeout(() => {
-        isProcessingRef.current = false;
-        processMessageQueue();
-      }, 4000); // 4 second delay between messages
-    } else {
-      isProcessingRef.current = false;
-    }
-  };
-
-  // Listen to Firebase and queue new messages for gradual display
+  // Listen to Firebase messages - NO DELAY, instant display
   useEffect(() => {
     if (!user?.userName) return;
 
-    // Listen to real-time chat messages from Firebase
-    // liveSessionId is the counsellorId (user.userName)
     const unsubscribe = listenToChatMessages(
-      user.userName, // counsellorId serves as liveSessionId
+      user.userName,
       (msgs) => {
-        // Queue new messages for gradual display
+        // Simply set all messages immediately, no queue
         if (msgs.length > previousMessageCountRef.current) {
+          // Mark ONLY the latest message for highlighting
           const newMessages = msgs.slice(previousMessageCountRef.current);
-          newMessages.forEach(msg => {
-            messageQueueRef.current.push(msg);
-          });
-          processMessageQueue();
+          const latestMsg = newMessages[newMessages.length - 1];
+          setLatestMessageId(latestMsg?.messageId || null);
+          
+          // Remove "new" indicator after 8 seconds
+          setTimeout(() => {
+            setLatestMessageId(null);
+          }, 8000);
+          
           previousMessageCountRef.current = msgs.length;
         } else if (msgs.length < previousMessageCountRef.current) {
-          // Session restarted or messages cleared
-          setMessages(msgs);
-          messageQueueRef.current = [];
+          // Session restarted - reset count
           previousMessageCountRef.current = msgs.length;
         }
+        
+        // Always set messages immediately
+        setMessages(msgs);
       },
       (info) => setSessionInfo(info)
     );
@@ -147,7 +118,7 @@ export default function SessionsTab({ user }: SessionsTabProps) {
         ) : (
           <div className="space-y-0">
             {[...messages].reverse().map((msg) => {
-              const isNew = newMessageIds.has(msg.messageId);
+              const isNew = msg.messageId === latestMessageId;
               return (
                 <div 
                   key={msg.messageId}
@@ -224,7 +195,7 @@ export default function SessionsTab({ user }: SessionsTabProps) {
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {[...messages].reverse().map((msg) => {
-              const isNew = newMessageIds.has(msg.messageId);
+              const isNew = msg.messageId === latestMessageId;
               return (
                 <div 
                   key={msg.messageId} 

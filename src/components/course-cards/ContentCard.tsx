@@ -415,7 +415,7 @@ export default function ContentCard({
   return (
     <div className="bg-white rounded-2xl border p-4 relative overflow-hidden">
       <div className="flex items-center justify-between mb-3 gap-3">
-        <h1 className="text-[#343C6A] font-semibold text-lg md:text-[1.25rem] shrink-0">
+        <h1 className="text-[#343C6A] font-semibold text-sm md:text-[1.25rem] shrink-0">
           Content
         </h1>
         {currentPath.length > 1 && (
@@ -452,10 +452,10 @@ export default function ContentCard({
               <div className="flex gap-3 flex-1 min-w-0">
                 <img src="/folder.svg" alt="" className="w-6 h-6" />
                 <div className="flex flex-col min-w-0">
-                  <h1 className="text-[1rem] font-semibold text-[#242645] truncate">
+                  <h1 className="text-xs md:text-[1rem] font-semibold text-[#242645] truncate">
                     Contents
                   </h1>
-                  <p className="text-[0.875rem] font-normal text-[#8C8CA1] truncate">
+                  <p className="text-[0.625rem] md:text-[0.875rem] font-normal text-[#8C8CA1] truncate">
                     {courseContents.filter(item => item.parentPath === 'root').length} item(s)
                   </p>
                 </div>
@@ -479,10 +479,10 @@ export default function ContentCard({
                 <div className="flex gap-3 flex-1 min-w-0">
                   {getFileIcon(item.type)}
                   <div className="flex flex-col min-w-0">
-                    <h1 className="text-[1rem] font-semibold text-[#242645] truncate" title={item.name}>
+                    <h1 className="text-xs md:text-[1rem] font-semibold text-[#242645] truncate" title={item.name}>
                       {item.name}
                     </h1>
-                    <p className="text-[0.875rem] font-normal text-[#8C8CA1] truncate" title={getItemDescription(item)}>
+                    <p className="text-[0.625rem] md:text-[0.875rem] font-normal text-[#8C8CA1] truncate" title={getItemDescription(item)}>
                       {getItemDescription(item)}
                     </p>
                   </div>
@@ -507,10 +507,10 @@ export default function ContentCard({
                 <div className="flex gap-3 flex-1 min-w-0">
                   {getFileIcon(item.type)}
                   <div className="flex flex-col min-w-0">
-                    <h1 className="text-[1rem] font-semibold text-[#242645] truncate" title={item.name}>
+                    <h1 className="text-xs md:text-[1rem] font-semibold text-[#242645] truncate" title={item.name}>
                       {item.name}
                     </h1>
-                    <p className="text-[0.875rem] font-normal text-[#8C8CA1] truncate" title={getItemDescription(item)}>
+                    <p className="text-[0.625rem] md:text-[0.875rem] font-normal text-[#8C8CA1] truncate" title={getItemDescription(item)}>
                       {getItemDescription(item)}
                     </p>
                   </div>
@@ -524,11 +524,11 @@ export default function ContentCard({
 
       {shouldBlurContent && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 rounded-2xl">
-          <Lock className="w-12 h-12 text-[#343C6A] mb-3" />
-          <h3 className="text-lg font-semibold text-[#343C6A] mb-1">
+          <Lock className="w-8 h-8 md:w-12 md:h-12 text-[#343C6A] mb-2 md:mb-3" />
+          <h3 className="text-sm md:text-lg font-semibold text-[#343C6A] mb-1">
             Content Locked
           </h3>
-          <p className="text-sm text-[#8C8CA1] mb-4">
+          <p className="text-xs md:text-sm text-[#8C8CA1] mb-3 md:mb-4">
             Purchase this course to access all content
           </p>
         </div>
@@ -545,12 +545,12 @@ export default function ContentCard({
             }}
             className="flex items-center gap-2 mb-4 px-4 py-2 text-[#13097D] hover:bg-[#13097D]/10 rounded-lg transition cursor-pointer"
           >
-            <ChevronRight className="w-5 h-5 rotate-180" />
-            <span className="font-semibold">Back to files</span>
+            <ChevronRight className="w-4 h-4 md:w-5 md:h-5 rotate-180" />
+            <span className="text-sm md:text-base font-semibold">Back to files</span>
           </button>
 
           {/* Content Title */}
-          <h2 className="text-xl font-bold text-[#343C6A] mb-4">{selectedFile.name}</h2>
+          <h2 className="text-base md:text-xl font-bold text-[#343C6A] mb-4">{selectedFile.name}</h2>
 
           {/* Content Player/Viewer */}
           <div className="relative w-full bg-black rounded-lg overflow-hidden shadow-lg">
@@ -688,7 +688,7 @@ export default function ContentCard({
 
           {/* Info */}
           <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600">
+            <p className="text-xs md:text-sm text-gray-600">
               {selectedFile.type === 'link' || selectedFile.type === 'video' 
                 ? 'Video is optimized for learning. Use the controls to play/pause and navigate.'
                 : selectedFile.type === 'image'

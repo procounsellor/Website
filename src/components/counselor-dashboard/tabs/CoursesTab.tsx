@@ -19,7 +19,6 @@ type CourseTabProps = {
 
 export default function CourseTab(props: CourseTabProps) {
   const { user: _user, token: _token } = props;
-  const [activeSubTab, setActiveSubTab] = useState<SubTab>('PYQ');
   const { role, userId } = useAuthStore();
   const navigate = useNavigate();
   const [createCourse, setCreateCourse] = useState(false);
@@ -48,13 +47,8 @@ export default function CourseTab(props: CourseTabProps) {
           {TABS.map(tab => (
             <button
               key={tab}
-              onClick={() => {
-                setActiveSubTab(tab);
-              }}
-              className={`flex-1 md:flex-none hover:cursor-pointer px-4 py-2 text-[12px] md:text-base font-medium rounded-full transition-colors duration-200 ${
-                activeSubTab === tab 
-                ? 'bg-[#E8E7F2] text-[#13097D]' 
-                : 'bg-transparent text-gray-500 hover:text-gray-800'
+              className={`flex-1 md:flex-none  px-4 py-2 text-[12px] md:text-base font-medium rounded-full transition-colors duration-200 ${
+                'bg-[#E8E7F2] text-[#13097D]'
               }`}
             >
               {tab}
@@ -97,6 +91,8 @@ export default function CourseTab(props: CourseTabProps) {
                   rating: course.rating?.toString() || undefined,
                   reviews: undefined,
                   image: course.courseThumbnailUrl,
+                  courseTimeHours: (course as any).courseTimeHours || 0,
+                  courseTimeMinutes: (course as any).courseTimeMinutes || 0,
                 }} 
                 role={role || "counselor"}
               />
@@ -105,7 +101,7 @@ export default function CourseTab(props: CourseTabProps) {
         </div>
       ) : (
         <div className="text-center py-16 text-gray-500">
-          No {activeSubTab} courses created yet.
+          No  courses created yet.
         </div>
       )}
 

@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 type FileItem = {
   id: string;
   name: string;
-  type: 'folder' | 'video' | 'doc' | 'image';
+  type: 'folder' | 'video' | 'doc' | 'image' | 'link';
   size?: string;
   itemCount?: number;
   path: string;
@@ -14,7 +14,7 @@ type FileItem = {
 type UploadItem = {
   id: string;
   name: string;
-  type: 'video' | 'doc' | 'image';
+  type: 'video' | 'doc' | 'image' | 'link';
   size: string;
   progress: number;
 };
@@ -291,28 +291,28 @@ export default function Step3Card({ courseId }: Step3CardProps) {
 
   return (
     <>
-    <div className="flex flex-col gap-5 bg-white w-full min-h-[29.688rem] p-6 pb-8 rounded-2xl overflow-visible">
+    <div className="flex flex-col gap-3 md:gap-5 bg-white w-full min-h-[20rem] md:min-h-[29.688rem] p-3 md:p-6 pb-4 md:pb-8 rounded-2xl overflow-visible">
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-1">
           <button
             onClick={() => handleNavigateTo(0)}
-            className="text-[1.25rem] font-medium text-[#9499B2] hover:text-[#13097D] transition-colors cursor-pointer"
+            className="text-sm md:text-[1.25rem] font-medium text-[#9499B2] hover:text-[#13097D] transition-colors cursor-pointer"
           >
             Content
           </button>
           {currentPath.length > 1 && (
             <>
-              <ChevronRight className="w-5 h-5 text-[#13097D]" />
+              <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-[#13097D]" />
               {currentPath.slice(1).map((path, index) => (
                 <div key={index} className="flex items-center gap-1">
                   <button
                     onClick={() => handleNavigateTo(index + 1)}
-                    className="text-[1.25rem] font-medium text-[#13097D] hover:underline transition-colors cursor-pointer"
+                    className="text-sm md:text-[1.25rem] font-medium text-[#13097D] hover:underline transition-colors cursor-pointer"
                   >
                     {path}
                   </button>
                   {index < currentPath.length - 2 && (
-                    <ChevronRight className="w-5 h-5 text-[#13097D]" />
+                    <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-[#13097D]" />
                   )}
                 </div>
               ))}
@@ -322,7 +322,7 @@ export default function Step3Card({ courseId }: Step3CardProps) {
         <div className="relative z-20" ref={dropdownRef}>
           <button 
             onClick={() => setShowAddDropdown(!showAddDropdown)}
-            className="flex items-center gap-2 py-2 px-6 border border-[#13097D] text-[#13097D] rounded-[0.75rem] font-semibold text-[1rem] hover:bg-[#13097D] hover:text-white transition-all duration-200 cursor-pointer"
+            className="flex items-center gap-1 md:gap-2 py-1.5 md:py-2 px-3 md:px-6 border border-[#13097D] text-[#13097D] rounded-[0.75rem] font-semibold text-xs md:text-[1rem] hover:bg-[#13097D] hover:text-white transition-all duration-200 cursor-pointer"
           >
             Add
           </button>
@@ -336,22 +336,22 @@ export default function Step3Card({ courseId }: Step3CardProps) {
                 }}
                 className="w-full px-4 py-3 flex items-center gap-3 hover:bg-[#f5f5f7] transition-colors text-left cursor-pointer"
               >
-                <img src="/folder.svg" alt="folder-icon"/>
-                <span className="font-medium text-[#242645]">Folder</span>
+                <img src="/folder.svg" alt="folder-icon" className="w-4 h-4 md:w-5 md:h-5"/>
+                <span className="text-xs md:text-base font-medium text-[#242645]">Folder</span>
               </button>
               <button
                 onClick={handleFileUpload}
                 className="w-full px-4 py-3 flex items-center gap-3 hover:bg-[#f5f5f7] transition-colors text-left cursor-pointer"
               >
-                <img src="/video.svg" alt="video-icon" />
-                <span className="font-medium text-[#242645]">Video</span>
+                <img src="/video.svg" alt="video-icon" className="w-4 h-4 md:w-5 md:h-5" />
+                <span className="text-xs md:text-base font-medium text-[#242645]">Video</span>
               </button>
               <button
                 onClick={handleFileUpload}
                 className="w-full px-4 py-3 flex items-center gap-3 hover:bg-[#f5f5f7] transition-colors text-left cursor-pointer"
               >
-                <img src="/pdf.svg" alt="pdf-icon" />
-                <span className="font-medium text-[#242645]">Document</span>
+                <img src="/pdf.svg" alt="pdf-icon" className="w-4 h-4 md:w-5 md:h-5" />
+                <span className="text-xs md:text-base font-medium text-[#242645]">Document</span>
               </button>
             </div>
           )}
@@ -482,7 +482,7 @@ function FileItemComponent({ item, onOpen, onDelete, onRename }: {
   return (
     <>
       <div
-        className={`flex py-3 px-4 bg-[#f5f5f7] justify-between h-14 rounded-2xl items-center ${
+        className={`flex py-2 md:py-3 px-2 md:px-4 bg-[#f5f5f7] justify-between min-h-[3rem] md:h-14 rounded-2xl items-center ${
           item.type === 'folder' ? 'cursor-pointer hover:bg-[#ebebed]' : ''
         } transition-colors`}
         onClick={() => item.type === 'folder' && onOpen(item)}
@@ -490,19 +490,19 @@ function FileItemComponent({ item, onOpen, onDelete, onRename }: {
         tabIndex={item.type === 'folder' ? 0 : undefined}
         onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && item.type === 'folder') { onOpen(item); } }}
       >
-        <div className="flex gap-2 items-center">
-          {getIcon()}
-          <p className="flex flex-col text-[1rem] font-semibold text-[#242645]">
-            {item.name}
-            <span className="text-[0.875rem] text-[#8C8CA1] font-normal">
+        <div className="flex gap-1.5 md:gap-2 items-center min-w-0 flex-1">
+          <div className="shrink-0">{getIcon()}</div>
+          <p className="flex flex-col text-xs md:text-[1rem] font-semibold text-[#242645] min-w-0">
+            <span className="truncate">{item.name}</span>
+            <span className="text-[0.625rem] md:text-[0.875rem] text-[#8C8CA1] font-normal truncate">
               {getSubtext()}
             </span>
           </p>
         </div>
         
-        <div className="relative" ref={menuRef}>
+        <div className="relative shrink-0" ref={menuRef}>
           <EllipsisVertical 
-            className="w-5 h-5 text-[#8C8CA1] cursor-pointer hover:text-[#13097D]" 
+            className="w-4 h-4 md:w-5 md:h-5 text-[#8C8CA1] cursor-pointer hover:text-[#13097D]" 
             onClick={(e) => {
               e.stopPropagation();
               setShowMenu(!showMenu);
@@ -510,14 +510,14 @@ function FileItemComponent({ item, onOpen, onDelete, onRename }: {
           />
           
           {showMenu && (
-            <div className="absolute right-0 top-6 bg-white rounded-lg shadow-xl border border-gray-200 z-50 min-w-[140px] py-1">
+            <div className="absolute right-0 top-6 bg-white rounded-lg shadow-xl border border-gray-200 z-50 min-w-[120px] md:min-w-[140px] py-1">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowMenu(false);
                   setShowRenameDialog(true);
                 }}
-                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
+                className="w-full px-3 md:px-4 py-2 text-left text-xs md:text-sm hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
               >
                 <span>✏️</span> Rename
               </button>
@@ -527,7 +527,7 @@ function FileItemComponent({ item, onOpen, onDelete, onRename }: {
                   setShowMenu(false);
                   setShowDeleteDialog(true);
                 }}
-                className="w-full px-4 py-2 text-left text-sm hover:bg-red-50 text-red-600 flex items-center gap-2 cursor-pointer"
+                className="w-full px-3 md:px-4 py-2 text-left text-xs md:text-sm hover:bg-red-50 text-red-600 flex items-center gap-2 cursor-pointer"
               >
                 <span>🗑️</span> Delete
               </button>
