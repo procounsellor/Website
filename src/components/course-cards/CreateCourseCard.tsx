@@ -152,9 +152,9 @@ export default function CreateCourseCard({onClose}:any){
     }
   }
     return (
-        <div className="fixed inset-0 z-70 bg-opacity-50 backdrop-blur-sm flex items-center justify-center">
+        <div className="fixed inset-0 z-70 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-2 md:p-4">
         <div 
-        className="hidden md:flex items-center flex-col gap-8 w-full max-w-250 max-h-fit bg-[#F5F7FA] rounded-2xl shadow-xl p-6 relative"
+        className="flex items-center flex-col gap-4 md:gap-8 w-full max-w-250 max-h-[95vh] md:max-h-fit bg-[#F5F7FA] rounded-2xl shadow-xl p-3 md:p-6 relative overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 hover:cursor-pointer">

@@ -172,13 +172,15 @@ export default function MainLayout(){
         }}
       />
       
-      <button
-        onClick={toggleChatbot}
-        className="fixed bottom-6 right-6 bg-[#FA660F] hover:cursor-pointer text-white w-16 h-16 flex items-center justify-center rounded-full shadow-lg z-50 hover:bg-orange-600 transition-all duration-300 transform hover:scale-110"
-        aria-label="Toggle Chatbot"
-      >
-        <MessageSquare size={32} />
-      </button>
+      {!isStreamActive && (
+        <button
+          onClick={toggleChatbot}
+          className="fixed bottom-6 right-6 bg-[#FA660F] hover:cursor-pointer text-white w-16 h-16 flex items-center justify-center rounded-full shadow-lg z-50 hover:bg-orange-600 transition-all duration-300 transform hover:scale-110"
+          aria-label="Toggle Chatbot"
+        >
+          <MessageSquare size={32} />
+        </button>
+      )}
 
       {isChatbotOpen && <Chatbot />}
       {isVoiceChatOpen && <VoiceChat />}
