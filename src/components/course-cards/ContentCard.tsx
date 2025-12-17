@@ -560,19 +560,30 @@ export default function ContentCard({
                 onMouseEnter={() => setShowControls(true)}
                 onMouseLeave={() => setShowControls(false)}
               >
-                {/* Video Player with rotation for mobile recordings */}
+                {/* Video Player - with conditional rotation */}
                 <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                   <div 
                     id={`player-${selectedFile.courseContentId}`}
                     className="absolute" 
-                    style={{ 
-                      transform: 'rotate(-90deg)',
-                      transformOrigin: 'center center',
-                      width: '177.78%',
-                      height: '177.78%',
-                      left: '-38.89%',
-                      top: '-38.89%'
-                    }} 
+                    style={
+                      selectedFile.source === 'youtube' 
+                        ? {
+                            // YouTube videos: no rotation, normal display
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%'
+                          }
+                        : {
+                            // Live streams/other videos: apply rotation for mobile recordings
+                            transform: 'rotate(-90deg)',
+                            transformOrigin: 'center center',
+                            width: '177.78%',
+                            height: '177.78%',
+                            left: '-38.89%',
+                            top: '-38.89%'
+                          }
+                    } 
                   />
                   
                   {/* Custom Controls Overlay */}
@@ -708,21 +719,33 @@ export default function ContentCard({
           onTouchStart={() => setShowControls(true)}
           onTouchEnd={() => setTimeout(() => setShowControls(false), 3000)}
         >
-          {/* Full Screen Video - FILLS ENTIRE SCREEN WITH ROTATION */}
+          {/* Full Screen Video - FILLS ENTIRE SCREEN WITH CONDITIONAL ROTATION */}
           <div className="absolute inset-0 bg-black overflow-hidden">
             {/* Video player */}
             <div 
               id={`player-fs-${selectedFile.courseContentId}`}
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                width: window.innerWidth < 768 ? '100vw' : '100vh',
-                height: window.innerWidth < 768 ? '100vh' : '100vw',
-                transform: window.innerWidth < 768 
-                  ? 'translate(-50%, -50%)' 
-                  : 'translate(-50%, -50%) rotate(-90deg)',
-              }}
+              style={
+                selectedFile.source === 'youtube'
+                  ? {
+                      // YouTube videos: no rotation, normal fullscreen
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                    }
+                  : {
+                      // Live streams/other videos: apply rotation for mobile recordings
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      width: window.innerWidth < 768 ? '100vw' : '100vh',
+                      height: window.innerWidth < 768 ? '100vh' : '100vw',
+                      transform: window.innerWidth < 768 
+                        ? 'translate(-50%, -50%)' 
+                        : 'translate(-50%, -50%) rotate(-90deg)',
+                    }
+              }
             />
             
             {/* Transparent overlay to block YouTube UI */}

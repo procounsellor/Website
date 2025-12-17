@@ -408,6 +408,7 @@ export type CourseContent = {
   documentUrl: string | null;
   fileSize: number | null;
   uploadedAt: string;
+  source?: string; // e.g., 'youtube', 'upload', etc.
 };
 
 export type CourseDetails = {
