@@ -1,17 +1,28 @@
 import CommunityActions from "@/components/community/CommunityActions";
 import DashboardFeed from "@/components/community/DashboardFeed";
+import CategorySidebar from "@/components/community/CategorySidebar";
+import RightSideAds from "@/components/community/RightSideAds";
 
 export default function CommunityPage() {
   return (
     <div className="bg-gray-50 min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto flex flex-col items-center">
-        
-        <div className="w-full max-w-[900px]">
-          <CommunityActions />
+      <div className="max-w-[1440px] mx-auto flex justify-center gap-3">
+        <div className="hidden lg:block w-[191px] shrink-0">
+          <CategorySidebar />
         </div>
+        <div className="flex flex-col w-[800px] shrink-0">
+          
+          <div className="w-full">
+            <CommunityActions />
+          </div>
 
-        <div className="mt-4 w-full max-w-[900px]">
-          <DashboardFeed />
+          <div className="mt-4 w-full">
+            <DashboardFeed />
+          </div>
+          
+        </div>
+        <div className="hidden xl:block w-[250px] shrink-0">
+          <RightSideAds />
         </div>
         
       </div>

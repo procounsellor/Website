@@ -291,7 +291,7 @@ export default function Step3Card({ courseId }: Step3CardProps) {
 
   return (
     <>
-    <div className="flex flex-col gap-3 md:gap-5 bg-white w-full min-h-[20rem] md:min-h-[29.688rem] p-3 md:p-6 pb-4 md:pb-8 rounded-2xl overflow-visible">
+    <div className="flex flex-col gap-3 md:gap-5 bg-white w-full min-h-80 md:min-h-[29.688rem] p-3 md:p-6 pb-4 md:pb-8 rounded-2xl overflow-visible">
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-1">
           <button
@@ -482,7 +482,7 @@ function FileItemComponent({ item, onOpen, onDelete, onRename }: {
   return (
     <>
       <div
-        className={`flex py-2 md:py-3 px-2 md:px-4 bg-[#f5f5f7] justify-between min-h-[3rem] md:h-14 rounded-2xl items-center ${
+        className={`flex py-2 md:py-3 px-2 md:px-4 bg-[#f5f5f7] justify-between min-h-12 md:h-14 rounded-2xl items-center ${
           item.type === 'folder' ? 'cursor-pointer hover:bg-[#ebebed]' : ''
         } transition-colors`}
         onClick={() => item.type === 'folder' && onOpen(item)}
@@ -538,7 +538,7 @@ function FileItemComponent({ item, onOpen, onDelete, onRename }: {
 
       {/* Rename Dialog */}
       {showRenameDialog && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-center justify-center p-4" onClick={() => setShowRenameDialog(false)}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-70 flex items-center justify-center p-4" onClick={() => setShowRenameDialog(false)}>
           <div className="bg-white rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-bold text-[#343C6A] mb-4">
               Rename {item.type === 'folder' ? 'Folder' : 'File'}
@@ -581,7 +581,7 @@ function FileItemComponent({ item, onOpen, onDelete, onRename }: {
 
       {/* Delete Confirmation */}
       {showDeleteDialog && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-center justify-center p-4" onClick={() => setShowDeleteDialog(false)}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-70 flex items-center justify-center p-4" onClick={() => setShowDeleteDialog(false)}>
           <div className="bg-white rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-col items-center">
               <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">

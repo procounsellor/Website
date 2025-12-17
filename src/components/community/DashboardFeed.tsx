@@ -3,6 +3,7 @@ import { getCommunityDashboard } from '@/api/community';
 import { useAuthStore } from '@/store/AuthStore';
 import type { CommunityDashboardItem } from '@/types/community';
 import DashboardCard from './DashboardCard';
+import { Loader2 } from 'lucide-react'; 
 
 const DashboardFeed: React.FC = () => {
   const [items, setItems] = useState<CommunityDashboardItem[]>([]);
@@ -69,37 +70,38 @@ const DashboardFeed: React.FC = () => {
   }, [userId, token]);
 
   const handleLoadMore = useCallback(async () => {
-  if (!userId || !token || !nextPageToken || isMoreLoading) return;
+    if (!userId || !token || !nextPageToken || isMoreLoading) return;
 
-  try {
-    setIsMoreLoading(true);
-    setError(null);
+    try {
+      setIsMoreLoading(true);
+      setError(null);
 
-    const response = await getCommunityDashboard(
-      userId,
-      token,
-      nextPageToken
-    );
+      const response = await getCommunityDashboard(
+        userId,
+        token,
+        nextPageToken
+      );
 
-    if (response.status === "Success") {
-      setItems((prevItems) => [...prevItems, ...response.data]);
-      setNextPageToken(response.nextPageToken);
-    } else {
-      setError("Failed to load more items.");
+      if (response.status === "Success") {
+        setItems((prevItems) => [...prevItems, ...response.data]);
+        setNextPageToken(response.nextPageToken);
+      } else {
+        setError("Failed to load more items.");
+        setNextPageToken(null);
+      }
+    } catch (err) {
+      console.error(err);
+      setError("An error occurred while loading more items.");
       setNextPageToken(null);
+    } finally {
+      setIsMoreLoading(false);
     }
-  } catch (err) {
-    console.error(err);
-    setError("An error occurred while loading more items.");
-    setNextPageToken(null);
-  } finally {
-    setIsMoreLoading(false);
-  }
-}, [userId, token, nextPageToken, isMoreLoading]);
+  }, [userId, token, nextPageToken, isMoreLoading]);
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-[900px] p-20 bg-white rounded-lg text-center">
+      <div className="w-full max-w-[900px] p-20 bg-white rounded-lg text-center border border-gray-200 shadow-sm">
+        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-[#13097D]" />
         Loading feed...
       </div>
     );
@@ -107,36 +109,48 @@ const DashboardFeed: React.FC = () => {
 
   if (error && !isMoreLoading && items.length === 0) {
     return (
-      <div className="w-full max-w-[900px] p-20 bg-white rounded-lg text-center text-red-500">
+      <div className="w-full max-w-[900px] p-20 bg-white rounded-lg text-center text-red-500 border border-gray-200 shadow-sm">
         {error}
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-[900px] bg-white rounded-lg p-5">
-      <div className="flex flex-col gap-5">
-        {items.length > 0 ? (
-          items.map((item) => (
-            <DashboardCard key={item.questionId} item={item} />
-          ))
-        ) : (
-          <div className="p-10 text-center text-gray-500">
-            No items found in the community feed.
-          </div>
-        )}
+    <>
+      <div className="w-full max-w-[900px] bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
+        <div className="flex flex-col space-y-5">
+          {items.length > 0 ? (
+            items.map((item) => (
+              <DashboardCard key={item.questionId} item={item} />
+            ))
+          ) : (
+            <div className="p-10 text-center text-gray-500">
+              No items found in the community feed.
+            </div>
+          )}
+        </div>
       </div>
 
-      {nextPageToken && (
-        <div ref={lastElementRef} className="h-10 text-center py-4">
-          {isMoreLoading && <p>Loading more...</p>}
-        </div>
-      )}
+      <div className="w-full max-w-[900px] flex flex-col items-center mt-4">
+        {nextPageToken && (
+          <div ref={lastElementRef} className="h-16 flex justify-center items-center">
+            {isMoreLoading && (
+              <Loader2 className="w-5 h-5 animate-spin text-[#13097D]" />
+            )}
+          </div>
+        )}
 
-      {error && isMoreLoading && (
-        <div className="mt-4 text-center text-red-500">{error}</div>
-      )}
-    </div>
+        {!nextPageToken && items.length > 0 && (
+          <div className="h-16 flex justify-center items-center">
+            <p className="text-sm text-gray-400">You have reached the end</p>
+          </div>
+        )}
+
+        {error && isMoreLoading && (
+          <div className="mt-4 text-center text-red-500">{error}</div>
+        )}
+      </div>
+    </>
   );
 };
 

@@ -33,6 +33,7 @@ interface FrontendMessage {
 export interface ChatSession {
   sessionId: string;
   title: string;
+  isBookmarked?: boolean;
 }
 
 export interface ChatSessionsResponse {
@@ -117,4 +118,57 @@ export const transformCounselorData = (apiCounselor: CounsellorFromAPI): AllCoun
     city: apiCounselor.city || apiCounselor.state || "N/A",
     numberOfRatings: `${apiCounselor.reviewCount || 0}`,
   };
+};
+
+//1. Rename
+export const renameSession = async (
+  userId: string,
+  sessionId: string,
+  newTitle: string
+): Promise<boolean> => {
+  try {
+    await axios.patch(
+      `${API_CONFIG.chatbotUrl}/sessions/${userId}/${sessionId}/rename`,
+      { title: newTitle }
+    );
+    return true;
+  } catch (error) {
+    console.error("Failed to rename session:", error);
+    return false;
+  }
+};
+
+// 2. Delete
+export const deleteSession = async (
+  userId: string,
+  sessionId: string
+): Promise<boolean> => {
+  try {
+    await axios.patch(
+      `${API_CONFIG.chatbotUrl}/sessions/${userId}/${sessionId}/delete`
+    );
+    return true;
+  } catch (error) {
+    console.error("Failed to delete session:", error);
+    return false;
+  }
+};
+
+// 3. Bookmark
+export const bookmarkSession = async (
+  userId: string,
+  sessionId: string,
+  bookmarked: boolean
+): Promise<boolean> => {
+  try {
+    const queryParam = bookmarked ? "" : "?bookmarked=false";
+    await axios.patch(
+      `${API_CONFIG.chatbotUrl}/sessions/${userId}/${sessionId}/bookmark${queryParam}`
+    );
+    
+    return true;
+  } catch (error) {
+    console.error("Failed to bookmark session:", error);
+    return false;
+  }
 };
