@@ -50,6 +50,7 @@ export default function Header() {
 
   // Check if we're on the home page
   const isHomePage = location.pathname === "/";
+  const isPromoPage = location.pathname === "/promo";
 
   useEffect(() => {
     const handleBannerDismiss = () => {
@@ -147,7 +148,35 @@ export default function Header() {
             : "bg-transparent"
         }`}
       >
-        {shouldShowNewHeader ? (
+        {isPromoPage ? (
+          <div className="flex h-14 md:h-20 items-center justify-between px-5 lg:px-20">
+            <div
+              className="Logo flex items-center cursor-pointer"
+              onClick={() => navigate("/")}
+            >
+              <SmartImage
+                src="/logo.png"
+                alt="procounsel_logo"
+                className="h-7 w-7 md:w-11 md:h-12 rounded-md"
+                width={44}
+                height={44}
+                priority
+              />
+              <div className="flex items-center leading-tight pl-[9px]">
+                <h1 className="text-[#232323] font-semibold text-sm md:text-xl">
+                  ProCounsel
+                </h1>
+              </div>
+            </div>
+
+            <Button
+                  onClick={() => toggleLogin()}
+                  className="bg-[#FF660F] hover:bg-[#e15500] text-white px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg font-medium rounded-xl"
+                >
+                  Enroll Now
+                </Button>
+          </div>
+        ) : shouldShowNewHeader ? (
           <div className="flex h-14 md:h-20 items-center justify-between px-5 lg:px-20">
             <div
               className="Logo flex items-center cursor-pointer"
