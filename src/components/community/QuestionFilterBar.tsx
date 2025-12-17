@@ -13,13 +13,13 @@ export default function QuestionFilterBar() {
             placeholder="Search questions"
             className="w-full h-[46px] bg-[#F5F5F7] rounded-md px-3 py-3
                        text-sm text-[#13097D] font-medium
-                       placeholder:text-gray-500 placeholder:opacity-70 placeholder:font-normal
+                       placeholder:text-[#2F43F2] placeholder:opacity-70 placeholder:font-normal
                        focus:outline-none focus:ring-2 focus:ring-[#13097D]"
           />
         </div>
 
         <button
-          className="w-[90px] h-[40px] flex items-center justify-center gap-2
+          className="w-[90px] h-10 flex items-center justify-center gap-2
                      bg-white border border-[#EFEFEF] rounded-xl
                      text-sm font-semibold text-gray-700
                      hover:bg-gray-50 transition-colors"
