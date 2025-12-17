@@ -461,20 +461,17 @@ export async function getMyQuestions(
 ): Promise<GetCommunityDashboardResponse> {
   try {
     let url = `${baseUrl}${API_CONFIG.endpoints.getMyQuestions}?userId=${userId}`;
-    const tokenValue = pageToken === null || pageToken === undefined || pageToken === ''
-        ? 'null' 
-        : pageToken; 
-    url += `&nextPageToken=${tokenValue}`;
+    
+    if (pageToken) {
+      url += `&nextPageToken=${pageToken}`;
+    }
 
-    const response = await fetch(
-      url,
-      {
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
 
     if (!response.ok) {
       const errorBody = await response.text();
@@ -490,6 +487,7 @@ export async function getMyQuestions(
     throw error;
   }
 }
+
 
 export async function getMyAnswers(
   userId: string,

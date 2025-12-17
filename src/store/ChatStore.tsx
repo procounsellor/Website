@@ -43,6 +43,9 @@ type ChatState = {
   setLoginOpenFromChatbot: (isOpen: boolean) => void;
   resetChatState: () => void;
   updateSessionTitle: (sessionId: string, title: string) => void;
+  renameChatSession: (sessionId: string, newTitle: string, userId: string) => Promise<void>;
+  deleteChatSession: (sessionId: string, userId: string) => Promise<void>;
+  bookmarkChatSession: (sessionId: string, userId: string, bookmarked: boolean) => Promise<void>;
 };
 
 // --- HELPER: Transform API Data to Frontend Type ---
@@ -157,6 +160,51 @@ export const useChatStore = create<ChatState>((set, get) => ({
         };
       }
     });
+  },
+
+  renameChatSession: async (sessionId: string, newTitle: string, userId: string) => {
+    get().updateSessionTitle(sessionId, newTitle);
+
+    const { renameSession } = await import("@/api/chatbot");
+    const success = await renameSession(userId, sessionId, newTitle);
+
+    if (!success) {
+      console.error("Rename failed, reverting UI could be implemented here");
+    }
+  },
+
+  deleteChatSession: async (sessionId: string, userId: string) => {
+    const { deleteSession } = await import("@/api/chatbot");
+    
+    set((state) => ({
+      chatSessions: state.chatSessions.filter((s) => s.sessionId !== sessionId)
+    }));
+
+    if (get().currentSessionId === sessionId) {
+       get().startNewChat(); 
+    }
+
+    await deleteSession(userId, sessionId);
+  },
+
+  bookmarkChatSession: async (sessionId: string, userId: string, bookmarked: boolean) => {
+    set((state) => ({
+      chatSessions: state.chatSessions.map((s) =>
+        s.sessionId === sessionId ? { ...s, isBookmarked: bookmarked } : s
+      ),
+    }));
+
+    const { bookmarkSession } = await import("@/api/chatbot");
+    const success = await bookmarkSession(userId, sessionId, bookmarked);
+    
+    if (!success) {
+      set((state) => ({
+        chatSessions: state.chatSessions.map((s) =>
+          s.sessionId === sessionId ? { ...s, isBookmarked: !bookmarked } : s
+        ),
+      }));
+      console.error("Failed to update bookmark on server");
+    }
   },
 
   loadChatHistoryBySessionId: async (sessionId: string) => {
