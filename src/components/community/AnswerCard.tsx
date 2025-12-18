@@ -218,7 +218,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, onAnswerUpdated }) => {
   };
 
   return (
-    <div className="w-full max-w-[860px] mx-auto p-5 rounded-lg bg-[#F5F5F7] border-b-2 border-white mb-4">
+    <div className="w-full max-w-[860px] mx-auto p-5 rounded-lg bg-[#F5F6FF] border-b-2 border-white mb-4">
       <div className="flex justify-between items-start">
         <div className="flex gap-4">
           <img
@@ -315,7 +315,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, onAnswerUpdated }) => {
               <div className="flex gap-3 mb-8 relative">
                   <img 
                      src={loggedInUserImage}
-                     className="w-[28px] h-[28px] rounded-[24px] bg-[#D9D9D9] mt-1"
+                     className="w-7 h-7 rounded-3xl bg-[#D9D9D9] mt-1"
                   />
                   <div className="flex-1 relative">
                        <textarea
@@ -325,7 +325,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, onAnswerUpdated }) => {
                           placeholder="Add a comment"
                           rows={1}
                           disabled={isPostingComment}
-                          className="w-full min-h-[40px] py-2 px-4 pr-10 rounded-[12px] border border-[#EFEFEF] bg-white
+                          className="w-full min-h-10 py-2 px-4 pr-10 rounded-[12px] border border-[#EFEFEF] bg-white
                                      resize-none overflow-hidden focus:outline-none focus:ring-1 focus:ring-[#13097D]
                                      text-sm font-[Montserrat] disabled:opacity-50"
                        />

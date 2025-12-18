@@ -43,7 +43,7 @@ export default function CommunityActions() {
     return (
       <button
         onClick={onClick}
-        className="flex items-center gap-2 font-semibold text-[#13097D] transition-colors duration-200 hover:text-indigo-900"
+        className="flex items-center gap-2 font-semibold text-[#2F43F2] transition-colors duration-200 hover:text-indigo-900"
       >
         <Icon size={20} />
         <span className="text-sm leading-[18px]">{label}</span>
@@ -65,11 +65,11 @@ export default function CommunityActions() {
       <div className="max-w-[900px] w-full mx-auto mt-15 bg-white rounded-lg p-5 shadow-sm border border-gray-200">
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
-            <Search size={24} className="text-[#343C6A] flex-shrink-0" />
+            <Search size={24} className="text-[#343C6A] shrink-0" />
             <input
               type="text"
               placeholder="Search questions"
-              className="w-full bg-[#F5F5F7] rounded-md p-3 text-sm placeholder-gray-500 border border-transparent focus:outline-none focus:ring-2 focus:ring-[#13097D] focus:border-transparent"
+              className="w-full bg-[#F5F5F7] rounded-md p-3 text-sm placeholder-[#2F43F2] border border-transparent focus:outline-none focus:ring-2 focus:ring-[#13097D] focus:border-transparent"
             />
           </div>
 
