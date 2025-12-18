@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getCoursesForCounsellorByCounsellorId, getCoursesForUserByCounsellorId } from '@/api/course';
+import { getCoursesForCounsellorByCounsellorId, getCoursesForUserByCounsellorId, getPublicCoursesForCounsellorId } from '@/api/course';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import CourseCard from '@/components/course-cards/CourseCard';
@@ -24,10 +24,13 @@ export default function CounselorCoursesCard({ counsellorId, userRole = "user" }
         return getCoursesForCounsellorByCounsellorId(counsellorId);
       } else if (isUserOrStudent && userId) {
         return getCoursesForUserByCounsellorId(userId, counsellorId);
+      } else if (isUserOrStudent && !userId) {
+        // Use public API for non-logged-in users
+        return getPublicCoursesForCounsellorId(counsellorId);
       }
       throw new Error('Unauthorized access');
     },
-    enabled: !!counsellorId && ((isCounselor) || (isUserOrStudent && !!userId)),
+    enabled: !!counsellorId,
   });
 
   const courses = data?.data || [];

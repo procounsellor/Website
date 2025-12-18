@@ -5,10 +5,11 @@ import toast from 'react-hot-toast';
 type FileItem = {
   id: string;
   name: string;
-  type: 'folder' | 'video' | 'doc' | 'image' | 'link';
+  type: 'folder' | 'video' | 'image' | 'doc' | 'pdf' | 'link';
   size?: string;
   itemCount?: number;
   path: string;
+  parentPath?: string;
 };
 
 type UploadItem = {

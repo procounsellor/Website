@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/AuthStore';
 import { listenToChatMessages, listenToCounselorLiveStatus, trackUserJoined, trackUserLeft } from '@/lib/firebase';
 import { sendMessageInLiveSession } from '@/api/liveSessions';
 import LiveEndedPopup from './LiveEndedPopup';
+import { toast } from 'sonner';
 
 // YouTube IFrame API types
 declare global {
@@ -111,6 +112,42 @@ export default function LiveStreamView() {
       console.log('👋 User left live session:', { counsellorId, userId });
     };
   }, [counsellorId, userId]);
+
+  // Content protection: Prevent screenshots and screen recording for live stream
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Detect screenshot shortcuts
+      const isPrintScreen = e.key === 'PrintScreen';
+      const isMacScreenshot = (e.metaKey && e.shiftKey && ['3', '4', '5'].includes(e.key));
+      const isWindowsSnip = (e.metaKey && e.shiftKey && e.key === 's');
+      const isWindowsScreenRecording = (e.metaKey && e.altKey && e.key === 'r');
+      
+      if (isPrintScreen || isMacScreenshot || isWindowsSnip || isWindowsScreenRecording) {
+        e.preventDefault();
+        toast.error('Screenshots and screen recording are not allowed during live sessions', {
+          duration: 3000,
+        });
+        return false;
+      }
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      toast.error('Right-click is disabled for this content', {
+        duration: 2000,
+      });
+      return false;
+    };
+
+    // Add event listeners
+    document.addEventListener('keydown', handleKeyDown, true);
+    document.addEventListener('contextmenu', handleContextMenu, true);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown, true);
+      document.removeEventListener('contextmenu', handleContextMenu, true);
+    };
+  }, []);
 
   // Detect orientation (for mobile landscape mode)
   useEffect(() => {
@@ -454,7 +491,7 @@ export default function LiveStreamView() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col">
+    <div className="fixed inset-0 z-50 bg-white flex flex-col select-none" onContextMenu={(e) => e.preventDefault()}>
       {/* Top Bar - auto-hide in landscape */}
       {showTopBar && (
         <div className="relative z-20 bg-white border-b border-gray-200 shadow-sm">
