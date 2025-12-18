@@ -115,7 +115,7 @@ const AddFundsPanel: React.FC<AddFundsPanelProps> = ({
                   max={500000}
                   placeholder="Enter Amount"
                   className="no-spinner bg-transparent text-center text-lg font-semibold  placeholder:text-[#23232380] focus:outline-none  shrink-0"
-                  style={{ width: amount ? `${amount.length + 1}ch` : "auto" }}
+                  style={{ width: amount ? `${amount.length + 1}ch` : "auto", minWidth: "140px" }}
                 />
               </div>
               <div className="flex flex-wrap justify-center md:justify-between my-4 gap-2">

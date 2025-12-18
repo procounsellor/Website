@@ -399,9 +399,57 @@ export async function getCoursesForUserByCounsellorId(
   return response.json();
 }
 
+// Public API - No authentication required
+export async function getPublicCoursesForCounsellorId(
+  counsellorId: string
+): Promise<GetCoursesResponse> {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/shared/getCoursesForUserByCounsellorId?counsellorId=${counsellorId}`,
+    {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      },
+    }
+  );
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      // Return empty data for no content
+      return { data: [], message: 'No courses found' };
+    }
+    throw new Error('Failed to fetch courses');
+  }
+
+  return response.json();
+}
+
+// Public API - No authentication required
+export async function getPublicCourseDetailsByCourseId(
+  courseId: string
+): Promise<CourseDetails> {
+  const url = `${API_CONFIG.baseUrl}/api/shared/getCounsellorCourseForUserByCourseId?courseId=${courseId}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json'
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('API Error Response:', errorText);
+    throw new Error(`Failed to fetch course details: ${response.status} ${errorText}`);
+  }
+
+  const responseData = await response.json();
+  return responseData.data || responseData;
+}
+
 export type CourseContent = {
   courseContentId: string;
-  type: 'folder' | 'image' | 'video' | 'doc' | 'link';
+  type: 'folder' | 'image' | 'video' | 'doc' | 'link' | 'pdf';
   name: string;
   path: string;
   parentPath: string;

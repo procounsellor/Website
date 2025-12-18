@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   getCounsellorCourseByCourseId, 
   getCounsellorCourseForUserByCourseId,
+  getPublicCourseDetailsByCourseId,
   bookmarkCourse,
   buyCourse
 } from "@/api/course";
@@ -27,7 +28,7 @@ type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 
 export default function CoursePage() {
   const { courseId, role: roleParam } = useParams();
-  const { userId, user, role: userRole } = useAuthStore();
+  const { userId, user, role: userRole, toggleLogin } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -47,9 +48,11 @@ export default function CoursePage() {
       console.log('Fetching course details:', { courseId, userId, role, isCounselor, isUserOrStudent });
       if (isCounselor && userId) {
         return getCounsellorCourseByCourseId(userId as string, courseId as string);
-      } else if (isUserOrStudent) {
-        const effectiveUserId = userId || 'guest';
-        return getCounsellorCourseForUserByCourseId(effectiveUserId, courseId as string);
+      } else if (isUserOrStudent && userId) {
+        return getCounsellorCourseForUserByCourseId(userId, courseId as string);
+      } else if (isUserOrStudent && !userId) {
+        // Use public API for non-logged-in users
+        return getPublicCourseDetailsByCourseId(courseId as string);
       }
       throw new Error('Unauthorized access');
     },
@@ -122,17 +125,26 @@ export default function CoursePage() {
 
   const handleBookmark = () => {
     if (!user) {
-      toast.error('Please sign in to bookmark courses');
+      // Trigger login and bookmark after successful login
+      toggleLogin(() => {
+        bookmarkMutation.mutate();
+      });
       return;
     }
     bookmarkMutation.mutate();
   };
 
   const handleBuyCourse = () => {
-    if (!user) {
-      toast.error('Please sign in to purchase courses');
+    if (!user || !userId) {
+      // Trigger login and purchase after successful login
+      toggleLogin(() => {
+        // This callback will be executed after successful login
+        // We need to re-trigger the purchase mutation
+        buyCourseMutation.mutate();
+      });
       return;
     }
+    // User is logged in, proceed with purchase
     buyCourseMutation.mutate();
   };
 
