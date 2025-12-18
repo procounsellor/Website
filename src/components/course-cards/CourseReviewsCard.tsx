@@ -132,6 +132,12 @@ export default function CourseReviewsCard({
   }, [userId, reviews]);
 
   const handleSubmitReview = async () => {
+    // Prevent duplicate reviews
+    if (userHasReviewed) {
+      toast.error('You have already reviewed this course');
+      return;
+    }
+
     if (userRating === 0) {
       toast.error('Please select a rating (1-5 stars)');
       return;
@@ -197,16 +203,16 @@ export default function CourseReviewsCard({
     if (userHasReviewed) {
       return (
         <div className="mt-4 flex flex-col gap-4">
+          <div className="p-3 md:p-4 bg-green-50 rounded-lg flex items-center gap-2 md:gap-3 mb-2">
+            <Info className="w-4 h-4 md:w-6 md:h-6 text-green-500 shrink-0" />
+            <p className="text-xs md:text-sm text-green-800">
+              You have already reviewed this course.
+            </p>
+          </div>
           <StarRating rating={userRating} interactive={false} />
           <p className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg min-h-[100px] text-gray-800">
             {reviewText}
           </p>
-          <button
-            className="self-start px-4 md:px-6 py-1.5 md:py-2 bg-[#13097D] text-white text-xs md:text-base font-semibold rounded-lg hover:bg-gray-700 transition"
-            onClick={() => setUserHasReviewed(false)}
-          >
-            Edit Review
-          </button>
         </div>
       );
     }

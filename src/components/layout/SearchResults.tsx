@@ -98,7 +98,7 @@ export function SearchResults({ onResultClick }: SearchResultsProps) {
                 <button
                   key={result.id}
                   onClick={() => handleResultClick(result)}
-                  className="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition-colors group"
+                  className="w-full hover:cursor-pointer text-left p-3 hover:bg-gray-50 rounded-lg transition-colors group"
                 >
                   <div className="flex items-start gap-3">
                     {result.imageUrl ? (

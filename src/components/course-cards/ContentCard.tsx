@@ -2,6 +2,7 @@ import { Lock, ChevronRight, Play, Pause, SkipBack, SkipForward, Maximize, Minim
 // import { useAuthStore } from "@/store/AuthStore";
 import type { CourseContent } from "@/api/course";
 import { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
 
 // YouTube IFrame API types
 declare global {
@@ -52,8 +53,9 @@ const getFileIcon = (type: string) => {
     case 'video':
       return <img src="/video.svg" alt="" />;
     case 'link':
-      return <img src="/video.svg" alt="" />; // YouTube/video link
+      return <img src="/video.svg" alt="" />; // YouTube/video link with blue icon
     case 'doc':
+    case 'pdf':
       return <img src="/pdf.svg" alt="" />;
     case 'image':
       return <img src="/pdf.svg" alt="" />;
@@ -109,6 +111,44 @@ export default function ContentCard({
   const [pdfFullscreen, setPdfFullscreen] = useState(false);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const fullscreenPlayerRef = useRef<YTPlayer | null>(null);
+
+  // Content protection: Prevent screenshots and screen recording
+  useEffect(() => {
+    if (!showFilePreview || !selectedFile) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Detect screenshot shortcuts
+      const isPrintScreen = e.key === 'PrintScreen';
+      const isMacScreenshot = (e.metaKey && e.shiftKey && ['3', '4', '5'].includes(e.key));
+      const isWindowsSnip = (e.metaKey && e.shiftKey && e.key === 's');
+      const isWindowsScreenRecording = (e.metaKey && e.altKey && e.key === 'r');
+      
+      if (isPrintScreen || isMacScreenshot || isWindowsSnip || isWindowsScreenRecording) {
+        e.preventDefault();
+        toast.error('Screenshots and screen recording are not allowed for this content', {
+          duration: 3000,
+        });
+        return false;
+      }
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      toast.error('Right-click is disabled for this content', {
+        duration: 2000,
+      });
+      return false;
+    };
+
+    // Add event listeners
+    document.addEventListener('keydown', handleKeyDown, true);
+    document.addEventListener('contextmenu', handleContextMenu, true);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown, true);
+      document.removeEventListener('contextmenu', handleContextMenu, true);
+    };
+  }, [showFilePreview, selectedFile]);
 
   // Initialize YouTube player when a link/video is selected
   useEffect(() => {
@@ -366,19 +406,47 @@ export default function ContentCard({
     return `${mb.toFixed(2)} MB`;
   };
 
+  // Helper to format upload date/time
+  const formatUploadDateTime = (uploadedAt?: string) => {
+    if (!uploadedAt) return null;
+    try {
+      const date = new Date(uploadedAt);
+      // Format as "Dec 18, 2025, 7:30 PM"
+      return date.toLocaleString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch {
+      return null;
+    }
+  };
+
   const getItemDescription = (item: CourseContent) => {
     if (item.type === 'folder') {
-      const childItems = courseContents.filter(c => c.parentPath === item.path);
-      const videos = childItems.filter(c => c.type === 'video' || c.type === 'link').length;
-      const docs = childItems.filter(c => c.type === 'doc' || c.type === 'image').length;
+      // Count only direct children (not grandchildren)
+      const directChildren = courseContents.filter(c => c.parentPath === item.path);
+      
+      const folders = directChildren.filter(c => c.type === 'folder').length;
+      const videos = directChildren.filter(c => c.type === 'video' || c.type === 'link').length;
+      const files = directChildren.filter(c => c.type === 'doc' || c.type === 'pdf' || c.type === 'image').length;
       
       const parts = [];
+      if (folders > 0) parts.push(`${folders} folder(s)`);
       if (videos > 0) parts.push(`${videos} video(s)`);
-      if (docs > 0) parts.push(`${docs} file(s)`);
+      if (files > 0) parts.push(`${files} file(s)`);
       
       return parts.length > 0 ? parts.join(', ') : '0 items';
     }
-    // Show descriptive text for links instead of file size
+    // Show date/time for videos in Live Sessions folder
+    if ((item.type === 'link' || item.type === 'video') && item.parentPath.includes('Live Sessions')) {
+      const dateTime = formatUploadDateTime(item.uploadedAt);
+      return dateTime || 'Video link';
+    }
+    // Show descriptive text for other links
     if (item.type === 'link') {
       return 'Video link';
     }
@@ -396,13 +464,10 @@ export default function ContentCard({
       if (setCurrentPath) {
         setCurrentPath(newPath);
       }
-    } else if (item.type === 'video' || item.type === 'link' || item.type === 'image') {
-      // Open file preview
+    } else if (item.type === 'video' || item.type === 'link' || item.type === 'image' || item.type === 'doc' || item.type === 'pdf') {
+      // Open file preview for all file types (videos, images, PDFs)
       setSelectedFile(item);
       setShowFilePreview(true);
-    } else if (item.type === 'doc' && item.documentUrl) {
-      // Open PDF in new tab for better viewing
-      window.open(item.documentUrl, '_blank');
     }
   };
 
@@ -536,8 +601,8 @@ export default function ContentCard({
 
       {/* Inline Video/Image Player - Shows instead of file list when selected */}
       {showFilePreview && selectedFile && (
-        <div className="mt-4">
-          {/* Back Button */}
+        <div className="mt-4 select-none" onContextMenu={(e) => e.preventDefault()}>
+          {/* Close Button */}
           <button
             onClick={() => {
               setShowFilePreview(false);
@@ -546,7 +611,7 @@ export default function ContentCard({
             className="flex items-center gap-2 mb-4 px-4 py-2 text-[#13097D] hover:bg-[#13097D]/10 rounded-lg transition cursor-pointer"
           >
             <ChevronRight className="w-4 h-4 md:w-5 md:h-5 rotate-180" />
-            <span className="text-sm md:text-base font-semibold">Back to files</span>
+            <span className="text-sm md:text-base font-semibold">Close</span>
           </button>
 
           {/* Content Title */}
@@ -560,19 +625,30 @@ export default function ContentCard({
                 onMouseEnter={() => setShowControls(true)}
                 onMouseLeave={() => setShowControls(false)}
               >
-                {/* Video Player with rotation for mobile recordings */}
+                {/* Video Player - with conditional rotation */}
                 <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                   <div 
                     id={`player-${selectedFile.courseContentId}`}
                     className="absolute" 
-                    style={{ 
-                      transform: 'rotate(-90deg)',
-                      transformOrigin: 'center center',
-                      width: '177.78%',
-                      height: '177.78%',
-                      left: '-38.89%',
-                      top: '-38.89%'
-                    }} 
+                    style={
+                      selectedFile.source === 'youtube' 
+                        ? {
+                            // YouTube videos: no rotation, normal display
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%'
+                          }
+                        : {
+                            // Live streams/other videos: apply rotation for mobile recordings
+                            transform: 'rotate(-90deg)',
+                            transformOrigin: 'center center',
+                            width: '177.78%',
+                            height: '177.78%',
+                            left: '-38.89%',
+                            top: '-38.89%'
+                          }
+                    } 
                   />
                   
                   {/* Custom Controls Overlay */}
@@ -659,28 +735,36 @@ export default function ContentCard({
                 </div>
               </div>
             ) : selectedFile.type === 'image' ? (
-              /* Image Viewer - inline display */
+              /* Image Viewer - inline display with fullscreen option */
               <div className="relative">
                 <img 
                   src={selectedFile.documentUrl || ''} 
                   alt={selectedFile.name}
-                  className="w-full h-auto max-h-[70vh] object-contain"
+                  className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
                 />
-              </div>
-            ) : selectedFile.type === 'doc' ? (
-              /* PDF Viewer - Click to open fullscreen */
-              <div className="bg-gray-100 p-8 md:p-12 text-center rounded-lg">
-                <svg className="w-20 h-20 mx-auto mb-4 text-[#13097D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">PDF Document</h3>
-                <p className="text-sm text-gray-600 mb-6">Open in fullscreen viewer</p>
                 <button
                   onClick={() => setPdfFullscreen(true)}
-                  className="px-8 py-3 bg-[#13097D] text-white rounded-lg font-semibold hover:bg-[#0d0659] transition cursor-pointer inline-flex items-center gap-2"
+                  className="absolute top-4 right-4 px-4 py-2 bg-[#13097D] text-white rounded-lg font-semibold hover:bg-[#0d0659] transition cursor-pointer inline-flex items-center gap-2 shadow-lg"
                 >
-                  <Maximize className="w-5 h-5" />
-                  Open PDF
+                  <Maximize className="w-4 h-4" />
+                  <span className="hidden md:inline">Fullscreen</span>
+                </button>
+              </div>
+            ) : (selectedFile.type === 'doc' || selectedFile.type === 'pdf') ? (
+              /* PDF Viewer - inline preview with fullscreen option, toolbar disabled */
+              <div className="relative">
+                <iframe
+                  src={`${selectedFile.documentUrl || ''}#toolbar=0`}
+                  className="w-full h-[70vh] border-0 rounded-lg bg-white"
+                  title={selectedFile.name}
+                  allow="autoplay"
+                />
+                <button
+                  onClick={() => setPdfFullscreen(true)}
+                  className="absolute top-4 right-4 px-4 py-2 bg-[#13097D] text-white rounded-lg font-semibold hover:bg-[#0d0659] transition cursor-pointer inline-flex items-center gap-2 shadow-lg"
+                >
+                  <Maximize className="w-4 h-4" />
+                  <span className="hidden md:inline">Fullscreen</span>
                 </button>
               </div>
             ) : null}
@@ -693,7 +777,9 @@ export default function ContentCard({
                 ? 'Video is optimized for learning. Use the controls to play/pause and navigate.'
                 : selectedFile.type === 'image'
                 ? 'Image displayed above. Use browser zoom if needed.'
-                : 'PDF document displayed above. Scroll to read all pages.'}
+                : (selectedFile.type === 'doc' || selectedFile.type === 'pdf')
+                ? 'PDF document displayed above. Scroll to read all pages.'
+                : ''}
             </p>
           </div>
         </div>
@@ -708,21 +794,33 @@ export default function ContentCard({
           onTouchStart={() => setShowControls(true)}
           onTouchEnd={() => setTimeout(() => setShowControls(false), 3000)}
         >
-          {/* Full Screen Video - FILLS ENTIRE SCREEN WITH ROTATION */}
+          {/* Full Screen Video - FILLS ENTIRE SCREEN WITH CONDITIONAL ROTATION */}
           <div className="absolute inset-0 bg-black overflow-hidden">
             {/* Video player */}
             <div 
               id={`player-fs-${selectedFile.courseContentId}`}
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                width: window.innerWidth < 768 ? '100vw' : '100vh',
-                height: window.innerWidth < 768 ? '100vh' : '100vw',
-                transform: window.innerWidth < 768 
-                  ? 'translate(-50%, -50%)' 
-                  : 'translate(-50%, -50%) rotate(-90deg)',
-              }}
+              style={
+                selectedFile.source === 'youtube'
+                  ? {
+                      // YouTube videos: no rotation, normal fullscreen
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                    }
+                  : {
+                      // Live streams/other videos: apply rotation for mobile recordings
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      width: window.innerWidth < 768 ? '100vw' : '100vh',
+                      height: window.innerWidth < 768 ? '100vh' : '100vw',
+                      transform: window.innerWidth < 768 
+                        ? 'translate(-50%, -50%)' 
+                        : 'translate(-50%, -50%) rotate(-90deg)',
+                    }
+              }
             />
             
             {/* Transparent overlay to block YouTube UI */}
@@ -818,9 +916,9 @@ export default function ContentCard({
         </div>
       )}
 
-      {/* Custom Fullscreen PDF Viewer */}
-      {pdfFullscreen && selectedFile && selectedFile.type === 'doc' && (
-        <div className="fixed inset-0 z-[100] bg-black">
+      {/* Custom Fullscreen Viewer for PDF and Images */}
+      {pdfFullscreen && selectedFile && (selectedFile.type === 'doc' || selectedFile.type === 'pdf' || selectedFile.type === 'image') && (
+        <div className="fixed inset-0 z-[100] bg-black select-none" onContextMenu={(e) => e.preventDefault()}>
           <div className="absolute inset-0 flex flex-col">
             {/* Header with close button */}
             <div className="bg-[#13097D] text-white px-4 py-3 flex items-center justify-between shrink-0">
@@ -833,13 +931,24 @@ export default function ContentCard({
               </button>
             </div>
 
-            {/* PDF Viewer using Google Docs Viewer */}
-            <div className="flex-1 bg-gray-100">
-              <iframe
-                src={`https://docs.google.com/viewer?url=${encodeURIComponent(selectedFile.documentUrl || '')}&embedded=true`}
-                className="w-full h-full border-0"
-                title={selectedFile.name}
-              />
+            {/* Content Viewer */}
+            <div className="flex-1 bg-gray-100 flex items-center justify-center overflow-auto">
+              {(selectedFile.type === 'doc' || selectedFile.type === 'pdf') ? (
+                /* PDF Viewer - direct link with toolbar disabled */
+                <iframe
+                  src={`${selectedFile.documentUrl || ''}#toolbar=0`}
+                  className="w-full h-full border-0"
+                  title={selectedFile.name}
+                  allow="autoplay"
+                />
+              ) : (
+                /* Image Viewer */
+                <img
+                  src={selectedFile.documentUrl || ''}
+                  alt={selectedFile.name}
+                  className="max-w-full max-h-full object-contain"
+                />
+              )}
             </div>
           </div>
         </div>

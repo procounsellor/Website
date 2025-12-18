@@ -67,7 +67,7 @@ export default function ({
     : "0";
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-0">
+    <div className="max-w-7xl mx-auto px-4 md:px-6">
       <div className="flex flex-col md:flex-row gap-4 md:gap-3">
         {/* Left: Image + Info */}
         <div className="flex gap-3 flex-1 min-w-0">
@@ -205,7 +205,7 @@ export default function ({
               )}
           </div>
 
-          {isUserOrStudent && !isPurchased && onBuyCourse && (
+          {role !== 'counselor' && !isPurchased && onBuyCourse && (
             <button
               onClick={onBuyCourse}
               disabled={isBuying}

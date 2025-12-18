@@ -141,10 +141,11 @@ export default function PlansCard({
                       {col.title}
                     </div>
                     <p
-                      className={`${
+                      className={`flex items-center gap-1 ${
                         isSelected ? "text-[#EC5E1A]" : "text-[#13097D]"
                       } text-sm md:text-xl font-semibold mt-1`}
                     >
+                      <img src="/coin.svg" alt="" className="inline" />
                       {formatPlanPrice((plan?.prices as any)?.[col.key])}
                     </p>
                   </div>
