@@ -130,7 +130,7 @@ const EditAnswerModal: React.FC<EditAnswerModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-[632px] p-10 bg-white rounded-[16px] shadow-xl border border-[#EFEFEF]"
+        className="relative w-full max-w-[632px] p-10 bg-white rounded-2xl shadow-xl border border-[#EFEFEF]"
         onClick={(e) => e.stopPropagation()}
       >
         <button

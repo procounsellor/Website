@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bookmark, Pencil } from 'lucide-react';
+import { Bookmark } from 'lucide-react';
 import { useAuthStore } from '@/store/AuthStore';
 import type { CommunityQuestion } from '@/types/community';
 import WriteAnswerModal from './WriteAnswerModal';
@@ -106,7 +106,7 @@ const AnswerFeedCard: React.FC<AnswerFeedCardProps> = ({ question }) => {
                        text-base font-medium text-[#2F43F2]
                        hover:bg-indigo-50"
           >
-            <Pencil size={18} />
+            <img src="/write_ans.svg" alt="write an answer" />
             <span>Write an answer</span>
           </button>
         </div>
