@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bookmark, Heart, MessageSquare, Sparkles, Eye } from 'lucide-react';
+import { Bookmark, Heart } from 'lucide-react';
 import type { CommunityDashboardItem } from '@/types/community';
 import { formatTimeAgo } from '@/utils/time';
 import { useAuthStore } from '@/store/AuthStore';
@@ -236,17 +236,17 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({ questio
             <span className="text-sm">{likesCount}</span>
           </button>
           <button className="flex items-center gap-2 hover:text-indigo-600">
-            <MessageSquare size={18} />
+            <img src="/msg_comm.svg" alt="comment" />
             <span className="text-sm">{question.commentCountOnAnswer || 0}</span>
           </button>
           <div className="flex items-center gap-2">
-            <Sparkles size={18} />
+            <img src="/bulb_comm.svg" alt="answers" />
             <span className="text-sm">{question.answerCount || 0} Answers</span>
           </div>
         </div>
 
         <div className="flex items-center gap-2 text-gray-600">
-          <Eye size={18} />
+          <img src="/eye_comm.svg" alt="views" />
           <span className="text-sm">{question.questionViews || 0}</span>
         </div>
       </div>
