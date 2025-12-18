@@ -118,7 +118,7 @@ export default function PlansCard({
                     if (isDisabled) return;
                     setSelected(isSelected ? null : col.key)
                   }}
-                  className={`flex-1 p-2 md:p-4 transition-colors duration-150 rounded-2xl text-center border-2 box-border ${
+                  className={`flex-1 p-2 md:p-4 transition-colors duration-150 rounded-2xl text-center border-2 box-border hover:cursor-pointer ${
                     isSelected
                       ? "border-[#EC5E1A] bg-linear-to-b from-[#FFF4EB] to-[#FFF1E6]"
                       : "border-transparent bg-transparent"
@@ -141,10 +141,11 @@ export default function PlansCard({
                       {col.title}
                     </div>
                     <p
-                      className={`${
+                      className={`flex items-center gap-1 ${
                         isSelected ? "text-[#EC5E1A]" : "text-[#13097D]"
                       } text-sm md:text-xl font-semibold mt-1`}
                     >
+                      <img src="/coin.svg" alt="" className="inline" />
                       {formatPlanPrice((plan?.prices as any)?.[col.key])}
                     </p>
                   </div>
@@ -175,7 +176,7 @@ export default function PlansCard({
           }}
           className={`w-full lg:w-[586px] h-12 rounded-md text-base md:text-lg font-semibold transition-colors duration-150 ${
             selected && isSelectedPlanAvailable
-              ? "bg-[#EC5E1A] text-white"
+              ? "bg-[#EC5E1A] text-white hover:cursor-pointer"
               : "bg-white text-[#EC5E1A] border border-[#EC5E1A] opacity-50 cursor-not-allowed"
           }`}
           disabled={!selected || !isSelectedPlanAvailable}

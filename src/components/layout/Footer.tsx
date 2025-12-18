@@ -28,7 +28,7 @@ export default function Footer() {
   };
   
   return (
-    <footer className="bg-linear-to-b from-[#ECEBF5] from-[0%] to-[#13097D4D] to-[100%] text-slate-700">
+    <footer className="bg-linear-to-b from-[#ECEBF5] from-0% to-[#13097D4D] to-100% text-slate-700">
       <div className="mx-auto max-w-[1440px] px-4 sm:px-8 md:px-16 lg:px-[125px] py-6 sm:py-10">
         <div className="grid grid-cols-1 gap-8 sm:gap-10 md:gap-[50px] md:grid-cols-12">
           <div className="md:col-span-4 space-y-4 sm:space-y-5">
@@ -53,7 +53,7 @@ export default function Footer() {
               <div className="flex items-start gap-3">
                 <img src={locationIcon} alt="Location" className="h-5 w-5 sm:h-6 sm:w-6 shrink-0 mt-0.5" />
                 <p className="font-montserrat font-normal text-sm sm:text-base leading-tight text-[#180033] max-w-full sm:max-w-[280px]">
-                  The Address Commercia, Shop No. 427, Near Hinjewadi Bridge, Wakad-411057
+                  The Address Commercia, Office No. 427, Near Hinjewadi Bridge, Wakad-411057
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -80,9 +80,11 @@ export default function Footer() {
                 <li>
                   <a href="/exams" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Exams</a>
                 </li>
-                <li>
-                  <a href="/counsellors" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Counsellors</a>
-                </li>
+                {role !== 'counselor' && (
+                  <li>
+                    <a href="/counsellors" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Counsellors</a>
+                  </li>
+                )}
                 <li>
                   <a href="/about" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">About Us</a>
                 </li>

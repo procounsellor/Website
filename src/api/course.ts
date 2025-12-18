@@ -33,9 +33,9 @@ export async function uploadCourseData(
     `${API_CONFIG.baseUrl}/api/counsellorCourses/uploadCourseData`,
     {
       method: 'POST',
-      headers:{
-        'Authorization':`Bearer ${token}`,
-        Accept:'application/json'
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        Accept: 'application/json'
       },
       body: formData,
     }
@@ -43,6 +43,50 @@ export async function uploadCourseData(
 
   if (!response.ok) {
     throw new Error('Failed to upload course data');
+  }
+
+  return response.json();
+}
+
+export type UpdateCourseData = {
+  courseName?: string;
+  description?: string;
+  coursePrice?: number;
+  discount?: number;
+  coursePriceAfterDiscount?: number;
+};
+
+export async function updateCourseData(
+  counsellorId: string,
+  courseId: string,
+  courseData: UpdateCourseData,
+  thumbnail?: File | null
+): Promise<{ message: string; status: boolean }> {
+  const formData = new FormData();
+  formData.append('counsellorId', counsellorId);
+  formData.append('courseId', courseId);
+  formData.append('courseData', JSON.stringify(courseData));
+
+  if (thumbnail) {
+    formData.append('thumbnail', thumbnail);
+  }
+
+  const token = localStorage.getItem('jwt');
+
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/counsellorCourses/updateCourseData`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      },
+      body: formData,
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to update course data');
   }
 
   return response.json();
@@ -118,6 +162,140 @@ export async function addFile(
 
   if (!response.ok) {
     throw new Error('Failed to upload file');
+  }
+
+  return response.json();
+}
+
+// Rename Folder
+export type RenameFolderRequest = {
+  counsellorId: string;
+  courseId: string;
+  name: string;
+  parentPath: string;
+  newName: string;
+};
+
+export async function renameFolder(
+  data: RenameFolderRequest
+): Promise<{ message: string; status: boolean }> {
+  const token = localStorage.getItem('jwt');
+
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/counsellorCourses/renameFolder`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(data),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to rename folder');
+  }
+
+  return response.json();
+}
+
+// Delete Folder
+export type DeleteFolderRequest = {
+  counsellorId: string;
+  courseId: string;
+  name: string;
+  parentPath: string;
+};
+
+export async function deleteFolder(
+  data: DeleteFolderRequest
+): Promise<{ message: string; status: boolean }> {
+  const token = localStorage.getItem('jwt');
+
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/counsellorCourses/deleteFolder`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(data),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to delete folder');
+  }
+
+  return response.json();
+}
+
+// Rename File
+export type RenameFileRequest = {
+  counsellorId: string;
+  courseId: string;
+  name: string;
+  parentPath: string;
+  newName: string;
+};
+
+export async function renameFile(
+  data: RenameFileRequest
+): Promise<{ message: string; status: boolean }> {
+  const token = localStorage.getItem('jwt');
+
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/counsellorCourses/renameFile`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(data),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to rename file');
+  }
+
+  return response.json();
+}
+
+// Delete File
+export type DeleteFileRequest = {
+  counsellorId: string;
+  courseId: string;
+  name: string;
+  parentPath: string;
+};
+
+export async function deleteFile(
+  data: DeleteFileRequest
+): Promise<{ message: string; status: boolean }> {
+  const token = localStorage.getItem('jwt');
+
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/counsellorCourses/deleteFile`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(data),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to delete file');
   }
 
   return response.json();
@@ -221,15 +399,64 @@ export async function getCoursesForUserByCounsellorId(
   return response.json();
 }
 
+// Public API - No authentication required
+export async function getPublicCoursesForCounsellorId(
+  counsellorId: string
+): Promise<GetCoursesResponse> {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/shared/getCoursesForUserByCounsellorId?counsellorId=${counsellorId}`,
+    {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      },
+    }
+  );
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      // Return empty data for no content
+      return { data: [], message: 'No courses found' };
+    }
+    throw new Error('Failed to fetch courses');
+  }
+
+  return response.json();
+}
+
+// Public API - No authentication required
+export async function getPublicCourseDetailsByCourseId(
+  courseId: string
+): Promise<CourseDetails> {
+  const url = `${API_CONFIG.baseUrl}/api/shared/getCounsellorCourseForUserByCourseId?courseId=${courseId}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json'
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('API Error Response:', errorText);
+    throw new Error(`Failed to fetch course details: ${response.status} ${errorText}`);
+  }
+
+  const responseData = await response.json();
+  return responseData.data || responseData;
+}
+
 export type CourseContent = {
   courseContentId: string;
-  type: 'folder' | 'image' | 'video' | 'doc';
+  type: 'folder' | 'image' | 'video' | 'doc' | 'link' | 'pdf';
   name: string;
   path: string;
   parentPath: string;
   documentUrl: string | null;
   fileSize: number | null;
   uploadedAt: string;
+  source?: string; // e.g., 'youtube', 'upload', etc.
 };
 
 export type CourseDetails = {
@@ -269,7 +496,7 @@ export async function getCounsellorCourseByCourseId(
 ): Promise<CourseDetails> {
   const token = localStorage.getItem('jwt');
   const url = `${API_CONFIG.baseUrl}/api/counsellorCourses/getCounsellorCourseByCourseId?counsellorId=${counsellorId}&courseId=${courseId}`;
-  
+
   console.log('API Call (Counselor):', url);
 
   const response = await fetch(url, {
@@ -286,7 +513,10 @@ export async function getCounsellorCourseByCourseId(
     throw new Error(`Failed to fetch course details: ${response.status} ${errorText}`);
   }
 
-  return response.json();
+  const data = await response.json();
+  console.log('📦 Counselor Course Details Response:', data);
+
+  return data;
 }
 
 export async function getCounsellorCourseForUserByCourseId(
@@ -295,7 +525,7 @@ export async function getCounsellorCourseForUserByCourseId(
 ): Promise<CourseDetails> {
   const token = localStorage.getItem('jwt');
   const url = `${API_CONFIG.baseUrl}/api/counsellorCourses/getCounsellorCourseForUserByCourseId?userId=${userId}&courseId=${courseId}`;
-  
+
   console.log('API Call:', url);
   console.log('Token:', token ? 'Present' : 'Missing');
 

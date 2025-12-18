@@ -145,7 +145,7 @@ const MyActivityAnswerCard: React.FC<MyActivityAnswerCardProps> = ({ answerItem,
   return (
     <div 
       onClick={handleClick}
-      className="w-full max-w-[860px] mx-auto p-5 rounded-lg cursor-pointer bg-[#F5F5F7] border-b-2 border-white"
+      className="w-full max-w-[860px] mx-auto p-5 rounded-lg cursor-pointer bg-[#F5F6FF] border-b-2 border-white"
     >
       <div className="flex justify-between items-start">
         <div className="flex gap-4">

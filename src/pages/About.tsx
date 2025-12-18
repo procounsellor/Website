@@ -134,11 +134,11 @@ export default function AboutPage() {
                 Join thousands of students who have found their path with ProCounsel
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/" className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 inline-block cursor-pointer">
-                  Explore Colleges
+                <Link to="/counsellors" className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 inline-block cursor-pointer">
+                  Explore counsellor
                 </Link>
-                <Link to="/courses" className="bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition duration-300 inline-block cursor-pointer">
-                  Find Courses
+                <Link to="/exams" className="bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition duration-300 inline-block cursor-pointer">
+                  Find Exams
                 </Link>
               </div>
             </div>

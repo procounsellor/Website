@@ -50,13 +50,13 @@ const TimePicker = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="h-12 w-full px-4 border border-[#13097D66] rounded-xl bg-white text-left flex items-center justify-between focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors hover:border-gray-400"
+        className="h-12 w-full px-4 border border-[#13097D66] rounded-xl bg-white text-left flex items-center justify-between focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors hover:border-gray-400 hover:cursor-pointer"
       >
         <span className={selectedTime ? 'text-[#232323] font-medium' : 'text-[#6C696980] font-medium'}>
           {selectedTime ? selectedTime.label : placeholder}
         </span>
         <svg 
-          className={`h-5 w-5 text-gray-400 transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} 
+          className={`h-5 w-5 text-gray-400 transition-transform shrink-0 ${isOpen ? 'rotate-180' : ''}`} 
           fill="none" 
           stroke="currentColor" 
           viewBox="0 0 24 24"
@@ -75,7 +75,7 @@ const TimePicker = ({
                 onChange(time.value);
                 setIsOpen(false);
               }}
-              className={`w-full px-4 py-3 text-left hover:bg-orange-50 transition-colors ${
+              className={`w-full px-4 py-3 text-left hover:bg-orange-50 transition-colors cursor-pointer ${
                 value === time.value ? 'bg-orange-100 text-[#FA660F] font-semibold' : 'text-gray-700'
               }`}
             >
@@ -159,7 +159,7 @@ export default function ProfileDetailsStep({
             <FormField label="Email">
                 <div className="relative h-12">
                     <input type="email" name="email" placeholder="Enter your Email id" value={formData.email} onChange={handleChange} required className="h-full w-full px-4 border border-[#13097D66] rounded-xl placeholder:text-[#6C696980] placeholder:font-medium focus:outline-none focus:border-orange-500 focus:ring-0"/>
-                    <button onClick={onVerifyEmail} disabled={formData.emailOtpVerified || !formData.email} className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold ${formData.emailOtpVerified ? 'text-green-600 cursor-default' : 'text-blue-600 hover:text-blue-800 disabled:opacity-50'}`}>
+                    <button onClick={onVerifyEmail} disabled={formData.emailOtpVerified || !formData.email} className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold ${formData.emailOtpVerified ? 'text-green-600 cursor-default' : 'text-blue-600 hover:text-blue-800 disabled:opacity-50 hover:cursor-pointer'}`}>
                         {formData.emailOtpVerified ? 'Verified' : 'Verify'}
                     </button>
                 </div>
@@ -176,8 +176,15 @@ export default function ProfileDetailsStep({
                   onChange={(selection) => handleMultiSelectChange('languagesKnown', selection)}
                 />
             </FormField>
-            <FormField label="Organisation">
-                <input type="text" name="organisation" placeholder="Organisation" value={formData.organisation} onChange={handleChange} className="h-12 w-full px-4 border border-[#13097D66] rounded-xl placeholder:text-[#6C696980] placeholder:font-medium focus:outline-none focus:border-orange-500 focus:ring-0"/>
+            <FormField label="City">
+                <input 
+                  type="text" 
+                  name="city"
+                  placeholder="City" 
+                  value={formData.city}
+                  onChange={handleChange} 
+                  className="h-12 w-full px-4 border border-[#13097D66] rounded-xl placeholder:text-[#6C696980] placeholder:font-medium focus:outline-none focus:border-orange-500 focus:ring-0"
+                />
             </FormField>
             <FormField label="Office Start Time">
                 <TimePicker
@@ -201,7 +208,7 @@ export default function ProfileDetailsStep({
             <button
               type="button"
               onClick={handleSelectAllDays}
-              className="text-xs font-semibold text-[#FA660F] hover:text-orange-700 px-2 py-1 rounded-md border border-[#FA660F] hover:bg-orange-50 transition-colors"
+              className="text-xs font-semibold text-[#FA660F] hover:text-orange-700 px-2 py-1 rounded-md border border-[#FA660F] hover:bg-orange-50 transition-colors hover:cursor-pointer"
             >
               {formData.workingDays.length === weekDays.length ? 'Deselect All' : 'Select All'}
             </button>
@@ -214,7 +221,7 @@ export default function ProfileDetailsStep({
                   key={day.value}
                   type="button"
                   onClick={() => toggleDay(day.value)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-[#FA660F] text-white border border-[#FA660F]'
                       : 'bg-white text-gray-700 border border-gray-300 hover:border-[#FA660F] hover:bg-orange-50'
@@ -231,7 +238,7 @@ export default function ProfileDetailsStep({
             <button
                 onClick={onNext}
                 disabled={!isFormValid}
-                className="w-full md:w-[444px] h-11 text-white rounded-xl font-semibold text-base transition-colors disabled:bg-[#ACACAC] bg-[#FA660F] hover:bg-orange-700"
+              className="w-full md:w-[444px] h-11 text-white rounded-xl font-semibold text-base transition-colors disabled:bg-[#ACACAC] bg-[#FA660F] hover:bg-orange-700 hover:cursor-pointer"
             >
                 Next
             </button>

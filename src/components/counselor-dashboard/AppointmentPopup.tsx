@@ -142,7 +142,7 @@ export default function AppointmentPopup({
       
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full transition-colors"
+        className="absolute top-4 right-4 p-1 hover:cursor-pointer hover:bg-gray-100 rounded-full transition-colors"
       >
         <X size={20} className="text-gray-500" />
       </button>

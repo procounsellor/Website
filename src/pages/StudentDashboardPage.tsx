@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/AuthStore';
 import ProfileHeader from '@/components/student-dashboard/ProfileHeader';
 import MyInfoTab from '@/components/student-dashboard/MyInfoTab';
@@ -31,8 +31,14 @@ const StudentDashboardPage: React.FC = () => {
   const { userId } = useAuthStore();
   const token = localStorage.getItem('jwt');
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState('My Info');
+  const urlTab = searchParams.get('activeTab');
+  const initialTabFromState = (location.state as { activeTab?: string })?.activeTab;
+  const initialTab = (urlTab || initialTabFromState) ?? 'My Info';
+
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [prefsEditMode, setPrefsEditMode] = useState<'course' | 'states' | null>(null);
   const [isAddFundsOpen, setIsAddFundsOpen] = useState(false);
@@ -61,17 +67,30 @@ const StudentDashboardPage: React.FC = () => {
   }, [user, loading]);
 
   useEffect(() => {
+    const urlTab = searchParams.get('activeTab');
     const state = location.state as { activeTab?: string; openAddFunds?: boolean };
-    if (state?.activeTab) {
-      setActiveTab(state.activeTab);
+    const determinedTab = urlTab || state?.activeTab;
+
+    if (determinedTab && TABS.includes(determinedTab)) {
+      setActiveTab(determinedTab);
     }
+
     if (state?.openAddFunds) {
       setIsAddFundsOpen(true);
     }
+    
     if (state) {
       window.history.replaceState({}, document.title);
     }
-  }, [location.state]);
+    
+    if (urlTab) {
+        searchParams.delete('activeTab');
+        navigate({
+            pathname: location.pathname,
+            search: searchParams.toString(),
+        }, { replace: true });
+    }
+  }, [location.state, searchParams, location.pathname, navigate]);
 
   const {
     mutateAsync: handleUpdateProfile,
@@ -192,7 +211,7 @@ const StudentDashboardPage: React.FC = () => {
                   activeTab === tab
                     ? 'border-[#13097D] text-[#13097D]'
                     : 'border-transparent text-[#8C8CA1] hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-3 px-2 border-b-[3px] font-semibold text-[12px] md:text-sm transition-colors flex-shrink-0`}
+                } whitespace-nowrap py-3 px-2 border-b-[3px] font-semibold text-[12px] md:text-sm transition-colors shrink-0 hover:cursor-pointer`}
               >
                 {tab}
               </button>

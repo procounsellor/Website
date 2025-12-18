@@ -443,7 +443,7 @@ export default function AppointmentCard({
 
   return (
     <div className="fixed inset-0 bg-[#232323]/50 md:backdrop-blur-sm flex items-center justify-center md:p-4 z-60" onClick={() => onClose?.()}>
-      <div onClick={(e) => e.stopPropagation()} className="bg-[#F5F7FA] w-full h-full md:h-auto flex flex-col md:max-w-[747px] md:max-h-[667px] md:rounded-[16px] relative p-4 md:p-[42px] pb-[86px] gap-6 overflow-hidden">
+      <div onClick={(e) => e.stopPropagation()} className="bg-[#F5F7FA] w-full h-full md:h-auto flex flex-col md:max-w-[747px] md:max-h-[667px] md:rounded-2xl relative p-4 md:p-[42px] pb-[86px] gap-6 overflow-hidden">
         <style>{`
           .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
           .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -462,7 +462,7 @@ export default function AppointmentCard({
             onClick={() => onClose?.()}
             className="absolute top-4 right-4 z-10 p-1.5 rounded-full transition-colors duration-200 hover:bg-black group"
           >
-            <X className="h-5 w-5 text-gray-500 transition-colors duration-200 group-hover:text-white" />
+            <X className="h-5 w-5 text-gray-500 transition-colors duration-200 group-hover:text-white group-hover:cursor-pointer" />
           </button>
         </div>
 
@@ -473,7 +473,7 @@ export default function AppointmentCard({
                 <img
                   src={imageUrl}
                   alt={fullName}
-                  className="w-[80px] h-[80px] md:w-[100px] md:h-[100px] rounded-[8px] object-cover"
+                  className="w-20 h-20 md:w-[100px] md:h-[100px] rounded-xl object-cover"
                 />
                 <h1 className="text-[#343C6A] font-semibold text-[18px] md:text-[20px] flex flex-col gap-1.5">
                   {fullName}
@@ -493,7 +493,7 @@ export default function AppointmentCard({
 
             <div className="flex justify-between items-center">
               <h1 className="text-[#232323] font-semibold text-[16px] md:text-[18px]">
-                Available This Week
+                Availability
               </h1>
               <div className="relative">
                 <button
@@ -501,7 +501,7 @@ export default function AppointmentCard({
                   aria-expanded={calendarOpen}
                   className=" "
                 >
-                  <CalendarDays className="h-5 w-5 text-[#fa660a]" />
+                  <CalendarDays className="h-5 w-5 text-[#fa660a] hover:cursor-pointer" />
                 </button>
                 {calendarOpen && (
                   <div className="absolute right-0 mt-2 z-40 w-[320px] bg-white border border-[#e6e6e6] rounded-md shadow-lg p-3">
@@ -557,7 +557,7 @@ export default function AppointmentCard({
                         setCalendarOpen(false);
                       }
                     }}
-                    className={`min-w-[140px] md:w-[200px] h-[55px] md:h-[59px] rounded-[12px] shadow-xs flex items-center justify-center cursor-pointer border-[1px] transition-all duration-150 ${
+                    className={`min-w-[140px] md:w-[200px] h-[55px] md:h-[59px] rounded-[12px] shadow-xs flex items-center justify-center cursor-pointer border transition-all duration-150 ${
                       isSelected
                         ? "bg-[#3536b4] border-transparent text-white"
                         : "bg-white border-[#f5f5f5] text-[#232323]"
@@ -617,18 +617,18 @@ export default function AppointmentCard({
             )}
           </div>
         </div>
-        <div className="absolute left-0 right-0 bottom-0 h-[60px] md:h-[67px] z-50 bg-white border-t border-[#f5f5f5] flex items-center justify-center rounded-b-[16px] md:rounded-b-[16px] shadow-xs">
+        <div className="absolute left-0 right-0 bottom-0 h-[60px] md:h-[67px] z-50 bg-white border-t border-[#f5f5f5] flex items-center justify-center rounded-b-2xl md:rounded-b-2xl shadow-xs">
           <div className="w-full max-w-[663px] px-3 md:px-4 flex justify-center">
             <Button
               variant={"default"}
               disabled={!isReadyToBook || booking}
               aria-disabled={!isReadyToBook || booking}
               onClick={handleBook}
-              className={`${isReadyToBook ? "bg-[#fa660a] hover:bg-[#fa660a]" : "bg-[#ACACAC]"} text-[14px] md:text-[16px] text-white w-full max-w-md disabled:opacity-60 disabled:cursor-not-allowed h-[44px] md:h-auto`}
+              className={`${isReadyToBook ? "bg-[#fa660a] hover:bg-[#fa660a] hover:cursor-pointer" : "bg-[#ACACAC]"} text-[14px] md:text-[16px] text-white w-full max-w-md disabled:opacity-60 disabled:cursor-not-allowed h-11 md:h-auto`}
             >
               {booking 
                 ? (isReschedule ? 'Rescheduling...' : 'Booking...')
-                : (isReschedule ? 'Reschedule Appointment' : 'Book Appointment Now')
+                : (isReschedule ? 'Reschedule Appointment' : 'Book Appointment')
               }
             </Button>
           </div>

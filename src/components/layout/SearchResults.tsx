@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useSearchStore } from "@/store/SearchStore";
 import type { SearchResult } from "@/store/SearchStore";
-import { Book, GraduationCap, Building2, Users, Loader2 } from "lucide-react";
+import { Book,Users, Loader2 } from "lucide-react";
 
 interface SearchResultsProps {
   onResultClick?: () => void;
@@ -9,15 +9,15 @@ interface SearchResultsProps {
 
 const typeIcons = {
   exam: Book,
-  college: Building2,
-  course: GraduationCap,
-  counselor: Users,
+  // college: Building2,
+  // course: GraduationCap,
+  counsellor: Users,
 };
 
 const typeColors = {
   exam: "text-blue-600 bg-blue-50",
-  college: "text-green-600 bg-green-50", 
-  course: "text-purple-600 bg-purple-50",
+  // college: "text-green-600 bg-green-50", 
+  // course: "text-purple-600 bg-purple-50",
   counselor: "text-orange-600 bg-orange-50",
 };
 
@@ -27,16 +27,8 @@ export function SearchResults({ onResultClick }: SearchResultsProps) {
 
   const handleResultClick = (result: SearchResult) => {
     switch(result.type) {
-      case 'counselor': {
+      case 'counsellor': {
         navigate('/counsellor-profile', { state: { id: result.id } });
-        break;
-      }
-      case 'college': {
-        navigate(`/colleges/${result.id}`);
-        break;
-      }
-      case 'course': {
-        navigate(`/courses/${result.id}`);
         break;
       }
       case 'exam': {
@@ -44,7 +36,7 @@ export function SearchResults({ onResultClick }: SearchResultsProps) {
         break;
       }
       default: {
-        const baseRoute = result.type === 'counselor' ? '/counselors' : `/${result.type}s`;
+        const baseRoute = result.type === 'counsellor' ? '/counselors' : `/${result.type}s`;
         navigate(baseRoute);
         break;
       }
@@ -58,7 +50,7 @@ export function SearchResults({ onResultClick }: SearchResultsProps) {
         <div className="mb-4">
           <Book className="w-12 h-12 mx-auto text-gray-300" />
         </div>
-        <p className="text-sm">Start typing to search for exams, colleges, courses, or counsellors...</p>
+        <p className="text-sm">Start typing to search for exams or counsellors...</p>
       </div>
     );
   }
@@ -106,7 +98,7 @@ export function SearchResults({ onResultClick }: SearchResultsProps) {
                 <button
                   key={result.id}
                   onClick={() => handleResultClick(result)}
-                  className="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition-colors group"
+                  className="w-full hover:cursor-pointer text-left p-3 hover:bg-gray-50 rounded-lg transition-colors group"
                 >
                   <div className="flex items-start gap-3">
                     {result.imageUrl ? (

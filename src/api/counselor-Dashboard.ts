@@ -4,7 +4,7 @@ import type { ApiClient, ApiPendingRequest } from '@/types/client';
 import type { CounselorProfileData } from '@/types/counselorProfile';
 import type { EarningsData, Transaction } from '@/types/earnings';
 import toast from 'react-hot-toast';
-import type { ReviewReceived } from '@/types/counselorDashboard';
+import type { ApiReviewReceived } from '@/types/counselorDashboard';
 
 const { baseUrl } = API_CONFIG;
 
@@ -356,7 +356,7 @@ export async function getAllOfflineTransactions(counsellorId: string, token: str
   }
 }
 
-export async function getReviewsForCounselor(counsellorId: string, token: string): Promise<ReviewReceived[]> {
+export async function getReviewsForCounselor(counsellorId: string, token: string): Promise<ApiReviewReceived[]> {
   try {
     const response = await fetch(`${baseUrl}/api/counsellor/getAllReviewsReceivedByCounsellor?counsellorId=${counsellorId}`, {
       headers: {
@@ -372,7 +372,7 @@ export async function getReviewsForCounselor(counsellorId: string, token: string
     if (responseText.includes("No reviews")) {
       return [];
     }
-    const data: ReviewReceived[] = JSON.parse(responseText);
+    const data: ApiReviewReceived[] = JSON.parse(responseText);
     return data;
 
   } catch (error) {

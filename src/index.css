@@ -13,6 +13,26 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
 }
+
+/* For Chrome, Safari, Edge */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* For Firefox */
+html {
+  scrollbar-width: none;
+}
+
+/* For IE/Edge old versions */
+html {
+  -ms-overflow-style: none;
+}
+textarea {
+  resize: none;
+}
+
+
 @import "tailwindcss";
 @import "tw-animate-css";
 

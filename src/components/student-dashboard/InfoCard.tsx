@@ -17,7 +17,7 @@ const InfoCard: React.FC<InfoCardProps> = ({ icon, title, children, onEdit }) =>
           <h3 className="font-semibold md:font-bold text-base md:text-lg text-[#242645]">{title}</h3>
         </div>
         {onEdit && (
-          <button onClick={onEdit} className="p-1 text-[#343C6A] hover:text-blue-800">
+          <button onClick={onEdit} className="p-1 text-[#343C6A] hover:text-blue-800 hover:cursor-pointer">
             <SquarePen size={16} />
           </button>
         )}

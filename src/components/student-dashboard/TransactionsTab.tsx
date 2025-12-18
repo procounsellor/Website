@@ -44,7 +44,7 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, offline
           <button
             key={tab}
             onClick={() => setActiveFilter(tab)}
-            className={`flex-1 text-center px-3 py-1.5 sm:flex-none sm:w-auto sm:px-4 sm:py-2 text-sm sm:text-base font-medium rounded-full transition-colors duration-200 ${
+            className={`flex-1 text-center px-3 py-1.5 hover:cursor-pointer sm:flex-none sm:w-auto sm:px-4 sm:py-2 text-sm sm:text-base font-medium rounded-full transition-colors duration-200 ${
               activeFilter === tab 
               ? 'bg-[#E8E7F2] text-[#13097D]' 
               : 'bg-transparent text-[#13097D]'

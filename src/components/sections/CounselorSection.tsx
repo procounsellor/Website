@@ -122,7 +122,7 @@ export function CounselorSection() {
           )):
           counselors?.map((counselor) => (
               <div key={counselor.counsellorId}
-            className="flex-shrink-0 w-[170px] lg:w-[282px] ">
+            className="shrink-0 w-[170px] lg:w-[282px] ">
               <Link to={`/counsellor-profile`} state={{ id: counselor.counsellorId }} className="block">
                 <CounselorCard counselor={counselor}/>
               </Link>
@@ -140,7 +140,7 @@ export function CounselorSection() {
               <button
                 key={index}
                 onClick={() => emblaApi && emblaApi.scrollTo(index * 2)}
-                className={`h-2 rounded-full transition-all duration-300 ${
+                className={`h-2 rounded-full transition-all duration-300 hover:cursor-pointer ${
                   Math.floor(selectedIndex / 2) === index
                     ? "w-6 bg-[#13097D]"
                     : "w-2 bg-gray-400"

@@ -55,7 +55,7 @@ export default function TimeframePicker({ value, onChange, mode }: TimeframePick
             setView(mode === 'yearly' ? 'years' : 'months');
             setPickerYear(value.getFullYear());
         }}
-        className="flex items-center gap-2 bg-white border border-gray-200 rounded-md p-1 px-3"
+        className="flex items-center gap-2 bg-white border border-gray-200 rounded-md p-1 px-3 hover:cursor-pointer"
       >
         <span className="text-sm font-medium">{formattedValue}</span>
         <ChevronDown size={16} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -66,16 +66,16 @@ export default function TimeframePicker({ value, onChange, mode }: TimeframePick
           {view === 'months' && (
             <div>
               <div className="flex justify-between items-center mb-4">
-                <button onClick={() => setPickerYear(p => p - 1)} className="p-1 hover:bg-gray-100 rounded-full"><ChevronLeft size={18} /></button>
+                <button onClick={() => setPickerYear(p => p - 1)} className="p-1 hover:bg-gray-100 hover:cursor-pointer rounded-full"><ChevronLeft size={18} /></button>
                 <button onClick={() => setView('years')} className="font-semibold text-[#13097D] hover:bg-gray-100 px-2 py-1 rounded-md">{pickerYear}</button>
-                <button onClick={() => setPickerYear(p => p + 1)} className="p-1 hover:bg-gray-100 rounded-full"><ChevronRight size={18} /></button>
+                <button onClick={() => setPickerYear(p => p + 1)} className="p-1 hover:bg-gray-100 rounded-full hover:cursor-pointer"><ChevronRight size={18} /></button>
               </div>
               <div className="grid grid-cols-4 gap-2">
                 {months.map((month, index) => (
                   <button 
                     key={month}
                     onClick={() => handleMonthSelect(index)}
-                    className={`p-2 text-sm rounded-md text-center ${value.getFullYear() === pickerYear && value.getMonth() === index ? 'bg-[#13097D] text-white' : 'hover:bg-gray-100'}`}
+                    className={`p-2 text-sm rounded-md text-center hover:cursor-pointer ${value.getFullYear() === pickerYear && value.getMonth() === index ? 'bg-[#13097D] text-white' : 'hover:bg-gray-100'}`}
                   >
                     {month}
                   </button>
@@ -86,16 +86,16 @@ export default function TimeframePicker({ value, onChange, mode }: TimeframePick
           {view === 'years' && (
             <div>
               <div className="flex justify-between items-center mb-4">
-                <button onClick={() => setPickerYear(p => p - 12)} className="p-1 hover:bg-gray-100 rounded-full"><ChevronLeft size={18} /></button>
+                <button onClick={() => setPickerYear(p => p - 12)} className="p-1 hover:bg-gray-100 hover:cursor-pointer rounded-full"><ChevronLeft size={18} /></button>
                 <span className="font-semibold text-[#13097D]">{`${startYear} - ${startYear + 11}`}</span>
-                <button onClick={() => setPickerYear(p => p + 12)} className="p-1 hover:bg-gray-100 rounded-full"><ChevronRight size={18} /></button>
+                <button onClick={() => setPickerYear(p => p + 12)} className="p-1 hover:bg-gray-100 hover:cursor-pointer rounded-full"><ChevronRight size={18} /></button>
               </div>
               <div className="grid grid-cols-4 gap-2">
                 {years.map(year => (
                   <button 
                     key={year}
                     onClick={() => handleYearSelect(year)}
-                    className={`p-2 text-sm rounded-md ${value.getFullYear() === year ? 'bg-[#13097D] text-white' : 'hover:bg-gray-100'}`}
+                    className={`p-2 text-sm rounded-md hover:cursor-pointer ${value.getFullYear() === year ? 'bg-[#13097D] text-white' : 'hover:bg-gray-100'}`}
                   >
                     {year}
                   </button>

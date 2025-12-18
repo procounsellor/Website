@@ -146,7 +146,7 @@ export default function EarningsView({ data }: EarningsViewProps) {
             <div className="flex items-center bg-[#F9FAFB] border border-[#EFEFEF] p-1 rounded-lg mt-4 h-[39px]">
               <button 
                 onClick={() => setTimeframe('monthly')}
-                className={`flex-1 text-center py-1 px-2 transition-colors ${
+                className={`flex-1 text-center py-1 px-2 transition-colors hover:cursor-pointer ${
                   timeframe === 'monthly' ? 'bg-[#343C6A] text-white font-semibold text-xs rounded-md h-[27px]' : 'text-[#232323] text-xs font-medium'
                 }`}
               >
@@ -154,7 +154,7 @@ export default function EarningsView({ data }: EarningsViewProps) {
               </button>
               <button 
                 onClick={() => setTimeframe('yearly')}
-                className={`flex-1 text-center py-1 px-2 transition-colors ${
+                className={`flex-1 text-center py-1 px-2 transition-colors hover:cursor-pointer ${
                   timeframe === 'yearly' ? 'bg-[#343C6A] text-white font-semibold text-xs rounded-md h-[27px]' : 'text-[#232323] text-xs font-medium'
                 }`}
               >

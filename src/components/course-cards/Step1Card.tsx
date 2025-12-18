@@ -1,151 +1,143 @@
-import { useState, useRef, useEffect } from 'react';
+import { useRef } from "react";
 
 type Step1Data = {
-    courseName: string;
-    description: string;
-    thumbnail: File | null;
-    category: string;
-    courseTimeHours: string;
-    courseTimeMinutes: string;
+  courseName: string;
+  description: string;
+  thumbnail: File | null;
+  category: string;
+  courseTimeHours: string;
+  courseTimeMinutes: string;
 };
 
 type Step1CardProps = {
-    data: Step1Data;
-    onChange: (data: Step1Data) => void;
+  data: Step1Data;
+  onChange: (data: Step1Data) => void;
 };
 
-export default function Step1Card({ data, onChange }: Step1CardProps){
-    const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+const clampNumber = (value: string, min: number, max: number) => {
+  if (value === "") return "";
+  const num = Number(value);
+  if (isNaN(num)) return "";
+  return Math.min(Math.max(num, min), max).toString();
+};
 
-    const options = [
-        { value: 'PYQ', label: 'PYQ COURSE' },
-        { value: 'TEST_SERIES', label: 'TEST SERIES' }
-    ];
+export default function Step1Card({ data, onChange }: Step1CardProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
+  const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onChange({ ...data, thumbnail: file });
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-3 md:gap-5 bg-white w-full max-w-234 p-3 md:p-6 rounded-2xl">
+      <div className="flex flex-col gap-2 md:gap-3 items-start w-full">
+        <label
+          htmlFor="name"
+          className="text-sm md:text-[1rem] font-medium text-[#8C8CA1]"
+        >
+          Name*
+        </label>
+        <input
+          type="text"
+          placeholder="Enter course name"
+          value={data.courseName}
+          onChange={(e) => onChange({ ...data, courseName: e.target.value })}
+          className="bg-[#F5F7FA] rounded-[0.75rem] h-10 md:h-12 p-2 w-full text-sm md:text-base"
+        />
+      </div>
+
+      <div className="flex flex-col gap-2 md:gap-3 items-start w-full">
+        <label
+          htmlFor="description"
+          className="text-sm md:text-[1rem] font-medium text-[#8C8CA1]"
+        >
+          Description*
+        </label>
+        <textarea
+          placeholder="Enter description here"
+          value={data.description}
+          onChange={(e) => onChange({ ...data, description: e.target.value })}
+          className="bg-[#F5F7FA] rounded-[0.75rem] h-20 md:h-24 p-2 w-full text-sm md:text-base resize-none"
+        />
+      </div>
+
+      <div className="flex flex-col gap-2 md:gap-3 items-start w-full">
+        <label
+          htmlFor="button"
+          className="text-sm md:text-[1rem] font-medium text-[#8C8CA1]"
+        >
+          Add Thumbnail*
+        </label>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleThumbnailUpload}
+          className="hidden"
+        />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="group flex items-center gap-1 md:gap-2 py-1.5 md:py-2 px-3 md:px-6 border border-[#13097D] text-[#13097D] hover:cursor-pointer rounded-[0.75rem] font-semibold text-xs md:text-[1rem] hover:bg-[#13097D] hover:text-white transition-all duration-200"
+        >
+          <img
+            src="/uploadIcon.svg"
+            alt=""
+            className="w-4 h-4 md:w-5 md:h-5 transition-all duration-200 group-hover:invert group-hover:brightness-0"
+          />
+          <span className="truncate max-w-[200px]">{data.thumbnail?.name || "Upload"}</span>
+        </button>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-3 md:gap-5 w-full">
+        <div className="flex flex-col gap-2 md:gap-3 items-start flex-1">
+          <label
+            htmlFor="button"
+            className="text-sm md:text-[1rem] font-medium text-[#8C8CA1]"
+          >
+            Course Duration (Hours)*
+          </label>
+          <input
+            type="number"
+            placeholder="0"
+            value={data.courseTimeHours}
+            min={0}
+            max={999}
+            onChange={(e) =>
+              onChange({
+                ...data,
+                courseTimeHours: clampNumber(e.target.value, 0, 999),
+              })
             }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            onChange({ ...data, thumbnail: file });
-        }
-    };
-
-    return <div className="flex flex-col gap-5 bg-white max-w-234 p-6 rounded-2xl">
-
-
-        <div className="flex flex-col gap-3 items-start">
-            <label htmlFor="name"  className='text-[1rem] font-medium text-[#8C8CA1]'>Name*</label>
-            <input 
-                type="text" 
-                placeholder="Enter course name" 
-                value={data.courseName}
-                onChange={(e) => onChange({ ...data, courseName: e.target.value })}
-                className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 w-218" 
-            />
+            className="bg-[#F5F7FA] rounded-[0.75rem] h-10 md:h-12 p-2 w-full text-sm md:text-base"
+          />
         </div>
 
-          <div className="flex flex-col gap-3 items-start">
-            <label htmlFor="description"  className='text-[1rem] font-medium text-[#8C8CA1]'>Description*</label>
-            <textarea 
-                placeholder="Enter description here" 
-                value={data.description}
-                onChange={(e) => onChange({ ...data, description: e.target.value })}
-                className="bg-[#F5F7FA] rounded-[0.75rem] h-24 p-2 w-218" 
-            />
+        <div className="flex flex-col gap-2 md:gap-3 items-start flex-1">
+          <label
+            htmlFor="button"
+            className="text-sm md:text-[1rem] font-medium text-[#8C8CA1]"
+          >
+            Course Duration (Minutes)*
+          </label>
+          <input
+            type="number"
+            placeholder="0"
+            value={data.courseTimeMinutes}
+            min={0}
+            max={59}
+            onChange={(e) =>
+              onChange({
+                ...data,
+                courseTimeMinutes: clampNumber(e.target.value, 0, 59),
+              })
+            }
+            className="bg-[#F5F7FA] rounded-[0.75rem] h-10 md:h-12 p-2 w-full text-sm md:text-base"
+          />
         </div>
-
-
-        <div className="flex flex-col gap-3 items-start">
-            <label htmlFor="button" className='text-[1rem] font-medium text-[#8C8CA1]'>Add Thumbnail*</label>
-            <input 
-                ref={fileInputRef}
-                type="file" 
-                accept="image/*"
-                onChange={handleThumbnailUpload}
-                className="hidden"
-            />
-            <button 
-                onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2 py-2 px-6 border border-[#13097D] text-[#13097D] rounded-[0.75rem] font-semibold text-[1rem] hover:bg-[#13097D] hover:text-white transition-all duration-200"
-            >
-                <img src="/uploadIcon.svg" alt="" /> 
-                {data.thumbnail?.name || 'Upload'}
-            </button>
-        </div>
-
-
-        <div className="flex gap-5">
-             <div className="flex flex-col gap-3 items-start relative" ref={dropdownRef}>
-            <label htmlFor="button" className='text-[1rem] font-medium text-[#8C8CA1]'>Category*</label>
-            <div 
-                onClick={() => setIsOpen(!isOpen)}
-                className="bg-[#F5F7FA] rounded-[0.75rem] h-12 px-3 py-2 w-[19.438rem] flex items-center justify-between cursor-pointer hover:bg-[#eef0f4] transition-all duration-200"
-            >
-                <span className={data.category ? 'text-[#13097D] font-medium' : 'text-[#8C8CA1]'}>
-                    {data.category ? options.find(opt => opt.value === data.category)?.label : 'Select'}
-                </span>
-                <svg 
-                    className={`w-5 h-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-                    fill="none" 
-                    stroke="#13097D" 
-                    strokeWidth="2" 
-                    viewBox="0 0 24 24"
-                >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-            </div>
-            {isOpen && (
-                <div className="absolute top-18 left-0 w-[19.438rem] bg-white rounded-[0.75rem] shadow-lg border border-gray-200 overflow-hidden z-10 animate-in fade-in slide-in-from-top-2 duration-200">
-                    {options.map((option) => (
-                        <div
-                            key={option.value}
-                            onClick={() => {
-                                onChange({ ...data, category: option.value });
-                                setIsOpen(false);
-                            }}
-                            className="px-4 py-3 cursor-pointer hover:bg-[#13097D] hover:text-white text-[#13097D] font-medium transition-all duration-150"
-                        >
-                            {option.label}
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
-
-         <div className="flex flex-col gap-3 items-start">
-            <label htmlFor="button" className='text-[1rem] font-medium text-[#8C8CA1]'>Course Duration (Hours)*</label>
-            <input 
-                type="number" 
-                placeholder="0" 
-                value={data.courseTimeHours}
-                onChange={(e) => onChange({ ...data, courseTimeHours: e.target.value })}
-                className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 w-55" 
-            />
-        </div>
-
-         <div className="flex flex-col gap-3 items-start">
-            <label htmlFor="button" className='text-[1rem] font-medium text-[#8C8CA1]'>Course Duration (Minutes)*</label>
-            <input 
-                type="number" 
-                placeholder="0" 
-                value={data.courseTimeMinutes}
-                onChange={(e) => onChange({ ...data, courseTimeMinutes: e.target.value })}
-                className="bg-[#F5F7FA] rounded-[0.75rem] h-12 p-2 w-55" 
-            />
-        </div>
-            
-       
-        </div>
+      </div>
     </div>
+  );
 }

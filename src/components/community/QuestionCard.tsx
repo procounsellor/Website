@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bookmark, Pencil } from 'lucide-react';
+import { Bookmark } from 'lucide-react';
 import type { QuestionDetailData } from '@/types/community'; 
 import { useAuthStore } from '@/store/AuthStore';
 import { formatTimeAgo } from '@/utils/time';
@@ -99,7 +99,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questionData }) => {
           </div>
           <button 
             onClick={handleBookmark}
-            className={`transition-colors ${isBookmarked ? 'text-[#655E95]' : 'text-gray-500 hover:text-indigo-600'}`}
+            className={`transition-colors ${isBookmarked ? 'text-[#655E95]' : 'text-[#2F43F2] hover:text-indigo-600'}`}
           >
             <Bookmark size={24} fill={isBookmarked ? "#655E95" : "none"} />
           </button>
@@ -127,13 +127,13 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questionData }) => {
 
             <button
               onClick={handleWriteAnswerClick}
-              className="h-[36px] flex items-center justify-center gap-2
-                         rounded-xl border border-[#655E95] 
+              className="h-9 flex items-center justify-center gap-2
+                         rounded-xl border border-[#2F43F2] 
                          py-1.5 px-4
-                         text-base font-medium text-[#655E95]
+                         text-base font-medium text-[#2F43F2]
                          hover:bg-indigo-50"
             >
-              <Pencil size={18} />
+              <img src="/write_ans.svg" alt="write answer" />
               <span>Write an answer</span>
             </button>
           </div>

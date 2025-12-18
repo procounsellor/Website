@@ -39,7 +39,7 @@ export default function AppInstallBanner() {
         <div className="flex items-center justify-between gap-2">
           <button
             onClick={handleDismiss}
-            className="p-1 text-gray-400 hover:text-gray-600"
+            className="p-1 text-gray-400 hover:text-gray-600 hover:cursor-pointer"
             aria-label="Dismiss app download banner"
           >
             <X size={20} />
@@ -75,13 +75,13 @@ export default function AppInstallBanner() {
         <div className="relative flex gap-4">
           <button
             onClick={handleDismiss}
-            className="absolute -top-2 -right-2 p-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500"
+            className="absolute -top-2 -right-2 p-1 rounded-full hover:cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-500"
             aria-label="Dismiss app download banner"
           >
             <X size={16} />
           </button>
 
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <SmartImage
               src={QR_CODE_IMAGE_PATH}
               alt="Download the app QR code"

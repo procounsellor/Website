@@ -13,7 +13,7 @@ type GlobalSearchBarProps = {
 };
 
 export function GlobalSearchBar({
-  placeholder = "Search Courses, Colleges, Counsellor...",
+  placeholder = "Search Courses, Exams and Counsellors...",
   className = "",
   debounceTime = 500,
   showBackdrop = false,
@@ -106,7 +106,7 @@ export function GlobalSearchBar({
               : 'py-3 scale-100'
           } ${className}`}
         >
-          <Search className="w-2.5 h-2.5 lg:h-6 lg:w-6 text-[#FF660F] flex-shrink-0" />
+          <Search className="w-2.5 h-2.5 lg:h-6 lg:w-6 text-[#FF660F] shrink-0" />
           <input
             ref={inputRef}
             type="text"
@@ -119,7 +119,7 @@ export function GlobalSearchBar({
           {query && (
             <button
               onClick={handleClearInput}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors hover:cursor-pointer"
               aria-label="Clear search"
             >
               <X className="w-4 h-4 text-gray-400" />

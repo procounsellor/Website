@@ -60,7 +60,7 @@ export default function ReviewsTab({ user, token, counselorRating }: Props) {
             <button 
             onClick={() => setIsModalOpen(true)}
             disabled={totalReviews === 0}
-            className="mr-7 text-sm font-medium text-[#FA660F] hover:underline flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mr-7 text-sm font-medium hover:cursor-pointer text-[#FA660F] hover:underline flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span>See All</span>
             <ChevronRight size={16} />
@@ -77,7 +77,7 @@ export default function ReviewsTab({ user, token, counselorRating }: Props) {
           {reviews.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {reviews.slice(0, 6).map(review => (
-                      <ReviewCard key={review.id} review={review} />
+                      <ReviewCard key={review.reviewId} review={review} />
                   ))}
               </div>
           ) : (

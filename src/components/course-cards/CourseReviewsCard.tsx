@@ -89,113 +89,7 @@ const formatTimeAgo = (timestamp: { seconds: number; nanos: number }) => {
   return 'just now';
 };
 
-// Mock data for course reviews
-// const mockReviews: CourseReview[] = [
-//   {
-//     reviewId: '1',
-//     userId: 'user1',
-//     userFullName: 'Priya Sharma',
-//     userPhotoUrl: '',
-//     rating: 5,
-//     reviewText: 'Excellent course! The content is comprehensive and well-structured. The instructor explains complex concepts in a very easy-to-understand manner. Highly recommended for anyone looking to master this subject.',
-//     timestamp: {
-//       seconds: Date.now() / 1000 - 86400 * 2, // 2 days ago
-//       nanos: 0,
-//     },
-//     helpful: 24,
-//   },
-//   {
-//     reviewId: '2',
-//     userId: 'user2',
-//     userFullName: 'Rahul Verma',
-//     userPhotoUrl: '',
-//     rating: 4,
-//     reviewText: 'Great course overall! The teaching methodology is practical and the examples are relevant. Would have given 5 stars if there were more practice exercises included.',
-//     timestamp: {
-//       seconds: Date.now() / 1000 - 86400 * 5, // 5 days ago
-//       nanos: 0,
-//     },
-//     helpful: 18,
-//   },
-//   {
-//     reviewId: '3',
-//     userId: 'user3',
-//     userFullName: 'Anjali Patel',
-//     userPhotoUrl: '',
-//     rating: 5,
-//     reviewText: 'This course exceeded my expectations! The instructor is knowledgeable and engaging. The real-world applications and case studies make learning so much more meaningful.',
-//     timestamp: {
-//       seconds: Date.now() / 1000 - 86400 * 7, // 1 week ago
-//       nanos: 0,
-//     },
-//     helpful: 31,
-//   },
-//   {
-//     reviewId: '4',
-//     userId: 'user4',
-//     userFullName: 'Karan Singh',
-//     userPhotoUrl: '',
-//     rating: 4,
-//     reviewText: 'Very informative course with up-to-date content. The pace is good and the materials provided are helpful. Looking forward to more advanced courses from this instructor.',
-//     timestamp: {
-//       seconds: Date.now() / 1000 - 86400 * 10, // 10 days ago
-//       nanos: 0,
-//     },
-//     helpful: 15,
-//   },
-//   {
-//     reviewId: '5',
-//     userId: 'user5',
-//     userFullName: 'Sneha Reddy',
-//     userPhotoUrl: '',
-//     rating: 5,
-//     reviewText: 'Absolutely loved this course! The step-by-step approach made learning easy and enjoyable. The instructor is patient and answers all queries promptly. Worth every penny!',
-//     timestamp: {
-//       seconds: Date.now() / 1000 - 86400 * 14, // 2 weeks ago
-//       nanos: 0,
-//     },
-//     helpful: 27,
-//   },
-//   {
-//     reviewId: '6',
-//     userId: 'user6',
-//     userFullName: 'Aditya Kumar',
-//     userPhotoUrl: '',
-//     rating: 4,
-//     reviewText: 'Good content and well-organized. The instructor has deep knowledge of the subject. Could benefit from more interactive sessions and quizzes.',
-//     timestamp: {
-//       seconds: Date.now() / 1000 - 86400 * 21, // 3 weeks ago
-//       nanos: 0,
-//     },
-//     helpful: 12,
-//   },
-//   {
-//     reviewId: '7',
-//     userId: 'user7',
-//     userFullName: 'Neha Gupta',
-//     userPhotoUrl: '',
-//     rating: 5,
-//     reviewText: 'Outstanding course! The curriculum is well-designed and covers everything from basics to advanced topics. The practical assignments helped me apply what I learned immediately.',
-//     timestamp: {
-//       seconds: Date.now() / 1000 - 86400 * 28, // 4 weeks ago
-//       nanos: 0,
-//     },
-//     helpful: 35,
-//   },
-//   {
-//     reviewId: '8',
-//     userId: 'user8',
-//     userFullName: 'Vikram Joshi',
-//     userPhotoUrl: '',
-//     rating: 5,
-//     reviewText: 'Highly recommend this course! Clear explanations, practical examples, and excellent support. This has significantly improved my understanding of the subject.',
-//     timestamp: {
-//       seconds: Date.now() / 1000 - 86400 * 35, // 5 weeks ago
-//       nanos: 0,
-//     },
-//     helpful: 22,
-//   },
-// ];
+
 
 interface CourseReviewsCardProps {
   courseId: string;
@@ -220,7 +114,6 @@ export default function CourseReviewsCard({
   const [showAllReviewsModal, setShowAllReviewsModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [userHasReviewed, setUserHasReviewed] = useState(false);
-  const [helpfulReviews, setHelpfulReviews] = useState<Set<string>>(new Set());
   const reviewsPerPage = 10;
 
   const reviews = propReviews.length > 0 ? propReviews : [];
@@ -239,6 +132,12 @@ export default function CourseReviewsCard({
   }, [userId, reviews]);
 
   const handleSubmitReview = async () => {
+    // Prevent duplicate reviews
+    if (userHasReviewed) {
+      toast.error('You have already reviewed this course');
+      return;
+    }
+
     if (userRating === 0) {
       toast.error('Please select a rating (1-5 stars)');
       return;
@@ -277,25 +176,13 @@ export default function CourseReviewsCard({
     }
   };
 
-  const handleHelpful = (reviewId: string) => {
-    setHelpfulReviews(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(reviewId)) {
-        newSet.delete(reviewId);
-      } else {
-        newSet.add(reviewId);
-      }
-      return newSet;
-    });
-  };
-
   const renderReviewForm = () => {
     // Counsellors cannot write reviews
     if (role === 'counselor') {
       return (
-        <div className="mt-4 p-4 bg-amber-50 rounded-lg flex items-center gap-3">
-          <Info className="w-6 h-6 text-amber-500 shrink-0" />
-          <p className="text-sm text-amber-800">
+        <div className="mt-4 p-3 md:p-4 bg-amber-50 rounded-lg flex items-center gap-2 md:gap-3">
+          <Info className="w-4 h-4 md:w-6 md:h-6 text-amber-500 shrink-0" />
+          <p className="text-xs md:text-sm text-amber-800">
             Counsellors cannot write reviews for courses.
           </p>
         </div>
@@ -304,9 +191,9 @@ export default function CourseReviewsCard({
 
     if (!isPurchased) {
       return (
-        <div className="mt-4 p-4 bg-blue-50 rounded-lg flex items-center gap-3">
-          <Info className="w-6 h-6 text-blue-500 shrink-0" />
-          <p className="text-sm text-blue-800">
+        <div className="mt-4 p-3 md:p-4 bg-blue-50 rounded-lg flex items-center gap-2 md:gap-3">
+          <Info className="w-4 h-4 md:w-6 md:h-6 text-blue-500 shrink-0" />
+          <p className="text-xs md:text-sm text-blue-800">
             You must purchase this course to write a review.
           </p>
         </div>
@@ -316,16 +203,16 @@ export default function CourseReviewsCard({
     if (userHasReviewed) {
       return (
         <div className="mt-4 flex flex-col gap-4">
+          <div className="p-3 md:p-4 bg-green-50 rounded-lg flex items-center gap-2 md:gap-3 mb-2">
+            <Info className="w-4 h-4 md:w-6 md:h-6 text-green-500 shrink-0" />
+            <p className="text-xs md:text-sm text-green-800">
+              You have already reviewed this course.
+            </p>
+          </div>
           <StarRating rating={userRating} interactive={false} />
           <p className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg min-h-[100px] text-gray-800">
             {reviewText}
           </p>
-          <button
-            className="self-start px-6 py-2 bg-[#13097D] text-white font-semibold rounded-lg hover:bg-gray-700 transition"
-            onClick={() => setUserHasReviewed(false)}
-          >
-            Edit Review
-          </button>
         </div>
       );
     }
@@ -338,7 +225,7 @@ export default function CourseReviewsCard({
           onRatingChange={setUserRating}
         />
         <textarea
-          className="w-full p-3 border border-gray-300 rounded-lg transition focus:ring-2 focus:ring-[#13097D] focus:border-transparent"
+          className="w-full p-2 md:p-3 text-xs md:text-base border border-gray-300 rounded-lg transition focus:ring-2 focus:ring-[#13097D] focus:border-transparent"
           rows={4}
           placeholder="Share your experience with this course..."
           value={reviewText}
@@ -346,7 +233,7 @@ export default function CourseReviewsCard({
           disabled={isSubmitting}
         />
         <button
-          className="self-start px-6 py-2 bg-[#13097D] text-white font-semibold rounded-lg hover:bg-opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="self-start px-4 md:px-6 py-1.5 md:py-2 bg-[#13097D] text-white text-xs md:text-base font-semibold rounded-lg hover:cursor-pointer hover:bg-opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleSubmitReview}
           disabled={isSubmitting}
         >
@@ -366,35 +253,21 @@ export default function CourseReviewsCard({
     <React.Fragment key={review.reviewId}>
       {showDivider && index > 0 && <hr className="my-4 border-gray-200" />}
       <div className="py-2">
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-2 md:gap-3">
           <img 
             src={review.userPhotoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.userFullName)}&background=13097D&color=fff&size=128`} 
             alt={review.userFullName} 
-            className="w-12 h-12 rounded-full object-cover shrink-0 border-2 border-gray-200"
+            className="w-8 h-8 md:w-12 md:h-12 rounded-full object-cover shrink-0 border-2 border-gray-200"
           />
           <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-start gap-2 mb-2">
-              <h4 className="font-semibold text-[#343C6A] text-base">
+            <div className="flex justify-between items-start gap-2 mb-1 md:mb-2">
+              <h4 className="font-semibold text-[#343C6A] text-xs md:text-base">
                 {review.userFullName}
               </h4>
               <p className="text-xs text-gray-500 whitespace-nowrap">{formatTimeAgo(review.timestamp)}</p>
             </div>
             <StarRating rating={review.rating} />
-            <p className="text-[#232323] text-sm font-normal mt-2 leading-relaxed">{review.reviewText}</p>
-            {role !== 'counselor' && (
-              <div className="mt-3 flex items-center gap-4">
-                <button
-                  onClick={() => handleHelpful(review.reviewId)}
-                  className={`text-xs font-medium transition-colors ${
-                    helpfulReviews.has(review.reviewId)
-                      ? 'text-[#13097D]'
-                      : 'text-gray-500 hover:text-[#13097D]'
-                  }`}
-                >
-                  👍 Helpful ({review.helpful + (helpfulReviews.has(review.reviewId) ? 1 : 0)})
-                </button>
-              </div>
-            )}
+            <p className="text-[#232323] text-xs md:text-sm font-normal mt-1 md:mt-2 leading-relaxed">{review.reviewText}</p>
           </div>
         </div>
       </div>
@@ -421,19 +294,19 @@ export default function CourseReviewsCard({
     <div className="flex flex-col gap-8">
       {/* Rating Summary */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-        <h2 className="text-xl font-bold text-[#343C6A] mb-4">Course Rating</h2>
+        <h2 className="text-sm md:text-xl font-bold text-[#343C6A] mb-4">Course Rating</h2>
         <div className="flex flex-col md:flex-row gap-8">
-          <div className="flex flex-col items-center justify-center p-6 bg-linear-to-br from-[#13097D] to-[#1a0fa3] rounded-xl text-white">
-            <div className="text-5xl font-bold mb-2">{averageRating}</div>
+          <div className="flex flex-col items-center justify-center p-4 md:p-6 bg-linear-to-br from-[#13097D] to-[#1a0fa3] rounded-xl text-white">
+            <div className="text-3xl md:text-5xl font-bold mb-2">{averageRating}</div>
             <StarRating rating={parseFloat(averageRating)} />
-            <p className="text-sm mt-2 opacity-90">{reviews.length} reviews</p>
+            <p className="text-xs md:text-sm mt-2 opacity-90">{reviews.length} reviews</p>
           </div>
           <div className="flex-1 space-y-2">
             {ratingDistribution.map(({ star, count, percentage }) => (
-              <div key={star} className="flex items-center gap-3">
-                <div className="flex items-center gap-1 w-16">
-                  <span className="text-sm font-medium text-gray-700">{star}</span>
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
+              <div key={star} className="flex items-center gap-2 md:gap-3">
+                <div className="flex items-center gap-1 w-12 md:w-16">
+                  <span className="text-xs md:text-sm font-medium text-gray-700">{star}</span>
+                  <Star className="w-3 h-3 md:w-4 md:h-4 text-yellow-400 fill-current" />
                 </div>
                 <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
                   <div 
@@ -441,7 +314,7 @@ export default function CourseReviewsCard({
                     style={{ width: `${percentage}%` }}
                   />
                 </div>
-                <span className="text-sm text-gray-600 w-12 text-right">{count}</span>
+                <span className="text-xs md:text-sm text-gray-600 w-8 md:w-12 text-right">{count}</span>
               </div>
             ))}
           </div>
@@ -451,7 +324,7 @@ export default function CourseReviewsCard({
       {/* Write Review Section - Hidden for counsellors */}
       {role !== 'counselor' && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-          <h2 className="text-xl font-bold text-[#343C6A]">
+          <h2 className="text-sm md:text-xl font-bold text-[#343C6A]">
             {userHasReviewed ? 'Your Review' : 'Write a Review'}
           </h2>
           {renderReviewForm()}
@@ -461,12 +334,12 @@ export default function CourseReviewsCard({
       {/* Recent Reviews */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold text-[#343C6A]">Recent Reviews</h2>
+          <h2 className="text-sm md:text-xl font-bold text-[#343C6A]">Recent Reviews</h2>
           <button 
             onClick={() => setShowAllReviewsModal(true)}
-            className="flex items-center gap-1 text-sm font-semibold text-[#343C6A] hover:underline"
+            className="flex items-center gap-1 text-xs md:text-sm font-semibold text-[#343C6A] hover:underline hover:cursor-pointer"
           >
-            See All <ChevronRight className="w-4 h-4" />
+            See All <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
           </button>
         </div>
 
@@ -474,7 +347,7 @@ export default function CourseReviewsCard({
           {displayedReviews && displayedReviews.length > 0 ? (
             displayedReviews.map((review, index) => renderReviewItem(review, index, true))
           ) : (
-            <p className="text-sm text-gray-500 mt-4">
+            <p className="text-xs md:text-sm text-gray-500 mt-4">
               No reviews for this course yet. Be the first to review!
             </p>
           )}
@@ -502,7 +375,7 @@ export default function CourseReviewsCard({
                   setShowAllReviewsModal(false);
                   setCurrentPage(1);
                 }}
-                className="text-gray-500 hover:text-gray-700 transition"
+                className="text-gray-500 hover:text-gray-700 transition hover:cursor-pointer"
               >
                 <X className="w-6 h-6" />
               </button>

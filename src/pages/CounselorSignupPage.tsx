@@ -17,6 +17,7 @@ const initialFormData: CounselorFormData = {
   email: '',
   password: '',
   organisation: '',
+  city: '',
   languagesKnown: [],
   workingDays: [],
   officeStartTime: '',
@@ -144,7 +145,7 @@ export default function CounselorSignupPage() {
                 onCourseSelect={handleCourseSelect}
               />
             </div>
-            <div className="pt-4 md:pt-6 flex justify-center flex-shrink-0">
+            <div className="pt-4 md:pt-6 flex justify-center shrink-0">
               <button
                 onClick={handleNextStep}
                 disabled={(formData.expertise?.length ?? 0) === 0}
@@ -164,7 +165,7 @@ export default function CounselorSignupPage() {
                 onStateSelect={handleStateSelect}
               />
             </div>
-            <div className="pt-4 md:pt-6 flex justify-center flex-shrink-0">
+            <div className="pt-4 md:pt-6 flex justify-center shrink-0">
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || (formData.stateOfCounsellor?.length ?? 0) === 0}
@@ -183,7 +184,7 @@ export default function CounselorSignupPage() {
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-3 md:p-4 z-40 font-montserrat">
       <div className="w-full max-w-[932px] h-auto max-h-[92vh] md:max-h-[90vh] bg-white rounded-xl md:rounded-2xl shadow-xl p-3 md:p-10 flex flex-col relative">
-        <div className="flex items-center justify-between mb-3 md:mb-4 flex-shrink-0">
+        <div className="flex items-center justify-between mb-3 md:mb-4 shrink-0">
           <div className="flex items-center gap-2 md:gap-4">
             <button 
               onClick={step === 1 ? handleBackToInfoModal : handlePrevStep} 
@@ -197,13 +198,13 @@ export default function CounselorSignupPage() {
             <span className="text-xs md:text-sm font-medium text-[#232323]">Step {step} of 3</span>
             <div className="flex items-center gap-1 md:gap-2 mt-1 md:mt-2">
               {[1, 2, 3].map(s => (
-                <div key={s} className={`w-10 md:w-[70px] h-[4px] md:h-[7px] rounded-full transition-colors ${step >= s ? 'bg-[#FA660F]' : 'bg-[#E9E9E9]'}`}></div>
+                <div key={s} className={`w-10 md:w-[70px] h-1 md:h-[7px] rounded-full transition-colors ${step >= s ? 'bg-[#FA660F]' : 'bg-[#E9E9E9]'}`}></div>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="border-t border-gray-200 my-3 md:my-4 flex-shrink-0"></div>
+        <div className="border-t border-gray-200 my-3 md:my-4 shrink-0"></div>
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           {renderStepContent()}
         </div>

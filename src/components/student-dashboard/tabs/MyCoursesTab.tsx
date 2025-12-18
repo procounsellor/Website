@@ -9,7 +9,7 @@ import { Loader2 } from 'lucide-react';
 type SubTab = 'Purchased' | 'Saved';
 
 export default function MyCoursesTab() {
-  const [activeSubTab, setActiveSubTab] = useState<SubTab>('Saved');
+  const [activeSubTab, setActiveSubTab] = useState<SubTab>('Purchased');
   const { userId, role } = useAuthStore();
   const navigate = useNavigate();
 
@@ -25,7 +25,7 @@ export default function MyCoursesTab() {
     enabled: !!userId && activeSubTab === 'Saved',
   });
 
-  const TABS: SubTab[] = ['Saved', 'Purchased'];
+  const TABS: SubTab[] = ['Purchased', 'Saved'];
 
   const currentData = activeSubTab === 'Purchased' ? purchasedData : bookmarkedData;
   const isLoading = activeSubTab === 'Purchased' ? loadingPurchased : loadingBookmarked;
@@ -82,7 +82,10 @@ export default function MyCoursesTab() {
             <div 
               key={course.courseId} 
               className='cursor-pointer' 
-              onClick={() => navigate(`/detail/${course.courseId}/${role || 'user'}`, { state: { from: 'my-courses' } })}
+              onClick={(e) => {e.preventDefault()
+                 navigate(`/detail/${course.courseId}/${role || 'user'}`, { state: { from: 'my-courses' } })
+
+              }}
             >
               <CourseCard 
                 course={{
@@ -94,9 +97,12 @@ export default function MyCoursesTab() {
                   reviews: undefined,
                   image: course.courseThumbnailUrl,
                   isBookmarked: activeSubTab === 'Saved',
+                  courseTimeHours: (course as any).courseTimeHours || 0,
+                  courseTimeMinutes: (course as any).courseTimeMinutes || 0,
                 }} 
                 role={(role as "user" | "student" | "counselor") || "user"}
                 showBookmark={true}
+                userId={userId}
               />
             </div>
           ))}

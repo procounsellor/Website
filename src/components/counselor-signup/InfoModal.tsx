@@ -7,7 +7,7 @@ import { X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function InfoModal() {
-  const { isCounselorSignupOpen, toggleCounselorSignup, openCounselorSignupForm, isAuthenticated, toggleLogin, role, setIsCounselorSignupFlow, user } = useAuthStore();
+  const { isCounselorSignupOpen, toggleCounselorSignup, closeCounsellorSignup, openCounselorSignupForm, isAuthenticated, toggleLogin, role, setIsCounselorSignupFlow, user } = useAuthStore();
   const navigate = useNavigate();
 
   const [info, setInfo] = useState<CounselorPageInfo | null>(null);
@@ -81,8 +81,8 @@ export default function InfoModal() {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 md:p-4">
       <div className="bg-white rounded-xl md:rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] flex flex-col relative">
         <button 
-            onClick={toggleCounselorSignup} 
-            className="absolute top-3 right-3 md:top-4 md:right-4 z-10 w-9 h-9 md:w-10 md:h-10 flex items-center justify-center bg-black rounded-full text-white hover:bg-gray-800 transition-colors"
+            onClick={closeCounsellorSignup} 
+            className="absolute top-3 right-3 md:top-4 md:right-4 z-10 w-9 h-9 md:w-10 md:h-10 hover:cursor-pointer flex items-center justify-center bg-black rounded-full text-white hover:bg-gray-800 transition-colors"
         >
             <X className="h-5 w-5 md:h-6 md:w-6" />
         </button>
@@ -116,7 +116,7 @@ export default function InfoModal() {
             )}
         </div>
 
-        <div className="px-4 md:px-6 py-3 md:py-4 border-t bg-white sticky bottom-0 flex-shrink-0">
+        <div className="px-4 md:px-6 py-3 md:py-4 border-t bg-white sticky bottom-0 shrink-0">
             {isAuthenticated && role === 'counselor' ? (
               <div className="text-center">
                 <p className="mb-3 md:mb-4 text-xs md:text-sm text-gray-600">You are already registered as a counselor!</p>
@@ -126,7 +126,7 @@ export default function InfoModal() {
                       toggleCounselorSignup();
                       navigate('/counsellor-dashboard');
                     }}
-                    className="px-4 md:px-6 py-2.5 md:py-3 bg-[#13097D] text-white rounded-xl font-semibold text-sm md:text-base hover:bg-[#13097D]/90 transition-colors"
+                    className="px-4 md:px-6 py-2.5 md:py-3 hover:cursor-pointer bg-[#13097D] text-white rounded-xl font-semibold text-sm md:text-base hover:bg-[#13097D]/90 transition-colors"
                   >
                     Go to Dashboard
                   </button>
@@ -135,7 +135,7 @@ export default function InfoModal() {
                       toggleCounselorSignup();
                       navigate('/counsellors');
                     }}
-                    className="px-4 md:px-6 py-2.5 md:py-3 bg-[#FA660F] text-white rounded-xl font-semibold text-sm md:text-base hover:bg-orange-600 transition-colors"
+                    className="px-4 md:px-6 py-2.5 hover:cursor-pointer md:py-3 bg-[#FA660F] text-white rounded-xl font-semibold text-sm md:text-base hover:bg-orange-600 transition-colors"
                   >
                     Browse Counselors
                   </button>
@@ -149,7 +149,7 @@ export default function InfoModal() {
                         type="checkbox"
                         checked={agreed}
                         onChange={(e) => setAgreed(e.target.checked)}
-                        className="h-4 w-4 md:h-5 md:w-5 mt-0.5 md:mt-0 flex-shrink-0 text-[#FA660F] focus:ring-[#FA660F] border-[#13097D] rounded cursor-pointer"
+                        className="h-4 w-4 md:h-5 md:w-5 mt-0.5 md:mt-0 shrink-0 text-[#FA660F] focus:ring-[#FA660F] border-[#13097D] rounded cursor-pointer"
                     />
                     <label htmlFor="agree-checkbox" className="ml-2 md:ml-3 text-xs md:text-sm font-medium text-[#6C6969] cursor-pointer">
                         By continuing, you agree to Procounsel's <a href="/terms" target="_blank" className="underline text-[#2F2F2F] hover:text-[#FA660F]">Terms & Condition</a> and <a href="/privacy-policy" target="_blank" className="underline text-[#2F2F2F] hover:text-[#FA660F]">Privacy Policy</a>.
@@ -160,7 +160,7 @@ export default function InfoModal() {
                         onClick={handleProceed}
                         disabled={!agreed || loading}
                         className={`w-full md:w-[444px] max-w-full h-11 md:h-12 rounded-xl font-semibold text-white text-sm md:text-base transition-colors ${
-                            agreed ? 'bg-[#FA660F] hover:bg-orange-600' : 'bg-gray-300 cursor-not-allowed'
+                            agreed ? 'bg-[#FA660F] hover:bg-orange-600 hover:cursor-pointer' : 'bg-gray-300 cursor-not-allowed'
                         }`}
                     >
                         Proceed

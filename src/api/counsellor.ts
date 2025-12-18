@@ -2,7 +2,7 @@ import { API_CONFIG } from './config';
 import type { Counsellor } from '@/types/counsellor';
 import type { CounselorReview } from '@/types/counselorReview';
 import type { ApiClient, Client } from '@/types/client';
-import type { ApiReviewReceived, ReviewReceived } from '@/types/counselorDashboard';
+import type { ApiReviewReceived } from '@/types/counselorDashboard';
 
 const { baseUrl } = API_CONFIG;
 
@@ -144,28 +144,7 @@ export const getSubscribedClients = async (counsellorId: string, token: string):
     return mappedClients;
 };
 
-const formatTimeAgo = (timestamp: { seconds: number; nanos: number }): string => {
-  const date = new Date(timestamp.seconds * 1000);
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-  const years = Math.floor(diffInSeconds / 31536000);
-  if (years > 0) return `${years} year${years > 1 ? 's' : ''} ago`;
-  
-  const months = Math.floor(diffInSeconds / 2592000);
-  if (months > 0) return `${months} month${months > 1 ? 's' : ''} ago`;
-
-  const days = Math.floor(diffInSeconds / 86400);
-  if (days > 1) return `${days} days ago`;
-  if (days === 1) return `1 day ago`;
-  
-  const hours = Math.floor(diffInSeconds / 3600);
-  if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-
-  return 'just now';
-};
-
-export const getReviewsForCounselor = async (counsellorId: string, token: string): Promise<ReviewReceived[]> => {
+export const getReviewsForCounselor = async (counsellorId: string, token: string): Promise<ApiReviewReceived[]> => {
     const response = await fetch(`${baseUrl}/api/counsellor/getAllReviewsReceivedByCounsellor?counsellorId=${counsellorId}`, {
         headers: {
             Accept: 'application/json',
@@ -179,14 +158,7 @@ export const getReviewsForCounselor = async (counsellorId: string, token: string
 
     const data: ApiReviewReceived[] = await response.json();
 
-    return data.map(apiReview => ({
-        id: apiReview.reviewId,
-        userFullName: apiReview.userFullName,
-        userImageUrl: apiReview.userPhotoUrl || `https://ui-avatars.com/api/?name=${apiReview.userFullName}`,
-        rating: apiReview.rating,
-        reviewText: apiReview.reviewText,
-        timeAgo: formatTimeAgo(apiReview.timestamp),
-    }));
+    return data
 };
 
 export async function postReview(reviewData: {

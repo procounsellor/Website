@@ -82,11 +82,12 @@ export default function CounselorDashboard() {
   const [openOooMenuId, setOpenOooMenuId] = useState<string | null>(null);
   const [rescheduleOoo, setRescheduleOoo] = useState<OutOfOffice | null>(null);
   const [cancelOoo, setCancelOoo] = useState<OutOfOffice | null>(null);
+  
 
   const queryClient = useQueryClient(); 
 
   useEffect(() => {
-    const HOUR = Array.from({ length: 12 }, (_, i) => 9 + i); // 9AM–8PM
+    const HOUR = Array.from({ length: 12 }, (_, i) => 8 + i); // 9AM–8PM
     setHours(HOUR);
   }, []);
 
@@ -321,7 +322,7 @@ export default function CounselorDashboard() {
             <div className="mt-4 md:mt-0 md:pt-6">
               <button
                 onClick={() => setProfileModalOpen(true)}
-                className="hidden md:flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-[#343C6A] rounded-xl text-[#343C6A] font-medium text-base hover:bg-gray-100 transition-colors shadow-sm whitespace-nowrap"
+                className="hidden md:flex items-center hover:cursor-pointer justify-center gap-2 py-2.5 px-4 bg-white border border-[#343C6A] rounded-xl text-[#343C6A] font-medium text-base hover:bg-gray-100 transition-colors shadow-sm whitespace-nowrap"
               >
                 <SquarePen size={20} />
                 <span>View Profile</span>
@@ -343,7 +344,7 @@ export default function CounselorDashboard() {
                     mainTab === tab.key
                       ? "border-[#13097D] text-[#13097D]"
                       : "border-transparent text-[#8C8CA1] hover:text-gray-700 hover:border-gray-300"
-                  } whitespace-nowrap py-3 px-2 border-b-[3px] font-semibold text-[12px] md:text-sm transition-colors shrink-0`}
+                  } whitespace-nowrap py-3 px-2 border-b-[3px] font-semibold text-[12px] md:text-sm transition-colors hover:cursor-pointer shrink-0`}
                 >
                   {tab.name}
                 </button>
@@ -420,7 +421,7 @@ export default function CounselorDashboard() {
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => setActiveTab("meetings")}
-                        className={`px-4 py-2 text-sm font-medium transition-all relative ${
+                        className={`px-4 py-2 text-sm font-medium transition-all relative hover:cursor-pointer ${
                           activeTab === "meetings"
                             ? "text-[#13097D]"
                             : "text-[#718EBF] hover:text-[#343C6A]"
@@ -433,7 +434,7 @@ export default function CounselorDashboard() {
                       </button>
                       <button
                         onClick={() => setActiveTab("other")}
-                        className={`px-4 py-2 text-sm font-medium transition-all relative ${
+                        className={`px-4 py-2 text-sm font-medium transition-all relative hover:cursor-pointer ${
                           activeTab === "other"
                             ? "text-[#13097D]"
                             : "text-[#718EBF] hover:text-[#343C6A]"

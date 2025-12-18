@@ -243,7 +243,7 @@ export const Carousel = () => {
               {COURSE_FEATURES.map((feature, index) => (
                 <div 
                   key={index}
-                  className="flex-shrink-0"
+                  className="shrink-0"
                   style={{
                       minWidth: `calc((100% / 3) - (32px * 2 / 3))`, 
                   }}
@@ -260,7 +260,7 @@ export const Carousel = () => {
             <button
               key={index}
               onClick={() => emblaApi && emblaApi.scrollTo(index * 3)}
-              className={`h-2 rounded-full transition-all duration-300 ${
+              className={`h-2 rounded-full transition-all duration-300  ${
                 activeDotIndex === index
                   ? "w-6 bg-[#13097D]"
                   : "w-2 bg-gray-400"

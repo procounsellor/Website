@@ -25,13 +25,13 @@ export default function Stepper({ currentStep }: StepperProps) {
   };
 
   return (
-    <div className="w-[693px] mx-auto">
+    <div className="w-full max-w-[693px] mx-auto px-2 md:px-0">
       {/* row: circles + connecting lines */}
       <div className="grid grid-cols-[auto_1fr_auto_1fr_auto] items-center w-full">
         {/* step 1 circle */}
         <div className="flex justify-center">
           <div
-            className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-semibold ${circleClass(
+            className={`w-6 h-6 md:w-8 md:h-8 rounded-full border-2 flex items-center justify-center text-xs md:text-sm font-semibold ${circleClass(
               1
             )}`}
           >
@@ -41,13 +41,13 @@ export default function Stepper({ currentStep }: StepperProps) {
 
         {/* line 1–2 */}
         <div className="flex items-center">
-          <div className={`w-full h-[3px] ${lineClass(1)}`} />
+          <div className={`w-full h-[2px] md:h-[3px] ${lineClass(1)}`} />
         </div>
 
         {/* step 2 circle */}
         <div className="flex justify-center">
           <div
-            className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-semibold ${circleClass(
+            className={`w-6 h-6 md:w-8 md:h-8 rounded-full border-2 flex items-center justify-center text-xs md:text-sm font-semibold ${circleClass(
               2
             )}`}
           >
@@ -57,13 +57,13 @@ export default function Stepper({ currentStep }: StepperProps) {
 
         {/* line 2–3 */}
         <div className="flex items-center">
-          <div className={`w-full h-[3px] ${lineClass(2)}`} />
+          <div className={`w-full h-[2px] md:h-[3px] ${lineClass(2)}`} />
         </div>
 
         {/* step 3 circle */}
         <div className="flex justify-center">
           <div
-            className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-semibold ${circleClass(
+            className={`w-6 h-6 md:w-8 md:h-8 rounded-full border-2 flex items-center justify-center text-xs md:text-sm font-semibold ${circleClass(
               3
             )}`}
           >
@@ -74,13 +74,13 @@ export default function Stepper({ currentStep }: StepperProps) {
 
       {/* row: labels centered under each node */}
       <div className="grid grid-cols-[auto_1fr_auto_1fr_auto] mt-2 w-full">
-        <p className={`text-[1rem] font-medium ${currentStep===2? 'text-[#13097D]':''} text-center justify-self-center col-start-1`}>
+        <p className={`text-[0.625rem] md:text-[1rem] font-medium ${currentStep===1? 'text-[#13097D]':''} text-center justify-self-center col-start-1`}>
           Basic Information
         </p>
-        <p className={`text-[1rem] font-medium ${currentStep===2? 'text-[#13097D]':''} text-center justify-self-center col-start-3`}>
+        <p className={`text-[0.625rem] md:text-[1rem] font-medium ${currentStep===2? 'text-[#13097D]':''} text-center justify-self-center col-start-3`}>
           Edit Price
         </p>
-        <p className="text-[1rem] font-medium text-center justify-self-center col-start-5">
+        <p className={`text-[0.625rem] md:text-[1rem] font-medium ${currentStep===3? 'text-[#13097D]':''} text-center justify-self-center col-start-5`}>
           Add Content
         </p>
       </div>
