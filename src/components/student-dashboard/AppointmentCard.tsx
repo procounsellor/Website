@@ -120,7 +120,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onCardCl
         )}
 
         <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
+          <div className="w-14 h-14 rounded-lg bg-gray-200 overflow-hidden shrink-0">
             <img
               src={counsellorPhootoSmall || `https://ui-avatars.com/api/?name=${counsellorFullName}&background=random`}
               alt={counsellorFullName}
@@ -163,8 +163,8 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onCardCl
       >
         {menuOpen && <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }}></div>}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-              <div className="md:col-span-4 flex items-center gap-4">
-                  <div className="w-20 h-20 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
+              <div className="md:col-span-5 flex items-center gap-4">
+                  <div className="w-20 h-20 rounded-lg bg-gray-200 overflow-hidden shrink-0">
                       <img
                           src={counsellorPhootoSmall || `https://ui-avatars.com/api/?name=${counsellorFullName}&background=random`}
                           alt={counsellorFullName}
@@ -179,18 +179,17 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onCardCl
                   </div>
               </div>
 
-              <div className="md:col-span-4 flex justify-start md:justify-center items-center gap-8">
-                  <div>
-                      <p className="text-xl font-semibold text-[#242645]">Date</p>
-                      <p className="font-medium text-base text-[#8C8CA1] whitespace-nowrap">{formatDate(date)}</p>
-                  </div>
-                  <div>
-                      <p className="text-xl font-semibold text-[#242645]">Time</p>
-                      <p className="font-medium text-base text-[#8C8CA1] whitespace-nowrap">{`${formatTime(startTime)} - ${formatTime(endTime)}`}</p>
-                  </div>
+              <div className="md:col-span-2">
+                  <p className="text-xl font-semibold text-[#242645]">Date</p>
+                  <p className="font-medium text-base text-[#8C8CA1] whitespace-nowrap">{formatDate(date)}</p>
               </div>
 
-              <div className="md:col-span-4 flex items-center justify-end gap-4">
+              <div className="md:col-span-3">
+                  <p className="text-xl font-semibold text-[#242645]">Time</p>
+                  <p className="font-medium text-base text-[#8C8CA1] whitespace-nowrap">{`${formatTime(startTime)} - ${formatTime(endTime)}`}</p>
+              </div>
+
+              <div className="md:col-span-2 flex items-center justify-end gap-4">
                   {getStatusContent(status)}
                   {showMenu && (
                     <button className="text-black p-2 rounded-full z-20"

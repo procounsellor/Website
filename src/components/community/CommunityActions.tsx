@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, MessageCircleQuestionMark , SquarePen, History } from "lucide-react";
+import { Search } from "lucide-react";
 import AskQuestionModal from "@/components/community/AskQuestionModal";
 import { useAuthStore } from "@/store/AuthStore";
 
@@ -35,17 +35,17 @@ export default function CommunityActions() {
   };
 
   const ActionButton: React.FC<{
-    icon: React.ElementType;
+    iconSrc: string; 
     label: string;
     onClick: () => void;
     count?: number;
-  }> = ({ icon: Icon, label, onClick, count }) => {
+  }> = ({ iconSrc, label, onClick, count }) => {
     return (
       <button
         onClick={onClick}
         className="flex items-center gap-2 font-semibold text-[#2F43F2] transition-colors duration-200 hover:text-indigo-900"
       >
-        <Icon size={20} />
+        <img src={iconSrc} alt={label} className="w-5 h-5" />
         <span className="text-sm leading-[18px]">{label}</span>
         {count && (
           <span className="ml-1 px-2 py-0.5 bg-orange-500 text-white text-xs font-bold rounded-full">
@@ -76,22 +76,21 @@ export default function CommunityActions() {
           <div className="flex items-center justify-center gap-10 pl-1">
             <div className="flex items-center gap-[60px]">
               <ActionButton
-                icon={MessageCircleQuestionMark }
+                iconSrc="/ask.svg"
                 label="Ask"
                 onClick={handleAskClick}
               />
               <Separator />
               <ActionButton
-                icon={SquarePen}
+                iconSrc="/answer.svg"
                 label="Answer"
                 onClick={handleAnswerClick}
               />
               <Separator />
               <ActionButton
-                icon={History}
+                iconSrc="/my-activity.svg"
                 label="My Activity"
                 onClick={handleActivityClick}
-                // count={24} 
               />
             </div>
           </div>
