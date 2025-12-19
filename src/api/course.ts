@@ -705,3 +705,78 @@ export async function addCourseReview(
 
   return response.json();
 }
+
+export type UpdateCourseReviewRequest = {
+  reviewId: string;
+  userId: string;
+  courseId: string;
+  rating: number;
+  reviewText: string;
+};
+
+export type UpdateCourseReviewResponse = {
+  message: string;
+  status: boolean;
+};
+
+export async function updateCourseReview(
+  data: UpdateCourseReviewRequest
+): Promise<UpdateCourseReviewResponse> {
+  const token = localStorage.getItem('jwt');
+
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/counsellorCourses/updateReview`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(data),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Failed to update review');
+  }
+
+  return response.json();
+}
+
+export type DeleteCourseReviewRequest = {
+  reviewId: string;
+  userId: string;
+};
+
+export type DeleteCourseReviewResponse = {
+  message: string;
+  status: boolean;
+};
+
+export async function deleteCourseReview(
+  reviewId: string,
+  userId: string
+): Promise<DeleteCourseReviewResponse> {
+  const token = localStorage.getItem('jwt');
+
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/counsellorCourses/deleteReview?reviewId=${reviewId}&userId=${userId}`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      },
+      body: '',
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Failed to delete review');
+  }
+
+  return response.json();
+}
