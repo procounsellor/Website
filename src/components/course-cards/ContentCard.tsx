@@ -1,4 +1,4 @@
-import { Lock, ChevronRight, Play, Pause, SkipBack, SkipForward, Maximize, Minimize } from "lucide-react";
+import { Lock, ChevronRight, Play, Pause, SkipBack, SkipForward, Maximize, Minimize, Settings } from "lucide-react";
 // import { useAuthStore } from "@/store/AuthStore";
 import type { CourseContent } from "@/api/course";
 import { useState, useEffect, useRef } from "react";
@@ -16,6 +16,9 @@ interface YTPlayer {
   playVideo: () => void;
   pauseVideo: () => void;
   destroy: () => void;
+  getAvailableQualityLevels: () => string[];
+  getPlaybackQuality: () => string;
+  setPlaybackQuality: (quality: string) => void;
 }
 
 interface YTPlayerEvent {
@@ -33,6 +36,7 @@ declare const YT: {
       events: {
         onReady?: (event: YTPlayerEvent) => void;
         onStateChange?: (event: YTPlayerEvent) => void;
+        onError?: (event: any) => void;
       };
     }
   ) => YTPlayer;
@@ -106,9 +110,12 @@ export default function ContentCard({
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [showControls, setShowControls] = useState(false);
+  const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [pdfFullscreen, setPdfFullscreen] = useState(false);
+  const [showQualityMenu, setShowQualityMenu] = useState(false);
+  const [availableQualities, setAvailableQualities] = useState<string[]>([]);
+  const [currentQuality, setCurrentQuality] = useState<string>('auto');
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const fullscreenPlayerRef = useRef<YTPlayer | null>(null);
 
@@ -333,7 +340,37 @@ export default function ContentCard({
         events: {
           onReady: (event: any) => {
             console.log('YouTube player ready');
-            setDuration(event.target.getDuration());
+            try {
+              const videoDuration = event.target.getDuration();
+              // YouTube live streams return 0 for duration, handle gracefully
+              if (videoDuration && videoDuration > 0) {
+                setDuration(videoDuration);
+              }
+            } catch (error) {
+              console.warn('Could not get video duration:', error);
+            }
+            
+            // Get available quality levels with error handling
+            try {
+              const qualities = event.target.getAvailableQualityLevels();
+              if (qualities && qualities.length > 0) {
+                setAvailableQualities(qualities);
+                const currentQual = event.target.getPlaybackQuality();
+                if (currentQual) {
+                  setCurrentQuality(currentQual);
+                }
+              } else {
+                // Fallback: provide standard quality options
+                setAvailableQualities(['hd1080', 'hd720', 'large', 'medium']);
+                setCurrentQuality('hd720');
+              }
+            } catch (error) {
+              console.warn('Could not get quality levels:', error);
+              // Still provide basic quality options as fallback
+              setAvailableQualities(['hd1080', 'hd720', 'large', 'medium']);
+              setCurrentQuality('hd720');
+            }
+            
             // Sync fullscreen player with main player
             if (targetPlayerRef === fullscreenPlayerRef && playerRef.current) {
               const mainPlayer = playerRef.current as any;
@@ -349,6 +386,11 @@ export default function ContentCard({
           onStateChange: (event: any) => {
             // YT.PlayerState: UNSTARTED=-1, ENDED=0, PLAYING=1, PAUSED=2, BUFFERING=3, CUED=5
             setIsPlaying(event.data === 1);
+          },
+          onError: (event: any) => {
+            // Handle YouTube player errors gracefully
+            console.error('YouTube player error:', event.data);
+            toast.error('Video playback error. Please try refreshing.');
           },
         },
       });
@@ -382,6 +424,42 @@ export default function ContentCard({
   const handleSkip = (seconds: number) => {
     const newTime = Math.max(0, Math.min(duration, currentTime + seconds));
     handleSeek(newTime);
+  };
+
+  const handleQualityChange = (quality: string) => {
+    const activePlayer = isFullscreen ? fullscreenPlayerRef.current : playerRef.current;
+    if (activePlayer) {
+      try {
+        // Check if setPlaybackQuality method exists
+        if (typeof activePlayer.setPlaybackQuality === 'function') {
+          activePlayer.setPlaybackQuality(quality);
+          setCurrentQuality(quality);
+          setShowQualityMenu(false);
+          toast.success(`Quality changed to ${getQualityLabel(quality)}`);
+        } else {
+          throw new Error('Quality change not supported');
+        }
+      } catch (error) {
+        console.error('Failed to change quality:', error);
+        toast.error('Could not change quality. Feature may not be available for this video.');
+        setShowQualityMenu(false);
+      }
+    }
+  };
+
+  const getQualityLabel = (quality: string) => {
+    const labels: Record<string, string> = {
+      'highres': '4K',
+      'hd1440': '1440p',
+      'hd1080': '1080p',
+      'hd720': '720p',
+      'large': '480p',
+      'medium': '360p',
+      'small': '240p',
+      'tiny': '144p',
+      'auto': 'Auto'
+    };
+    return labels[quality] || quality;
   };
 
   const formatTime = (seconds: number) => {
@@ -656,8 +734,26 @@ export default function ContentCard({
                     className={`absolute inset-0 z-20 transition-opacity duration-300 ${
                       showControls ? 'opacity-100' : 'opacity-0'
                     }`}
-                    style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 50%)' }}
                   >
+                    {/* Center Play/Pause Button Overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePlayPause();
+                        }}
+                        className="pointer-events-auto w-16 h-16 md:w-20 md:h-20 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center transition cursor-pointer shadow-2xl backdrop-blur-sm border-2 border-white/20"
+                      >
+                        {isPlaying ? (
+                          <Pause className="w-8 h-8 md:w-10 md:h-10 text-white fill-white" />
+                        ) : (
+                          <Play className="w-8 h-8 md:w-10 md:h-10 text-white fill-white ml-1" />
+                        )}
+                      </button>
+                    </div>
+                    
+                    {/* Bottom Controls Bar */}
+                    <div className="absolute bottom-0 left-0 right-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)' }}>
                     <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 space-y-2 md:space-y-3">
                       {/* Progress Bar */}
                       <input
@@ -711,18 +807,55 @@ export default function ContentCard({
                           </span>
                         </div>
                         
-                        {/* Fullscreen Button */}
-                        <button
-                          onClick={() => setIsFullscreen(!isFullscreen)}
-                          className="w-8 h-8 md:w-10 md:h-10 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition cursor-pointer"
-                        >
-                          {isFullscreen ? (
-                            <Minimize className="w-4 h-4 md:w-5 md:h-5 text-white" />
-                          ) : (
-                            <Maximize className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                        <div className="flex items-center gap-2">
+                          {/* Quality Selector */}
+                          {availableQualities.length > 0 && (
+                            <div className="relative">
+                              <button
+                                onClick={() => setShowQualityMenu(!showQualityMenu)}
+                                className="w-8 h-8 md:w-10 md:h-10 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition cursor-pointer"
+                              >
+                                <Settings className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                              </button>
+                              
+                              {/* Quality Menu */}
+                              {showQualityMenu && (
+                                <div className="absolute bottom-full right-0 mb-2 bg-black/90 rounded-lg overflow-hidden shadow-lg min-w-[120px]">
+                                  <div className="px-3 py-2 text-white text-xs font-semibold border-b border-white/20">
+                                    Quality
+                                  </div>
+                                  <div className="max-h-60 overflow-y-auto">
+                                    {availableQualities.map((quality) => (
+                                      <button
+                                        key={quality}
+                                        onClick={() => handleQualityChange(quality)}
+                                        className={`w-full px-3 py-2 text-left text-xs md:text-sm hover:bg-white/20 transition ${
+                                          currentQuality === quality ? 'text-[#FA660F] font-semibold bg-white/10' : 'text-white'
+                                        }`}
+                                      >
+                                        {getQualityLabel(quality)}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           )}
-                        </button>
+                          
+                          {/* Fullscreen Button */}
+                          <button
+                            onClick={() => setIsFullscreen(!isFullscreen)}
+                            className="w-8 h-8 md:w-10 md:h-10 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition cursor-pointer"
+                          >
+                            {isFullscreen ? (
+                              <Minimize className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                            ) : (
+                              <Maximize className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                            )}
+                          </button>
+                        </div>
                       </div>
+                    </div>
                     </div>
                   </div>
                   
@@ -895,14 +1028,51 @@ export default function ContentCard({
                   </span>
                 </div>
                 
-                {/* Exit Fullscreen */}
-                <button 
-                  onClick={() => setIsFullscreen(false)} 
-                  className="px-3 md:px-4 py-2 md:py-3 bg-white/20 hover:bg-white/30 rounded-lg flex items-center gap-2 transition cursor-pointer"
-                >
-                  <Minimize className="w-4 h-4 md:w-5 md:h-5 text-white" />
-                  <span className="text-white text-xs md:text-base font-semibold">Exit</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  {/* Quality Selector */}
+                  {availableQualities.length > 0 && (
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowQualityMenu(!showQualityMenu)}
+                        className="px-3 md:px-4 py-2 md:py-3 bg-white/20 hover:bg-white/30 rounded-lg flex items-center gap-2 transition cursor-pointer"
+                      >
+                        <Settings className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                        <span className="text-white text-xs md:text-base font-semibold hidden sm:inline">{getQualityLabel(currentQuality)}</span>
+                      </button>
+                      
+                      {/* Quality Menu */}
+                      {showQualityMenu && (
+                        <div className="absolute bottom-full right-0 mb-2 bg-black/90 rounded-lg overflow-hidden shadow-lg min-w-[140px]">
+                          <div className="px-4 py-2 text-white text-sm font-semibold border-b border-white/20">
+                            Quality
+                          </div>
+                          <div className="max-h-80 overflow-y-auto">
+                            {availableQualities.map((quality) => (
+                              <button
+                                key={quality}
+                                onClick={() => handleQualityChange(quality)}
+                                className={`w-full px-4 py-3 text-left text-sm md:text-base hover:bg-white/20 transition ${
+                                  currentQuality === quality ? 'text-[#FA660F] font-semibold bg-white/10' : 'text-white'
+                                }`}
+                              >
+                                {getQualityLabel(quality)}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Exit Fullscreen */}
+                  <button 
+                    onClick={() => setIsFullscreen(false)} 
+                    className="px-3 md:px-4 py-2 md:py-3 bg-white/20 hover:bg-white/30 rounded-lg flex items-center gap-2 transition cursor-pointer"
+                  >
+                    <Minimize className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                    <span className="text-white text-xs md:text-base font-semibold">Exit</span>
+                  </button>
+                </div>
               </div>
               
               {/* Keyboard Hints */}
