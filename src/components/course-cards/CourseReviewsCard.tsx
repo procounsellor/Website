@@ -1,6 +1,6 @@
-import { Star, ChevronRight, Info, X, ChevronLeft } from 'lucide-react';
+import { Star, ChevronRight, Info, X, ChevronLeft, Edit2, Trash2 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-import { addCourseReview } from '@/api/course';
+import { addCourseReview, updateCourseReview, deleteCourseReview } from '@/api/course';
 import { useAuthStore } from '@/store/AuthStore';
 import toast from 'react-hot-toast';
 
@@ -114,6 +114,8 @@ export default function CourseReviewsCard({
   const [showAllReviewsModal, setShowAllReviewsModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [userHasReviewed, setUserHasReviewed] = useState(false);
+  const [userReviewId, setUserReviewId] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   const reviewsPerPage = 10;
 
   const reviews = propReviews.length > 0 ? propReviews : [];
@@ -125,6 +127,7 @@ export default function CourseReviewsCard({
       const existingReview = reviews.find(r => r.userId === userId);
       if (existingReview) {
         setUserHasReviewed(true);
+        setUserReviewId(existingReview.reviewId);
         setUserRating(existingReview.rating);
         setReviewText(existingReview.reviewText);
       }
@@ -133,7 +136,7 @@ export default function CourseReviewsCard({
 
   const handleSubmitReview = async () => {
     // Prevent duplicate reviews
-    if (userHasReviewed) {
+    if (userHasReviewed && !isEditMode) {
       toast.error('You have already reviewed this course');
       return;
     }
@@ -154,15 +157,28 @@ export default function CourseReviewsCard({
 
     setIsSubmitting(true);
     try {
-      await addCourseReview({
-        userId,
-        courseId,
-        rating: userRating,
-        reviewText: reviewText.trim(),
-      });
-      
-      toast.success('Review submitted successfully!');
-      setUserHasReviewed(true);
+      if (isEditMode && userReviewId) {
+        // Update existing review
+        await updateCourseReview({
+          reviewId: userReviewId,
+          userId,
+          courseId,
+          rating: userRating,
+          reviewText: reviewText.trim(),
+        });
+        toast.success('Review updated successfully!');
+        setIsEditMode(false);
+      } else {
+        // Add new review
+        await addCourseReview({
+          userId,
+          courseId,
+          rating: userRating,
+          reviewText: reviewText.trim(),
+        });
+        toast.success('Review submitted successfully!');
+        setUserHasReviewed(true);
+      }
       
       // Refresh reviews
       if (onReviewSubmitted) {
@@ -171,6 +187,48 @@ export default function CourseReviewsCard({
     } catch (error) {
       console.error('Failed to submit review:', error);
       toast.error((error as Error).message || 'Failed to submit review. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEditReview = () => {
+    setIsEditMode(true);
+  };
+
+  const handleCancelEdit = () => {
+    // Restore original values
+    const existingReview = reviews.find(r => r.userId === userId);
+    if (existingReview) {
+      setUserRating(existingReview.rating);
+      setReviewText(existingReview.reviewText);
+    }
+    setIsEditMode(false);
+  };
+
+  const handleDeleteReview = async () => {
+    if (!userReviewId || !userId) return;
+
+    const confirmDelete = window.confirm('Are you sure you want to delete your review? This action cannot be undone.');
+    if (!confirmDelete) return;
+
+    setIsSubmitting(true);
+    try {
+      await deleteCourseReview(userReviewId, userId);
+      toast.success('Review deleted successfully!');
+      setUserHasReviewed(false);
+      setUserReviewId(null);
+      setUserRating(0);
+      setReviewText('');
+      setIsEditMode(false);
+      
+      // Refresh reviews
+      if (onReviewSubmitted) {
+        onReviewSubmitted();
+      }
+    } catch (error) {
+      console.error('Failed to delete review:', error);
+      toast.error((error as Error).message || 'Failed to delete review. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -200,14 +258,33 @@ export default function CourseReviewsCard({
       );
     }
 
-    if (userHasReviewed) {
+    if (userHasReviewed && !isEditMode) {
       return (
         <div className="mt-4 flex flex-col gap-4">
-          <div className="p-3 md:p-4 bg-green-50 rounded-lg flex items-center gap-2 md:gap-3 mb-2">
-            <Info className="w-4 h-4 md:w-6 md:h-6 text-green-500 shrink-0" />
-            <p className="text-xs md:text-sm text-green-800">
-              You have already reviewed this course.
-            </p>
+          <div className="p-3 md:p-4 bg-green-50 rounded-lg flex items-center justify-between gap-2 md:gap-3 mb-2">
+            <div className="flex items-center gap-2 md:gap-3">
+              <Info className="w-4 h-4 md:w-6 md:h-6 text-green-500 shrink-0" />
+              <p className="text-xs md:text-sm text-green-800">
+                You have already reviewed this course.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleEditReview}
+                className="flex items-center gap-1 px-2 md:px-3 py-1 md:py-1.5 bg-blue-500 text-white rounded-lg text-xs md:text-sm font-medium hover:bg-blue-600 transition cursor-pointer"
+              >
+                <Edit2 className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">Edit</span>
+              </button>
+              <button
+                onClick={handleDeleteReview}
+                disabled={isSubmitting}
+                className="flex items-center gap-1 px-2 md:px-3 py-1 md:py-1.5 bg-red-500 text-white rounded-lg text-xs md:text-sm font-medium hover:bg-red-600 transition cursor-pointer disabled:opacity-50"
+              >
+                <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">Delete</span>
+              </button>
+            </div>
           </div>
           <StarRating rating={userRating} interactive={false} />
           <p className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg min-h-[100px] text-gray-800">
@@ -232,13 +309,24 @@ export default function CourseReviewsCard({
           onChange={(e) => setReviewText(e.target.value)}
           disabled={isSubmitting}
         />
-        <button
-          className="self-start px-4 md:px-6 py-1.5 md:py-2 bg-[#13097D] text-white text-xs md:text-base font-semibold rounded-lg hover:cursor-pointer hover:bg-opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          onClick={handleSubmitReview}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? 'Submitting...' : 'Submit Review'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            className="px-4 md:px-6 py-1.5 md:py-2 bg-[#13097D] text-white text-xs md:text-base font-semibold rounded-lg hover:cursor-pointer hover:bg-opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleSubmitReview}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (isEditMode ? 'Updating...' : 'Submitting...') : (isEditMode ? 'Update Review' : 'Submit Review')}
+          </button>
+          {isEditMode && (
+            <button
+              className="px-4 md:px-6 py-1.5 md:py-2 bg-gray-200 text-gray-700 text-xs md:text-base font-semibold rounded-lg hover:cursor-pointer hover:bg-gray-300 transition"
+              onClick={handleCancelEdit}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+          )}
+        </div>
       </div>
     );
   };
@@ -325,7 +413,7 @@ export default function CourseReviewsCard({
       {role !== 'counselor' && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <h2 className="text-sm md:text-xl font-bold text-[#343C6A]">
-            {userHasReviewed ? 'Your Review' : 'Write a Review'}
+            {userHasReviewed && !isEditMode ? 'Your Review' : isEditMode ? 'Edit Your Review' : 'Write a Review'}
           </h2>
           {renderReviewForm()}
         </div>
