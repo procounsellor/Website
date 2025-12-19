@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bookmark, Heart, MessageSquare, Pencil, Eye } from 'lucide-react';
+import { Bookmark, Heart } from 'lucide-react';
 import type { CommunityDashboardItem } from '@/types/community';
 import { formatTimeAgo } from '@/utils/time';
 import { useAuthStore } from '@/store/AuthStore';
@@ -61,7 +61,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ item }) => {
   return (
     <div 
         onClick={handleClick}
-        className="w-full max-w-[860px] mx-auto p-5 rounded-lg cursor-pointer bg-[#F5F5F7] border-b-2 border-white">
+        className="w-full max-w-[860px] mx-auto p-5 rounded-lg cursor-pointer bg-[#F5F6FF] border-b-2 border-white">
       <div className="flex justify-between items-start">
         <div className="flex gap-4">
           <img
@@ -142,21 +142,21 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ item }) => {
       <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-300">
         <div className="flex items-center gap-6 text-gray-600">
           <button className="flex items-center gap-2 hover:text-red-500">
-            <Heart size={18} />
+            <Heart size={18} className='text-[#2F43F2] hover:text-red-500' />
             <span className="text-sm">{item.likesCountOnAnswer}</span>
           </button>
           <button className="flex items-center gap-2 hover:text-indigo-600">
-            <MessageSquare size={18} />
+            <img src="/msg_comm.svg" alt="comments" />
             <span className="text-sm">{item.commentCountOnAnswer}</span>
           </button>
           <div className="flex items-center gap-2">
-            <Pencil size={18} />
+            <img src="/bulb_comm.svg" alt="comment" />
             <span className="text-sm">{item.answerCount} Answers</span>
           </div>
         </div>
 
         <div className="flex items-center gap-2 text-gray-600">
-          <Eye size={18} />
+          <img src="/eye_comm.svg" alt="views" />
           <span className="text-sm">{item.questionViews}</span>
         </div>
       </div>
