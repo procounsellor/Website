@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star, Clock, Users, ChevronUp, ChevronRight } from "lucide-react";
@@ -7,7 +7,6 @@ import { useAuthStore } from "@/store/AuthStore";
 
 export default function PromoPage() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-  const [showBottomBar, setShowBottomBar] = useState(false);
   const heroSectionRef = useRef<HTMLElement | null>(null);
   const { toggleLogin } = useAuthStore();
 
@@ -18,29 +17,6 @@ export default function PromoPage() {
   const handleEnrollNow = () => {
     toggleLogin();
   };
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-
-      // Get hero section height
-      const heroHeight = heroSectionRef.current?.offsetHeight || 600;
-
-      // Show bar only if scrolled past hero section
-      if (currentScrollY > heroHeight) {
-        setShowBottomBar(true);
-      } else {
-        // Still in hero section, hide the bar
-        setShowBottomBar(false);
-      }
-    };
-
-    // Initial check on mount
-    handleScroll();
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const features = [
     {
@@ -191,7 +167,7 @@ export default function PromoPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white font-poppins">
+    <div className="min-h-screen bg-white font-poppins leading-[100%]">
       {/* Hero Section */}
       <section
         ref={heroSectionRef}
@@ -209,14 +185,14 @@ export default function PromoPage() {
               <div className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-[#FEECE199] rounded-full gap-2">
                 <div className="w-2 h-2 bg-[#FA660F] rounded-full"></div>
                 <span
-                  className="text-[#FA660F] font-normal text-xs sm:text-base leading-none tracking-normal"
+                  className="text-[#FA660F] font-normal text-xs sm:text-base tracking-normal"
                   style={{ color: "#FA660F", fontWeight: 400 }}
                 >
                   Seats are filling fast. A new batch is starting soon.
                 </span>
               </div>
 
-              <h1 className="text-[#232323] font-semibold text-2xl sm:text-3xl md:text-[36px] tracking-normal">
+              <h1 className="text-[#232323] font-semibold text-2xl sm:text-3xl md:text-[36px] tracking-normal text-left">
                 Take Off to Top Universities{" "}
                 <span className="text-[#2F43F2]">
                   Faster Than Everyone Else
@@ -365,7 +341,7 @@ export default function PromoPage() {
               What you'll get
             </h2>
             <p
-              className="leading-[120%] text-[12px] sm:text-lg"
+              className="text-[12px] sm:text-lg"
               style={{ fontWeight: 400, color: "#6B7280" }}
             >
               Benefits listed as features that deliver real outcomes.
@@ -406,11 +382,10 @@ export default function PromoPage() {
                       </div>
                       <div className="flex-1">
                         <h3
-                          className="mb-1"
+                          className="mb-2"
                           style={{
                             fontWeight: 500,
                             fontSize: "16px",
-                            lineHeight: "100%",
                             letterSpacing: "0%",
                             color: "#0E1629",
                           }}
@@ -420,7 +395,7 @@ export default function PromoPage() {
                           </span>
                         </h3>
                         <p
-                          className="text-[#6B7280] leading-[120%]"
+                          className="font-normal text-[#6B7280]"
                           style={{ fontSize: "14px" }}
                         >
                           <span className="sm:text-base md:text-[18px]">
@@ -449,7 +424,7 @@ export default function PromoPage() {
                 <span className="sm:text-2xl md:text-[24px]">6-8</span>
               </p>
               <p
-                className="font-normal text-[#6B7280] leading-[120%] text-center"
+                className="font-normal text-[#6B7280] text-center"
                 style={{ fontSize: "11px" }}
               >
                 <span className="sm:text-base text-[11px] ">
@@ -466,7 +441,7 @@ export default function PromoPage() {
                 <span className="sm:text-2xl md:text-[24px]">16</span>
               </p>
               <p
-                className="font-normal text-[#6B7280] leading-[120%] text-center"
+                className="font-normal text-[#6B7280] text-center"
                 style={{ fontSize: "11px" }}
               >
                 <span className="sm:text-base text-[11px]">Weeks program</span>
@@ -481,7 +456,7 @@ export default function PromoPage() {
                 <span className="sm:text-2xl md:text-[24px]">100%</span>
               </p>
               <p
-                className="font-normal text-[#6B7280] leading-[120%] text-center"
+                className="font-normal text-[#6B7280] text-center"
                 style={{ fontSize: "11px" }}
               >
                 <span className="sm:text-base text-[11px]">
@@ -510,7 +485,7 @@ export default function PromoPage() {
               Why Choose Us
             </h2>
             <p
-              className="leading-[120%] text-[12px] sm:text-lg"
+              className="text-[12px] sm:text-lg"
               style={{ fontWeight: 400, color: "#6B7280" }}
             >
               Unique Strengths That Set Us Apart.
@@ -538,7 +513,6 @@ export default function PromoPage() {
                     />
                   </div>
                   <p
-                    className="leading-[120%]"
                     style={{
                       fontWeight: 500,
                       fontSize: "14px",
@@ -580,11 +554,11 @@ export default function PromoPage() {
                         "linear-gradient(90deg, #F0F1FE 5.27%, #FDF8F5 66.38%)",
                     }}
                   >
-                    <p className="text-[#232323] font-medium mb-2 leading-[120%] text-xs sm:text-lg md:text-[20px]">
+                    <p className="text-[#232323] font-medium mb-2 text-xs sm:text-lg md:text-[20px]">
                       "Our students made it to these colleges. You are next."
                     </p>
                     <p
-                      className="leading-[120%] text-xs sm:text-base md:text-[18px]"
+                      className="text-xs sm:text-base md:text-[18px]"
                       style={{ color: "#6B7280" }}
                     >
                       Build aspiration and credibility simultaneously.
@@ -608,7 +582,7 @@ export default function PromoPage() {
               You Will Be Guided By
             </h2>
             <p
-              className="leading-[120%] text-[12px] sm:text-lg"
+              className="text-[12px] sm:text-lg"
               style={{ fontWeight: 400, color: "#6B7280" }}
             >
               Learn from industry experts with proven track records.
@@ -695,7 +669,7 @@ export default function PromoPage() {
                     {/* Row 2: Description */}
                     <div>
                       <p
-                        className="leading-[120%] font-normal"
+                        className="font-normal"
                         style={{ fontSize: "14px", color: "#6B7280" }}
                       >
                         <span className="sm:text-base">
@@ -722,7 +696,7 @@ export default function PromoPage() {
               Success Stories
             </h2>
             <p
-              className="leading-[120%] text-[12px] sm:text-lg"
+              className="text-[12px] sm:text-lg"
               style={{ fontWeight: 400, color: "#6B7280" }}
             >
               Real Students. Real Transformation.
@@ -753,7 +727,7 @@ export default function PromoPage() {
                         <span className="sm:text-xl">{testimonial.name}</span>
                       </h4>
                       <p
-                        className="font-medium text-[#2F43F2] leading-[120%]"
+                        className="font-medium text-[#2F43F2]"
                         style={{ fontSize: "14px" }}
                       >
                         <span className="sm:text-sm">{testimonial.role}</span>
@@ -770,7 +744,7 @@ export default function PromoPage() {
                     </div>
                   </div>
 
-                  <p className="text-[#6B7280] leading-[120%] text-sm sm:text-lg">
+                  <p className="text-[#6B7280] text-sm sm:text-lg">
                     {testimonial.text}
                   </p>
                   <img
@@ -802,7 +776,7 @@ export default function PromoPage() {
               Frequently Asked Questions
             </h2>
             <p
-              className="leading-[120%] text-[12px] sm:text-lg"
+              className="text-[12px] sm:text-lg"
               style={{ fontWeight: 400, color: "#6B7280" }}
             >
               Got questions? We've got answers.
@@ -832,7 +806,7 @@ export default function PromoPage() {
                 {openFaqIndex === index && (
                   <div className="mt-4 transition-transform">
                     <p
-                      className="leading-[120%] text-xs sm:text-base"
+                      className="text-xs sm:text-base"
                       style={{ color: "#6C6969", fontWeight: 400 }}
                     >
                       {faq.answer}
@@ -844,42 +818,6 @@ export default function PromoPage() {
           </div>
         </div>
       </section>
-
-      {/* Sticky Bottom Bar */}
-      <div
-        className={`fixed bottom-0 left-0 right-0 bg-white border-t border-r border-l border-[#D6D6D6] border-b-0 rounded-t-2xl px-3 sm:px-4 md:px-[19px] py-3 sm:py-4 z-50 transition-transform duration-300 shadow-[0px_-3px_10px_0px_#00000014] ${
-          showBottomBar ? "translate-y-0" : "translate-y-full"
-        }`}
-        style={{ minHeight: "auto", height: "auto" }}
-      >
-        <div className="max-w-7xl mx-auto flex flex-row items-center justify-between gap-2 sm:gap-4">
-          {/* Left Side - Message */}
-          <div className="flex items-center px-2 sm:px-4 py-1.5 sm:py-2 bg-[#FEECE199] rounded-full gap-1.5 sm:gap-2 min-w-0 w-fit">
-            <div className="w-2 h-2 bg-[#FA660F] rounded-full flex-shrink-0"></div>
-            <span
-              className="font-normal text-[10px] sm:text-sm md:text-base leading-tight tracking-normal"
-              style={{ color: "#FA660F", fontWeight: 400 }}
-            >
-              Seats are filling fast. A new batch is starting soon.
-            </span>
-          </div>
-
-          {/* Middle - Price */}
-          <div className="flex items-center gap-2">
-            <div className="text-base sm:text-2xl md:text-3xl font-semibold text-[#232323] flex-shrink-0 px-2">
-              ₹2,999
-            </div>
-
-            {/* Right Side - Button */}
-            <Button
-              onClick={handleEnrollNow}
-              className="bg-[#FF660F] hover:bg-[#e15500] text-white px-3 sm:px-6 md:px-8 py-2 sm:py-5 md:py-6 text-xs sm:text-base md:text-lg font-medium rounded-xl whitespace-nowrap flex-shrink-0"
-            >
-              Enroll Now
-            </Button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
