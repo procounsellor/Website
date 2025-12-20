@@ -29,9 +29,10 @@ const WHATSAPP_GROUP_LINK = "https://chat.whatsapp.com/JahmZvJ4vslJTxX9thZDK6"; 
 export default function PromoPage() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const heroSectionRef = useRef<HTMLElement | null>(null);
-  const { user, userId, isAuthenticated, toggleLogin, refreshUser } = useAuthStore();
+  const { user, userId, isAuthenticated, toggleLogin, refreshUser } =
+    useAuthStore();
   const token = localStorage.getItem("jwt");
-  
+
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
@@ -65,7 +66,8 @@ export default function PromoPage() {
   });
 
   const isCoursePurchased =
-    boughtCoursesData?.data?.some((course) => course.courseId === COURSE_ID) ?? false;
+    boughtCoursesData?.data?.some((course) => course.courseId === COURSE_ID) ??
+    false;
 
   const handleFaqToggle = (index: number) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
@@ -122,7 +124,9 @@ export default function PromoPage() {
         prefill: {
           contact: freshUser.phoneNumber || freshPhone,
           email: freshUser.email || "",
-          name: `${freshUser.firstName || ""} ${freshUser.lastName || ""}`.trim(),
+          name: `${freshUser.firstName || ""} ${
+            freshUser.lastName || ""
+          }`.trim(),
         },
         notes: {
           userId: freshUser.userName,
@@ -151,7 +155,8 @@ export default function PromoPage() {
             }
           } catch (error) {
             toast.error(
-              (error as Error).message || "Payment succeeded but enrollment failed.",
+              (error as Error).message ||
+                "Payment succeeded but enrollment failed.",
               { id: purchaseToast }
             );
           } finally {
@@ -167,7 +172,8 @@ export default function PromoPage() {
         theme: { color: "#13097D" },
       };
 
-      const RZ = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
+      const RZ = (window as unknown as { Razorpay: RazorpayConstructor })
+        .Razorpay;
       const rzp = new RZ(options);
       rzp.open();
       toast.dismiss(loadingToast);
@@ -184,11 +190,11 @@ export default function PromoPage() {
         let tries = 0;
         while (
           (!useAuthStore.getState().isAuthenticated ||
-           !useAuthStore.getState().user ||
-           !useAuthStore.getState().userId) &&
+            !useAuthStore.getState().user ||
+            !useAuthStore.getState().userId) &&
           tries < 20
         ) {
-          await new Promise(res => setTimeout(res, 100));
+          await new Promise((res) => setTimeout(res, 100));
           tries++;
         }
       });
@@ -272,9 +278,13 @@ export default function PromoPage() {
       <Button
         onClick={handleEnrollNow}
         disabled={isProcessing || isLoadingBought}
-        className="bg-[#FF660F] hover:bg-[#e15500] text-white px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg font-medium rounded-xl"
+        className="bg-[#FF660F] hover:bg-[#e15500] text-white px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg font-medium rounded-xl cursor-pointer"
       >
-        {isLoadingBought ? "Checking enrollment..." : isProcessing ? "Processing..." : "Enroll Now"}
+        {isLoadingBought
+          ? "Checking enrollment..."
+          : isProcessing
+          ? "Processing..."
+          : "Enroll Now"}
       </Button>
     );
   };
@@ -1055,7 +1065,7 @@ export default function PromoPage() {
               >
                 <button
                   onClick={() => handleFaqToggle(index)}
-                  className="w-full flex justify-between items-center text-left"
+                  className="w-full flex justify-between items-center text-left cursor-pointer"
                 >
                   <h3 className="font-medium text-sm sm:text-xl text-[#232323] pr-4">
                     {faq.question}

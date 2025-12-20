@@ -210,7 +210,7 @@ export default function Header() {
 
             <Button
               onClick={() => toggleLogin()}
-              className="bg-[#FF660F] hover:bg-[#e15500] text-white px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg font-medium rounded-xl"
+              className="bg-[#FF660F] hover:bg-[#e15500] text-white px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg font-medium rounded-xl cursor-pointer"
             >
               Enroll Now
             </Button>
