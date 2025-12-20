@@ -1,144 +1,109 @@
 import { useEffect, useRef, useState } from 'react';
 import { useVoiceChatStore } from '@/store/VoiceChatStore';
-import { Mic, PhoneOff} from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Mic, PhoneOff, X, MoreHorizontal } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// --- Predefined color palettes for the visualizer ---
-const colorPalettes = [
-  { from: 'from-sky-400', to: 'to-blue-600', radial: 'from-blue-300/50' },
-  { from: 'from-purple-400', to: 'to-indigo-600', radial: 'from-indigo-300/50' },
-];
+// --- Configuration ---
+const BAR_COUNT = 7;
+const SILENCE_TIMEOUT_MS = 1500;
 
-
-// --- Helper Hook for Voice Visualization (Unchanged) ---
-const useVoiceVisualizer = (isListening: boolean) => {
-  const [volume, setVolume] = useState(0);
-  // ... (rest of the hook is unchanged)
+// --- 1. Audio Analysis Hook ---
+const useAudioAnalysis = (isListening: boolean) => {
+  const [frequencyData, setFrequencyData] = useState<Uint8Array>(new Uint8Array(BAR_COUNT).fill(0));
   const audioContextRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const animationFrameRef = useRef<number>(0);
+  const rafRef = useRef<number>(0);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (!isListening) {
+      setFrequencyData(new Uint8Array(BAR_COUNT).fill(10));
+      return;
+    }
 
-    const setupAudio = async () => {
-      if (isListening) {
-        try {
-          const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-          if (!AudioContext) {
-            console.warn('AudioContext is not supported in this browser.');
+    let isMounted = true;
+
+    const startAudio = async () => {
+      try {
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        if (!AudioCtx) return;
+
+        const ctx = new AudioCtx();
+        audioContextRef.current = ctx;
+
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        if (!isMounted) {
+            stream.getTracks().forEach(t => t.stop());
+            ctx.close();
             return;
-          }
-          const context = new AudioContext();
-          audioContextRef.current = context;
-
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          streamRef.current = stream;
-
-          const source = context.createMediaStreamSource(stream);
-          sourceRef.current = source;
-          const analyser = context.createAnalyser();
-          analyser.fftSize = 512;
-          analyserRef.current = analyser;
-
-          source.connect(analyser);
-
-          const dataArray = new Uint8Array(analyser.frequencyBinCount);
-          const draw = () => {
-            if (analyserRef.current) {
-              analyserRef.current.getByteFrequencyData(dataArray);
-              const avg = dataArray.reduce((acc, val) => acc + val, 0) / dataArray.length;
-              setVolume(avg / 128);
-            }
-            animationFrameRef.current = requestAnimationFrame(draw);
-          };
-          draw();
-        } catch (err) {
-          console.error('Error setting up audio visualizer:', err);
         }
+
+        streamRef.current = stream;
+        if (ctx.state === 'closed') return;
+
+        const source = ctx.createMediaStreamSource(stream);
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 64;
+        analyser.smoothingTimeConstant = 0.5;
+        source.connect(analyser);
+
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        const tick = () => {
+          if (!isMounted) return;
+          analyser.getByteFrequencyData(dataArray);
+          const step = Math.floor(bufferLength / BAR_COUNT);
+          const sampledData = new Uint8Array(BAR_COUNT);
+          for (let i = 0; i < BAR_COUNT; i++) {
+            sampledData[i] = Math.max(dataArray[i * step], 10);
+          }
+          setFrequencyData(sampledData);
+          rafRef.current = requestAnimationFrame(tick);
+        };
+        tick();
+
+      } catch (err) {
+        console.error("Mic Error:", err);
       }
     };
 
-    setupAudio();
+    startAudio();
 
     return () => {
-      cancelAnimationFrame(animationFrameRef.current);
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-      }
-      if (sourceRef.current) sourceRef.current.disconnect();
-      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-        audioContextRef.current.close();
-      }
+      isMounted = false;
+      cancelAnimationFrame(rafRef.current);
+      if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+      if (audioContextRef.current?.state !== 'closed') audioContextRef.current?.close();
     };
   }, [isListening]);
 
-  return volume;
+  return frequencyData;
 };
 
-
-// --- ✨ MODIFIED: The Visualizer now has a "breathing" animation when speaking ---
-const VoiceVisualizer = ({
-  volume,
-  isSpeaking = false,
-  palette,
-}: {
-  volume: number;
-  isSpeaking?: boolean;
-  palette: { from: string; to: string; radial: string };
-}) => {
-  const baseScale = 1 + volume * 0.1;
-
+// --- 2. Waveform Component ---
+const WaveformBar = ({ value, index, state }: { value: number, index: number, state: string }) => {
+  const isAiSpeaking = state === 'speaking';
   return (
     <motion.div
-      className="relative w-56 h-56 md:w-64 md:h-64 rounded-full overflow-hidden"
-      aria-hidden
-      // ✨ Animate the scale property
-      animate={{ scale: isSpeaking ? [1.1, 1.18, 1.1] : baseScale }}
-      // ✨ Define the transition for the animation
-      transition={{
-        duration: isSpeaking ? 1.5 : 0.2,
-        repeat: isSpeaking ? Infinity : 0,
-        ease: 'easeInOut',
+      layout
+      initial={{ height: 24 }}
+      animate={{ 
+        height: isAiSpeaking ? [32, 96, 32] : Math.min(Math.max(value * 0.8, 24), 160),
+        backgroundColor: state === 'listening' ? '#ffffff' : state === 'speaking' ? '#a855f7' : '#525252' 
       }}
-    >
-      <div className={`absolute inset-0 bg-gradient-to-br ${palette.from} ${palette.to} transition-opacity duration-500 ${isSpeaking ? 'opacity-95' : 'opacity-100'}`} />
-      
-      {/* ✨ Animate the blur for a nice secondary effect */}
-      <motion.div
-        className="absolute inset-0 rounded-full bg-white/10"
-        animate={{ backdropFilter: isSpeaking ? 'blur(16px)' : 'blur(24px)' }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', repeatType: 'reverse' }}
-      />
-      
-      <div
-        className={`absolute w-[300%] h-[300%] -left-full -top-full bg-gradient-radial from-white/60 via-white/20 to-transparent ${
-          isSpeaking ? 'animate-[spin_8s_linear_infinite] opacity-90' : 'animate-[spin_18s_linear_infinite]'
-        }`}
-      />
-      <div
-        className={`absolute w-[200%] h-[200%] -left-1/2 -top-1/2 bg-gradient-radial ${palette.radial} via-blue-400/20 to-transparent ${
-          isSpeaking ? 'animate-[spin_6s_linear_infinite] opacity-90' : 'animate-[spin_12s_linear_infinite] opacity-70'
-        }`}
-      />
-    </motion.div>
+      transition={{
+        height: isAiSpeaking 
+          ? { duration: 1.2, repeat: Infinity, ease: "easeInOut", delay: index * 0.1 } 
+          : { type: "spring", stiffness: 300, damping: 20 },
+        backgroundColor: { duration: 0.3 }
+      }}
+      className="w-4 md:w-6 rounded-full mx-1 shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+    />
   );
 };
 
-
-// --- Small animated dots for "thinking" ---
-const ThinkingDots = () => (
-  <span className="inline-flex items-center space-x-1">
-    <span className="w-1.5 h-1.5 bg-white/70 rounded-full animate-pulse" />
-    <span style={{ animationDelay: '200ms' }} className="w-1.5 h-1.5 bg-white/70 rounded-full animate-pulse" />
-    <span style={{ animationDelay: '400ms' }} className="w-1.5 h-1.5 bg-white/70 rounded-full animate-pulse" />
-  </span>
-);
-
-
-// --- Main VoiceChat Component (Unchanged from previous version) ---
+// --- 3. Main Component ---
 const isSpeechRecognitionSupported =
   typeof window !== 'undefined' && ('SpeechRecognition' in window || (window as any).webkitSpeechRecognition);
 
@@ -147,6 +112,7 @@ export default function VoiceChat() {
     isListening,
     isSpeaking,
     isVoiceChatOpen,
+    isPlayingQueue, // <--- Key addition
     toggleVoiceChat,
     startListening,
     stopListening,
@@ -155,139 +121,227 @@ export default function VoiceChat() {
   } = useVoiceChatStore();
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const volume = useVoiceVisualizer(isListening);
+  const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const finalTranscriptRef = useRef<string>("");
+  
+  const frequencyData = useAudioAnalysis(isListening);
   
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
-  const [palette, setPalette] = useState(colorPalettes[0]);
+  const [transcriptPreview, setTranscriptPreview] = useState("");
+  const wasSpeakingRef = useRef(isSpeaking);
 
+  // --- LOGIC FIX: Bridge the Gap ---
+  // If isPlayingQueue is true, we are downloading audio. Treat this as "thinking".
+  const currentState = isSpeaking 
+    ? 'speaking' 
+    : (isAwaitingResponse || isPlayingQueue) 
+    ? 'thinking' 
+    : isListening 
+    ? 'listening' 
+    : 'idle';
+
+  const startRecognitionSafe = () => {
+    try { 
+        const rec = recognitionRef.current;
+        if(rec) {
+            try { rec.start(); } catch(e) { }
+        }
+        startListening(); 
+    } catch (e) { console.error(e); }
+  };
+
+  const stopRecognitionSafe = () => {
+    try { 
+        recognitionRef.current?.stop(); 
+        stopListening(); 
+    } catch (e) { }
+  };
+
+  const handleFinalInput = async (text: string) => {
+    if (!text.trim()) return;
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    stopRecognitionSafe(); 
+    setIsAwaitingResponse(true);
+    setTranscriptPreview("");
+    try {
+      await processUserTranscript(text);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsAwaitingResponse(false);
+    }
+  };
+
+  // --- LOGIC FIX: Auto-Listen Restart ---
+  useEffect(() => {
+    // Only restart listening if we finished speaking AND we are not buffering new audio
+    if (wasSpeakingRef.current && !isSpeaking && isVoiceChatOpen) {
+       const timeoutId = setTimeout(() => {
+          if (!isListening && !isAwaitingResponse && !isPlayingQueue) {
+             startRecognitionSafe();
+          }
+       }, 500); 
+       return () => clearTimeout(timeoutId);
+    }
+    wasSpeakingRef.current = isSpeaking;
+  }, [isSpeaking, isVoiceChatOpen, isListening, isAwaitingResponse, isPlayingQueue]); // Added isPlayingQueue
+
+  // --- SPEECH RECOGNITION SETUP ---
   useEffect(() => {
     if (!isSpeechRecognitionSupported) return;
 
     const SpeechRecognitionAPI = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognitionAPI();
     recognitionRef.current = recognition;
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.continuous = true; 
+    recognition.interimResults = true;
     recognition.lang = 'en-IN';
 
-    recognition.onstart = startListening;
-    recognition.onend = stopListening;
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const result = event.results[event.results.length - 1];
+      const transcript = result[0].transcript;
+      
+      setTranscriptPreview(transcript);
+      finalTranscriptRef.current = transcript;
 
-    recognition.onresult = async (event: SpeechRecognitionEvent) => {
-      const transcript = event.results[0][0].transcript.trim();
-      if (transcript) {
-        setIsAwaitingResponse(true);
-        try {
-          await processUserTranscript(transcript);
-        } catch (err) {
-          console.error('Error processing transcript:', err);
-          setIsAwaitingResponse(false);
-        }
-      }
-    };
-    
-
-    recognition.onerror = (ev: any) => {
-      console.warn('Speech recognition error', ev);
-      stopListening();
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = setTimeout(() => {
+        handleFinalInput(finalTranscriptRef.current);
+      }, SILENCE_TIMEOUT_MS);
     };
 
-    return () => {
-      try {
-        recognition.stop();
-      } catch (e) { /* ignore */ }
+    recognition.onerror = (event: any) => {
+      if (event.error === 'no-speech') return; 
     };
-  }, [processUserTranscript, startListening, stopListening]);
-  
-  useEffect(() => {
-    if (isSpeaking) {
-      setIsAwaitingResponse(false);
-      setPalette(colorPalettes[Math.floor(Math.random() * colorPalettes.length)]);
-    }
-    if (!isVoiceChatOpen) {
-      setIsAwaitingResponse(false);
-    }
-  }, [isSpeaking, isVoiceChatOpen]);
-
-  const startRecognitionSafely = () => {
-    const recognition = recognitionRef.current;
-    if (!recognition) return;
-    try {
-      recognition.start();
-    } catch (e) { /* ignore */ }
-  };
-
-  const handleMicClick = () => {
-    const recognition = recognitionRef.current;
-
-    if (isSpeaking) {
-      stopSpeaking();
-      setTimeout(() => {
-        startRecognitionSafely();
-      }, 250);
-      return;
-    }
 
     if (isListening) {
-      recognition?.stop();
+        try { recognition.start(); } catch (e) { }
+    }
+
+    return () => {
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      try { recognition.stop(); } catch(e){}
+    };
+  }, [processUserTranscript]);
+
+  const handleMicToggle = () => {
+    if (isSpeaking) {
+      stopSpeaking();
+      return; 
+    }
+    if (isListening) {
+      stopRecognitionSafe();
     } else {
-      startRecognitionSafely();
+      startRecognitionSafe();
     }
   };
 
+  if (!isVoiceChatOpen) return null;
+
   return (
-    <div className="fixed inset-0 bg-[#202124] z-[200] flex flex-col items-center justify-center p-4 md:p-6 animate-in fade-in-20">
-
-      {/* Status indicators - Responsive positioning */}
-      <div className="absolute top-6 md:top-9 left-1/2 -translate-x-1/2 flex items-center gap-2 md:gap-3">
-        {isListening && (
-          <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full text-xs md:text-sm text-white">
-            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-            <span>Listening</span>
-          </div>
-        )}
-        {isAwaitingResponse && (
-          <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full text-xs md:text-sm text-white">
-            <span>Thinking</span>
-            <ThinkingDots />
-          </div>
-        )}
-        {isSpeaking && (
-          <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full text-xs md:text-sm text-white">
-            <span>Speaking</span>
-          </div>
-        )}
-      </div>
-
-      {/* Voice Visualizer - Responsive */}
-      <div className="flex-grow flex items-center justify-center w-full max-w-md md:max-w-2xl">
-        <VoiceVisualizer
-          volume={isSpeaking ? 0.1 : volume}
-          isSpeaking={isSpeaking}
-          palette={palette}
-        />
-      </div>
-
-      {/* Control buttons - Responsive */}
-      <div className="w-full flex justify-center items-center gap-4 md:gap-6 flex-shrink-0 pt-6 md:pt-8 pb-4 md:pb-0">
-        <button
-          onClick={handleMicClick}
-          className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center transition-all duration-300 text-white ${
-            isListening ? 'bg-red-600 shadow-lg shadow-red-500/30' : 'bg-white/10 hover:bg-white/20'
-          }`}
-          aria-label={isListening ? 'Stop listening' : 'Start listening'}
-        >
-          <Mic size={24} className="md:w-7 md:h-7" />
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }} 
+      animate={{ opacity: 1, scale: 1 }} 
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="fixed inset-0 z-[200] flex flex-col items-center justify-between bg-zinc-950 text-white p-6 font-sans overflow-hidden"
+    >
+      {/* Top Bar */}
+      <div className="w-full flex justify-between items-center opacity-60">
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${currentState === 'listening' ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`} />
+          <span className="text-sm font-medium tracking-widest uppercase">{currentState}</span>
+        </div>
+        <button onClick={toggleVoiceChat} className="p-2 hover:bg-white/10 rounded-full transition cursor-pointer">
+          <X size={24} />
         </button>
+      </div>
 
-        <button
+      {/* Main Content */}
+      <div className="flex-1 w-full max-w-2xl flex flex-col items-center justify-center gap-12">
+        <div className="h-32 flex items-center justify-center text-center px-4">
+          <AnimatePresence mode="wait">
+            {isSpeaking ? (
+              <motion.p 
+                key="ai-speaking"
+                initial={{ opacity: 0, y: 10 }} 
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="text-2xl md:text-3xl font-light text-purple-200"
+              >
+                AI is speaking...
+              </motion.p>
+            ) : transcriptPreview ? (
+              <motion.p 
+                key="preview"
+                className="text-2xl md:text-4xl font-medium text-white leading-tight"
+              >
+                "{transcriptPreview}"
+              </motion.p>
+            ) : currentState === 'listening' ? (
+              <motion.p 
+                key="listening-prompt"
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 0.5 }}
+                className="text-xl text-zinc-500"
+              >
+                Listening...
+              </motion.p>
+            ) : currentState === 'thinking' ? (
+                <motion.div 
+                  key="thinking"
+                  className="flex flex-col items-center gap-3 text-zinc-400"
+                >
+                  <MoreHorizontal className="animate-pulse w-10 h-10" />
+                  <span className="text-sm">Processing</span>
+                </motion.div>
+            ) : (
+              <p className="text-zinc-600">Tap the mic to start</p>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Visualizer */}
+        <div className="h-40 flex items-center justify-center gap-1 md:gap-3">
+          {Array.from({ length: BAR_COUNT }).map((_, i) => (
+            <WaveformBar 
+              key={i} 
+              index={i} 
+              value={frequencyData[i]} 
+              state={currentState}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom Controls */}
+      <div className="w-full flex justify-center items-center gap-8 mb-8">
+         <motion.button
           onClick={toggleVoiceChat}
-          className="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center bg-[#ea4335] hover:bg-[#d93025] transition-colors text-white"
-          aria-label="End call"
+          whileTap={{ scale: 0.9 }}
+          className="p-4 rounded-full bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors"
         >
-          <PhoneOff size={24} className="md:w-7 md:h-7" />
-        </button>
+          <PhoneOff size={24} />
+        </motion.button>
+
+        <motion.button
+          onClick={handleMicToggle}
+          whileTap={{ scale: 0.95 }}
+          className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl ${
+            currentState === 'listening' 
+              ? 'bg-white text-black shadow-white/20' 
+              : currentState === 'speaking'
+              ? 'bg-purple-600 text-white shadow-purple-500/40 animate-pulse'
+              : 'bg-zinc-800 text-white hover:bg-zinc-700'
+          }`}
+        >
+          {currentState === 'speaking' ? (
+            <X size={32} />
+          ) : (
+            <Mic size={32} />
+          )}
+        </motion.button>
+        <div className="w-14" />
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -14,7 +14,7 @@ export function ChatbotCounselorCard({ counselor }: ChatbotCounselorCardProps) {
         <img
           src={counselor?.photoUrlSmall || fallback}
           alt={`${counselor.firstName} ${counselor.lastName}`}
-          className="w-10 h-10 md:w-16 md:h-16 rounded-full object-cover mr-2 md:mr-4 ring-2 ring-[#404040] flex-shrink-0"
+          className="w-10 h-10 md:w-16 md:h-16 rounded-full object-cover mr-2 md:mr-4 ring-2 ring-[#404040] shrink-0"
           onError={(e) => {
             e.currentTarget.onerror = null; 
             e.currentTarget.src = fallback;
@@ -26,7 +26,7 @@ export function ChatbotCounselorCard({ counselor }: ChatbotCounselorCardProps) {
           </h3>
           <p className="text-[10px] md:text-sm text-gray-400 truncate whitespace-nowrap overflow-hidden text-ellipsis leading-tight">{counselor.city}</p>
           <div className="flex items-center mt-0.5 md:mt-1 text-[10px] md:text-xs text-gray-400 whitespace-nowrap">
-            <Star className="w-2.5 h-2.5 md:w-4 md:h-4 text-yellow-400 fill-yellow-400 mr-0.5 md:mr-1 flex-shrink-0" />
+            <Star className="w-2.5 h-2.5 md:w-4 md:h-4 text-yellow-400 fill-yellow-400 mr-0.5 md:mr-1 shrink-0" />
             <span className="truncate">{counselor.rating}</span>
             <span className="mx-1">|</span>
             <span className="truncate">{counselor.experience} Yrs</span>

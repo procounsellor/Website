@@ -1,5 +1,4 @@
 import { create } from "zustand";
-// askQuestion is no longer needed, as we handle the stream directly
 import { transformCounselorData } from "@/api/chatbot";
 import type { AllCounselor } from "@/types/academic";
 import { API_CONFIG } from "@/api/config";
@@ -11,23 +10,47 @@ export interface VoiceMessage {
   followup?: string;
 }
 
+// Optimized Splitter: Splits on long pauses or commas if text is long
+const splitIntoSentences = (text: string): { sentence: string; remaining: string } | null => {
+  const sentenceMatch = text.match(/^(.+?([.?!]+["')\]]*))(\s+|$)/);
+  if (sentenceMatch) {
+    return { sentence: sentenceMatch[1].trim(), remaining: text.slice(sentenceMatch[0].length) };
+  }
+  
+  // If chunk is getting huge (>60 chars) and has a comma, split there for speed
+  if (text.length > 60) {
+    const commaMatch = text.match(/^(.+?([,]+))(\s+|$)/);
+    if (commaMatch) {
+        return { sentence: commaMatch[1].trim(), remaining: text.slice(commaMatch[0].length) };
+    }
+  }
+  return null;
+};
+
 type VoiceChatState = {
   messages: VoiceMessage[];
   isListening: boolean;
   isSpeaking: boolean;
   isVoiceChatOpen: boolean;
+  
+  // --- Audio State ---
+  audioQueue: Promise<string>[]; 
+  isPlayingQueue: boolean; // Acts as "Buffering/Loading" state
   currentAudio: HTMLAudioElement | null;
-  currentMediaSource: MediaSource | null;
-  currentStreamReader: ReadableStreamDefaultReader<Uint8Array> | null;
-  // --- NEW: AbortController to stop the /ask stream ---
+  
+  // --- Abort Controllers ---
   currentChatStreamController: AbortController | null;
+
+  // --- Actions ---
   toggleVoiceChat: () => void;
   startListening: () => void;
   stopListening: () => void;
   stopSpeaking: () => void;
   processUserTranscript: (transcript: string) => Promise<void>;
-  // --- NEW: Helper function to play audio ---
-  playAudioStream: (text: string) => Promise<void>;
+  
+  // --- Internal Helpers ---
+  queueAudio: (text: string) => void;
+  processAudioQueue: () => Promise<void>;
 };
 
 export const useVoiceChatStore = create<VoiceChatState>((set, get) => ({
@@ -35,13 +58,14 @@ export const useVoiceChatStore = create<VoiceChatState>((set, get) => ({
   isListening: false,
   isSpeaking: false,
   isVoiceChatOpen: false,
+  
+  audioQueue: [],
+  isPlayingQueue: false,
   currentAudio: null,
-  currentMediaSource: null,
-  currentStreamReader: null,
   currentChatStreamController: null,
 
   toggleVoiceChat: () => {
-    get().stopSpeaking(); // This stops both audio and text streams
+    get().stopSpeaking();
     set((state) => ({
       isVoiceChatOpen: !state.isVoiceChatOpen,
       messages: !state.isVoiceChatOpen ? [] : state.messages,
@@ -52,239 +76,195 @@ export const useVoiceChatStore = create<VoiceChatState>((set, get) => ({
   stopListening: () => set({ isListening: false }),
 
   stopSpeaking: () => {
-    const {
-      currentAudio,
-      currentStreamReader,
-      currentMediaSource,
-      currentChatStreamController,
-    } = get();
-
-    // 1. Cancel the /ask network request
-    if (currentChatStreamController) {
-      currentChatStreamController.abort();
-    }
-
-    // 2. Cancel the /synthesize network request
-    if (currentStreamReader) {
-      currentStreamReader.cancel().catch(() => {});
-    }
-
-    // 3. Pause the audio element
+    const { currentAudio, currentChatStreamController } = get();
+    if (currentChatStreamController) currentChatStreamController.abort();
     if (currentAudio) {
       currentAudio.pause();
-      currentAudio.src = "";
+      currentAudio.currentTime = 0;
     }
-
-    // 4. Clean up the MediaSource
-    if (currentMediaSource && currentMediaSource.readyState === "open") {
-      try {
-        currentMediaSource.endOfStream();
-      } catch (e) {
-        console.warn("Error ending MediaSource stream:", e);
-      }
-    }
-
-    // 5. Reset the state
     set({
+      isSpeaking: false,
+      isPlayingQueue: false,
+      audioQueue: [],
       currentAudio: null,
-      currentMediaSource: null,
-      currentStreamReader: null,
       currentChatStreamController: null,
-      isSpeaking: false, // Ensure speaking is set to false
     });
   },
 
-  // --- NEW: Helper function to stream audio ---
-  // This contains the MediaSource logic from the previous step
-  playAudioStream: async (text: string) => {
-    if (!text.trim()) {
-      console.warn("Skipping audio playback for empty text.");
-      return;
-    }
+  queueAudio: (text: string) => {
+    // Filter noise
+    if (!text || !/[a-zA-Z0-9]/.test(text)) return;
 
-    try {
-      const audioResponse = await fetch(`${API_CONFIG.chatbotUrl}/synthesize`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      });
+    // Prefetch audio immediately
+    const audioPromise = (async () => {
+      try {
+        const response = await fetch(`${API_CONFIG.chatbotUrl}/synthesize`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
 
-      if (!audioResponse.ok || !audioResponse.body) {
-        throw new Error("Failed to fetch TTS audio stream.");
+        if (!response.ok) throw new Error("TTS Failed");
+        const blob = await response.blob();
+        return URL.createObjectURL(new Blob([blob], { type: "audio/mpeg" }));
+      } catch (e) {
+        console.error("TTS Error:", e);
+        return ""; 
       }
+    })();
 
-      const audio = new Audio();
-      const mediaSource = new MediaSource();
-      const reader = audioResponse.body.getReader();
-
-      audio.src = URL.createObjectURL(mediaSource);
-
-      set({
-        currentAudio: audio,
-        currentMediaSource: mediaSource,
-        currentStreamReader: reader,
-        isSpeaking: true,
-      });
-
-      audio.play().catch((e) => console.error("Audio play failed:", e));
-
-      mediaSource.addEventListener("sourceopen", async () => {
-        const sourceBuffer = mediaSource.addSourceBuffer("audio/mpeg");
-
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            sourceBuffer.appendBuffer(value);
-            await new Promise((resolve) => {
-              sourceBuffer.onupdateend = resolve;
-            });
-          }
-        } catch (e) {
-          console.log("Audio stream stopped or encountered an error:", e);
-        } finally {
-          if (mediaSource.readyState === "open") {
-            mediaSource.endOfStream();
-          }
-        }
-      });
-
-      audio.onended = () => get().stopSpeaking();
-      audio.onerror = () => {
-        console.error("Error playing audio.");
-        get().stopSpeaking();
-      };
-    } catch (err) {
-      console.error("Error in audio playback:", err);
-      set({ isSpeaking: false });
+    set((state) => ({ audioQueue: [...state.audioQueue, audioPromise] }));
+    
+    // Only trigger processor if it's idle
+    if (!get().isPlayingQueue) {
+      get().processAudioQueue();
     }
   },
 
-  // --- COMPLETELY REWRITTEN: processUserTranscript ---
+  processAudioQueue: async () => {
+    // Set PlayingQueue to TRUE to indicate "We are busy/buffering"
+    // But do NOT set isSpeaking yet. This keeps UI in "Thinking" mode.
+    set({ isPlayingQueue: true });
+
+    while (get().audioQueue.length > 0) {
+      const nextAudioPromise = get().audioQueue[0];
+      
+      try {
+        const audioUrl = await nextAudioPromise;
+        set((state) => ({ audioQueue: state.audioQueue.slice(1) }));
+
+        if (audioUrl) {
+          await new Promise<void>((resolve) => {
+            const audio = new Audio(audioUrl);
+            set({ currentAudio: audio });
+            
+            // Gapless Hack: Start downloading the NEXT file while this one plays
+            const nextInLine = get().audioQueue[0];
+            if (nextInLine) {
+                 nextInLine.then(url => { if(url) new Audio(url); });
+            }
+
+            audio.onended = () => {
+              URL.revokeObjectURL(audioUrl); 
+              resolve();
+            };
+            
+            audio.onerror = () => {
+              URL.revokeObjectURL(audioUrl);
+              resolve(); 
+            };
+
+            // CRITICAL: Only show "AI Speaking" when sound ACTUALLY starts
+            audio.onplay = () => {
+                 set({ isSpeaking: true });
+            };
+
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+              playPromise.catch(() => resolve());
+            }
+          });
+        }
+      } catch (e) {
+        console.error("Queue processing error:", e);
+        set((state) => ({ audioQueue: state.audioQueue.slice(1) }));
+      }
+      
+      if (!get().isPlayingQueue) break; 
+    }
+
+    set({ isPlayingQueue: false, isSpeaking: false, currentAudio: null });
+  },
+
   processUserTranscript: async (transcript: string) => {
     if (!transcript) return;
-
-    // Stop any currently playing audio/streams
     get().stopSpeaking();
 
     const userMessage: VoiceMessage = { text: transcript, isUser: true };
     set((state) => ({ messages: [...state.messages, userMessage] }));
 
-    // Format history for the backend
     const currentHistory = get().messages.map((msg) => ({
       role: msg.isUser ? "user" : "assistant",
       content: msg.text + (msg.followup ? " " + msg.followup : ""),
     }));
 
-    // Create a new AbortController for this request
     const chatController = new AbortController();
     set({ currentChatStreamController: chatController });
 
+    let sentenceBuffer = ""; 
+
     try {
-      // 1. --- Handle the /ask SSE Stream ---
-      const response = await fetch(
-        `${API_CONFIG.chatbotUrl}/ask?question=${encodeURIComponent(
-          transcript
-        )}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(currentHistory), // Send history in the body
-          signal: chatController.signal, // Pass the abort signal
-        }
-      );
-
-      if (!response.ok || !response.body) {
-        throw new Error("Failed to fetch chat response.");
-      }
-
-      // Add a new, empty bot message to the state
-      const botMessageId = get().messages.length;
-      const initialBotMessage: VoiceMessage = {
-        text: "",
-        isUser: false,
-        followup: "",
-        counsellors: [],
+      const payload = {
+        formattedHistory: currentHistory,
+        userId: "user_temp", 
+        sessionId: "session_temp", 
+        userType: "visitor", 
+        source: "voice_chat"
       };
+
+      const response = await fetch(`${API_CONFIG.chatbotUrl}/ask?question=${encodeURIComponent(transcript)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: chatController.signal,
+      });
+
+      const botMessageId = get().messages.length;
       set((state) => ({
-        messages: [...state.messages, initialBotMessage],
+        messages: [...state.messages, { text: "", isUser: false, followup: "", counsellors: [] }],
       }));
 
-      // Variables to accumulate the full response
-      let fullAnswer = "";
-      let fullFollowup = "";
-
-      // Read the SSE stream
+      if (!response.body) throw new Error("No body");
       const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
 
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
 
-        // The stream sends data in the format: "data: { ... }\n\n"
-        // We need to parse this
-        const lines = value
-          .split("\n\n")
-          .filter((line) => line.startsWith("data: "));
+        const lines = value.split("\n\n").filter((line) => line.startsWith("data: "));
 
         for (const line of lines) {
           try {
-            const rawData = line.substring(5); // Remove "data: "
-            const event = JSON.parse(rawData);
+            const event = JSON.parse(line.substring(5));
 
-            // Update the state based on the event type
             set((state) => {
               const messages = [...state.messages];
-              const targetMessage = messages[botMessageId];
-              if (!targetMessage) return { messages };
+              const target = messages[botMessageId];
+              if (!target) return { messages };
 
-              switch (event.type) {
-                case "text_chunk":
-                  targetMessage.text += event.content;
-                  fullAnswer += event.content; // Keep accumulating for TTS
-                  break;
-                case "followup":
-                  targetMessage.followup = event.data;
-                  fullFollowup = event.data; // Save for TTS
-                  break;
-                case "counsellors":
-                  targetMessage.counsellors = event.data.map(
-                    transformCounselorData
-                  );
-                  break;
-                case "done":
-                  // This case is handled by the loop finishing
-                  break;
+              if (event.type === "text_chunk") {
+                target.text += event.content;
+                sentenceBuffer += event.content;
+                
+                let extraction;
+                while ((extraction = splitIntoSentences(sentenceBuffer))) {
+                  if (extraction.sentence.trim().length > 0) { 
+                      get().queueAudio(extraction.sentence);
+                  }
+                  sentenceBuffer = extraction.remaining;
+                }
+              } else if (event.type === "followup") {
+                target.followup = event.data;
+                get().queueAudio(event.data);
+              } else if (event.type === "counsellors") {
+                target.counsellors = event.data.map(transformCounselorData);
               }
               return { messages };
             });
-          } catch (e) {
-            console.error("Error parsing SSE event:", e, "Data:", line);
-          }
+          } catch (e) { /* ignore */ }
         }
       }
 
-      // 2. --- Stream is done, start audio playback ---
-      set({ currentChatStreamController: null }); // Clear the controller
-      const textToSpeak = fullAnswer + " " + fullFollowup;
-      await get().playAudioStream(textToSpeak);
-      
-    } catch (err: any) {
-      if (err.name === 'AbortError') {
-        console.log("Chat stream aborted by user.");
-        return; // This is expected, not an error
+      if (sentenceBuffer.trim()) {
+        get().queueAudio(sentenceBuffer);
       }
-      
-      console.error("Error in conversation flow:", err);
-      const errorMessage: VoiceMessage = {
-        text: "Sorry, an error occurred.",
-        isUser: false,
-      };
-      set((state) => ({
-        messages: [...state.messages, errorMessage],
-        isSpeaking: false,
-        currentChatStreamController: null,
-      }));
+
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        set((state) => ({ messages: [...state.messages, { text: "Error occurred.", isUser: false }] }));
+      }
+    } finally {
+      set({ currentChatStreamController: null });
     }
   },
 }));
