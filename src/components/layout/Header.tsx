@@ -15,6 +15,11 @@ import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import SmartImage from "@/components/ui/SmartImage";
 import { BANNER_DISMISS_EVENT } from "@/components/shared/AppInstallBanner";
+import { useQuery } from "@tanstack/react-query";
+import { getBoughtCourses } from "@/api/course";
+
+// TODO: Update with the actual course ID for the promo page (should match PromoPage.tsx)
+const PROMO_COURSE_ID = "a997f3a9-4a36-4395-9f90-847b739fb225";
 
 interface NewHeaderButtonProps {
   label: string;
@@ -34,7 +39,8 @@ const NewHeaderButton: React.FC<NewHeaderButtonProps> = ({
 );
 
 export default function Header() {
-  const { toggleLogin, isAuthenticated, logout, role } = useAuthStore();
+  const { toggleLogin, isAuthenticated, logout, role, userId, user } =
+    useAuthStore();
   const [scrolled, setScrolled] = useState(false);
   const [showHeaderSearch, setShowHeaderSearch] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -50,6 +56,40 @@ export default function Header() {
 
   // Check if we're on the home page
   const isHomePage = location.pathname === "/";
+  const isPromoPage = location.pathname === "/promo";
+
+  // Check if user is enrolled in the promo course
+  const isUserLoaded = user !== null && user !== undefined;
+  const { data: boughtCoursesData } = useQuery({
+    queryKey: ["boughtCourses", userId],
+    queryFn: () => {
+      if (isCounselor) {
+        return Promise.resolve({
+          data: [],
+          status: true,
+          message: "Counselor cannot buy courses",
+        });
+      }
+      return getBoughtCourses(userId as string);
+    },
+    enabled:
+      isUserLoaded &&
+      !!userId &&
+      isAuthenticated &&
+      !isCounselor &&
+      isPromoPage,
+    staleTime: 5000,
+  });
+
+  const isCoursePurchased =
+    boughtCoursesData?.data?.some(
+      (course) => course.courseId === PROMO_COURSE_ID
+    ) ?? false;
+
+  // Show normal header if on promo page AND user is logged in AND enrolled
+  // Show simplified promo header only if on promo page AND (not logged in OR not enrolled)
+  const shouldShowSimplifiedPromoHeader =
+    isPromoPage && (!isAuthenticated || !isCoursePurchased);
 
   useEffect(() => {
     const handleBannerDismiss = () => {
@@ -147,7 +187,35 @@ export default function Header() {
             : "bg-transparent"
         }`}
       >
-        {shouldShowNewHeader ? (
+        {shouldShowSimplifiedPromoHeader ? (
+          <div className="flex h-14 md:h-20 items-center justify-between px-5 lg:px-20">
+            <div
+              className="Logo flex items-center cursor-pointer"
+              onClick={() => navigate("/")}
+            >
+              <SmartImage
+                src="/logo.png"
+                alt="procounsel_logo"
+                className="h-7 w-7 md:w-11 md:h-12 rounded-md"
+                width={44}
+                height={44}
+                priority
+              />
+              <div className="flex items-center leading-tight pl-[9px]">
+                <h1 className="text-[#232323] font-semibold text-sm md:text-xl">
+                  ProCounsel
+                </h1>
+              </div>
+            </div>
+
+            <Button
+              onClick={() => toggleLogin()}
+              className="bg-[#FF660F] hover:bg-[#e15500] text-white px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg font-medium rounded-xl cursor-pointer"
+            >
+              Enroll Now
+            </Button>
+          </div>
+        ) : shouldShowNewHeader ? (
           <div className="flex h-14 md:h-20 items-center justify-between px-5 lg:px-20">
             <div
               className="Logo flex items-center cursor-pointer"
@@ -308,7 +376,7 @@ export default function Header() {
                 </h1>
               </div>
             </div>
-{/* 
+            {/* 
             <div
               ref={searchBarRef}
               className={`hidden md:block w-full max-w-lg transition-all duration-700 ${
