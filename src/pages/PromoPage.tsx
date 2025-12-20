@@ -4,18 +4,279 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Star, Clock, Users, ChevronUp, ChevronRight } from "lucide-react";
 import SmartImage from "@/components/ui/SmartImage";
 import { useAuthStore } from "@/store/AuthStore";
+import { useQuery } from "@tanstack/react-query";
+import { getBoughtCourses, buyCourse } from "@/api/course";
+import { FaWhatsapp } from "react-icons/fa";
+import toast from "react-hot-toast";
+import startRecharge from "@/api/wallet";
+import EditProfileModal from "@/components/student-dashboard/EditProfileModal";
+import { updateUserProfile } from "@/api/user";
+import CourseEnrollmentPopup from "@/components/landing-page/CourseEnrollmentPopup";
+
+declare global {
+  interface Window {
+    Razorpay: unknown;
+  }
+}
+type RazorpayConstructor = new (opts: unknown) => { open: () => void };
+
+// TODO: Update with the actual course ID for this promo page
+const COURSE_ID = "a997f3a9-4a36-4395-9f90-847b739fb225"; // Update this with the correct course ID
+const COURSE_NAME = "MHT-CET Crash Course";
+const COURSE_PRICE = 2499;
+const WHATSAPP_GROUP_LINK = "https://chat.whatsapp.com/JahmZvJ4vslJTxX9thZDK6"; // Update with correct WhatsApp link
 
 export default function PromoPage() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const heroSectionRef = useRef<HTMLElement | null>(null);
-  const { toggleLogin } = useAuthStore();
+  const { user, userId, isAuthenticated, toggleLogin, refreshUser } = useAuthStore();
+  const token = localStorage.getItem("jwt");
+  
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Counselor logic
+  const storeRole = useAuthStore((s) => s.role);
+  const isCounselor = storeRole === "counselor";
+
+  const isUserLoaded = user !== null && user !== undefined;
+
+  // Prevent API calls for counselors
+  const {
+    data: boughtCoursesData,
+    isLoading: isLoadingBought,
+    refetch,
+  } = useQuery({
+    queryKey: ["boughtCourses", userId],
+    queryFn: () => {
+      if (isCounselor) {
+        return Promise.resolve({
+          data: [],
+          status: true,
+          message: "Counselor cannot buy courses",
+        });
+      }
+      return getBoughtCourses(userId as string);
+    },
+    enabled: isUserLoaded && !!userId && isAuthenticated && !isCounselor,
+    staleTime: 5000,
+  });
+
+  const isCoursePurchased =
+    boughtCoursesData?.data?.some((course) => course.courseId === COURSE_ID) ?? false;
 
   const handleFaqToggle = (index: number) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
   };
 
+  const handleProfileIncomplete = (action: () => void) => {
+    setPendingAction(() => action);
+    setIsEditProfileModalOpen(true);
+  };
+
+  const handleUpdateProfile = async (updatedData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  }) => {
+    if (!userId || !token) throw new Error("User not authenticated");
+
+    await updateUserProfile(userId, updatedData, token);
+    await refreshUser(true);
+    if (isAuthenticated) refetch();
+    if (pendingAction) {
+      pendingAction();
+      setPendingAction(null);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsEditProfileModalOpen(false);
+    setPendingAction(null);
+  };
+
+  const handleDirectPayment = async (amount: number) => {
+    const freshUser = useAuthStore.getState().user;
+    const freshPhone = localStorage.getItem("phone");
+
+    if (!freshUser?.userName || !freshPhone) {
+      toast.error("User information not found. Please try logging in again.");
+      return;
+    }
+
+    setIsProcessing(true);
+    const loadingToast = toast.loading("Initiating payment...");
+
+    try {
+      const order = await startRecharge(freshUser.userName, amount);
+
+      const options = {
+        key: order.keyId,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.orderId,
+        name: "ProCounsel",
+        description: `${COURSE_NAME} - Course Enrollment`,
+        prefill: {
+          contact: freshUser.phoneNumber || freshPhone,
+          email: freshUser.email || "",
+          name: `${freshUser.firstName || ""} ${freshUser.lastName || ""}`.trim(),
+        },
+        notes: {
+          userId: freshUser.userName,
+          courseId: COURSE_ID,
+          courseName: COURSE_NAME,
+        },
+        handler: async () => {
+          toast.dismiss(loadingToast);
+          const purchaseToast = toast.loading("Enrolling you in the course...");
+
+          try {
+            const purchaseResponse = await buyCourse({
+              userId: freshUser.userName,
+              courseId: COURSE_ID,
+              counsellorId: "",
+              price: amount,
+            });
+
+            if (purchaseResponse.status) {
+              toast.success("Enrollment successful!", { id: purchaseToast });
+              refetch();
+              await refreshUser(true);
+              setShowSuccessPopup(true);
+            } else {
+              throw new Error(purchaseResponse.message || "Enrollment failed");
+            }
+          } catch (error) {
+            toast.error(
+              (error as Error).message || "Payment succeeded but enrollment failed.",
+              { id: purchaseToast }
+            );
+          } finally {
+            setIsProcessing(false);
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            toast.dismiss(loadingToast);
+            setIsProcessing(false);
+          },
+        },
+        theme: { color: "#13097D" },
+      };
+
+      const RZ = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
+      const rzp = new RZ(options);
+      rzp.open();
+      toast.dismiss(loadingToast);
+    } catch {
+      toast.error("Could not start payment process. Please try again.");
+      setIsProcessing(false);
+    }
+  };
+
+  const handleEnroll = async (amount: number) => {
+    if (!isAuthenticated) {
+      toggleLogin(async () => {
+        await refreshUser(true);
+        let tries = 0;
+        while (
+          (!useAuthStore.getState().isAuthenticated ||
+           !useAuthStore.getState().user ||
+           !useAuthStore.getState().userId) &&
+          tries < 20
+        ) {
+          await new Promise(res => setTimeout(res, 100));
+          tries++;
+        }
+      });
+      return;
+    }
+
+    if (isCounselor) {
+      toast.error("Counsellors cannot enroll in this course.");
+      return;
+    }
+
+    if (isCoursePurchased) {
+      toast.error("You are already enrolled.");
+      return;
+    }
+
+    await refreshUser(true);
+    const freshUser = useAuthStore.getState().user;
+
+    if (freshUser?.role?.toLowerCase() === "counselor") {
+      toast.error("Counsellors cannot enroll.");
+      return;
+    }
+
+    const result = await refetch();
+    const nowPurchased =
+      result.data?.data?.some((c) => c.courseId === COURSE_ID) ?? false;
+
+    if (nowPurchased) {
+      toast.error("You are already enrolled.");
+      return;
+    }
+
+    if (!freshUser?.firstName) {
+      handleProfileIncomplete(async () => handleDirectPayment(amount));
+      return;
+    }
+
+    await handleDirectPayment(amount);
+  };
+
   const handleEnrollNow = () => {
-    toggleLogin();
+    handleEnroll(COURSE_PRICE);
+  };
+
+  const WhatsAppButton = () => (
+    <a
+      href={WHATSAPP_GROUP_LINK}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1EBE59] text-white font-medium rounded-xl px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg transition-all duration-300 cursor-pointer"
+    >
+      <FaWhatsapp size={20} /> <span>Join WhatsApp Group Now!</span>
+    </a>
+  );
+
+  const EnrollmentButton = () => {
+    if (isCounselor) {
+      return (
+        <Button
+          disabled
+          className="bg-red-500 hover:bg-red-500 text-white px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg font-medium rounded-xl cursor-not-allowed"
+        >
+          Counsellors cannot enroll
+        </Button>
+      );
+    }
+
+    if (isCoursePurchased) {
+      return (
+        <Button
+          disabled
+          className="bg-gray-400 hover:bg-gray-400 text-white px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg font-medium rounded-xl cursor-not-allowed"
+        >
+          Already Enrolled
+        </Button>
+      );
+    }
+
+    return (
+      <Button
+        onClick={handleEnrollNow}
+        disabled={isProcessing || isLoadingBought}
+        className="bg-[#FF660F] hover:bg-[#e15500] text-white px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg font-medium rounded-xl"
+      >
+        {isLoadingBought ? "Checking enrollment..." : isProcessing ? "Processing..." : "Enroll Now"}
+      </Button>
+    );
   };
 
   const features = [
@@ -80,7 +341,7 @@ export default function PromoPage() {
     {
       name: "Shiv",
       role: "Mathematics Faculty",
-      experience: "10+ years experience",
+      experience: "Experienced",
       description:
         "Shiv Sir is a highly experienced Mathematics faculty known for his clear explanations, smart shortcuts, and exam-oriented teaching. He specialises in simplifying tough concepts and helping students improve their solving speed and accuracy for MHT CET.",
       image: "/guide_shiv.png",
@@ -88,7 +349,7 @@ export default function PromoPage() {
     {
       name: "Soham Bingewar",
       role: "Chemistry Faculty",
-      experience: "10+ years experience",
+      experience: "Experienced",
       description:
         "Soham Sir is an expert Chemistry faculty known for his NCERT-focused teaching, quick revision techniques, and exam-oriented approach. He simplifies Organic, Inorganic, and Physical Chemistry through smart tricks, memory cues, and high-weightage focus.",
       image: "/guide_soham.png",
@@ -96,7 +357,7 @@ export default function PromoPage() {
     {
       name: "Aaditya Dahale",
       role: "Strategy Planner & Mentor",
-      experience: "10+ years experience",
+      experience: "Experienced",
       description:
         "Strategy Planner & Mentor, who has guided and mentored more than 75,000 MHT CET aspirants with clear planning, smart strategies, and result-oriented direction.",
       image: "/guide_aaditya.jpg",
@@ -104,7 +365,7 @@ export default function PromoPage() {
     {
       name: "Prathmesh Hatwar",
       role: "Physics Faculty",
-      experience: "10+ years experience",
+      experience: "Experienced",
       description:
         "Prathmesh Sir makes Physics feel simple, logical, and fully exam-oriented. He focuses on conceptual understanding, derivation shortcuts, and high-weightage chapter coverage. His one-shot lectures and problem-solving sessions help students master theory + numericals in minimum time.",
       image: "/guide_prathmesh.jpg",
@@ -116,25 +377,25 @@ export default function PromoPage() {
 
   const testimonials = [
     {
-      name: "Shiv",
-      role: "Mathematics Faculty",
+      name: "Ashutosh",
+      role: "MHT-CET Student",
       rating: 5,
-      text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna",
-      image: "/profile1.jpg",
+      text: "ProCounsel gave me exactly what I was missing—structure and clarity. The live sessions combined with recorded lectures made concepts easy to revise, and the personal mentor helped me fix my weak areas. The CET-pattern mock tests felt very close to the actual exam. I'm far more confident about my college options now.",
+      image: "/review1.jpeg",
     },
     {
-      name: "Shiv",
-      role: "Mathematics Faculty",
+      name: "Ananya",
+      role: "MHT-CET Student",
       rating: 5,
-      text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna",
-      image: "/profile1.jpg",
+      text: "What sets ProCounsel apart is the strategy-first approach. Instead of rote learning, they taught me how to think during exams. The chapter-wise PYQs and doubt-clearing support were extremely helpful, and the college shortlisting guidance removed a lot of confusion for me and my parents.",
+      image: "/review2.jpeg",
     },
     {
-      name: "Shiv",
-      role: "Mathematics Faculty",
+      name: "Shubham",
+      role: "MHT-CET Student",
       rating: 5,
-      text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna",
-      image: "/profile1.jpg",
+      text: "For the price, ProCounsel delivers incredible value. The mentors are experienced, the sessions are practical, and the assignments actually prepare you for real exam pressure. Studying just 6–8 hours a week with this plan made my preparation focused and stress-free.",
+      image: "/review3.jpeg",
     },
   ];
 
@@ -273,16 +534,18 @@ export default function PromoPage() {
               </div>
 
               {/* CTA */}
-              <div className="flex items-center justify-center lg:justify-start gap-4 pt-4">
-                <div className="text-lg sm:text-xl md:text-2xl font-semibold text-[#232323]">
-                  ₹2,999
+              <div className="flex flex-col items-center lg:items-start gap-4 pt-4">
+                <div className="flex items-center justify-center lg:justify-start gap-4 w-full">
+                  <div className="text-lg sm:text-xl md:text-2xl font-semibold text-[#232323]">
+                    ₹{COURSE_PRICE.toLocaleString("en-IN")}
+                  </div>
+                  <EnrollmentButton />
                 </div>
-                <Button
-                  onClick={handleEnrollNow}
-                  className="bg-[#FF660F] hover:bg-[#e15500] text-white px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg font-medium rounded-xl"
-                >
-                  Enroll Now
-                </Button>
+                {isCoursePurchased && (
+                  <div className="w-full max-w-md">
+                    <WhatsAppButton />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -818,6 +1081,26 @@ export default function PromoPage() {
           </div>
         </div>
       </section>
+
+      {user && (
+        <EditProfileModal
+          isOpen={isEditProfileModalOpen}
+          onClose={handleCloseModal}
+          user={user}
+          onUpdate={handleUpdateProfile}
+          onUploadComplete={() => {}}
+        />
+      )}
+
+      {showSuccessPopup && (
+        <CourseEnrollmentPopup
+          courseName={COURSE_NAME}
+          onClose={() => {
+            setShowSuccessPopup(false);
+            window.location.reload();
+          }}
+        />
+      )}
     </div>
   );
 }
