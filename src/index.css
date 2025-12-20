@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
-
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
 @tailwind utilities;
 
@@ -13,26 +12,6 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
 }
-
-/* For Chrome, Safari, Edge */
-::-webkit-scrollbar {
-  display: none;
-}
-
-/* For Firefox */
-html {
-  scrollbar-width: none;
-}
-
-/* For IE/Edge old versions */
-html {
-  -ms-overflow-style: none;
-}
-textarea {
-  resize: none;
-}
-
-
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -54,8 +33,6 @@ body[data-scroll-locked] {
 
 @theme {
   --font-montserrat: 'Montserrat', sans-serif;
-  --font-sans: "Poppins", sans-serif;
-
 }
 
 @theme inline {
@@ -118,6 +95,21 @@ body[data-scroll-locked] {
 
   input[type=number] {
     -moz-appearance: textfield;
+  }
+
+  /* Poppins font utility class */
+  .font-poppins,
+  .font-poppins * {
+    font-family: 'Poppins', sans-serif !important;
+  }
+
+  /* Icon hover effect - makes SVG white on hover */
+  .icon-hover-white {
+    filter: none;
+  }
+  
+  .group:hover .icon-hover-white {
+    filter: brightness(0) saturate(100%) invert(100%);
   }
 }
 
