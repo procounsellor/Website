@@ -262,49 +262,52 @@ export const useAuthStore = create<AuthState>()(
 
         // Check if user needs onboarding first
         let needsOnboarding = false;
-        try {
-          const isProfileIncomplete = await checkUrl(
-            phone,
-            data?.jwt ?? data?.jwtToken
-          );
-          console.log(
-            "🔍 isUserDetailsNull API response:",
-            isProfileIncomplete
-          );
-          const { isCounselorSignupFlow } = get();
-          if (isCounselorSignupFlow) {
-            console.log(
-              "User is in counselor signup flow, skipping onboarding"
+        
+        // ✅ Check skipOnboardingForPromo FIRST - before any onboarding logic
+        const skipPromo = get().skipOnboardingForPromo;
+        if (skipPromo) {
+          console.log("🚀 PromoPage: Skipping all onboarding - going straight to payment");
+          // Force onboarding off for promo page users
+          set({ 
+            userExist: false, 
+            needsOnboarding: false,
+            skipOnboardingForPromo: false  // Reset the flag
+          });
+          needsOnboarding = false;
+        } else {
+          // Normal onboarding check for non-promo users
+          try {
+            const isProfileIncomplete = await checkUrl(
+              phone,
+              data?.jwt ?? data?.jwtToken
             );
-            set({ userExist: false, needsOnboarding: false });
-            needsOnboarding = false;
-          } else if (isProfileIncomplete === true) {
             console.log(
-              "Setting needsOnboarding to TRUE - keeping JWT in memory"
+              "🔍 isUserDetailsNull API response:",
+              isProfileIncomplete
             );
-            set({ userExist: true, needsOnboarding: true });
-            needsOnboarding = true;
-          } else {
-            console.log("Setting needsOnboarding to FALSE");
+            const { isCounselorSignupFlow } = get();
+            if (isCounselorSignupFlow) {
+              console.log(
+                "User is in counselor signup flow, skipping onboarding"
+              );
+              set({ userExist: false, needsOnboarding: false });
+              needsOnboarding = false;
+            } else if (isProfileIncomplete === true) {
+              console.log(
+                "Setting needsOnboarding to TRUE - keeping JWT in memory"
+              );
+              set({ userExist: true, needsOnboarding: true });
+              needsOnboarding = true;
+            } else {
+              console.log("Setting needsOnboarding to FALSE");
+              set({ userExist: false, needsOnboarding: false });
+              needsOnboarding = false;
+            }
+          } catch (err) {
+            console.error("checkUrl failed:", err);
             set({ userExist: false, needsOnboarding: false });
             needsOnboarding = false;
           }
-        } catch (err) {
-          console.error("checkUrl failed:", err);
-          set({ userExist: false, needsOnboarding: false });
-          needsOnboarding = false;
-        }
-
-        // If a caller (Promo page) requested skipping onboarding, force it off for this login
-        const skipPromo = get().skipOnboardingForPromo;
-        if (skipPromo) {
-          console.log("AuthStore: skipping onboarding for promo flow");
-          needsOnboarding = false;
-          set({
-            needsOnboarding: false,
-            userExist: false,
-            skipOnboardingForPromo: false,
-          });
         }
 
         // For new users (needs onboarding), store JWT in memory only

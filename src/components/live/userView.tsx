@@ -37,6 +37,7 @@ declare const YT: {
       events: {
         onReady?: (event: YTPlayerEvent) => void;
         onStateChange?: (event: YTPlayerEvent) => void;
+        onError?: (event: any) => void;
       };
     }
   ) => YTPlayer;
