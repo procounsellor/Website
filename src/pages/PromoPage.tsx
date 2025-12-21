@@ -122,7 +122,24 @@ export default function PromoPage() {
 
     // Get phone number - prioritize signup/login phone, fallback to user phone
     // This matches the working implementation in AdityaLandingPage.tsx
-    const phoneNumber = phoneFromStorage || phoneFromTemp || phoneFromUser;
+    const rawContact = phoneFromStorage || phoneFromTemp || phoneFromUser;
+
+    const normalizePhone = (phone?: string) => {
+      if (!phone) return undefined;
+      
+      let p = phone.replace(/[^\d]/g, "");
+      
+      if (p.length === 10) {
+        p = "91" + p;
+      }
+      if (p.length < 10 || p.length > 15) {
+        return undefined;
+      }
+      return p;
+    };
+
+    const contact = normalizePhone(rawContact)
+
 
     if (!freshUser?.userName || !phoneNumber) {
       toast.error("User information not found. Please try logging in again.");
@@ -150,7 +167,7 @@ export default function PromoPage() {
         name: "ProCounsel",
         description: `${COURSE_NAME} - Course Enrollment`,
         prefill: {
-          contact: phoneNumber,
+          contact: contact,
           email: freshUser.email || "",
           name: `${freshUser.firstName || ""} ${
             freshUser.lastName || ""
@@ -1144,3 +1161,4 @@ export default function PromoPage() {
     </div>
   );
 }
+
