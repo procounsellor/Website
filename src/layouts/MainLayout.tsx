@@ -195,17 +195,17 @@ export default function MainLayout() {
         }}
       />
 
-      {!isStreamActive && (
+      {/* Chatbot Toggle Button - Hidden on PromoPage */}
+      {!isStreamActive && location.pathname !== '/promo' && (
         <button
           onClick={toggleChatbot}
-          className="fixed bottom-6 right-6 bg-[#FA660F] hover:cursor-pointer text-white w-16 h-16 flex items-center justify-center rounded-full shadow-lg z-50 hover:bg-orange-600 transition-all duration-300 transform hover:scale-110"
+          className="fixed bottom-6 right-6 bg-[#13097D] text-white p-4 rounded-full shadow-lg hover:bg-[#0d0659] transition-all duration-300 z-50 flex items-center justify-center"
           aria-label="Toggle Chatbot"
         >
-          <MessageSquare size={32} />
+          <MessageSquare className="w-6 h-6" />
         </button>
       )}
-
-      {isChatbotOpen && <Chatbot />}
+      {isChatbotOpen && location.pathname !== '/promo' && <Chatbot />}
       {isVoiceChatOpen && <VoiceChat />}
 
       {isStreamActive && <LiveStreamView />}
