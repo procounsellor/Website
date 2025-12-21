@@ -39,6 +39,7 @@ type AuthState = {
   isCounselorSignupFormOpen: boolean;
   loading: boolean;
   needsOnboarding: boolean;
+  skipOnboardingForPromo: boolean;
   needsProfileCompletion: boolean;
   isProfileCompletionOpen: boolean;
   returnToPath: string | null;
@@ -46,7 +47,7 @@ type AuthState = {
   tempJwt: string | null;
   tempPhone: string | null;
   toggleLogin: (onSuccess?: () => void) => void;
-  closeCounsellorSignup: () => void
+  closeCounsellorSignup: () => void;
   toggleCounselorSignup: () => void;
   openCounselorSignupForm: () => void;
   closeCounselorSignupForm: () => void;
@@ -65,6 +66,7 @@ type AuthState = {
   setBookingTriggered: (value: boolean) => void;
   setReturnToPath: (path: string | null) => void;
   setNeedsOnboarding: (value: boolean) => void;
+  setSkipOnboardingForPromo: (value: boolean) => void;
   setNeedsProfileCompletion: (value: boolean) => void;
   checkProfileCompletion: () => boolean;
   clearOnLoginSuccess: () => void;
@@ -88,6 +90,7 @@ export const useAuthStore = create<AuthState>()(
       onLoginSuccess: null,
       pendingAction: null,
       needsOnboarding: false,
+      skipOnboardingForPromo: false,
       needsProfileCompletion: false,
       isProfileCompletionOpen: false,
       returnToPath: null,
@@ -99,6 +102,8 @@ export const useAuthStore = create<AuthState>()(
       setBookingTriggered: (value) => set({ bookingTriggered: value }),
       setReturnToPath: (path) => set({ returnToPath: path }),
       setNeedsOnboarding: (value) => set({ needsOnboarding: value }),
+      setSkipOnboardingForPromo: (value) =>
+        set({ skipOnboardingForPromo: value }),
       setNeedsProfileCompletion: (value) =>
         set({ needsProfileCompletion: value }),
       setIsCounselorSignupFlow: (value) =>
@@ -147,12 +152,11 @@ export const useAuthStore = create<AuthState>()(
           return { isCounselorSignupOpen: true };
         }),
 
-        closeCounsellorSignup: () => 
-          set({
-            isCounselorSignupOpen: false,
-            isCounselorSignupFormOpen: false,
-
-          }),
+      closeCounsellorSignup: () =>
+        set({
+          isCounselorSignupOpen: false,
+          isCounselorSignupFormOpen: false,
+        }),
 
       openCounselorSignupForm: () =>
         set({
@@ -258,37 +262,52 @@ export const useAuthStore = create<AuthState>()(
 
         // Check if user needs onboarding first
         let needsOnboarding = false;
-        try {
-          const isProfileIncomplete = await checkUrl(
-            phone,
-            data?.jwt ?? data?.jwtToken
-          );
-          console.log(
-            "🔍 isUserDetailsNull API response:",
-            isProfileIncomplete
-          );
-          const { isCounselorSignupFlow } = get();
-          if (isCounselorSignupFlow) {
-            console.log(
-              "User is in counselor signup flow, skipping onboarding"
+        
+        // ✅ Check skipOnboardingForPromo FIRST - before any onboarding logic
+        const skipPromo = get().skipOnboardingForPromo;
+        if (skipPromo) {
+          console.log("🚀 PromoPage: Skipping all onboarding - going straight to payment");
+          // Force onboarding off for promo page users
+          set({ 
+            userExist: false, 
+            needsOnboarding: false,
+            skipOnboardingForPromo: false  // Reset the flag
+          });
+          needsOnboarding = false;
+        } else {
+          // Normal onboarding check for non-promo users
+          try {
+            const isProfileIncomplete = await checkUrl(
+              phone,
+              data?.jwt ?? data?.jwtToken
             );
-            set({ userExist: false, needsOnboarding: false });
-            needsOnboarding = false;
-          } else if (isProfileIncomplete === true) {
             console.log(
-              "Setting needsOnboarding to TRUE - keeping JWT in memory"
+              "🔍 isUserDetailsNull API response:",
+              isProfileIncomplete
             );
-            set({ userExist: true, needsOnboarding: true });
-            needsOnboarding = true;
-          } else {
-            console.log("Setting needsOnboarding to FALSE");
+            const { isCounselorSignupFlow } = get();
+            if (isCounselorSignupFlow) {
+              console.log(
+                "User is in counselor signup flow, skipping onboarding"
+              );
+              set({ userExist: false, needsOnboarding: false });
+              needsOnboarding = false;
+            } else if (isProfileIncomplete === true) {
+              console.log(
+                "Setting needsOnboarding to TRUE - keeping JWT in memory"
+              );
+              set({ userExist: true, needsOnboarding: true });
+              needsOnboarding = true;
+            } else {
+              console.log("Setting needsOnboarding to FALSE");
+              set({ userExist: false, needsOnboarding: false });
+              needsOnboarding = false;
+            }
+          } catch (err) {
+            console.error("checkUrl failed:", err);
             set({ userExist: false, needsOnboarding: false });
             needsOnboarding = false;
           }
-        } catch (err) {
-          console.error("checkUrl failed:", err);
-          set({ userExist: false, needsOnboarding: false });
-          needsOnboarding = false;
         }
 
         // For new users (needs onboarding), store JWT in memory only

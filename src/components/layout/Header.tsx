@@ -209,7 +209,15 @@ export default function Header() {
             </div>
 
             <Button
-              onClick={() => toggleLogin()}
+              onClick={() => {
+                // Access handleEnroll from window object set by PromoPage
+                const enrollFn = (window as any).__promoPageEnroll;
+                if (enrollFn) {
+                  enrollFn();
+                } else {
+                  console.error("Enroll function not available");
+                }
+              }}
               className="bg-[#FF660F] hover:bg-[#e15500] text-white px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg font-medium rounded-xl cursor-pointer"
             >
               Enroll Now
