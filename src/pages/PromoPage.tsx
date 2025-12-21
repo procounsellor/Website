@@ -79,44 +79,23 @@ export default function PromoPage() {
 
 
   const handleDirectPayment = async (amount: number) => {
-    console.log("💳 handleDirectPayment called with amount:", amount);
     
-    // Prevent double execution
     if (isProcessing) {
-      console.log("⚠️ Payment already in progress, ignoring duplicate call");
       return;
     }
 
     const authState = useAuthStore.getState();
     const freshUser = authState.user;
     
-    console.log("👤 User state:", {
-      userName: freshUser?.userName,
-      hasUser: !!freshUser,
-      isAuthenticated: authState.isAuthenticated
-    });
     
-    // Get phone from multiple sources in priority order (matching working implementation):
-    // 1. localStorage (used for signup/login) - highest priority
-    // 2. tempPhone (for users in onboarding flow)
-    // 3. user.phoneNumber (from user object)
     const phoneFromStorage = localStorage.getItem("phone");
     const phoneFromTemp = authState.tempPhone;
     const phoneFromUser = freshUser?.phoneNumber;
 
-    // Get phone number - prioritize signup/login phone, fallback to user phone
-    // This matches the working implementation in AdityaLandingPage.tsx
     const phoneNumber = phoneFromStorage || phoneFromTemp || phoneFromUser;
     
-    console.log("📱 Phone sources:", {
-      storage: phoneFromStorage,
-      temp: phoneFromTemp,
-      user: phoneFromUser,
-      final: phoneNumber
-    });
 
     if (!freshUser?.userName || !phoneNumber) {
-      console.error("❌ Missing user info - userName:", freshUser?.userName, "phone:", phoneNumber);
       toast.error("User information not found. Please try logging in again.");
       return;
     }
@@ -125,7 +104,6 @@ export default function PromoPage() {
     const loadingToast = toast.loading("Initiating payment...");
 
     try {
-      // Check if Razorpay is available
       if (typeof window === 'undefined' || !window.Razorpay) {
         throw new Error("Payment system not loaded. Please refresh and try again.");
       }
@@ -136,14 +114,10 @@ export default function PromoPage() {
         throw new Error("Failed to create payment order. Please try again.");
       }
 
-      // Format phone number for Razorpay (must be without + symbol)
-      // Razorpay expects format: 919876543210 (country code + number)
       let formattedPhone = phoneNumber;
       if (phoneNumber) {
-        // Remove all non-digit characters including + and spaces
         formattedPhone = phoneNumber.replace(/\D/g, '');
         
-        // If phone doesn't start with country code, add 91 for India
         if (formattedPhone.length === 10) {
           formattedPhone = '91' + formattedPhone;
         }
@@ -188,7 +162,6 @@ export default function PromoPage() {
               throw new Error(purchaseResponse.message || "Enrollment failed");
             }
           } catch (error) {
-            console.error("Enrollment error:", error);
             toast.error(
               (error as Error).message ||
                 "Payment succeeded but enrollment failed. Please contact support.",
@@ -213,7 +186,6 @@ export default function PromoPage() {
       rzp.open();
       toast.dismiss(loadingToast);
     } catch (error) {
-      console.error("Payment initiation error:", error);
       const errorMessage = (error as Error).message || "Could not start payment process. Please try again.";
       toast.error(errorMessage);
       toast.dismiss(loadingToast);
@@ -235,7 +207,6 @@ export default function PromoPage() {
       // Store the payment callback in ref so it survives re-renders
       paymentCallbackRef.current = async () => {
         try {
-          console.log("💰 Executing payment callback after login");
           await refreshUser(true);
           const freshState = useAuthStore.getState();
 
@@ -259,7 +230,6 @@ export default function PromoPage() {
           await handleDirectPayment(amount);
           paymentCallbackRef.current = null;
         } catch (error) {
-          console.error("Error after login:", error);
           toast.error("Something went wrong. Please try again.");
           paymentCallbackRef.current = null;
         }
@@ -291,13 +261,9 @@ export default function PromoPage() {
       return;
     }
 
-    // PromoPage: NO profile completion check - just phone and payment
-    // Open Razorpay immediately for logged-in users
     try {
-      console.log("🚀 Opening Razorpay for existing user");
       await handleDirectPayment(amount);
     } catch (error) {
-      console.error("❌ Error opening Razorpay for existing user:", error);
       toast.error("Could not start payment. Please try again.");
     }
   };
