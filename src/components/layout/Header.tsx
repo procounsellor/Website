@@ -190,8 +190,7 @@ export default function Header() {
         {shouldShowSimplifiedPromoHeader ? (
           <div className="flex h-14 md:h-20 items-center justify-between px-5 lg:px-20">
             <div
-              className="Logo flex items-center cursor-pointer"
-              onClick={() => navigate("/")}
+              className="Logo flex items-center "
             >
               <SmartImage
                 src="/logo.png"
@@ -244,8 +243,8 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Desktop Search Bar */}
-            {!(role === "counselor") && (
+            {/* Desktop Search Bar - Hidden on PromoPage */}
+            {!(role === "counselor" || isPromoPage) && (
               <div
                 ref={searchBarRef}
                 className={`hidden md:block w-[500px] items-center justify-start transition-all duration-300`}
