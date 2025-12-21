@@ -9,8 +9,6 @@ import { getBoughtCourses, buyCourse } from "@/api/course";
 import { FaWhatsapp } from "react-icons/fa";
 import toast from "react-hot-toast";
 import startRecharge from "@/api/wallet";
-import EditProfileModal from "@/components/student-dashboard/EditProfileModal";
-import { updateUserProfile } from "@/api/user";
 import CourseEnrollmentPopup from "@/components/landing-page/CourseEnrollmentPopup";
 
 declare global {
@@ -23,25 +21,22 @@ type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 // TODO: Update with the actual course ID for this promo page
 const COURSE_ID = "a997f3a9-4a36-4395-9f90-847b739fb225"; // Update this with the correct course ID
 const COURSE_NAME = "MHT-CET Crash Course";
-const COURSE_PRICE = 2499;
+export const PROMO_COURSE_PRICE = 2499; // Export so Header can use it
 const WHATSAPP_GROUP_LINK = "https://chat.whatsapp.com/JahmZvJ4vslJTxX9thZDK6"; // Update with correct WhatsApp link
 
-// ✅ ADDED: helper to check profile completeness
-const isProfileIncomplete = (user: any) => {
-  return !user?.firstName || !user?.lastName || !user?.email;
-};
 export default function PromoPage() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const heroSectionRef = useRef<HTMLElement | null>(null);
   const { user, userId, isAuthenticated, toggleLogin, refreshUser } =
     useAuthStore();
-  const token = localStorage.getItem("jwt");
 
-  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+  // @ts-expect-error - Used in login callback
   const storePendingAction = useAuthStore((s) => s.pendingAction);
-  const setStorePendingAction = useAuthStore((s) => s.setPendingAction);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // ✅ Use ref to preserve payment callback across re-renders
+  const paymentCallbackRef = useRef<(() => void) | null>(null);
 
   // Counselor logic
   const storeRole = useAuthStore((s) => s.role);
@@ -49,11 +44,12 @@ export default function PromoPage() {
 
   const isUserLoaded = user !== null && user !== undefined;
 
-  // Prevent API calls for counselors
+  // Fetch enrollment status automatically when logged in
+  // This runs in parallel during login, so button state is always ready
   const {
     data: boughtCoursesData,
+    // @ts-expect-error - Used in EnrollmentButton below
     isLoading: isLoadingBought,
-    refetch,
   } = useQuery({
     queryKey: ["boughtCourses", userId],
     queryFn: () => {
@@ -68,6 +64,8 @@ export default function PromoPage() {
     },
     enabled: isUserLoaded && !!userId && isAuthenticated && !isCounselor,
     staleTime: 5000,
+    // Query runs automatically so enrollment status is known immediately
+    refetchOnWindowFocus: false, // Don't refetch on focus to avoid interruptions
   });
 
   const isCoursePurchased =
@@ -78,71 +76,52 @@ export default function PromoPage() {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
   };
 
-  const handleUpdateProfile = async (updatedData: {
-    firstName: string;
-    lastName: string;
-    email: string;
-  }) => {
-    if (!userId || !token) throw new Error("User not authenticated");
 
-    await updateUserProfile(userId, updatedData, token);
-    await refreshUser(true);
-    if (isAuthenticated) refetch();
-    if (storePendingAction) {
-      console.log(
-        "PromoPage: invoking store pendingAction after profile update",
-        {
-          storePendingAction,
-        }
-      );
-      try {
-        storePendingAction();
-      } catch (err) {
-        console.error("PromoPage: store pendingAction threw:", err);
-      }
-      setStorePendingAction(null);
-    }
-  };
-
-  const handleCloseModal = () => {
-    setIsEditProfileModalOpen(false);
-    setStorePendingAction(null);
-  };
 
   const handleDirectPayment = async (amount: number) => {
+    
+    if (isProcessing) {
+      return;
+    }
+
     const authState = useAuthStore.getState();
     const freshUser = authState.user;
-    // Get phone from multiple sources in priority order (matching working implementation):
-    // 1. localStorage (used for signup/login) - highest priority
-    // 2. tempPhone (for users in onboarding flow)
-    // 3. user.phoneNumber (from user object)
+    
+    
     const phoneFromStorage = localStorage.getItem("phone");
     const phoneFromTemp = authState.tempPhone;
     const phoneFromUser = freshUser?.phoneNumber;
 
-    // Get phone number - prioritize signup/login phone, fallback to user phone
-    // This matches the working implementation in AdityaLandingPage.tsx
     const phoneNumber = phoneFromStorage || phoneFromTemp || phoneFromUser;
-
-
+    
 
     if (!freshUser?.userName || !phoneNumber) {
       toast.error("User information not found. Please try logging in again.");
       return;
     }
 
-    // Debug logging
-    console.log("Phone number for Razorpay:", {
-      phoneFromStorage,
-      phoneFromTemp,
-      phoneFromUser,
-      phoneNumber,
-    });
-
     setIsProcessing(true);
+    const loadingToast = toast.loading("Initiating payment...");
 
     try {
+      if (typeof window === 'undefined' || !window.Razorpay) {
+        throw new Error("Payment system not loaded. Please refresh and try again.");
+      }
+
       const order = await startRecharge(freshUser.userName, amount);
+      
+      if (!order || !order.orderId) {
+        throw new Error("Failed to create payment order. Please try again.");
+      }
+
+      let formattedPhone = phoneNumber;
+      if (phoneNumber) {
+        formattedPhone = phoneNumber.replace(/\D/g, '');
+        
+        if (formattedPhone.length === 10) {
+          formattedPhone = '91' + formattedPhone;
+        }
+      }
 
       const options = {
         key: order.keyId,
@@ -152,7 +131,8 @@ export default function PromoPage() {
         name: "ProCounsel",
         description: `${COURSE_NAME} - Course Enrollment`,
         prefill: {
-          contact: phoneNumber,
+          contact: formattedPhone,
+          email: freshUser.email || "",
           name: `${freshUser.firstName || ""} ${
             freshUser.lastName || ""
           }`.trim(),
@@ -176,7 +156,6 @@ export default function PromoPage() {
 
             if (purchaseResponse.status) {
               toast.success("Enrollment successful!", { id: purchaseToast });
-              refetch();
               await refreshUser(true);
               setShowSuccessPopup(true);
             } else {
@@ -185,7 +164,7 @@ export default function PromoPage() {
           } catch (error) {
             toast.error(
               (error as Error).message ||
-                "Payment succeeded but enrollment failed.",
+                "Payment succeeded but enrollment failed. Please contact support.",
               { id: purchaseToast }
             );
           } finally {
@@ -206,34 +185,71 @@ export default function PromoPage() {
       const rzp = new RZ(options);
       rzp.open();
       toast.dismiss(loadingToast);
-    } catch {
-      toast.error("Could not start payment process. Please try again.");
+    } catch (error) {
+      const errorMessage = (error as Error).message || "Could not start payment process. Please try again.";
+      toast.error(errorMessage);
+      toast.dismiss(loadingToast);
       setIsProcessing(false);
     }
   };
 
   const handleEnroll = async (amount: number) => {
+    // Only check if already processing - no other blocking checks
+    if (isProcessing) {
+      return;
+    }
+
     if (!isAuthenticated) {
       // For promo page we want new users to skip onboarding and go straight to payment.
       // Set a store flag so AuthStore.verifyOtp will not trigger onboarding for this login.
       useAuthStore.getState().setSkipOnboardingForPromo(true);
-      // After login, refresh user and directly start payment (bypass profile/onboarding checks)
-      toggleLogin(async () => {
-        await refreshUser(true);
-        const freshState = useAuthStore.getState();
-        const freshUser = freshState.user;
+      
+      // Store the payment callback in ref so it survives re-renders
+      paymentCallbackRef.current = async () => {
+        try {
+          await refreshUser(true);
+          const freshState = useAuthStore.getState();
 
-        if (freshState.role === "counselor") {
-          toast.error("Counsellors cannot enroll in this course.");
-          return;
+          if (freshState.role === "counselor") {
+            toast.error("Counsellors cannot enroll in this course.");
+            paymentCallbackRef.current = null;
+            return;
+          }
+
+          // ✅ Check if user already enrolled BEFORE opening Razorpay
+          const enrollmentData = await getBoughtCourses(freshState.user?.userName as string);
+          const alreadyEnrolled = enrollmentData?.data?.some((c) => c.courseId === COURSE_ID) ?? false;
+          
+          if (alreadyEnrolled) {
+            toast.success("You are already enrolled in this course!");
+            paymentCallbackRef.current = null;
+            return;
+          }
+
+          // For promo page, skip profile completion and go directly to payment
+          await handleDirectPayment(amount);
+          paymentCallbackRef.current = null;
+        } catch (error) {
+          toast.error("Something went wrong. Please try again.");
+          paymentCallbackRef.current = null;
         }
-
-        await handleDirectPayment(amount);
+      };
+      
+      // After login, execute the payment callback
+      toggleLogin(() => {
+        // Use setTimeout to ensure state updates are complete
+        setTimeout(() => {
+          if (paymentCallbackRef.current) {
+            paymentCallbackRef.current();
+          }
+        }, 100);
       });
       return;
     }
 
     // ---- LOGGED IN USERS ----
+    // No enrollment checks here - button state already reflects enrollment status
+    // Query ran automatically when page loaded, so isCoursePurchased is accurate
 
     if (isCounselor) {
       toast.error("Counsellors cannot enroll in this course.");
@@ -245,31 +261,19 @@ export default function PromoPage() {
       return;
     }
 
-    await refreshUser(true);
-    const freshUser = useAuthStore.getState().user;
-
-    // ✅ ADDED: profile completion check (LOGGED IN USERS)
-    if (isProfileIncomplete(freshUser)) {
-      setStorePendingAction(() => () => handleDirectPayment(amount));
-      setIsEditProfileModalOpen(true);
-      return;
+    try {
+      await handleDirectPayment(amount);
+    } catch (error) {
+      toast.error("Could not start payment. Please try again.");
     }
-
-    const result = await refetch();
-    const nowPurchased =
-      result.data?.data?.some((c) => c.courseId === COURSE_ID) ?? false;
-
-    if (nowPurchased) {
-      toast.error("You are already enrolled.");
-      return;
-    }
-
-    await handleDirectPayment(amount);
   };
 
   const handleEnrollNow = () => {
-    handleEnroll(COURSE_PRICE);
+    handleEnroll(PROMO_COURSE_PRICE);
   };
+
+  // Store on window so Header can access it
+  (window as any).__promoPageEnroll = handleEnrollNow;
 
   const WhatsAppButton = () => (
     <a
@@ -308,14 +312,10 @@ export default function PromoPage() {
     return (
       <Button
         onClick={handleEnrollNow}
-        disabled={isProcessing || isLoadingBought}
+        disabled={isProcessing}
         className="bg-[#FF660F] hover:bg-[#e15500] text-white px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg font-medium rounded-xl cursor-pointer"
       >
-        {isLoadingBought
-          ? "Checking enrollment..."
-          : isProcessing
-          ? "Processing..."
-          : "Enroll Now"}
+        {isProcessing ? "Processing..." : "Enroll Now"}
       </Button>
     );
   };
@@ -578,7 +578,7 @@ export default function PromoPage() {
               <div className="flex flex-col items-center lg:items-start gap-4 pt-4">
                 <div className="flex items-center justify-center lg:justify-start gap-4 w-full">
                   <div className="text-lg sm:text-xl md:text-2xl font-semibold text-[#232323]">
-                    ₹{COURSE_PRICE.toLocaleString("en-IN")}
+                    ₹{PROMO_COURSE_PRICE.toLocaleString("en-IN")}
                   </div>
                   <EnrollmentButton />
                 </div>
@@ -1123,15 +1123,7 @@ export default function PromoPage() {
         </div>
       </section>
 
-      {user && (
-        <EditProfileModal
-          isOpen={isEditProfileModalOpen}
-          onClose={handleCloseModal}
-          user={user}
-          onUpdate={handleUpdateProfile}
-          onUploadComplete={() => {}}
-        />
-      )}
+
 
       {showSuccessPopup && (
         <CourseEnrollmentPopup

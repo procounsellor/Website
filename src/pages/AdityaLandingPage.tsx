@@ -159,6 +159,19 @@ export default function LandingPage() {
     try {
       const order = await startRecharge(freshUser.userName, amount);
 
+      // Format phone number for Razorpay (must be without + symbol)
+      // Razorpay expects format: 919876543210 (country code + number)
+      let formattedPhone = phoneNumber;
+      if (phoneNumber) {
+        // Remove all non-digit characters including + and spaces
+        formattedPhone = phoneNumber.replace(/\D/g, '');
+        
+        // If phone doesn't start with country code, add 91 for India
+        if (formattedPhone.length === 10) {
+          formattedPhone = '91' + formattedPhone;
+        }
+      }
+
       const options = {
         key: order.keyId,
         amount: order.amount,
@@ -167,7 +180,7 @@ export default function LandingPage() {
         name: "ProCounsel",
         description: `${COURSE_NAME} - Course Enrollment`,
         prefill: {
-          contact: phoneNumber,
+          contact: formattedPhone,
           email: freshUser.email || "",
           name: `${freshUser.firstName || ""} ${
             freshUser.lastName || ""
