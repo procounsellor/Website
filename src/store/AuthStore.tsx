@@ -39,6 +39,7 @@ type AuthState = {
   isCounselorSignupFormOpen: boolean;
   loading: boolean;
   needsOnboarding: boolean;
+  skipOnboardingForPromo: boolean;
   needsProfileCompletion: boolean;
   isProfileCompletionOpen: boolean;
   returnToPath: string | null;
@@ -46,7 +47,7 @@ type AuthState = {
   tempJwt: string | null;
   tempPhone: string | null;
   toggleLogin: (onSuccess?: () => void) => void;
-  closeCounsellorSignup: () => void
+  closeCounsellorSignup: () => void;
   toggleCounselorSignup: () => void;
   openCounselorSignupForm: () => void;
   closeCounselorSignupForm: () => void;
@@ -65,6 +66,7 @@ type AuthState = {
   setBookingTriggered: (value: boolean) => void;
   setReturnToPath: (path: string | null) => void;
   setNeedsOnboarding: (value: boolean) => void;
+  setSkipOnboardingForPromo: (value: boolean) => void;
   setNeedsProfileCompletion: (value: boolean) => void;
   checkProfileCompletion: () => boolean;
   clearOnLoginSuccess: () => void;
@@ -88,6 +90,7 @@ export const useAuthStore = create<AuthState>()(
       onLoginSuccess: null,
       pendingAction: null,
       needsOnboarding: false,
+      skipOnboardingForPromo: false,
       needsProfileCompletion: false,
       isProfileCompletionOpen: false,
       returnToPath: null,
@@ -99,6 +102,8 @@ export const useAuthStore = create<AuthState>()(
       setBookingTriggered: (value) => set({ bookingTriggered: value }),
       setReturnToPath: (path) => set({ returnToPath: path }),
       setNeedsOnboarding: (value) => set({ needsOnboarding: value }),
+      setSkipOnboardingForPromo: (value) =>
+        set({ skipOnboardingForPromo: value }),
       setNeedsProfileCompletion: (value) =>
         set({ needsProfileCompletion: value }),
       setIsCounselorSignupFlow: (value) =>
@@ -147,12 +152,11 @@ export const useAuthStore = create<AuthState>()(
           return { isCounselorSignupOpen: true };
         }),
 
-        closeCounsellorSignup: () => 
-          set({
-            isCounselorSignupOpen: false,
-            isCounselorSignupFormOpen: false,
-
-          }),
+      closeCounsellorSignup: () =>
+        set({
+          isCounselorSignupOpen: false,
+          isCounselorSignupFormOpen: false,
+        }),
 
       openCounselorSignupForm: () =>
         set({
@@ -289,6 +293,18 @@ export const useAuthStore = create<AuthState>()(
           console.error("checkUrl failed:", err);
           set({ userExist: false, needsOnboarding: false });
           needsOnboarding = false;
+        }
+
+        // If a caller (Promo page) requested skipping onboarding, force it off for this login
+        const skipPromo = get().skipOnboardingForPromo;
+        if (skipPromo) {
+          console.log("AuthStore: skipping onboarding for promo flow");
+          needsOnboarding = false;
+          set({
+            needsOnboarding: false,
+            userExist: false,
+            skipOnboardingForPromo: false,
+          });
         }
 
         // For new users (needs onboarding), store JWT in memory only
