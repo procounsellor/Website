@@ -39,14 +39,15 @@ const TARGET_REFERRAL_CODES = [
 ];
 
 export default function LandingPage() {
-  const { user, userId, isAuthenticated, toggleLogin, refreshUser } = useAuthStore();
+  const { user, userId, isAuthenticated, toggleLogin, refreshUser } =
+    useAuthStore();
   const token = localStorage.getItem("jwt");
   const [searchParams] = useSearchParams();
   const [referralCode, setReferralCode] = useState<string | null>(null);
 
   useEffect(() => {
     const refParam = searchParams.get("ref");
-    if (refParam&& TARGET_REFERRAL_CODES.includes(refParam)) {
+    if (refParam && TARGET_REFERRAL_CODES.includes(refParam)) {
       setReferralCode(refParam);
     } else {
       setReferralCode(null);
@@ -54,7 +55,8 @@ export default function LandingPage() {
   }, [searchParams]);
 
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
-  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+  const storePendingAction = useAuthStore((s) => s.pendingAction);
+  const setStorePendingAction = useAuthStore((s) => s.setPendingAction);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -86,11 +88,17 @@ export default function LandingPage() {
   });
 
   const isCoursePurchased =
-    boughtCoursesData?.data?.some((course) => course.courseId === COURSE_ID) ?? false;
+    boughtCoursesData?.data?.some((course) => course.courseId === COURSE_ID) ??
+    false;
 
   const handleProfileIncomplete = (action: () => void) => {
-    setPendingAction(() => action);
+    setStorePendingAction(() => action);
     setIsEditProfileModalOpen(true);
+  };
+
+  // ✅ ADDED: helper to check profile completeness
+  const isProfileIncomplete = (user: any) => {
+    return !user?.firstName || !user?.lastName || !user?.email;
   };
 
   const handleUpdateProfile = async (updatedData: {
@@ -108,22 +116,39 @@ export default function LandingPage() {
     await updateUserProfile(userId, payload, token);
     await refreshUser(true);
     if (isAuthenticated) refetch();
-    if (pendingAction) {
-      pendingAction();
-      setPendingAction(null);
+    if (storePendingAction) {
+      console.log(
+        "AdityaLandingPage: invoking store pendingAction after profile update",
+        { storePendingAction }
+      );
+      try {
+        storePendingAction();
+      } catch (err) {
+        console.error("AdityaLandingPage: store pendingAction threw:", err);
+      }
+      setStorePendingAction(null);
     }
   };
 
   const handleCloseModal = () => {
     setIsEditProfileModalOpen(false);
-    setPendingAction(null);
+    setStorePendingAction(null);
   };
 
   const handleDirectPayment = async (amount: number) => {
-    const freshUser = useAuthStore.getState().user;
-    const freshPhone = localStorage.getItem("phone");
+    const authState = useAuthStore.getState();
+    const freshUser = authState.user;
+    // Get phone from multiple sources in priority order (matching PromoPage):
+    // 1. localStorage (used for signup/login) - highest priority
+    // 2. tempPhone (for users in onboarding flow)
+    // 3. user.phoneNumber (from user object)
+    const phoneFromStorage = localStorage.getItem("phone");
+    const phoneFromTemp = authState.tempPhone;
+    const phoneFromUser = freshUser?.phoneNumber;
 
-    if (!freshUser?.userName || !freshPhone) {
+    const phoneNumber = phoneFromStorage || phoneFromTemp || phoneFromUser;
+
+    if (!freshUser?.userName || !phoneNumber) {
       toast.error("User information not found. Please try logging in again.");
       return;
     }
@@ -142,9 +167,11 @@ export default function LandingPage() {
         name: "ProCounsel",
         description: `${COURSE_NAME} - Course Enrollment`,
         prefill: {
-          contact: freshUser.phoneNumber || freshPhone,
+          contact: phoneNumber,
           email: freshUser.email || "",
-          name: `${freshUser.firstName || ""} ${freshUser.lastName || ""}`.trim(),
+          name: `${freshUser.firstName || ""} ${
+            freshUser.lastName || ""
+          }`.trim(),
         },
         notes: {
           userId: freshUser.userName,
@@ -173,7 +200,8 @@ export default function LandingPage() {
             }
           } catch (error) {
             toast.error(
-              (error as Error).message || "Payment succeeded but enrollment failed.",
+              (error as Error).message ||
+                "Payment succeeded but enrollment failed.",
               { id: purchaseToast }
             );
           } finally {
@@ -189,7 +217,8 @@ export default function LandingPage() {
         theme: { color: "#13097D" },
       };
 
-      const RZ = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
+      const RZ = (window as unknown as { Razorpay: RazorpayConstructor })
+        .Razorpay;
       const rzp = new RZ(options);
       rzp.open();
       toast.dismiss(loadingToast);
@@ -201,20 +230,8 @@ export default function LandingPage() {
 
   const handleEnroll = async (amount: number) => {
     if (!isAuthenticated) {
-      toggleLogin(async () => {
-        await refreshUser(true);
-        let tries = 0;
-        while (
-          (!useAuthStore.getState().isAuthenticated ||
-           !useAuthStore.getState().user ||
-           !useAuthStore.getState().userId) &&
-          tries < 20
-        ) {
-          await new Promise(res => setTimeout(res, 100));
-          tries++;
-        }
-
-      });
+      // Simplify: store a callback to re-run enrollment after login/onboarding/profile completion
+      toggleLogin(() => handleEnroll(amount));
       return;
     }
 
@@ -230,9 +247,15 @@ export default function LandingPage() {
 
     await refreshUser(true);
     const freshUser = useAuthStore.getState().user;
-
     if (freshUser?.role?.toLowerCase() === "counselor") {
       toast.error("Counsellors cannot enroll.");
+      return;
+    }
+
+    // ✅ ADDED: profile completion check (LOGGED IN USERS)
+    if (isProfileIncomplete(freshUser)) {
+      setStorePendingAction(() => () => handleDirectPayment(amount));
+      setIsEditProfileModalOpen(true);
       return;
     }
 
@@ -242,11 +265,6 @@ export default function LandingPage() {
 
     if (nowPurchased) {
       toast.error("You are already enrolled.");
-      return;
-    }
-
-    if (!freshUser?.firstName) {
-      handleProfileIncomplete(async () => handleDirectPayment(amount));
       return;
     }
 
@@ -272,10 +290,18 @@ export default function LandingPage() {
     }`;
 
     if (isCounselor)
-      return <button disabled className={`${classes} bg-red-500`}>Counsellors cannot enroll</button>;
+      return (
+        <button disabled className={`${classes} bg-red-500`}>
+          Counsellors cannot enroll
+        </button>
+      );
 
     if (isCoursePurchased)
-      return <button disabled className={`${classes} bg-gray-400`}>Already Enrolled</button>;
+      return (
+        <button disabled className={`${classes} bg-gray-400`}>
+          Already Enrolled
+        </button>
+      );
 
     return (
       <button
@@ -283,7 +309,11 @@ export default function LandingPage() {
         disabled={isProcessing || isLoadingBought}
         className={`${classes} bg-blue-700 cursor-pointer hover:bg-blue-800`}
       >
-        {isLoadingBought ? "Checking enrollment..." : isProcessing ? "Processing..." : "Enroll Now"}
+        {isLoadingBought
+          ? "Checking enrollment..."
+          : isProcessing
+          ? "Processing..."
+          : "Enroll Now"}
       </button>
     );
   };
@@ -301,7 +331,8 @@ export default function LandingPage() {
 
               <div className="flex flex-col gap-1.5">
                 <h1 className="text-[0.875rem] font-semibold text-[#343C6A]">
-                  GuruCool Crash Course for <span>MHT-CET 2026 | Aaditya Coep</span>
+                  GuruCool Crash Course for{" "}
+                  <span>MHT-CET 2026 | Aaditya Coep</span>
                 </h1>
 
                 <img src="/ratingandduration.svg" alt="" />
@@ -325,7 +356,8 @@ export default function LandingPage() {
             Course Description
           </h1>
           <p className="text-xs text-[#8C8CA1]">
-            The course is structured for fast learning, solid revision, and maximum marks.
+            The course is structured for fast learning, solid revision, and
+            maximum marks.
           </p>
         </div>
       </div>
@@ -339,20 +371,25 @@ export default function LandingPage() {
             </h1>
 
             <p className="text-[#232323] text-[1rem] font-medium">
-              The course is structured to ensure fast learning, solid revision, and maximum marks.
+              The course is structured to ensure fast learning, solid revision,
+              and maximum marks.
             </p>
 
             <div className="flex gap-5">
               <div className="flex flex-col">
                 <p className="flex gap-2 items-center">
                   <img src="/star.svg" alt="" />
-                  <span className="text-[#13097D] text-[1.25rem] font-semibold">4.7</span>
+                  <span className="text-[#13097D] text-[1.25rem] font-semibold">
+                    4.7
+                  </span>
                 </p>
                 <span className="text-[1rem] font-medium">Course Rating</span>
               </div>
 
               <div className="flex flex-col">
-                <p className="text-[#13097D] text-[1.25rem] font-semibold">4 Months</p>
+                <p className="text-[#13097D] text-[1.25rem] font-semibold">
+                  4 Months
+                </p>
                 <span className="text-[1rem] font-medium">Course Duration</span>
               </div>
             </div>

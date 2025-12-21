@@ -26,6 +26,10 @@ const COURSE_NAME = "MHT-CET Crash Course";
 const COURSE_PRICE = 2499;
 const WHATSAPP_GROUP_LINK = "https://chat.whatsapp.com/JahmZvJ4vslJTxX9thZDK6"; // Update with correct WhatsApp link
 
+// ✅ ADDED: helper to check profile completeness
+const isProfileIncomplete = (user: any) => {
+  return !user?.firstName || !user?.lastName || !user?.email;
+};
 export default function PromoPage() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const heroSectionRef = useRef<HTMLElement | null>(null);
@@ -34,7 +38,8 @@ export default function PromoPage() {
   const token = localStorage.getItem("jwt");
 
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
-  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+  const storePendingAction = useAuthStore((s) => s.pendingAction);
+  const setStorePendingAction = useAuthStore((s) => s.setPendingAction);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -73,11 +78,6 @@ export default function PromoPage() {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
   };
 
-  const handleProfileIncomplete = (action: () => void) => {
-    setPendingAction(() => action);
-    setIsEditProfileModalOpen(true);
-  };
-
   const handleUpdateProfile = async (updatedData: {
     firstName: string;
     lastName: string;
@@ -88,28 +88,56 @@ export default function PromoPage() {
     await updateUserProfile(userId, updatedData, token);
     await refreshUser(true);
     if (isAuthenticated) refetch();
-    if (pendingAction) {
-      pendingAction();
-      setPendingAction(null);
+    if (storePendingAction) {
+      console.log(
+        "PromoPage: invoking store pendingAction after profile update",
+        {
+          storePendingAction,
+        }
+      );
+      try {
+        storePendingAction();
+      } catch (err) {
+        console.error("PromoPage: store pendingAction threw:", err);
+      }
+      setStorePendingAction(null);
     }
   };
 
   const handleCloseModal = () => {
     setIsEditProfileModalOpen(false);
-    setPendingAction(null);
+    setStorePendingAction(null);
   };
 
   const handleDirectPayment = async (amount: number) => {
-    const freshUser = useAuthStore.getState().user;
-    const freshPhone = localStorage.getItem("phone");
+    const authState = useAuthStore.getState();
+    const freshUser = authState.user;
+    // Get phone from multiple sources in priority order (matching working implementation):
+    // 1. localStorage (used for signup/login) - highest priority
+    // 2. tempPhone (for users in onboarding flow)
+    // 3. user.phoneNumber (from user object)
+    const phoneFromStorage = localStorage.getItem("phone");
+    const phoneFromTemp = authState.tempPhone;
+    const phoneFromUser = freshUser?.phoneNumber;
 
-    if (!freshUser?.userName || !freshPhone) {
+    // Get phone number - prioritize signup/login phone, fallback to user phone
+    // This matches the working implementation in AdityaLandingPage.tsx
+    const phoneNumber = phoneFromStorage || phoneFromTemp || phoneFromUser;
+
+    if (!freshUser?.userName || !phoneNumber) {
       toast.error("User information not found. Please try logging in again.");
       return;
     }
 
+    // Debug logging
+    console.log("Phone number for Razorpay:", {
+      phoneFromStorage,
+      phoneFromTemp,
+      phoneFromUser,
+      phoneNumber,
+    });
+
     setIsProcessing(true);
-    const loadingToast = toast.loading("Initiating payment...");
 
     try {
       const order = await startRecharge(freshUser.userName, amount);
@@ -122,7 +150,7 @@ export default function PromoPage() {
         name: "ProCounsel",
         description: `${COURSE_NAME} - Course Enrollment`,
         prefill: {
-          contact: freshUser.phoneNumber || freshPhone,
+          contact: phoneNumber,
           email: freshUser.email || "",
           name: `${freshUser.firstName || ""} ${
             freshUser.lastName || ""
@@ -185,21 +213,26 @@ export default function PromoPage() {
 
   const handleEnroll = async (amount: number) => {
     if (!isAuthenticated) {
+      // For promo page we want new users to skip onboarding and go straight to payment.
+      // Set a store flag so AuthStore.verifyOtp will not trigger onboarding for this login.
+      useAuthStore.getState().setSkipOnboardingForPromo(true);
+      // After login, refresh user and directly start payment (bypass profile/onboarding checks)
       toggleLogin(async () => {
         await refreshUser(true);
-        let tries = 0;
-        while (
-          (!useAuthStore.getState().isAuthenticated ||
-            !useAuthStore.getState().user ||
-            !useAuthStore.getState().userId) &&
-          tries < 20
-        ) {
-          await new Promise((res) => setTimeout(res, 100));
-          tries++;
+        const freshState = useAuthStore.getState();
+        const freshUser = freshState.user;
+
+        if (freshState.role === "counselor") {
+          toast.error("Counsellors cannot enroll in this course.");
+          return;
         }
+
+        await handleDirectPayment(amount);
       });
       return;
     }
+
+    // ---- LOGGED IN USERS ----
 
     if (isCounselor) {
       toast.error("Counsellors cannot enroll in this course.");
@@ -214,8 +247,10 @@ export default function PromoPage() {
     await refreshUser(true);
     const freshUser = useAuthStore.getState().user;
 
-    if (freshUser?.role?.toLowerCase() === "counselor") {
-      toast.error("Counsellors cannot enroll.");
+    // ✅ ADDED: profile completion check (LOGGED IN USERS)
+    if (isProfileIncomplete(freshUser)) {
+      setStorePendingAction(() => () => handleDirectPayment(amount));
+      setIsEditProfileModalOpen(true);
       return;
     }
 
@@ -225,11 +260,6 @@ export default function PromoPage() {
 
     if (nowPurchased) {
       toast.error("You are already enrolled.");
-      return;
-    }
-
-    if (!freshUser?.firstName) {
-      handleProfileIncomplete(async () => handleDirectPayment(amount));
       return;
     }
 

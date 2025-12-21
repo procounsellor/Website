@@ -15,14 +15,14 @@ import CounselorSignupModal from "@/components/counselor-signup/CounselorSignupM
 import AppInstallBanner from "@/components/shared/AppInstallBanner";
 import EditProfileModal from "@/components/student-dashboard/EditProfileModal";
 import { useEffect } from "react";
-import { updateUserProfile } from '@/api/user';
+import { updateUserProfile } from "@/api/user";
 import { useLiveStreamStore } from "@/store/LiveStreamStore";
 import LiveStreamView from "@/components/live/userView";
 
-export default function MainLayout(){
-  const { 
-    isLoginToggle, 
-    isAuthenticated, 
+export default function MainLayout() {
+  const {
+    isLoginToggle,
+    isAuthenticated,
     needsOnboarding,
     needsProfileCompletion,
     isProfileCompletionOpen,
@@ -38,18 +38,21 @@ export default function MainLayout(){
   } = useAuthStore();
   const { refreshUser } = useAuthStore();
   const { isChatbotOpen, toggleChatbot } = useChatStore();
-  const { isVoiceChatOpen} = useVoiceChatStore();
+  const { isVoiceChatOpen } = useVoiceChatStore();
   const { isStreamActive } = useLiveStreamStore();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    if (isAuthenticated && role === 'counselor' && location.pathname === '/') {
-      navigate('/counsellor-dashboard');
+    if (isAuthenticated && role === "counselor" && location.pathname === "/") {
+      navigate("/counsellor-dashboard");
     }
   }, [isAuthenticated, role, location.pathname, navigate]);
 
-  const shouldShowOnboarding = isAuthenticated && (role === 'student' || role === 'user') && needsOnboarding;
+  const shouldShowOnboarding =
+    isAuthenticated &&
+    (role === "student" || role === "user") &&
+    needsOnboarding;
 
   useEffect(() => {
     // Only show profile completion after onboarding is done
@@ -58,10 +61,16 @@ export default function MainLayout(){
     }
   }, [isAuthenticated, needsProfileCompletion, needsOnboarding]);
 
-  const handleProfileUpdate = async (updatedData: { firstName: string; lastName: string; email: string }) => {
+  const handleProfileUpdate = async (updatedData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  }) => {
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null;
-      const uid = typeof window !== 'undefined' ? localStorage.getItem('phone') : null;
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("jwt") : null;
+      const uid =
+        typeof window !== "undefined" ? localStorage.getItem("phone") : null;
 
       if (!uid || !token) {
         // still close the modal to avoid blocking the user, but keep the flag so they can retry
@@ -74,36 +83,50 @@ export default function MainLayout(){
       // refresh user in the store so UI reflects latest profile
       if (refreshUser) await refreshUser(true);
 
-      
       // close profile completion flow only after successful update
       setNeedsProfileCompletion(false);
       setIsProfileCompletionOpen(false);
 
       // Now execute the pending action (booking/subscription) if any
       const store = useAuthStore.getState();
+
+      // Prefer executing a stored pendingAction (explicit action set by pages/components)
+      if (store.pendingAction) {
+        try {
+          store.pendingAction();
+        } catch (err) {
+          console.error(
+            "Failed executing pendingAction after profile update",
+            err
+          );
+        }
+        // clear the pending action
+        store.setPendingAction(null);
+        return;
+      }
+
       if (store.onLoginSuccess) {
         store.onLoginSuccess();
-        //store.toggleLogin(); // Clear the callback
         clearOnLoginSuccess();
       } else if (returnToPath) {
         navigate(returnToPath);
         setReturnToPath(null);
       }
     } catch (err) {
-      console.error('❌ MainLayout: failed to update profile', err);
+      console.error("❌ MainLayout: failed to update profile", err);
     }
   };
 
   const handleOnboardingComplete = () => {
     setNeedsOnboarding(false);
-    
+
     // Check if we need profile completion
     if (user && (!user.firstName || !user.email)) {
       setNeedsProfileCompletion(true);
       // Don't execute onLoginSuccess yet, wait for profile completion
       return;
     }
-    
+
     // If no profile completion needed, execute pending action
     const store = useAuthStore.getState();
     if (store.onLoginSuccess) {
@@ -120,27 +143,27 @@ export default function MainLayout(){
     <div>
       <AppInstallBanner />
       <nav>
-        <Header/>
+        <Header />
       </nav>
 
       <main>
-        <Outlet/>
+        <Outlet />
       </main>
 
       <footer className="bottom-0 left-0 right-0">
-        <Footer/>
+        <Footer />
       </footer>
-      
-      {isLoginToggle && <LoginCard/>}
+
+      {isLoginToggle && <LoginCard />}
       <InfoModal />
       <CounselorSignupModal />
-      
+
       {shouldShowOnboarding && (
         <>
           <OnboardingCard onComplete={handleOnboardingComplete} />
         </>
       )}
-      
+
       {isProfileCompletionOpen && user && (
         <EditProfileModal
           isOpen={isProfileCompletionOpen}
@@ -157,21 +180,21 @@ export default function MainLayout(){
           user={user}
           onUpdate={handleProfileUpdate}
           onUploadComplete={() => {}}
-          // isMandatory={needsProfileCompletion} 
+          // isMandatory={needsProfileCompletion}
         />
       )}
-      
+
       <Toaster
         position="top-center"
         toastOptions={{
           duration: 3000,
           style: {
-            background: '#363636',
-            color: '#fff',
+            background: "#363636",
+            color: "#fff",
           },
         }}
       />
-      
+
       {!isStreamActive && (
         <button
           onClick={toggleChatbot}
@@ -184,7 +207,7 @@ export default function MainLayout(){
 
       {isChatbotOpen && <Chatbot />}
       {isVoiceChatOpen && <VoiceChat />}
-      
+
       {isStreamActive && <LiveStreamView />}
     </div>
   );
