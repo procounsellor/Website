@@ -1,4 +1,4 @@
-import { Lock, ChevronRight, Play, Pause, SkipBack, SkipForward, Maximize, Minimize, Settings } from "lucide-react";
+import { Lock, ChevronRight, Play, Pause, SkipBack, SkipForward, Maximize, Minimize, Settings, Gauge } from "lucide-react";
 // import { useAuthStore } from "@/store/AuthStore";
 import type { CourseContent } from "@/api/course";
 import { useState, useEffect, useRef } from "react";
@@ -19,6 +19,9 @@ interface YTPlayer {
   getAvailableQualityLevels: () => string[];
   getPlaybackQuality: () => string;
   setPlaybackQuality: (quality: string) => void;
+  getPlaybackRate: () => number;
+  setPlaybackRate: (rate: number) => void;
+  getAvailablePlaybackRates: () => number[];
 }
 
 interface YTPlayerEvent {
@@ -116,6 +119,9 @@ export default function ContentCard({
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [availableQualities, setAvailableQualities] = useState<string[]>([]);
   const [currentQuality, setCurrentQuality] = useState<string>('auto');
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [availableSpeeds, setAvailableSpeeds] = useState<number[]>([0.25, 0.5, 1, 1.25, 1.5, 2]);
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const fullscreenPlayerRef = useRef<YTPlayer | null>(null);
 
@@ -339,7 +345,9 @@ export default function ContentCard({
         },
         events: {
           onReady: (event: any) => {
-            console.log('YouTube player ready');
+            if (import.meta.env.DEV) {
+              console.log('YouTube player ready');
+            }
             try {
               const videoDuration = event.target.getDuration();
               // YouTube live streams return 0 for duration, handle gracefully
@@ -347,7 +355,9 @@ export default function ContentCard({
                 setDuration(videoDuration);
               }
             } catch (error) {
-              console.warn('Could not get video duration:', error);
+              if (import.meta.env.DEV) {
+                console.warn('Could not get video duration:', error);
+              }
             }
             
             // Get available quality levels with error handling
@@ -365,10 +375,35 @@ export default function ContentCard({
                 setCurrentQuality('hd720');
               }
             } catch (error) {
-              console.warn('Could not get quality levels:', error);
+              if (import.meta.env.DEV) {
+                console.warn('Could not get quality levels:', error);
+              }
               // Still provide basic quality options as fallback
               setAvailableQualities(['hd1080', 'hd720', 'large', 'medium']);
               setCurrentQuality('hd720');
+            }
+            
+            // Get available playback rates and apply saved speed
+            try {
+              const speeds = event.target.getAvailablePlaybackRates();
+              if (speeds && speeds.length > 0) {
+                setAvailableSpeeds(speeds);
+                if (import.meta.env.DEV) {
+                  console.log('📊 Available playback speeds:', speeds);
+                }
+              }
+              
+              // Apply saved playback speed (important for fullscreen transitions)
+              if (playbackSpeed !== 1 && event.target.setPlaybackRate) {
+                event.target.setPlaybackRate(playbackSpeed);
+                if (import.meta.env.DEV) {
+                  console.log('🔄 Applied saved playback speed:', playbackSpeed);
+                }
+              }
+            } catch (error) {
+              if (import.meta.env.DEV) {
+                console.warn('Could not get playback rates:', error);
+              }
             }
             
             // Sync fullscreen player with main player
@@ -389,13 +424,17 @@ export default function ContentCard({
           },
           onError: (event: any) => {
             // Handle YouTube player errors gracefully
-            console.error('YouTube player error:', event.data);
+            if (import.meta.env.DEV) {
+              console.error('YouTube player error:', event.data);
+            }
             toast.error('Video playback error. Please try refreshing.');
           },
         },
       });
     } catch (error) {
-      console.error('Error initializing YouTube player:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error initializing YouTube player:', error);
+      }
     }
   };
 
@@ -430,9 +469,37 @@ export default function ContentCard({
     const activePlayer = isFullscreen ? fullscreenPlayerRef.current : playerRef.current;
     if (activePlayer) {
       try {
+        if (import.meta.env.DEV) {
+          console.log('🎬 Quality Change Request:', {
+            requestedQuality: quality,
+            currentQuality: currentQuality,
+            availableQualities: availableQualities
+          });
+        }
+        
         // Check if setPlaybackQuality method exists
         if (typeof activePlayer.setPlaybackQuality === 'function') {
           activePlayer.setPlaybackQuality(quality);
+          
+          // Verify the quality actually changed (dev mode only)
+          if (import.meta.env.DEV) {
+            setTimeout(() => {
+              const player = activePlayer as any;
+              if (player.getPlaybackQuality) {
+                const actualQuality = player.getPlaybackQuality();
+                console.log('✅ Quality Change Result:', {
+                  requestedQuality: quality,
+                  actualQuality: actualQuality,
+                  changeSuccessful: actualQuality === quality
+                });
+                
+                if (actualQuality !== quality) {
+                  console.warn('⚠️ Quality change partially applied. Requested:', quality, 'Got:', actualQuality);
+                }
+              }
+            }, 500);
+          }
+          
           setCurrentQuality(quality);
           setShowQualityMenu(false);
           toast.success(`Quality changed to ${getQualityLabel(quality)}`);
@@ -440,7 +507,9 @@ export default function ContentCard({
           throw new Error('Quality change not supported');
         }
       } catch (error) {
-        console.error('Failed to change quality:', error);
+        if (import.meta.env.DEV) {
+          console.error('❌ Failed to change quality:', error);
+        }
         toast.error('Could not change quality. Feature may not be available for this video.');
         setShowQualityMenu(false);
       }
@@ -460,6 +529,57 @@ export default function ContentCard({
       'auto': 'Auto'
     };
     return labels[quality] || quality;
+  };
+
+  const handleSpeedChange = (speed: number) => {
+    const activePlayer = isFullscreen ? fullscreenPlayerRef.current : playerRef.current;
+    if (activePlayer) {
+      try {
+        if (import.meta.env.DEV) {
+          console.log('⚡ Speed Change Request:', {
+            requestedSpeed: speed,
+            currentSpeed: playbackSpeed
+          });
+        }
+        
+        // Check if setPlaybackRate method exists
+        if (typeof activePlayer.setPlaybackRate === 'function') {
+          activePlayer.setPlaybackRate(speed);
+          
+          // Verify the speed actually changed (dev mode only)
+          if (import.meta.env.DEV) {
+            setTimeout(() => {
+              const player = activePlayer as any;
+              if (player.getPlaybackRate) {
+                const actualSpeed = player.getPlaybackRate();
+                console.log('✅ Speed Change Result:', {
+                  requestedSpeed: speed,
+                  actualSpeed: actualSpeed,
+                  changeSuccessful: Math.abs(actualSpeed - speed) < 0.01
+                });
+              }
+            }, 200);
+          }
+          
+          setPlaybackSpeed(speed);
+          setShowSpeedMenu(false);
+          toast.success(`Playback speed: ${getSpeedLabel(speed)}`);
+        } else {
+          throw new Error('Speed change not supported');
+        }
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error('❌ Failed to change speed:', error);
+        }
+        toast.error('Could not change playback speed.');
+        setShowSpeedMenu(false);
+      }
+    }
+  };
+
+  const getSpeedLabel = (speed: number) => {
+    if (speed === 1) return 'Normal';
+    return `${speed}x`;
   };
 
   const formatTime = (seconds: number) => {
@@ -808,6 +928,38 @@ export default function ContentCard({
                         </div>
                         
                         <div className="flex items-center gap-2">
+                          {/* Speed Selector */}
+                          <div className="relative">
+                            <button
+                              onClick={() => setShowSpeedMenu(!showSpeedMenu)}
+                              className="w-8 h-8 md:w-10 md:h-10 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition cursor-pointer"
+                            >
+                              <Gauge className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                            </button>
+                            
+                            {/* Speed Menu */}
+                            {showSpeedMenu && (
+                              <div className="absolute bottom-full right-0 mb-2 bg-black/90 rounded-lg overflow-hidden shadow-lg min-w-[120px]">
+                                <div className="px-3 py-2 text-white text-xs font-semibold border-b border-white/20">
+                                  Speed
+                                </div>
+                                <div className="max-h-60 overflow-y-auto scrollbar-hide">
+                                  {availableSpeeds.map((speed) => (
+                                    <button
+                                      key={speed}
+                                      onClick={() => handleSpeedChange(speed)}
+                                      className={`w-full px-3 py-2 text-left text-xs md:text-sm hover:bg-white/20 transition ${
+                                        playbackSpeed === speed ? 'text-[#FA660F] font-semibold bg-white/10' : 'text-white'
+                                      }`}
+                                    >
+                                      {getSpeedLabel(speed)}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          
                           {/* Quality Selector */}
                           {availableQualities.length > 0 && (
                             <div className="relative">
@@ -824,7 +976,7 @@ export default function ContentCard({
                                   <div className="px-3 py-2 text-white text-xs font-semibold border-b border-white/20">
                                     Quality
                                   </div>
-                                  <div className="max-h-60 overflow-y-auto">
+                                  <div className="max-h-60 overflow-y-auto scrollbar-hide">
                                     {availableQualities.map((quality) => (
                                       <button
                                         key={quality}
@@ -1029,6 +1181,39 @@ export default function ContentCard({
                 </div>
                 
                 <div className="flex items-center gap-2">
+                  {/* Speed Selector */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowSpeedMenu(!showSpeedMenu)}
+                      className="px-3 md:px-4 py-2 md:py-3 bg-white/20 hover:bg-white/30 rounded-lg flex items-center gap-2 transition cursor-pointer"
+                    >
+                      <Gauge className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                      <span className="text-white text-xs md:text-base font-semibold hidden sm:inline">{getSpeedLabel(playbackSpeed)}</span>
+                    </button>
+                    
+                    {/* Speed Menu */}
+                    {showSpeedMenu && (
+                      <div className="absolute bottom-full right-0 mb-2 bg-black/90 rounded-lg overflow-hidden shadow-lg min-w-[140px]">
+                        <div className="px-4 py-2 text-white text-sm font-semibold border-b border-white/20">
+                          Speed
+                        </div>
+                        <div className="max-h-80 overflow-y-auto scrollbar-hide">
+                          {availableSpeeds.map((speed) => (
+                            <button
+                              key={speed}
+                              onClick={() => handleSpeedChange(speed)}
+                              className={`w-full px-4 py-3 text-left text-sm md:text-base hover:bg-white/20 transition ${
+                                playbackSpeed === speed ? 'text-[#FA660F] font-semibold bg-white/10' : 'text-white'
+                              }`}
+                            >
+                              {getSpeedLabel(speed)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
                   {/* Quality Selector */}
                   {availableQualities.length > 0 && (
                     <div className="relative">
@@ -1046,7 +1231,7 @@ export default function ContentCard({
                           <div className="px-4 py-2 text-white text-sm font-semibold border-b border-white/20">
                             Quality
                           </div>
-                          <div className="max-h-80 overflow-y-auto">
+                          <div className="max-h-80 overflow-y-auto scrollbar-hide">
                             {availableQualities.map((quality) => (
                               <button
                                 key={quality}
