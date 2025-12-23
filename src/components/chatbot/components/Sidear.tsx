@@ -385,9 +385,9 @@ export default function Sidebar({
             </div>
           </div>
           <div>
-            <button  onClick={toggleChatbot} className="w-full flex items-center gap-3 p-[11px] rounded-xl hover:bg-white/10 transition-colors">
-                <ArrowLeft size={20} className="text-white" />
-                <span className="font-medium text-sm text-white">Back to Home</span>
+            <button onClick={toggleChatbot} className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer group">
+                <ArrowLeft size={20} className="text-[#FF4444] group-hover:text-[#FF2222]" />
+                <span className="font-semibold text-sm text-[#FF4444] group-hover:text-[#FF2222] transition-colors">Back</span>
             </button>
           </div>
         </div>

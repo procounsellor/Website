@@ -42,6 +42,7 @@ export default function Chatbot() {
   const { 
     messages, 
     toggleChatbot, 
+    isChatbotOpen,
     sendMessage, 
     loading, 
     clearMessages, 
@@ -58,7 +59,7 @@ export default function Chatbot() {
     setLoginOpenFromChatbot,
     isLoadingHistory
   } = useChatStore();
-  const { toggleLogin, isAuthenticated, logout, userId, role, isLoginToggle } = useAuthStore();
+  const { user, toggleLogin, isAuthenticated, logout, userId, role, isLoginToggle } = useAuthStore();
 
   // UI state
   const [input, setInput] = useState("");
@@ -84,16 +85,16 @@ export default function Chatbot() {
 
   // Load chat sessions when authenticated
   useEffect(() => {
-    if (isAuthenticated && userId) {
-      // Load user's saved chat sessions from backend
-      loadChatSessions(userId);
+    if (isAuthenticated && userId && isChatbotOpen) {
+      // Load user's saved chat sessions from backend only when chatbot opens
+      loadChatSessions(userId, false); // false = use cache if available
       
       // Reset visitor message count when user logs in
       resetVisitorMessageCount();
       
       console.log('✅ User authenticated - loaded chat sessions for userId:', userId);
     }
-  }, [isAuthenticated, userId, loadChatSessions, resetVisitorMessageCount]);
+  }, [isAuthenticated, userId, isChatbotOpen, loadChatSessions, resetVisitorMessageCount]);
 
   // Click outside dropdown
   useEffect(() => {
@@ -235,17 +236,14 @@ export default function Chatbot() {
               <Menu className="h-6 w-6 text-white" />
             </button>
 
-              <div className="Logo flex items-center cursor-pointer" onClick={() => {
-                toggleChatbot();
-                 navigate('/');
-                 }}>
+              <div className="Logo flex items-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate('/counsellor-dashboard')}>
                     <SmartImage src="/logo.png" alt="procounsel_logo" 
                       className="h-7 w-7 md:w-11 md:h-12 rounded-md"
                       width={44}
                       height={44}
                       priority
                     />
-                  <div className="flex items-center leading-tight pl-[9px] hover:cursor-pointer" onClick={() => navigate('/')}>
+                  <div className="flex items-center leading-tight pl-[9px]">
                        <h1 className="text-white font-semibold text-sm md:text-xl">ProCounsel</h1>
                     </div>
                   </div>
@@ -255,8 +253,16 @@ export default function Chatbot() {
             <div className="btn relative">
               {isAuthenticated ? (
                 <>
-                  <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="p-2 rounded-full hover:bg-gray-700 transition-colors" aria-label="Open user menu">
-                    <User2 className="h-6 w-6 text-white" />
+                  <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="p-2 rounded-full hover:bg-gray-700 transition-colors cursor-pointer" aria-label="Open user menu">
+                    {user?.photoUrl && typeof user.photoUrl === 'string' ? (
+                      <img 
+                        src={user.photoUrl} 
+                        alt="User profile" 
+                        className="h-6 w-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <User2 className="h-6 w-6 text-white" />
+                    )}
                   </button>
 
                   {isDropdownOpen && (

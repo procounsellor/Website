@@ -13,11 +13,11 @@ interface EditProfileModalProps {
   onClose: () => void;
   onUpdate: (updatedData: { firstName: string; lastName: string; email: string }) => Promise<void>;
   onUploadComplete: () => void;
-  // isMandatory?: boolean; 
+  requireNameOnly?: boolean; // When true, only name is mandatory (for live sessions/reviews)
 }
 
-const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClose, onUpdate, }) => {
-  const isMandatory = false
+const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClose, onUpdate, requireNameOnly = false }) => {
+  const isMandatory = requireNameOnly
   const location = useLocation();
   const isGuruCoolPage = location.pathname === '/gurucool';
 
@@ -36,8 +36,16 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
 
 
   const handleClose = () => {
-    // If mandatory, only allow closing if name and email are filled
+    // If requireNameOnly mode (for live sessions/reviews), allow closing freely
+    // The action won't proceed without name, but users can close the modal
+    if (requireNameOnly) {
+      onClose();
+      return;
+    }
+    
+    // For other modes, validate before closing
     if (isMandatory && !skipEmailVerification) {
+      // If mandatory, only allow closing if name and email are filled
       if (!firstName.trim() || !email.trim()) {
         toast.error('Please complete your profile with name and email before continuing.');
         return;
@@ -137,8 +145,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // For gurucool page, require name and email but skip verification
-    if (skipEmailVerification) {
+    // If requireNameOnly mode (for live sessions/reviews), only require name
+    if (requireNameOnly) {
+      if (!firstName.trim()) {
+        toast.error('Please enter your first name.');
+        return;
+      }
+    } else if (skipEmailVerification) {
+      // For gurucool page, require name and email but skip verification
       if (!firstName.trim() || !email.trim()) {
         toast.error('Please enter your name and email.');
         return;
@@ -229,13 +243,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-[10px] font-semibold text-[#2F303280] mb-1">
-                First Name {isMandatory && <span className="text-red-500">*</span>}
+                First Name {requireNameOnly && <span className="text-red-500">*</span>}
               </label>
               <input 
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value.trim())}
-                required={isMandatory}
+                required={requireNameOnly}
                 className="w-full h-11 px-4 bg-white border border-[#EFEFEF] rounded-xl text-base text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -250,14 +264,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-[#2F303280] mb-1">
-                Email {(isMandatory || skipEmailVerification) && <span className="text-red-500">*</span>}
+                Email {(!requireNameOnly && (isMandatory || skipEmailVerification)) && <span className="text-red-500">*</span>}
               </label>
               <div className="relative h-11">
                 <input 
                   type="email"
                   value={email}
                   onChange={handleEmailChange}
-                  required={isMandatory || skipEmailVerification}
+                  required={!requireNameOnly && (isMandatory || skipEmailVerification)}
                   className="h-full w-full px-4 pr-20 bg-white border border-[#EFEFEF] rounded-xl text-base text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
                   placeholder={skipEmailVerification ? "Enter your email" : ""}
                 />
@@ -308,13 +322,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-xs font-semibold text-[#2F303280] mb-2">
-                  First Name {isMandatory && <span className="text-red-500">*</span>}
+                  First Name {requireNameOnly && <span className="text-red-500">*</span>}
                 </label>
                 <input 
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value.trim())}
-                  required={isMandatory}
+                  required={requireNameOnly}
                   className="w-full h-12 px-3 bg-white border border-[#EFEFEF] rounded-xl text-base text-[#718EBF] placeholder-[#718EBF]"
                 />
               </div>
@@ -329,14 +343,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
               </div>
               <div className="md:col-span-2">
                 <label className="block text-xs font-semibold text-[#2F303280] mb-2">
-                  Email {(isMandatory || skipEmailVerification) && <span className="text-red-500">*</span>}
+                  Email {(!requireNameOnly && (isMandatory || skipEmailVerification)) && <span className="text-red-500">*</span>}
                 </label>
                 <div className="relative h-12">
                   <input 
                     type="email"
                     value={email}
                     onChange={handleEmailChange}
-                    required={isMandatory || skipEmailVerification}
+                    required={!requireNameOnly && (isMandatory || skipEmailVerification)}
                     placeholder={skipEmailVerification ? "Enter your email" : "your@email.com"}
                     className="w-full h-full px-3 pr-20 bg-white border border-[#EFEFEF] rounded-xl text-base text-[#718EBF] placeholder-[#718EBF]"
                   />

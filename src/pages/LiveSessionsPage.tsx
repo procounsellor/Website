@@ -6,6 +6,9 @@ import { useLiveStreamStore } from '@/store/LiveStreamStore';
 import { listenToLiveSessionsStatus } from '@/lib/firebase';
 import { getBoughtCourses } from '@/api/course';
 import { useAuthStore } from '@/store/AuthStore';
+import EditProfileModal from '@/components/student-dashboard/EditProfileModal';
+import { updateUserProfile } from '@/api/user';
+import toast from 'react-hot-toast';
 
 const getAvatarUrl = (photoUrl: string | null, fullName: string) => {
     if (photoUrl) return photoUrl;
@@ -57,7 +60,7 @@ function OngoingSessionAvatar({ session, onClick }: OngoingSessionAvatarProps) {
 
 export default function LiveSessionsPage() {
     const { startStream } = useLiveStreamStore.getState();
-    const { userId, isAuthenticated, loading, toggleLogin } = useAuthStore();
+    const { userId, isAuthenticated, loading, toggleLogin, user, refreshUser } = useAuthStore();
 
     useEffect(() => {
         if (!loading && !isAuthenticated) {
@@ -80,6 +83,9 @@ export default function LiveSessionsPage() {
     const [loadingSessions, setLoadingSessions] = useState(true);
     const [error] = useState<string | null>(null);
     const [boughtCourseIds, setBoughtCourseIds] = useState<Set<string>>(new Set());
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [pendingStreamAction, setPendingStreamAction] = useState<(() => void) | null>(null);
+    const [isJoining, setIsJoining] = useState(false);
     
     // Fetch bought courses on mount
     useEffect(() => {
@@ -182,7 +188,31 @@ export default function LiveSessionsPage() {
     };
 
     const handleJoinStream = (playbackId: string) => {
-        if (!selectedSession) return;
+        if (!selectedSession || isJoining) return;
+        
+        // Check if user has firstName
+        if (!user?.firstName?.trim()) {
+            setIsJoining(true);
+            // Store the action to execute after profile update
+            setPendingStreamAction(() => () => {
+                startStream(
+                    'youtube', 
+                    playbackId,
+                    `Live Session with ${selectedSession.name}`,
+                    'Join our interactive session',
+                    selectedSession.id,
+                    selectedSession.counsellorId
+                );
+                setIsModalOpen(false);
+                setIsJoining(false);
+            });
+            setIsProfileModalOpen(true);
+            // Reset after short delay to prevent accidental double-opens
+            setTimeout(() => setIsJoining(false), 1000);
+            return;
+        }
+        
+        setIsJoining(true);
         startStream(
             'youtube', 
             playbackId,
@@ -192,6 +222,34 @@ export default function LiveSessionsPage() {
             selectedSession.counsellorId
         );
         setIsModalOpen(false);
+        setTimeout(() => setIsJoining(false), 500);
+    };
+
+    const handleProfileUpdate = async (updatedData: { firstName: string; lastName: string; email: string }) => {
+        if (!userId) return;
+        const token = localStorage.getItem('jwt');
+        if (!token) return;
+
+        try {
+            await updateUserProfile(userId, updatedData, token);
+            await refreshUser(true);
+            toast.success('Profile updated successfully!');
+            setIsProfileModalOpen(false);
+            
+            // Execute pending stream action if exists and user filled the name
+            if (pendingStreamAction && updatedData.firstName?.trim()) {
+                pendingStreamAction();
+                setPendingStreamAction(null);
+            } else {
+                // If user didn't fill name, clear pending action
+                setPendingStreamAction(null);
+                setIsJoining(false);
+            }
+        } catch (error) {
+            console.error('Failed to update profile:', error);
+            setIsJoining(false);
+            throw error;
+        }
     };
 
 
@@ -257,6 +315,17 @@ export default function LiveSessionsPage() {
                     liveSince: new Date().toISOString()
                 } : null}
             />
+            
+            {user && (
+                <EditProfileModal
+                    user={user}
+                    isOpen={isProfileModalOpen}
+                    onClose={() => setIsProfileModalOpen(false)}
+                    onUpdate={handleProfileUpdate}
+                    onUploadComplete={() => refreshUser(true)}
+                    requireNameOnly={true}
+                />
+            )}
         </div>
     );
 }

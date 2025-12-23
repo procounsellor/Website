@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { addCourseReview, updateCourseReview, deleteCourseReview } from '@/api/course';
 import { useAuthStore } from '@/store/AuthStore';
 import toast from 'react-hot-toast';
+import EditProfileModal from '@/components/student-dashboard/EditProfileModal';
+import { updateUserProfile } from '@/api/user';
 
 interface CourseReview {
   reviewId: string;
@@ -119,7 +121,10 @@ export default function CourseReviewsCard({
   const reviewsPerPage = 10;
 
   const reviews = propReviews.length > 0 ? propReviews : [];
-  const { userId } = useAuthStore();
+  const { userId, user, refreshUser } = useAuthStore();
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [pendingReviewSubmission, setPendingReviewSubmission] = useState(false);
+  const [isCheckingName, setIsCheckingName] = useState(false);
 
   // Check if user already reviewed this course
   useEffect(() => {
@@ -135,6 +140,19 @@ export default function CourseReviewsCard({
   }, [userId, reviews]);
 
   const handleSubmitReview = async () => {
+    // Debounce to prevent double-clicks
+    if (isCheckingName || isSubmitting) return;
+    
+    // Check if user has firstName before allowing review submission
+    if (!user?.firstName?.trim()) {
+      setIsCheckingName(true);
+      setPendingReviewSubmission(true);
+      setIsProfileModalOpen(true);
+      // Reset after delay to prevent accidental double-opens
+      setTimeout(() => setIsCheckingName(false), 1000);
+      return;
+    }
+    
     // Prevent duplicate reviews
     if (userHasReviewed && !isEditMode) {
       toast.error('You have already reviewed this course');
@@ -189,6 +207,35 @@ export default function CourseReviewsCard({
       toast.error((error as Error).message || 'Failed to submit review. Please try again.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleProfileUpdate = async (updatedData: { firstName: string; lastName: string; email: string }) => {
+    if (!userId) return;
+    const token = localStorage.getItem('jwt');
+    if (!token) return;
+
+    try {
+      await updateUserProfile(userId, updatedData, token);
+      await refreshUser(true);
+      toast.success('Profile updated successfully!');
+      setIsProfileModalOpen(false);
+      
+      // If pending review submission and user filled the name, proceed with it
+      if (pendingReviewSubmission && updatedData.firstName?.trim()) {
+        setPendingReviewSubmission(false);
+        setIsCheckingName(false);
+        // Small delay to ensure state is updated
+        setTimeout(() => handleSubmitReview(), 100);
+      } else {
+        // If user didn't fill name, clear pending states
+        setPendingReviewSubmission(false);
+        setIsCheckingName(false);
+      }
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      setIsCheckingName(false);
+      throw error;
     }
   };
 
@@ -522,6 +569,17 @@ export default function CourseReviewsCard({
             )}
           </div>
         </div>
+      )}
+      
+      {user && (
+        <EditProfileModal
+          user={user}
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          onUpdate={handleProfileUpdate}
+          onUploadComplete={() => refreshUser(true)}
+          requireNameOnly={true}
+        />
       )}
     </div>
   );

@@ -91,10 +91,7 @@ export default function LandingPage() {
     boughtCoursesData?.data?.some((course) => course.courseId === COURSE_ID) ??
     false;
 
-  const handleProfileIncomplete = (action: () => void) => {
-    setStorePendingAction(() => action);
-    setIsEditProfileModalOpen(true);
-  };
+  // Removed unused handleProfileIncomplete - profile completion is handled inline in handleEnroll
 
   // ✅ ADDED: helper to check profile completeness
   const isProfileIncomplete = (user: any) => {
