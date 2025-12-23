@@ -15,6 +15,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onEditClick }) => {
         <img
           src="https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=2070&auto.format&fit=crop"
           alt="University Banner"
+          draggable={false}
           className="w-full h-full object-cover rounded-t-xl"
         />
       </div>
@@ -23,10 +24,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onEditClick }) => {
         <div className="relative flex flex-col items-center md:flex-row md:justify-between md:items-start">
           
           <div className="flex flex-col md:flex-row items-center md:items-start w-full">
-            <div className="flex-shrink-0 w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-white bg-gray-300 overflow-hidden shadow-lg -mt-16 md:-mt-24">
+            <div className="shrink-0 w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-white bg-gray-300 overflow-hidden shadow-lg -mt-16 md:-mt-24">
               <img
                 src={user.photo || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=EBF4FF&color=0D47A1`}
                 alt={`${user.firstName} ${user.lastName}`}
+                draggable={false}
                 className="w-full h-full object-cover"
                 onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=EBF4FF&color=0D47A1`; }}
               />
