@@ -38,16 +38,20 @@ const formatDate = (dateStr: string) => {
 
 export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appointment, counsellorId, token }: Props) {
 
-  const { data: zoomLink, isLoading: isLoadingLink } = useQuery({
+  const { data: fullDetails, isLoading: isLoadingDetails } = useQuery({
     queryKey: ['counselorAppointmentDetails', appointment?.appointmentId],
     queryFn: () => {
       return getCounselorAppointmentById(counsellorId, appointment!.appointmentId, token);
     },
     enabled: isOpen && !!appointment && !!counsellorId && !!token,
-    select: (details) => details.zoomMeetingLink || null,
     staleTime: 1000 * 60,
     retry: false,
   });
+  const zoomLink = fullDetails?.zoomMeetingLink;
+  const rawNotes = fullDetails?.notes;
+  const cancellationReason = (rawNotes && rawNotes !== "NA") 
+    ? rawNotes 
+    : "Out of office";
 
   if (!isOpen || !appointment) return null;
 
@@ -94,7 +98,7 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
         </button>
       );
     }
-    if (isLoadingLink) {
+    if (isLoadingDetails) {
       return (
         <button
           disabled
@@ -128,6 +132,19 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
       <span className="text-sm text-red-500 font-medium">
         Link not available
       </span>
+    );
+  };
+
+  const CancellationReasonBlock = () => {
+    if (!isCancelled || !fullDetails) return null;
+
+    return (
+      <div className="mt-4 p-4 bg-red-50 border border-red-100 rounded-xl">
+        <h3 className="font-semibold text-[#9B1C1C] text-sm mb-1">Cancellation Reason</h3>
+        <p className="text-sm text-[#9B1C1C]/80 leading-relaxed">
+          {cancellationReason}
+        </p>
+      </div>
     );
   };
 
@@ -189,6 +206,7 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
                 <JoinButton />
               </div>
             </div>
+            <CancellationReasonBlock />
           </div>
 
           <div className="text-center p-4 bg-white rounded-xl border border-gray-100">
@@ -252,6 +270,7 @@ export default function CounselorAppointmentDetailsModal({ isOpen, onClose, appo
                 <JoinButton />
               </div>
             </div>
+            <CancellationReasonBlock />
           </div>
           <div className="text-center p-4 bg-white rounded-xl border border-gray-100">
              <h3 className="font-semibold text-gray-800">Need Help?</h3>
