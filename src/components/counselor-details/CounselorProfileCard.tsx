@@ -1,5 +1,5 @@
 import type { CounselorDetails } from '@/types/academic';
-import { Bookmark, Briefcase, Languages, Lock, CheckCircle, MessageSquare, Phone, Zap, Info } from 'lucide-react';
+import { Bookmark, Briefcase, Languages, Lock, CheckCircle, MessageSquare, Phone, Zap, Info, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isManualSubscriptionRequest } from '@/api/counsellor';
@@ -24,6 +24,7 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const toggleLogin = useAuthStore(state => state.toggleLogin);
   const loggedInUserRole = useAuthStore(state => state.role);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const isCurrentUserCounselor = loggedInUserRole === 'counselor';
 
@@ -110,7 +111,7 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
       {/*Mobile view*/}
       <div className="md:hidden bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex flex-col gap-4">
         <div className="flex gap-4">
-          <img src={imageUrl} alt={fullName} className="w-20 h-20 rounded-lg object-cover" />
+          <img src={imageUrl} alt={fullName} draggable={false} onClick={() => setShowImageModal(true)} className="w-20 h-20 rounded-lg object-cover" />
           <div className="flex-1">
             <div className="flex justify-between items-start">
               <div>
@@ -209,7 +210,7 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
       {/*desktop view*/}
       <div className="hidden md:block bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row gap-6">
-          <img src={imageUrl} alt={fullName} className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-white shadow-md mx-auto sm:mx-0" />
+          <img src={imageUrl} alt={fullName} draggable={false} onClick={() => setShowImageModal(true)} className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-white shadow-md mx-auto sm:mx-0" />
           <div className="flex-1 text-center sm:text-left">
             <div className="flex justify-between items-start">
               <div>
@@ -313,6 +314,27 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
           </div>
         )}
       </div>
+      {showImageModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 transition-all"
+          onClick={() => setShowImageModal(false)}
+        >
+          <button 
+            onClick={() => setShowImageModal(false)}
+            className="absolute top-4 right-4 text-white hover:text-gray-300 hover:bg-white/10 p-2 rounded-full transition-colors z-50"
+          >
+            <X size={32} />
+          </button>
+
+          <img 
+            src={imageUrl} 
+            alt={fullName} 
+            draggable={false}
+            className="max-w-full max-h-[90vh] rounded-lg object-contain select-none shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </>
   );
 }
