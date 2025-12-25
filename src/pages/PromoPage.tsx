@@ -43,8 +43,20 @@ export default function PromoPage() {
 
   // Inject Meta Pixel and Google Ads scripts only on this page
   useEffect(() => {
-    // Meta Pixel
-    if (!(window as any).fbq) {
+    const FB_ID = "886599400370059";
+    const FB_SCRIPT_SRC = "https://connect.facebook.net/en_US/fbevents.js";
+
+    const hasFbScript = !!document.querySelector(
+      `script[src*="${FB_SCRIPT_SRC}"]`
+    );
+    const hasFbNoscript = !!document.querySelector(
+      `img[src*="facebook.com/tr?id=${FB_ID}"]`
+    );
+
+    // Avoid double-init: use a window flag per pixel id
+    const fbInitedMap = (window as any).__pc_fb_inited || {};
+
+    if (!hasFbScript && !(fbInitedMap && fbInitedMap[FB_ID])) {
       (function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
         if (f.fbq) return;
         n = f.fbq = function () {
@@ -62,31 +74,60 @@ export default function PromoPage() {
         t.src = v;
         s = b.getElementsByTagName(e)[0];
         s.parentNode.insertBefore(t, s);
-      })(
-        window,
-        document,
-        "script",
-        "https://connect.facebook.net/en_US/fbevents.js"
-      );
+      })(window, document, "script", FB_SCRIPT_SRC);
 
       try {
-        (window as any).fbq("init", "886599400370059");
+        (window as any).fbq("init", FB_ID);
         (window as any).fbq("track", "PageView");
+        (window as any).__pc_fb_inited = (window as any).__pc_fb_inited || {};
+        (window as any).__pc_fb_inited[FB_ID] = true;
       } catch (e) {
         // ignore
       }
 
-      // noscript fallback image
+      // noscript fallback image (only if not already present)
       try {
-        const img = document.createElement("img");
-        img.height = 1;
-        img.width = 1;
-        img.style.display = "none";
-        img.src =
-          "https://www.facebook.com/tr?id=886599400370059&ev=PageView&noscript=1";
-        document.body.appendChild(img);
+        if (!hasFbNoscript) {
+          const img = document.createElement("img");
+          img.height = 1;
+          img.width = 1;
+          img.style.display = "none";
+          img.src = `https://www.facebook.com/tr?id=${FB_ID}&ev=PageView&noscript=1`;
+          document.body.appendChild(img);
+        }
       } catch (e) {
         // ignore
+      }
+    } else {
+      // If script already exists or we previously initialized, just trigger PageView safely
+      if ((window as any).fbq) {
+        try {
+          (window as any).fbq("track", "PageView");
+          (window as any).__pc_fb_inited = (window as any).__pc_fb_inited || {};
+          (window as any).__pc_fb_inited[FB_ID] = true;
+        } catch (e) {
+          // ignore
+        }
+      } else if (hasFbScript) {
+        // script present but fbq not yet available — attach load listener
+        const s = document.querySelector(
+          `script[src*="${FB_SCRIPT_SRC}"]`
+        ) as HTMLScriptElement | null;
+        if (s) {
+          const onLoad = () => {
+            try {
+              (window as any).fbq("init", FB_ID);
+              (window as any).fbq("track", "PageView");
+              (window as any).__pc_fb_inited =
+                (window as any).__pc_fb_inited || {};
+              (window as any).__pc_fb_inited[FB_ID] = true;
+            } catch (e) {
+              // ignore
+            }
+            s.removeEventListener("load", onLoad);
+          };
+          s.addEventListener("load", onLoad);
+        }
       }
     }
 
