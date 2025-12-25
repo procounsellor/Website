@@ -180,8 +180,6 @@ export default function Header() {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 border border-[#d6d6d6] shadow-xs transition-all duration-300 ease-out ${
-          isBannerVisible && !scrolled ? "top-[60px] md:top-0" : "top-0"
-        } ${
           scrolled || !isHomePage
             ? "bg-white/85 backdrop-blur-xl  shadow-lg shadow-black/5"
             : "bg-transparent"
