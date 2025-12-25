@@ -176,11 +176,16 @@ export default function Header() {
     setIsDropdownOpen(false);
   };
 
+  // On promo page, mobile banner is hidden, so header should always be at top-0 on mobile
+  const shouldOffsetForBanner = isBannerVisible && !scrolled && !isPromoPage;
+
   return (
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 border border-[#d6d6d6] shadow-xs transition-all duration-300 ease-out ${
-          scrolled || !isHomePage
+          shouldOffsetForBanner ? "top-[60px] md:top-0" : "top-0"
+        } ${
+          scrolled || !isHomePage || isPromoPage
             ? "bg-white/85 backdrop-blur-xl  shadow-lg shadow-black/5"
             : "bg-transparent"
         }`}
@@ -215,7 +220,7 @@ export default function Header() {
                   console.error("Enroll function not available");
                 }
               }}
-              className="bg-[#FF660F] hover:bg-[#e15500] text-white px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg font-medium rounded-xl cursor-pointer"
+              className="bg-[#FF660F] hover:bg-[#e15500] text-white px-4 sm:px-8 py-2 sm:py-6 text-xs sm:text-lg font-medium rounded-xl cursor-pointer whitespace-nowrap"
             >
               Enroll Now
             </Button>
