@@ -1,7 +1,7 @@
 import CommunityActions from "@/components/community/CommunityActions";
 import DashboardFeed from "@/components/community/DashboardFeed";
 import CategorySidebar from "@/components/community/CategorySidebar";
-import RightSideAds from "@/components/community/RightSideAds";
+// import RightSideAds from "@/components/community/RightSideAds";
 
 export default function CommunityPage() {
   return (
@@ -22,7 +22,7 @@ export default function CommunityPage() {
           
         </div>
         <div className="hidden xl:block w-[250px] shrink-0">
-          <RightSideAds />
+          {/* <RightSideAds /> */}
         </div>
         
       </div>

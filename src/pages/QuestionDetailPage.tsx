@@ -6,7 +6,7 @@ import type { QuestionDetailData, CommunityQuestion } from '@/types/community';
 import QuestionCard from '@/components/community/QuestionCard';
 import AnswerCard from '@/components/community/AnswerCard';
 import CategorySidebar from '@/components/community/CategorySidebar';
-import RightSideAds from '@/components/community/RightSideAds';
+// import RightSideAds from '@/components/community/RightSideAds';
 
 export default function QuestionDetailPage() {
   const { questionId } = useParams<{ questionId: string }>();
@@ -106,7 +106,7 @@ export default function QuestionDetailPage() {
 
         {/* Right Column: Ads */}
         <div className="hidden xl:block w-[250px] shrink-0">
-          <RightSideAds />
+          {/* <RightSideAds /> */}
         </div>
 
       </div>

@@ -9,7 +9,7 @@ import { Loader2, Search } from 'lucide-react';
 import MyActivityQuestionCard from '@/components/community/MyActivityQuestionCard';
 import MyActivityAnswerCard from '@/components/community/MyActivityAnswerCard';
 import CategorySidebar from '@/components/community/CategorySidebar';
-import RightSideAds from '@/components/community/RightSideAds';
+// import RightSideAds from '@/components/community/RightSideAds';
 
 import type {
   CommunityDashboardItem,
@@ -250,7 +250,7 @@ export default function MyActivityPage() {
                   <div key={tab} className="flex items-center">
                     <button
                       onClick={() => setActiveTab(tab as TabType)}
-                      className={`pb-0.5 text-sm font-semibold transition-all ${
+                      className={`pb-0.5 text-sm font-semibold cursor-pointer transition-all ${
                         activeTab === tab
                           ? "text-[#2F43F2] border-b-2 border-[#2F43F2]"
                           : "text-[#6B7280] hover:text-indigo-900 border-b-2 border-transparent"
@@ -277,7 +277,7 @@ export default function MyActivityPage() {
         </div>
 
         <div className="hidden xl:block w-[250px] shrink-0">
-          <RightSideAds />
+          {/* <RightSideAds /> */}
         </div>
         
       </div>

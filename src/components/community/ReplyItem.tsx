@@ -60,7 +60,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({ reply, onReplyClick }) => {
       <img
         src={userImage}
         alt={reply.userFullName}
-        className="w-6 h-6 rounded-full bg-[#D9D9D9] flex-shrink-0 mt-1"
+        className="w-6 h-6 rounded-full bg-[#D9D9D9] shrink-0 mt-1"
       />
       <div className="flex flex-col w-full">
         <span className="font-[Montserrat] font-semibold text-[14px] text-[#242645]">
@@ -75,7 +75,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({ reply, onReplyClick }) => {
         <div className="flex justify-between items-center mt-1">
           <button
             onClick={() => onReplyClick(reply.replyId, reply.userFullName)}
-            className="text-xs font-medium text-[#242645] hover:underline"
+            className="text-xs font-medium cursor-pointer text-[#242645] hover:underline"
           >
             Reply
           </button>

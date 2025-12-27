@@ -140,6 +140,7 @@ export interface Comment {
   likesCount: number;
   commentLikedByMe: boolean;
   myComment: boolean;
+  replyCount: number;
 }
 
 export interface GetCommentsResponse {

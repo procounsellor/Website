@@ -131,13 +131,13 @@ const WriteAnswerModal: React.FC<WriteAnswerModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-[632px] p-10 bg-white rounded-[16px] shadow-xl border border-[#EFEFEF]"
+        className="relative w-full max-w-[632px] p-10 bg-white rounded-2xl shadow-xl border border-[#EFEFEF]"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
           disabled={isLoading}
-          className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center rounded-full text-black hover:bg-black hover:text-white transition-colors"
+          className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center cursor-pointer rounded-full text-black hover:bg-black hover:text-white transition-colors"
           aria-label="Close modal"
         >
           <X size={20} />
@@ -188,7 +188,7 @@ const WriteAnswerModal: React.FC<WriteAnswerModalProps> = ({
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading}
-              className="flex items-center gap-1 text-sm font-medium text-[#655E95] hover:text-[#4A4478] transition-colors"
+              className="flex items-center gap-1 text-sm font-medium text-[#655E95] cursor-pointer hover:text-[#4A4478] transition-colors"
             >
               <ImagePlus size={18} />
               Add Image

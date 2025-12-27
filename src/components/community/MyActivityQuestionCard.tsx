@@ -235,7 +235,7 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({ questio
             <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
             <span className="text-sm">{likesCount}</span>
           </button>
-          <button className="flex items-center gap-2 hover:text-indigo-600">
+          <button className="flex items-center cursor-pointer gap-2 hover:text-indigo-600">
             <img src="/msg_comm.svg" alt="comment" />
             <span className="text-sm">{question.commentCountOnAnswer || 0}</span>
           </button>
