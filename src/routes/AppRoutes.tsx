@@ -33,6 +33,7 @@ const CounselorDetailsPage = lazy(() => import('@/pages/CounselorDetailsPage'));
 const ExamDetailsPage = lazy(() => import('@/pages/ExamDetailsPage'));
 const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
 const LiveSessionsPage = lazy(() => import('@/pages/LiveSessionsPage'));
+const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
 
 export default function AppRoutes(){
     return(
@@ -77,6 +78,7 @@ export default function AppRoutes(){
                                 <Route path="/community/answer" element={<AnswerPage />} />
                                 <Route path="/community/my-activity" element={<MyActivityPage />} />
                                 <Route path='/promo' element={<PromoPage/>}/>
+                                <Route path="/notifications" element={<NotificationsPage/>} />
                                 <Route element={<ProtectedRoute/>}>
                                     <Route path='/dashboard-student' element={<StudentDashboardPage/>}/>
                                      <Route path='/live-sessions' element={<LiveSessionsPage/>}/>

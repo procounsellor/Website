@@ -43,7 +43,7 @@ export default function CommunityActions() {
     return (
       <button
         onClick={onClick}
-        className="flex items-center gap-2 font-semibold text-[#2F43F2] transition-colors duration-200 hover:text-indigo-900"
+        className="flex items-center gap-2 font-semibold text-[#2F43F2] cursor-pointer transition-colors duration-200"
       >
         <img src={iconSrc} alt={label} className="w-5 h-5" />
         <span className="text-sm leading-[18px]">{label}</span>
