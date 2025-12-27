@@ -20,10 +20,14 @@ interface YTPlayer {
   playVideo: () => void;
   pauseVideo: () => void;
   destroy: () => void;
+  unMute: () => void;
+  isMuted: () => boolean;
+  getPlayerState: () => number;
 }
 
 interface YTPlayerEvent {
   target: YTPlayer;
+  data?: number;
 }
 
 declare const YT: {
@@ -41,6 +45,14 @@ declare const YT: {
       };
     }
   ) => YTPlayer;
+  PlayerState: {
+    UNSTARTED: number;
+    ENDED: number;
+    PLAYING: number;
+    PAUSED: number;
+    BUFFERING: number;
+    CUED: number;
+  };
 };
 
 interface ChatMessage {
@@ -98,6 +110,7 @@ export default function LiveStreamView() {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
   const topBarTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hasUserInteractedRef = useRef(false); // Track if user has clicked to play
 
   // Track user joining the live session
   useEffect(() => {
@@ -208,23 +221,6 @@ export default function LiveStreamView() {
     }
   };
 
-  // Viewer count listener commented out - hidden from user view
-  // useEffect(() => {
-  //   if (!counsellorId) return;
-  //
-  //   console.log('🔍 UserView listening to viewer count for counsellorId:', counsellorId);
-  //
-  //   const unsubscribe = listenToViewerCount(
-  //     counsellorId,
-  //     (count) => {
-  //       console.log('👥 UserView viewer count update:', count);
-  //       setViewerCount(count);
-  //     }
-  //   );
-  //
-  //   return () => unsubscribe();
-  // }, [counsellorId]);
-
   // Load YouTube IFrame API
   useEffect(() => {
     if (!window.YT) {
@@ -258,6 +254,7 @@ export default function LiveStreamView() {
         videoId: videoId,
         playerVars: {
           autoplay: 1,
+          mute: 1,
           controls: 0, // Disable all controls
           disablekb: 1, // Disable keyboard controls
           modestbranding: 1,
@@ -267,14 +264,94 @@ export default function LiveStreamView() {
           origin: window.location.origin,
         },
         events: {
-          onReady: () => {
+          onReady: (event: YTPlayerEvent) => {
             setYtLoading(false);
+            // Attempt autoplay
+            try {
+              event.target.playVideo();
+            } catch (err) {
+              console.log('Autoplay attempt failed:', err);
+            }
           },
+          onStateChange: (event: YTPlayerEvent) => {
+            // PlayerState: -1=unstarted, 0=ended, 1=playing, 2=paused, 3=buffering, 5=cued
+            if (event.data === 1) {
+              // Video is now playing - if user hasn't interacted yet and it's muted, we're in autoplay mode
+              console.log('Video playing, muted:', event.target.isMuted());
+            }
+          },
+          onError: (event: any) => {
+            console.error('YouTube player error:', event);
+            setYtLoading(false);
+          }
         },
       });
     } catch (error) {
       console.error('Error initializing YouTube player:', error);
       setYtLoading(false);
+    }
+  };
+
+  // Smart invisible overlay click handler
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    // Handle landscape top bar toggle first
+    if (isLandscape) {
+      handleVideoClick(); 
+    }
+
+    // If player not ready, do nothing
+    if (!playerRef.current) {
+      console.log('Player not ready yet');
+      return;
+    }
+
+    try {
+      // Get current player state directly from API (most reliable)
+      const playerState = playerRef.current.getPlayerState();
+      const isMuted = playerRef.current.isMuted();
+      
+      console.log('Overlay clicked - State:', playerState, 'Muted:', isMuted, 'HasInteracted:', hasUserInteractedRef.current);
+      
+      // PlayerState values: -1=unstarted, 0=ended, 1=playing, 2=paused, 3=buffering, 5=cued
+      const isNotPlaying = playerState === -1 || playerState === 2 || playerState === 5;
+      
+      if (isNotPlaying) {
+        // Video is frozen/paused - Play it
+        console.log('▶️ Playing video...');
+        playerRef.current.playVideo();
+        
+        // Also unmute immediately (single-tap experience)
+        if (isMuted) {
+          setTimeout(() => {
+            if (playerRef.current) {
+              playerRef.current.unMute();
+              console.log('🔊 Unmuted on play');
+            }
+          }, 100); // Small delay to ensure play command registers first
+        }
+        
+        hasUserInteractedRef.current = true;
+      } else if (playerState === 1 && isMuted) {
+        // Video is playing but muted - Unmute it
+        console.log('🔊 Unmuting video...');
+        playerRef.current.unMute();
+        hasUserInteractedRef.current = true;
+      } else {
+        // Video is playing and unmuted - do nothing (or could pause if desired)
+        console.log('✓ Video already playing with sound');
+      }
+    } catch (err) {
+      console.error('Error handling overlay click:', err);
+      // Fallback: try to play and unmute anyway
+      try {
+        playerRef.current.playVideo();
+        playerRef.current.unMute();
+        hasUserInteractedRef.current = true;
+      } catch (fallbackErr) {
+        console.error('Fallback play/unmute failed:', fallbackErr);
+      }
     }
   };
 
@@ -285,7 +362,7 @@ export default function LiveStreamView() {
     let previousMessageCount = 0;
 
     const unsubscribe = listenToChatMessages(
-      counsellorId, // Use counsellorId instead of liveSessionId
+      counsellorId,
       (messages: ChatMessage[]) => {
         console.log('🔥 Firebase messages received:', messages.length, messages);
         
@@ -512,12 +589,6 @@ export default function LiveStreamView() {
                 <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
                 <span className="text-white text-xs font-bold uppercase">Live</span>
               </div>
-              
-              {/* Viewer count hidden from user view */}
-              {/* <div className="flex items-center gap-1.5 bg-gray-100 px-2.5 py-1 rounded-md">
-                <Eye className="w-3.5 h-3.5 text-gray-600" />
-                <span className="text-xs font-semibold text-gray-700">{viewerCount}</span>
-              </div> */}
             </div>
           </div>
 
@@ -575,7 +646,6 @@ export default function LiveStreamView() {
               "relative bg-black overflow-hidden",
               isLandscape ? "flex-1" : "aspect-video lg:flex-1 lg:aspect-auto"
             )}
-            onClick={handleVideoClick}
           >
             {ytLoading && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-10">
@@ -609,8 +679,12 @@ export default function LiveStreamView() {
                   })
                 }} 
               />
-              {/* Overlay to prevent clicks and interactions */}
-              <div className="absolute inset-0 z-10 cursor-default" style={{ pointerEvents: 'auto' }} />
+              {/* Smart Invisible Overlay - handles play/unmute on tap */}
+              <div 
+                className="absolute inset-0 z-10 cursor-pointer" 
+                onClick={handleOverlayClick}
+                style={{ pointerEvents: 'auto' }} 
+              />
             </div>
           </div>
 

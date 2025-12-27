@@ -120,7 +120,7 @@ export function OngoingSessionModal({
                         className="p-1 rounded-full text-gray-500 hover:bg-gray-100 transition-colors"
                         aria-label="Close"
                     >
-                        <X className="w-5 h-5" />
+                        <X className="w-5 h-5 cursor-pointer" />
                     </button>
                 </div>
 
@@ -157,14 +157,14 @@ export function OngoingSessionModal({
                 <div className="flex justify-end gap-3 mt-8">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2 border border-orange-500 text-orange-500 font-semibold rounded-lg transition-colors hover:bg-orange-50"
+                        className="px-6 py-2 border border-orange-500 text-orange-500 font-semibold rounded-lg cursor-pointer transition-colors hover:bg-orange-50"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleJoin}
                         disabled={loading || !sessionDetails?.playbackId}
-                        className="px-6 py-2 bg-[#FF660F] text-white font-semibold rounded-lg transition-colors hover:bg-[#FF660F]/90 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        className="px-6 py-2 bg-[#FF660F] text-white font-semibold rounded-lg transition-colors cursor-pointer hover:bg-[#FF660F]/90 disabled:bg-gray-400 disabled:cursor-not-allowed"
                     >
                         Join Now
                     </button>

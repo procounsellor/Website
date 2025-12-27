@@ -1,7 +1,7 @@
 import QuestionFilterBar from "@/components/community/QuestionFilterBar";
 import QuestionList from "@/components/community/QuestionList";
 import CategorySidebar from "@/components/community/CategorySidebar";
-import RightSideAds from "@/components/community/RightSideAds";
+// import RightSideAds from "@/components/community/RightSideAds";
 
 export default function AnswerPage() {
   return (
@@ -23,7 +23,7 @@ export default function AnswerPage() {
         </div>
 
         <div className="hidden xl:block w-[250px] shrink-0">
-          <RightSideAds />
+          {/* <RightSideAds /> */}
         </div>
 
       </div>
