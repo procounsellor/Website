@@ -85,13 +85,15 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyClick }) => {
     }
   };
 
+  const shouldShowReplyButton = comment.replyCount === undefined || comment.replyCount > 0;
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex gap-3">
         <img
           src={userImage}
           alt={comment.userFullName}
-          className="w-8 h-8 rounded-full bg-[#D9D9D9] flex-shrink-0 mt-1"
+          className="w-8 h-8 rounded-full bg-[#D9D9D9] shrink-0 mt-1"
         />
         <div className="flex flex-col w-full">
             <span className="font-[Montserrat] font-semibold text-[16px] text-[#242645] leading-[125%]">
@@ -105,24 +107,26 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyClick }) => {
                 <div className="flex gap-4 text-sm font-medium text-[#242645]">
                      <button 
                         onClick={() => onReplyClick(comment.commentId, comment.userFullName)}
-                        className="hover:underline"
+                        className="hover:underline cursor-pointer"
                      >
                         Reply
                      </button>
                      
-                     <button 
-                        onClick={handleViewReplies}
-                        className="text-[#8C8CA1] hover:text-[#242645] transition-colors"
-                     >
-                        {isLoadingReplies ? 'Loading...' : 
-                          (areRepliesVisible ? 'Hide replies' : 'View replies')
-                        }
-                     </button>
+                     {shouldShowReplyButton && (
+                       <button 
+                          onClick={handleViewReplies}
+                          className="text-[#8C8CA1] hover:text-[#242645] transition-colors cursor-pointer"
+                       >
+                          {isLoadingReplies ? 'Loading...' : 
+                            (areRepliesVisible ? 'Hide replies' : 'View replies')
+                          }
+                       </button>
+                     )}
                 </div>
 
                 <button 
                     onClick={handleCommentLike}
-                    className="flex items-center gap-1 transition-colors hover:opacity-75"
+                    className="flex items-center gap-1 transition-colors cursor-pointer hover:opacity-75"
                 >
                     <Heart size={14} fill={isLiked ? "#F44336" : "none"} color={isLiked ? "#F44336" : "#F44336"} />
                     <span className={`text-xs font-bold ${isLiked ? "text-[#F44336]" : "text-[#F44336]"}`}>

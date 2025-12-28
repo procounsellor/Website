@@ -244,7 +244,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, onAnswerUpdated }) => {
           <div className="relative menu-container" ref={menuRef}>
             <button
               onClick={handleMenuToggle}
-              className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
+              className="text-gray-500 cursor-pointer hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
               disabled={isDeleting}
             >
               <MoreVertical size={20} />
@@ -253,7 +253,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, onAnswerUpdated }) => {
               <div className="absolute right-0 top-8 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[120px]">
                 <button
                   onClick={handleEdit}
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                  className="w-full px-4 py-2 text-left cursor-pointer text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                 >
                   <Pencil size={16} />
                   Edit
@@ -261,7 +261,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, onAnswerUpdated }) => {
                 <button
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 disabled:opacity-50"
+                  className="w-full px-4 py-2 text-left text-sm cursor-pointer text-red-600 hover:bg-red-50 flex items-center gap-2 disabled:opacity-50"
                 >
                   <Trash2 size={16} />
                   {isDeleting ? 'Deleting...' : 'Delete'}
@@ -291,14 +291,14 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, onAnswerUpdated }) => {
         <div className="flex items-center gap-6 text-gray-600">
           <button 
             onClick={handleLike}
-            className={`flex items-center gap-2 transition-colors ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
+            className={`flex items-center gap-2 cursor-pointer transition-colors ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
           >
             <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
             <span className="text-sm">{likesCount}</span>
           </button>
           <button 
             onClick={handleCommentsClick}
-            className={`flex items-center gap-2 hover:text-indigo-600 ${showComments ? 'text-indigo-600' : ''}`}
+            className={`flex items-center cursor-pointer gap-2 hover:text-indigo-600 ${showComments ? 'text-indigo-600' : ''}`}
           >
             <MessageSquare size={18} />
             <span className="text-sm">{answer.commentCountOnAnswer}</span>

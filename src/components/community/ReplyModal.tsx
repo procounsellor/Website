@@ -66,12 +66,12 @@ const ReplyModal: React.FC<ReplyModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-[632px] p-10 bg-white rounded-[16px] shadow-xl border border-[#EFEFEF]"
+        className="relative w-full max-w-[632px] p-10 bg-white rounded-2xl shadow-xl border border-[#EFEFEF]"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center rounded-full text-black hover:bg-black hover:text-white transition-colors"
+          className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center cursor-pointer rounded-full text-black hover:bg-black hover:text-white transition-colors"
         >
           <X size={20} />
         </button>

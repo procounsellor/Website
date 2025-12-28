@@ -53,7 +53,7 @@ const CategorySidebar: React.FC = () => {
         {categories.map((category) => (
           <button
             key={category.id}
-            className="group w-[167px] h-7 flex items-center gap-2.5 rounded-[56px] p-1 transition-all hover:bg-gray-50 text-left"
+            className="group w-[167px] h-7 flex items-center cursor-pointer gap-2.5 rounded-[56px] p-1 transition-all hover:bg-gray-50 text-left"
           >
             <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${category.bgClass}`}>
               <category.icon size={12} className={category.colorClass} />

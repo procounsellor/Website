@@ -40,17 +40,21 @@ export default function AppointmentDetailsModal({ isOpen, onClose, appointment, 
   const { userId } = useAuthStore();
   const token = localStorage.getItem('jwt');
 
-  const { data: zoomLink, isLoading: isLoadingLink } = useQuery({
+  const { data: fullDetails, isLoading: isLoadingDetails } = useQuery({
     queryKey: ['appointment', 'details', appointment?.appointmentId],
     queryFn: async () => {
       return getAppointmentById(userId!, appointment!.appointmentId, token!);
     },
     
     enabled: !!isOpen && !!appointment && !!userId && !!token,
-    select: (details) => details.zoomMeetingLink || null,
     staleTime: 1000 * 60,
     retry: false, 
   });
+  const zoomLink = fullDetails?.zoomMeetingLink;
+  const rawNotes = fullDetails?.notes;
+  const cancellationReason = (rawNotes && rawNotes !== "NA") 
+    ? rawNotes 
+    : "Counsellor is out of office";
 
   if (!isOpen || !appointment) return null;
 
@@ -103,7 +107,7 @@ export default function AppointmentDetailsModal({ isOpen, onClose, appointment, 
         </button>
       );
     }
-    if (isLoadingLink) {
+    if (isLoadingDetails) {
       return (
         <button 
           disabled
@@ -140,19 +144,32 @@ export default function AppointmentDetailsModal({ isOpen, onClose, appointment, 
     );
   };
 
+  const CancellationReasonBlock = () => {
+    if (!isCancelled || !fullDetails) return null;
+
+    return (
+      <div className="mt-4 p-4 bg-red-50 border border-red-100 rounded-xl">
+        <h3 className="font-semibold text-[#9B1C1C] text-sm mb-1">Cancellation Reason</h3>
+        <p className="text-sm text-[#9B1C1C]/80 leading-relaxed">
+          {cancellationReason}
+        </p>
+      </div>
+    );
+  };
+
   return (
     <div className="fixed inset-0 z-100 bg-opacity-50 backdrop-blur-sm flex items-center justify-center">
       
       {/* Mobile View */}
       <div className="md:hidden h-full w-full bg-[#F5F7FA] flex flex-col">
-        <header className="flex-shrink-0 flex items-center p-4 bg-white border-b border-gray-200">
+        <header className="shrink-0 flex items-center p-4 bg-white border-b border-gray-200">
           <button onClick={onClose} className="p-2 mr-2">
             <ChevronLeft size={24} className="text-gray-700" />
           </button>
           <h2 className="text-lg font-semibold text-[#343C6A]">{modalTitle}</h2>
         </header>
 
-        <div className="flex-grow overflow-y-auto p-4 space-y-6">
+        <div className="grow overflow-y-auto p-4 space-y-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
             <div 
               className="flex items-center gap-3 cursor-pointer"
@@ -201,6 +218,7 @@ export default function AppointmentDetailsModal({ isOpen, onClose, appointment, 
                 <JoinButton />
               </div>
             </div>
+            <CancellationReasonBlock />
           </div>
           
           <div className="text-center p-4 bg-white rounded-xl border border-gray-100">
@@ -267,6 +285,7 @@ export default function AppointmentDetailsModal({ isOpen, onClose, appointment, 
                 <JoinButton />
               </div>
             </div>
+            <CancellationReasonBlock />
           </div>
           <div className="text-center p-4 bg-white rounded-xl border border-gray-100">
              <h3 className="font-semibold text-gray-800">Need Help?</h3>

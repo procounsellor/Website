@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star, Clock, Users, ChevronUp, ChevronRight, Tag } from "lucide-react";
@@ -15,6 +15,9 @@ import CouponCodeModal from "@/components/modals/CouponCodeModal";
 declare global {
   interface Window {
     Razorpay: unknown;
+    fbq?: any;
+    gtag?: any;
+    dataLayer?: any[];
   }
 }
 type RazorpayConstructor = new (opts: unknown) => { open: () => void };
@@ -42,8 +45,119 @@ export default function PromoPage() {
   const [discountedPrice, setDiscountedPrice] = useState<number | null>(null);
   const [discountPercentage, setDiscountPercentage] = useState<number | null>(null);
   
+
   // ✅ Use ref to preserve payment callback across re-renders
   const paymentCallbackRef = useRef<(() => void) | null>(null);
+
+  // Inject Meta Pixel and Google Ads scripts only on this page
+  useEffect(() => {
+    const FB_ID = "886599400370059";
+    const FB_SCRIPT_SRC = "https://connect.facebook.net/en_US/fbevents.js";
+
+    const hasFbScript = !!document.querySelector(
+      `script[src*="${FB_SCRIPT_SRC}"]`
+    );
+    const hasFbNoscript = !!document.querySelector(
+      `img[src*="facebook.com/tr?id=${FB_ID}"]`
+    );
+
+    // Avoid double-init: use a window flag per pixel id
+    const fbInitedMap = (window as any).__pc_fb_inited || {};
+
+    if (!hasFbScript && !(fbInitedMap && fbInitedMap[FB_ID])) {
+      (function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
+        if (f.fbq) return;
+        n = f.fbq = function () {
+          n.callMethod
+            ? n.callMethod.apply(n, arguments)
+            : n.queue.push(arguments);
+        };
+        if (!f._fbq) f._fbq = n;
+        n.push = n;
+        n.loaded = !0;
+        n.version = "2.0";
+        n.queue = [];
+        t = b.createElement(e);
+        t.async = !0;
+        t.src = v;
+        s = b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t, s);
+      })(window, document, "script", FB_SCRIPT_SRC);
+
+      try {
+        (window as any).fbq("init", FB_ID);
+        (window as any).fbq("track", "PageView");
+        (window as any).__pc_fb_inited = (window as any).__pc_fb_inited || {};
+        (window as any).__pc_fb_inited[FB_ID] = true;
+      } catch (e) {
+        // ignore
+      }
+
+      // noscript fallback image (only if not already present)
+      try {
+        if (!hasFbNoscript) {
+          const img = document.createElement("img");
+          img.height = 1;
+          img.width = 1;
+          img.style.display = "none";
+          img.src = `https://www.facebook.com/tr?id=${FB_ID}&ev=PageView&noscript=1`;
+          document.body.appendChild(img);
+        }
+      } catch (e) {
+        // ignore
+      }
+    } else {
+      // If script already exists or we previously initialized, just trigger PageView safely
+      if ((window as any).fbq) {
+        try {
+          (window as any).fbq("track", "PageView");
+          (window as any).__pc_fb_inited = (window as any).__pc_fb_inited || {};
+          (window as any).__pc_fb_inited[FB_ID] = true;
+        } catch (e) {
+          // ignore
+        }
+      } else if (hasFbScript) {
+        // script present but fbq not yet available — attach load listener
+        const s = document.querySelector(
+          `script[src*="${FB_SCRIPT_SRC}"]`
+        ) as HTMLScriptElement | null;
+        if (s) {
+          const onLoad = () => {
+            try {
+              (window as any).fbq("init", FB_ID);
+              (window as any).fbq("track", "PageView");
+              (window as any).__pc_fb_inited =
+                (window as any).__pc_fb_inited || {};
+              (window as any).__pc_fb_inited[FB_ID] = true;
+            } catch (e) {
+              // ignore
+            }
+            s.removeEventListener("load", onLoad);
+          };
+          s.addEventListener("load", onLoad);
+        }
+      }
+    }
+
+    // Google Ads / gtag for conversion
+    if (!(window as any).gtag) {
+      const gt = document.createElement("script");
+      gt.async = true;
+      gt.src = "https://www.googletagmanager.com/gtag/js?id=AW-16515631489";
+      document.head.appendChild(gt);
+
+      (window as any).dataLayer = (window as any).dataLayer || [];
+      (window as any).gtag = function () {
+        (window as any).dataLayer.push(arguments);
+      };
+      try {
+        (window as any).gtag("js", new Date());
+        (window as any).gtag("config", "AW-16515631489");
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, []);
 
   // Counselor logic
   const storeRole = useAuthStore((s) => s.role);
@@ -102,21 +216,18 @@ export default function PromoPage() {
 
 
   const handleDirectPayment = async (amount: number) => {
-    
     if (isProcessing) {
       return;
     }
 
     const authState = useAuthStore.getState();
     const freshUser = authState.user;
-    
-    
+
     const phoneFromStorage = localStorage.getItem("phone");
     const phoneFromTemp = authState.tempPhone;
     const phoneFromUser = freshUser?.phoneNumber;
 
     const phoneNumber = phoneFromStorage || phoneFromTemp || phoneFromUser;
-    
 
     if (!freshUser?.userName || !phoneNumber) {
       toast.error("User information not found. Please try logging in again.");
@@ -127,22 +238,24 @@ export default function PromoPage() {
     const loadingToast = toast.loading("Initiating payment...");
 
     try {
-      if (typeof window === 'undefined' || !window.Razorpay) {
-        throw new Error("Payment system not loaded. Please refresh and try again.");
+      if (typeof window === "undefined" || !window.Razorpay) {
+        throw new Error(
+          "Payment system not loaded. Please refresh and try again."
+        );
       }
 
       const order = await startRecharge(freshUser.userName, amount);
-      
+
       if (!order || !order.orderId) {
         throw new Error("Failed to create payment order. Please try again.");
       }
 
       let formattedPhone = phoneNumber;
       if (phoneNumber) {
-        formattedPhone = phoneNumber.replace(/\D/g, '');
-        
+        formattedPhone = phoneNumber.replace(/\D/g, "");
+
         if (formattedPhone.length === 10) {
-          formattedPhone = '91' + formattedPhone;
+          formattedPhone = "91" + formattedPhone;
         }
       }
 
@@ -183,6 +296,29 @@ export default function PromoPage() {
               toast.success("Enrollment successful!", { id: purchaseToast });
               await refreshUser(true);
               setShowSuccessPopup(true);
+              // Fire Google Ads conversion and Meta Pixel purchase event
+              try {
+                if ((window as any).gtag) {
+                  (window as any).gtag("event", "conversion", {
+                    send_to: "AW-16515631489/AmkNCMnpzNUbEIGTosM9",
+                    value: amount,
+                    currency: "INR",
+                  });
+                }
+              } catch (e) {
+                // ignore
+              }
+
+              try {
+                if ((window as any).fbq) {
+                  (window as any).fbq("track", "Purchase", {
+                    value: amount,
+                    currency: "INR",
+                  });
+                }
+              } catch (e) {
+                // ignore
+              }
             } else {
               throw new Error(purchaseResponse.message || "Enrollment failed");
             }
@@ -211,7 +347,9 @@ export default function PromoPage() {
       rzp.open();
       toast.dismiss(loadingToast);
     } catch (error) {
-      const errorMessage = (error as Error).message || "Could not start payment process. Please try again.";
+      const errorMessage =
+        (error as Error).message ||
+        "Could not start payment process. Please try again.";
       toast.error(errorMessage);
       toast.dismiss(loadingToast);
       setIsProcessing(false);
@@ -228,7 +366,7 @@ export default function PromoPage() {
       // For promo page we want new users to skip onboarding and go straight to payment.
       // Set a store flag so AuthStore.verifyOtp will not trigger onboarding for this login.
       useAuthStore.getState().setSkipOnboardingForPromo(true);
-      
+
       // Store the payment callback in ref so it survives re-renders
       paymentCallbackRef.current = async () => {
         try {
@@ -242,9 +380,13 @@ export default function PromoPage() {
           }
 
           // ✅ Check if user already enrolled BEFORE opening Razorpay
-          const enrollmentData = await getBoughtCourses(freshState.user?.userName as string);
-          const alreadyEnrolled = enrollmentData?.data?.some((c) => c.courseId === COURSE_ID) ?? false;
-          
+          const enrollmentData = await getBoughtCourses(
+            freshState.user?.userName as string
+          );
+          const alreadyEnrolled =
+            enrollmentData?.data?.some((c) => c.courseId === COURSE_ID) ??
+            false;
+
           if (alreadyEnrolled) {
             toast.success("You are already enrolled in this course!");
             paymentCallbackRef.current = null;
@@ -261,7 +403,7 @@ export default function PromoPage() {
           paymentCallbackRef.current = null;
         }
       };
-      
+
       // After login, execute the payment callback
       toggleLogin(() => {
         // Use setTimeout to ensure state updates are complete
@@ -1211,8 +1353,6 @@ export default function PromoPage() {
         </div>
       </section>
 
-
-
       {showSuccessPopup && (
         <CourseEnrollmentPopup
           courseName={COURSE_NAME}
@@ -1240,5 +1380,3 @@ export default function PromoPage() {
     </div>
   );
 }
-
-

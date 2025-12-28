@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Library,
   TvMinimalPlay,
+  Bell,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -17,8 +18,9 @@ import SmartImage from "@/components/ui/SmartImage";
 import { BANNER_DISMISS_EVENT } from "@/components/shared/AppInstallBanner";
 import { useQuery } from "@tanstack/react-query";
 import { getBoughtCourses } from "@/api/course";
+import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 
-// TODO: Update with the actual course ID for the promo page (should match PromoPage.tsx)
+// TODO: Update with the actual course ID for the promo page
 const PROMO_COURSE_ID = "a997f3a9-4a36-4395-9f90-847b739fb225";
 
 interface NewHeaderButtonProps {
@@ -44,9 +46,12 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [showHeaderSearch, setShowHeaderSearch] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isBannerVisible, setIsBannerVisible] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
   const searchBarRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -54,11 +59,9 @@ export default function Header() {
   const isCounselor = role === "counselor";
   const shouldShowNewHeader = !isAuthenticated || !isCounselor;
 
-  // Check if we're on the home page
   const isHomePage = location.pathname === "/";
   const isPromoPage = location.pathname === "/promo";
 
-  // Check if user is enrolled in the promo course
   const isUserLoaded = user !== null && user !== undefined;
   const { data: boughtCoursesData } = useQuery({
     queryKey: ["boughtCourses", userId],
@@ -86,8 +89,6 @@ export default function Header() {
       (course) => course.courseId === PROMO_COURSE_ID
     ) ?? false;
 
-  // Show normal header if on promo page AND user is logged in AND enrolled
-  // Show simplified promo header only if on promo page AND (not logged in OR not enrolled)
   const shouldShowSimplifiedPromoHeader =
     isPromoPage && (!isAuthenticated || !isCoursePurchased);
 
@@ -137,24 +138,33 @@ export default function Header() {
       ) {
         setIsDropdownOpen(false);
       }
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target as Node)
+      ) {
+        setIsNotificationOpen(false);
+      }
     };
-    if (isDropdownOpen) {
+
+    if (isDropdownOpen || isNotificationOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isDropdownOpen]);
+  }, [isDropdownOpen, isNotificationOpen]);
 
   const handleLogout = () => {
     logout();
     setIsDropdownOpen(false);
+    setIsNotificationOpen(false);
     navigate("/");
     toast.success("Logged out successfully!", { duration: 3000 });
   };
 
   useEffect(() => {
     setIsDropdownOpen(false);
+    setIsNotificationOpen(false);
   }, [location.pathname]);
 
   const handleProfileNavigation = () => {
@@ -176,22 +186,32 @@ export default function Header() {
     setIsDropdownOpen(false);
   };
 
+  const toggleNotifications = () => {
+    setIsNotificationOpen(!isNotificationOpen);
+    if (isDropdownOpen) setIsDropdownOpen(false);
+  };
+
+  const toggleProfileDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+    if (isNotificationOpen) setIsNotificationOpen(false);
+  };
+
+  const shouldOffsetForBanner = isBannerVisible && !scrolled && !isPromoPage;
+
   return (
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 border border-[#d6d6d6] shadow-xs transition-all duration-300 ease-out ${
-          isBannerVisible && !scrolled ? "top-[60px] md:top-0" : "top-0"
+          shouldOffsetForBanner ? "top-[60px] md:top-0" : "top-0"
         } ${
-          scrolled || !isHomePage
+          scrolled || !isHomePage || isPromoPage
             ? "bg-white/85 backdrop-blur-xl  shadow-lg shadow-black/5"
             : "bg-transparent"
         }`}
       >
         {shouldShowSimplifiedPromoHeader ? (
           <div className="flex h-14 md:h-20 items-center justify-between px-5 lg:px-20">
-            <div
-              className="Logo flex items-center "
-            >
+            <div className="Logo flex items-center ">
               <SmartImage
                 src="/logo.png"
                 alt="procounsel_logo"
@@ -209,7 +229,6 @@ export default function Header() {
 
             <Button
               onClick={() => {
-                // Access handleEnroll from window object set by PromoPage
                 const enrollFn = (window as any).__promoPageEnroll;
                 if (enrollFn) {
                   enrollFn();
@@ -217,7 +236,7 @@ export default function Header() {
                   console.error("Enroll function not available");
                 }
               }}
-              className="bg-[#FF660F] hover:bg-[#e15500] text-white px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg font-medium rounded-xl cursor-pointer"
+              className="bg-[#FF660F] hover:bg-[#e15500] text-white px-4 sm:px-8 py-2 sm:py-6 text-xs sm:text-lg font-medium rounded-xl cursor-pointer whitespace-nowrap"
             >
               Enroll Now
             </Button>
@@ -243,7 +262,6 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Desktop Search Bar - Hidden on PromoPage */}
             {!(role === "counselor" || isPromoPage) && (
               <div
                 ref={searchBarRef}
@@ -299,57 +317,84 @@ export default function Header() {
 
                 {isAuthenticated ? (
                   <>
-                    <button
-                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="p-2 hover:cursor-pointer rounded-full hover:bg-gray-200 transition-colors"
-                    >
-                      <User2 className="h-6 w-6 text-gray-700" />
-                    </button>
+                    <div className="hidden md:block relative" ref={notificationRef}>
+                        <button
+                          onClick={toggleNotifications}
+                          className="p-2 hover:cursor-pointer rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                          <Bell className="h-6 w-6 text-gray-700" />
+                        </button>
+                        {isNotificationOpen && user && (
+                          <NotificationDropdown 
+                             notifications={user.activityLog || []} 
+                             onClose={() => setIsNotificationOpen(false)}
+                          />
+                        )}
+                    </div>
 
-                    {isDropdownOpen && (
-                      <div
-                        ref={dropdownRef}
-                        className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50 py-1 border border-gray-200"
+                    <div className="relative" ref={dropdownRef}>
+                      <button
+                        onClick={toggleProfileDropdown}
+                        className="p-2 hover:cursor-pointer rounded-full hover:bg-gray-200 transition-colors"
                       >
-                        <button
-                          onClick={handleProfileNavigation}
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 hover:cursor-pointer"
-                        >
-                          <LayoutDashboard size={16} />
-                          <span>Profile</span>
-                        </button>
+                        <User2 className="h-6 w-6 text-gray-700" />
+                      </button>
 
-                        <button
-                          onClick={() =>
-                            handleNewHeaderNavigation("/live-sessions")
-                          }
-                          className="w-full md:hidden  flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100"
+                      {isDropdownOpen && (
+                        <div
+                          className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50 py-1 border border-gray-200"
                         >
-                          <TvMinimalPlay size={16} />
-                          Live Sessions
-                        </button>
+                          <button
+                            onClick={handleProfileNavigation}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 hover:cursor-pointer"
+                          >
+                            <LayoutDashboard size={16} />
+                            <span>Profile</span>
+                          </button>
 
-                        <button
-                          onClick={() =>
-                            handleNewHeaderNavigation(
-                              "/dashboard-student?activeTab=My Courses"
-                            )
-                          }
-                          className="w-full md:hidden flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100"
-                        >
-                          <Library size={16} />
-                          My Courses
-                        </button>
+                          <button
+                             onClick={() => {
+                               navigate('/notifications');
+                               setIsDropdownOpen(false);
+                             }}
+                             className="w-full md:hidden flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100"
+                          >
+                            <Bell size={16} />
+                            Notifications
+                          </button>
 
-                        <button
-                          onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:cursor-pointer"
-                        >
-                          <LogOut size={16} />
-                          Logout
-                        </button>
-                      </div>
-                    )}
+                          <button
+                            onClick={() =>
+                              handleNewHeaderNavigation("/live-sessions")
+                            }
+                            className="w-full md:hidden  flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100"
+                          >
+                            <TvMinimalPlay size={16} />
+                            Live Sessions
+                          </button>
+
+                          <button
+                            onClick={() =>
+                              handleNewHeaderNavigation(
+                                "/dashboard-student?activeTab=My Courses"
+                              )
+                            }
+                            className="w-full md:hidden flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100"
+                          >
+                            <Library size={16} />
+                            My Courses
+                          </button>
+
+                          <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:cursor-pointer"
+                          >
+                            <LogOut size={16} />
+                            Logout
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </>
                 ) : (
                   <Button
@@ -383,62 +428,68 @@ export default function Header() {
                 </h1>
               </div>
             </div>
-            {/* 
-            <div
-              ref={searchBarRef}
-              className={`hidden md:block w-full max-w-lg transition-all duration-700 ${
-                showHeaderSearch
-                  ? "opacity-100 translate-y-0 scale-100"
-                  : "opacity-0 translate-y-6 scale-95 pointer-events-none"
-              }`}
-            >
-              <GlobalSearchBar showBackdrop={true} />
-            </div> */}
 
             <div className="flex items-center gap-3">
-              {/* <button
-                className="md:hidden p-2 rounded-full hover:bg-black/5 transition-all shrink-0"
-                style={{
-                  opacity: showHeaderSearch ? 1 : 0,
-                  pointerEvents: showHeaderSearch ? "auto" : "none",
-                }}
-                onClick={() => setMobileSearchOpen(true)}
-              >
-                <Search className="h-5 w-5 text-[#232323]" />
-              </button> */}
-
-              <div className="btn">
+              <div className="btn flex items-center gap-3">
                 {isAuthenticated ? (
                   <>
-                    <button
-                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="p-2 rounded-full hover:bg-gray-200 transition-colors"
-                    >
-                      <User2 className="h-6 w-6 text-gray-700" />
-                    </button>
+                     <div className="hidden md:block relative" ref={notificationRef}>
+                        <button
+                          onClick={toggleNotifications}
+                          className="p-2 hover:cursor-pointer rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                          <Bell className="h-6 w-6 text-gray-700" />
+                        </button>
+                        {isNotificationOpen && user && (
+                          <NotificationDropdown 
+                             notifications={user.activityLog || []} 
+                             onClose={() => setIsNotificationOpen(false)}
+                          />
+                        )}
+                    </div>
 
-                    {isDropdownOpen && (
-                      <div
-                        ref={dropdownRef}
-                        className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50 py-1 border border-gray-200"
+                    <div className="relative" ref={dropdownRef}>
+                      <button
+                        onClick={toggleProfileDropdown}
+                        className="p-2 rounded-full hover:bg-gray-200 transition-colors"
                       >
-                        <button
-                          onClick={handleProfileNavigation}
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100"
-                        >
-                          <LayoutDashboard size={16} />
-                          Profile
-                        </button>
+                        <User2 className="h-6 w-6 text-gray-700" />
+                      </button>
 
-                        <button
-                          onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                      {isDropdownOpen && (
+                        <div
+                          className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50 py-1 border border-gray-200"
                         >
-                          <LogOut size={16} />
-                          Logout
-                        </button>
-                      </div>
-                    )}
+                          <button
+                            onClick={handleProfileNavigation}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100"
+                          >
+                            <LayoutDashboard size={16} />
+                            Profile
+                          </button>
+                          
+                          {/* Mobile Notification Item */}
+                          <button
+                             onClick={() => {
+                               navigate('/notifications'); 
+                               setIsDropdownOpen(false);
+                             }}
+                             className="w-full md:hidden flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100"
+                          >
+                            <Bell size={16} />
+                            Notifications
+                          </button>
+
+                          <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                          >
+                            <LogOut size={16} />
+                            Logout
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </>
                 ) : (
                   <Button
