@@ -211,21 +211,36 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set({ isLoadingHistory: true });
     try {
       const history = await fetchChatHistory(sessionId);
-      const transformedMessages: Message[] = history.map((msg) => ({
-        text: msg.content,
-        isUser: msg.role === "user",
-        counsellors: undefined,
-        followup: undefined,
-      }));
+      const transformedMessages: Message[] = history.map((msg) => {
+        // Parse counsellors from the API message if present
+        let counsellors: AllCounselor[] | undefined = undefined;
+        
+        // Check if the message object has counsellors field (from backend)
+        const msgData = msg as any;
+        if (msgData.counsellors && Array.isArray(msgData.counsellors) && msgData.counsellors.length > 0) {
+          // Transform raw counsellor data to frontend format
+          counsellors = msgData.counsellors.map(transformCounselorData);
+          if (counsellors) {
+            console.log(`📋 Found ${counsellors.length} counsellors in loaded message`);
+          }
+        }
+        
+        return {
+          text: msg.content,
+          isUser: msg.role === "user",
+          counsellors,
+          followup: undefined, // Could also parse followup if backend sends it
+        };
+      });
       
       set({ 
         messages: transformedMessages, 
         currentSessionId: sessionId,
         isLoadingHistory: false
       });
-      console.log("💬 Loaded chat history for session:", sessionId);
+      console.log('💬 Loaded chat history for session:', sessionId);
     } catch (error) {
-      console.error("Failed to load chat history:", error);
+      console.error('Failed to load chat history:', error);
       set({ messages: [], isLoadingHistory: false });
     }
   },

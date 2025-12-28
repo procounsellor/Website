@@ -7,7 +7,6 @@ import { toast } from "sonner";
 // YouTube IFrame API types
 declare global {
   interface Window {
-    YT: typeof YT;
     onYouTubeIframeAPIReady: () => void;
   }
 }

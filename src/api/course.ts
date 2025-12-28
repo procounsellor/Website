@@ -635,6 +635,7 @@ export type BuyCourseRequest = {
   courseId: string;
   counsellorId: string;
   price: number;
+  couponCode?: string | null;
 };
 
 export type BuyCourseResponse = {
@@ -648,6 +649,12 @@ export async function buyCourse(
   const token = localStorage.getItem('jwt');
   // data.counsellorId = '0000000091'
 
+  // Ensure couponCode is null if not provided (not undefined)
+  const payload = {
+    ...data,
+    couponCode: data.couponCode || null,
+  };
+
   const response = await fetch(
     `${API_CONFIG.baseUrl}/api/counsellorCourses/buyCourse`,
     {
@@ -657,7 +664,7 @@ export async function buyCourse(
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     }
   );
 
@@ -667,6 +674,51 @@ export async function buyCourse(
 
   return response.json();
 }
+
+export type ApplyCouponRequest = {
+  userId: string;
+  courseId: string;
+  couponCode: string;
+};
+
+export type ApplyCouponResponse = {
+  message: string;
+  status: boolean;
+  discountPercentage?: number;
+};
+
+export async function applyCoupon(
+  data: ApplyCouponRequest
+): Promise<ApplyCouponResponse> {
+  const token = localStorage.getItem('jwt');
+
+  try {
+    const response = await fetch(
+      `${API_CONFIG.baseUrl}/api/coupon/applyCoupon`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (!response.ok) {
+      // Try to get error message from response, but default to 'Invalid coupon code'
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Invalid coupon code');
+    }
+
+    return response.json();
+  } catch (error) {
+    // Always show 'Invalid coupon code' for any error (including 500)
+    throw new Error('Invalid coupon code');
+  }
+}
+
 
 export type AddCourseReviewRequest = {
   userId: string;

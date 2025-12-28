@@ -3,15 +3,38 @@
 
 @tailwind utilities;
 
+/* Global scrollbar hiding */
+html,
+body {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari and Opera */
+  width: 0;
+  height: 0;
+}
+
 /* Hide scrollbar but keep scroll functionality */
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none !important;
+  /* IE and Edge */
+  scrollbar-width: none !important;
+  /* Firefox */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;  /* Chrome, Safari and Opera */
+  display: none !important;
+  /* Chrome, Safari and Opera */
+  width: 0 !important;
+  height: 0 !important;
 }
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -72,20 +95,38 @@ body[data-scroll-locked] {
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 }
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
     font-family: 'Montserrat', sans-serif;
   }
+
   body {
     @apply bg-background text-foreground;
     font-family: 'Montserrat', sans-serif;
   }
-  h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, textarea, label {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  span,
+  div,
+  a,
+  button,
+  input,
+  textarea,
+  label {
     font-family: 'Montserrat', sans-serif;
   }
 }
+
 @layer utilities {
+
   /* Remove arrows (spinners) in number inputs */
   input[type=number]::-webkit-inner-spin-button,
   input[type=number]::-webkit-outer-spin-button {
@@ -107,7 +148,7 @@ body[data-scroll-locked] {
   .icon-hover-white {
     filter: none;
   }
-  
+
   .group:hover .icon-hover-white {
     filter: brightness(0) saturate(100%) invert(100%);
   }
@@ -187,17 +228,19 @@ body[data-scroll-locked] {
 
 body {
   font-family: 'Montserrat', sans-serif;
-  scrollbar-gutter: stable;
 }
 
 /* Hide scrollbars but keep scrolling functionality */
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;  /* Chrome, Safari and Opera */
+  display: none;
+  /* Chrome, Safari and Opera */
 }
 
 /* Custom scrollbar styling for sidebar */
@@ -233,6 +276,7 @@ body {
   0% {
     background-position: -200% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
@@ -254,7 +298,7 @@ body {
   background: transparent !important;
 }
 
-.label{
+.label {
   @apply text-[16px] text-[#232323] font-semibold;
 }
 
@@ -287,10 +331,11 @@ body {
 
 /* Hover/focus states */
 .MuiPickersDay-root:hover {
-  background-color: rgba(250,102,15,0.06);
+  background-color: rgba(250, 102, 15, 0.06);
 }
+
 .MuiPickersDay-root.Mui-selected:hover {
-  background-color: rgba(250,102,15,0.04) !important;
+  background-color: rgba(250, 102, 15, 0.04) !important;
 }
 
 /* Keep hover for selected-today as filled */
