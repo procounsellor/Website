@@ -214,6 +214,41 @@ export default function PromoPage() {
     return await applyCoupon({ userId, courseId, couponCode });
   };
 
+  const handleCouponButtonClick = () => {
+    // Don't allow enrolled users to apply coupons
+    if (isCoursePurchased) {
+      return;
+    }
+    
+    if (!isAuthenticated) {
+      // Set skip onboarding flag for promo page
+      useAuthStore.getState().setSkipOnboardingForPromo(true);
+      
+      // Open login modal and then show coupon modal after login
+      toggleLogin(async () => {
+        try {
+          await refreshUser(true);
+          const freshState = useAuthStore.getState();
+          
+          // Check enrollment status after login
+          const enrollmentData = await getBoughtCourses(freshState.user?.userName as string);
+          const alreadyEnrolled = enrollmentData?.data?.some((c) => c.courseId === COURSE_ID) ?? false;
+          
+          if (!alreadyEnrolled) {
+            // Only open coupon modal if not enrolled
+            setTimeout(() => {
+              setShowCouponModal(true);
+            }, 100);
+          }
+        } catch (error) {
+          // Silently handle error
+        }
+      });
+      return;
+    }
+    setShowCouponModal(true);
+  };
+
 
   const handleDirectPayment = async (amount: number) => {
     if (isProcessing) {
@@ -796,13 +831,7 @@ export default function PromoPage() {
                       </div>
                     ) : (
                       <button
-                        onClick={() => {
-                          if (!isAuthenticated) {
-                            toast.error('Please login to apply coupons');
-                            return;
-                          }
-                          setShowCouponModal(true);
-                        }}
+                        onClick={handleCouponButtonClick}
                         className="flex items-center justify-center gap-2 text-[#FF660F] hover:text-[#e55a0a] text-sm font-medium transition-colors cursor-pointer"
                       >
                         <Tag className="h-4 w-4" />
