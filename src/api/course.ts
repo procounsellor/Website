@@ -692,6 +692,10 @@ export async function applyCoupon(
 ): Promise<ApplyCouponResponse> {
   const token = localStorage.getItem('jwt');
 
+  // Debug logging
+  console.log('🔍 applyCoupon called with:', data);
+  console.log('🔑 Token:', token ? 'Present' : 'Missing');
+
   try {
     const response = await fetch(
       `${API_CONFIG.baseUrl}/api/coupon/applyCoupon`,
@@ -706,15 +710,26 @@ export async function applyCoupon(
       }
     );
 
+    console.log('📡 Response status:', response.status);
+
     if (!response.ok) {
       // Try to get error message from response, but default to 'Invalid coupon code'
       const errorData = await response.json().catch(() => ({}));
+      console.log('❌ Error response:', errorData);
       throw new Error(errorData.message || 'Invalid coupon code');
     }
 
-    return response.json();
+    const result = await response.json();
+    console.log('✅ Success response:', result);
+    return result;
   } catch (error) {
-    // Always show 'Invalid coupon code' for any error (including 500)
+    console.error('🚨 applyCoupon error:', error);
+    // Preserve original error message if it exists, otherwise show generic message
+    if (error instanceof Error && error.message && error.message !== 'Invalid coupon code') {
+      // Re-throw the original error (likely from the if (!response.ok) block above)
+      throw error;
+    }
+    // Network errors or other issues - show user-friendly message
     throw new Error('Invalid coupon code');
   }
 }

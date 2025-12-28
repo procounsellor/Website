@@ -44,8 +44,14 @@ export default function PromoPage() {
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [discountedPrice, setDiscountedPrice] = useState<number | null>(null);
   const [discountPercentage, setDiscountPercentage] = useState<number | null>(null);
-  
 
+  // Clear coupon on page load/refresh
+  useEffect(() => {
+    setAppliedCoupon(null);
+    setDiscountedPrice(null);
+    setDiscountPercentage(null);
+  }, []);
+  
   // ✅ Use ref to preserve payment callback across re-renders
   const paymentCallbackRef = useRef<(() => void) | null>(null);
 
@@ -270,6 +276,38 @@ export default function PromoPage() {
     }
 
     setIsProcessing(true);
+
+    // Special case: Free course (100% discount)
+    if (amount === 0) {
+      const enrollToast = toast.loading("Enrolling you in the course for free...");
+      try {
+        const purchaseResponse = await buyCourse({
+          userId: freshUser.userName,
+          courseId: COURSE_ID,
+          counsellorId: "",
+          price: 0,
+          couponCode: appliedCoupon,
+        });
+
+        if (purchaseResponse.status) {
+          toast.success("Enrollment successful!", { id: enrollToast });
+          await refreshUser(true);
+          setShowSuccessPopup(true);
+        } else {
+          throw new Error(purchaseResponse.message || "Enrollment failed");
+        }
+      } catch (error) {
+        toast.error(
+          (error as Error).message || "Enrollment failed. Please contact support.",
+          { id: enrollToast }
+        );
+      } finally {
+        setIsProcessing(false);
+      }
+      return;
+    }
+
+    // Regular payment flow for non-zero amounts
     const loadingToast = toast.loading("Initiating payment...");
 
     try {
@@ -429,8 +467,8 @@ export default function PromoPage() {
           }
 
           // For promo page, skip profile completion and go directly to payment
-          // Use discounted price if coupon applied
-          const finalAmount = discountedPrice || amount;
+          // Use discounted price if coupon applied (handle 0 for 100% discount)
+          const finalAmount = discountedPrice !== null ? discountedPrice : amount;
           await handleDirectPayment(finalAmount);
           paymentCallbackRef.current = null;
         } catch (error) {
@@ -466,8 +504,8 @@ export default function PromoPage() {
     }
 
     try {
-      // Use discounted price if coupon applied
-      const finalAmount = discountedPrice || amount;
+      // Use discounted price if coupon applied (handle 0 for 100% discount)
+      const finalAmount = discountedPrice !== null ? discountedPrice : amount;
       await handleDirectPayment(finalAmount);
     } catch (error) {
       toast.error("Could not start payment. Please try again.");
@@ -785,19 +823,27 @@ export default function PromoPage() {
                 {/* Price and Button - Always Row */}
                 <div className="flex items-center justify-center lg:justify-start gap-3 sm:gap-4 flex-wrap">
                   {/* Price Display */}
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-2">
                     {appliedCoupon && discountPercentage ? (
                       <>
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg sm:text-xl text-gray-500 line-through">
-                            ₹{PROMO_COURSE_PRICE.toLocaleString("en-IN")}
-                          </span>
-                          <span className="text-xs sm:text-sm bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
-                            {discountPercentage}% OFF
+                        {/* Discount Badge with savings */}
+                        <div className="flex flex-col gap-1">
+                          <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 text-green-700 px-3 py-1.5 rounded-full font-semibold text-xs sm:text-sm w-fit shadow-sm">
+                            <span className="text-green-600">🎉</span>
+                            <span>{discountPercentage}% OFF Applied</span>
+                          </div>
+                          <span className="text-xs text-green-600 font-medium">
+                            You save ₹{(PROMO_COURSE_PRICE - (discountedPrice ?? 0)).toLocaleString("en-IN")}
                           </span>
                         </div>
-                        <div className="text-2xl sm:text-3xl font-bold text-[#FF660F]">
-                          ₹{(discountedPrice || PROMO_COURSE_PRICE).toLocaleString("en-IN")}
+                        {/* Pricing - Old price then new price side by side */}
+                        <div className="flex items-baseline gap-3 flex-wrap">
+                          <span className="text-base sm:text-lg text-gray-400 line-through font-medium">
+                            ₹{PROMO_COURSE_PRICE.toLocaleString("en-IN")}
+                          </span>
+                          <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#FF660F]">
+                            ₹{(discountedPrice ?? 0).toLocaleString("en-IN")}
+                          </div>
                         </div>
                       </>
                     ) : (
