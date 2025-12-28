@@ -36,7 +36,8 @@ export default function CouponCodeModal({
   const [isApplying, setIsApplying] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  if (!isOpen) return null;
+  // Close modal if coupon is already applied
+  if (!isOpen || appliedCoupon) return null;
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
@@ -51,7 +52,8 @@ export default function CouponCodeModal({
       
       if (response.status && response.discountPercentage) {
         const discountAmount = (originalPrice * response.discountPercentage) / 100;
-        const discountedPrice = originalPrice - discountAmount;
+        // Round down to integer (floor) and ensure price doesn't go below 0
+        const discountedPrice = Math.max(0, Math.floor(originalPrice - discountAmount));
         
         onCouponApplied(couponCode.trim().toUpperCase(), discountedPrice, response.discountPercentage);
         toast.success(response.message || 'Coupon applied successfully!');
