@@ -339,15 +339,15 @@ export default function Chatbot() {
 
                 {/* Feature Cards - Responsive Grid - Centered */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-                  <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center hover:bg-white/5 transition-colors cursor-pointer">
+                  <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center">
                     <img src="/book.svg" alt="Courses" className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
                     <p className="text-[13px] md:text-[14px] font-medium text-white">Access premium learning courses.</p>
                   </div>
-                  <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center hover:bg-white/5 transition-colors cursor-pointer">
+                  <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center">
                     <img src="/cap.svg" alt="Colleges" className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
                     <p className="text-[13px] md:text-[14px] font-medium text-white">Discover top colleges.</p>
                   </div>
-                  <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center hover:bg-white/5 transition-colors cursor-pointer">
+                  <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center">
                     <img src="/person.svg" alt="Counselors" className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
                     <p className="text-[13px] md:text-[14px] font-medium text-white">Consult expert counselors.</p>
                   </div>
