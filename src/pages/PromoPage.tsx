@@ -1,15 +1,16 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Star, Clock, Users, ChevronUp, ChevronRight } from "lucide-react";
+import { Star, Clock, Users, ChevronUp, ChevronRight, Tag } from "lucide-react";
 import SmartImage from "@/components/ui/SmartImage";
 import { useAuthStore } from "@/store/AuthStore";
 import { useQuery } from "@tanstack/react-query";
-import { getBoughtCourses, buyCourse } from "@/api/course";
+import { getBoughtCourses, buyCourse, applyCoupon } from "@/api/course";
 import { FaWhatsapp } from "react-icons/fa";
 import toast from "react-hot-toast";
 import startRecharge from "@/api/wallet";
 import CourseEnrollmentPopup from "@/components/landing-page/CourseEnrollmentPopup";
+import CouponCodeModal from "@/components/modals/CouponCodeModal";
 
 declare global {
   interface Window {
@@ -37,6 +38,13 @@ export default function PromoPage() {
   const storePendingAction = useAuthStore((s) => s.pendingAction);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Coupon state
+  const [showCouponModal, setShowCouponModal] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [discountedPrice, setDiscountedPrice] = useState<number | null>(null);
+  const [discountPercentage, setDiscountPercentage] = useState<number | null>(null);
+  
 
   // ✅ Use ref to preserve payment callback across re-renders
   const paymentCallbackRef = useRef<(() => void) | null>(null);
@@ -189,6 +197,24 @@ export default function PromoPage() {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
   };
 
+  // Coupon handlers
+  const handleCouponApplied = (couponCode: string, finalPrice: number, percentage: number) => {
+    setAppliedCoupon(couponCode);
+    setDiscountedPrice(finalPrice);
+    setDiscountPercentage(percentage);
+  };
+
+  const handleCouponRemoved = () => {
+    setAppliedCoupon(null);
+    setDiscountedPrice(null);
+    setDiscountPercentage(null);
+  };
+
+  const applyCouponWrapper = async (userId: string, courseId: string, couponCode: string) => {
+    return await applyCoupon({ userId, courseId, couponCode });
+  };
+
+
   const handleDirectPayment = async (amount: number) => {
     if (isProcessing) {
       return;
@@ -251,6 +277,7 @@ export default function PromoPage() {
           userId: freshUser.userName,
           courseId: COURSE_ID,
           courseName: COURSE_NAME,
+          ...(appliedCoupon && { couponCode: appliedCoupon }),
         },
         handler: async () => {
           toast.dismiss(loadingToast);
@@ -262,6 +289,7 @@ export default function PromoPage() {
               courseId: COURSE_ID,
               counsellorId: "",
               price: amount,
+              couponCode: appliedCoupon,
             });
 
             if (purchaseResponse.status) {
@@ -366,7 +394,9 @@ export default function PromoPage() {
           }
 
           // For promo page, skip profile completion and go directly to payment
-          await handleDirectPayment(amount);
+          // Use discounted price if coupon applied
+          const finalAmount = discountedPrice || amount;
+          await handleDirectPayment(finalAmount);
           paymentCallbackRef.current = null;
         } catch (error) {
           toast.error("Something went wrong. Please try again.");
@@ -401,7 +431,9 @@ export default function PromoPage() {
     }
 
     try {
-      await handleDirectPayment(amount);
+      // Use discounted price if coupon applied
+      const finalAmount = discountedPrice || amount;
+      await handleDirectPayment(finalAmount);
     } catch (error) {
       toast.error("Could not start payment. Please try again.");
     }
@@ -714,13 +746,72 @@ export default function PromoPage() {
               </div>
 
               {/* CTA */}
-              <div className="flex flex-col items-center lg:items-start gap-4 pt-4">
-                <div className="flex items-center justify-center lg:justify-start gap-4 w-full">
-                  <div className="text-lg sm:text-xl md:text-2xl font-semibold text-[#232323]">
-                    ₹{PROMO_COURSE_PRICE.toLocaleString("en-IN")}
+              <div className="flex flex-col items-center lg:items-start gap-4 pt-4 w-full">
+                {/* Price and Button - Always Row */}
+                <div className="flex items-center justify-center lg:justify-start gap-3 sm:gap-4 flex-wrap">
+                  {/* Price Display */}
+                  <div className="flex flex-col gap-1">
+                    {appliedCoupon && discountPercentage ? (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg sm:text-xl text-gray-500 line-through">
+                            ₹{PROMO_COURSE_PRICE.toLocaleString("en-IN")}
+                          </span>
+                          <span className="text-xs sm:text-sm bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                            {discountPercentage}% OFF
+                          </span>
+                        </div>
+                        <div className="text-2xl sm:text-3xl font-bold text-[#FF660F]">
+                          ₹{(discountedPrice || PROMO_COURSE_PRICE).toLocaleString("en-IN")}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-lg sm:text-xl md:text-2xl font-semibold text-[#232323]">
+                        ₹{PROMO_COURSE_PRICE.toLocaleString("en-IN")}
+                      </div>
+                    )}
                   </div>
+                  
                   <EnrollmentButton />
                 </div>
+                
+                {/* Coupon Section - Always Centered Below */}
+                {!isCoursePurchased && (
+                  <div className="w-full max-w-md flex justify-center lg:justify-start">
+                    {appliedCoupon ? (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2">
+                          <Tag className="h-4 w-4 text-green-600" />
+                          <div>
+                            <p className="text-xs text-green-600 font-medium">Coupon Applied</p>
+                            <p className="text-sm font-mono text-green-800">{appliedCoupon}</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={handleCouponRemoved}
+                          className="text-green-600 hover:text-green-800 text-sm font-medium cursor-pointer"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          if (!isAuthenticated) {
+                            toast.error('Please login to apply coupons');
+                            return;
+                          }
+                          setShowCouponModal(true);
+                        }}
+                        className="flex items-center justify-center gap-2 text-[#FF660F] hover:text-[#e55a0a] text-sm font-medium transition-colors cursor-pointer"
+                      >
+                        <Tag className="h-4 w-4" />
+                        <span>Have a coupon code?</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+                
                 {isCoursePurchased && (
                   <div className="w-full max-w-md">
                     <WhatsAppButton />
@@ -1269,6 +1360,21 @@ export default function PromoPage() {
             setShowSuccessPopup(false);
             window.location.reload();
           }}
+        />
+      )}
+      
+      {/* Coupon Modal */}
+      {userId && (
+        <CouponCodeModal
+          isOpen={showCouponModal}
+          onClose={() => setShowCouponModal(false)}
+          courseId={COURSE_ID}
+          userId={userId}
+          originalPrice={PROMO_COURSE_PRICE}
+          onCouponApplied={handleCouponApplied}
+          onCouponRemoved={handleCouponRemoved}
+          appliedCoupon={appliedCoupon}
+          applyCouponApi={applyCouponWrapper}
         />
       )}
     </div>
