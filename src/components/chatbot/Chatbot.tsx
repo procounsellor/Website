@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import {  useNavigate } from "react-router-dom";
+import {  useNavigate, Link } from "react-router-dom";
 import { User2, LogOut, LayoutDashboard, Sparkles,  Square, Menu, Loader2 } from "lucide-react";
 import SmartImage from "@/components/ui/SmartImage";
 import { Button } from "../ui";
@@ -422,16 +422,16 @@ export default function Chatbot() {
                             <div className="mt-3 md:mt-4 space-y-2 md:space-y-3">
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
                                 {visibleCounsellors.map((c, idx) => (
-                                  <a
-                                    href={`/counsellor-profile?id=${c.counsellorId}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                  <Link
+                                    to="/counsellor-profile"
+                                    state={{ id: c.counsellorId }}
+                                    onClick={() => toggleChatbot()}
                                     className="w-full animate-in fade-in-50 slide-in-from-bottom-4 duration-500" 
                                     style={{ animationDelay: `${idx * 100}ms` }}
                                     key={c.counsellorId}
                                   >
                                     <ChatbotCounselorCard counselor={c} />
-                                  </a>
+                                  </Link>
                                 ))}
                               </div>
                               

@@ -22,9 +22,14 @@ const IconOnlyButton = ({ onClick, children, ariaLabel }: { onClick?: () => void
   <button
     onClick={onClick}
     aria-label={ariaLabel}
-    className="p-2.5 rounded-lg text-white hover:bg-white/10 transition-colors"
+    className="p-2.5 rounded-lg text-white hover:bg-white/10 transition-colors cursor-pointer relative group"
+    title={ariaLabel}
   >
     {children}
+    {/* Tooltip */}
+    <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-[#2a2a2a] text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 z-50 border border-[#404040]">
+      {ariaLabel}
+    </span>
   </button>
 );
 
