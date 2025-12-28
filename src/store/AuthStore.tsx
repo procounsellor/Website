@@ -266,11 +266,13 @@ export const useAuthStore = create<AuthState>()(
         // ✅ Check skipOnboardingForPromo FIRST - before any onboarding logic
         const skipPromo = get().skipOnboardingForPromo;
         if (skipPromo) {
-          console.log("🚀 PromoPage: Skipping all onboarding - going straight to payment");
-          // Force onboarding off for promo page users
+          console.log("🚀 PromoPage: Skipping ALL onboarding and profile completion - going straight to payment");
+          // Force onboarding AND profile completion off for promo page users
           set({ 
             userExist: false, 
             needsOnboarding: false,
+            needsProfileCompletion: false,  // ✅ Skip profile completion too
+            isProfileCompletionOpen: false,
             skipOnboardingForPromo: false  // Reset the flag
           });
           needsOnboarding = false;
@@ -366,8 +368,9 @@ export const useAuthStore = create<AuthState>()(
 
               // Only check profile completion for existing users (not in onboarding)
               // New users will complete profile during onboarding
+              // ✅ Skip profile completion check if this was triggered from promo page
               const needsCompletion =
-                userNeedsOnboarding && (!user.firstName || !user.email);
+                userNeedsOnboarding && (!user.firstName || !user.email) && !skipPromo;
               console.log(
                 "🔍 Profile check - firstName:",
                 user.firstName,
@@ -375,6 +378,8 @@ export const useAuthStore = create<AuthState>()(
                 user.email,
                 "needsOnboarding:",
                 userNeedsOnboarding,
+                "skipPromo:",
+                skipPromo,
                 "needsCompletion:",
                 needsCompletion
               );
