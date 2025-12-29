@@ -18,7 +18,7 @@ import { updateUserProfile } from "@/api/user";
 import { useLiveStreamStore } from "@/store/LiveStreamStore";
 import LiveStreamView from "@/components/live/userView";
 
-// --- NEW: Internal Icon Components (Bypasses Cache) ---
+// --- 1. ICON COMPONENTS ---
 const BotIconOpen = () => (
   <svg width="100%" height="100%" viewBox="0 0 181 155" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M90.5 0C66.4979 0 43.4789 8.16515 26.5068 22.6992C9.5348 37.2333 0 56.9457 0 77.4999C0 89.884 3.39723 101.608 9.44913 112.013C10.4145 113.682 10.5073 116.17 9.40272 120.041C8.8178 121.997 8.13651 123.93 7.36067 125.836L7.08221 126.52C6.39533 128.268 5.65277 130.176 5.09585 131.949C1.5501 143.291 13.6725 153.672 26.9087 150.636C28.9878 150.159 31.2063 149.523 33.2576 148.935L34.0558 148.697C36.2816 148.032 38.5391 147.449 40.8225 146.948C45.3428 145.994 48.2481 146.073 50.1973 146.908C62.7153 152.249 76.5142 155.02 90.5 155C140.484 155 181 120.304 181 77.4999C181 34.6961 140.484 0 90.5 0Z" fill="#FA660F"/>
@@ -36,6 +36,26 @@ const BotIconClosed = () => (
     <ellipse cx="145" cy="73.5" rx="16" ry="15.5" fill="white"/>
   </svg>
 );
+
+// --- 2. ISOLATED BLINKING COMPONENT ---
+// By moving the logic here, we prevent the entire MainLayout from re-rendering
+const AnimatedBotIcon = () => {
+  const [showFirstIcon, setShowFirstIcon] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setShowFirstIcon((prev) => !prev);
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    // 'pointer-events-none' ensures the click passes THROUGH the image to the button
+    <div className="w-16 h-16 pointer-events-none transition-opacity duration-200">
+      {showFirstIcon ? <BotIconOpen /> : <BotIconClosed />}
+    </div>
+  );
+};
 // ----------------------------------------------------
 
 export default function MainLayout() {
@@ -62,15 +82,7 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [showFirstIcon, setShowFirstIcon] = useState(true);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setShowFirstIcon((prev) => !prev);
-    }, 500);
-
-    return () => clearInterval(interval);
-  }, []);
+  // REMOVED: Blinking logic from here (it caused the whole page to lag)
 
   useEffect(() => {
     if (isAuthenticated && role === "counselor" && location.pathname === "/") {
@@ -208,14 +220,11 @@ export default function MainLayout() {
       {!isStreamActive && location.pathname !== '/promo' && (
         <button
           onClick={toggleChatbot}
-          // REMOVED 'bg-white' just in case it was there implicitly
           className="fixed bottom-6 right-6 z-50 flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-110 active:scale-95 bg-transparent"
           aria-label="Toggle Chatbot"
         >
-          <div className="w-16 h-16 transition-opacity duration-200">
-             {/* Using Inline Components Here */}
-             {showFirstIcon ? <BotIconOpen /> : <BotIconClosed />}
-          </div>
+           {/* Using the Isolated Component */}
+           <AnimatedBotIcon />
         </button>
       )}
       {isChatbotOpen && location.pathname !== '/promo' && <Chatbot />}
