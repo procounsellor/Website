@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { ActivityLog } from '@/types/user';
 import { getRelativeTime } from '@/utils/dateUtils';
 import SmartImage from '@/components/ui/SmartImage';
+import { useAuthStore } from '@/store/AuthStore';
+import { getAppointmentById } from '@/api/appointment';
+import toast from 'react-hot-toast';
+import AppointmentDetailsModal from '../student-dashboard/AppointmentDetailsModal'; 
 
 interface NotificationDropdownProps {
   notifications: ActivityLog[];
@@ -11,6 +15,11 @@ interface NotificationDropdownProps {
 
 const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notifications, onClose }) => {
   const navigate = useNavigate();
+  const { userId, role } = useAuthStore();
+  const token = localStorage.getItem('jwt');
+
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
 
   const sortedNotifications = [...notifications].sort((a, b) => {
     const timeA = a.timestamp.seconds;
@@ -18,121 +27,177 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
     return timeB - timeA;
   });
 
+  const handleNotificationClick = async (notif: ActivityLog) => {
+    if (role === 'counselor') return;
+    const type = notif.activityType?.toLowerCase();
+    
+    if (type === 'subscription' || type === 'subscribe') {
+      onClose();
+      navigate('/counsellor-profile', { 
+        state: { id: notif.activitySenderId } 
+      });
+    }
+
+    else if (type === 'appointment') {
+      
+      if (!userId || !token) return;
+
+      try {
+        const appointmentId = notif.id;
+        const toastId = toast.loading("Opening details...");
+        
+        const appointmentData = await getAppointmentById(userId, appointmentId, token);
+        
+        toast.dismiss(toastId);
+        
+        if (appointmentData) {
+            setSelectedAppointment(appointmentData);
+            setIsAppointmentModalOpen(true);
+        }
+      } catch (error) {
+        console.error("Failed to fetch appointment", error);
+        toast.error("Could not load appointment details");
+      }
+    }
+  };
+
   return (
-    <div 
-      className="absolute z-50 flex flex-col bg-white"
-      style={{
-        width: '616px',
-        top: '60px',
-        right: '-80px',
-        borderRadius: '12px',
-        padding: '12px',
-        gap: '12px',
-        boxShadow: '0px 4px 4px 0px #13097D1A, 0px 0px 4px 0px #13097D33',
-        cursor: 'default' 
-      }}
-      onClick={(e) => e.stopPropagation()}
-    >
-      <div className="flex items-center justify-between px-2 pt-1">
-        <h3 
-          style={{
-            fontFamily: 'Poppins, sans-serif',
-            fontWeight: 500,
-            fontSize: '20px',
-            lineHeight: '125%',
-            color: '#13097D'
-          }}
-        >
-          Notifications
-        </h3>
-        <button
-          onClick={() => {
-            onClose();
-            navigate('/notifications');
-          }}
-          className="hover:opacity-80 transition-opacity"
-          style={{
-            fontFamily: 'Poppins, sans-serif',
-            fontWeight: 600,
-            fontSize: '14px',
-            lineHeight: '100%',
-            color: '#3D3D3D',
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer'
-          }}
-        >
-          See All &gt;
-        </button>
-      </div>
+    <>
+      <div 
+        className="absolute z-50 flex flex-col bg-white"
+        style={{
+          width: '616px',
+          top: '60px',
+          right: '-80px',
+          borderRadius: '12px',
+          padding: '12px',
+          gap: '12px',
+          boxShadow: '0px 4px 4px 0px #13097D1A, 0px 0px 4px 0px #13097D33',
+          cursor: 'default' 
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-2 pt-1">
+          <h3 
+            style={{
+              fontFamily: 'Poppins, sans-serif',
+              fontWeight: 500,
+              fontSize: '20px',
+              lineHeight: '125%',
+              color: '#13097D'
+            }}
+          >
+            Notifications
+          </h3>
+          <button
+            onClick={() => {
+              onClose();
+              navigate('/notifications');
+            }}
+            className="hover:opacity-80 transition-opacity"
+            style={{
+              fontFamily: 'Poppins, sans-serif',
+              fontWeight: 600,
+              fontSize: '14px',
+              lineHeight: '100%',
+              color: '#3D3D3D',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            See All &gt;
+          </button>
+        </div>
 
-      <div className="w-full h-px bg-[#F4F4F4] mt-2" />
+        <div className="w-full h-px bg-[#F4F4F4] mt-2" />
 
-      <div className="flex flex-col max-h-[400px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
-        {sortedNotifications.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">No new notifications</div>
-        ) : (
-          sortedNotifications.slice(0, 6).map((notif) => (
-            <div 
-              key={notif.id || notif.timestamp.nanos}
-              className="flex items-start transition-colors hover:bg-gray-50"
-              style={{
-                width: '100%',
-                padding: '20px',
-                gap: '12px',
-                borderBottom: '1px solid #F4F4F4',
-                background: '#FFFFFF'
-              }}
-            >
+        <div className="flex flex-col max-h-[400px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+          {sortedNotifications.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">No new notifications</div>
+          ) : (
+            sortedNotifications.slice(0, 6).map((notif) => (
               <div 
-                className="shrink-0 rounded-full overflow-hidden"
+                key={notif.id || notif.timestamp.nanos}
+                onClick={() => handleNotificationClick(notif)}
+                className="flex items-start transition-colors hover:bg-gray-50 cursor-pointer"
                 style={{
-                  width: '40px',
-                  height: '40px',
-                  border: '2px solid #FFFFFF',
-                  boxShadow: '0 0 2px rgba(0,0,0,0.1)'
+                  width: '100%',
+                  padding: '20px',
+                  gap: '12px',
+                  borderBottom: '1px solid #F4F4F4',
+                  background: '#FFFFFF'
                 }}
               >
-                <SmartImage
-                  src={notif.photo || 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Default_pfp.svg'}
-                  alt="Sender"
-                  className="w-full h-full object-cover"
-                />
-              </div>
+                <div 
+                  className="shrink-0 rounded-full overflow-hidden"
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    border: '2px solid #FFFFFF',
+                    boxShadow: '0 0 2px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  <SmartImage
+                    src={notif.photo || 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Default_pfp.svg'}
+                    alt="Sender"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
 
-              <div className="flex flex-col gap-[7px]">
-                <p
-                  style={{
-                    fontFamily: 'Mulish, sans-serif',
-                    fontWeight: 500,
-                    fontSize: '16px',
-                    lineHeight: '150%',
-                    color: '#6C6969',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden'
-                  }}
-                >
-                  {notif.activity}
-                </p>
-                <span
-                  style={{
-                    fontFamily: 'Mulish, sans-serif',
-                    fontWeight: 500,
-                    fontSize: '14px',
-                    lineHeight: '100%',
-                    color: '#262626'
-                  }}
-                >
-                  {getRelativeTime(notif.timestamp)}
-                </span>
+                <div className="flex flex-col gap-[7px]">
+                  <p
+                    style={{
+                      fontFamily: 'Mulish, sans-serif',
+                      fontWeight: 500,
+                      fontSize: '16px',
+                      lineHeight: '150%',
+                      color: '#6C6969',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {notif.activity}
+                  </p>
+                  <span
+                    style={{
+                      fontFamily: 'Mulish, sans-serif',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      lineHeight: '100%',
+                      color: '#262626'
+                    }}
+                  >
+                    {getRelativeTime(notif.timestamp)}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
-    </div>
+
+      {selectedAppointment && (
+        <AppointmentDetailsModal
+            isOpen={isAppointmentModalOpen}
+            onClose={() => {
+                setIsAppointmentModalOpen(false);
+                setSelectedAppointment(null);
+                // onClose(); 
+            }}
+            appointment={selectedAppointment}
+            onNavigateToCounselor={(counselorId) => {
+                navigate('/counsellor-profile', { 
+                  state: { id: counselorId } 
+                });
+                setIsAppointmentModalOpen(false);
+                onClose();
+            }}
+        />
+      )}
+    </>
   );
 };
 

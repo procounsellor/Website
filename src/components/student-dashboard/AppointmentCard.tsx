@@ -192,7 +192,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, onCardCl
               <div className="md:col-span-2 flex items-center justify-end gap-4">
                   {getStatusContent(status)}
                   {showMenu && (
-                    <button className="text-black p-2 rounded-full z-20"
+                    <button className="text-black p-2 cursor-pointer rounded-full z-20"
                         onClick={handleMenuToggle}
                     >
                         <MoreVertical size={24} />

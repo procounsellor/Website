@@ -451,7 +451,7 @@ export default function Header() {
                     <div className="relative" ref={dropdownRef}>
                       <button
                         onClick={toggleProfileDropdown}
-                        className="p-2 rounded-full hover:bg-gray-200 transition-colors"
+                        className="p-2 rounded-full cursor-pointer hover:bg-gray-200 transition-colors"
                       >
                         <User2 className="h-6 w-6 text-gray-700" />
                       </button>
@@ -462,7 +462,7 @@ export default function Header() {
                         >
                           <button
                             onClick={handleProfileNavigation}
-                            className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100"
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm cursor-pointer hover:bg-gray-100"
                           >
                             <LayoutDashboard size={16} />
                             Profile
@@ -482,7 +482,7 @@ export default function Header() {
 
                           <button
                             onClick={handleLogout}
-                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm cursor-pointer text-red-600 hover:bg-red-50"
                           >
                             <LogOut size={16} />
                             Logout

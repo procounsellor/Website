@@ -95,9 +95,11 @@ const languageOptions = [
   { label: 'Telugu', value: 'Telugu' },
 ];
 
-const FormField = ({ label, children }: { label: string; children: React.ReactNode }) => (
+const FormField = ({ label, required = false, children }: { label: string; required?: boolean; children: React.ReactNode }) => (
     <div className="flex flex-col gap-2">
-        <label className="font-montserrat font-normal text-sm md:text-base text-[#232323]">{label}</label>
+        <label className="font-montserrat font-normal text-sm md:text-base text-[#232323]">
+          {label} {required && <span className="text-red-500">*</span>}
+        </label>
         {children}
     </div>
 );
@@ -144,19 +146,32 @@ export default function ProfileDetailsStep({
     }
   };
   
-  const isFormValid = formData.firstName && formData.lastName && formData.email && formData.emailOtpVerified;
+  const isTimeEqual = formData.officeStartTime && formData.officeEndTime && formData.officeStartTime === formData.officeEndTime;
+
+  const isFormValid = 
+    formData.firstName?.trim() && 
+    formData.email?.trim() && 
+    formData.emailOtpVerified &&
+    formData.organisation?.trim() &&
+    formData.city?.trim() &&
+    formData.languagesKnown.length > 0 &&
+    formData.workingDays.length > 0 &&
+    formData.officeStartTime &&
+    formData.officeEndTime &&
+    !isTimeEqual;
 
   return (
     <div className="font-montserrat space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 overflow-visible">
-            <FormField label="First Name">
+            <FormField label="First Name" required>
                 <input type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} required className="h-12 w-full px-4 border border-[#13097D66] rounded-xl placeholder:text-[#6C696980] placeholder:font-medium focus:outline-none focus:border-orange-500 focus:ring-0"/>
             </FormField>
+            
             <FormField label="Last Name">
-                <input type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} required className="h-12 w-full px-4 border border-[#13097D66] rounded-xl placeholder:text-[#6C696980] placeholder:font-medium focus:outline-none focus:border-orange-500 focus:ring-0"/>
+                <input type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} className="h-12 w-full px-4 border border-[#13097D66] rounded-xl placeholder:text-[#6C696980] placeholder:font-medium focus:outline-none focus:border-orange-500 focus:ring-0"/>
             </FormField>
                         
-            <FormField label="Email">
+            <FormField label="Email" required>
                 <div className="relative h-12">
                     <input type="email" name="email" placeholder="Enter your Email id" value={formData.email} onChange={handleChange} required className="h-full w-full px-4 border border-[#13097D66] rounded-xl placeholder:text-[#6C696980] placeholder:font-medium focus:outline-none focus:border-orange-500 focus:ring-0"/>
                     <button onClick={onVerifyEmail} disabled={formData.emailOtpVerified || !formData.email} className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold ${formData.emailOtpVerified ? 'text-green-600 cursor-default' : 'text-blue-600 hover:text-blue-800 disabled:opacity-50 hover:cursor-pointer'}`}>
@@ -164,11 +179,12 @@ export default function ProfileDetailsStep({
                     </button>
                 </div>
             </FormField>
-            <FormField label="Organisation">
-                <input type="text" name="organisation" placeholder="Organisation" value={formData.organisation} onChange={handleChange} className="h-12 w-full px-4 border border-[#13097D66] rounded-xl placeholder:text-[#6C696980] placeholder:font-medium focus:outline-none focus:border-orange-500 focus:ring-0"/>
+            
+            <FormField label="Organisation" required>
+                <input type="text" name="organisation" placeholder="Organisation" value={formData.organisation} onChange={handleChange} required className="h-12 w-full px-4 border border-[#13097D66] rounded-xl placeholder:text-[#6C696980] placeholder:font-medium focus:outline-none focus:border-orange-500 focus:ring-0"/>
             </FormField>
 
-            <FormField label="Languages Known">
+            <FormField label="Languages Known" required>
                 <MultiSelectDropdown
                   placeholder="Select Languages"
                   options={languageOptions}
@@ -176,24 +192,28 @@ export default function ProfileDetailsStep({
                   onChange={(selection) => handleMultiSelectChange('languagesKnown', selection)}
                 />
             </FormField>
-            <FormField label="City">
+            
+            <FormField label="City" required>
                 <input 
                   type="text" 
                   name="city"
                   placeholder="City" 
                   value={formData.city}
                   onChange={handleChange} 
+                  required
                   className="h-12 w-full px-4 border border-[#13097D66] rounded-xl placeholder:text-[#6C696980] placeholder:font-medium focus:outline-none focus:border-orange-500 focus:ring-0"
                 />
             </FormField>
-            <FormField label="Office Start Time">
+            
+            <FormField label="Office Start Time" required>
                 <TimePicker
                   value={formData.officeStartTime}
                   onChange={(value) => setFormData(prev => ({ ...prev, officeStartTime: value }))}
                   placeholder="Start Time"
                 />
             </FormField>
-            <FormField label="Office End Time">
+            
+            <FormField label="Office End Time" required>
                 <TimePicker
                   value={formData.officeEndTime}
                   onChange={(value) => setFormData(prev => ({ ...prev, officeEndTime: value }))}
@@ -202,9 +222,15 @@ export default function ProfileDetailsStep({
             </FormField>
         </div>
 
+        {isTimeEqual && (
+            <p className="text-red-500 text-sm mt-0">
+                Start time and End time cannot be the same.
+            </p>
+        )}
+
         <div className="mt-4 md:mt-6">
           <div className="flex items-center justify-between mb-2 md:mb-3">
-            <label className="font-montserrat font-normal text-sm md:text-base text-[#232323]">Working Days</label>
+            <label className="font-montserrat font-normal text-sm md:text-base text-[#232323]">Working Days <span className="text-red-500">*</span></label>
             <button
               type="button"
               onClick={handleSelectAllDays}

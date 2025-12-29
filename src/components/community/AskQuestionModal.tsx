@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { X, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import { X, Loader2, ChevronDown } from 'lucide-react';
 import { useAuthStore } from '@/store/AuthStore';
 import { askQuestion } from '@/api/community';
 import { toast } from 'react-hot-toast';
@@ -18,6 +18,8 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { userId, user } = useAuthStore();
   const token = localStorage.getItem('jwt');
@@ -31,8 +33,24 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
       setIsAnonymous(false);
       setError(null);
       setIsLoading(false);
+      setIsDropdownOpen(false);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,12 +94,29 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
 
   if (!isOpen) return null;
 
+  const subjectOptions = [
+    "Engineering (B.Tech/B.E)",
+    "Medical (MBBS/BDS/Ayush)",
+    "Commerce & Banking (CA/CS)",
+    "Management (BBA/MBA)",
+    "Arts & Humanities",
+    "Law (CLAT/LLB)",
+    "Entrance Exams (JEE/NEET/CET)",
+    "College Admissions Process",
+    "Study Abroad",
+    "Scholarships & Financial Aid",
+    "Vocational Courses",
+    "Government Exams (UPSC/SSC)",
+    "Career Guidance",
+    "Hostel & Campus Life",
+    "Other"
+  ];
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-[#23232380] backdrop-blur-[35px]"
       onClick={onClose}
     >
-
       <div
         className="relative w-full max-w-[632px] p-10 bg-white rounded-2xl shadow-xl border border-[#EFEFEF]"
         onClick={(e) => e.stopPropagation()}
@@ -106,23 +141,60 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 relative" ref={dropdownRef}>
             <label
-              htmlFor="subject"
               className="text-base font-semibold text-[#343C6A]"
             >
               Subject <span className="text-red-500">*</span>
             </label>
-            <textarea
-              id="subject"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              placeholder="Enter your question subject"
-              className="w-full h-[75px] resize-none bg-[#F5F7FA] border border-[#EFEFEF] rounded-lg p-3
-                         text-base font-medium text-[#242645] 
-                         placeholder:text-[#8C8CA180] placeholder:font-normal placeholder:text-base 
-                         focus:outline-none focus:ring-2 focus:ring-[#13097D]"
-            />
+            
+            <div 
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className={`w-full h-[50px] flex items-center justify-between bg-[#F5F7FA] border rounded-lg px-3 cursor-pointer transition-all
+                ${isDropdownOpen ? 'border-[#13097D] ring-2 ring-[#13097D]/10' : 'border-[#EFEFEF]'}
+              `}
+            >
+              <span className={`text-base font-medium ${subject ? 'text-[#242645]' : 'text-[#8C8CA180]'}`}>
+                {subject || "Select a category"}
+              </span>
+              
+              <div className="flex items-center text-[#8C8CA1]">
+                {subject ? (
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSubject("");
+                    }}
+                    className="p-1 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
+                  >
+                    <X size={16} />
+                  </div>
+                ) : (
+                  <ChevronDown size={16} />
+                )}
+              </div>
+            </div>
+
+            {isDropdownOpen && (
+              <div className="absolute top-[85px] left-0 w-full z-20 bg-white border border-[#EFEFEF] rounded-lg shadow-lg overflow-hidden">
+                <div className="max-h-[250px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]">
+                  {subjectOptions.map((option) => (
+                    <div
+                      key={option}
+                      onClick={() => {
+                        setSubject(option);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`px-4 py-3 text-sm font-medium cursor-pointer transition-colors
+                        ${subject === option ? 'bg-[#F5F7FA] text-[#13097D]' : 'text-[#242645] hover:bg-[#F5F7FA]'}
+                      `}
+                    >
+                      {option}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -153,7 +225,7 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
               type="checkbox"
               checked={isAnonymous}
               onChange={() => setIsAnonymous(!isAnonymous)}
-              className="h-4 w-4 rounded border-[#8C8CA1] accent-[#13097D] focus:ring-transparent"
+              className="h-4 w-4 rounded border-[#8C8CA1] accent-[#13097D] cursor-pointer focus:ring-transparent"
             />
             <span className="text-sm text-[#8C8CA1] font-normal">
               Ask anonymously

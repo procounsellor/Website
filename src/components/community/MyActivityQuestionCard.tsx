@@ -4,7 +4,7 @@ import { Bookmark, Heart } from 'lucide-react';
 import type { CommunityDashboardItem } from '@/types/community';
 import { formatTimeAgo } from '@/utils/time';
 import { useAuthStore } from '@/store/AuthStore';
-import { bookmarkQuestion, likeAnswer } from '@/api/community';
+import { bookmarkQuestion } from '@/api/community';
 import { toast } from 'react-hot-toast';
 
 interface MyActivityQuestionCardProps {
@@ -66,44 +66,44 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({ questio
     }
   };
 
-  const handleLike = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!question.topAnswerId) {
-      toast.error("No answer available to like");
-      return;
-    }
-    if (!userId || !token) {
-      toast.error("Please login to like answers");
-      return;
-    }
+  // const handleLike = async (e: React.MouseEvent) => {
+  //   e.stopPropagation();
+  //   if (!question.topAnswerId) {
+  //     toast.error("No answer available to like");
+  //     return;
+  //   }
+  //   if (!userId || !token) {
+  //     toast.error("Please login to like answers");
+  //     return;
+  //   }
 
-    const previousLikedState = isLiked;
-    const previousCount = likesCount;
+  //   const previousLikedState = isLiked;
+  //   const previousCount = likesCount;
 
-    setIsLiked(!previousLikedState);
-    setLikesCount(previousLikedState ? previousCount - 1 : previousCount + 1);
+  //   setIsLiked(!previousLikedState);
+  //   setLikesCount(previousLikedState ? previousCount - 1 : previousCount + 1);
 
-    try {
-      const response = await likeAnswer(
-        userId,
-        question.topAnswerId,
-        user?.role || 'user',
-        token
-      );
+  //   try {
+  //     const response = await likeAnswer(
+  //       userId,
+  //       question.topAnswerId,
+  //       user?.role || 'user',
+  //       token
+  //     );
 
-      if (response.status === 'Success') {
-        setIsLiked(response.isLiked);
-      } else {
-        setIsLiked(previousLikedState);
-        setLikesCount(previousCount);
-      }
-    } catch (error) {
-      console.error(error);
-      setIsLiked(previousLikedState);
-      setLikesCount(previousCount);
-      toast.error("Failed to update like");
-    }
-  };
+  //     if (response.status === 'Success') {
+  //       setIsLiked(response.isLiked);
+  //     } else {
+  //       setIsLiked(previousLikedState);
+  //       setLikesCount(previousCount);
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //     setIsLiked(previousLikedState);
+  //     setLikesCount(previousCount);
+  //     toast.error("Failed to update like");
+  //   }
+  // };
 
   return (
     <div 
@@ -135,7 +135,7 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({ questio
         </div>
         <button 
           onClick={handleBookmark}
-          className={`transition-colors ${isBookmarked ? 'text-[#655E95]' : 'text-gray-500 hover:text-indigo-600'}`}
+          className={`transition-colors cursor-pointer ${isBookmarked ? 'text-[#655E95]' : 'text-gray-500 hover:text-indigo-600'}`}
         >
           <Bookmark size={24} fill={isBookmarked ? "#655E95" : "none"} />
         </button>
@@ -228,8 +228,8 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({ questio
       <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-300">
         <div className="flex items-center gap-6 text-gray-600">
           <button 
-            onClick={handleLike}
-            className={`flex items-center gap-2 transition-colors ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
+            // onClick={handleLike}
+            className={`flex items-center gap-2 transition-colors cursor-pointer ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
             disabled={!question.topAnswerId}
           >
             <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
