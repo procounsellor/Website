@@ -39,7 +39,7 @@ export default function MyCoursesTab() {
             <button
               key={tab}
               onClick={() => setActiveSubTab(tab)}
-              className={`flex-1 md:flex-none px-4 py-2 text-[12px] md:text-base font-medium rounded-full transition-colors duration-200 ${
+              className={`flex-1 md:flex-none px-4 cursor-pointer py-2 text-[12px] md:text-base font-medium rounded-full transition-colors duration-200 ${
                 activeSubTab === tab 
                   ? 'bg-[#E8E7F2] text-[#13097D]' 
                   : 'bg-transparent text-gray-500 hover:text-gray-800'

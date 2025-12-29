@@ -23,7 +23,7 @@ const StarRatingInput = ({
           key={starIndex}
           onClick={() => onRatingChange(starIndex)}
           onMouseEnter={() => setHoverRating(starIndex)}
-          className={`w-7 h-7 md:w-[32px] md:h-[32px] cursor-pointer transition-colors`}
+          className={`w-7 h-7 md:w-8 md:h-8 cursor-pointer transition-colors`}
           viewBox="0 0 32 32"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -121,7 +121,7 @@ const EditReviewModal: React.FC<EditReviewModalProps> = ({
         </h3>
 
         <textarea
-          className="w-full h-[132px] mt-4 p-4 bg-[#F5F5F5] border border-[#EFEFEF] rounded-2xl placeholder-[#23232380] text-base font-semibold focus:outline-none focus:ring-2 focus:ring-[#13097D]"
+          className="w-full h-[132px] mt-4 p-4 bg-[#F5F5F5] border border-[#EFEFEF] rounded-2xl placeholder-[#23232380] text-base font-semibold focus:outline-none focus:ring-2 focus:ring-[#13097D] resize-none"
           placeholder="Write your review..."
           value={reviewText}
           onChange={(e) => setReviewText(e.target.value)}

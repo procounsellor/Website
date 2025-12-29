@@ -22,7 +22,7 @@ export default function QuestionFilterBar() {
           className="w-[90px] h-10 flex items-center justify-center gap-2
                      bg-white border border-[#EFEFEF] rounded-xl
                      text-sm font-semibold text-gray-700
-                     hover:bg-gray-50 transition-colors"
+                     hover:bg-gray-50 transition-colors cursor-pointer"
         >
           <SlidersHorizontal size={16} />
           <span>Filter</span>

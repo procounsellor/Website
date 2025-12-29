@@ -1,12 +1,20 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/AuthStore';
 import SmartImage from '@/components/ui/SmartImage';
 import { getRelativeTime } from '@/utils/dateUtils';
+import { getAppointmentById } from '@/api/appointment';
+import type { ActivityLog } from '@/types/user';
+import toast from 'react-hot-toast';
+import AppointmentDetailsModal from '@/components/student-dashboard/AppointmentDetailsModal';
 
 const NotificationsPage = () => {
-  const { user, isAuthenticated, toggleLogin } = useAuthStore();
+  const { user, isAuthenticated, toggleLogin, role, userId } = useAuthStore();
+  const token = localStorage.getItem('jwt');
   const navigate = useNavigate();
+
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -20,6 +28,38 @@ const NotificationsPage = () => {
   if (!isAuthenticated || !user) {
     return null; 
   }
+
+  const handleNotificationClick = async (notif: ActivityLog) => {
+      if (role === 'counselor') return;
+      const type = notif.activityType?.toLowerCase();
+  
+      if (type === 'subscription' || type === 'subscribe') {
+        navigate('/counsellor-profile', { 
+          state: { id: notif.activitySenderId } 
+        });
+      }
+  
+      else if (type === 'appointment') {
+        if (!userId || !token) return;
+  
+        try {
+          const appointmentId = notif.id;
+          const toastId = toast.loading("Opening details...");
+          
+          const appointmentData = await getAppointmentById(userId, appointmentId, token);
+          
+          toast.dismiss(toastId);
+          
+          if (appointmentData) {
+              setSelectedAppointment(appointmentData);
+              setIsAppointmentModalOpen(true);
+          }
+        } catch (error) {
+          console.error("Failed to fetch appointment", error);
+          toast.error("Could not load appointment details");
+        }
+      }
+  };
 
   const sortedNotifications = [...(user.activityLog || [])].sort((a, b) => {
     const timeA = a.timestamp.seconds;
@@ -49,7 +89,8 @@ const NotificationsPage = () => {
               return (
                 <div 
                   key={notif.id || notif.timestamp.nanos}
-                  className="flex items-start gap-4 p-6 hover:bg-gray-50 transition-colors duration-200"
+                  onClick={() => handleNotificationClick(notif)}
+                  className="flex items-start gap-4 p-6 hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
                 >
                   <div className="shrink-0 w-12 h-12 rounded-full overflow-hidden border border-gray-100 shadow-sm">
                     <SmartImage
@@ -73,6 +114,23 @@ const NotificationsPage = () => {
           )}
         </div>
       </div>
+
+      {selectedAppointment && (
+        <AppointmentDetailsModal
+            isOpen={isAppointmentModalOpen}
+            onClose={() => {
+                setIsAppointmentModalOpen(false);
+                setSelectedAppointment(null);
+            }}
+            appointment={selectedAppointment}
+            onNavigateToCounselor={(counselorId) => {
+                navigate('/counsellor-profile', { 
+                  state: { id: counselorId } 
+                });
+                setIsAppointmentModalOpen(false);
+            }}
+        />
+      )}
     </div>
   );
 };

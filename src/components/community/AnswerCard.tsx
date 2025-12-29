@@ -7,14 +7,16 @@ import { formatTimeAgo } from '@/utils/time';
 import CommentItem from './CommentItem';
 import ReplyModal from './ReplyModal';
 import EditAnswerModal from './EditAnswerModal';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
 import { toast } from 'react-hot-toast';
 
 interface AnswerCardProps {
   answer: Answer;
+  questionId: string;
   onAnswerUpdated?: () => void;
 }
 
-const AnswerCard: React.FC<AnswerCardProps> = ({ answer, onAnswerUpdated }) => {
+const AnswerCard: React.FC<AnswerCardProps> = ({ answer, questionId, onAnswerUpdated }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -29,6 +31,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, onAnswerUpdated }) => {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -182,26 +185,32 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, onAnswerUpdated }) => {
     setIsEditModalOpen(true);
   };
 
-  const handleDelete = async (e: React.MouseEvent) => {
+  const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsMenuOpen(false);
-    
-    if (!token) {
-      toast.error('Please login to delete answer.');
-      return;
-    }
+    setIsDeleteModalOpen(true);
+  };
 
-    if (!window.confirm('Are you sure you want to delete this answer? This action cannot be undone.')) {
+  const handleConfirmDelete = async () => {
+    if (!token || !userId || !user) {
+      toast.error('You must be logged in to delete.');
       return;
     }
 
     try {
       setIsDeleting(true);
-      const response = await deleteAnswer(answer.answerId, token);
+      const response = await deleteAnswer(
+        answer.answerId,
+        questionId,
+        userId, 
+        user.role || 'user', 
+        token
+      );
       
       if (response.status === 'Success') {
         toast.success('Answer deleted successfully!');
         onAnswerUpdated?.();
+        setIsDeleteModalOpen(false);
       } else {
         throw new Error(response.message || 'Failed to delete answer');
       }
@@ -259,12 +268,12 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, onAnswerUpdated }) => {
                   Edit
                 </button>
                 <button
-                  onClick={handleDelete}
+                  onClick={handleDeleteClick}
                   disabled={isDeleting}
                   className="w-full px-4 py-2 text-left text-sm cursor-pointer text-red-600 hover:bg-red-50 flex items-center gap-2 disabled:opacity-50"
                 >
                   <Trash2 size={16} />
-                  {isDeleting ? 'Deleting...' : 'Delete'}
+                  Delete
                 </button>
               </div>
             )}
@@ -283,7 +292,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, onAnswerUpdated }) => {
           <img src={answerPhoto} alt="Answer visual" className="mt-4 w-full h-auto max-h-[400px] rounded-lg object-cover" />
         )}
         {isExpanded && (
-          <button onClick={() => setIsExpanded(false)} className="mt-1 font-semibold text-[#242645] underline">Show less</button>
+          <button onClick={() => setIsExpanded(false)} className="mt-1 font-semibold text-[#242645] underline cursor-pointer">Show less</button>
         )}
       </div>
 
@@ -333,7 +342,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, onAnswerUpdated }) => {
                            <button 
                               onClick={handlePostComment}
                               disabled={isPostingComment}
-                              className="absolute right-3 top-2 text-[#13097D] hover:text-indigo-800 disabled:opacity-50"
+                              className="absolute right-3 top-2 text-[#13097D] hover:text-indigo-800 cursor-pointer disabled:opacity-50"
                            >
                                {isPostingComment ? <Loader2 size={20} className="animate-spin"/> : <SendHorizontal size={24} />}
                            </button>
@@ -377,6 +386,13 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, onAnswerUpdated }) => {
           onUpdateSuccess={handleUpdateSuccess}
         />
       )}
+
+      <DeleteConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

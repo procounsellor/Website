@@ -99,7 +99,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questionData }) => {
           </div>
           <button 
             onClick={handleBookmark}
-            className={`transition-colors ${isBookmarked ? 'text-[#655E95]' : 'text-[#2F43F2] hover:text-indigo-600'}`}
+            className={`transition-colors cursor-pointer ${isBookmarked ? 'text-[#655E95]' : 'text-[#2F43F2] hover:text-indigo-600'}`}
           >
             <Bookmark size={24} fill={isBookmarked ? "#655E95" : "none"} />
           </button>

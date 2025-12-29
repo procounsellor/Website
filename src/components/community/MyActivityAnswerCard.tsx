@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, MessageSquare, Sparkles, Eye, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import type { MyAnswerItem } from '@/types/community';
 import { formatTimeAgo } from '@/utils/time';
-import { deleteAnswer, likeAnswer } from '@/api/community';
+import { deleteAnswer } from '@/api/community';
 import { useAuthStore } from '@/store/AuthStore';
 import { toast } from 'react-hot-toast';
 import EditAnswerModal from './EditAnswerModal';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 interface MyActivityAnswerCardProps {
   answerItem: MyAnswerItem;
@@ -17,6 +18,7 @@ const MyActivityAnswerCard: React.FC<MyActivityAnswerCardProps> = ({ answerItem,
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -70,27 +72,33 @@ const MyActivityAnswerCard: React.FC<MyActivityAnswerCardProps> = ({ answerItem,
     setIsEditModalOpen(true);
   };
 
-  const handleDelete = async (e: React.MouseEvent) => {
+  const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsMenuOpen(false);
-    
-    if (!token) {
-      toast.error('Please login to delete answer.');
-      return;
-    }
+    setIsDeleteModalOpen(true);
+  };
 
-    if (!window.confirm('Are you sure you want to delete this answer? This action cannot be undone.')) {
+  const handleConfirmDelete = async () => {
+    if (!token || !userId || !user) {
+      toast.error('Please login to delete answer.');
       return;
     }
 
     try {
       setIsDeleting(true);
-      const response = await deleteAnswer(answerItem.myAnswerId, token);
+      
+      const response = await deleteAnswer(
+        answerItem.myAnswerId,
+        answerItem.questionId,
+        userId,
+        user.role || 'user',
+        token
+      );
       
       if (response.status === 'Success') {
         toast.success('Answer deleted successfully!');
-        // Refresh the answers list
-        onAnswerUpdated?.();
+        onAnswerUpdated?.(); // Refresh the list
+        setIsDeleteModalOpen(false);
       } else {
         throw new Error(response.message || 'Failed to delete answer');
       }
@@ -103,43 +111,7 @@ const MyActivityAnswerCard: React.FC<MyActivityAnswerCardProps> = ({ answerItem,
   };
 
   const handleUpdateSuccess = () => {
-    // Refresh the answers list
     onAnswerUpdated?.();
-  };
-
-  const handleLike = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!userId || !token) {
-      toast.error("Please login to like answers");
-      return;
-    }
-
-    const previousLikedState = isLiked;
-    const previousCount = likesCount;
-
-    setIsLiked(!previousLikedState);
-    setLikesCount(previousLikedState ? previousCount - 1 : previousCount + 1);
-
-    try {
-      const response = await likeAnswer(
-        userId,
-        answerItem.myAnswerId,
-        user?.role || 'user',
-        token
-      );
-
-      if (response.status === 'Success') {
-        setIsLiked(response.isLiked);
-      } else {
-        setIsLiked(previousLikedState);
-        setLikesCount(previousCount);
-      }
-    } catch (error) {
-      console.error(error);
-      setIsLiked(previousLikedState);
-      setLikesCount(previousCount);
-      toast.error("Failed to update like");
-    }
   };
 
   return (
@@ -188,12 +160,12 @@ const MyActivityAnswerCard: React.FC<MyActivityAnswerCardProps> = ({ answerItem,
                 Edit
               </button>
               <button
-                onClick={handleDelete}
+                onClick={handleDeleteClick}
                 disabled={isDeleting}
                 className="w-full px-4 py-2 text-left text-sm cursor-pointer text-red-600 hover:bg-red-50 flex items-center gap-2 disabled:opacity-50"
               >
                 <Trash2 size={16} />
-                {isDeleting ? 'Deleting...' : 'Delete'}
+                Delete
               </button>
             </div>
           )}
@@ -258,8 +230,7 @@ const MyActivityAnswerCard: React.FC<MyActivityAnswerCardProps> = ({ answerItem,
       <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-300">
         <div className="flex items-center gap-6 text-gray-600">
           <button 
-            onClick={handleLike}
-            className={`flex items-center gap-2 transition-colors ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
+            className={`flex items-center gap-2 transition-colors cursor-pointer ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
           >
             <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
             <span className="text-sm">{likesCount}</span>
@@ -288,9 +259,16 @@ const MyActivityAnswerCard: React.FC<MyActivityAnswerCardProps> = ({ answerItem,
         currentImageUrl={answerItem.answerPhotoUrl}
         onUpdateSuccess={handleUpdateSuccess}
       />
+
+      {/* Added Delete Confirmation Modal */}
+      <DeleteConfirmationModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };
 
 export default MyActivityAnswerCard;
-
