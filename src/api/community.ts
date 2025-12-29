@@ -588,6 +588,9 @@ export async function bookmarkAnswer(
 
 export async function deleteAnswer(
   answerId: string,
+  questionId: string,
+  userIdAnswered: string,
+  role: string,
   token: string
 ): Promise<{ message: string; status: string }> {
   try {
@@ -602,6 +605,9 @@ export async function deleteAnswer(
       },
       body: JSON.stringify({
         answerId,
+        questionId,
+        userIdAnswered,
+        role,
       }),
     });
 

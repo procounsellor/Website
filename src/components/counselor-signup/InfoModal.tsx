@@ -36,7 +36,7 @@ export default function InfoModal() {
   const handleProceed = () => {
     // Check if user is already a counselor
     if (isAuthenticated && role === 'counselor' && user?.verified) {
-      toast.error("You are already registered as a counselor.");
+      toast.error("You are already registered as a counsellor.");
       toggleCounselorSignup();
       navigate('/counsellor-dashboard');
       return;
@@ -119,7 +119,7 @@ export default function InfoModal() {
         <div className="px-4 md:px-6 py-3 md:py-4 border-t bg-white sticky bottom-0 shrink-0">
             {isAuthenticated && role === 'counselor' ? (
               <div className="text-center">
-                <p className="mb-3 md:mb-4 text-xs md:text-sm text-gray-600">You are already registered as a counselor!</p>
+                <p className="mb-3 md:mb-4 text-xs md:text-sm text-gray-600">You are already registered as a counsellor!</p>
                 <div className="flex flex-col md:flex-row gap-2 md:gap-3 justify-center">
                   <button
                     onClick={() => {
@@ -137,7 +137,7 @@ export default function InfoModal() {
                     }}
                     className="px-4 md:px-6 py-2.5 hover:cursor-pointer md:py-3 bg-[#FA660F] text-white rounded-xl font-semibold text-sm md:text-base hover:bg-orange-600 transition-colors"
                   >
-                    Browse Counselors
+                    Browse Counsellors
                   </button>
                 </div>
               </div>

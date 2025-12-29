@@ -49,7 +49,7 @@ export default function MultiSelectDropdown({
   );
 
   const CustomCheckbox = ({ isSelected }: { isSelected: boolean }) => (
-    <div className={`w-5 h-5 flex justify-center items-center rounded border-2 ${isSelected ? 'bg-white border-white' : 'border-[#23232380]'}`}>
+    <div className={`w-5 h-5 flex justify-center items-center cursor-pointer rounded border-2 ${isSelected ? 'bg-white border-white' : 'border-[#23232380]'}`}>
         {isSelected && <Check className="w-4 h-4 text-[#13097D]" />}
     </div>
   );
@@ -61,7 +61,7 @@ export default function MultiSelectDropdown({
         <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="w-full h-12 px-4 border border-[#13097D66] rounded-xl text-left bg-white flex items-center justify-between"
+            className="w-full h-12 px-4 border border-[#13097D66] cursor-pointer rounded-xl text-left bg-white flex items-center justify-between"
         >
             <div className="flex items-center gap-2 overflow-hidden">
                 {selected.length === 0 ? (
@@ -71,7 +71,7 @@ export default function MultiSelectDropdown({
                         {selected.slice(0, maxVisibleItems).map(value => {
                             const label = options.find(opt => opt.value === value)?.label || value;
                             return (
-                                <span key={value} className="bg-gray-200 text-gray-800 text-sm font-medium px-2 py-1 rounded-md flex items-center gap-1.5 flex-shrink-0">
+                                <span key={value} className="bg-gray-200 text-gray-800 text-sm font-medium px-2 py-1 rounded-md flex items-center gap-1.5 shrink-0">
                                     {label}
                                     <X 
                                         className="h-3.5 w-3.5 cursor-pointer hover:text-red-500" 
@@ -81,14 +81,14 @@ export default function MultiSelectDropdown({
                             );
                         })}
                         {selected.length > maxVisibleItems && (
-                            <span className="bg-gray-200 text-gray-800 text-sm font-medium px-2 py-1 rounded-md flex-shrink-0">
+                            <span className="bg-gray-200 text-gray-800 text-sm font-medium px-2 py-1 rounded-md shrink-0">
                                 +{selected.length - maxVisibleItems} more
                             </span>
                         )}
                     </>
                 )}
             </div>
-            <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform flex-shrink-0 ${isOpen ? 'transform rotate-180' : ''}`} />
+            <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform shrink-0 ${isOpen ? 'transform rotate-180' : ''}`} />
         </button>
 
         {isOpen && (
