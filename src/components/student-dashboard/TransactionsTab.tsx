@@ -71,7 +71,7 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, offline
       </div>
       {hasFailedTransactions && (
         <div className="mt-6 p-4 bg-gray-50 rounded-lg flex items-center gap-3">
-          <Info className="w-5 h-5 text-gray-500 flex-shrink-0" />
+          <Info className="w-5 h-5 text-gray-500 shrink-0" />
           <p className="text-sm text-gray-600">
             If an amount was deducted for a failed transaction, it will be automatically refunded to the source account within 5-7 working days.
           </p>

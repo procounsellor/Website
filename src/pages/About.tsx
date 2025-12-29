@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
+import { useAuthStore } from '@/store/AuthStore';
 export default function AboutPage() {
+  const { role } = useAuthStore();
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Add top padding for header spacing */}
@@ -134,9 +136,14 @@ export default function AboutPage() {
                 Join thousands of students who have found their path with ProCounsel
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/counsellors" className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 inline-block cursor-pointer">
-                  Explore counsellor
-                </Link>
+                {role !== 'counselor' && (
+                  <Link 
+                    to="/counsellors" 
+                    className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 inline-block cursor-pointer"
+                  >
+                    Explore counsellors
+                  </Link>
+                )}
                 <Link to="/exams" className="bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition duration-300 inline-block cursor-pointer">
                   Find Exams
                 </Link>

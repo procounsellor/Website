@@ -160,7 +160,7 @@ const EditAnswerModal: React.FC<EditAnswerModalProps> = ({
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading}
-              className="flex items-center gap-1 text-sm font-medium text-[#655E95] hover:text-[#4A4478] transition-colors"
+              className="flex items-center gap-1 text-sm font-medium cursor-pointer text-[#655E95] hover:text-[#4A4478] transition-colors"
             >
               <ImagePlus size={18} />
               {selectedImage ? 'Change Image' : 'Add Image'}

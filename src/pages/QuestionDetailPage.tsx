@@ -63,18 +63,11 @@ export default function QuestionDetailPage() {
 
   return (
     <div className="bg-gray-50 min-h-screen p-4 md:p-8">
-      {/* Main Layout Container */}
       <div className="max-w-[1440px] mx-auto flex justify-center gap-3">
-        
-        {/* Left Column: Sidebar */}
         <div className="hidden lg:block w-[191px] shrink-0">
           <CategorySidebar />
         </div>
-
-        {/* Center Column: Content */}
         <div className="flex flex-col mt-15 w-[800px] shrink-0">
-          
-          {/* White Card Wrapper matches DashboardFeed style */}
           <div className="w-full bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
             
             {isLoading && (
@@ -86,13 +79,12 @@ export default function QuestionDetailPage() {
             )}
 
             {details && questionForCard && (
-              // Added flex-col and gap-5 for proper spacing between Question and Answers
               <div className="flex flex-col gap-5">
                 <QuestionCard questionData={details} />
 
                 {details.answerStructure.length > 0 ? (
                   details.answerStructure.map((answer) => (
-                    <AnswerCard key={answer.answerId} answer={answer} onAnswerUpdated={fetchDetails} />
+                    <AnswerCard key={answer.answerId} answer={answer} questionId={details.questionId} onAnswerUpdated={fetchDetails} />
                   ))
                 ) : (
                   <div className="p-10 text-center text-gray-500">

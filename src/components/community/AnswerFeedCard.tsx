@@ -77,7 +77,7 @@ const AnswerFeedCard: React.FC<AnswerFeedCardProps> = ({ question }) => {
 
           <button 
             onClick={handleBookmark}
-            className={`transition-colors ${isBookmarked ? 'text-[#655E95]' : 'text-[#2F43F2] hover:text-indigo-600'}`}
+            className={`transition-colors cursor-pointer ${isBookmarked ? 'text-[#655E95]' : 'text-[#2F43F2] hover:text-indigo-600'}`}
           >
             <Bookmark size={24} fill={isBookmarked ? "#655E95" : "none"} />
           </button>
@@ -104,7 +104,7 @@ const AnswerFeedCard: React.FC<AnswerFeedCardProps> = ({ question }) => {
                        rounded-xl bg-[#ffffff] border border-[#2F43F2] 
                        py-1.5 px-4
                        text-base font-medium text-[#2F43F2]
-                       hover:bg-indigo-50"
+                       hover:bg-indigo-50 cursor-pointer"
           >
             <img src="/write_ans.svg" alt="write an answer" />
             <span>Write an answer</span>

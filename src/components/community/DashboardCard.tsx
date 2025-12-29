@@ -85,7 +85,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ item }) => {
         </div>
         <button 
             onClick={handleBookmark}
-            className={`transition-colors ${isBookmarked ? 'text-[#655E95]' : 'text-gray-500 hover:text-indigo-600'}`}
+            className={`transition-colors cursor-pointer ${isBookmarked ? 'text-[#655E95]' : 'text-gray-500 hover:text-indigo-600'}`}
         >
           <Bookmark size={24} fill={isBookmarked ? "#655E95" : "none"} />
         </button>
@@ -141,15 +141,15 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ item }) => {
 
       <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-300">
         <div className="flex items-center gap-6 text-gray-600">
-          <button className="flex items-center gap-2 hover:text-red-500">
+          <button className="flex items-center cursor-pointer gap-2 hover:text-red-500">
             <Heart size={18} className='text-[#2F43F2] hover:text-red-500' />
             <span className="text-sm">{item.likesCountOnAnswer}</span>
           </button>
-          <button className="flex items-center gap-2 hover:text-indigo-600">
+          <button className="flex items-center cursor-pointer gap-2 hover:text-indigo-600">
             <img src="/msg_comm.svg" alt="comments" />
             <span className="text-sm">{item.commentCountOnAnswer}</span>
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center cursor-pointer gap-2">
             <img src="/bulb_comm.svg" alt="comment" />
             <span className="text-sm">{item.answerCount} Answers</span>
           </div>

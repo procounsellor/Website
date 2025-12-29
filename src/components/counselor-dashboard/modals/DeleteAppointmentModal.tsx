@@ -53,7 +53,7 @@ export default function DeleteAppointmentModal({
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="e.g., I am not feeling well"
-            className="w-full h-24 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#FA660F] focus:outline-none"
+            className="w-full h-24 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#FA660F] focus:outline-none resize-none"
           />
         </div>
 
