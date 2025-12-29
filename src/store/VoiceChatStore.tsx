@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { transformCounselorData } from "@/api/chatbot";
 import type { AllCounselor } from "@/types/academic";
 import { API_CONFIG } from "@/api/config";
+// 1. Import Session Helper to fix the "user_temp" blocking issue
+import { getSessionData } from "@/lib/sessionManager"; 
 
 export interface VoiceMessage {
   text: string;
@@ -10,14 +12,11 @@ export interface VoiceMessage {
   followup?: string;
 }
 
-// Optimized Splitter: Splits on long pauses or commas if text is long
 const splitIntoSentences = (text: string): { sentence: string; remaining: string } | null => {
   const sentenceMatch = text.match(/^(.+?([.?!]+["')\]]*))(\s+|$)/);
   if (sentenceMatch) {
     return { sentence: sentenceMatch[1].trim(), remaining: text.slice(sentenceMatch[0].length) };
   }
-  
-  // If chunk is getting huge (>60 chars) and has a comma, split there for speed
   if (text.length > 60) {
     const commaMatch = text.match(/^(.+?([,]+))(\s+|$)/);
     if (commaMatch) {
@@ -32,23 +31,15 @@ type VoiceChatState = {
   isListening: boolean;
   isSpeaking: boolean;
   isVoiceChatOpen: boolean;
-  
-  // --- Audio State ---
   audioQueue: Promise<string>[]; 
-  isPlayingQueue: boolean; // Acts as "Buffering/Loading" state
+  isPlayingQueue: boolean; 
   currentAudio: HTMLAudioElement | null;
-  
-  // --- Abort Controllers ---
   currentChatStreamController: AbortController | null;
-
-  // --- Actions ---
   toggleVoiceChat: () => void;
   startListening: () => void;
   stopListening: () => void;
   stopSpeaking: () => void;
   processUserTranscript: (transcript: string) => Promise<void>;
-  
-  // --- Internal Helpers ---
   queueAudio: (text: string) => void;
   processAudioQueue: () => Promise<void>;
 };
@@ -58,7 +49,6 @@ export const useVoiceChatStore = create<VoiceChatState>((set, get) => ({
   isListening: false,
   isSpeaking: false,
   isVoiceChatOpen: false,
-  
   audioQueue: [],
   isPlayingQueue: false,
   currentAudio: null,
@@ -92,10 +82,8 @@ export const useVoiceChatStore = create<VoiceChatState>((set, get) => ({
   },
 
   queueAudio: (text: string) => {
-    // Filter noise
     if (!text || !/[a-zA-Z0-9]/.test(text)) return;
 
-    // Prefetch audio immediately
     const audioPromise = (async () => {
       try {
         const response = await fetch(`${API_CONFIG.chatbotUrl}/synthesize`, {
@@ -115,15 +103,12 @@ export const useVoiceChatStore = create<VoiceChatState>((set, get) => ({
 
     set((state) => ({ audioQueue: [...state.audioQueue, audioPromise] }));
     
-    // Only trigger processor if it's idle
     if (!get().isPlayingQueue) {
       get().processAudioQueue();
     }
   },
 
   processAudioQueue: async () => {
-    // Set PlayingQueue to TRUE to indicate "We are busy/buffering"
-    // But do NOT set isSpeaking yet. This keeps UI in "Thinking" mode.
     set({ isPlayingQueue: true });
 
     while (get().audioQueue.length > 0) {
@@ -138,7 +123,6 @@ export const useVoiceChatStore = create<VoiceChatState>((set, get) => ({
             const audio = new Audio(audioUrl);
             set({ currentAudio: audio });
             
-            // Gapless Hack: Start downloading the NEXT file while this one plays
             const nextInLine = get().audioQueue[0];
             if (nextInLine) {
                  nextInLine.then(url => { if(url) new Audio(url); });
@@ -154,7 +138,6 @@ export const useVoiceChatStore = create<VoiceChatState>((set, get) => ({
               resolve(); 
             };
 
-            // CRITICAL: Only show "AI Speaking" when sound ACTUALLY starts
             audio.onplay = () => {
                  set({ isSpeaking: true });
             };
@@ -194,11 +177,15 @@ export const useVoiceChatStore = create<VoiceChatState>((set, get) => ({
     let sentenceBuffer = ""; 
 
     try {
+      // 2. FIX: Get REAL Session Data (Fixes the "Limit Reached" bug)
+      // Pass null/undefined for userId/role to rely on localStorage defaults if not logged in
+      const sessionData = getSessionData(null, null); 
+
       const payload = {
         formattedHistory: currentHistory,
-        userId: "user_temp", 
-        sessionId: "session_temp", 
-        userType: "visitor", 
+        userId: sessionData.userId,     // <--- Uses real ID or persistent Visitor ID
+        sessionId: sessionData.sessionId, // <--- Uses real Session ID
+        userType: sessionData.userType,
         source: "voice_chat"
       };
 
@@ -225,13 +212,17 @@ export const useVoiceChatStore = create<VoiceChatState>((set, get) => ({
 
         for (const line of lines) {
           try {
-            const event = JSON.parse(line.substring(5));
+            const jsonString = line.substring(6);
+            if (!jsonString.trim()) continue; // Skip empty lines
+            
+            const event = JSON.parse(jsonString);
 
             set((state) => {
               const messages = [...state.messages];
               const target = messages[botMessageId];
               if (!target) return { messages };
 
+              // 3. FIX: Handle ALL event types to prevent crashes
               if (event.type === "text_chunk") {
                 target.text += event.content;
                 sentenceBuffer += event.content;
@@ -243,12 +234,22 @@ export const useVoiceChatStore = create<VoiceChatState>((set, get) => ({
                   }
                   sentenceBuffer = extraction.remaining;
                 }
-              } else if (event.type === "followup") {
+              } 
+              else if (event.type === "followup") {
                 target.followup = event.data;
+                // Speak the follow-up too!
                 get().queueAudio(event.data);
-              } else if (event.type === "counsellors") {
+              } 
+              else if (event.type === "counsellors") {
                 target.counsellors = event.data.map(transformCounselorData);
               }
+              // 4. FIX: Handle Errors (Speak them)
+              else if (event.type === "error") {
+                target.text = event.content;
+                get().queueAudio(event.content); // "You have reached the limit..."
+              }
+              // Ignore 'suggestions' and 'token_usage' in voice mode to avoid errors
+              
               return { messages };
             });
           } catch (e) { /* ignore */ }
@@ -261,7 +262,9 @@ export const useVoiceChatStore = create<VoiceChatState>((set, get) => ({
 
     } catch (err: any) {
       if (err.name !== 'AbortError') {
-        set((state) => ({ messages: [...state.messages, { text: "Error occurred.", isUser: false }] }));
+        const errorMsg = "Sorry, I am having trouble connecting.";
+        set((state) => ({ messages: [...state.messages, { text: errorMsg, isUser: false }] }));
+        get().queueAudio(errorMsg);
       }
     } finally {
       set({ currentChatStreamController: null });

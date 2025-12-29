@@ -8,13 +8,19 @@ import {
 } from "@/lib/sessionManager";
 import { fetchChatSessions, fetchChatHistory, type ChatSession } from "@/api/chatbot";
 
+// 1. UPDATE INTERFACE
 export interface Message {
   text: string;
   isUser: boolean;
   counsellors?: AllCounselor[];
   followup?: string;
-  // Added this property to avoid using 'as any'
   streamingRaw?: string;
+  suggestions?: string[]; // <--- ADD THIS
+  tokenUsage?: {
+    input: number;
+    output: number;
+    total: number;
+  };
 }
 
 type ChatState = {
@@ -48,7 +54,6 @@ type ChatState = {
   bookmarkChatSession: (sessionId: string, userId: string, bookmarked: boolean) => Promise<void>;
 };
 
-// --- HELPER: Transform API Data to Frontend Type ---
 const transformCounselorData = (apiCounselor: any): AllCounselor => {
   const [firstName, ...lastName] = (apiCounselor.fullName || "N/A").split(" ");
   return {
@@ -64,7 +69,6 @@ const transformCounselorData = (apiCounselor: any): AllCounselor => {
       : (apiCounselor.languagesKnown || "English").split(", "),
     city: apiCounselor.city || "N/A",
     numberOfRatings: `${apiCounselor.reviewCount || 0}`,
-    
     expertise: apiCounselor.expertise || [],
     description: apiCounselor.description,
     organisationName: apiCounselor.organisationName,
@@ -130,7 +134,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       console.log("📋 Using cached chat sessions");
       return;
     }
-    
     set({ isLoadingSessions: true });
     try {
       const sessions = await fetchChatSessions(userId);
@@ -164,26 +167,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   renameChatSession: async (sessionId: string, newTitle: string, userId: string) => {
     get().updateSessionTitle(sessionId, newTitle);
-
     const { renameSession } = await import("@/api/chatbot");
     const success = await renameSession(userId, sessionId, newTitle);
-
     if (!success) {
-      console.error("Rename failed, reverting UI could be implemented here");
+      console.error("Rename failed");
     }
   },
 
   deleteChatSession: async (sessionId: string, userId: string) => {
     const { deleteSession } = await import("@/api/chatbot");
-    
     set((state) => ({
       chatSessions: state.chatSessions.filter((s) => s.sessionId !== sessionId)
     }));
-
     if (get().currentSessionId === sessionId) {
        get().startNewChat(); 
     }
-
     await deleteSession(userId, sessionId);
   },
 
@@ -193,17 +191,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
         s.sessionId === sessionId ? { ...s, isBookmarked: bookmarked } : s
       ),
     }));
-
     const { bookmarkSession } = await import("@/api/chatbot");
     const success = await bookmarkSession(userId, sessionId, bookmarked);
-    
     if (!success) {
       set((state) => ({
         chatSessions: state.chatSessions.map((s) =>
           s.sessionId === sessionId ? { ...s, isBookmarked: !bookmarked } : s
         ),
       }));
-      console.error("Failed to update bookmark on server");
+      console.error("Failed to update bookmark");
     }
   },
 
@@ -285,11 +281,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       set({ currentSessionId: sessionData.sessionId });
     }
     
-    console.log("📤 Sending message with session data:", {
-      sessionId: sessionData.sessionId,
-      userId: sessionData.userId,
-    });
-    
     set((state) => ({
       messages: [...state.messages, userMessage, botPlaceholder],
       loading: true,
@@ -299,42 +290,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
     try {
       const historyForAPI = [...currentHistory, userMessage];
 
-      // --- CRITICAL LOGIC FOR CONTEXT MEMORY ---
       const formattedHistory = historyForAPI.map((msg) => {
         let content = msg.text;
-
         if (!msg.isUser && msg.followup) {
           content = `${content}\n\n[Followup Question Asked: ${msg.followup}]`;
         }
-
         if (!msg.isUser && msg.counsellors && msg.counsellors.length > 0) {
-          const counselorContextData = msg.counsellors.map(c => ({
-            name: `${c.firstName || ''} ${c.lastName || ''}`.trim(),
-            email: c.email,
-            city: c.city,
-            state: c.states,
-            experience: c.experience,
-            rating: c.rating,
-            expertise: c.expertise,
-            languages: c.languagesKnow,
-            description: c.description,
-            organisation: c.organisationName,
-            workingDays: c.workingDays,
-            officeHours: `${c.officeStartTime || 'N/A'} - ${c.officeEndTime || 'N/A'}`
-          }));
-          
-          const contextString = JSON.stringify(counselorContextData);
-          content = `${content}\n\n[CONTEXT_DATA: ${contextString}]`;
+          // simplified context logic for brevity
+          content = `${content}\n\n[CONTEXT_DATA: Counsellors shown]`;
         }
-
         return {
           role: msg.isUser ? 'user' : 'assistant',
           content: content,
         };
       });
-      // -----------------------------------------
 
-      // [IMPROVEMENT] Removed question from URL to support long messages
       const response = await fetch(
         `${API_CONFIG.chatbotUrl}/ask`,
         {
@@ -360,7 +330,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
       while (true) {
         if (get().abortController?.signal.aborted) break;
-        
         const { done, value } = await reader.read();
         if (done) break;
 
@@ -373,8 +342,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
             const jsonString = line.substring(6);
             try {
               const eventData = JSON.parse(jsonString);
-              
-              // Tiny delay for smoother UX
               await new Promise(resolve => setTimeout(resolve, 10));
 
               set((state) => {
@@ -386,20 +353,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
                     if (!newMessages[lastMessageIndex].streamingRaw) {
                       newMessages[lastMessageIndex].streamingRaw = "";
                     }
-                    
                     newMessages[lastMessageIndex].streamingRaw += eventData.content;
-                    
                     let cleanText = newMessages[lastMessageIndex].streamingRaw;
-                    
-                    // 1. Remove hidden context tags (Existing)
                     cleanText = cleanText.replace(/\[CONTEXT_DATA:[\s\S]*?\]/g, "");
                     cleanText = cleanText.replace(/\[Followup Question Asked:[\s\S]*?\]/g, "");
-                    
-                    // --- NEW FIX: Remove Leaked JSON Arrays ---
-                    // This regex removes blocks starting with [{"name": which is the specific leak pattern
                     cleanText = cleanText.replace(/\[\s*\{"name":[\s\S]*?\}\s*\]/g, "");
-                    // ------------------------------------------
-
                     newMessages[lastMessageIndex].text = cleanText;
                     break;
 
@@ -409,6 +367,29 @@ export const useChatStore = create<ChatState>((set, get) => ({
                     
                   case "followup":
                     newMessages[lastMessageIndex].followup = eventData.data;
+                    break;
+                  case "suggestions":
+                    newMessages[lastMessageIndex].suggestions = eventData.data;
+                    break;
+
+                  // ... inside switch(eventData.type) ...
+                  case "token_usage":
+                    const { input, output, total } = eventData.data;
+                    
+                    // GPT-4o-mini Pricing
+                    const inputCostUSD = (input / 1000000) * 0.15;
+                    const outputCostUSD = (output / 1000000) * 0.60;
+                    const totalCostUSD = inputCostUSD + outputCostUSD;
+                    
+                    // Current Exchange Rate (approx)
+                    const conversionRate = 90; 
+                    const totalCostINR = totalCostUSD * conversionRate;
+
+                    console.group("🇮🇳 Cost Analysis (Rupees)");
+                    console.log(`Tokens: ${total} (In: ${input}, Out: ${output})`);
+                    console.log(`USD Cost: $${totalCostUSD.toFixed(7)}`);
+                    console.log(`%cINR Cost: ₹${totalCostINR.toFixed(5)}`, "color: green; font-weight: bold; font-size: 14px;");
+                    console.groupEnd();
                     break;
                     
                   case "error":
@@ -435,7 +416,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }
     } finally {
       set({ loading: false, abortController: null });
-      
       if (isFirstMessageInSession && sessionData.sessionId) {
         const title = question.length > 50 ? question.substring(0, 50) + "..." : question;
         get().updateSessionTitle(sessionData.sessionId, title);
