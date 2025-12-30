@@ -46,7 +46,7 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [showHeaderSearch, setShowHeaderSearch] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
-  
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -317,19 +317,22 @@ export default function Header() {
 
                 {isAuthenticated ? (
                   <>
-                    <div className="hidden md:block relative" ref={notificationRef}>
-                        <button
-                          onClick={toggleNotifications}
-                          className="p-2 hover:cursor-pointer rounded-full hover:bg-gray-100 transition-colors"
-                        >
-                          <Bell className="h-6 w-6 text-gray-700" />
-                        </button>
-                        {isNotificationOpen && user && (
-                          <NotificationDropdown 
-                             notifications={user.activityLog || []} 
-                             onClose={() => setIsNotificationOpen(false)}
-                          />
-                        )}
+                    <div
+                      className="hidden md:block relative"
+                      ref={notificationRef}
+                    >
+                      <button
+                        onClick={toggleNotifications}
+                        className="p-2 hover:cursor-pointer rounded-full hover:bg-gray-100 transition-colors"
+                      >
+                        <Bell className="h-6 w-6 text-gray-700" />
+                      </button>
+                      {isNotificationOpen && user && (
+                        <NotificationDropdown
+                          notifications={user.activityLog || []}
+                          onClose={() => setIsNotificationOpen(false)}
+                        />
+                      )}
                     </div>
 
                     <div className="relative" ref={dropdownRef}>
@@ -341,9 +344,7 @@ export default function Header() {
                       </button>
 
                       {isDropdownOpen && (
-                        <div
-                          className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50 py-1 border border-gray-200"
-                        >
+                        <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50 py-1 border border-gray-200">
                           <button
                             onClick={handleProfileNavigation}
                             className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 hover:cursor-pointer"
@@ -352,16 +353,20 @@ export default function Header() {
                             <span>Profile</span>
                           </button>
 
-                          <button
-                             onClick={() => {
-                               navigate('/notifications');
-                               setIsDropdownOpen(false);
-                             }}
-                             className="w-full md:hidden flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100"
-                          >
-                            <Bell size={16} />
-                            Notifications
-                          </button>
+                          {user?.role?.trim().toLowerCase() ==
+                            "counsellor" ||
+                            (user?.verified && (
+                              <button
+                                onClick={() => {
+                                  navigate("/notifications");
+                                  setIsDropdownOpen(false);
+                                }}
+                                className="w-full md:hidden flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100"
+                              >
+                                <Bell size={16} />
+                                Notifications
+                              </button>
+                            ))}
 
                           <button
                             onClick={() =>
@@ -433,20 +438,26 @@ export default function Header() {
               <div className="btn flex items-center gap-3">
                 {isAuthenticated ? (
                   <>
-                     <div className="hidden md:block relative" ref={notificationRef}>
-                        <button
-                          onClick={toggleNotifications}
-                          className="p-2 hover:cursor-pointer rounded-full hover:bg-gray-100 transition-colors"
+                    {user?.role?.trim().toLowerCase() == "counsellor" ||
+                      (user?.verified && (
+                        <div
+                          className="hidden md:block relative"
+                          ref={notificationRef}
                         >
-                          <Bell className="h-6 w-6 text-gray-700" />
-                        </button>
-                        {isNotificationOpen && user && (
-                          <NotificationDropdown 
-                             notifications={user.activityLog || []} 
-                             onClose={() => setIsNotificationOpen(false)}
-                          />
-                        )}
-                    </div>
+                          <button
+                            onClick={toggleNotifications}
+                            className="p-2 hover:cursor-pointer rounded-full hover:bg-gray-100 transition-colors"
+                          >
+                            <Bell className="h-6 w-6 text-gray-700" />
+                          </button>
+                          {isNotificationOpen && user && (
+                            <NotificationDropdown
+                              notifications={user.activityLog || []}
+                              onClose={() => setIsNotificationOpen(false)}
+                            />
+                          )}
+                        </div>
+                      ))}
 
                     <div className="relative" ref={dropdownRef}>
                       <button
@@ -457,9 +468,7 @@ export default function Header() {
                       </button>
 
                       {isDropdownOpen && (
-                        <div
-                          className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50 py-1 border border-gray-200"
-                        >
+                        <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50 py-1 border border-gray-200">
                           <button
                             onClick={handleProfileNavigation}
                             className="w-full flex items-center gap-3 px-4 py-2 text-sm cursor-pointer hover:bg-gray-100"
@@ -467,14 +476,14 @@ export default function Header() {
                             <LayoutDashboard size={16} />
                             Profile
                           </button>
-                          
+
                           {/* Mobile Notification Item */}
                           <button
-                             onClick={() => {
-                               navigate('/notifications'); 
-                               setIsDropdownOpen(false);
-                             }}
-                             className="w-full md:hidden flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100"
+                            onClick={() => {
+                              navigate("/notifications");
+                              setIsDropdownOpen(false);
+                            }}
+                            className="w-full md:hidden flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100"
                           >
                             <Bell size={16} />
                             Notifications

@@ -234,19 +234,9 @@ export default function CounselorDashboard() {
     );
   }
 
-  if (!authUser) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-red-500 text-lg">
-          Authentication session ended. Please log in again.
-        </p>
-      </div>
-    );
-  }
-
   if (
-    authUser.role?.trim().toLowerCase() !== "counsellor" ||
-    !authUser.verified
+    authUser?.role?.trim().toLowerCase() !== "counsellor" ||
+    !authUser?.verified
   ) {
     return <PendingReviewScreen />;
   }

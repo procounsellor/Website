@@ -85,6 +85,12 @@ export default function CounselorSignupModal() {
       await counsellorSignup(payload);
       toast.success('Application submitted successfully! Our team will review your details.', { duration: 2000 });
       localStorage.setItem('hasSubmittedCounselorApp', 'true');
+      
+      // Update role to counselor in AuthStore and localStorage
+      // This ensures the header immediately reflects the counsellor state
+      localStorage.setItem('role', 'counselor');
+      useAuthStore.setState({ role: 'counselor' });
+      
       handleClose();
       navigate('/counsellor-dashboard');
     } catch (error) {
