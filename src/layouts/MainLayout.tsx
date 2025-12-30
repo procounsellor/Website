@@ -75,6 +75,7 @@ export default function MainLayout() {
     setReturnToPath,
     clearOnLoginSuccess,
   } = useAuthStore();
+  const authUser = useAuthStore(s => s.user)
   const { refreshUser } = useAuthStore();
   const { isChatbotOpen, toggleChatbot } = useChatStore();
   const { isVoiceChatOpen } = useVoiceChatStore();
@@ -167,6 +168,7 @@ export default function MainLayout() {
     }
   };
 
+
   return (
     <div>
       <AppInstallBanner />
@@ -216,8 +218,10 @@ export default function MainLayout() {
         }}
       />
 
+
       {/* Chatbot Toggle Button */}
-      {!isStreamActive && location.pathname !== '/promo' && (
+      {!isStreamActive && location.pathname !== '/promo' &&  
+       authUser?.verified && (
         <button
           onClick={toggleChatbot}
           className="fixed bottom-6 right-6 z-50 flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-110 active:scale-95 bg-transparent"
