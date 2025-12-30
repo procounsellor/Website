@@ -220,8 +220,7 @@ export default function MainLayout() {
 
 
       {/* Chatbot Toggle Button */}
-      {!isStreamActive && location.pathname !== '/promo' &&  
-       authUser?.verified && (
+      {!isStreamActive && location.pathname !== '/promo' &&  (authUser?.role.trim().toLowerCase() == 'counsellor' ? authUser?.verified: true) && (
         <button
           onClick={toggleChatbot}
           className="fixed bottom-6 right-6 z-50 flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-110 active:scale-95 bg-transparent"
