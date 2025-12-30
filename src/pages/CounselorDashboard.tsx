@@ -105,12 +105,12 @@ export default function CounselorDashboard() {
   const counsellorId = authUser?.userName || localStorage.getItem("phone") || "";
 
   useEffect(() => {
-    if (!initialized) {
-      refreshUser()
-        .catch((err) => console.error("Error refreshing user:", err))
-        .finally(() => setInitialized(true));
-    }
-  }, [initialized, refreshUser]);
+    // Always refresh user data on mount to ensure we have the latest counsellor profile
+    // This is especially important after role change from student to counselor
+    refreshUser(true)
+      .catch((err) => console.error("Error refreshing user:", err))
+      .finally(() => setInitialized(true));
+  }, [refreshUser]);
 
   const {
     data: counselor,
