@@ -24,6 +24,8 @@ export default function MyActivityPage() {
   const [activeTab, setActiveTab] = useState<TabType>('My Questions');
   const [searchQuery, setSearchQuery] = useState('');
   
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  
   const [myQuestions, setMyQuestions] = useState<CommunityDashboardItem[]>([]);
   const [myAnswers, setMyAnswers] = useState<MyAnswerItem[]>([]);
   const [bookmarkedQuestions, setBookmarkedQuestions] = useState<any[]>([]);
@@ -107,6 +109,11 @@ export default function MyActivityPage() {
   }, [activeTab, userId, token]);
 
   useEffect(() => {
+    setSelectedCategory(null);
+    setSearchQuery('');
+  }, [activeTab]);
+
+  useEffect(() => {
     if (activeTab === "My Questions") {
       setMyQuestions([]);
       setNextPageToken(null);
@@ -136,6 +143,19 @@ export default function MyActivityPage() {
     return () => observer.disconnect();
   }, [activeTab, fetchQuestions]);
 
+  const filterData = <T extends { interestedCourse?: string, question?: string }>(data: T[]) => {
+    return data.filter(item => {
+      const matchesCategory = selectedCategory 
+        ? item.interestedCourse === selectedCategory 
+        : true;
+      const matchesSearch = searchQuery 
+        ? item.question?.toLowerCase().includes(searchQuery.toLowerCase())
+        : true;
+
+      return matchesCategory && matchesSearch;
+    });
+  };
+
   const renderContent = () => {
     if (isLoading) {
       return (
@@ -155,16 +175,24 @@ export default function MyActivityPage() {
     }
 
     if (activeTab === "My Questions") {
+      const filteredQuestions = filterData(myQuestions);
+
       return (
         <>
           <div className="w-full bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
             <div className="flex flex-col space-y-5">
-              {myQuestions.length > 0 ? (
-                myQuestions.map(q => (
-                  <MyActivityQuestionCard key={q.questionId} question={q} />
+              {filteredQuestions.length > 0 ? (
+                filteredQuestions.map(q => (
+                  <MyActivityQuestionCard 
+                    key={q.questionId} 
+                    question={q} 
+                    onQuestionUpdated={() => fetchQuestions(false)}
+                  />
                 ))
               ) : (
-                <div className="text-center py-10 text-gray-500">You haven't asked any questions yet.</div>
+                <div className="text-center py-10 text-gray-500">
+                  {selectedCategory ? `No questions found in "${selectedCategory}"` : "You haven't asked any questions yet."}
+                </div>
               )}
             </div>
           </div>
@@ -182,11 +210,13 @@ export default function MyActivityPage() {
     }
 
     if (activeTab === "My Answers") {
+      const filteredAnswers = filterData(myAnswers);
+
       return (
         <div className="w-full bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
           <div className="flex flex-col space-y-5">
-             {myAnswers.length > 0 ? (
-                myAnswers.map(answerItem => (
+             {filteredAnswers.length > 0 ? (
+                filteredAnswers.map(answerItem => (
                   <MyActivityAnswerCard
                     key={answerItem.myAnswerId}
                     answerItem={answerItem}
@@ -194,7 +224,9 @@ export default function MyActivityPage() {
                   />
                 ))
              ) : (
-                <div className="text-center py-10 text-gray-500">You haven't answered any questions yet.</div>
+                <div className="text-center py-10 text-gray-500">
+                   {selectedCategory ? `No answers found in "${selectedCategory}"` : "You haven't answered any questions yet."}
+                </div>
              )}
           </div>
         </div>
@@ -202,15 +234,23 @@ export default function MyActivityPage() {
     }
 
     if (activeTab === "Bookmarked Questions") {
+      const filteredBookmarks = filterData(bookmarkedQuestions);
+
       return (
         <div className="w-full bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
           <div className="flex flex-col space-y-5">
-             {bookmarkedQuestions.length > 0 ? (
-               bookmarkedQuestions.map((q: any) => (
-                 <MyActivityQuestionCard key={q.questionId} question={q} />
+             {filteredBookmarks.length > 0 ? (
+               filteredBookmarks.map((q: any) => (
+                 <MyActivityQuestionCard 
+                   key={q.questionId} 
+                   question={q}
+                   onQuestionUpdated={fetchOtherTabs} 
+                 />
                ))
              ) : (
-               <div className="text-center py-10 text-gray-500">No bookmarked questions found.</div>
+               <div className="text-center py-10 text-gray-500">
+                 {selectedCategory ? `No bookmarks found in "${selectedCategory}"` : "No bookmarked questions found."}
+               </div>
              )}
           </div>
         </div>
@@ -227,7 +267,10 @@ export default function MyActivityPage() {
       <div className="max-w-[1440px] mx-auto flex justify-center gap-3">
         
         <div className="hidden lg:block w-[191px] shrink-0">
-          <CategorySidebar />
+          <CategorySidebar 
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+          />
         </div>
 
         <div className="flex flex-col mt-15 w-[800px] shrink-0">

@@ -41,6 +41,8 @@ const truncateText = (text: string | null | undefined, maxLength: number) => {
 const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
   const isFailed = transaction.status?.toLowerCase() === "failed";
   const isDebit = transaction.type === "debit" && !isFailed;
+  
+  const isOffline = transaction.method?.toLowerCase().includes('offline');
 
   const getTransactionDetails = () => {
     let mobileLine1 = "";
@@ -126,7 +128,13 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
             className={`font-medium text-base ${amountColor} flex items-center gap-1`}
           >
             {isDebit ? "-" : ""}
-             <img src="/coin.svg" alt="coin" className="w-4 h-4" />
+            
+            {isOffline ? (
+              <span>₹</span>
+            ) : (
+              <img src="/coin.svg" alt="coin" className="w-4 h-4" />
+            )}
+            
             {formatCurrency(transaction.amount)}
           </p>
 
@@ -180,7 +188,13 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
               className={`font-semibold text-lg ${amountColor} flex items-center gap-1`}
             >
               {isDebit ? "-" : ""}
-               <img src="/coin.svg" alt="coin" className="w-5 h-5" />
+              
+              {isOffline ? (
+                <span>₹</span>
+              ) : (
+                <img src="/coin.svg" alt="coin" className="w-5 h-5" />
+              )}
+              
               {formatCurrency(transaction.amount)}
             </p>
           </div>

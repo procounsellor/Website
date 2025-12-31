@@ -139,7 +139,11 @@ export default function AppointmentsTab({ user, token }: Props) {
             />)
           ) : (
             <div className="text-center py-16 text-gray-500 bg-white rounded-2xl">
-                No {activeFilter.toLowerCase()} appointments found.
+                <p className="text-gray-500 mt-2">
+                  {activeFilter === 'All' 
+                    ? "There are no appointments." 
+                    : `There are no ${activeFilter.toLowerCase()} appointments.`}
+                </p>
             </div>
           )}
         </div>

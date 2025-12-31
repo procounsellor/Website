@@ -14,18 +14,22 @@ const { baseUrl } = API_CONFIG;
 
 export async function getQuestionsList(
   loggedInUserId: string,
-  token: string
+  token: string,
+  pageToken?: string | null
 ): Promise<GetQuestionsListResponse> {
   try {
-    const response = await fetch(
-      `${baseUrl}${API_CONFIG.endpoints.getQuestionsList}?loggedInUserId=${loggedInUserId}`,
-      {
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
+    let url = `${baseUrl}${API_CONFIG.endpoints.getQuestionsList}?loggedInUserId=${loggedInUserId}`;
+    
+    if (pageToken) {
+      url += `&nextPageToken=${pageToken}`;
+    }
+
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
 
     if (!response.ok) {
       const errorBody = await response.text();
@@ -697,6 +701,78 @@ export async function getAnswersByQuestionId(
     return data;
   } catch (error) {
     console.error('Get Answers By Question Id Error:', error);
+    throw error;
+  }
+}
+
+export async function deleteQuestion(
+  userId: string,
+  questionId: string,
+  token: string
+): Promise<{ message: string; status: string }> {
+  try {
+    const url = `${baseUrl}${API_CONFIG.endpoints.deleteQuestion}`;
+
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        userId,
+        questionId,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to delete question. Details: ${errorBody}`
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Delete Question Error:', error);
+    throw error;
+  }
+}
+
+export async function updateQuestion(
+  userId: string,
+  questionId: string,
+  questionText: string,
+  token: string
+): Promise<{ message: string; status: string }> {
+  try {
+    const url = `${baseUrl}${API_CONFIG.endpoints.updateQuestion}`;
+
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        questionId,
+        userId,
+        question: questionText,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to update question. Details: ${errorBody}`
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Update Question Error:', error);
     throw error;
   }
 }
