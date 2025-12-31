@@ -1,5 +1,4 @@
-import { Search, SlidersHorizontal  } from 'lucide-react';
-
+import { Search } from 'lucide-react';
 
 export default function QuestionFilterBar() {
   return (
@@ -17,16 +16,6 @@ export default function QuestionFilterBar() {
                        focus:outline-none focus:ring-2 focus:ring-[#13097D]"
           />
         </div>
-
-        <button
-          className="w-[90px] h-10 flex items-center justify-center gap-2
-                     bg-white border border-[#EFEFEF] rounded-xl
-                     text-sm font-semibold text-gray-700
-                     hover:bg-gray-50 transition-colors cursor-pointer"
-        >
-          <SlidersHorizontal size={16} />
-          <span>Filter</span>
-        </button>
 
       </div>
     </div>

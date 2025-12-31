@@ -29,6 +29,8 @@ export const API_CONFIG = {
     getMyBookmarkedQuestions: '/api/community/dashboard/getMyBookmarkedQuestions',
     deleteAnswer: '/api/community/answers/deleteAnswer',
     updateAnswer: '/api/community/answers/updateAnswer',
+    deleteQuestion: '/api/community/questions/deleteQuestion',
+    updateQuestion: '/api/community/questions/updateQuestion',
     getAnswersByQuestionId: '/api/community/dashboard/getAnswersForMyAnswers',
   },
   defaultTimeout: 10000,

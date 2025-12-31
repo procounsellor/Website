@@ -5,7 +5,11 @@ import type { CommunityDashboardItem } from '@/types/community';
 import DashboardCard from './DashboardCard';
 import { Loader2 } from 'lucide-react'; 
 
-const DashboardFeed: React.FC = () => {
+interface DashboardFeedProps {
+  selectedCategory?: string | null;
+}
+
+const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
   const [items, setItems] = useState<CommunityDashboardItem[]>([]);
   const [nextPageToken, setNextPageToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -98,6 +102,10 @@ const DashboardFeed: React.FC = () => {
     }
   }, [userId, token, nextPageToken, isMoreLoading]);
 
+  const displayedItems = selectedCategory
+    ? items.filter((item) => item.interestedCourse === selectedCategory)
+    : items;
+
   if (isLoading) {
     return (
       <div className="w-full max-w-[900px] p-20 bg-white rounded-lg text-center border border-gray-200 shadow-sm">
@@ -119,13 +127,15 @@ const DashboardFeed: React.FC = () => {
     <>
       <div className="w-full max-w-[900px] bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
         <div className="flex flex-col space-y-5">
-          {items.length > 0 ? (
-            items.map((item) => (
+          {displayedItems.length > 0 ? (
+            displayedItems.map((item) => (
               <DashboardCard key={item.questionId} item={item} />
             ))
           ) : (
             <div className="p-10 text-center text-gray-500">
-              No items found in the community feed.
+              {items.length === 0 
+                ? "No items found in the community feed." 
+                : `No items found for category "${selectedCategory}".`}
             </div>
           )}
         </div>

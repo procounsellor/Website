@@ -5,12 +5,13 @@ import { postAnswer } from '@/api/community';
 import { toast } from 'react-hot-toast';
 import { formatTimeAgo } from '@/utils/time';
 
+// UPDATED: Interface matches your API response keys exactly
 export interface AnswerModalDetails {
   questionId: string;
   questionText: string;
-  askerFullName: string;
-  askerPhotoUrl: string | null;
-  askerInterestedCourse: string;
+  userFullName: string;       // Matches API
+  userPhotoUrl: string | null; // Renamed from askerPhotoUrl to match API
+  askerInterestedCourse?: string; // Optional since API doesn't send this
   questionTimestamp: { seconds: number; nanos: number };
 }
 
@@ -117,10 +118,11 @@ const WriteAnswerModal: React.FC<WriteAnswerModalProps> = ({
 
   if (!isOpen || !questionDetails) return null;
 
+  // UPDATED: Logic to use userPhotoUrl directly
   const askerImage =
-    questionDetails.askerPhotoUrl ||
+    questionDetails.userPhotoUrl ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      questionDetails.askerFullName
+      questionDetails.userFullName || 'User'
     )}`;
 
   const isSubmitDisabled = (!yourAnswer.trim() && !selectedImage) || isLoading;
@@ -153,15 +155,15 @@ const WriteAnswerModal: React.FC<WriteAnswerModalProps> = ({
           <div className="flex gap-4">
             <img
               src={askerImage}
-              alt={questionDetails.askerFullName}
-              className="w-[42px] h-[42px] rounded-full object-cover"
+              alt={questionDetails.userFullName}
+              className="w-[42px] h-[42px] rounded-full object-cover border border-gray-100"
             />
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <span className="text-lg font-medium text-[#242645]">
-                  {questionDetails.askerFullName}
+                  {questionDetails.userFullName}
                 </span>
-                <span className="text-sm text-[#8C8CA1] ml-6">
+                <span className="text-sm text-[#8C8CA1]">
                   {formatTimeAgo(questionDetails.questionTimestamp.seconds)}
                 </span>
               </div>

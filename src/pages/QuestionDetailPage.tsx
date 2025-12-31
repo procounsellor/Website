@@ -58,6 +58,8 @@ export default function QuestionDetailPage() {
         userIdQuestionAsked: details.questionAskeduserId,
         timestamp: details.timestamp,
         myQuestion: details.loggedInUserId === details.questionAskeduserId,
+        userFullName: details.questionAskedFullName,
+        userPhotoUrl: details.questionAskedPhotoUrl,
       }
     : null;
 
@@ -65,7 +67,7 @@ export default function QuestionDetailPage() {
     <div className="bg-gray-50 min-h-screen p-4 md:p-8">
       <div className="max-w-[1440px] mx-auto flex justify-center gap-3">
         <div className="hidden lg:block w-[191px] shrink-0">
-          <CategorySidebar />
+          <CategorySidebar selectedCategory={null} onSelectCategory={() => {}}/>
         </div>
         <div className="flex flex-col mt-15 w-[800px] shrink-0">
           <div className="w-full bg-white rounded-lg p-5 border border-gray-200 shadow-sm">

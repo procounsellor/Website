@@ -141,8 +141,8 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ item }) => {
 
       <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-300">
         <div className="flex items-center gap-6 text-gray-600">
-          <button className="flex items-center cursor-pointer gap-2 hover:text-red-500">
-            <Heart size={18} className='text-[#2F43F2] hover:text-red-500' />
+          <button className="flex items-center cursor-pointer gap-2">
+            <Heart size={18} className='text-[#2F43F2]' />
             <span className="text-sm">{item.likesCountOnAnswer}</span>
           </button>
           <button className="flex items-center cursor-pointer gap-2 hover:text-indigo-600">
