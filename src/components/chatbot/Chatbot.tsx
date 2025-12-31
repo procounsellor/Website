@@ -21,25 +21,7 @@ import { useAuthStore } from "@/store/AuthStore";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-const SuggestionChips = ({
-  suggestions,
-  onSelect,
-}: {
-  suggestions: string[];
-  onSelect: (text: string) => void;
-}) => (
-  <div className="flex flex-wrap gap-2.5 mt-4 animate-in fade-in slide-in-from-bottom-3 duration-700 pl-1 md:pl-4">
-    {suggestions.map((text, idx) => (
-      <button
-        key={idx}
-        onClick={() => onSelect(text)}
-        className="relative px-4 py-2 text-xs md:text-sm font-semibold tracking-wide text-[#FF660F] bg-[#FF660F]/5 border border-[#FF660F]/30 rounded-xl hover:bg-[#FF660F]/10 hover:border-[#FF660F] hover:text-white hover:shadow-[0_0_15px_rgba(255,102,15,0.3)] hover:-translate-y-0.5 active:scale-95 transition-all duration-300 ease-out cursor-pointer"
-      >
-        {text}
-      </button>
-    ))}
-  </div>
-);
+
 
 // Small reusable UI pieces
 const TypingIndicator = () => (
@@ -583,16 +565,7 @@ export default function Chatbot() {
                                 {msg.followup}
                               </p>
                             )}
-                            {msg.suggestions &&
-                              msg.suggestions.length > 0 &&
-                              !msg.isUser && (
-                                <div className="max-w-4xl mx-auto md:pl-12 pr-3 md:pr-6">
-                                  <SuggestionChips
-                                    suggestions={msg.suggestions}
-                                    onSelect={(text) => handleSend(text)}
-                                  />
-                                </div>
-                              )}
+                          
 
                             {/* Counselor cards */}
                             {msg.counsellors &&

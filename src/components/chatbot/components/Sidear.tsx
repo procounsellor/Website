@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { EllipsisVertical, Search, ArrowLeft, X, Lock, Loader2, Bookmark, AlertTriangle } from "lucide-react"; 
+import { EllipsisVertical, Search, ArrowLeft, X, Lock, Loader2 ,Bookmark,AlertTriangle} from "lucide-react"; // Fixed: Removed unused Bookmark
 import ChatOptionsMenu from './ChatOptionsMenu';
 import { useChatStore } from "@/store/ChatStore";
 import { useAuthStore } from "@/store/AuthStore";
@@ -349,17 +349,18 @@ export default function Sidebar({
                             />
                           ) : (
                             <div className="flex items-center gap-2 overflow-hidden">
-                              <p className="text-[14px] font-medium truncate text-white">
-                                {chat.title}
-                              </p>
-                              {chat.isBookmarked && (
-                                <Bookmark 
-                                  size={14} 
-                                  className="text-[#FF660F] shrink-0" 
-                                  fill="currentColor" 
-                                />
-                              )}
-                            </div>
+<p className="text-[14px] font-medium truncate text-white">
+        {chat.title}
+      </p>      {chat.isBookmarked && (
+        <Bookmark 
+          size={14} 
+          className="text-[#FF660F] shrink-0" 
+          fill="currentColor" 
+        />
+      )}
+      
+      
+    </div>
                           )}
                           
                           <button
