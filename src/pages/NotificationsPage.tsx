@@ -6,7 +6,7 @@ import { getRelativeTime } from '@/utils/dateUtils';
 import { getAppointmentById } from '@/api/appointment';
 import type { ActivityLog } from '@/types/user';
 import toast from 'react-hot-toast';
-import AppointmentDetailsModal from '@/components/student-dashboard/AppointmentDetailsModal';
+import NotificationAppointmentModal from '@/components/notifications/NotificationAppointmentModal';
 
 const NotificationsPage = () => {
   const { user, isAuthenticated, toggleLogin, role, userId } = useAuthStore();
@@ -15,6 +15,7 @@ const NotificationsPage = () => {
 
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [selectedNotification, setSelectedNotification] = useState<ActivityLog | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -31,6 +32,7 @@ const NotificationsPage = () => {
 
   const handleNotificationClick = async (notif: ActivityLog) => {
       if (role === 'counselor') return;
+      setSelectedNotification(notif);
       const type = notif.activityType?.toLowerCase();
   
       if (type === 'subscription' || type === 'subscribe') {
@@ -115,20 +117,22 @@ const NotificationsPage = () => {
         </div>
       </div>
 
-      {selectedAppointment && (
-        <AppointmentDetailsModal
-            isOpen={isAppointmentModalOpen}
-            onClose={() => {
-                setIsAppointmentModalOpen(false);
-                setSelectedAppointment(null);
-            }}
-            appointment={selectedAppointment}
-            onNavigateToCounselor={(counselorId) => {
-                navigate('/counsellor-profile', { 
-                  state: { id: counselorId } 
-                });
-                setIsAppointmentModalOpen(false);
-            }}
+      {selectedAppointment && selectedNotification && (
+        <NotificationAppointmentModal
+          isOpen={isAppointmentModalOpen}
+          onClose={() => {
+            setIsAppointmentModalOpen(false);
+            setSelectedAppointment(null);
+            setSelectedNotification(null);
+          }}
+          appointment={selectedAppointment}
+          notification={selectedNotification}
+          onNavigateToCounselor={(counselorId) => {
+            navigate('/counsellor-profile', { 
+              state: { id: counselorId } 
+            });
+            setIsAppointmentModalOpen(false);
+          }}
         />
       )}
     </div>

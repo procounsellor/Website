@@ -61,8 +61,8 @@ const AnswerFeedCard: React.FC<AnswerFeedCardProps> = ({ question }) => {
   const modalQuestionDetails: AnswerModalDetails = {
     questionId: question.questionId,
     questionText: question.question,
-    askerFullName: 'ProCounsel Member',
-    askerPhotoUrl: null,
+    userFullName: question.userFullName,
+    userPhotoUrl: question.userPhotoUrl,
     askerInterestedCourse: 'Student',
     questionTimestamp: question.timestamp,
   };

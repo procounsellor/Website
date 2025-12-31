@@ -12,6 +12,8 @@ export function DashboardCounselorCard({ counselor }: CounselorCardProps){
   const languages = counselor.languagesKnow || [];
   const description = languages.slice(0, 2).join(' | ');
 
+  const hasPlan = counselor.plan && counselor.plan.trim() !== "";
+
   return (
     <>
       <img
@@ -24,6 +26,7 @@ export function DashboardCounselorCard({ counselor }: CounselorCardProps){
         <h4 className="font-semibold text-sm sm:text-lg text-[#242645] truncate">{fullName}</h4>
         <p className="text-xs sm:text-sm text-[#8C8CA1] truncate">{description}</p>
         <p className="text-xs sm:text-sm text-[#8C8CA1] truncate">{counselor.city}</p>
+        
         <div className="flex items-center text-xs sm:text-sm text-gray-600 gap-4 my-2">
             <span className="flex items-center gap-1">
                 <Star className="w-4 h-4 text-yellow-500" fill="currentColor"/>
@@ -34,13 +37,23 @@ export function DashboardCounselorCard({ counselor }: CounselorCardProps){
                 {counselor.experience ?? 'N/A'}+ Yrs
             </span>
         </div>
+        
         <hr className="my-1 border-[#F5F5F5]"/>
-        <div className="flex items-center gap-2 mt-2">
-          <img src='/Procoin.jpg' alt="procoin_icon" className="w-5 h-5 sm:w-6 sm:h-6 -mt-2"/>
-          <span className="text-xs sm:text-sm text-nowrap font-semibold text-[#343c6a] -mt-1.5">
-            {counselor.ratePerYear?.toLocaleString('en-IN') ?? 'N/A'} ProCoins
-          </span>
-        </div>
+        
+        {hasPlan ? (
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-xs sm:text-sm text-nowrap font-semibold text-[#343c6a] capitalize -mt-0.5">
+              Active Subscription: {counselor.plan}
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 mt-2">
+            <img src='/Procoin.jpg' alt="procoin_icon" className="w-5 h-5 sm:w-6 sm:h-6 -mt-2"/>
+            <span className="text-xs sm:text-sm text-nowrap font-semibold text-[#343c6a] -mt-1.5">
+              {counselor.ratePerYear?.toLocaleString('en-IN') ?? 'N/A'} ProCoins
+            </span>
+          </div>
+        )}
       </div>
     </>
   );

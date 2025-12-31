@@ -1,63 +1,94 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bookmark, Heart } from 'lucide-react';
+import { Heart, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import type { CommunityDashboardItem } from '@/types/community';
 import { formatTimeAgo } from '@/utils/time';
 import { useAuthStore } from '@/store/AuthStore';
-import { bookmarkQuestion } from '@/api/community';
+import { deleteQuestion } from '@/api/community';
 import { toast } from 'react-hot-toast';
+import EditQuestionModal from './EditQuestionModal';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 interface MyActivityQuestionCardProps {
   question: CommunityDashboardItem;
+  onQuestionUpdated?: () => void;
 }
 
-const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({ question }) => {
+const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({ question, onQuestionUpdated }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(question.questionBookmarkedByMe || false);
+  
+  // Menu & Modal States
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const navigate = useNavigate();
-  const { user, userId } = useAuthStore();
+  const { userId } = useAuthStore();
   const token = localStorage.getItem('jwt');
 
   const [isLiked, setIsLiked] = useState(question.answerLikedByMe || false);
   const [likesCount, setLikesCount] = useState(question.likesCountOnAnswer || 0);
 
   useEffect(() => {
-    setIsBookmarked(question.questionBookmarkedByMe || false);
     setIsLiked(question.answerLikedByMe || false);
     setLikesCount(question.likesCountOnAnswer || 0);
   }, [question]);
 
-  const handleBookmark = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!userId || !token) return;
-    const previousState = isBookmarked;
-    setIsBookmarked(!previousState);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    if (isMenuOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
 
+  const handleMenuToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsMenuOpen(false);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsMenuOpen(false);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!userId || !token) {
+      toast.error("Please login to delete.");
+      return;
+    }
     try {
-      const response = await bookmarkQuestion(
-        userId,
-        question.questionId,
-        user?.role || 'user',
-        token
-      );
+      setIsDeleting(true);
+      const response = await deleteQuestion(userId, question.questionId, token);
       
       if (response.status === 'Success') {
-        setIsBookmarked(response.isBookmarked);
-        toast.success(response.message);
+        toast.success("Question deleted successfully");
+        setIsDeleteModalOpen(false);
+        onQuestionUpdated?.();
       } else {
-        setIsBookmarked(previousState);
+        toast.error(response.message || "Failed to delete");
       }
     } catch (error) {
       console.error(error);
-      setIsBookmarked(previousState);
-      toast.error("Failed to bookmark");
+      toast.error("Failed to delete question");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const userImage = question.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(question.fullName)}`;
-  
   const handleClick = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).tagName === 'BUTTON') {
+    if ((e.target as HTMLElement).tagName === 'BUTTON' || (e.target as HTMLElement).closest('.menu-container')) {
       e.stopPropagation();
       return;
     }
@@ -66,193 +97,156 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({ questio
     }
   };
 
-  // const handleLike = async (e: React.MouseEvent) => {
-  //   e.stopPropagation();
-  //   if (!question.topAnswerId) {
-  //     toast.error("No answer available to like");
-  //     return;
-  //   }
-  //   if (!userId || !token) {
-  //     toast.error("Please login to like answers");
-  //     return;
-  //   }
-
-  //   const previousLikedState = isLiked;
-  //   const previousCount = likesCount;
-
-  //   setIsLiked(!previousLikedState);
-  //   setLikesCount(previousLikedState ? previousCount - 1 : previousCount + 1);
-
-  //   try {
-  //     const response = await likeAnswer(
-  //       userId,
-  //       question.topAnswerId,
-  //       user?.role || 'user',
-  //       token
-  //     );
-
-  //     if (response.status === 'Success') {
-  //       setIsLiked(response.isLiked);
-  //     } else {
-  //       setIsLiked(previousLikedState);
-  //       setLikesCount(previousCount);
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //     setIsLiked(previousLikedState);
-  //     setLikesCount(previousCount);
-  //     toast.error("Failed to update like");
-  //   }
-  // };
+  const userImage = question.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(question.fullName)}`;
+  
+  const canEdit = (question.answerCount || 0) === 0;
 
   return (
-    <div 
-      onClick={handleClick}
-      className="w-full max-w-[860px] mx-auto p-5 rounded-lg cursor-pointer bg-[#F5F6FF] border-b-2 border-white"
-    >
-      <div className="flex justify-between items-start">
-        <div className="flex gap-4">
-          <img
-            src={userImage}
-            alt={question.fullName}
-            className="w-[42px] h-[42px] rounded-full object-cover"
-          />
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-medium text-[#242645]">
-                {question.fullName}
-              </span>
-              {question.questionTimestamp?.seconds && (
-                <span className="text-sm text-[#8C8CA1] ml-6">
-                  {formatTimeAgo(question.questionTimestamp.seconds)}
+    <>
+      <div 
+        onClick={handleClick}
+        className="w-full max-w-[860px] mx-auto p-5 rounded-lg cursor-pointer bg-[#F5F6FF] border-b-2 border-white"
+      >
+        <div className="flex justify-between items-start">
+          <div className="flex gap-4">
+            <img
+              src={userImage}
+              alt={question.fullName}
+              className="w-[42px] h-[42px] rounded-full object-cover"
+            />
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-medium text-[#242645]">
+                  {question.fullName}
                 </span>
+                {question.questionTimestamp?.seconds && (
+                  <span className="text-sm text-[#8C8CA1] ml-6">
+                    {formatTimeAgo(question.questionTimestamp.seconds)}
+                  </span>
+                )}
+              </div>
+              <span className="text-sm text-[#242645]">
+                {question.interestedCourse || 'Student'}
+              </span>
+            </div>
+          </div>
+
+          <div className="relative menu-container" ref={menuRef}>
+            <button
+              onClick={handleMenuToggle}
+              className="text-gray-500 cursor-pointer hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <MoreVertical size={20} />
+            </button>
+            
+            {isMenuOpen && (
+              <div className="absolute right-0 top-8 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[140px]">
+                <button
+                  onClick={handleEditClick}
+                  disabled={!canEdit}
+                  className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 
+                    ${!canEdit ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100 cursor-pointer'}`}
+                  title={!canEdit ? "Cannot edit question with answers" : ""}
+                >
+                  <Pencil size={16} />
+                  Edit
+                </button>
+                
+                <button
+                  onClick={handleDeleteClick}
+                  className="w-full px-4 py-2 text-left text-sm cursor-pointer text-red-600 hover:bg-red-50 flex items-center gap-2"
+                >
+                  <Trash2 size={16} />
+                  Delete
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <p className="mt-[30px] text-xl font-semibold text-[#242645] leading-[26px]">
+          {question.question}
+        </p>
+
+        {question.topAnswer ? (
+          <div className="mt-4">
+            <p className={`text-base text-[#242645] leading-[26px] ${!isExpanded ? 'line-clamp-3' : ''}`}>
+              {question.topAnswer}
+            </p>
+            {!isExpanded && question.topAnswer.length > 100 && (
+              <button onClick={(e) => { e.stopPropagation(); setIsExpanded(true); }} className="font-semibold text-[#242645] underline cursor-pointer">
+                Read more
+              </button>
+            )}
+            {question.answerPhotoUrl && (
+              <img src={question.answerPhotoUrl} alt="Answer visual" className="mt-4 w-full h-auto max-h-[400px] rounded-lg object-cover" />
+            )}
+            {isExpanded && (
+              <button onClick={(e) => { e.stopPropagation(); setIsExpanded(false); }} className="mt-1 font-semibold text-[#242645] underline">
+                Show less
+              </button>
+            )}
+          </div>
+        ) : (
+          question.question && question.question.length > 150 && (
+            <div className="mt-4">
+              <p className={`text-base text-[#242645] leading-[26px] ${!isExpanded ? 'line-clamp-3' : ''}`}>
+                {question.question}
+              </p>
+              {!isExpanded && (
+                <button onClick={(e) => { e.stopPropagation(); setIsExpanded(true); }} className="font-semibold text-[#242645] underline cursor-pointer">
+                  Read more
+                </button>
+              )}
+              {isExpanded && (
+                <button onClick={(e) => { e.stopPropagation(); setIsExpanded(false); }} className="mt-1 font-semibold text-[#242645] underline">
+                  Show less
+                </button>
               )}
             </div>
-            <span className="text-sm text-[#242645]">
-              {question.interestedCourse || 'Student'}
-            </span>
+          )
+        )}
+
+        {/* Footer Actions */}
+        <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-300">
+          <div className="flex items-center gap-6 text-gray-600">
+            <button 
+              className={`flex items-center gap-2 transition-colors cursor-pointer ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
+              disabled={!question.topAnswerId}
+            >
+              <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
+              <span className="text-sm">{likesCount}</span>
+            </button>
+            <button className="flex items-center cursor-pointer gap-2 hover:text-indigo-600">
+              <img src="/msg_comm.svg" alt="comment" />
+              <span className="text-sm">{question.commentCountOnAnswer || 0}</span>
+            </button>
+            <div className="flex items-center gap-2">
+              <img src="/bulb_comm.svg" alt="answers" />
+              <span className="text-sm">{question.answerCount || 0} Answers</span>
+            </div>
           </div>
         </div>
-        <button 
-          onClick={handleBookmark}
-          className={`transition-colors cursor-pointer ${isBookmarked ? 'text-[#655E95]' : 'text-gray-500 hover:text-indigo-600'}`}
-        >
-          <Bookmark size={24} fill={isBookmarked ? "#655E95" : "none"} />
-        </button>
       </div>
 
-      <p className="mt-[30px] text-xl font-semibold text-[#242645] leading-[26px]">
-        {question.question}
-      </p>
+      <EditQuestionModal 
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        questionId={question.questionId}
+        currentQuestion={question.question}
+        onUpdateSuccess={() => onQuestionUpdated?.()} 
+      />
 
-      {question.topAnswer && (
-        <div className="mt-4">
-          <p
-            className={`text-base text-[#242645] leading-[26px] ${
-              !isExpanded ? 'line-clamp-3' : ''
-            }`}
-          >
-            {question.topAnswer}
-          </p>
-          
-          {!isExpanded && question.topAnswer.length > 100 && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsExpanded(true);
-              }}
-              className="font-semibold text-[#242645] underline cursor-pointer"
-            >
-              Read more
-            </button>
-          )}
-
-          {question.answerPhotoUrl && (
-            <img
-              src={question.answerPhotoUrl}
-              alt="Answer visual"
-              className="mt-4 w-full h-auto max-h-[400px] rounded-lg object-cover"
-            />
-          )}
-
-          {isExpanded && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsExpanded(false);
-              }}
-              className="mt-1 font-semibold text-[#242645] underline"
-            >
-              Show less
-            </button>
-          )}
-        </div>
-      )}
-
-      {!question.topAnswer && question.question && question.question.length > 150 && (
-        <div className="mt-4">
-          <p
-            className={`text-base text-[#242645] leading-[26px] ${
-              !isExpanded ? 'line-clamp-3' : ''
-            }`}
-          >
-            {question.question}
-          </p>
-          
-          {!isExpanded && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsExpanded(true);
-              }}
-              className="font-semibold text-[#242645] underline cursor-pointer"
-            >
-              Read more
-            </button>
-          )}
-
-          {isExpanded && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsExpanded(false);
-              }}
-              className="mt-1 font-semibold text-[#242645] underline"
-            >
-              Show less
-            </button>
-          )}
-        </div>
-      )}
-
-      <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-300">
-        <div className="flex items-center gap-6 text-gray-600">
-          <button 
-            // onClick={handleLike}
-            className={`flex items-center gap-2 transition-colors cursor-pointer ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
-            disabled={!question.topAnswerId}
-          >
-            <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
-            <span className="text-sm">{likesCount}</span>
-          </button>
-          <button className="flex items-center cursor-pointer gap-2 hover:text-indigo-600">
-            <img src="/msg_comm.svg" alt="comment" />
-            <span className="text-sm">{question.commentCountOnAnswer || 0}</span>
-          </button>
-          <div className="flex items-center gap-2">
-            <img src="/bulb_comm.svg" alt="answers" />
-            <span className="text-sm">{question.answerCount || 0} Answers</span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 text-gray-600">
-          <img src="/eye_comm.svg" alt="views" />
-          <span className="text-sm">{question.questionViews || 0}</span>
-        </div>
-      </div>
-    </div>
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
+        title="Delete Question"
+        message="Are you sure you want to delete this question? This action cannot be undone."
+      />
+    </>
   );
 };
 
 export default MyActivityQuestionCard;
-

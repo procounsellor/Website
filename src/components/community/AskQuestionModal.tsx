@@ -95,20 +95,9 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
   if (!isOpen) return null;
 
   const subjectOptions = [
-    "Engineering (B.Tech/B.E)",
-    "Medical (MBBS/BDS/Ayush)",
-    "Commerce & Banking (CA/CS)",
-    "Management (BBA/MBA)",
-    "Arts & Humanities",
-    "Law (CLAT/LLB)",
-    "Entrance Exams (JEE/NEET/CET)",
-    "College Admissions Process",
-    "Study Abroad",
-    "Scholarships & Financial Aid",
-    "Vocational Courses",
-    "Government Exams (UPSC/SSC)",
-    "Career Guidance",
-    "Hostel & Campus Life",
+    "Colleges",
+    "Courses",
+    "Exams",
     "Other"
   ];
 

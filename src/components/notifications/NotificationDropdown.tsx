@@ -6,7 +6,7 @@ import SmartImage from '@/components/ui/SmartImage';
 import { useAuthStore } from '@/store/AuthStore';
 import { getAppointmentById } from '@/api/appointment';
 import toast from 'react-hot-toast';
-import AppointmentDetailsModal from '../student-dashboard/AppointmentDetailsModal'; 
+import NotificationAppointmentModal from '@/components/notifications/NotificationAppointmentModal';
 
 interface NotificationDropdownProps {
   notifications: ActivityLog[];
@@ -20,6 +20,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
 
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [selectedNotification, setSelectedNotification] = useState<ActivityLog | null>(null);
 
   const sortedNotifications = [...notifications].sort((a, b) => {
     const timeA = a.timestamp.seconds;
@@ -29,6 +30,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
 
   const handleNotificationClick = async (notif: ActivityLog) => {
     if (role === 'counselor') return;
+    setSelectedNotification(notif);
     const type = notif.activityType?.toLowerCase();
     
     if (type === 'subscription' || type === 'subscribe') {
@@ -60,6 +62,22 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
       }
     }
   };
+
+  const handleNavigateToCounselor = (counselorId: string) => {
+  console.log('=== Navigation Debug ===');
+  console.log('Counselor ID:', counselorId);
+
+  navigate('/counsellor-profile', { 
+    state: { id: counselorId },
+    replace: false
+  });
+
+  setIsAppointmentModalOpen(false);
+  setSelectedAppointment(null);
+  setSelectedNotification(null);
+  onClose();
+};
+
 
   return (
     <>
@@ -116,9 +134,9 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
           {sortedNotifications.length === 0 ? (
             <div className="p-8 text-center text-gray-500">No new notifications</div>
           ) : (
-            sortedNotifications.slice(0, 6).map((notif) => (
+            sortedNotifications.slice(0, 6).map((notif, index) => (
               <div 
-                key={notif.id || notif.timestamp.nanos}
+                key={`${notif.id}_${notif.timestamp.seconds}_${notif.timestamp.nanos}_${index}`}
                 onClick={() => handleNotificationClick(notif)}
                 className="flex items-start transition-colors hover:bg-gray-50 cursor-pointer"
                 style={{
@@ -179,22 +197,17 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
         </div>
       </div>
 
-      {selectedAppointment && (
-        <AppointmentDetailsModal
-            isOpen={isAppointmentModalOpen}
-            onClose={() => {
-                setIsAppointmentModalOpen(false);
-                setSelectedAppointment(null);
-                // onClose(); 
-            }}
-            appointment={selectedAppointment}
-            onNavigateToCounselor={(counselorId) => {
-                navigate('/counsellor-profile', { 
-                  state: { id: counselorId } 
-                });
-                setIsAppointmentModalOpen(false);
-                onClose();
-            }}
+      {selectedAppointment && selectedNotification && (
+        <NotificationAppointmentModal
+          isOpen={isAppointmentModalOpen}
+          onClose={() => {
+            setIsAppointmentModalOpen(false);
+            setSelectedAppointment(null);
+            setSelectedNotification(null);
+          }}
+          appointment={selectedAppointment}
+          notification={selectedNotification}
+          onNavigateToCounselor={handleNavigateToCounselor}
         />
       )}
     </>

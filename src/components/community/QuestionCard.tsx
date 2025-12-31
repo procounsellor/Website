@@ -66,8 +66,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questionData }) => {
   const modalQuestionDetails: AnswerModalDetails = {
     questionId: questionData.questionId,
     questionText: questionData.question,
-    askerFullName: questionData.questionAskedFullName,
-    askerPhotoUrl: questionData.questionAskedPhotoUrl,
+    userFullName: questionData.questionAskedFullName,
+    userPhotoUrl: questionData.questionAskedPhotoUrl,
     askerInterestedCourse: questionData.questionAskedInterestedCourse,
     questionTimestamp: questionData.timestamp,
   };
