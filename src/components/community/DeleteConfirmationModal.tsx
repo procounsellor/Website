@@ -29,16 +29,14 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
         className="relative w-full max-w-[400px] p-8 bg-white rounded-2xl shadow-xl border border-[#EFEFEF]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
         <button
           onClick={onClose}
           disabled={isLoading}
-          className="absolute top-4 right-4 p-2 rounded-full text-[#8C8CA1] hover:bg-gray-100 hover:text-black transition-colors"
+          className="absolute top-4 right-4 p-2 cursor-pointer rounded-full text-[#8C8CA1] hover:bg-gray-100 hover:text-black transition-colors"
         >
           <X size={20} />
         </button>
 
-        {/* Content */}
         <div className="flex flex-col items-center text-center">
           <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mb-4 text-red-500">
             <AlertTriangle size={24} />
@@ -56,7 +54,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
             <button
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 h-11 rounded-xl border border-[#EFEFEF] text-[#343C6A] font-semibold text-sm hover:bg-gray-50 transition-colors"
+              className="flex-1 h-11 rounded-xl border border-[#EFEFEF] cursor-pointer text-[#343C6A] font-semibold text-sm hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
@@ -64,7 +62,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
             <button
               onClick={onConfirm}
               disabled={isLoading}
-              className="flex-1 h-11 rounded-xl bg-red-500 text-white font-semibold text-sm hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+              className="flex-1 h-11 rounded-xl bg-red-500 text-white cursor-pointer font-semibold text-sm hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>

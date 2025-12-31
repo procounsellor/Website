@@ -163,7 +163,11 @@ const AppointmentsTab: React.FC = () => {
       ) : (
         <div className="text-center py-16 bg-white rounded-xl">
           <h3 className="text-lg font-semibold text-gray-700">No Appointments Found</h3>
-          <p className="text-gray-500 mt-2">There are no {activeFilter.toLowerCase()} appointments.</p>
+          <p className="text-gray-500 mt-2">
+            {activeFilter === 'All' 
+              ? "There are no appointments." 
+              : `There are no ${activeFilter.toLowerCase()} appointments.`}
+          </p>
         </div>
       )}
 

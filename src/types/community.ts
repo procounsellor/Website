@@ -10,6 +10,8 @@ export interface CommunityQuestion {
   timestamp: FirebaseTimestamp;
   myQuestion: boolean;
   questionBookmarkedByMe?: boolean;
+  userFullName: string;
+  userPhotoUrl: string | null;
 }
 
 export interface GetQuestionsListResponse {
