@@ -18,6 +18,10 @@ declare global {
     fbq?: any;
     gtag?: any;
     dataLayer?: any[];
+    __pc_fb_inited?: Record<string, boolean>;
+    __fb_script_blocked?: boolean;
+    __gtag_script_blocked?: boolean;
+    [key: string]: any; // For dynamic pageview tracking flags
   }
 }
 type RazorpayConstructor = new (opts: unknown) => { open: () => void };
@@ -59,6 +63,12 @@ export default function PromoPage() {
   useEffect(() => {
     const FB_ID = "886599400370059";
     const FB_SCRIPT_SRC = "https://connect.facebook.net/en_US/fbevents.js";
+    const PAGEVIEW_KEY = `__fb_pageview_${FB_ID}_tracked`;
+
+    // Prevent duplicate PageView tracking
+    if ((window as any)[PAGEVIEW_KEY]) {
+      return;
+    }
 
     const hasFbScript = !!document.querySelector(
       `script[src*="${FB_SCRIPT_SRC}"]`
@@ -70,57 +80,88 @@ export default function PromoPage() {
     // Avoid double-init: use a window flag per pixel id
     const fbInitedMap = (window as any).__pc_fb_inited || {};
 
-    if (!hasFbScript && !(fbInitedMap && fbInitedMap[FB_ID])) {
-      (function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
-        if (f.fbq) return;
-        n = f.fbq = function () {
-          n.callMethod
-            ? n.callMethod.apply(n, arguments)
-            : n.queue.push(arguments);
-        };
-        if (!f._fbq) f._fbq = n;
-        n.push = n;
-        n.loaded = !0;
-        n.version = "2.0";
-        n.queue = [];
-        t = b.createElement(e);
-        t.async = !0;
-        t.src = v;
-        s = b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t, s);
-      })(window, document, "script", FB_SCRIPT_SRC);
-
+    // Helper function to track PageView once
+    const trackPageViewOnce = () => {
+      if ((window as any)[PAGEVIEW_KEY]) return;
       try {
-        (window as any).fbq("init", FB_ID);
-        (window as any).fbq("track", "PageView");
-        (window as any).__pc_fb_inited = (window as any).__pc_fb_inited || {};
-        (window as any).__pc_fb_inited[FB_ID] = true;
-      } catch (e) {
-        // ignore
-      }
-
-      // noscript fallback image (only if not already present)
-      try {
-        if (!hasFbNoscript) {
-          const img = document.createElement("img");
-          img.height = 1;
-          img.width = 1;
-          img.style.display = "none";
-          img.src = `https://www.facebook.com/tr?id=${FB_ID}&ev=PageView&noscript=1`;
-          document.body.appendChild(img);
+        if ((window as any).fbq && !(window as any).__fb_script_blocked) {
+          (window as any).fbq("track", "PageView");
+          (window as any)[PAGEVIEW_KEY] = true;
         }
       } catch (e) {
-        // ignore
+        // Silently ignore errors
+      }
+    };
+
+    if (!hasFbScript && !(fbInitedMap && fbInitedMap[FB_ID])) {
+      try {
+        (function (f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
+          if (f.fbq) return;
+          n = f.fbq = function () {
+            n.callMethod
+              ? n.callMethod.apply(n, arguments)
+              : n.queue.push(arguments);
+          };
+          if (!f._fbq) f._fbq = n;
+          n.push = n;
+          n.loaded = !0;
+          n.version = "2.0";
+          n.queue = [];
+          t = b.createElement(e);
+          t.async = !0;
+          t.src = v;
+          t.onerror = () => {
+            // Silently handle script loading errors (e.g., ad blockers)
+            (window as any).__fb_script_blocked = true;
+          };
+          s = b.getElementsByTagName(e)[0];
+          if (s && s.parentNode) {
+            s.parentNode.insertBefore(t, s);
+          }
+        })(window, document, "script", FB_SCRIPT_SRC);
+
+        // Wait a bit for script to load, then initialize
+        setTimeout(() => {
+          try {
+            if ((window as any).fbq && !(window as any).__fb_script_blocked) {
+              (window as any).fbq("init", FB_ID);
+              trackPageViewOnce();
+              (window as any).__pc_fb_inited = (window as any).__pc_fb_inited || {};
+              (window as any).__pc_fb_inited[FB_ID] = true;
+            }
+          } catch (e) {
+            // Silently ignore errors
+          }
+        }, 100);
+
+        // noscript fallback image (only if not already present)
+        try {
+          if (!hasFbNoscript) {
+            const img = document.createElement("img");
+            img.height = 1;
+            img.width = 1;
+            img.style.display = "none";
+            img.onerror = () => {
+              // Silently handle image loading errors
+            };
+            img.src = `https://www.facebook.com/tr?id=${FB_ID}&ev=PageView&noscript=1`;
+            document.body.appendChild(img);
+          }
+        } catch (e) {
+          // Silently ignore errors
+        }
+      } catch (e) {
+        // Silently ignore initialization errors
       }
     } else {
       // If script already exists or we previously initialized, just trigger PageView safely
-      if ((window as any).fbq) {
+      if ((window as any).fbq && !(window as any).__fb_script_blocked) {
         try {
-          (window as any).fbq("track", "PageView");
+          trackPageViewOnce();
           (window as any).__pc_fb_inited = (window as any).__pc_fb_inited || {};
           (window as any).__pc_fb_inited[FB_ID] = true;
         } catch (e) {
-          // ignore
+          // Silently ignore errors
         }
       } else if (hasFbScript) {
         // script present but fbq not yet available — attach load listener
@@ -130,13 +171,15 @@ export default function PromoPage() {
         if (s) {
           const onLoad = () => {
             try {
-              (window as any).fbq("init", FB_ID);
-              (window as any).fbq("track", "PageView");
-              (window as any).__pc_fb_inited =
-                (window as any).__pc_fb_inited || {};
-              (window as any).__pc_fb_inited[FB_ID] = true;
+              if ((window as any).fbq && !(window as any).__fb_script_blocked) {
+                (window as any).fbq("init", FB_ID);
+                trackPageViewOnce();
+                (window as any).__pc_fb_inited =
+                  (window as any).__pc_fb_inited || {};
+                (window as any).__pc_fb_inited[FB_ID] = true;
+              }
             } catch (e) {
-              // ignore
+              // Silently ignore errors
             }
             s.removeEventListener("load", onLoad);
           };
@@ -147,20 +190,36 @@ export default function PromoPage() {
 
     // Google Ads / gtag for conversion
     if (!(window as any).gtag) {
-      const gt = document.createElement("script");
-      gt.async = true;
-      gt.src = "https://www.googletagmanager.com/gtag/js?id=AW-16515631489";
-      document.head.appendChild(gt);
-
-      (window as any).dataLayer = (window as any).dataLayer || [];
-      (window as any).gtag = function () {
-        (window as any).dataLayer.push(arguments);
-      };
       try {
-        (window as any).gtag("js", new Date());
-        (window as any).gtag("config", "AW-16515631489");
+        const gt = document.createElement("script");
+        gt.async = true;
+        gt.src = "https://www.googletagmanager.com/gtag/js?id=AW-16515631489";
+        gt.onerror = () => {
+          // Silently handle script loading errors (e.g., ad blockers)
+          (window as any).__gtag_script_blocked = true;
+        };
+        document.head.appendChild(gt);
+
+        (window as any).dataLayer = (window as any).dataLayer || [];
+        (window as any).gtag = function () {
+          if (!(window as any).__gtag_script_blocked) {
+            (window as any).dataLayer.push(arguments);
+          }
+        };
+        
+        // Wait a bit for script to load, then initialize
+        setTimeout(() => {
+          try {
+            if (!(window as any).__gtag_script_blocked) {
+              (window as any).gtag("js", new Date());
+              (window as any).gtag("config", "AW-16515631489");
+            }
+          } catch (e) {
+            // Silently ignore errors
+          }
+        }, 100);
       } catch (e) {
-        // ignore
+        // Silently ignore initialization errors
       }
     }
   }, []);
@@ -293,6 +352,35 @@ export default function PromoPage() {
           toast.success("Enrollment successful!", { id: enrollToast });
           await refreshUser(true);
           setShowSuccessPopup(true);
+          
+          // Fire Google Ads conversion and Meta Pixel purchase event for free enrollment
+          try {
+            if ((window as any).gtag && !(window as any).__gtag_script_blocked) {
+              (window as any).gtag("event", "conversion", {
+                send_to: "AW-16515631489/AmkNCMnpzNUbEIGTosM9",
+                value: 0,
+                currency: "INR",
+              });
+            }
+          } catch (e) {
+            console.error("Google Ads tracking error:", e);
+          }
+
+          // Track Purchase event for Meta Pixel when free enrollment is successful
+          try {
+            if ((window as any).fbq && !(window as any).__fb_script_blocked) {
+              (window as any).fbq("track", "Purchase", {
+                value: 0,
+                currency: "INR",
+                content_name: COURSE_NAME,
+                content_ids: [COURSE_ID],
+                content_type: "product",
+                ...(appliedCoupon && { coupon: appliedCoupon }),
+              });
+            }
+          } catch (e) {
+            console.error("Facebook Pixel tracking error:", e);
+          }
         } else {
           throw new Error(purchaseResponse.message || "Enrollment failed");
         }
@@ -332,6 +420,20 @@ export default function PromoPage() {
         }
       }
 
+      // Track InitiateCheckout event for Meta Pixel when Razorpay payment is initiated
+      try {
+        if ((window as any).fbq && !(window as any).__fb_script_blocked) {
+          (window as any).fbq("track", "InitiateCheckout", {
+            value: amount,
+            currency: "INR",
+            content_name: COURSE_NAME,
+            content_ids: [COURSE_ID],
+          });
+        }
+      } catch (e) {
+        // Silently ignore errors
+      }
+
       const options = {
         key: order.keyId,
         amount: order.amount,
@@ -369,28 +471,40 @@ export default function PromoPage() {
               toast.success("Enrollment successful!", { id: purchaseToast });
               await refreshUser(true);
               setShowSuccessPopup(true);
+              
               // Fire Google Ads conversion and Meta Pixel purchase event
               try {
-                if ((window as any).gtag) {
+                if ((window as any).gtag && !(window as any).__gtag_script_blocked) {
                   (window as any).gtag("event", "conversion", {
                     send_to: "AW-16515631489/AmkNCMnpzNUbEIGTosM9",
                     value: amount,
                     currency: "INR",
                   });
+                  console.log("Google Ads conversion tracked:", amount);
+                } else {
+                  console.warn("Google Ads tracking not available or blocked");
                 }
               } catch (e) {
-                // ignore
+                console.error("Google Ads tracking error:", e);
               }
 
+              // Track Purchase event for Meta Pixel when Razorpay payment is successful
               try {
-                if ((window as any).fbq) {
+                if ((window as any).fbq && !(window as any).__fb_script_blocked) {
                   (window as any).fbq("track", "Purchase", {
                     value: amount,
                     currency: "INR",
+                    content_name: COURSE_NAME,
+                    content_ids: [COURSE_ID],
+                    content_type: "product",
+                    ...(appliedCoupon && { coupon: appliedCoupon }),
                   });
+                  console.log("Facebook Pixel Purchase tracked:", amount);
+                } else {
+                  console.warn("Facebook Pixel tracking not available or blocked");
                 }
               } catch (e) {
-                // ignore
+                console.error("Facebook Pixel tracking error:", e);
               }
             } else {
               throw new Error(purchaseResponse.message || "Enrollment failed");
@@ -417,6 +531,21 @@ export default function PromoPage() {
       const RZ = (window as unknown as { Razorpay: RazorpayConstructor })
         .Razorpay;
       const rzp = new RZ(options);
+      
+      // Track AddPaymentInfo event for Meta Pixel when Razorpay modal opens
+      try {
+        if ((window as any).fbq && !(window as any).__fb_script_blocked) {
+          (window as any).fbq("track", "AddPaymentInfo", {
+            value: amount,
+            currency: "INR",
+            content_name: COURSE_NAME,
+            content_ids: [COURSE_ID],
+          });
+        }
+      } catch (e) {
+        // Silently ignore errors
+      }
+      
       rzp.open();
       toast.dismiss(loadingToast);
     } catch (error) {
