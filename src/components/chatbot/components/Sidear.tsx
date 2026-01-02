@@ -343,7 +343,7 @@ export default function Sidebar({
                   
                   {chatSessions.map((chat) => (
                     <div key={chat.sessionId} className="relative">
-                      <div onClick={() => handleSelectChat(chat.sessionId)} className={`group w-full rounded-lg py-2 px-3 cursor-pointer transition-colors ${currentSessionId === chat.sessionId ? "bg-white/[.15]" : "hover:bg-white/[.08]"}`}>
+                      <div onClick={() => handleSelectChat(chat.sessionId)} className={`group w-full rounded-lg py-2 px-3 cursor-pointer transition-colors ${currentSessionId === chat.sessionId ? "bg-white/15" : "hover:bg-white/8"}`}>
                         <div className="flex items-center justify-between">
                           {editingSessionId === chat.sessionId ? (
                             <input

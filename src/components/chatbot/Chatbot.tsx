@@ -202,13 +202,13 @@ export default function Chatbot() {
                     setShowLoginPrompt(false);
                     handleLoginFromChatbot();
                   }}
-                  className="w-full bg-[#FF660F] text-white font-semibold py-3 px-6 rounded-lg hover:bg-[#e55a0a] transition-colors"
+                  className="w-full bg-[#FF660F] text-white cursor-pointer font-semibold py-3 px-6 rounded-lg hover:bg-[#e55a0a] transition-colors"
                 >
                   Login / Sign Up
                 </button>
                 <button
                   onClick={() => setShowLoginPrompt(false)}
-                  className="w-full text-gray-400 font-medium py-2 px-6 rounded-lg hover:bg-white/5 transition-colors"
+                  className="w-full text-gray-400 font-medium cursor-pointer py-2 px-6 rounded-lg hover:bg-white/5 transition-colors"
                 >
                   Cancel
                 </button>
@@ -267,7 +267,7 @@ export default function Chatbot() {
                           setIsDropdownOpen(false);
                           toggleChatbot();
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-white hover:bg-gray-700"
+                        className="w-full flex items-center gap-3 px-4 py-2 cursor-pointer text-sm text-white hover:bg-gray-700"
                       >
                         <LayoutDashboard size={16} />
                         <span>Profile</span>
