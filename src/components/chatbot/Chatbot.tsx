@@ -21,7 +21,25 @@ import { useAuthStore } from "@/store/AuthStore";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-
+const SuggestionChips = ({
+  suggestions,
+  onSelect,
+}: {
+  suggestions: string[];
+  onSelect: (text: string) => void;
+}) => (
+  <div className="flex flex-wrap gap-2.5 mt-4 animate-in fade-in slide-in-from-bottom-3 duration-700 pl-1 md:pl-4">
+    {suggestions.map((text, idx) => (
+      <button
+        key={idx}
+        onClick={() => onSelect(text)}
+        className="relative px-4 py-2 text-xs md:text-sm font-semibold tracking-wide text-[#FF660F] bg-[#FF660F]/5 border border-[#FF660F]/30 rounded-xl hover:bg-[#FF660F]/10 hover:border-[#FF660F] hover:text-white hover:shadow-[0_0_15px_rgba(255,102,15,0.3)] hover:-translate-y-0.5 active:scale-95 transition-all duration-300 ease-out cursor-pointer"
+      >
+        {text}
+      </button>
+    ))}
+  </div>
+);
 
 // Small reusable UI pieces
 const TypingIndicator = () => (
@@ -232,13 +250,13 @@ export default function Chatbot() {
                     setShowLoginPrompt(false);
                     handleLoginFromChatbot();
                   }}
-                  className="w-full bg-[#FF660F] text-white font-semibold py-3 px-6 rounded-lg hover:bg-[#e55a0a] transition-colors"
+                  className="w-full bg-[#FF660F] text-white cursor-pointer font-semibold py-3 px-6 rounded-lg hover:bg-[#e55a0a] transition-colors"
                 >
                   Login / Sign Up
                 </button>
                 <button
                   onClick={() => setShowLoginPrompt(false)}
-                  className="w-full text-gray-400 font-medium py-2 px-6 rounded-lg hover:bg-white/5 transition-colors"
+                  className="w-full text-gray-400 font-medium cursor-pointer py-2 px-6 rounded-lg hover:bg-white/5 transition-colors"
                 >
                   Cancel
                 </button>
@@ -314,14 +332,14 @@ export default function Chatbot() {
                           setIsDropdownOpen(false);
                           toggleChatbot();
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-white hover:bg-gray-700"
+                        className="w-full flex items-center gap-3 px-4 py-2 cursor-pointer text-sm text-white hover:bg-gray-700"
                       >
                         <LayoutDashboard size={16} />
                         <span>Profile</span>
                       </button>
                       <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-900/20"
+                        className="w-full flex items-center cursor-pointer gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-900/20"
                       >
                         <LogOut size={16} />
                         <span>Logout</span>
@@ -332,7 +350,7 @@ export default function Chatbot() {
               ) : (
                 <Button
                   variant={"outline"}
-                  className="w-full lg:w-[164px] flex items-center justify-center h-6 md:h-11 border rounded-[12px] bg-[#232323] font-semibold text-white border-[#858585] text-[10px] md:text-lg hover:bg-[#FF660F] hover:text-white hover:border-[#FF660F] transition-all duration-200 font-sans"
+                  className="w-full lg:w-[164px] flex items-center cursor-pointer justify-center h-6 md:h-11 border rounded-[12px] bg-[#232323] font-semibold text-white border-[#858585] text-[10px] md:text-lg hover:bg-[#FF660F] hover:text-white hover:border-[#FF660F] transition-all duration-200 font-sans"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -448,7 +466,7 @@ export default function Chatbot() {
                               <ChatMessage text={msg.text} isUser={true} />
                             ) : (
                               // 1. Apply the styles (font, text color, spacing) to this wrapper DIV instead
-                              <div className="rounded-2xl px-4 py-2 md:px-5 md:py-3 text-white max-w-full overflow-x-hidden font-sans text-sm md:text-base leading-relaxed text-gray-100">
+                              <div className="rounded-2xl px-4 py-2 md:px-5 md:py-3 text-white max-w-full overflow-x-hidden font-sans text-sm md:text-base leading-relaxed">
                                 <ReactMarkdown
                                   remarkPlugins={[remarkGfm]}
                                   children={formattedText}
@@ -565,7 +583,16 @@ export default function Chatbot() {
                                 {msg.followup}
                               </p>
                             )}
-                          
+                            {msg.suggestions &&
+                              msg.suggestions.length > 0 &&
+                              !msg.isUser && (
+                                <div className="max-w-4xl mx-auto md:pl-12 pr-3 md:pr-6">
+                                  <SuggestionChips
+                                    suggestions={msg.suggestions}
+                                    onSelect={(text) => handleSend(text)}
+                                  />
+                                </div>
+                              )}
 
                             {/* Counselor cards */}
                             {msg.counsellors &&
