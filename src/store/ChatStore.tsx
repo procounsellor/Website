@@ -207,24 +207,28 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set({ isLoadingHistory: true });
     try {
       const history = await fetchChatHistory(sessionId);
+      const transformedMessages: Message[] = history.map((msg) => {
+        // Parse counsellors from the API message if present
+        let counsellors: AllCounselor[] | undefined = undefined;
+        
+        // Check if the message object has counsellors field (from backend)
+        const msgData = msg as any;
+        if (msgData.counsellors && Array.isArray(msgData.counsellors) && msgData.counsellors.length > 0) {
+          // Transform raw counsellor data to frontend format
+          counsellors = msgData.counsellors.map(transformCounselorData);
+          if (counsellors) {
+            console.log(`📋 Found ${counsellors.length} counsellors in loaded message`);
+          }
+        }
+        
+        return {
+          text: msg.content,
+          isUser: msg.role === "user",
+          counsellors,
+          followup: undefined, // Could also parse followup if backend sends it
+        };
+      });
       
-      // FIX: Add ": any" here so TypeScript allows access to new fields
-      const transformedMessages: Message[] = history.map((msg: any) => ({
-        text: msg.content,
-        isUser: msg.role === "user",
-        
-        // 1. Restore Counsellors
-        counsellors: msg.counsellors && msg.counsellors.length > 0 
-          ? msg.counsellors.map(transformCounselorData) 
-          : undefined,
-        
-        // 2. Restore Followup
-        followup: msg.followup || undefined,
-
-        // 3. Restore Suggestions
-        suggestions: msg.suggestions || undefined,
-      }));
-
       set({ 
         messages: transformedMessages, 
         currentSessionId: sessionId,
