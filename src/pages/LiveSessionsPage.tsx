@@ -11,7 +11,7 @@ import { updateUserProfile } from '@/api/user';
 import toast from 'react-hot-toast';
 
 const getAvatarUrl = (photoUrl: string | null, fullName: string) => {
-    if (photoUrl) return photoUrl;
+    if (photoUrl && photoUrl.trim() !== "") return photoUrl;
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=E0E7FF&color=4F46E5`;
 };
 
@@ -20,7 +20,7 @@ interface OngoingSessionAvatarProps {
     onClick: (counsellorId: string, liveSessionId: string, counsellorName: string) => void;
 }
 
-function OngoingSessionAvatar({ session, onClick }: OngoingSessionAvatarProps) {
+function OngoingSessionAvatar({ session, onClick }: OngoingSessionAvatarProps) {    
     const avatarUrl = getAvatarUrl(session.counsellorPhotoUrl, session.counsellorFullName);
 
     const handleClick = () => {
@@ -30,30 +30,39 @@ function OngoingSessionAvatar({ session, onClick }: OngoingSessionAvatarProps) {
     return (
         <div 
             onClick={handleClick}
-            className="relative shrink-0 cursor-pointer transition-transform duration-300"
-            style={{ width: '120px', height: '120px' }} 
+            className="flex flex-col items-center gap-3 shrink-0 cursor-pointer transition-transform duration-300 hover:scale-105"
+            style={{ width: '120px' }}
         >
-            <div 
-                className="w-full h-full rounded-full overflow-hidden"
-                style={{
-                    padding: '3.24px',
-                    background: 'linear-gradient(90deg, #FA660F 0%, #13097D 100%)',
-                }}
-            >
-                <div className="w-full h-full rounded-full overflow-hidden">
-                    <img
-                        src={avatarUrl}
-                        alt={session.counsellorFullName}
-                        className="w-full h-full object-cover rounded-full"
-                    />
+            <div className="relative w-[120px] h-[120px]">
+                <div 
+                    className="w-full h-full rounded-full overflow-hidden"
+                    style={{
+                        padding: '3.24px',
+                        background: 'linear-gradient(90deg, #FA660F 0%, #13097D 100%)',
+                    }}
+                >
+                    <div className="w-full h-full rounded-full overflow-hidden bg-white">
+                        <img
+                            src={avatarUrl}
+                            alt={session.counsellorFullName}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                                e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(session.counsellorFullName)}&background=E0E7FF&color=4F46E5`;
+                            }}
+                        />
+                    </div>
+                </div>
+                
+                <div 
+                    className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-[#FA660F] text-white text-xs font-bold px-3 py-0.5 rounded-full shadow-lg whitespace-nowrap"
+                >
+                    LIVE
                 </div>
             </div>
-            
-            <div 
-                className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-[#FA660F] text-white text-sm font-bold px-3 py-1 rounded-full shadow-lg"
-            >
-                Live
-            </div>
+
+            <span className="text-sm font-medium text-[#13097D] text-center line-clamp-2 leading-tight w-full">
+                {session.counsellorFullName}
+            </span>
         </div>
     );
 }
@@ -79,7 +88,18 @@ export default function LiveSessionsPage() {
 
     const [ongoingSessions, setOngoingSessions] = useState<LiveSession[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedSession, setSelectedSession] = useState<{ id: string, counsellorId: string, name: string, playbackId: string, title: string, description: string } | null>(null);
+    
+    // UPDATED: Added liveSince to selectedSession state
+    const [selectedSession, setSelectedSession] = useState<{ 
+        id: string, 
+        counsellorId: string, 
+        name: string, 
+        playbackId: string, 
+        title: string, 
+        description: string,
+        liveSince: string // Added this
+    } | null>(null);
+    
     const [loadingSessions, setLoadingSessions] = useState(true);
     const [error] = useState<string | null>(null);
     const [boughtCourseIds, setBoughtCourseIds] = useState<Set<string>>(new Set());
@@ -87,13 +107,9 @@ export default function LiveSessionsPage() {
     const [pendingStreamAction, setPendingStreamAction] = useState<(() => void) | null>(null);
     const [isJoining, setIsJoining] = useState(false);
     
-    // Fetch bought courses on mount
     useEffect(() => {
         const fetchBoughtCourses = async () => {
-            if (!userId) {
-                return;
-            }
-            
+            if (!userId) return;
             try {
                 const response = await getBoughtCourses(userId);
                 const courseIds = new Set(
@@ -108,7 +124,6 @@ export default function LiveSessionsPage() {
         fetchBoughtCourses();
     }, [userId]);
 
-    // Listen to Firebase real-time live sessions
     useEffect(() => {
         unlockScroll();
         
@@ -122,10 +137,8 @@ export default function LiveSessionsPage() {
                 const forWhom = value.forWhom?.toString() || '';
                 const courseId = value.courseId?.toString() || '';
                 
-                // Handle timestamp in both seconds and milliseconds
                 let updatedAtMs = value.updatedAt || 0;
                 if (updatedAtMs < 10000000000) {
-                    // If timestamp is less than 10 billion, it's in seconds, convert to ms
                     updatedAtMs = updatedAtMs * 1000;
                 }
                 
@@ -134,26 +147,25 @@ export default function LiveSessionsPage() {
 
                 if (!isLive) return;
 
-                // Filter by course ownership
                 if (forWhom === 'COURSE') {
                     if (!boughtCourseIds.has(courseId)) {
                         return;
                     }
                 }
 
-                // Extract YouTube video ID from youtubeWatchUrl or use as-is
                 let videoId = '';
                 if (value.youtubeWatchUrl) {
                     const match = value.youtubeWatchUrl.match(/[?&]v=([^&]+)/);
                     videoId = match ? match[1] : value.youtubeWatchUrl;
                 }
 
-                // Create session object with actual Firebase fields
+                const photoUrl = value.counsellorPhoto || null;
+
                 filteredSessions.push({
                     liveSessionId: value.liveSessionId || key,
                     counsellorId: value.counsellorId || key,
                     counsellorFullName: value.counsellorFullName || 'Counselor',
-                    counsellorPhotoUrl: value.counsellorPhotoUrl || null,
+                    counsellorPhotoUrl: photoUrl,
                     liveSince: value.startedAt ? new Date(value.startedAt).toISOString() : new Date().toISOString(),
                     title: value.title || 'Live Session',
                     description: value.description || '',
@@ -172,7 +184,6 @@ export default function LiveSessionsPage() {
     }, [boughtCourseIds]);
 
     const handleAvatarClick = (counsellorId: string, liveSessionId: string, counsellorName: string) => {
-        // Find the full session data
         const session = ongoingSessions.find(s => s.liveSessionId === liveSessionId);
         if (session) {
             setSelectedSession({ 
@@ -181,7 +192,8 @@ export default function LiveSessionsPage() {
                 name: counsellorName,
                 playbackId: session.playbackId,
                 title: session.title,
-                description: session.description
+                description: session.description,
+                liveSince: session.liveSince || new Date().toISOString()
             });
             setIsModalOpen(true);
         }
@@ -190,10 +202,8 @@ export default function LiveSessionsPage() {
     const handleJoinStream = (playbackId: string) => {
         if (!selectedSession || isJoining) return;
         
-        // Check if user has firstName
         if (!user?.firstName?.trim()) {
             setIsJoining(true);
-            // Store the action to execute after profile update
             setPendingStreamAction(() => () => {
                 startStream(
                     'youtube', 
@@ -207,7 +217,6 @@ export default function LiveSessionsPage() {
                 setIsJoining(false);
             });
             setIsProfileModalOpen(true);
-            // Reset after short delay to prevent accidental double-opens
             setTimeout(() => setIsJoining(false), 1000);
             return;
         }
@@ -236,12 +245,10 @@ export default function LiveSessionsPage() {
             toast.success('Profile updated successfully!');
             setIsProfileModalOpen(false);
             
-            // Execute pending stream action if exists and user filled the name
             if (pendingStreamAction && updatedData.firstName?.trim()) {
                 pendingStreamAction();
                 setPendingStreamAction(null);
             } else {
-                // If user didn't fill name, clear pending action
                 setPendingStreamAction(null);
                 setIsJoining(false);
             }
@@ -251,7 +258,6 @@ export default function LiveSessionsPage() {
             throw error;
         }
     };
-
 
     const renderOngoingContent = () => {
         if (loadingSessions) {
@@ -308,11 +314,12 @@ export default function LiveSessionsPage() {
                 counsellorId={selectedSession?.counsellorId ?? null}
                 counsellorName={selectedSession?.name ?? 'Counselor'}
                 onJoinStream={handleJoinStream}
+                initialLiveSince={selectedSession?.liveSince}
                 fakeSessionData={selectedSession ? {
                     title: selectedSession.title,
                     description: selectedSession.description,
                     playbackId: selectedSession.playbackId,
-                    liveSince: new Date().toISOString()
+                    liveSince: selectedSession.liveSince
                 } : null}
             />
             
