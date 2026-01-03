@@ -272,6 +272,19 @@ export default function LiveStreamView() {
             } catch (err) {
               console.log('Autoplay attempt failed:', err);
             }
+            if (window.innerWidth >= 1024) {
+              setTimeout(() => {
+                try {
+                  if (playerRef.current) {
+                    playerRef.current.unMute();
+                    console.log('🖥️ Desktop detected: Attempting auto-unmute');
+                  }
+                } catch (err) {
+                  // If browser blocks audio, it stays muted and your Smart Layer handles the click
+                  console.log('Auto-unmute blocked by browser policy');
+                }
+              }, 500);
+            }
           },
           onStateChange: (event: YTPlayerEvent) => {
             // PlayerState: -1=unstarted, 0=ended, 1=playing, 2=paused, 3=buffering, 5=cued
@@ -413,7 +426,7 @@ export default function LiveStreamView() {
     const unsubscribe = listenToCounselorLiveStatus(
       counsellorId,
       (isLive, lastUpdated) => {
-        console.log('🎥 Live status update:', { counsellorId, isLive, lastUpdated, type: typeof lastUpdated });
+        // console.log('🎥 Live status update:', { counsellorId, isLive, lastUpdated, type: typeof lastUpdated });
         
         if (!isLive) {
           if (!lastUpdated) {
