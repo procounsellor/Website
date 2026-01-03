@@ -339,7 +339,7 @@ export default function Chatbot() {
                       </button>
                       <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-900/20"
+                        className="w-full flex items-center gap-3 px-4 py-2 cursor-pointer text-sm text-red-400 hover:bg-red-900/20"
                       >
                         <LogOut size={16} />
                         <span>Logout</span>
@@ -350,7 +350,7 @@ export default function Chatbot() {
               ) : (
                 <Button
                   variant={"outline"}
-                  className="w-full lg:w-[164px] flex items-center justify-center h-6 md:h-11 border rounded-[12px] bg-[#232323] font-semibold text-white border-[#858585] text-[10px] md:text-lg hover:bg-[#FF660F] hover:text-white hover:border-[#FF660F] transition-all duration-200 font-sans"
+                  className="w-full lg:w-[164px] flex items-center justify-center h-6 md:h-11 border rounded-[12px] bg-[#232323] font-semibold cursor-pointer text-white border-[#858585] text-[10px] md:text-lg hover:bg-[#FF660F] hover:text-white hover:border-[#FF660F] transition-all duration-200 font-sans"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -466,7 +466,7 @@ export default function Chatbot() {
                               <ChatMessage text={msg.text} isUser={true} />
                             ) : (
                               // 1. Apply the styles (font, text color, spacing) to this wrapper DIV instead
-                              <div className="rounded-2xl px-4 py-2 md:px-5 md:py-3 text-white max-w-full overflow-x-hidden font-sans text-sm md:text-base leading-relaxed text-gray-100">
+                              <div className="rounded-2xl px-4 py-2 md:px-5 md:py-3 max-w-full overflow-x-hidden font-sans text-sm md:text-base leading-relaxed text-white">
                                 <ReactMarkdown
                                   remarkPlugins={[remarkGfm]}
                                   children={formattedText}
