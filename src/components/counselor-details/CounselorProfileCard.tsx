@@ -76,7 +76,7 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
   };
 
   const fullName = `${counselor.firstName} ${counselor.lastName}`;
-  const imageUrl = counselor.photoUrlSmall || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=E0E7FF&color=4F46E5&size=128`;
+  const imageUrl = counselor.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=E0E7FF&color=4F46E5&size=128`;
 
   const formatAmount = (amount: number | null | undefined) => {
     if (amount == null || amount === 0) return 'N/A';

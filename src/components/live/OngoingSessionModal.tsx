@@ -11,6 +11,7 @@ interface OngoingSessionModalProps {
     counsellorId: string | null;
     counsellorName: string; 
     onJoinStream: (playbackId: string) => void;
+    initialLiveSince?: string; // UPDATED: Added this prop
     fakeSessionData?: {
         title: string;
         description: string;
@@ -26,6 +27,7 @@ export function OngoingSessionModal({
     counsellorId,
     counsellorName,
     onJoinStream,
+    initialLiveSince,
     fakeSessionData,
 }: OngoingSessionModalProps) {
     const [sessionDetails, setSessionDetails] = useState<DetailedLiveSession | null>(null);
@@ -34,6 +36,9 @@ export function OngoingSessionModal({
     useEffect(() => {
         // If fake session data is provided, use it directly
         if (isOpen && fakeSessionData) {
+            const startTime = fakeSessionData.liveSince 
+                ? new Date(fakeSessionData.liveSince).getTime() 
+                : Date.now();
             setSessionDetails({
                 liveSessionId: liveSessionId || '',
                 counsellorId: counsellorId || '',
@@ -47,7 +52,7 @@ export function OngoingSessionModal({
                 broadcastId: '',
                 youtubeVideoId: fakeSessionData.playbackId,
                 playbackId: fakeSessionData.playbackId,
-                createdAt: { seconds: Date.now() / 1000, nanos: 0 }
+                createdAt: { seconds: startTime / 1000, nanos: 0 }
             } as DetailedLiveSession);
             setLoading(false);
             return;
@@ -59,6 +64,19 @@ export function OngoingSessionModal({
             const fetchDetails = async () => {
                 try {
                     const details = await getLiveSessionById(counsellorId, liveSessionId);
+                    
+                    // UPDATED: Fix the "Just started" bug
+                    // If we have an initialLiveSince passed from the parent (Firebase), use that
+                    // instead of whatever the API returns for createdAt (which might be "now")
+                    if (details && initialLiveSince) {
+                         const correctStartTime = new Date(initialLiveSince).getTime();
+                         // Override the createdAt with the correct time
+                         details.createdAt = { 
+                             seconds: correctStartTime / 1000, 
+                             nanos: 0 
+                         };
+                    }
+
                     setSessionDetails(details);
                 } catch (error) {
                     toast.error("Failed to load session details.");
@@ -72,7 +90,7 @@ export function OngoingSessionModal({
         } else if (!isOpen) {
             setSessionDetails(null);
         }
-    }, [isOpen, liveSessionId, counsellorId, fakeSessionData]);
+    }, [isOpen, liveSessionId, counsellorId, fakeSessionData, initialLiveSince]);
 
     if (!isOpen) return null;
 
