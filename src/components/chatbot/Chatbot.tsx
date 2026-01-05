@@ -599,7 +599,7 @@ export default function Chatbot() {
                               msg.counsellors.length > 0 &&
                               (() => {
                                 const visibleCount =
-                                  visibleCounselorsPerMessage[index] || 3;
+                                  visibleCounselorsPerMessage[index] || 2;
                                 const counsellors = msg.counsellors as any[];
                                 const visibleCounsellors = counsellors.slice(
                                   0,
@@ -609,8 +609,8 @@ export default function Chatbot() {
                                   counsellors.length > visibleCount;
 
                                 return (
-                                  <div className="mt-3 md:mt-4 space-y-2 md:space-y-3">
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
+                                  <div className="mt-3 md:mt-4 space-y-2 md:space-y-3 pl-1 md:pl-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                                       {visibleCounsellors.map((c, idx) => (
                                         <div
                                           onClick={() => {
