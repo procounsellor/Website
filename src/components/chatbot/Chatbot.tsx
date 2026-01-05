@@ -406,34 +406,48 @@ export default function Chatbot() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-                  <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center">
+                  {/* Card 1: Course Guidance */}
+                  <div
+                    onClick={() => handleSend("Course Guidance")}
+                    className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center cursor-pointer hover:bg-[#333333] hover:border-[#FF660F] transition-all duration-200"
+                  >
                     <img
                       src="/book.svg"
                       alt="Courses"
                       className="w-5 h-5 md:w-6 md:h-6 shrink-0"
                     />
                     <p className="text-[13px] md:text-[14px] font-medium text-white font-sans">
-                      Access premium learning courses.
+                      Course Guidance
                     </p>
                   </div>
-                  <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center">
+
+                  {/* Card 2: College Guidance */}
+                  <div
+                    onClick={() => handleSend("College Guidance")}
+                    className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center cursor-pointer hover:bg-[#333333] hover:border-[#FF660F] transition-all duration-200"
+                  >
                     <img
                       src="/cap.svg"
                       alt="Colleges"
                       className="w-5 h-5 md:w-6 md:h-6 shrink-0"
                     />
                     <p className="text-[13px] md:text-[14px] font-medium text-white font-sans">
-                      Discover top colleges.
+                      College Guidance
                     </p>
                   </div>
-                  <div className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center">
+
+                  {/* Card 3: Expert Counselling */}
+                  <div
+                    onClick={() => handleSend("Expert Counselling")}
+                    className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center cursor-pointer hover:bg-[#333333] hover:border-[#FF660F] transition-all duration-200"
+                  >
                     <img
                       src="/person.svg"
                       alt="Counselors"
                       className="w-5 h-5 md:w-6 md:h-6 shrink-0"
                     />
                     <p className="text-[13px] md:text-[14px] font-medium text-white font-sans">
-                      Consult expert counselors.
+                      Expert Counselling
                     </p>
                   </div>
                 </div>
