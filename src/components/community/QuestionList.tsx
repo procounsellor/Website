@@ -99,11 +99,16 @@ const QuestionList: React.FC<QuestionListProps> = ({ selectedCategory }) => {
     }
   };
 
-  // Filter logic (Client side)
   const displayedQuestions = selectedCategory
     ? questions.filter((q) => {
-        const category = (q as any).subject; 
-        return category === selectedCategory;
+        const subject = (q as any).subject || ''; 
+        const mainCategories = ['Colleges', 'Courses', 'Exams'];
+
+        if (selectedCategory === 'Other') {
+          return !mainCategories.includes(subject);
+        }
+        
+        return subject === selectedCategory;
       })
     : questions;
 

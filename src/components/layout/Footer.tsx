@@ -16,7 +16,7 @@ export default function Footer() {
 
   const handleBecomeCounselor = () => {
     if (role === "counselor" && user?.verified) {
-      toast.error("You are already registered as a counselor!");
+      toast.error("You are already registered as a counsellor!");
       return;
     }
     const hasSubmitted =
@@ -143,6 +143,7 @@ export default function Footer() {
                 {/* <li>
                   <a href="/counsellor-dashboard" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Add College</a>
                 </li> */}
+                {role !== "counselor" && (
                 <li>
                   <button
                     onClick={handleBecomeCounselor}
@@ -151,6 +152,7 @@ export default function Footer() {
                     Become a Counsellor?
                   </button>
                 </li>
+                )}
               </ul>
             </div>
           </div>

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { Heart, MoreVertical, Pencil, Trash2, Bookmark } from 'lucide-react';
 import type { CommunityDashboardItem } from '@/types/community';
 import { formatTimeAgo } from '@/utils/time';
 import { useAuthStore } from '@/store/AuthStore';
-import { deleteQuestion } from '@/api/community';
+import { deleteQuestion, bookmarkQuestion } from '@/api/community';
 import { toast } from 'react-hot-toast';
 import EditQuestionModal from './EditQuestionModal';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
@@ -12,9 +12,14 @@ import DeleteConfirmationModal from './DeleteConfirmationModal';
 interface MyActivityQuestionCardProps {
   question: CommunityDashboardItem;
   onQuestionUpdated?: () => void;
+  isBookmarkView?: boolean;
 }
 
-const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({ question, onQuestionUpdated }) => {
+const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({ 
+  question, 
+  onQuestionUpdated,
+  isBookmarkView = false
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
   // Menu & Modal States
@@ -25,15 +30,17 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({ questio
   const menuRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
-  const { userId } = useAuthStore();
+  const { user, userId } = useAuthStore();
   const token = localStorage.getItem('jwt');
 
   const [isLiked, setIsLiked] = useState(question.answerLikedByMe || false);
   const [likesCount, setLikesCount] = useState(question.likesCountOnAnswer || 0);
+  const [isBookmarked, setIsBookmarked] = useState(question.questionBookmarkedByMe || false);
 
   useEffect(() => {
     setIsLiked(question.answerLikedByMe || false);
     setLikesCount(question.likesCountOnAnswer || 0);
+    setIsBookmarked(question.questionBookmarkedByMe || false);
   }, [question]);
 
   useEffect(() => {
@@ -45,6 +52,37 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({ questio
     if (isMenuOpen) document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMenuOpen]);
+
+  const handleBookmark = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!userId || !token) return;
+
+    const previousState = isBookmarked;
+    setIsBookmarked(!previousState);
+
+    try {
+      const response = await bookmarkQuestion(
+        userId,
+        question.questionId,
+        user?.role || 'user',
+        token
+      );
+      
+      if (response.status === 'Success') {
+        setIsBookmarked(response.isBookmarked);
+        toast.success(response.message);
+        if (isBookmarkView && !response.isBookmarked) {
+             onQuestionUpdated?.();
+        }
+      } else {
+        setIsBookmarked(previousState);
+      }
+    } catch (error) {
+      console.error(error);
+      setIsBookmarked(previousState);
+      toast.error("Failed to update bookmark");
+    }
+  };
 
   const handleMenuToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -98,8 +136,11 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({ questio
   };
 
   const userImage = question.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(question.fullName)}`;
-  
   const canEdit = (question.answerCount || 0) === 0;
+
+  const displayTimestamp = question.questionUpdated 
+    ? question.questionUpdatedTimestamp 
+    : question.questionTimestamp;
 
   return (
     <>
@@ -119,9 +160,12 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({ questio
                 <span className="text-lg font-medium text-[#242645]">
                   {question.fullName}
                 </span>
-                {question.questionTimestamp?.seconds && (
+                {displayTimestamp?.seconds && (
                   <span className="text-sm text-[#8C8CA1] ml-6">
-                    {formatTimeAgo(question.questionTimestamp.seconds)}
+                    {formatTimeAgo(displayTimestamp.seconds)}
+                    {question.questionUpdated && (
+                      <span className="ml-1 text-xs italic">(edited)</span>
+                    )}
                   </span>
                 )}
               </div>
@@ -132,34 +176,45 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({ questio
           </div>
 
           <div className="relative menu-container" ref={menuRef}>
-            <button
-              onClick={handleMenuToggle}
-              className="text-gray-500 cursor-pointer hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
-            >
-              <MoreVertical size={20} />
-            </button>
-            
-            {isMenuOpen && (
-              <div className="absolute right-0 top-8 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[140px]">
+            {isBookmarkView ? (
+               <button 
+                onClick={handleBookmark}
+                className={`transition-colors cursor-pointer p-1 ${isBookmarked ? 'text-[#655E95]' : 'text-gray-500 hover:text-indigo-600'}`}
+               >
+                 <Bookmark size={24} fill={isBookmarked ? "#655E95" : "none"} />
+               </button>
+            ) : (
+              <>
                 <button
-                  onClick={handleEditClick}
-                  disabled={!canEdit}
-                  className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 
-                    ${!canEdit ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100 cursor-pointer'}`}
-                  title={!canEdit ? "Cannot edit question with answers" : ""}
+                  onClick={handleMenuToggle}
+                  className="text-gray-500 cursor-pointer hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
                 >
-                  <Pencil size={16} />
-                  Edit
+                  <MoreVertical size={20} />
                 </button>
                 
-                <button
-                  onClick={handleDeleteClick}
-                  className="w-full px-4 py-2 text-left text-sm cursor-pointer text-red-600 hover:bg-red-50 flex items-center gap-2"
-                >
-                  <Trash2 size={16} />
-                  Delete
-                </button>
-              </div>
+                {isMenuOpen && (
+                  <div className="absolute right-0 top-8 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[140px]">
+                    <button
+                      onClick={handleEditClick}
+                      disabled={!canEdit}
+                      className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2 
+                        ${!canEdit ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100 cursor-pointer'}`}
+                      title={!canEdit ? "Cannot edit question with answers" : ""}
+                    >
+                      <Pencil size={16} />
+                      Edit
+                    </button>
+                    
+                    <button
+                      onClick={handleDeleteClick}
+                      className="w-full px-4 py-2 text-left text-sm cursor-pointer text-red-600 hover:bg-red-50 flex items-center gap-2"
+                    >
+                      <Trash2 size={16} />
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -173,7 +228,7 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({ questio
             <p className={`text-base text-[#242645] leading-[26px] ${!isExpanded ? 'line-clamp-3' : ''}`}>
               {question.topAnswer}
             </p>
-            {!isExpanded && question.topAnswer.length > 100 && (
+            {!isExpanded && question.topAnswer.length > 250 && (
               <button onClick={(e) => { e.stopPropagation(); setIsExpanded(true); }} className="font-semibold text-[#242645] underline cursor-pointer">
                 Read more
               </button>
@@ -188,7 +243,7 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({ questio
             )}
           </div>
         ) : (
-          question.question && question.question.length > 150 && (
+          question.question && question.question.length > 250 && (
             <div className="mt-4">
               <p className={`text-base text-[#242645] leading-[26px] ${!isExpanded ? 'line-clamp-3' : ''}`}>
                 {question.question}
@@ -207,17 +262,16 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({ questio
           )
         )}
 
-        {/* Footer Actions */}
         <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-300">
           <div className="flex items-center gap-6 text-gray-600">
             <button 
-              className={`flex items-center gap-2 transition-colors cursor-pointer ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
+              className={`flex items-center gap-2 transition-colors cursor-pointer ${isLiked ? 'text-red-500' : ''}`}
               disabled={!question.topAnswerId}
             >
               <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
               <span className="text-sm">{likesCount}</span>
             </button>
-            <button className="flex items-center cursor-pointer gap-2 hover:text-indigo-600">
+            <button className="flex items-center cursor-pointer gap-2">
               <img src="/msg_comm.svg" alt="comment" />
               <span className="text-sm">{question.commentCountOnAnswer || 0}</span>
             </button>

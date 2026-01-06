@@ -103,7 +103,16 @@ const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
   }, [userId, token, nextPageToken, isMoreLoading]);
 
   const displayedItems = selectedCategory
-    ? items.filter((item) => item.interestedCourse === selectedCategory)
+    ? items.filter((item) => {
+        const subject = item.subject || ''; 
+        const mainCategories = ['Colleges', 'Courses', 'Exams'];
+
+        if (selectedCategory === 'Other') {
+          return !mainCategories.includes(subject);
+        }
+        
+        return subject === selectedCategory;
+      })
     : items;
 
   if (isLoading) {

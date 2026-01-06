@@ -105,7 +105,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ item }) => {
             {item.topAnswer}
           </p>
           
-          {!isExpanded && item.topAnswer.length > 100 && (
+          {!isExpanded && item.topAnswer.length > 250 && (
             <button
               onClick={(e) => {
                 e.stopPropagation();

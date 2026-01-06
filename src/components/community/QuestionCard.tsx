@@ -75,6 +75,10 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questionData }) => {
   // Check if the user has already answered this question
   const hasUserAnswered = questionData.answerStructure?.some(answer => answer.myAnswer === true) || false;
 
+  const displayTimestamp = questionData.updated 
+    ? questionData.updatedTimestamp 
+    : questionData.timestamp;
+
   return (
     <>
       <div className="w-full max-w-[860px] mx-auto p-5 rounded-lg bg-[#F5F5F7] border border-gray-100">
@@ -91,7 +95,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questionData }) => {
                   {askerName}
                 </span>
                 <span className="text-sm text-[#8C8CA1] ml-6">
-                  {formatTimeAgo(questionData.timestamp.seconds)}
+                  {formatTimeAgo(displayTimestamp.seconds)}
+                  {questionData.updated && <span className="ml-1 text-xs">(edited)</span>}
                 </span>
               </div>
               <span className="text-sm text-[#242645]">{askerCourse}</span>
