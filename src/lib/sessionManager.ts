@@ -6,6 +6,7 @@ export interface SessionData {
   userId: string;
   userType: UserType;
   source: Source;
+  token?: string;
 }
 
 const SESSION_STORAGE_KEY = "chatbot_session_id";
@@ -50,7 +51,7 @@ const detectSource = (): Source => {
   }
 
   const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
-  
+
   const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
     userAgent.toLowerCase()
   );
@@ -96,17 +97,18 @@ export const clearSession = (): void => {
 
 export const getSessionData = (
   authenticatedUserId?: string | null,
-  userRole?: string | null
+  userRole?: string | null,
+  token?: string | null
 ): SessionData => {
   const sessionId = getCurrentSessionId();
   const source = detectSource();
-  
+
   let userId: string;
   let userType: UserType;
-  
+
   if (authenticatedUserId) {
     userId = authenticatedUserId;
-    
+
     if (userRole === "counselor") {
       userType = "counselor";
     } else {
@@ -116,11 +118,12 @@ export const getSessionData = (
     userId = getOrCreateVisitorId();
     userType = "visitor";
   }
-  
+
   return {
     sessionId,
     userId,
     userType,
     source,
+    ...(token ? { token } : {}),
   };
 };

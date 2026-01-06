@@ -9,56 +9,56 @@ import type { ApiReviewReceived } from '@/types/counselorDashboard';
 const { baseUrl } = API_CONFIG;
 
 export async function getAllAppointments(counsellorId: string, token: string) {
-    try {
-        const response = await fetch(`${baseUrl}/api/counsellor/getCounsellorUpcomingAppointments?counsellorId=${counsellorId}`, {
-            headers: {
-                Accept: 'application/json',
-                authorization: `Bearer ${token}`
-            }
-        })
+  try {
+    const response = await fetch(`${baseUrl}/api/counsellor/getCounsellorUpcomingAppointments?counsellorId=${counsellorId}`, {
+      headers: {
+        Accept: 'application/json',
+        authorization: `Bearer ${token}`
+      }
+    })
 
-        if (!response.ok) {
-            console.error(response.status, response.statusText)
-        }
-
-        const result = await response.json()
-
-        const groupedAppointments:GroupedAppointments = result.reduce((acc: { [x: string]: { [x: string]: Appointment[]; }; }, appt:Appointment) => {
-            const date = appt.date;
-            const [hour] = appt.startTime.split(":").map(Number);
-            const hourKey = hour.toString().padStart(2, "0") + ":00";
-            if (!acc[date]) acc[date] = {};
-            if (!acc[date][hourKey]) acc[date][hourKey] = [];
-            acc[date][hourKey].push(appt);
-
-            return acc;
-        }, {} as GroupedAppointments);
-        return groupedAppointments
-    } catch {
-        console.log('failed to fetch appointments data')
+    if (!response.ok) {
+      console.error(response.status, response.statusText)
     }
+
+    const result = await response.json()
+
+    const groupedAppointments: GroupedAppointments = result.reduce((acc: { [x: string]: { [x: string]: Appointment[]; }; }, appt: Appointment) => {
+      const date = appt.date;
+      const [hour] = appt.startTime.split(":").map(Number);
+      const hourKey = hour.toString().padStart(2, "0") + ":00";
+      if (!acc[date]) acc[date] = {};
+      if (!acc[date][hourKey]) acc[date][hourKey] = [];
+      acc[date][hourKey].push(appt);
+
+      return acc;
+    }, {} as GroupedAppointments);
+    return groupedAppointments
+  } catch {
+    console.log('failed to fetch appointments data')
+  }
 }
 
 
 export async function getOutOfOffice(counsellorId: string, token: string): Promise<OutOfOffice[]> {
-    try {
-        const response = await fetch(`${baseUrl}/api/counsellor/getOutOfOfficeByCounsellor?counsellorId=${counsellorId}`, {
-            headers: {
-                Accept: 'application/json',
-                authorization: `Bearer ${token}`
-            }
-        })
+  try {
+    const response = await fetch(`${baseUrl}/api/counsellor/getOutOfOfficeByCounsellor?counsellorId=${counsellorId}`, {
+      headers: {
+        Accept: 'application/json',
+        authorization: `Bearer ${token}`
+      }
+    })
 
-        if (!response.ok) {
-            console.error(response.status, response.statusText)
-        }
-
-        const result = await response.json()
-        return result.data;
-    } catch {
-        console.log('failed to fetch out of office data')
-        return [];
+    if (!response.ok) {
+      console.error(response.status, response.statusText)
     }
+
+    const result = await response.json()
+    return result.data;
+  } catch {
+    console.log('failed to fetch out of office data')
+    return [];
+  }
 }
 
 export async function setOutOfOffice(payload: OutOfOfficePayload, token: string) {
@@ -164,7 +164,7 @@ export async function getCounselorAppointments(counsellorId: string, token: stri
     if (!response.ok) {
       throw new Error('Failed to fetch appointments');
     }
-    
+
     const data: Appointment[] = await response.json();
     return data;
 
@@ -212,11 +212,11 @@ export async function getSubscribedClients(counsellorId: string, token: string):
     if (!response.ok) {
       throw new Error('Failed to fetch subscribed clients');
     }
-    
+
     const responseText = await response.text();
     // Safely handle non-JSON text response
     if (responseText.toLowerCase().includes("no clients")) {
-        return [];
+      return [];
     }
 
     const data: ApiClient[] = JSON.parse(responseText);
@@ -241,12 +241,12 @@ export async function getPendingRequests(counsellorId: string, token: string): P
     if (!response.ok) {
       throw new Error('Failed to fetch pending requests');
     }
-    
+
     const responseText = await response.text();
     if (responseText.toLowerCase().includes("no clients") || responseText.toLowerCase().includes("no requests")) {
-        return [];
+      return [];
     }
-    
+
     const data: ApiPendingRequest[] = JSON.parse(responseText);
     return data;
 
@@ -272,7 +272,7 @@ export async function respondToSubscriptionRequest(requestId: string, action: 'c
     if (!response.ok) {
       throw new Error(result.message || `Failed to respond to request.`);
     }
-    
+
     return result;
 
   } catch (error) {
@@ -294,7 +294,7 @@ export async function getCounselorProfileById(counsellorId: string, token: strin
     if (!response.ok) {
       throw new Error('Failed to fetch counselor profile');
     }
-    
+
     const data: CounselorProfileData = await response.json();
     return data;
 
@@ -317,7 +317,7 @@ export async function getEarnings(counsellorId: string, token: string): Promise<
     if (!response.ok) {
       throw new Error('Failed to fetch earnings data');
     }
-    
+
     const data: EarningsData = await response.json();
     return data;
 
@@ -340,12 +340,12 @@ export async function getAllOfflineTransactions(counsellorId: string, token: str
     if (!response.ok) {
       throw new Error('Failed to fetch offline transactions');
     }
-    
+
     const responseText = await response.text();
     if (!responseText || responseText.toLowerCase().includes("no transactions")) {
-        return [];
+      return [];
     }
-    
+
     const data: Transaction[] = JSON.parse(responseText);
     return data;
 
@@ -453,7 +453,7 @@ export async function getCounselorAppointmentById(counsellorId: string, appointm
       const errorBody = await response.json();
       throw new Error(errorBody.message || 'Failed to fetch appointment details.');
     }
-    
+
     return await response.json();
 
   } catch (error) {
@@ -464,6 +464,83 @@ export async function getCounselorAppointmentById(counsellorId: string, appointm
 
 
 
+
+export async function getUserById(counsellorId: string, userId: string, token: string) {
+  try {
+    const response = await fetch(`${baseUrl}/api/counsellor/getUserById?counsellorId=${counsellorId}&userId=${userId}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user details');
+    }
+
+    const data = await response.json();
+    return data;
+
+  } catch (error) {
+    console.error('Get User By ID Error:', error);
+    toast.error('Could not load user details.');
+    throw error;
+  }
+}
+
+export async function getAllAppointmentsForSpecificUser(counsellorId: string, userId: string, token: string) {
+  try {
+    const response = await fetch(`${baseUrl}/api/counsellor/getAllAppointmentsForSpecificUser?counsellorId=${counsellorId}&userId=${userId}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user appointments');
+    }
+
+    const data = await response.json();
+    return data;
+
+  } catch (error) {
+    console.error('Get User Appointments Error:', error);
+    toast.error('Could not load user appointments.');
+    return [];
+  }
+}
+
+export async function addNoteToSpecificUser(counsellorId: string, userId: string, noteText: string, token: string) {
+  try {
+    const response = await fetch(`${baseUrl}/api/counsellor/addNoteToSpecificUser`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        counsellorId,
+        userId,
+        noteText
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save note');
+    }
+
+    const result = await response.json();
+    toast.success('Note saved successfully!');
+    return result;
+
+  } catch (error) {
+    console.error('Add Note Error:', error);
+    toast.error(error instanceof Error ? error.message : 'Failed to save note.');
+    throw error;
+  }
+}
 
 // export async function getCoursesByCourseId(counsellorId:string){
 //   const response = await fetch(`${baseUrl}/`)

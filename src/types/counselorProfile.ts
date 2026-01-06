@@ -43,4 +43,17 @@ export interface CounselorProfileData {
   offlineTransactions: Transaction[];
   activityLog: ActivityLog[];
   rating: number;
+  clientNotes?: Array<{
+    noteId: string;
+    counsellorId: string;
+    userId: string;
+    noteText: string;
+    timestamp: number;
+  }>;
+  notesForCounsellorRelatedToUser?: Array<{
+    counsellorId: string;
+    userId: string;
+    noteText: string;
+    timestamp: string;
+  }>;
 }

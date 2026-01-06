@@ -7,6 +7,7 @@ interface ClientCardProps {
   onAccept?: () => void;
   onReject?: () => void;
   isResponding?: boolean;
+  onClick?: () => void;
 }
 
 const formatPlanName = (plan: string) => {
@@ -53,11 +54,16 @@ export default function ClientCard({
   onAccept,
   onReject,
   isResponding,
+  onClick,
 }: ClientCardProps) {
   return (
     <>
       {/*mobile view*/}
-      <div className="block md:hidden bg-white border border-[#EFEFEF] rounded-2xl p-3 space-y-3 shadow-sm font-montserrat">
+      <div
+        className={`block md:hidden bg-white border border-[#EFEFEF] rounded-2xl p-3 space-y-3 shadow-sm font-montserrat ${variant === 'client' && onClick ? 'hover:cursor-pointer hover:shadow-md transition-shadow' : ''
+          }`}
+        onClick={() => variant === 'client' && onClick && onClick()}
+      >
         <div className="flex justify-between items-start">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <img
@@ -160,7 +166,11 @@ export default function ClientCard({
         )}
       </div>
       {/*desktop*/}
-      <div className="hidden md:block py-6">
+      <div
+        className={`hidden md:block py-6 ${variant === 'client' && onClick ? 'hover:cursor-pointer hover:bg-gray-50 transition-colors rounded-lg -mx-4 px-4' : ''
+          }`}
+        onClick={() => variant === 'client' && onClick && onClick()}
+      >
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
           <div className="md:col-span-3 flex items-center gap-4">
             <img
@@ -180,13 +190,12 @@ export default function ClientCard({
 
           {client.plan && (
             <div
-              className={`flex items-center gap-6 ${
-                client.interestedStates &&
+              className={`flex items-center gap-6 ${client.interestedStates &&
                 client.interestedStates.length > 0 &&
                 variant === "client"
-                  ? "md:col-span-7"
-                  : "md:col-span-7"
-              }`}
+                ? "md:col-span-7"
+                : "md:col-span-7"
+                }`}
             >
               <div className="shrink-0">
                 <h5 className="font-semibold text-lg text-[#242645]">Plan</h5>

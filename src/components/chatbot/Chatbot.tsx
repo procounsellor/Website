@@ -176,7 +176,8 @@ export default function Chatbot() {
     }
 
     setInput("");
-    await sendMessage(messageToSend, userId, role);
+    const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null;
+    await sendMessage(messageToSend, userId, role, token);
   };
 
   const handleNewChat = () => {
