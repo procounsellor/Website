@@ -5,10 +5,18 @@ import { getRepliesForComment, likeComment } from '@/api/community';
 import type { Comment, CommentReply } from '@/types/community';
 import { toast } from 'react-hot-toast';
 import ReplyItem from './ReplyItem';
+import { formatTimeAgo } from '@/utils/time';
 
 interface CommentItemProps {
   comment: Comment;
-  onReplyClick: (commentId: string, userName: string) => void;
+  onReplyClick: (
+      targetId: string, 
+      userName: string, 
+      targetUserId: string, 
+      userImage: string | null, 
+      text: string, 
+      parentCommentId: string
+  ) => void;
 }
 
 const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyClick }) => {
@@ -29,7 +37,6 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyClick }) => {
       toast.error("Please login to like");
       return;
     }
-
     const previousLikedState = isLiked;
     const previousCount = likesCount;
 
@@ -37,13 +44,7 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyClick }) => {
     setLikesCount(previousLikedState ? previousCount - 1 : previousCount + 1);
 
     try {
-      const response = await likeComment(
-        userId,
-        comment.commentId,
-        user?.role || 'user',
-        token
-      );
-
+      const response = await likeComment(userId, comment.commentId, user?.role || 'user', token);
       if (response.status === 'Success') {
         setIsLiked(response.isLiked);
       } else {
@@ -63,12 +64,10 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyClick }) => {
       setAreRepliesVisible(false);
       return;
     }
-
     if (replies && replies.length > 0) {
       setAreRepliesVisible(true);
       return;
     }
-
     if (!userId || !token) return;
 
     try {
@@ -87,18 +86,26 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyClick }) => {
 
   const shouldShowReplyButton = comment.replyCount === undefined || comment.replyCount > 0;
 
+  const displayTimestamp = comment.updated 
+    ? comment.updatedCommentTimestamp 
+    : comment.commentTimestamp;
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex gap-3">
-        <img
-          src={userImage}
-          alt={comment.userFullName}
-          className="w-8 h-8 rounded-full bg-[#D9D9D9] shrink-0 mt-1"
-        />
+        <img src={userImage} alt={comment.userFullName} className="w-8 h-8 rounded-full bg-[#D9D9D9] shrink-0 mt-1" />
         <div className="flex flex-col w-full">
-            <span className="font-[Montserrat] font-semibold text-[16px] text-[#242645] leading-[125%]">
-                {comment.userFullName}
-            </span>
+            <div className="flex items-center gap-2">
+                <span className="font-[Montserrat] font-semibold text-[16px] text-[#242645] leading-[125%]">
+                    {comment.userFullName}
+                </span>
+                {displayTimestamp?.seconds && (
+                  <span className="text-xs text-[#8C8CA1] ml-2">
+                    {formatTimeAgo(displayTimestamp.seconds)}
+                    {comment.updated && " (edited)"}
+                  </span>
+                )}
+            </div>
             <p className="font-[Montserrat] font-normal text-[14px] text-[#8C8CA1] leading-[125%] mt-1">
                 {comment.commentText}
             </p>
@@ -106,32 +113,31 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyClick }) => {
             <div className="flex items-center justify-between mt-2">
                 <div className="flex gap-4 text-sm font-medium text-[#242645]">
                      <button 
-                        onClick={() => onReplyClick(comment.commentId, comment.userFullName)}
+                        onClick={() => 
+                            onReplyClick(
+                                comment.commentId, 
+                                comment.userFullName, 
+                                comment.userIdCommented, 
+                                userImage, 
+                                comment.commentText, 
+                                comment.commentId
+                            )
+                        }
                         className="hover:underline cursor-pointer"
                      >
                         Reply
                      </button>
                      
                      {shouldShowReplyButton && (
-                       <button 
-                          onClick={handleViewReplies}
-                          className="text-[#8C8CA1] hover:text-[#242645] transition-colors cursor-pointer"
-                       >
-                          {isLoadingReplies ? 'Loading...' : 
-                            (areRepliesVisible ? 'Hide replies' : 'View replies')
-                          }
+                       <button onClick={handleViewReplies} className="text-[#8C8CA1] hover:text-[#242645] transition-colors cursor-pointer">
+                          {isLoadingReplies ? 'Loading...' : (areRepliesVisible ? 'Hide replies' : 'View replies')}
                        </button>
                      )}
                 </div>
 
-                <button 
-                    onClick={handleCommentLike}
-                    className="flex items-center gap-1 transition-colors cursor-pointer hover:opacity-75"
-                >
+                <button onClick={handleCommentLike} className="flex items-center gap-1 transition-colors cursor-pointer hover:opacity-75">
                     <Heart size={14} fill={isLiked ? "#F44336" : "none"} color={isLiked ? "#F44336" : "#F44336"} />
-                    <span className={`text-xs font-bold ${isLiked ? "text-[#F44336]" : "text-[#F44336]"}`}>
-                        {likesCount}
-                    </span>
+                    <span className={`text-xs font-bold ${isLiked ? "text-[#F44336]" : "text-[#F44336]"}`}>{likesCount}</span>
                 </button>
             </div>
         </div>
@@ -143,7 +149,9 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyClick }) => {
                <ReplyItem 
                  key={reply.replyId} 
                  reply={reply} 
-                 onReplyClick={onReplyClick} 
+                 onReplyClick={(rId, rName, rUid, rImage, rText) => 
+                     onReplyClick(rId, rName, rUid, rImage, rText, comment.commentId)
+                 }
                />
            ))}
         </div>

@@ -114,6 +114,10 @@ const MyActivityAnswerCard: React.FC<MyActivityAnswerCardProps> = ({ answerItem,
     onAnswerUpdated?.();
   };
 
+  const displayTimestamp = answerItem.answerUpdated 
+    ? answerItem.answerUpdatedTimestamp 
+    : answerItem.answerTimestamp;
+
   return (
     <div 
       onClick={handleClick}
@@ -131,9 +135,10 @@ const MyActivityAnswerCard: React.FC<MyActivityAnswerCardProps> = ({ answerItem,
               <span className="text-lg font-medium text-[#242645]">
                 {answerItem.fullName}
               </span>
-              {answerItem.questionTimestamp?.seconds && (
+              {displayTimestamp?.seconds && (
                 <span className="text-sm text-[#8C8CA1] ml-6">
-                  {formatTimeAgo(answerItem.questionTimestamp.seconds)}
+                  {formatTimeAgo(displayTimestamp.seconds)}
+                  {answerItem.answerUpdated && " (edited)"}
                 </span>
               )}
             </div>
@@ -184,13 +189,13 @@ const MyActivityAnswerCard: React.FC<MyActivityAnswerCardProps> = ({ answerItem,
           <>
             <p
               className={`text-base text-[#242645] leading-[26px] ${
-                !isExpanded && answerItem.myAnswer && answerItem.myAnswer.length > 150 ? 'line-clamp-3' : ''
+                !isExpanded && answerItem.myAnswer && answerItem.myAnswer.length > 250 ? 'line-clamp-3' : ''
               }`}
             >
               {answerItem.myAnswer}
             </p>
             
-            {!isExpanded && answerItem.myAnswer && answerItem.myAnswer.length > 150 && (
+            {!isExpanded && answerItem.myAnswer && answerItem.myAnswer.length > 250 && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -230,12 +235,12 @@ const MyActivityAnswerCard: React.FC<MyActivityAnswerCardProps> = ({ answerItem,
       <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-300">
         <div className="flex items-center gap-6 text-gray-600">
           <button 
-            className={`flex items-center gap-2 transition-colors cursor-pointer ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
+            className={`flex items-center gap-2 transition-colors cursor-pointer ${isLiked ? 'text-red-500' : ''}`}
           >
             <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
             <span className="text-sm">{likesCount}</span>
           </button>
-          <button className="flex items-center gap-2 hover:text-indigo-600">
+          <button className="flex items-center gap-2 cursor-pointer">
             <MessageSquare size={18} />
             <span className="text-sm">{answerItem.commentCountOnAnswer || 0}</span>
           </button>

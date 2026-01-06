@@ -28,6 +28,8 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, questionId, onAnswerUpd
   const [activeReplyToName, setActiveReplyToName] = useState('');
   const [activeCommentId, setActiveCommentId] = useState('');
   const [activeReplyToUserId, setActiveReplyToUserId] = useState('');
+  const [activeReplyToImage, setActiveReplyToImage] = useState<string | null>(null);
+  const [activeReplyToText, setActiveReplyToText] = useState('');
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -157,14 +159,19 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, questionId, onAnswerUpd
     }
   };
 
-  const handleOpenReplyModal = (commentId: string, userName: string) => {
-      const comment = comments.find(c => c.commentId === commentId);
-
-      const authorId = comment?.userIdCommented || ''; 
-
-      setActiveCommentId(commentId);
+  const handleOpenReplyModal = (
+    _targetId: string, 
+    userName: string, 
+    targetUserId: string, 
+    userImage: string | null, 
+    text: string,
+    parentCommentId: string,
+  ) => {
+      setActiveCommentId(parentCommentId);
       setActiveReplyToName(userName);
-      setActiveReplyToUserId(authorId);
+      setActiveReplyToUserId(targetUserId);
+      setActiveReplyToImage(userImage);
+      setActiveReplyToText(text);
       setReplyModalOpen(true);
   };
 
@@ -226,6 +233,10 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, questionId, onAnswerUpd
     onAnswerUpdated?.();
   };
 
+  const displayTimestamp = answer.answerUpdated 
+    ? answer.updatedAnswerTimestamp 
+    : answer.answerTimestamp;
+
   return (
     <div className="w-full max-w-[860px] mx-auto p-5 rounded-lg bg-[#F5F6FF] border-b-2 border-white mb-4">
       <div className="flex justify-between items-start">
@@ -241,7 +252,8 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, questionId, onAnswerUpd
                 {answer.userFullName}
               </span>
               <span className="text-sm text-[#8C8CA1] ml-6">
-                {formatTimeAgo(answer.answerTimestamp.seconds)}
+                {formatTimeAgo(displayTimestamp.seconds)}
+                {answer.answerUpdated && <span className="ml-1 text-xs">(edited)</span>}
               </span>
             </div>
             <span className="text-sm text-[#242645]">
@@ -374,6 +386,8 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, questionId, onAnswerUpd
          replyToName={activeReplyToName}
          replyToUserId={activeReplyToUserId}
          commentId={activeCommentId}
+         replyToImage={activeReplyToImage}
+         replyToText={activeReplyToText}
       />
 
       {answer.myAnswer && (

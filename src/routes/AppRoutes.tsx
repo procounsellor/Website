@@ -26,6 +26,7 @@ import CoursePage from '@/pages/CoursePage';
 import MyActivityPage from '@/pages/MyActivityPage';
 import LandingPage from '@/pages/AdityaLandingPage';
 import PromoPage from '@/pages/PromoPage';
+import ClientProfilePage from '@/pages/ClientProfilePage';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
@@ -35,10 +36,10 @@ const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
 const LiveSessionsPage = lazy(() => import('@/pages/LiveSessionsPage'));
 const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
 
-export default function AppRoutes(){
-    return(
+export default function AppRoutes() {
+    return (
         <>
-        <Toaster 
+            <Toaster
                 position="top-center"
                 toastOptions={{
                     duration: 4000,
@@ -48,45 +49,46 @@ export default function AppRoutes(){
                     },
                 }}
             />
-                 <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
-                     <Routes>
-                        <Route path="/privacy1" element={<ExternalPrivacyPage/>} />
-                        <Route path="/term1" element={<ExternalTermsPage/>} />
-                        
-                        <Route element={<MainLayout/>}>
-                                <Route path="/" element={<Home/>}/>
-                                <Route path='/gurucool' element={<LandingPage/>}/>
-                                <Route path="/counsellors" element={<CounselorListingPage/>} />
-                                <Route path="/counsellor-profile" element={<CounselorDetailsPage/>} />
-                                <Route path="/courses/:id" element={<CourseDetailsPage/>} />
-                                <Route path="/colleges/:id" element={<CollegeDetailsPage/>} />
-                                <Route path="/exams" element={<ExamsListingPage />} />
-                                <Route path="/about" element={<AboutPage/>} />
-                                <Route path="/contact" element={<ContactPage/>} />
-                                <Route path="/privacy-policy" element={<PrivacyPolicyPage/>} />
-                                <Route path="/terms" element={<TermsPage/>} />
-                                <Route path="/cancellation-refund" element={<CancellationRefundPage/>} />
-                                <Route path="/shipping-exchange" element={<ShippingExchangePage/>} />
-                                <Route path="/sitemap" element={<SitemapPage/>} />
-                                <Route path='/detail/:courseId/:role' element={<CoursePage/>}/>
-                                <Route path="/add-college" element={<AddCollegePage/>} />
-                                <Route path="/exams/:id" element={<ExamDetailsPage />} />
-                                <Route path='/subscribe' element={<SubscriptionPage/>}/>
-                                <Route path='/counsellor-dashboard' element={<CounselorDashboard/>}/>
-                                <Route path="/community" element={<CommunityPage />} />
-                                <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
-                                <Route path="/community/answer" element={<AnswerPage />} />
-                                <Route path="/community/my-activity" element={<MyActivityPage />} />
-                                <Route path='/promo' element={<PromoPage/>}/>
-                                <Route path="/notifications" element={<NotificationsPage/>} />
-                                <Route element={<ProtectedRoute/>}>
-                                    <Route path='/dashboard-student' element={<StudentDashboardPage/>}/>
-                                     <Route path='/live-sessions' element={<LiveSessionsPage/>}/>
-                                    <Route path='/wallet' element={<RechargeWallet/>}/>
-                                </Route>
-                         </Route>
-                     </Routes>
-                 </Suspense>
+            <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+                <Routes>
+                    <Route path="/privacy1" element={<ExternalPrivacyPage />} />
+                    <Route path="/term1" element={<ExternalTermsPage />} />
+
+                    <Route element={<MainLayout />}>
+                        <Route path="/" element={<Home />} />
+                        <Route path='/gurucool' element={<LandingPage />} />
+                        <Route path="/counsellors" element={<CounselorListingPage />} />
+                        <Route path="/counsellor-profile" element={<CounselorDetailsPage />} />
+                        <Route path="/courses/:id" element={<CourseDetailsPage />} />
+                        <Route path="/colleges/:id" element={<CollegeDetailsPage />} />
+                        <Route path="/exams" element={<ExamsListingPage />} />
+                        <Route path="/about" element={<AboutPage />} />
+                        <Route path="/contact" element={<ContactPage />} />
+                        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                        <Route path="/terms" element={<TermsPage />} />
+                        <Route path="/cancellation-refund" element={<CancellationRefundPage />} />
+                        <Route path="/shipping-exchange" element={<ShippingExchangePage />} />
+                        <Route path="/sitemap" element={<SitemapPage />} />
+                        <Route path='/detail/:courseId/:role' element={<CoursePage />} />
+                        <Route path="/add-college" element={<AddCollegePage />} />
+                        <Route path="/exams/:id" element={<ExamDetailsPage />} />
+                        <Route path='/subscribe' element={<SubscriptionPage />} />
+                        <Route path='/counsellor-dashboard' element={<CounselorDashboard />} />
+                        <Route path='/counselor-dashboard/client-profile' element={<ClientProfilePage />} />
+                        <Route path="/community" element={<CommunityPage />} />
+                        <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
+                        <Route path="/community/answer" element={<AnswerPage />} />
+                        <Route path="/community/my-activity" element={<MyActivityPage />} />
+                        <Route path='/promo' element={<PromoPage />} />
+                        <Route path="/notifications" element={<NotificationsPage />} />
+                        <Route element={<ProtectedRoute />}>
+                            <Route path='/dashboard-student' element={<StudentDashboardPage />} />
+                            <Route path='/live-sessions' element={<LiveSessionsPage />} />
+                            <Route path='/wallet' element={<RechargeWallet />} />
+                        </Route>
+                    </Route>
+                </Routes>
+            </Suspense>
         </>
     );
 }

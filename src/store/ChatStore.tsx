@@ -36,7 +36,7 @@ type ChatState = {
   isLoadingHistory: boolean;
   sessionsFetched: boolean;
   toggleChatbot: () => void;
-  sendMessage: (question: string, userId?: string | null, userRole?: string | null) => Promise<void>;
+  sendMessage: (question: string, userId?: string | null, userRole?: string | null, token?: string | null) => Promise<void>;
   stopGenerating: () => void;
   loadMessages: (messages: Message[]) => void;
   clearMessages: () => void;
@@ -64,8 +64,8 @@ const transformCounselorData = (apiCounselor: any): AllCounselor => {
     rating: apiCounselor.rating || 0,
     ratePerYear: apiCounselor.plusAmount || 5000,
     experience: `${apiCounselor.experience || 0}`,
-    languagesKnow: Array.isArray(apiCounselor.languagesKnow) 
-      ? apiCounselor.languagesKnow 
+    languagesKnow: Array.isArray(apiCounselor.languagesKnow)
+      ? apiCounselor.languagesKnow
       : (apiCounselor.languagesKnown || "English").split(", "),
     city: apiCounselor.city || "N/A",
     numberOfRatings: `${apiCounselor.reviewCount || 0}`,
@@ -74,7 +74,7 @@ const transformCounselorData = (apiCounselor: any): AllCounselor => {
     organisationName: apiCounselor.organisationName,
     email: apiCounselor.email,
     fullOfficeAddress: apiCounselor.fullOfficeAddress || {},
-    states: apiCounselor.stateOfCounsellor || [], 
+    states: apiCounselor.stateOfCounsellor || [],
     workingDays: apiCounselor.workingDays || [],
     officeStartTime: apiCounselor.officeStartTime,
     officeEndTime: apiCounselor.officeEndTime,
@@ -101,7 +101,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   setLoginOpenFromChatbot: (isOpen: boolean) => {
     set({ isLoginOpenFromChatbot: isOpen });
   },
-  
+
   stopGenerating: () => {
     const { abortController } = get();
     if (abortController) {
@@ -109,7 +109,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       set({ loading: false, abortController: null });
     }
   },
-  
+
   loadMessages: (newMessages: Message[]) => {
     set({ messages: newMessages });
   },
@@ -117,7 +117,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   clearMessages: () => {
     set({ messages: [] });
   },
-  
+
   startNewChat: () => {
     const newSessionId = createNewSession();
     set({ messages: [], currentSessionId: newSessionId });
@@ -180,7 +180,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       chatSessions: state.chatSessions.filter((s) => s.sessionId !== sessionId)
     }));
     if (get().currentSessionId === sessionId) {
-       get().startNewChat(); 
+      get().startNewChat();
     }
     await deleteSession(userId, sessionId);
   },
@@ -210,7 +210,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const transformedMessages: Message[] = history.map((msg) => {
         // Parse counsellors from the API message if present
         let counsellors: AllCounselor[] | undefined = undefined;
-        
+
         // Check if the message object has counsellors field (from backend)
         const msgData = msg as any;
         if (msgData.counsellors && Array.isArray(msgData.counsellors) && msgData.counsellors.length > 0) {
@@ -220,7 +220,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
             console.log(`📋 Found ${counsellors.length} counsellors in loaded message`);
           }
         }
-        
+
         return {
           text: msg.content,
           isUser: msg.role === "user",
@@ -228,9 +228,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
           followup: undefined, // Could also parse followup if backend sends it
         };
       });
-      
-      set({ 
-        messages: transformedMessages, 
+
+      set({
+        messages: transformedMessages,
         currentSessionId: sessionId,
         isLoadingHistory: false
       });
@@ -267,20 +267,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
     console.log("🔄 Chat state reset");
   },
 
-  sendMessage: async (question: string, userId?: string | null, userRole?: string | null) => {
+  sendMessage: async (question: string, userId?: string | null, userRole?: string | null, token?: string | null) => {
     get().abortController?.abort();
     const userMessage: Message = { text: question, isUser: true };
     const currentHistory = get().messages;
     const controller = new AbortController();
     const botPlaceholder: Message = { text: "", isUser: false, counsellors: [], followup: "" };
-    
-    const sessionData: SessionData = getSessionData(userId, userRole);
+
+    const sessionData: SessionData = getSessionData(userId, userRole, token);
     const isFirstMessageInSession = currentHistory.length === 0;
-    
+
     if (!get().currentSessionId) {
       set({ currentSessionId: sessionData.sessionId });
     }
-    
+
     set((state) => ({
       messages: [...state.messages, userMessage, botPlaceholder],
       loading: true,
@@ -309,7 +309,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
         `${API_CONFIG.chatbotUrl}/ask`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(sessionData.token ? { "Authorization": `Bearer ${sessionData.token}` } : {})
+          },
           body: JSON.stringify({
             formattedHistory,
             sessionId: sessionData.sessionId,
@@ -323,7 +326,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       if (!response.body) throw new Error("Response body is null");
-      
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
@@ -364,7 +367,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
                   case "counsellors":
                     newMessages[lastMessageIndex].counsellors = eventData.data.map(transformCounselorData);
                     break;
-                    
+
                   case "followup":
                     newMessages[lastMessageIndex].followup = eventData.data;
                     break;
@@ -375,14 +378,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
                   // ... inside switch(eventData.type) ...
                   case "token_usage":
                     const { input, output, total } = eventData.data;
-                    
+
                     // GPT-4o-mini Pricing
                     const inputCostUSD = (input / 1000000) * 0.15;
                     const outputCostUSD = (output / 1000000) * 0.60;
                     const totalCostUSD = inputCostUSD + outputCostUSD;
-                    
+
                     // Current Exchange Rate (approx)
-                    const conversionRate = 90; 
+                    const conversionRate = 90;
                     const totalCostINR = totalCostUSD * conversionRate;
 
                     console.group("🇮🇳 Cost Analysis (Rupees)");
@@ -391,7 +394,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
                     console.log(`%cINR Cost: ₹${totalCostINR.toFixed(5)}`, "color: green; font-weight: bold; font-size: 14px;");
                     console.groupEnd();
                     break;
-                    
+
                   case "error":
                     newMessages[lastMessageIndex].text = eventData.content;
                     break;

@@ -143,11 +143,21 @@ export default function MyActivityPage() {
     return () => observer.disconnect();
   }, [activeTab, fetchQuestions]);
 
-  const filterData = <T extends { interestedCourse?: string, question?: string }>(data: T[]) => {
+  const filterData = <T extends { subject?: string, question?: string }>(data: T[]) => {
     return data.filter(item => {
-      const matchesCategory = selectedCategory 
-        ? item.interestedCourse === selectedCategory 
-        : true;
+      let matchesCategory = true;
+      
+      if (selectedCategory) {
+        const subject = item.subject || '';
+        const mainCategories = ['Colleges', 'Courses', 'Exams'];
+
+        if (selectedCategory === 'Other') {
+          matchesCategory = !mainCategories.includes(subject);
+        } else {
+          matchesCategory = subject === selectedCategory;
+        }
+      }
+
       const matchesSearch = searchQuery 
         ? item.question?.toLowerCase().includes(searchQuery.toLowerCase())
         : true;
@@ -245,6 +255,7 @@ export default function MyActivityPage() {
                    key={q.questionId} 
                    question={q}
                    onQuestionUpdated={fetchOtherTabs} 
+                   isBookmarkView={true}
                  />
                ))
              ) : (

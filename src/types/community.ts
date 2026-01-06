@@ -41,6 +41,9 @@ export interface CommunityDashboardItem {
   answerLikedByMe: boolean;
   myQuestion: boolean;
   questionBookmarkedByMe: boolean;
+  subject: string;
+  questionUpdatedTimestamp: FirebaseTimestamp;
+  questionUpdated: boolean;
 }
 
 export interface GetCommunityDashboardResponse {
@@ -56,12 +59,14 @@ export interface Answer {
   likesCountOnAnswer: number;
   commentCountOnAnswer: number;
   answerTimestamp: FirebaseTimestamp;
+  updatedAnswerTimestamp: FirebaseTimestamp;
   userIdAnswered: string;
   userFullName: string;
   userPhotoUrl: string | null;
   userInterestedCourse: string;
   myAnswer: boolean;
   answerLikedByMe: boolean;
+  answerUpdated: boolean;
 }
 
 export interface QuestionDetailData {
@@ -78,6 +83,8 @@ export interface QuestionDetailData {
   answerStructure: Answer[];
   timestamp: FirebaseTimestamp;
   questionBookmarkedByMe?: boolean;
+  updatedTimestamp: FirebaseTimestamp;
+  updated: boolean;
 }
 
 export interface GetAllAnswersResponse {
@@ -131,6 +138,9 @@ export interface CommentReply {
   replyTo: string;
   myReply: boolean;
   replyLikedByMe: boolean;
+  timestamp: FirebaseTimestamp;
+  updatedTimestamp: FirebaseTimestamp;
+  updated: boolean;
 }
 
 export interface Comment {
@@ -143,6 +153,9 @@ export interface Comment {
   commentLikedByMe: boolean;
   myComment: boolean;
   replyCount: number;
+  commentTimestamp: FirebaseTimestamp;
+  updatedCommentTimestamp: FirebaseTimestamp;
+  updated: boolean;
 }
 
 export interface GetCommentsResponse {
@@ -181,6 +194,9 @@ export interface MyAnswerItem {
   answerPhotoUrl: string | null;
   commentIdsList: string[];
   answerLikedByMe: boolean;
+  answerTimestamp: FirebaseTimestamp;
+  answerUpdatedTimestamp: FirebaseTimestamp;
+  answerUpdated: boolean;
 }
 
 export interface GetMyAnswersResponse {

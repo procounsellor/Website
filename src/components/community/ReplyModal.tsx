@@ -10,6 +10,8 @@ interface ReplyModalProps {
   replyToName: string;
   replyToUserId: string;
   commentId: string;
+  replyToImage?: string | null; 
+  replyToText?: string; 
 }
 
 const ReplyModal: React.FC<ReplyModalProps> = ({
@@ -17,7 +19,9 @@ const ReplyModal: React.FC<ReplyModalProps> = ({
   onClose,
   replyToName,
   replyToUserId,
-  commentId
+  commentId,
+  replyToImage,
+  replyToText,
 }) => {
   const [replyText, setReplyText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +53,6 @@ const ReplyModal: React.FC<ReplyModalProps> = ({
 
       toast.success('Reply submitted successfully!');
       onClose();
-      // Optional: You might want to trigger a refresh of replies in the parent component
     } catch (error) {
       console.error(error);
       toast.error('Failed to submit reply');
@@ -59,6 +62,8 @@ const ReplyModal: React.FC<ReplyModalProps> = ({
   };
 
   if (!isOpen) return null;
+
+  const displayImage = replyToImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(replyToName)}`;
 
   return (
     <div
@@ -82,8 +87,8 @@ const ReplyModal: React.FC<ReplyModalProps> = ({
 
         <div className="mb-4 flex items-center gap-3">
              <img 
-                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(replyToName)}`}
-                className="w-8 h-8 rounded-full"
+                src={displayImage} 
+                className="w-8 h-8 rounded-full object-cover bg-gray-200" 
                 alt="User"
              />
              <div>
@@ -91,6 +96,14 @@ const ReplyModal: React.FC<ReplyModalProps> = ({
                  <span className="font-semibold text-[#242645]">{replyToName}</span>
              </div>
         </div>
+
+        {replyToText && (
+           <div className="mb-5 p-3 bg-[#F5F7FA] border-l-4 border-[#655E95] rounded-r-lg">
+             <p className="text-sm text-[#242645] line-clamp-2 italic">
+               "{replyToText}"
+             </p>
+           </div>
+        )}
 
         <div className="flex flex-col gap-2 mb-6">
           <label className="text-base font-semibold text-[#343C6A]">
