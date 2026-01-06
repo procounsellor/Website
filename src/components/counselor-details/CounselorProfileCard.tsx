@@ -6,6 +6,8 @@ import { isManualSubscriptionRequest } from '@/api/counsellor';
 import type { SubscribedCounsellor, User } from '@/types/user';
 import { useAuthStore } from '@/store/AuthStore';
 import toast from 'react-hot-toast';
+import { PlanBenefitsModal } from './PlanBenefitsModal';
+import getAllPlans from '@/api/subscriptionPlans';
 
 type Props = {
   counselor: CounselorDetails;
@@ -25,8 +27,28 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
   const toggleLogin = useAuthStore(state => state.toggleLogin);
   const loggedInUserRole = useAuthStore(state => state.role);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [planData, setPlanData] = useState<any>(null);
+  const [selectedPlan, setSelectedPlan] = useState<'plus' | 'pro' | 'elite' | null>(null);
 
   const isCurrentUserCounselor = loggedInUserRole === 'counselor';
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      const storedUserId = localStorage.getItem('phone');
+      const res = await getAllPlans(counselor.userName, storedUserId || '');
+      if (res && res.benefits) {
+        setPlanData(res);
+      }
+    };
+    fetchPlans();
+  }, [counselor.userName]);
+
+  const openBenefits = (plan: string) => {
+    const normalizedPlan = plan.toLowerCase();
+    if (normalizedPlan === 'plus' || normalizedPlan === 'pro' || normalizedPlan === 'elite') {
+        setSelectedPlan(normalizedPlan);
+    }
+  };
 
   useEffect(() => {
     if (isCurrentUserCounselor) {
@@ -147,9 +169,12 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
                     <CheckCircle className="w-5 h-5 text-green-500" />
                     <h3 className="font-semibold text-gray-800">Active Subscription</h3>
                 </div>
-                <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded-full capitalize">
+                <button 
+                    onClick={() => openBenefits(subscription.plan)}
+                    className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded-full capitalize hover:bg-blue-200 transition-colors cursor-pointer border-none outline-none"
+                >
                     {subscription.plan}
-                </span>
+                </button>
             </div>
             <div className="flex gap-3">
                 <a href={!isCurrentUserCounselor ? `sms:${counselor.phoneNumber}`: undefined}
@@ -186,9 +211,20 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
           <div className="border-t border-gray-200 pt-4">
             <h3 className="font-semibold text-gray-700 mb-3">Subscription Plans</h3>
             <div className="flex gap-3">
-              <button disabled={isCurrentUserCounselor} className={`flex h-12 flex-1 flex-col items-center justify-center rounded-lg border ${isCurrentUserCounselor ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-linear-to-r from-[rgba(222,237,255,0.4)] to-[rgba(126,136,211,0.4)] hover:shadow-inner'}`}><span className="font-semibold text-xs text-[#1447E7]">Plus</span><span className="text-[#1447E7] text-xs font-bold flex items-center gap-1"><img src="/coin.svg" alt="coin" className="w-3 h-3" />{formatAmount(counselor.plusAmount)}</span></button>
-              <button disabled={isCurrentUserCounselor} className={`flex h-12 flex-1 flex-col items-center justify-center rounded-lg border ${isCurrentUserCounselor ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-linear-to-r from-[rgba(244,232,255,0.4)] to-[rgba(250,244,255,0.4)] hover:shadow-inner'}`}><span className="font-semibold text-[#8200DA] text-xs">Pro</span><span className="text-[#8200DA] text-xs font-bold flex items-center gap-1"><img src="/coin.svg" alt="coin" className="w-3 h-3" />{formatAmount(counselor.proAmount)}</span></button>
-              <button disabled={isCurrentUserCounselor} className={`flex h-12 flex-1 flex-col items-center justify-center rounded-lg border ${isCurrentUserCounselor ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-linear-to-r from-[rgba(255,245,206,0.4)] to-[rgba(255,250,230,0.4)] hover:shadow-inner'}`}><span className="font-semibold text-[#B94C00] text-xs">Elite</span><span className="text-[#B94C00] text-xs font-bold flex items-center gap-1"><img src="/coin.svg" alt="coin" className="w-3 h-3" />{formatAmount(counselor.eliteAmount)}</span></button>
+              <button disabled={isCurrentUserCounselor} className={`flex h-12 flex-1 flex-col items-center justify-center rounded-lg border ${isCurrentUserCounselor ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-linear-to-r from-[rgba(222,237,255,0.4)] to-[rgba(126,136,211,0.4)]'}`}>
+                <span className="font-semibold text-xs text-[#1447E7]">Plus</span>
+                <span className="text-[#1447E7] text-xs font-bold flex items-center gap-1"><img src="/coin.svg" alt="coin" className="w-3 h-3" />{formatAmount(counselor.plusAmount)}</span>
+              </button>
+              
+              <button disabled={isCurrentUserCounselor} className={`flex h-12 flex-1 flex-col items-center justify-center rounded-lg border ${isCurrentUserCounselor ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-linear-to-r from-[rgba(244,232,255,0.4)] to-[rgba(250,244,255,0.4)]'}`}>
+                <span className="font-semibold text-[#8200DA] text-xs">Pro</span>
+                <span className="text-[#8200DA] text-xs font-bold flex items-center gap-1"><img src="/coin.svg" alt="coin" className="w-3 h-3" />{formatAmount(counselor.proAmount)}</span>
+              </button>
+              
+              <button disabled={isCurrentUserCounselor} className={`flex h-12 flex-1 flex-col items-center justify-center rounded-lg border ${isCurrentUserCounselor ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-linear-to-r from-[rgba(255,245,206,0.4)] to-[rgba(255,250,230,0.4)]'}`}>
+                <span className="font-semibold text-[#B94C00] text-xs">Elite</span>
+                <span className="text-[#B94C00] text-xs font-bold flex items-center gap-1"><img src="/coin.svg" alt="coin" className="w-3 h-3" />{formatAmount(counselor.eliteAmount)}</span>
+              </button>
             </div>
             <button
               onClick={() => handleSubscribeClick(false)}
@@ -239,9 +275,12 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
                 <CheckCircle className="w-6 h-6 text-green-500" />
                 <h3 className="font-semibold text-gray-800 text-lg">Active Subscription</h3>
               </div>
-              <span className="text-sm font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-full capitalize">
+              <button 
+                  onClick={() => openBenefits(subscription.plan)}
+                  className="text-sm font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-full capitalize hover:bg-blue-200 transition-colors cursor-pointer border-none outline-none"
+              >
                 {subscription.plan}
-              </span>
+              </button>
             </div>
             <div className="mt-4">
               <h4 className="font-semibold text-gray-700 mb-2">Plan Benefits</h4>
@@ -293,9 +332,20 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
             <div className="mt-6">
               <h3 className="font-semibold text-gray-700">Subscription Plans</h3>
               <div className="mt-3 flex flex-col sm:flex-row gap-3">
-                <button disabled={isCurrentUserCounselor} className={`flex h-[50px] flex-1 flex-col items-center justify-center rounded-xl border ${isCurrentUserCounselor ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-linear-to-r from-[rgba(222,237,255,0.4)] to-[rgba(126,136,211,0.4)] hover:shadow-inner'}`}><span className="font-semibold text-sm text-[#1447E7]">Plus</span><span className="text-[#1447E7] text-sm font-bold flex items-center gap-1"><img src="/coin.svg" alt="coin" className="w-3.5 h-3.5" />{formatAmount(counselor.plusAmount)}</span></button>
-                <button disabled={isCurrentUserCounselor} className={`flex h-[50px] flex-1 flex-col items-center justify-center rounded-xl border ${isCurrentUserCounselor ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-linear-to-r from-[rgba(244,232,255,0.4)] to-[rgba(250,244,255,0.4)] hover:shadow-inner'}`}><span className="font-semibold text-[#8200DA] text-sm">Pro</span><span className="text-[#8200DA] text-sm font-bold flex items-center gap-1"><img src="/coin.svg" alt="coin" className="w-3.5 h-3.5" />{formatAmount(counselor.proAmount)}</span></button>
-                <button disabled={isCurrentUserCounselor} className={`flex h-[50px] flex-1 flex-col items-center justify-center rounded-xl border ${isCurrentUserCounselor ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-linear-to-r from-[rgba(255,245,206,0.4)] to-[rgba(255,250,230,0.4)] hover:shadow-inner'}`}><span className="font-semibold text-[#B94C00] text-sm">Elite</span><span className="text-[#B94C00] text-sm font-bold flex items-center gap-1"><img src="/coin.svg" alt="coin" className="w-3.5 h-3.5" />{formatAmount(counselor.eliteAmount)}</span></button>
+                <button disabled={isCurrentUserCounselor} className={`flex h-[50px] flex-1 flex-col items-center justify-center rounded-xl border ${isCurrentUserCounselor ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-linear-to-r from-[rgba(222,237,255,0.4)] to-[rgba(126,136,211,0.4)]'}`}>
+                  <span className="font-semibold text-sm text-[#1447E7]">Plus</span>
+                  <span className="text-[#1447E7] text-sm font-bold flex items-center gap-1"><img src="/coin.svg" alt="coin" className="w-3.5 h-3.5" />{formatAmount(counselor.plusAmount)}</span>
+                </button>
+                
+                <button disabled={isCurrentUserCounselor} className={`flex h-[50px] flex-1 flex-col items-center justify-center rounded-xl border ${isCurrentUserCounselor ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-linear-to-r from-[rgba(244,232,255,0.4)] to-[rgba(250,244,255,0.4)]'}`}>
+                  <span className="font-semibold text-[#8200DA] text-sm">Pro</span>
+                  <span className="text-[#8200DA] text-sm font-bold flex items-center gap-1"><img src="/coin.svg" alt="coin" className="w-3.5 h-3.5" />{formatAmount(counselor.proAmount)}</span>
+                </button>
+                
+                <button disabled={isCurrentUserCounselor} className={`flex h-[50px] flex-1 flex-col items-center justify-center rounded-xl border ${isCurrentUserCounselor ? 'bg-gray-100 opacity-60 cursor-not-allowed' : 'bg-linear-to-r from-[rgba(255,245,206,0.4)] to-[rgba(255,250,230,0.4)]'}`}>
+                  <span className="font-semibold text-[#B94C00] text-sm">Elite</span>
+                  <span className="text-[#B94C00] text-sm font-bold flex items-center gap-1"><img src="/coin.svg" alt="coin" className="w-3.5 h-3.5" />{formatAmount(counselor.eliteAmount)}</span>
+                </button>
               </div>
             </div>
             <div className="mt-6 flex flex-col sm:flex-row gap-3 items-center">
@@ -335,6 +385,13 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
           />
         </div>
       )}
+
+      <PlanBenefitsModal 
+        isOpen={!!selectedPlan}
+        onClose={() => setSelectedPlan(null)}
+        planName={selectedPlan || 'plus'}
+        data={planData}
+      />
     </>
   );
 }

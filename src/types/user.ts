@@ -93,3 +93,13 @@ export interface Subscription {
   plan: string;
   subscriptionMode: string;
 }
+
+export interface PlanDetailsResponse {
+  plus: string[];
+  pro: string[];
+  elite: string[];
+  desc: { plus: string; pro: string; elite: string; };
+  prices: { plus: string; pro: string; elite: string; };
+  seats: { plus: string; pro: string; elite: string; };
+  benefits: Array<{ name: string; plus: string; pro: string; elite: string; }>;
+}
