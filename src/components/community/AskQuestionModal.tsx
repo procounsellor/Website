@@ -71,7 +71,8 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
         subject,
         description,
         user.role || 'user',
-        token
+        token,
+        isAnonymous
       );
 
       if (response && response.questionId) {

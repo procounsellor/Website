@@ -5,6 +5,7 @@ import { getRelativeTime } from '@/utils/dateUtils';
 import SmartImage from '@/components/ui/SmartImage';
 import { useAuthStore } from '@/store/AuthStore';
 import { getAppointmentById } from '@/api/appointment';
+import { getUserById, getCounselorAppointmentById } from '@/api/counselor-Dashboard';
 import toast from 'react-hot-toast';
 import NotificationAppointmentModal from '@/components/notifications/NotificationAppointmentModal';
 
@@ -29,7 +30,65 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
   });
 
   const handleNotificationClick = async (notif: ActivityLog) => {
-    if (role === 'counselor') return;
+    if (role === 'counselor') {
+      if (!userId || !token) return;
+      const type = notif.activityType?.toLowerCase();
+
+      if (type === 'subscription' || type === 'subscribe') {
+        try {
+          const toastId = toast.loading("Loading client profile...");
+          const userData = await getUserById(userId, notif.activitySenderId, token);
+          toast.dismiss(toastId);
+
+          if (userData) {
+            const clientObj = {
+              id: userData.userName || notif.activitySenderId,
+              name: `${userData.firstName} ${userData.lastName}`,
+              imageUrl: userData.photo,
+              course: userData.interestedCourse || 'N/A',
+              email: userData.email,
+              phone: userData.phoneNumber
+            };
+
+            onClose();
+            navigate('/counselor-dashboard/client-profile', {
+              state: {
+                client: clientObj,
+                counsellorId: userId,
+                token: token
+              }
+            });
+          }
+        } catch (error) {
+          console.error("Failed to fetch user for profile navigation", error);
+          toast.error("Could not load client profile.");
+        }
+        return;
+      }
+
+      else if (type === 'appointment') {
+        try {
+          const appointmentId = notif.id;
+          const toastId = toast.loading("Opening details...");
+
+          const appointmentData = await getCounselorAppointmentById(userId, appointmentId, token);
+          
+          toast.dismiss(toastId);
+
+          if (appointmentData) {
+            setSelectedAppointment(appointmentData);
+            setSelectedNotification(notif);
+            setIsAppointmentModalOpen(true);
+          }
+        } catch (error) {
+          console.error("Failed to fetch counselor appointment", error);
+          toast.error("Could not load appointment details");
+        }
+        return;
+      }
+      return; 
+    }
+
     setSelectedNotification(notif);
     const type = notif.activityType?.toLowerCase();
     
@@ -41,7 +100,6 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
     }
 
     else if (type === 'appointment') {
-      
       if (!userId || !token) return;
 
       try {
@@ -63,20 +121,49 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
     }
   };
 
-  const handleNavigateToCounselor = (counselorId: string) => {
-  console.log('=== Navigation Debug ===');
-  console.log('Counselor ID:', counselorId);
-
-  navigate('/counsellor-profile', { 
-    state: { id: counselorId },
-    replace: false
-  });
-
-  setIsAppointmentModalOpen(false);
-  setSelectedAppointment(null);
-  setSelectedNotification(null);
-  onClose();
-};
+  const handleModalNavigation = async (targetId: string) => {
+    if (role === 'counselor') {
+        if (!userId || !token) return;
+        try {
+            const toastId = toast.loading("Loading client profile...");
+            const userData = await getUserById(userId, targetId, token);
+            toast.dismiss(toastId);
+  
+            if (userData) {
+              const clientObj = {
+                id: userData.userName || targetId,
+                name: `${userData.firstName} ${userData.lastName}`,
+                imageUrl: userData.photo,
+                course: userData.interestedCourse || 'N/A',
+                email: userData.email,
+                phone: userData.phoneNumber
+              };
+  
+              setIsAppointmentModalOpen(false);
+              onClose();
+              navigate('/counselor-dashboard/client-profile', {
+                state: {
+                  client: clientObj,
+                  counsellorId: userId,
+                  token: token
+                }
+              });
+            }
+          } catch (error) {
+            toast.error("Could not navigate to client.");
+          }
+    } 
+    else {
+        navigate('/counsellor-profile', { 
+            state: { id: targetId },
+            replace: false
+        });
+        setIsAppointmentModalOpen(false);
+        setSelectedAppointment(null);
+        setSelectedNotification(null);
+        onClose();
+    }
+  };
 
 
   return (
@@ -207,7 +294,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
           }}
           appointment={selectedAppointment}
           notification={selectedNotification}
-          onNavigateToCounselor={handleNavigateToCounselor}
+          onNavigateToCounselor={handleModalNavigation}
         />
       )}
     </>

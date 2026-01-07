@@ -438,26 +438,26 @@ export default function Header() {
               <div className="btn flex items-center gap-3">
                 {isAuthenticated ? (
                   <>
-                    {user?.role?.trim().toLowerCase() == "counsellor" ||
-                      (user?.verified && (
-                        <div
-                          className="hidden md:block relative"
-                          ref={notificationRef}
+                    {(user?.role?.trim().toLowerCase() == "counsellor" ||
+                      user?.verified) && (
+                      <div
+                        className="hidden md:block relative"
+                        ref={notificationRef}
+                      >
+                        <button
+                          onClick={toggleNotifications}
+                          className="p-2 hover:cursor-pointer rounded-full hover:bg-gray-100 transition-colors"
                         >
-                          <button
-                            onClick={toggleNotifications}
-                            className="p-2 hover:cursor-pointer rounded-full hover:bg-gray-100 transition-colors"
-                          >
-                            <Bell className="h-6 w-6 text-gray-700" />
-                          </button>
-                          {isNotificationOpen && user && (
-                            <NotificationDropdown
-                              notifications={user.activityLog || []}
-                              onClose={() => setIsNotificationOpen(false)}
-                            />
-                          )}
-                        </div>
-                      ))}
+                          <Bell className="h-6 w-6 text-gray-700" />
+                        </button>
+                        {isNotificationOpen && user && (
+                          <NotificationDropdown
+                            notifications={user.activityLog || []}
+                            onClose={() => setIsNotificationOpen(false)}
+                          />
+                        )}
+                      </div>
+                    )}
 
                     <div className="relative" ref={dropdownRef}>
                       <button

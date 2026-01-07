@@ -123,7 +123,8 @@ export async function askQuestion(
   subject: string,
   question: string,
   role: string,
-  token: string
+  token: string,
+  anonymous: boolean
 ): Promise<AskQuestionResponse> {
   try {
     const response = await fetch(
@@ -140,6 +141,7 @@ export async function askQuestion(
           subject,
           question,
           role,
+          anonymous,
         }),
       }
     );
