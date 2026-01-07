@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/AuthStore';
 import SmartImage from '@/components/ui/SmartImage';
 import { getRelativeTime } from '@/utils/dateUtils';
 import { getAppointmentById } from '@/api/appointment';
+import { getUserById, getCounselorAppointmentById } from '@/api/counselor-Dashboard';
 import type { ActivityLog } from '@/types/user';
 import toast from 'react-hot-toast';
 import NotificationAppointmentModal from '@/components/notifications/NotificationAppointmentModal';
@@ -31,7 +32,76 @@ const NotificationsPage = () => {
   }
 
   const handleNotificationClick = async (notif: ActivityLog) => {
-      if (role === 'counselor') return;
+      if (role === 'counselor') {
+        if (!userId || !token) return;
+        const type = notif.activityType?.toLowerCase();
+
+        if (type === 'subscription' || type === 'subscribe') {
+          try {
+            const toastId = toast.loading("Loading client profile...");
+            const userData = await getUserById(userId, notif.activitySenderId, token);
+            toast.dismiss(toastId);
+
+            if (userData) {
+              const clientObj = {
+                id: userData.userName || notif.activitySenderId, 
+                name: `${userData.firstName} ${userData.lastName}`,
+                imageUrl: userData.photo,
+                course: userData.interestedCourse || 'N/A',
+                email: userData.email,
+                phone: userData.phoneNumber
+              };
+
+              navigate('/counselor-dashboard/client-profile', {
+                state: {
+                  client: clientObj,
+                  counsellorId: userId,
+                  token: token
+                }
+              });
+            }
+          } catch (error) {
+            console.error("Failed to fetch user for profile navigation", error);
+            toast.error("Could not load client profile.");
+          }
+          return;
+        }
+
+        else if (type === 'appointment') {
+          try {
+            const appointmentId = notif.id;
+            const toastId = toast.loading("Opening details...");
+
+            const appointmentData = await getCounselorAppointmentById(userId, appointmentId, token);
+
+            if (appointmentData && !appointmentData.userFullName && appointmentData.userId) {
+                try {
+                    const userProfile = await getUserById(userId, appointmentData.userId, token);
+                    if (userProfile) {
+                        appointmentData.userFullName = `${userProfile.firstName} ${userProfile.lastName}`;
+                        appointmentData.userPhootoSmall = userProfile.photoSmall || userProfile.photo;
+                    }
+                } catch (err) {
+                    console.error("Could not fetch user details for appointment modal", err);
+                }
+            }
+            
+            toast.dismiss(toastId);
+
+            if (appointmentData) {
+              setSelectedAppointment(appointmentData);
+              setSelectedNotification(notif);
+              setIsAppointmentModalOpen(true);
+            }
+          } catch (error) {
+            console.error("Failed to fetch counselor appointment", error);
+            toast.error("Could not load appointment details");
+          }
+          return;
+        }
+        return; 
+      }
+
       setSelectedNotification(notif);
       const type = notif.activityType?.toLowerCase();
   
@@ -61,6 +131,48 @@ const NotificationsPage = () => {
           toast.error("Could not load appointment details");
         }
       }
+  };
+
+  const handleModalNavigation = async (targetId: string) => {
+    if (role === 'counselor') {
+        if (!userId || !token) return;
+        try {
+            const toastId = toast.loading("Loading client profile...");
+            const userData = await getUserById(userId, targetId, token);
+            toast.dismiss(toastId);
+  
+            if (userData) {
+              const clientObj = {
+                id: userData.userName || targetId,
+                name: `${userData.firstName} ${userData.lastName}`,
+                imageUrl: userData.photo,
+                course: userData.interestedCourse || 'N/A',
+                email: userData.email,
+                phone: userData.phoneNumber
+              };
+  
+              setIsAppointmentModalOpen(false);
+              navigate('/counselor-dashboard/client-profile', {
+                state: {
+                  client: clientObj,
+                  counsellorId: userId,
+                  token: token
+                }
+              });
+            }
+          } catch (error) {
+            toast.error("Could not navigate to client.");
+          }
+    } 
+    else {
+        navigate('/counsellor-profile', { 
+            state: { id: targetId },
+            replace: false
+        });
+        setIsAppointmentModalOpen(false);
+        setSelectedAppointment(null);
+        setSelectedNotification(null);
+    }
   };
 
   const sortedNotifications = [...(user.activityLog || [])].sort((a, b) => {
@@ -127,12 +239,7 @@ const NotificationsPage = () => {
           }}
           appointment={selectedAppointment}
           notification={selectedNotification}
-          onNavigateToCounselor={(counselorId) => {
-            navigate('/counsellor-profile', { 
-              state: { id: counselorId } 
-            });
-            setIsAppointmentModalOpen(false);
-          }}
+          onNavigateToCounselor={handleModalNavigation}
         />
       )}
     </div>

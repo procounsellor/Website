@@ -1,16 +1,16 @@
 import React, { useEffect } from 'react';
 import { X, Calendar, Clock, MapPin, CheckCircle, ChevronLeft, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
-import type { AppointmentDetails } from '@/types/appointment';
+import { useAuthStore } from '@/store/AuthStore';
+// import type { AppointmentDetails } from '@/types/appointment';
 import type { ActivityLog } from '@/types/user';
-
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  appointment: AppointmentDetails | null; 
+  appointment: any; 
   notification: ActivityLog;
-  onNavigateToCounselor: (counselorId: string) => void;
+  onNavigateToCounselor: (targetId: string) => void;
 }
 
 const calculateDuration = (startTime: string, endTime: string): number => {
@@ -47,6 +47,9 @@ export default function NotificationAppointmentModal({
   onNavigateToCounselor 
 }: Props) {
   
+  const { role } = useAuthStore();
+  const isCounselor = role === 'counselor';
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -67,16 +70,26 @@ export default function NotificationAppointmentModal({
     if (match && match[1]) {
       return match[1].trim();
     }
-    return "Counsellor";
+    return isCounselor ? "Student" : "Counsellor";
   };
 
-  const displayName = (appointment.counsellorFullName && appointment.counsellorFullName.trim() !== "")
-    ? appointment.counsellorFullName
-    : getFallbackName();
+  let displayName = "";
+  let imageUrl = "";
 
-  const imageUrl = appointment.counsellorPhootoSmall 
-    || notification.photo 
-    || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=E0E7FF&color=4F46E5`;
+  if (isCounselor) {
+    displayName = appointment.userFullName || appointment.userName || getFallbackName();
+    imageUrl = appointment.userPhootoSmall || appointment.userPhoto || notification.photo || "";
+  } else {
+    displayName = (appointment.counsellorFullName && appointment.counsellorFullName.trim() !== "")
+      ? appointment.counsellorFullName
+      : getFallbackName();
+      
+    imageUrl = appointment.counsellorPhootoSmall || notification.photo || "";
+  }
+  
+  if (!imageUrl) {
+    imageUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=E0E7FF&color=4F46E5`;
+  }
 
   const status = appointment.status || 'booked';
   const isCancelled = status === 'cancelled';
@@ -162,14 +175,15 @@ export default function NotificationAppointmentModal({
     );
   };
 
-  const handleCounselorClick = (e: React.MouseEvent) => {
+  const handleHeaderClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const id = appointment.counsellorId || notification.activitySenderId;
-    if (id) {
-      console.log('Navigating to counselor:', id);
-      onNavigateToCounselor(id);
+    
+    if (isCounselor) {
+        const targetId = appointment.userId || notification.activitySenderId;
+        onNavigateToCounselor(targetId); 
     } else {
-      console.warn('No counselor ID found');
+        const targetId = appointment.counsellorId || notification.activitySenderId;
+        onNavigateToCounselor(targetId);
     }
   };
 
@@ -188,7 +202,6 @@ export default function NotificationAppointmentModal({
 
   return (
     <div className="fixed top-0 left-0 w-screen h-screen z-9999 bg-black/50 backdrop-blur-sm flex items-center justify-center">
-
       
       {/* Mobile View */}
       <div className="md:hidden h-full w-full bg-[#F5F7FA] flex flex-col">
@@ -203,7 +216,7 @@ export default function NotificationAppointmentModal({
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
             <div 
               className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={handleCounselorClick}
+              onClick={handleHeaderClick}
             >
               <div className="shrink-0 w-14 h-14 rounded-full overflow-hidden border border-gray-100">
                 <img 
@@ -282,8 +295,8 @@ export default function NotificationAppointmentModal({
         
         <div className="bg-white rounded-xl">
           <div 
-            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity rounded-lg p-2 -m-2 hover:bg-gray-50"
-            onClick={handleCounselorClick}
+            className="flex items-center gap-3 cursor-pointer transition-opacity rounded-lg p-2 -m-2"
+            onClick={handleHeaderClick}
           >
             <div className="shrink-0 w-14 h-14 rounded-full overflow-hidden border border-gray-100">
               <img 
@@ -294,7 +307,7 @@ export default function NotificationAppointmentModal({
             </div>
             <div>
               <p className="font-medium text-gray-500 text-sm">Counselling Session</p>
-              <p className="font-semibold text-gray-800 text-lg hover:text-[#13097D] transition-colors">
+              <p className="font-semibold text-gray-800 text-lg transition-colors">
                 with {displayName}
               </p>
             </div>
