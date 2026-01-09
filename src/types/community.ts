@@ -12,6 +12,7 @@ export interface CommunityQuestion {
   questionBookmarkedByMe?: boolean;
   userFullName: string;
   userPhotoUrl: string | null;
+  anonymous?: boolean;
 }
 
 export interface GetQuestionsListResponse {

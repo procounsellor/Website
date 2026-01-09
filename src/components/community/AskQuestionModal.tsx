@@ -104,47 +104,46 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#23232380] backdrop-blur-[35px]"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#23232380] backdrop-blur-[35px] p-3"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-[632px] p-10 bg-white rounded-2xl shadow-xl border border-[#EFEFEF]"
+        className="relative w-full max-w-[632px] bg-white rounded-2xl shadow-xl border border-[#EFEFEF] max-h-[90vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
           disabled={isLoading}
-          className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center rounded-full cursor-pointer text-black hover:bg-black hover:text-white transition-colors"
+          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-black hover:bg-black hover:text-white transition-colors"
           aria-label="Close modal"
         >
-          <X size={20} />
+          <X size={18} />
         </button>
 
-        <div className="flex flex-col items-center w-full mb-6">
-          <h2 className="text-[20px] font-semibold text-[#343C6A]">
+        <div className="flex flex-col items-center p-6 pb-3 shrink-0">
+          <h2 className="text-lg md:text-[20px] font-semibold text-[#343C6A]">
             Submit Your Question
           </h2>
-          <p className="text-sm font-medium text-[#8C8CA1] text-center max-w-[347px] mt-3">
+          <p className="text-xs md:text-sm font-medium text-[#8C8CA1] text-center mt-2 max-w-[347px]">
             We are here to help! Fill out the form below and we will get back to
             you as soon as possible
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-5 pb-6 overflow-y-auto">
           <div className="flex flex-col gap-2 relative" ref={dropdownRef}>
             <label
-              className="text-base font-semibold text-[#343C6A]"
+              className="text-sm md:text-base font-semibold text-[#343C6A]"
             >
               Subject <span className="text-red-500">*</span>
             </label>
             
             <div 
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className={`w-full h-[50px] flex items-center justify-between bg-[#F5F7FA] border rounded-lg px-3 cursor-pointer transition-all
-                ${isDropdownOpen ? 'border-[#13097D] ring-2 ring-[#13097D]/10' : 'border-[#EFEFEF]'}
-              `}
+              className={`h-[46px] flex items-center justify-between bg-[#F5F7FA] border rounded-lg px-3 cursor-pointer transition-all
+                ${isDropdownOpen ? 'border-[#13097D] ring-2 ring-[#13097D]/10' : 'border-[#EFEFEF]'}`}
             >
-              <span className={`text-base font-medium ${subject ? 'text-[#242645]' : 'text-[#8C8CA180]'}`}>
+              <span className={`text-sm md:text-base md:font-medium ${subject ? 'text-[#242645]' : 'text-[#8C8CA180]'}`}>
                 {subject || "Select a category"}
               </span>
               
@@ -166,7 +165,7 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
             </div>
 
             {isDropdownOpen && (
-              <div className="absolute top-[85px] left-0 w-full z-20 bg-white border border-[#EFEFEF] rounded-lg shadow-lg overflow-hidden">
+              <div className="absolute top-[78px] left-0 w-full z-20 bg-white border border-[#EFEFEF] rounded-lg shadow-lg overflow-hidden">
                 <div className="max-h-[250px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]">
                   {subjectOptions.map((option) => (
                     <div
@@ -190,7 +189,7 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
           <div className="flex flex-col gap-2">
             <label
               htmlFor="description"
-              className="text-base font-semibold text-[#343C6A]"
+              className="text-sm md:text-base font-semibold text-[#343C6A]"
             >
               Question description <span className="text-red-500">*</span>
             </label>
@@ -229,7 +228,7 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
           <button
             type="submit"
             disabled={isSubmitDisabled}
-            className={`w-[335px] h-12 mx-auto rounded-xl text-white font-semibold transition-all duration-300
+            className={`w-full h-12 mx-auto rounded-xl text-white font-semibold transition-all duration-300
                        ${
                          isSubmitDisabled
                            ? "bg-[#242645] opacity-50 cursor-not-allowed"

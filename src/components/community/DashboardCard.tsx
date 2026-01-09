@@ -61,24 +61,24 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ item }) => {
   return (
     <div 
         onClick={handleClick}
-        className="w-full max-w-[860px] mx-auto p-5 rounded-lg cursor-pointer bg-[#F5F6FF] border-b-2 border-white">
+        className="w-full max-w-[860px] mx-auto p-4 md:p-5 rounded-lg cursor-pointer bg-[#F5F6FF] border-b-2 border-white">
       <div className="flex justify-between items-start">
-        <div className="flex gap-4">
+        <div className="flex gap-3 md:gap-4">
           <img
             src={askerImage}
             alt={item.fullName}
-            className="w-[42px] h-[42px] rounded-full object-cover"
+            className="w-9 h-9 md:w-[42px] md:h-[42px] rounded-full object-cover"
           />
           <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-medium text-[#242645]">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-base md:text-lg font-medium text-[#242645]">
                 {item.fullName}
               </span>
-              <span className="text-sm text-[#8C8CA1] ml-6">
+              <span className="text-xs md:text-sm text-[#8C8CA1] md:ml-6">
                 {formatTimeAgo(item.questionTimestamp.seconds)}
               </span>
             </div>
-            <span className="text-sm text-[#242645]">
+            <span className="text-xs md:text-sm text-[#242645]">
               {item.interestedCourse || 'Student'}
             </span>
           </div>
@@ -91,14 +91,14 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ item }) => {
         </button>
       </div>
 
-      <p className="mt-[30px] text-xl font-semibold text-[#242645] leading-[26px]">
+      <p className="mt-4 md:mt-[30px] text-base md:text-xl font-semibold text-[#242645] leading-snug md:leading-[26px]">
         {item.question}
       </p>
 
       {item.topAnswer && (
-        <div className="mt-4">
+        <div className="mt-3 md:mt-4">
           <p
-            className={`text-base text-[#242645] leading-[26px] ${
+            className={`text-sm md:text-base text-[#242645] leading-relaxed md:leading-[26px] line-clamp-3 ${
               !isExpanded ? 'line-clamp-3' : ''
             }`}
           >

@@ -70,7 +70,7 @@ export default function QuestionDetailPage() {
         <div className="hidden lg:block w-[191px] shrink-0">
           {/* <CategorySidebar selectedCategory={null} onSelectCategory={() => {}}/> */}
         </div>
-        <div className="flex flex-col mt-15 w-[800px] shrink-0">
+        <div className="flex flex-col mt-14 w-full md:mt-16 md:w-[800px] shrink-0">
           <div className="w-full bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
             
             {isLoading && (

@@ -1,4 +1,3 @@
-// src/components/community/QuestionList.tsx
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { getQuestionsList } from '@/api/community';
 import { useAuthStore } from '@/store/AuthStore';
@@ -14,15 +13,13 @@ const QuestionList: React.FC<QuestionListProps> = ({ selectedCategory }) => {
   const [questions, setQuestions] = useState<CommunityQuestion[]>([]);
   const [nextPageToken, setNextPageToken] = useState<string | null>(null);
   
-  // Loading states
-  const [isLoading, setIsLoading] = useState(true); // For initial load
-  const [isMoreLoading, setIsMoreLoading] = useState(false); // For pagination
+  const [isLoading, setIsLoading] = useState(true);
+  const [isMoreLoading, setIsMoreLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { userId } = useAuthStore();
   const token = localStorage.getItem('jwt');
 
-  // Observer for infinite scroll
   const observer = useRef<IntersectionObserver | null>(null);
 
   const lastElementRef = useCallback(
@@ -42,7 +39,6 @@ const QuestionList: React.FC<QuestionListProps> = ({ selectedCategory }) => {
     [isLoading, isMoreLoading, nextPageToken]
   );
 
-  // Initial Fetch
   useEffect(() => {
     if (!userId || !token) {
       setError('You must be logged in to see questions.');
@@ -54,7 +50,6 @@ const QuestionList: React.FC<QuestionListProps> = ({ selectedCategory }) => {
       try {
         setIsLoading(true);
         setError(null);
-        // Pass undefined for pageToken on initial load
         const response = await getQuestionsList(userId, token);
         
         if (response.status === 'Success') {
@@ -74,7 +69,6 @@ const QuestionList: React.FC<QuestionListProps> = ({ selectedCategory }) => {
     fetchQuestions();
   }, [userId, token]);
 
-  // Load More Function
   const handleLoadMore = async () => {
     if (!userId || !token || !nextPageToken || isMoreLoading) return;
 
@@ -83,16 +77,13 @@ const QuestionList: React.FC<QuestionListProps> = ({ selectedCategory }) => {
       const response = await getQuestionsList(userId, token, nextPageToken);
 
       if (response.status === 'Success') {
-        // Append new questions to the existing list
         setQuestions((prev) => [...prev, ...response.data]);
         setNextPageToken(response.nextPageToken);
       } else {
-        // If fail, stop trying to paginate
         setNextPageToken(null);
       }
     } catch (err) {
       console.error('Pagination error:', err);
-      // Optional: don't show full error UI, just stop pagination
       setNextPageToken(null);
     } finally {
       setIsMoreLoading(false);
@@ -146,7 +137,6 @@ const QuestionList: React.FC<QuestionListProps> = ({ selectedCategory }) => {
         )}
       </div>
 
-      {/* Pagination Loading & End Message Section */}
       <div className="flex flex-col items-center mt-4 pb-8">
         {nextPageToken && (
           <div ref={lastElementRef} className="h-16 flex justify-center items-center w-full">

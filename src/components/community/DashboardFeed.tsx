@@ -134,7 +134,7 @@ const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
 
   return (
     <>
-      <div className="w-full max-w-[900px] bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
+      <div className="w-full md:max-w-[900px] bg-white rounded-lg p-4 md:p-5 border border-gray-200 shadow-sm">
         <div className="flex flex-col space-y-5">
           {displayedItems.length > 0 ? (
             displayedItems.map((item) => (
@@ -150,7 +150,7 @@ const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
         </div>
       </div>
 
-      <div className="w-full max-w-[900px] flex flex-col items-center mt-4">
+      <div className="ww-full md:max-w-[900px] flex flex-col items-center mt-4">
         {nextPageToken && (
           <div ref={lastElementRef} className="h-16 flex justify-center items-center">
             {isMoreLoading && (

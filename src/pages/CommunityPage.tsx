@@ -16,7 +16,7 @@ export default function CommunityPage() {
             onSelectCategory={setSelectedCategory}
           />
         </div>
-        <div className="flex flex-col w-[800px] shrink-0">
+        <div className="flex flex-col w-full max-w-[800px] shrink-0">
           
           <div className="w-full">
             <CommunityActions />
