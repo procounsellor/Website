@@ -95,8 +95,8 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyClick }) => {
       <div className="flex gap-3">
         <img src={userImage} alt={comment.userFullName} className="w-8 h-8 rounded-full bg-[#D9D9D9] shrink-0 mt-1" />
         <div className="flex flex-col w-full">
-            <div className="flex items-center gap-2">
-                <span className="font-[Montserrat] font-semibold text-[16px] text-[#242645] leading-[125%]">
+            <div className="flex flex-wrap items-center gap-2">
+                <span className="font-[Montserrat] font-semibold text-sm md:text-[16px] text-[#242645] leading-[125%]">
                     {comment.userFullName}
                 </span>
                 {displayTimestamp?.seconds && (
@@ -106,12 +106,12 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyClick }) => {
                   </span>
                 )}
             </div>
-            <p className="font-[Montserrat] font-normal text-[14px] text-[#8C8CA1] leading-[125%] mt-1">
+            <p className="font-[Montserrat] font-normal text-xs md:text-sm text-[#8C8CA1] leading-[125%] mt-1">
                 {comment.commentText}
             </p>
             
             <div className="flex items-center justify-between mt-2">
-                <div className="flex gap-4 text-sm font-medium text-[#242645]">
+                <div className="flex gap-4 text-xs md:text-sm font-medium text-[#242645]">
                      <button 
                         onClick={() => 
                             onReplyClick(
@@ -144,7 +144,7 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyClick }) => {
       </div>
 
       {areRepliesVisible && replies?.length > 0 && (
-        <div className="pl-12 flex flex-col gap-4 mt-2">
+        <div className="pl-10 md:pl-12 flex flex-col gap-3 mt-2">
            {replies.map((reply) => (
                <ReplyItem 
                  key={reply.replyId} 

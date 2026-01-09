@@ -81,25 +81,25 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questionData }) => {
 
   return (
     <>
-      <div className="w-full max-w-[860px] mx-auto p-5 rounded-lg bg-[#F5F5F7] border border-gray-100">
+      <div className="w-full max-w-[860px] mx-auto p-4 md:p-5 rounded-lg bg-[#F5F5F7] border border-gray-100">
         <div className="flex justify-between items-start">
-          <div className="flex gap-4">
+          <div className="flex gap-3 md:gap-4">
             <img
               src={askerImage}
               alt={askerName}
-              className="w-[42px] h-[42px] rounded-full object-cover"
+              className="w-9 h-9 md:w-[42px] md:h-[42px] rounded-full object-cover"
             />
             <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-medium text-[#242645]">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-base md:text-lg font-medium text-[#242645]">
                   {askerName}
                 </span>
-                <span className="text-sm text-[#8C8CA1] ml-6">
+                <span className="text-xs md:text-sm text-[#8C8CA1] md:ml-6">
                   {formatTimeAgo(displayTimestamp.seconds)}
                   {questionData.updated && <span className="ml-1 text-xs">(edited)</span>}
                 </span>
               </div>
-              <span className="text-sm text-[#242645]">{askerCourse}</span>
+              <span className="text-xs md:text-sm text-[#242645]">{askerCourse}</span>
             </div>
           </div>
           <button 
@@ -110,22 +110,22 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questionData }) => {
           </button>
         </div>
 
-        <p className="mt-[30px] text-xl font-semibold text-[#242645] leading-[26px]">
+        <p className="mt-4 md:mt-[30px] text-base md:text-xl font-semibold text-[#242645] leading-snug md:leading-[26px]">
           {questionData.question}
         </p>
 
         {!hasUserAnswered && (
-          <div className="mt-4 flex flex-col items-center gap-5 pt-4">
+          <div className="mt-4 flex flex-col items-center gap-4">
             <img
               src={loggedInUserImage}
               alt="Logged in user"
               className="w-[42px] h-[42px] rounded-full object-cover"
             />
             <div className="text-center">
-              <p className="text-lg font-semibold text-[#242645]">
+              <p className="text-sm md:text-lg font-semibold text-[#242645] text-center">
                 {loggedInUserName}, wanna answer?
               </p>
-              <p className="text-base text-[#242645] mt-1">
+              <p className="text-xs md:text-base text-[#242645] text-center">
                 People will be glad to see your answer
               </p>
             </div>

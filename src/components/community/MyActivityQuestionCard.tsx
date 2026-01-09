@@ -146,22 +146,22 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({
     <>
       <div 
         onClick={handleClick}
-        className="w-full max-w-[860px] mx-auto p-5 rounded-lg cursor-pointer bg-[#F5F6FF] border-b-2 border-white"
+        className="w-full max-w-[860px] mx-auto p-4 md:p-5 rounded-lg cursor-pointer bg-[#F5F6FF] border-b-2 border-white"
       >
         <div className="flex justify-between items-start">
-          <div className="flex gap-4">
+          <div className="flex gap-3 md:gap-4">
             <img
               src={userImage}
               alt={question.fullName}
-              className="w-[42px] h-[42px] rounded-full object-cover"
+              className="w-9 h-9 md:w-[42px] md:h-[42px] rounded-full object-cover"
             />
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-lg font-medium text-[#242645]">
+                <span className="text-base md:text-lg font-medium text-[#242645]">
                   {question.fullName}
                 </span>
                 {displayTimestamp?.seconds && (
-                  <span className="text-sm text-[#8C8CA1] ml-6">
+                  <span className="text-xs md:text-sm text-[#8C8CA1] md:ml-4">
                     {formatTimeAgo(displayTimestamp.seconds)}
                     {question.questionUpdated && (
                       <span className="ml-1 text-xs italic">(edited)</span>
@@ -169,7 +169,7 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({
                   </span>
                 )}
               </div>
-              <span className="text-sm text-[#242645]">
+              <span className="text-xs md:text-sm text-[#242645]">
                 {question.interestedCourse || 'Student'}
               </span>
             </div>
@@ -219,13 +219,13 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({
           </div>
         </div>
 
-        <p className="mt-[30px] text-xl font-semibold text-[#242645] leading-[26px]">
+        <p className="mt-4 md:mt-6 text-base md:text-xl font-semibold text-[#242645] leading-snug md:leading-[26px]">
           {question.question}
         </p>
 
         {question.topAnswer ? (
           <div className="mt-4">
-            <p className={`text-base text-[#242645] leading-[26px] ${!isExpanded ? 'line-clamp-3' : ''}`}>
+            <p className={`text-sm md:text-base leading-relaxed md:leading-[26px] ${!isExpanded ? 'line-clamp-3' : ''}`}>
               {question.topAnswer}
             </p>
             {!isExpanded && question.topAnswer.length > 250 && (

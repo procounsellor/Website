@@ -189,8 +189,8 @@ export default function MyActivityPage() {
 
       return (
         <>
-          <div className="w-full bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
-            <div className="flex flex-col space-y-5">
+          <div className="w-full bg-white rounded-lg p-4 md:p-5 border border-gray-200 shadow-sm">
+            <div className="flex flex-col space-y-4 md:space-y-5">
               {filteredQuestions.length > 0 ? (
                 filteredQuestions.map(q => (
                   <MyActivityQuestionCard 
@@ -223,8 +223,8 @@ export default function MyActivityPage() {
       const filteredAnswers = filterData(myAnswers);
 
       return (
-        <div className="w-full bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
-          <div className="flex flex-col space-y-5">
+        <div className="w-full bg-white rounded-lg p-4 md:p-5 border border-gray-200 shadow-sm">
+          <div className="flex flex-col space-y-4 md:space-y-5">
              {filteredAnswers.length > 0 ? (
                 filteredAnswers.map(answerItem => (
                   <MyActivityAnswerCard
@@ -247,8 +247,8 @@ export default function MyActivityPage() {
       const filteredBookmarks = filterData(bookmarkedQuestions);
 
       return (
-        <div className="w-full bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
-          <div className="flex flex-col space-y-5">
+        <div className="w-full bg-white rounded-lg p-4 md:p-5 border border-gray-200 shadow-sm">
+          <div className="flex flex-col space-y-4 md:space-y-5">
              {filteredBookmarks.length > 0 ? (
                filteredBookmarks.map((q: any) => (
                  <MyActivityQuestionCard 
@@ -270,7 +270,7 @@ export default function MyActivityPage() {
   };
 
   const Separator = () => (
-    <div className="w-px h-[31px] bg-[#13097D33]" />
+    <div className="md:w-px md:h-[31px] md:bg-[#13097D33]" />
   );
 
   return (
@@ -284,9 +284,9 @@ export default function MyActivityPage() {
           />
         </div>
 
-        <div className="flex flex-col mt-15 w-[800px] shrink-0">
+        <div className="flex flex-col w-full md:w-[860px] mt-12 md:mt-6 shrink-0">
           
-          <div className="w-full bg-white rounded-lg mb-4 p-5 shadow-sm border border-gray-200 flex flex-col gap-5">
+          <div className="w-full bg-white rounded-lg mb-4 p-4 md:p-5 shadow-sm border border-gray-200 flex flex-col gap-4 md:gap-5">
             <div className="flex items-center gap-3">
               <Search size={24} className="text-[#343C6A] shrink-0" />
               <input
@@ -294,17 +294,17 @@ export default function MyActivityPage() {
                 placeholder="Search questions"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#F5F5F7] rounded-md p-3 text-sm placeholder-[#2F43F2] border border-transparent focus:outline-none focus:ring-2 focus:ring-[#13097D] focus:border-transparent"
+                className="w-full bg-[#F5F5F7] rounded-md p-2.5 md:p-3 text-[11px] md:text-sm placeholder-[#2F43F2] border border-transparent focus:outline-none focus:ring-2 focus:ring-[#13097D] focus:border-transparent"
               />
             </div>
 
             <div className="flex items-center justify-center pt-1">
-              <div className="flex items-center gap-[60px]">
+              <div className="w-full grid grid-cols-3 gap-2 md:flex md:w-auto md:gap-[60px] items-center">
                 {['My Questions', 'My Answers', 'Bookmarked Questions'].map((tab, index, arr) => (
                   <div key={tab} className="flex items-center">
                     <button
                       onClick={() => setActiveTab(tab as TabType)}
-                      className={`pb-0.5 text-sm font-semibold cursor-pointer transition-all ${
+                      className={`pb-0.5 text-[12px] md:text-sm font-semibold cursor-pointer transition-all ${
                         activeTab === tab
                           ? "text-[#2F43F2] border-b-2 border-[#2F43F2]"
                           : "text-[#6B7280] hover:text-indigo-900 border-b-2 border-transparent"
@@ -324,7 +324,7 @@ export default function MyActivityPage() {
             </div>
           </div>
 
-          <div className="w-full">
+          <div className="w-full md:w-[860px] shrink-0">
             {renderContent()}
           </div>
           

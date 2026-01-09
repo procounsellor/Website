@@ -65,13 +65,14 @@ const AnswerFeedCard: React.FC<AnswerFeedCardProps> = ({ question }) => {
     userPhotoUrl: question.userPhotoUrl,
     askerInterestedCourse: 'Student',
     questionTimestamp: question.timestamp,
+    anonymous: question.anonymous,
   };
 
   return (
     <>
-      <div className="w-full max-w-[860px] mx-auto p-5 rounded-lg bg-[#F5F5F7] border border-gray-100">
-        <div className="flex justify-between items-start">
-          <p className="mt-1 text-xl font-semibold text-[#242645] leading-[26px]">
+      <div className="w-full max-w-[860px] mx-auto p-4 md:p-5 rounded-lg bg-[#F5F5F7] border border-gray-100">
+        <div className="flex justify-between items-start gap-3">
+          <p className="mt-1 text-base md:text-xl font-semibold text-[#242645] leading-snug md:leading-[26px]">
             {question.question}
           </p>
 
@@ -79,21 +80,21 @@ const AnswerFeedCard: React.FC<AnswerFeedCardProps> = ({ question }) => {
             onClick={handleBookmark}
             className={`transition-colors cursor-pointer ${isBookmarked ? 'text-[#655E95]' : 'text-[#2F43F2] hover:text-indigo-600'}`}
           >
-            <Bookmark size={24} fill={isBookmarked ? "#655E95" : "none"} />
+            <Bookmark size={22} fill={isBookmarked ? "#655E95" : "none"} />
           </button>
         </div>
 
-        <div className="mt-4 flex flex-col items-center gap-5 pt-4">
+        <div className="mt-4 flex flex-col items-center gap-4 pt-3">
           <img
             src={loggedInUserImage}
             alt="Logged in user"
-            className="w-[42px] h-[42px] rounded-full object-cover"
+            className="w-9 h-9 md:w-[42px] md:h-[42px] rounded-full object-cover"
           />
           <div className="text-center">
-            <p className="text-lg font-semibold text-[#242645]">
+            <p className="text-sm md:text-lg font-semibold text-[#242645]">
               {loggedInUserName}, wanna answer?
             </p>
-            <p className="text-base text-[#242645] mt-1">
+            <p className="text-xs md:text-base text-[#242645] mt-1">
               People will be glad to see your answer
             </p>
           </div>
@@ -103,7 +104,7 @@ const AnswerFeedCard: React.FC<AnswerFeedCardProps> = ({ question }) => {
             className="h-9 flex items-center justify-center gap-2
                        rounded-xl bg-[#ffffff] border border-[#2F43F2] 
                        py-1.5 px-4
-                       text-base font-medium text-[#2F43F2]
+                       text-sm md:text-base font-medium text-[#2F43F2]
                        hover:bg-indigo-50 cursor-pointer"
           >
             <img src="/write_ans.svg" alt="write an answer" />
