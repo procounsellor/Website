@@ -18,7 +18,7 @@ export default function AnswerPage() {
           />
         </div>
 
-        <div className="flex flex-col mt-6 w-[800px] shrink-0">
+        <div className="flex flex-col mt-4 w-full md:mt-6 md:w-[800px] shrink-0">
           <div className="w-full">
             <QuestionFilterBar />
           </div>

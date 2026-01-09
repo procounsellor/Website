@@ -5,14 +5,14 @@ import { postAnswer } from '@/api/community';
 import { toast } from 'react-hot-toast';
 import { formatTimeAgo } from '@/utils/time';
 
-// UPDATED: Interface matches your API response keys exactly
 export interface AnswerModalDetails {
   questionId: string;
   questionText: string;
-  userFullName: string;       // Matches API
-  userPhotoUrl: string | null; // Renamed from askerPhotoUrl to match API
-  askerInterestedCourse?: string; // Optional since API doesn't send this
+  userFullName: string;
+  userPhotoUrl: string | null;
+  askerInterestedCourse?: string;
   questionTimestamp: { seconds: number; nanos: number };
+  anonymous?: boolean;
 }
 
 interface WriteAnswerModalProps {
@@ -118,28 +118,35 @@ const WriteAnswerModal: React.FC<WriteAnswerModalProps> = ({
 
   if (!isOpen || !questionDetails) return null;
 
-  // UPDATED: Logic to use userPhotoUrl directly
-  const askerImage =
-    questionDetails.userPhotoUrl ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      questionDetails.userFullName || 'User'
-    )}`;
+  const isAnonymous = questionDetails.anonymous;
+  
+  const displayName = isAnonymous 
+    ? 'ProCounsel User' 
+    : questionDetails.userFullName;
+
+  let askerImage = questionDetails.userPhotoUrl;
+  
+  if (isAnonymous || !askerImage) {
+    askerImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+      displayName || 'User'
+    )}`; 
+  }
 
   const isSubmitDisabled = (!yourAnswer.trim() && !selectedImage) || isLoading;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#23232380] backdrop-blur-[35px]"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#23232380] backdrop-blur-[35px] px-4"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-[632px] p-10 bg-white rounded-2xl shadow-xl border border-[#EFEFEF]"
+        className="relative w-full max-w-[632px] p-6 md:p-10 bg-white rounded-2xl shadow-xl border border-[#EFEFEF] mx-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
           disabled={isLoading}
-          className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center cursor-pointer rounded-full text-black hover:bg-black hover:text-white transition-colors"
+          className="absolute top-4 right-4 md:top-6 md:right-6 w-9 h-9 flex items-center justify-center cursor-pointer rounded-full text-black hover:bg-black hover:text-white transition-colors"
           aria-label="Close modal"
         >
           <X size={20} />
@@ -155,13 +162,13 @@ const WriteAnswerModal: React.FC<WriteAnswerModalProps> = ({
           <div className="flex gap-4">
             <img
               src={askerImage}
-              alt={questionDetails.userFullName}
+              alt={displayName}
               className="w-[42px] h-[42px] rounded-full object-cover border border-gray-100"
             />
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <span className="text-lg font-medium text-[#242645]">
-                  {questionDetails.userFullName}
+                  {displayName}
                 </span>
                 <span className="text-sm text-[#8C8CA1]">
                   {formatTimeAgo(questionDetails.questionTimestamp.seconds)}
@@ -174,7 +181,7 @@ const WriteAnswerModal: React.FC<WriteAnswerModalProps> = ({
           </div>
         </div>
 
-        <p className="text-base text-[#242645] leading-[26px] mb-6 max-h-[100px] overflow-y-auto">
+        <p className="text-base text-[#242645] leading-[26px] mb-6 max-h-[100px] overflow-y-auto custom-scrollbar">
           {questionDetails.questionText}
         </p>
 
@@ -241,7 +248,7 @@ const WriteAnswerModal: React.FC<WriteAnswerModalProps> = ({
         <button
           onClick={handlePostAnswer}
           disabled={isSubmitDisabled}
-          className={`w-[335px] h-12 mx-auto mt-6 rounded-xl text-white font-semibold transition-all duration-300
+          className={`w-full max-w-[335px] h-12 mx-auto mt-6 rounded-xl text-white font-semibold transition-all duration-300
                      flex items-center justify-center
                      ${
                        isSubmitDisabled

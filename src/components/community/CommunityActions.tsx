@@ -43,10 +43,10 @@ export default function CommunityActions() {
     return (
       <button
         onClick={onClick}
-        className="flex items-center gap-2 font-semibold text-[#2F43F2] cursor-pointer transition-colors duration-200"
+        className="flex items-center gap-2 font-semibold text-[#2F43F2] cursor-pointer transition-colors duration-200 justify-center md:justify-start"
       >
         <img src={iconSrc} alt={label} className="w-5 h-5" />
-        <span className="text-sm leading-[18px]">{label}</span>
+        <span className="text-[12px] md:text-sm leading-[18px]">{label}</span>
         {count && (
           <span className="ml-1 px-2 py-0.5 bg-orange-500 text-white text-xs font-bold rounded-full">
             {count}
@@ -57,24 +57,24 @@ export default function CommunityActions() {
   };
 
   const Separator = () => (
-    <div className="w-px h-[31px] bg-[#13097D33]" />
+    <div className="hidden md:block w-px h-[31px] bg-[#13097D33]" />
   );
 
   return (
     <>
-      <div className="max-w-[900px] w-full mx-auto mt-15 bg-white rounded-lg p-5 shadow-sm border border-gray-200">
+      <div className="max-w-[900px] w-full mx-auto mt-15 bg-white rounded-lg p-4 md:p-5 shadow-sm border border-gray-200">
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
             <Search size={24} className="text-[#343C6A] shrink-0" />
             <input
               type="text"
               placeholder="Search questions"
-              className="w-full bg-[#F5F5F7] rounded-md p-3 text-sm placeholder-[#2F43F2] border border-transparent focus:outline-none focus:ring-2 focus:ring-[#13097D] focus:border-transparent"
+              className="w-full bg-[#F5F5F7] rounded-md p-3 text-[12px] md:text-sm placeholder-[#2F43F2] border border-transparent focus:outline-none focus:ring-2 focus:ring-[#13097D] focus:border-transparent"
             />
           </div>
 
-          <div className="flex items-center justify-center gap-10 pl-1">
-            <div className="flex items-center gap-[60px]">
+          <div className="flex items-center justify-between md:justify-center md:gap-10 pl-1">
+            <div className="w-full grid grid-cols-3 gap-2 md:flex md:w-auto md:gap-[60px] items-center">
               <ActionButton
                 iconSrc="/ask.svg"
                 label="Ask"
