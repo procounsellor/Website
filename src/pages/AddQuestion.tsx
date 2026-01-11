@@ -201,7 +201,8 @@ export function AddQuestion() {
     const questionData = {
       questionText,
       questionImageUrls: [],
-      isMultipleAnswer: responseType === "multi",
+      multipleAnswer: responseType === "multi",
+      subjective: false,
       options: options.map((opt) => ({
         optionId: opt.id,
         value: opt.text,
