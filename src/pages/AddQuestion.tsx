@@ -9,6 +9,8 @@ import {
 import { useState, useEffect } from "react";
 import { QuestionTable } from "@/components/create-test/components/QuestionTable";
 import { useAuthStore } from "@/store/AuthStore";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 interface Question {
   questionId: string;
@@ -70,6 +72,7 @@ export function AddQuestion() {
   const [correctOption, setCorrectOption] = useState<string>("");
   const [correctOptions, setCorrectOptions] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ questionId: string; sectionName: string } | null>(null);
   const [editingQuestion, setEditingQuestion] = useState<{ questionId: string; sectionName: string } | null>(null);
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
@@ -177,15 +180,16 @@ export function AddQuestion() {
     }
   }, [testData, user?.phoneNumber, testSeriesId]);
 
-  // Update sections when testData changes
+  // Update sections when testData changes and set first section as default
   useEffect(() => {
     if (testData?.listOfSection) {
       setSections(testData.listOfSection);
+      // Set first section as default category only if not already set
       if (!selectedCategory && testData.listOfSection.length > 0) {
         setSelectedCategory(testData.listOfSection[0].sectionName);
       }
     }
-  }, [testData, selectedCategory]);
+  }, [testData]);
 
   const handleSubmitQuestion = async () => {
     if (!user?.phoneNumber || !testSeriesId || !selectedCategory || !questionText) {
@@ -360,6 +364,7 @@ export function AddQuestion() {
   const handleDeleteQuestion = async (questionId: string, sectionName: string) => {
     if (!user?.phoneNumber || !testSeriesId) return;
     
+    setIsDeleting(true);
     const counsellorId = user.phoneNumber;
     
     const requestData = {
@@ -371,18 +376,19 @@ export function AddQuestion() {
 
     const myHeaders = new Headers();
     const token = localStorage.getItem("jwt");
-    if (!token) return;
+    if (!token) {
+      setIsDeleting(false);
+      return;
+    }
 
     myHeaders.append("Authorization", `Bearer ${token}`);
+    myHeaders.append("Content-Type", "application/json");
     myHeaders.append("Accept", "application/json");
-
-    const formdata = new FormData();
-    formdata.append("request", JSON.stringify(requestData));
 
     const requestOptions: RequestInit = {
       method: "POST",
       headers: myHeaders,
-      body: formdata,
+      body: JSON.stringify(requestData),
       redirect: "follow",
     };
 
@@ -394,11 +400,43 @@ export function AddQuestion() {
       const result = await response.json();
 
       if (result.status && result.data) {
+        toast.success("Question deleted successfully!");
         setTestData(result.data);
-        console.log("Question deleted successfully");
+        
+        // Refetch questions to update the list smoothly
+        const refetchHeaders = new Headers();
+        refetchHeaders.append("Authorization", `Bearer ${token}`);
+        refetchHeaders.append("Accept", "application/json");
+
+        fetch(
+          `https://procounsellor-backend-1000407154647.asia-south1.run.app/api/testSeries/getAllQuestionsForCounsellorOfAllSection?counsellorId=${counsellorId}&testSeriesId=${testSeriesId}`,
+          { method: "GET", headers: refetchHeaders }
+        )
+          .then((res) => res.json())
+          .then((res) => {
+            if (res.status && res.data) {
+              const updatedSections = res.data.map((section: Section) => ({
+                ...section,
+                totalQuestionsSupposedToBeAdded: testData?.listOfSection?.find(
+                  (s) => s.sectionName === section.sectionName
+                )?.totalQuestionsSupposedToBeAdded,
+                sectionDurationInMinutes: testData?.listOfSection?.find(
+                  (s) => s.sectionName === section.sectionName
+                )?.sectionDurationInMinutes,
+                totalQuestionsAdded: section.totalQuestions || 0,
+              }));
+              setSections(updatedSections);
+            }
+          })
+          .finally(() => setIsDeleting(false));
+      } else {
+        toast.error(result.message || "Failed to delete question");
+        setIsDeleting(false);
       }
     } catch (error) {
       console.error("Error deleting question:", error);
+      toast.error("An error occurred while deleting the question");
+      setIsDeleting(false);
     } finally {
       setDeleteConfirmation(null);
     }
@@ -477,14 +515,18 @@ export function AddQuestion() {
       const result = await response.json();
       
       if (result.status) {
-        alert("Test Series published successfully!");
-        // Optionally navigate to a different page or refresh data
+        toast.success("Test Series published successfully!");
+        setTimeout(() => {
+          navigate("/counsellor-dashboard", {
+            state: { activeTab: "courses" }
+          });
+        }, 600);
       } else {
-        alert(`Failed to publish: ${result.message || "Unknown error"}`);
+        toast.error(result.message || "Failed to publish test series");
       }
     } catch (error) {
       console.error("Error publishing test series:", error);
-      alert("Error publishing test series. Please try again.");
+      toast.error("Error publishing test series. Please try again.");
     } finally {
       setIsPublishing(false);
     }
@@ -853,8 +895,9 @@ export function AddQuestion() {
             <button 
               onClick={handleSubmitQuestion}
               disabled={isSubmitting || !questionText || !selectedCategory || (selectedType === "objective" && correctOptions.length === 0)}
-              className="py-3 px-8 bg-[#00C853] text-white font-medium text-base rounded-xl hover:bg-[#00B04A] transition-colors shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
+              className="py-3 px-8 bg-[#00C853] text-white font-medium text-base rounded-xl hover:bg-[#00B04A] transition-colors shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
             >
+              {isSubmitting && <Loader2 className="w-5 h-5 animate-spin" />}
               {isSubmitting ? (editingQuestion ? "Updating..." : "Submitting...") : (editingQuestion ? "Update Question" : "Submit Question")}
             </button>
           </div>
@@ -870,8 +913,9 @@ export function AddQuestion() {
           <button
             onClick={handlePublishTestSeries}
             disabled={isPublishing || sections.reduce((acc, s) => acc + (s.totalQuestions || s.totalQuestionsAdded || 0), 0) === 0}
-            className="py-2 px-6 bg-(--btn-primary) text-white font-medium text-base rounded-xl hover:opacity-90 transition-all shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
+            className="py-2 px-6 bg-(--btn-primary) text-white font-medium text-base rounded-xl hover:opacity-90 transition-all shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
           >
+            {isPublishing && <Loader2 className="w-5 h-5 animate-spin" />}
             {isPublishing ? "Publishing..." : "Publish Test Series"}
           </button>
         </div>
@@ -973,15 +1017,18 @@ export function AddQuestion() {
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setDeleteConfirmation(null)}
-                className="px-4 py-2 rounded-lg border border-[#E9EBEC] text-(--text-app-primary) hover:bg-gray-50 transition-colors"
+                disabled={isDeleting}
+                className="px-4 py-2 rounded-lg border border-[#E9EBEC] text-(--text-app-primary) hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleDeleteQuestion(deleteConfirmation.questionId, deleteConfirmation.sectionName)}
-                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
+                disabled={isDeleting}
+                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                Delete
+                {isDeleting && <Loader2 className="w-4 h-4 animate-spin" />}
+                {isDeleting ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>

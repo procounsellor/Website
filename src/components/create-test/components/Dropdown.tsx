@@ -2,11 +2,12 @@ import { useState, type ReactNode } from "react";
 
 interface params{
     label: string,
-    children : ReactNode
+    children : ReactNode,
+    defaultOpen?: boolean
 }
 
-export  function Dropdown({label, children}:params){
-    const [open, setOpen] = useState(false)
+export  function Dropdown({label, children, defaultOpen = false}:params){
+    const [open, setOpen] = useState(defaultOpen)
     return (
         <div onClick={()=> setOpen(!open)} className="bg-white shadow-[0_0_4px_0_#00000026] hover:cursor-pointer rounded-2xl p-5 max-w-[1200px] flex flex-col gap-4">
             <div className="flex items-center justify-between">
