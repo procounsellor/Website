@@ -194,26 +194,36 @@ export function CreateTest() {
     setIsSubmitting(true);
     const counsellorId = user.phoneNumber;
 
-    const requestData: any = {
-      counsellorId,
-      testName: formData.name,
-      testDescription: formData.description,
-      stream: formData.stream,
-      testType: type === "standalone" ? "STANDALONE" : "COURSE",
-      courseIdAttached: type === "course" ? formData.course : null,
-      priceType: cost.toUpperCase(),
-      price: cost === "paid" ? parseFloat(formData.paidAmount) : 0,
-      durationInMinutes: parseInt(formData.duration),
-      pointsForCorrectAnswer: parseInt(formData.correctPoints),
-      negativeMarkingEnabled: enableNegativeMarking,
-      negativeMarks: enableNegativeMarking ? parseFloat(formData.wrongPoints) : 0,
-      testInstructuctions: formData.instructions,
-      sections: sections,
-    };
+    let requestData: any;
 
-    // Add testSeriesId for update
     if (editMode && testSeriesId) {
-      requestData.testSeriesId = testSeriesId;
+      // For update, only send testSeriesId, counsellorId, and sections with specific fields
+      requestData = {
+        counsellorId,
+        testSeriesId: testSeriesId,
+        sections: sections.map(section => ({
+          sectionName: section.sectionName,
+          sectionDurationInMinutes: section.sectionDurationInMinutes
+        })),
+      };
+    } else {
+      // For create, send all fields
+      requestData = {
+        counsellorId,
+        testName: formData.name,
+        testDescription: formData.description,
+        stream: formData.stream,
+        testType: type === "standalone" ? "STANDALONE" : "COURSE",
+        courseIdAttached: type === "course" ? formData.course : null,
+        priceType: cost.toUpperCase(),
+        price: cost === "paid" ? parseFloat(formData.paidAmount) : 0,
+        durationInMinutes: parseInt(formData.duration),
+        pointsForCorrectAnswer: parseInt(formData.correctPoints),
+        negativeMarkingEnabled: enableNegativeMarking,
+        negativeMarks: enableNegativeMarking ? parseFloat(formData.wrongPoints) : 0,
+        testInstructuctions: formData.instructions,
+        sections: sections,
+      };
     }
 
     const myHeaders = new Headers();
