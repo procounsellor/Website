@@ -17,6 +17,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { getCoursesForCounsellorByCounsellorId } from "@/api/course";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface EventFormData {
   name: string;
@@ -52,6 +53,7 @@ export function CreateTest() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, role, isAuthenticated } = useAuthStore();
+  const queryClient = useQueryClient();
   
   const editMode = location.state?.editMode || false;
   const existingTestData = location.state?.testData || null;
@@ -197,12 +199,25 @@ export function CreateTest() {
     let requestData: any;
 
     if (editMode && testSeriesId) {
-      // For update, only send testSeriesId, counsellorId, and sections with specific fields
+      // For update, send ALL editable fields
       requestData = {
         counsellorId,
         testSeriesId: testSeriesId,
+        testName: formData.name,
+        testDescription: formData.description,
+        stream: formData.stream,
+        testType: type === "standalone" ? "STANDALONE" : "COURSE",
+        courseIdAttached: type === "course" ? formData.course : null,
+        priceType: cost.toUpperCase(),
+        price: cost === "paid" ? parseFloat(formData.paidAmount) : 0,
+        durationInMinutes: parseInt(formData.duration),
+        pointsForCorrectAnswer: parseInt(formData.correctPoints),
+        negativeMarkingEnabled: enableNegativeMarking,
+        negativeMarks: enableNegativeMarking ? parseFloat(formData.wrongPoints) : 0,
+        testInstructuctions: formData.instructions,
         sections: sections.map(section => ({
           sectionName: section.sectionName,
+          totalQuestionsSupposedToBeAdded: section.totalQuestionsSupposedToBeAdded,
           sectionDurationInMinutes: section.sectionDurationInMinutes
         })),
       };
@@ -261,11 +276,24 @@ export function CreateTest() {
       console.log(result);
       
       if (result.status && result.data?.testSeriesId) {
-        toast.success(editMode ? "Test series updated successfully!" : "Test series created successfully!");
-        // Navigate to AddQuestion page with testSeriesId and pass test data
-        navigate(`/add-question/${result.data.testSeriesId}`, {
-          state: { testData: result.data }
-        });
+        if (editMode) {
+          // For edit mode, invalidate cache and navigate back smoothly
+          toast.success("Test series updated successfully!");
+          // Invalidate the test series cache so it refetches only the updated data
+          queryClient.invalidateQueries({ queryKey: ["counsellorTestSeries", user.phoneNumber] });
+          setTimeout(() => {
+            navigate("/counsellor-dashboard", {
+              state: { activeTab: "courses" },
+              replace: true
+            });
+          }, 600);
+        } else {
+          // For create mode, navigate to AddQuestion page
+          toast.success("Test series created successfully!");
+          navigate(`/add-question/${result.data.testSeriesId}`, {
+            state: { testData: result.data }
+          });
+        }
       } else {
         toast.error(result.message || (editMode ? "Failed to update test series" : "Failed to create test series"));
         setIsSubmitting(false);
@@ -283,7 +311,7 @@ export function CreateTest() {
         Create New Test
       </div>
 
-      <Dropdown label="Test Name">
+      <Dropdown label="Test Name" defaultOpen={true}>
         <div className="flex flex-col gap-4">
           <Input 
             label="Test Name *" 
