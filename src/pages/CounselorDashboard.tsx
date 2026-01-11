@@ -75,7 +75,13 @@ export default function CounselorDashboard() {
     data: Appointment;
     position: { x: number; y: number; centerY: number };
   } | null>(null);
-  const [mainTab, setMainTab] = useState<MainTab>("calendar");
+  
+  // Persist main tab in localStorage
+  const [mainTab, setMainTab] = useState<MainTab>(() => {
+    const savedTab = localStorage.getItem('counsellorDashboardMainTab');
+    return (savedTab as MainTab) || "calendar";
+  });
+  
   const [currentDateOffset, setCurrentDateOffset] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<"meetings" | "other">("meetings");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -90,6 +96,11 @@ export default function CounselorDashboard() {
     const HOUR = Array.from({ length: 12 }, (_, i) => 8 + i); // 9AM–8PM
     setHours(HOUR);
   }, []);
+
+  // Save main tab to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('counsellorDashboardMainTab', mainTab);
+  }, [mainTab]);
 
   useEffect(() => {
     // Check if there's an activeTab in location state and update mainTab

@@ -3,9 +3,10 @@ import { useRef } from "react";
 type UploadBoxProps = {
   file: File | null;
   setFile: (file: File | null) => void;
+  existingImageUrl?: string | null;
 };
 
-export default function UploadBox({ file, setFile }: UploadBoxProps) {
+export default function UploadBox({ file, setFile, existingImageUrl }: UploadBoxProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = () => inputRef.current?.click();
@@ -20,9 +21,11 @@ export default function UploadBox({ file, setFile }: UploadBoxProps) {
     setFile(f);
   };
 
+  const hasImage = file || existingImageUrl;
+
   return (
     <div
-      onClick={!file ? handleClick : undefined}
+      onClick={!hasImage ? handleClick : undefined}
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
         e.preventDefault();
@@ -43,7 +46,7 @@ export default function UploadBox({ file, setFile }: UploadBoxProps) {
         }}
       />
 
-      {!file ? (
+      {!hasImage ? (
         <div className="flex flex-col items-center justify-center text-center">
             <svg
             width="28"
@@ -63,19 +66,24 @@ export default function UploadBox({ file, setFile }: UploadBoxProps) {
       ) : (
         <div className="flex gap-4 items-center w-full">
           <img
-            src={URL.createObjectURL(file)}
+            src={file ? URL.createObjectURL(file) : existingImageUrl!}
             className="h-20 w-20 object-cover rounded"
+            alt="Banner"
           />
           <div className="flex-1">
-            <p className="text-sm font-medium truncate">{file.name}</p>
-            <p className="text-xs text-gray-500">
-              {(file.size / 1024 / 1024).toFixed(2)} MB
+            <p className="text-sm font-medium truncate">
+              {file ? file.name : "Existing banner image"}
             </p>
+            {file && (
+              <p className="text-xs text-gray-500">
+                {(file.size / 1024 / 1024).toFixed(2)} MB
+              </p>
+            )}
             <div className="flex gap-3 mt-2">
-              <button onClick={handleClick} className="text-blue-600 text-xs">
+              <button onClick={handleClick} className="text-blue-600 text-xs cursor-pointer">
                 Change
               </button>
-              <button onClick={() => setFile(null)} className="text-red-600 text-xs">
+              <button onClick={() => setFile(null)} className="text-red-600 text-xs cursor-pointer">
                 Remove
               </button>
             </div>
