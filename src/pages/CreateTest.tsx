@@ -13,9 +13,10 @@ import {
 } from "@/components/ui/select";
 import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/AuthStore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { getCoursesForCounsellorByCounsellorId } from "@/api/course";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface EventFormData {
   name: string;
@@ -49,7 +50,11 @@ const STREAMS = [
 
 export function CreateTest() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, role, isAuthenticated } = useAuthStore();
+  
+  const editMode = location.state?.editMode || false;
+  const existingTestData = location.state?.testData || null;
   
   // Check if user is authenticated and is a counselor
   useEffect(() => {
@@ -64,6 +69,7 @@ export function CreateTest() {
   }, [isAuthenticated, role, navigate]);
 
   const [file, setFile] = useState<File | null>(null);
+  const [existingBannerUrl, setExistingBannerUrl] = useState<string | null>(null);
   const [type, setType] = useState<"course" | "standalone" | null>(null);
   const [cost, setCost] = useState<"free" | "paid">("free");
   const [enableNegativeMarking, setEnableNegativeMarking] =
@@ -72,6 +78,7 @@ export function CreateTest() {
   const [courses, setCourses] = useState<any[]>([]);
   const [loadingCourses, setLoadingCourses] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [testSeriesId, setTestSeriesId] = useState<string | null>(null);
   const [currentSection, setCurrentSection] = useState<SectionInput>({
     sectionName: "",
     totalQuestions: "",
@@ -88,6 +95,31 @@ export function CreateTest() {
     paidAmount: "",
     instructions: "",
   });
+
+  // Prefill data in edit mode
+  useEffect(() => {
+    if (editMode && existingTestData) {
+      setTestSeriesId(existingTestData.testSeriesId);
+      setFormData({
+        name: existingTestData.testName || "",
+        description: existingTestData.testDescription || "",
+        stream: existingTestData.stream || "",
+        course: existingTestData.courseIdAttached || "",
+        duration: existingTestData.durationInMinutes?.toString() || "",
+        correctPoints: existingTestData.pointsForCorrectAnswer?.toString() || "",
+        wrongPoints: existingTestData.negativeMarks?.toString() || "",
+        paidAmount: existingTestData.price?.toString() || "",
+        instructions: existingTestData.testInstructuctions || "",
+      });
+      setType(existingTestData.testType === "COURSE" ? "course" : "standalone");
+      setCost(existingTestData.priceType?.toLowerCase() === "paid" ? "paid" : "free");
+      setEnableNegativeMarking(existingTestData.negativeMarkingEnabled || false);
+      setSections(existingTestData.listOfSection || []);
+      if (existingTestData.bannerImagUrl) {
+        setExistingBannerUrl(existingTestData.bannerImagUrl);
+      }
+    }
+  }, [editMode, existingTestData]);
 
   const handleInputChange = (
     field: keyof EventFormData,
@@ -155,13 +187,14 @@ export function CreateTest() {
     // Get counsellorId from authenticated user
     if (!user?.phoneNumber) {
       console.error("No counselor ID found");
+      toast.error("Unable to identify counselor. Please login again.");
       return;
     }
 
     setIsSubmitting(true);
     const counsellorId = user.phoneNumber;
 
-    const requestData = {
+    const requestData: any = {
       counsellorId,
       testName: formData.name,
       testDescription: formData.description,
@@ -178,11 +211,17 @@ export function CreateTest() {
       sections: sections,
     };
 
+    // Add testSeriesId for update
+    if (editMode && testSeriesId) {
+      requestData.testSeriesId = testSeriesId;
+    }
+
     const myHeaders = new Headers();
     const token = localStorage.getItem("jwt");
     if (!token) {
       console.error("No authentication token found");
-      // TODO: Show error toast and redirect to login
+      toast.error("Authentication required. Please login again.");
+      setIsSubmitting(false);
       return;
     }
     
@@ -195,6 +234,10 @@ export function CreateTest() {
       formdata.append("bannerImage", file);
     }
 
+    const apiUrl = editMode
+      ? "https://procounsellor-backend-1000407154647.asia-south1.run.app/api/testSeries/updateTestSeries"
+      : "https://procounsellor-backend-1000407154647.asia-south1.run.app/api/testSeries/createTestSeries";
+
     const requestOptions: RequestInit = {
       method: "POST",
       headers: myHeaders,
@@ -203,24 +246,23 @@ export function CreateTest() {
     };
 
     try {
-      const response = await fetch(
-        "https://procounsellor-backend-1000407154647.asia-south1.run.app/api/testSeries/createTestSeries",
-        requestOptions
-      );
+      const response = await fetch(apiUrl, requestOptions);
       const result = await response.json();
       console.log(result);
       
       if (result.status && result.data?.testSeriesId) {
+        toast.success(editMode ? "Test series updated successfully!" : "Test series created successfully!");
         // Navigate to AddQuestion page with testSeriesId and pass test data
         navigate(`/add-question/${result.data.testSeriesId}`, {
           state: { testData: result.data }
         });
       } else {
-        console.error("Failed to create test:", result.message);
+        toast.error(result.message || (editMode ? "Failed to update test series" : "Failed to create test series"));
         setIsSubmitting(false);
       }
     } catch (error) {
       console.error(error);
+      toast.error("An error occurred. Please try again.");
       setIsSubmitting(false);
     }
   };
@@ -245,7 +287,7 @@ export function CreateTest() {
             value={formData.description}
             onChange={(value) => handleInputChange("description", value)}
           />
-          <UploadBox file={file} setFile={setFile} />
+          <UploadBox file={file} setFile={setFile} existingImageUrl={existingBannerUrl} />
 
           <div className="grid grid-cols-2 gap-6">
             <div className="flex gap-2 flex-col ">
@@ -546,10 +588,10 @@ export function CreateTest() {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Creating Test...
+                {editMode ? "Updating Test..." : "Creating Test..."}
               </>
             ) : (
-              "Next: Upload Question"
+              editMode ? "Update Test" : "Next: Upload Question"
             )}
           </button>
         </div>
