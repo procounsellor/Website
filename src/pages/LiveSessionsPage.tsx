@@ -128,7 +128,7 @@ export default function LiveSessionsPage() {
         unlockScroll();
         
         const unsubscribe = listenToLiveSessionsStatus((allLives) => {
-            const msNow = Date.now();
+            // const msNow = Date.now();
             const filteredSessions: LiveSession[] = [];
 
             Object.entries(allLives).forEach(([key, value]: [string, any]) => {
@@ -137,13 +137,13 @@ export default function LiveSessionsPage() {
                 const forWhom = value.forWhom?.toString() || '';
                 const courseId = value.courseId?.toString() || '';
                 
-                let updatedAtMs = value.updatedAt || 0;
-                if (updatedAtMs < 10000000000) {
-                    updatedAtMs = updatedAtMs * 1000;
-                }
+                // let updatedAtMs = value.updatedAt || 0;
+                // if (updatedAtMs < 10000000000) {
+                //     updatedAtMs = updatedAtMs * 1000;
+                // }
                 
-                const timeDiff = Math.abs(msNow - updatedAtMs);
-                const isLive = value.isLive === true && timeDiff < 15000;
+                // const timeDiff = Math.abs(msNow - updatedAtMs);
+                const isLive = value.isLive  === true //&& timeDiff < 15000;
 
                 if (!isLive) return;
 
