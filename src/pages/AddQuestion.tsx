@@ -513,7 +513,7 @@ export function AddQuestion() {
             <div className="flex gap-3">
               <button
                 onClick={() => setSelectedType("objective")}
-                className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all w-[149px] h-[39px] ${
+                className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all w-[149px] h-[39px] cursor-pointer ${
                   selectedType === "objective"
                     ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
                     : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
@@ -621,7 +621,7 @@ export function AddQuestion() {
                   <button
                     key={section.sectionName}
                     onClick={() => setSelectedCategory(section.sectionName)}
-                    className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all capitalize ${
+                    className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all capitalize cursor-pointer ${
                       selectedCategory === section.sectionName
                         ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
                         : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
@@ -653,7 +653,7 @@ export function AddQuestion() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => setResponseType("single")}
-                    className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all ${
+                    className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all cursor-pointer ${
                       responseType === "single"
                         ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
                         : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
@@ -671,7 +671,7 @@ export function AddQuestion() {
 
                   <button
                     onClick={() => setResponseType("multi")}
-                    className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all ${
+                    className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all cursor-pointer ${
                       responseType === "multi"
                         ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
                         : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
@@ -844,7 +844,7 @@ export function AddQuestion() {
                   setCorrectOption("");
                   setCorrectOptions([]);
                 }}
-                className="py-3 px-8 bg-gray-500 text-white font-medium text-base rounded-xl hover:bg-gray-600 transition-colors shadow-md"
+                className="py-3 px-8 bg-gray-500 text-white font-medium text-base rounded-xl hover:bg-gray-600 transition-colors shadow-md cursor-pointer"
               >
                 Cancel Edit
               </button>
@@ -852,7 +852,7 @@ export function AddQuestion() {
             <button 
               onClick={handleSubmitQuestion}
               disabled={isSubmitting || !questionText || !selectedCategory || (selectedType === "objective" && correctOptions.length === 0)}
-              className="py-3 px-8 bg-[#00C853] text-white font-medium text-base rounded-xl hover:bg-[#00B04A] transition-colors shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="py-3 px-8 bg-[#00C853] text-white font-medium text-base rounded-xl hover:bg-[#00B04A] transition-colors shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
             >
               {isSubmitting ? (editingQuestion ? "Updating..." : "Submitting...") : (editingQuestion ? "Update Question" : "Submit Question")}
             </button>
@@ -869,7 +869,7 @@ export function AddQuestion() {
           <button
             onClick={handlePublishTestSeries}
             disabled={isPublishing || sections.reduce((acc, s) => acc + (s.totalQuestions || s.totalQuestionsAdded || 0), 0) === 0}
-            className="py-2 px-6 bg-(--btn-primary) text-white font-medium text-base rounded-xl hover:opacity-90 transition-all shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="py-2 px-6 bg-(--btn-primary) text-white font-medium text-base rounded-xl hover:opacity-90 transition-all shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
           >
             {isPublishing ? "Publishing..." : "Publish Test Series"}
           </button>
@@ -910,7 +910,7 @@ export function AddQuestion() {
         {/* filters  */}
         <div className="flex gap-6 border-b border-t border-[#E9EBEC] p-3">
           <Select value={questionType} onValueChange={setQuestionType}>
-            <SelectTrigger className="w-[227px] h-9 border border-[#E8EAED] rounded-[12px] text-xs font-medium text-(--text-app-primary) leading-[125%]">
+            <SelectTrigger className="w-[227px] h-9 border border-[#E8EAED] rounded-[12px] text-xs font-medium text-(--text-app-primary) leading-[125%] cursor-pointer">
               <SelectValue placeholder="All Questions" />
             </SelectTrigger>
             <SelectContent>
@@ -927,7 +927,7 @@ export function AddQuestion() {
           </Select>
 
           <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-[227px] h-9 border border-[#E8EAED] rounded-[12px] text-xs font-medium text-(--text-app-primary) leading-[125%]">
+            <SelectTrigger className="w-[227px] h-9 border border-[#E8EAED] rounded-[12px] text-xs font-medium text-(--text-app-primary) leading-[125%] cursor-pointer">
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
