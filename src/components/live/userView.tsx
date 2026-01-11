@@ -92,7 +92,7 @@ const extractYouTubeVideoId = (urlOrId: string): string => {
 
 export default function LiveStreamView() {
   const { closeStream, videoId: rawVideoId, streamTitle, description, counsellorId } = useLiveStreamStore();
-  const { userId } = useAuthStore();
+  const { userId, user } = useAuthStore();
   
   // Extract clean video ID
   const videoId = extractYouTubeVideoId(rawVideoId);
@@ -114,18 +114,20 @@ export default function LiveStreamView() {
 
   // Track user joining the live session
   useEffect(() => {
-    if (!counsellorId || !userId) return;
+    if (!counsellorId || !userId || !user) return;
 
-    // Track user joined
-    trackUserJoined(counsellorId, userId);
-    console.log('📍 User joined live session:', { counsellorId, userId });
+    // Track user joined with name and photo
+    const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Anonymous';
+    const userPhoto = user.photo || '';
+    trackUserJoined(counsellorId, userId, userName, userPhoto);
+    console.log('📍 User joined live session:', { counsellorId, userId, userName, userPhoto });
 
     // Cleanup: track user left when component unmounts
     return () => {
       trackUserLeft(counsellorId, userId);
       console.log('👋 User left live session:', { counsellorId, userId });
     };
-  }, [counsellorId, userId]);
+  }, [counsellorId, userId, user]);
 
   // Content protection: Prevent screenshots and screen recording for live stream
   useEffect(() => {
@@ -667,29 +669,16 @@ export default function LiveStreamView() {
               </div>
             )}
             
-            {/* Video Player - rotation in desktop and mobile portrait */}
+            {/* Video Player - no rotation */}
             <div className="relative w-full h-full overflow-hidden flex items-center justify-center">
               <div 
                 id="youtube-player" 
-                className="absolute lg:transform-gpu" 
+                className="absolute" 
                 style={{
-                  // Apply rotation in:
-                  // 1. Desktop (lg+): Always rotate
-                  // 2. Mobile Portrait: Rotate to fit vertical screen
-                  // 3. Mobile Landscape: NO rotation, natural display
-                  ...(typeof window !== 'undefined' && (window.innerWidth >= 1024 || !isLandscape) ? {
-                    transform: 'rotate(-90deg)',
-                    transformOrigin: 'center center',
-                    width: '177.78%',
-                    height: '177.78%',
-                    left: '-38.89%',
-                    top: '-38.89%'
-                  } : {
-                    width: '100%',
-                    height: '100%',
-                    left: '0',
-                    top: '0'
-                  })
+                  width: '100%',
+                  height: '100%',
+                  left: '0',
+                  top: '0'
                 }} 
               />
               {/* Smart Invisible Overlay - handles play/unmute on tap */}
