@@ -138,12 +138,14 @@ export const listenToCounselorLiveStatus = (
  * Track when a user joins a live session (for viewer count)
  * @param liveSessionId - The live session ID (counsellorId)
  * @param userId - The user's ID
+ * @param userName - The user's name
+ * @param userPhoto - The user's photo URL
  */
-export const trackUserJoined = (liveSessionId: string, userId: string) => {
+export const trackUserJoined = (liveSessionId: string, userId: string, userName: string, userPhoto: string) => {
   const userRef = ref(database, `liveSessionsStatus/${liveSessionId}/userIdsInLive/${userId}`);
 
   // Set user as joined
-  update(userRef, { joined: true, timestamp: serverTimestamp() });
+  update(userRef, { joined: true, name: userName, photo: userPhoto });
 
   // Auto-remove user when they disconnect
   onDisconnect(userRef).remove();
