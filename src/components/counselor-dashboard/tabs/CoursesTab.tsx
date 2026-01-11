@@ -56,12 +56,20 @@ export default function CourseTab(props: CourseTabProps) {
           ))}
         </div>
 
-        <button
-        onClick={()=>setCreateCourse(true)}
-        className='flex bg-[#655E95] hover:bg-[#655E95]/90 rounded-2xl md:rounded-[0.75rem] cursor-pointer text-clip border text-xs py-2 lg:py-3 px-3 lg:px-6 text-white items-center justify-center lg:font-semibold'
-        >
-          Create a Course
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => navigate('/create-test')}
+            className='flex bg-[#655E95] hover:bg-[#655E95]/90 rounded-2xl md:rounded-[0.75rem] cursor-pointer text-clip border text-xs py-2 lg:py-3 px-3 lg:px-6 text-white items-center justify-center lg:font-semibold'
+          >
+            Create Test
+          </button>
+          <button
+            onClick={()=>setCreateCourse(true)}
+            className='flex bg-[#655E95] hover:bg-[#655E95]/90 rounded-2xl md:rounded-[0.75rem] cursor-pointer text-clip border text-xs py-2 lg:py-3 px-3 lg:px-6 text-white items-center justify-center lg:font-semibold'
+          >
+            Create a Course
+          </button>
+        </div>
       </div>
 
       </div>
