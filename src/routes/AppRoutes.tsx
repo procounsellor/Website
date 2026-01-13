@@ -27,8 +27,12 @@ import MyActivityPage from '@/pages/MyActivityPage';
 import LandingPage from '@/pages/AdityaLandingPage';
 import PromoPage from '@/pages/PromoPage';
 import ClientProfilePage from '@/pages/ClientProfilePage';
+<<<<<<< Updated upstream
 import { CreateTest } from '@/pages/CreateTest';
 import { AddQuestion } from '@/pages/AddQuestion';
+=======
+import CollegeDetailsPageNew from '@/pages/CollegeDetailsPage';
+>>>>>>> Stashed changes
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
@@ -63,6 +67,7 @@ export default function AppRoutes() {
                         <Route path="/counsellor-profile" element={<CounselorDetailsPage />} />
                         <Route path="/courses/:id" element={<CourseDetailsPage />} />
                         <Route path="/colleges/:id" element={<CollegeDetailsPage />} />
+                        <Route path="/colleges-details" element={<CollegeDetailsPageNew />} />
                         <Route path="/exams" element={<ExamsListingPage />} />
                         <Route path="/about" element={<AboutPage />} />
                         <Route path="/contact" element={<ContactPage />} />
