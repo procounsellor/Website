@@ -27,12 +27,9 @@ import MyActivityPage from '@/pages/MyActivityPage';
 import LandingPage from '@/pages/AdityaLandingPage';
 import PromoPage from '@/pages/PromoPage';
 import ClientProfilePage from '@/pages/ClientProfilePage';
-<<<<<<< Updated upstream
 import { CreateTest } from '@/pages/CreateTest';
 import { AddQuestion } from '@/pages/AddQuestion';
-=======
 import CollegeDetailsPageNew from '@/pages/CollegeDetailsPage';
->>>>>>> Stashed changes
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
