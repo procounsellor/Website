@@ -131,7 +131,10 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({
       return;
     }
     if (question.questionId) {
-      navigate(`/community/question/${question.questionId}`);
+      navigate(`/community/question/${question.questionId}`, { 
+        state: { from: 'my-activity' } 
+      });
+      
     }
   };
 

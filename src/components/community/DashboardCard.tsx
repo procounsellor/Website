@@ -12,7 +12,6 @@ interface DashboardCardProps {
 }
 
 const DashboardCard: React.FC<DashboardCardProps> = ({ item }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
   const navigate = useNavigate();
   const { user, userId } = useAuthStore();
   const token = localStorage.getItem('jwt');
@@ -50,11 +49,16 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ item }) => {
   };
 
   const askerImage = item.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.fullName)}`;
+  
   const handleClick = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).tagName === 'BUTTON') {
-      e.stopPropagation();
+    if ((e.target as HTMLElement).closest('button')) {
       return;
     }
+    navigate(`/community/question/${item.questionId}`);
+  };
+
+  const handleReadMore = (e: React.MouseEvent) => {
+    e.stopPropagation();
     navigate(`/community/question/${item.questionId}`);
   };
 
@@ -97,21 +101,14 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ item }) => {
 
       {item.topAnswer && (
         <div className="mt-3 md:mt-4">
-          <p
-            className={`text-sm md:text-base text-[#242645] leading-relaxed md:leading-[26px] line-clamp-3 ${
-              !isExpanded ? 'line-clamp-3' : ''
-            }`}
-          >
+          <p className="text-sm md:text-base text-[#242645] leading-relaxed md:leading-[26px] line-clamp-3">
             {item.topAnswer}
           </p>
           
-          {!isExpanded && item.topAnswer.length > 250 && (
+          {item.topAnswer.length > 250 && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsExpanded(true);
-              }}
-              className="font-semibold text-[#242645] underline cursor-pointer"
+              onClick={handleReadMore}
+              className="font-semibold text-[#242645] underline cursor-pointer mt-1"
             >
               Read more
             </button>
@@ -123,18 +120,6 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ item }) => {
               alt="Answer visual"
               className="mt-4 w-full h-auto max-h-[400px] rounded-lg object-cover"
             />
-          )}
-
-          {isExpanded && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsExpanded(false);
-              }}
-              className="mt-1 font-semibold text-[#242645] underline"
-            >
-              Show less
-            </button>
           )}
         </div>
       )}
