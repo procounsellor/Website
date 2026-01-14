@@ -10,6 +10,7 @@ import MyActivityQuestionCard from '@/components/community/MyActivityQuestionCar
 import MyActivityAnswerCard from '@/components/community/MyActivityAnswerCard';
 import CategorySidebar from '@/components/community/CategorySidebar';
 // import RightSideAds from '@/components/community/RightSideAds';
+import CommunityBreadcrumbs from "@/components/community/CommunityBreadcrumbs";
 
 import type {
   CommunityDashboardItem,
@@ -284,7 +285,14 @@ export default function MyActivityPage() {
           />
         </div>
 
-        <div className="flex flex-col w-full md:w-[860px] mt-12 md:mt-6 shrink-0">
+        <div className="flex flex-col w-full md:w-[860px] shrink-0">
+          <CommunityBreadcrumbs 
+            paths={[
+              { name: "Community Dashboard", link: "/community" },
+              { name: "My Activity" }
+            ]} 
+            showMobileBack={true} 
+          />
           
           <div className="w-full bg-white rounded-lg mb-4 p-4 md:p-5 shadow-sm border border-gray-200 flex flex-col gap-4 md:gap-5">
             <div className="flex items-center gap-3">
