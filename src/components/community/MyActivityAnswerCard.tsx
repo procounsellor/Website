@@ -57,7 +57,9 @@ const MyActivityAnswerCard: React.FC<MyActivityAnswerCardProps> = ({ answerItem,
       return;
     }
     if (answerItem.questionId) {
-      navigate(`/community/question/${answerItem.questionId}`);
+      navigate(`/community/question/${answerItem.questionId}`, {
+        state: { from: 'my-activity' }
+      });
     }
   };
 

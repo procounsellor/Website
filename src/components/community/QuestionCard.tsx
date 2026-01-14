@@ -102,12 +102,14 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questionData }) => {
               <span className="text-xs md:text-sm text-[#242645]">{askerCourse}</span>
             </div>
           </div>
-          <button 
-            onClick={handleBookmark}
-            className={`transition-colors cursor-pointer ${isBookmarked ? 'text-[#655E95]' : 'text-[#2F43F2] hover:text-indigo-600'}`}
-          >
-            <Bookmark size={24} fill={isBookmarked ? "#655E95" : "none"} />
-          </button>
+          {questionData.questionAskeduserId !== questionData.loggedInUserId && (
+            <button 
+              onClick={handleBookmark}
+              className={`transition-colors cursor-pointer ${isBookmarked ? 'text-[#655E95]' : 'text-[#2F43F2] hover:text-indigo-600'}`}
+            >
+              <Bookmark size={24} fill={isBookmarked ? "#655E95" : "none"} />
+            </button>
+          )}
         </div>
 
         <p className="mt-4 md:mt-[30px] text-base md:text-xl font-semibold text-[#242645] leading-snug md:leading-[26px]">
