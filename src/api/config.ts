@@ -32,6 +32,7 @@ export const API_CONFIG = {
     deleteQuestion: '/api/community/questions/deleteQuestion',
     updateQuestion: '/api/community/questions/updateQuestion',
     getAnswersByQuestionId: '/api/community/dashboard/getAnswersForMyAnswers',
+    searchCounsellors: '/api/user/counsellorsAccordingToInterestedCourse/search',
   },
   defaultTimeout: 10000,
 } as const;

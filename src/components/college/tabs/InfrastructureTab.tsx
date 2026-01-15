@@ -82,13 +82,13 @@ const InfrastructureTab = () => {
       >
         <h3 
           className="text-[#343C6A] font-semibold text-[18px] md:text-[20px] leading-[125%]" 
-          style={{ fontFamily: 'Montserrat' }}
+          style={{ fontFamily: 'Poppins' }}
         >
           Overview
         </h3>
         <p 
           className="text-[#718EBF] font-medium text-[14px] md:text-[16px] leading-[125%] mt-2" 
-          style={{ fontFamily: 'Montserrat' }}
+          style={{ fontFamily: 'Poppins' }}
         >
           IIT Delhi boasts a sprawling 325-acre campus with state-of-the-art infrastructure. It features modern academic blocks, advanced research laboratories, and comprehensive residential facilities, creating a self-sustained ecosystem for holistic learning and innovation.
         </p>
@@ -102,14 +102,14 @@ const InfrastructureTab = () => {
             
             <h3 
               className="text-[#343C6A] font-semibold text-[18px] md:text-[20px] leading-[125%]" 
-              style={{ fontFamily: 'Montserrat' }}
+              style={{ fontFamily: 'Poppins' }}
             >
               {section.title}
             </h3>
             
             <p 
               className="text-[#718EBF] font-medium text-[14px] md:text-[16px] leading-[125%] mb-1 md:mb-2" 
-              style={{ fontFamily: 'Montserrat' }}
+              style={{ fontFamily: 'Poppins' }}
             >
               {section.description}
             </p>
@@ -121,14 +121,14 @@ const InfrastructureTab = () => {
                     <span className="w-1.5 h-1.5 rounded-full bg-[#343C6A] mt-1 shrink-0"></span>
                     <span 
                       className="text-[#343C6A] font-semibold text-[14px] md:text-[16px] leading-[125%]"
-                      style={{ fontFamily: 'Montserrat' }}
+                      style={{ fontFamily: 'Poppins' }}
                     >
                       {item.label}
                     </span>
                   </div>
                   <p 
                     className="text-[#718EBF] font-medium text-[14px] md:text-[16px] leading-[125%] pl-3.5"
-                    style={{ fontFamily: 'Montserrat' }}
+                    style={{ fontFamily: 'Poppins' }}
                   >
                     {item.text}
                   </p>

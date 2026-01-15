@@ -114,7 +114,7 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
         <button
           onClick={onClose}
           disabled={isLoading}
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-black hover:bg-black hover:text-white transition-colors"
+          className="absolute top-4 right-4 w-8 h-8 cursor-pointer flex items-center justify-center rounded-full text-black hover:bg-black hover:text-white transition-colors"
           aria-label="Close modal"
         >
           <X size={18} />

@@ -1,8 +1,7 @@
 import React from 'react';
 
 const TABS = [
-  "Info", "Courses", "Counsellors", "Infrastructure", 
-  "Scholarships", "Events", "Alumini", "Exams", "Important Dates"
+  "Info", "Counsellors", "Infrastructure", "Alumini", "Important Dates"
 ];
 
 interface CollegeTabsProps {
@@ -27,7 +26,7 @@ const CollegeTabs: React.FC<CollegeTabsProps> = ({ activeTab, onTabChange }) => 
                   isActive ? "text-[#FA660F] font-semibold" : "text-[#232323] font-normal"
                 } text-[14px] md:text-[20px]`}
                 style={{
-                  fontFamily: isActive ? "Montserrat" : "Poppins",
+                  fontFamily: "Poppins",
                   lineHeight: "125%",
                 }}
               >
