@@ -47,7 +47,7 @@ const ImportantDatesTab = () => {
             >
               <span 
                 className="text-[#343C6A] font-semibold text-[16px] md:text-[20px] leading-[125%] pr-4"
-                style={{ fontFamily: 'Montserrat' }}
+                style={{ fontFamily: 'Poppins' }}
               >
                 {item.title}
               </span>
@@ -62,7 +62,7 @@ const ImportantDatesTab = () => {
               <div className="px-3 pb-4 md:px-4 md:pb-6 border-t border-transparent">
                 <p 
                   className="text-[#718EBF] font-medium text-[14px] md:text-[16px] leading-[150%]"
-                  style={{ fontFamily: 'Montserrat' }}
+                  style={{ fontFamily: 'Poppins' }}
                 >
                   {item.description}
                 </p>

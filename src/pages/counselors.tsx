@@ -18,6 +18,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import Pagination from "@/components/ui/Pagination";
 import { useAuthStore } from "@/store/AuthStore";
 import { addFav } from "@/api/counsellor";
+import { academicApi } from "@/api/academic"; // Added this import
 import toast from "react-hot-toast";
 import EditProfileModal from "@/components/student-dashboard/EditProfileModal";
 import { updateUserProfile } from "@/api/user";
@@ -82,7 +83,7 @@ function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
         ? availability
         : ["Mon", "Tue", "Wed", "Thu", "Fri"],
     pricing: {
-      plus: apiCounselor.plusAmount || 0, 
+      plus: apiCounselor.plusAmount || 0,
       pro: apiCounselor.proAmount || 0,
       elite: apiCounselor.eliteAmount || 0,
     },
@@ -90,13 +91,13 @@ function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
 }
 
 export default function CounselorListingPage() {
-  const { data: counselors, loading, error } = useAllCounselors();
+  const { data: counselors, loading: allCounselorsLoading, error: allCounselorsError } = useAllCounselors();
   const { user, userId, refreshUser, role } = useAuthStore();
   const token = localStorage.getItem('jwt');
 
   // Session storage keys
   const STORAGE_KEY = "counselors_filters";
-  
+
   // Profile completion modal state
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
@@ -155,6 +156,17 @@ export default function CounselorListingPage() {
   const [workingDaysToggle, setWorkingDaysToggle] = useState(
     savedState?.workingDaysToggle ?? false
   );
+
+  // --- NEW STATE FOR SERVER-SIDE CITY SEARCH ---
+  const [searchResult, setSearchResult] = useState<{
+    data: AllCounselor[];
+    totalCount: number;
+  } | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+
+  // Determine if we are in "City Search Mode"
+  const isCitySearchMode = cityFilters.length > 0;
 
   const isMounted = useRef(false);
 
@@ -219,6 +231,46 @@ export default function CounselorListingPage() {
   ]);
 
   useEffect(() => {
+    const fetchCityCounselors = async () => {
+      if (!isCitySearchMode || !userId) {
+        setSearchResult(null);
+        return;
+      }
+
+      setIsSearching(true);
+      setSearchError(null);
+
+      try {
+        const cityQuery = cityFilters.join(',');
+        const apiPage = currentPage > 0 ? currentPage - 1 : 0;
+        const response = await academicApi.searchCounsellors(
+            userId, 
+            cityQuery, 
+            apiPage, 
+            15 
+        );
+
+        setSearchResult({
+            data: response.counsellors || [], 
+            totalCount: response.total || 0
+        });
+      } catch (err) {
+        console.error(err);
+        setSearchError("Failed to fetch counselors for the selected city.");
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+        fetchCityCounselors();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [cityFilters, currentPage, userId, isCitySearchMode]);
+
+
+  useEffect(() => {
     if (user?.favouriteCounsellorIds) {
       setFavouriteIds(new Set(user.favouriteCounsellorIds));
     }
@@ -248,11 +300,11 @@ export default function CounselorListingPage() {
 
   const handleToggleFavourite = async (counsellorId: string) => {
     const { isAuthenticated, toggleLogin } = useAuthStore.getState();
-    
+
     const toggleFavAction = async () => {
       const freshUserId = localStorage.getItem('phone');
       const freshToken = localStorage.getItem('jwt');
-      
+
       if (!freshUserId || !counsellorId || !freshToken) {
         toast.error("Could not get user ID after login. Please try again.", { duration: 2000 });
         return;
@@ -276,19 +328,16 @@ export default function CounselorListingPage() {
       }
     };
 
-    // Check authentication first
     if (!isAuthenticated) {
       toggleLogin(toggleFavAction);
       return;
     }
 
-    // Check profile completion
     if (!user?.firstName || !user?.email) {
       handleProfileIncomplete(toggleFavAction);
       return;
     }
 
-    // If all checks pass, execute the action
     await toggleFavAction();
   };
 
@@ -324,7 +373,7 @@ export default function CounselorListingPage() {
     const allCities = counselors.map((c) => c.city).filter(Boolean) as string[];
     return [...new Set(allCities)].sort();
   }, [counselors]);
-  
+
   const filteredCityOptions = useMemo(() => {
     return cityOptions.filter(
       (city) =>
@@ -356,7 +405,7 @@ export default function CounselorListingPage() {
     minPrice,
     maxPrice,
   ]);
-  
+
   useEffect(() => {
     if (isMounted.current) {
       setCurrentPage(1);
@@ -405,13 +454,32 @@ export default function CounselorListingPage() {
     setCitySearch("");
   };
 
+  // --- UPDATED FILTERING LOGIC ---
   const getFilteredAndSortedCounselors = () => {
-    if (!counselors) return [];
+    let sourceData: AllCounselor[] = [];
 
-    const filtered = counselors.filter((counselor) => {
-      // Filter out the logged-in counselor from the list
+    // 1. Choose Data Source
+    if (isCitySearchMode) {
+      // If searching by city, use Server Data
+      sourceData = searchResult?.data || [];
+    } else {
+      // Otherwise use Initial Load Data
+      sourceData = counselors || [];
+    }
+
+    // 2. Apply Client-Side Filters (Experience, Language, Price, Days)
+    const filtered = sourceData.filter((counselor) => {
+      // Filter out logged-in counselor
       if (role === "counselor" && userId && counselor.counsellorId === userId) {
         return false;
+      }
+
+      // If NOT in city search mode, we manually filter cities here.
+      // If we ARE in city search mode, the API already filtered cities, so we skip this check.
+      if (!isCitySearchMode && cityFilters.length > 0) {
+        const counselorCity = counselor.city || "";
+        if (!cityFilters.includes(counselorCity) && counselorCity !== "")
+          return false;
       }
 
       if (experienceFilters.length > 0) {
@@ -428,12 +496,6 @@ export default function CounselorListingPage() {
       if (languageFilters.length > 0) {
         const counselorLanguages = counselor.languagesKnow || ["English"];
         if (!languageFilters.some((lang) => counselorLanguages.includes(lang)))
-          return false;
-      }
-
-      if (cityFilters.length > 0) {
-        const counselorCity = counselor.city || "";
-        if (!cityFilters.includes(counselorCity) && counselorCity !== "")
           return false;
       }
 
@@ -461,6 +523,7 @@ export default function CounselorListingPage() {
       return true;
     });
 
+    // 3. Sorting (Applied Client-Side to the current page/result set)
     const sorted = [...filtered];
     switch (selectedSort) {
       case "price-low":
@@ -483,26 +546,51 @@ export default function CounselorListingPage() {
   };
 
   const renderContent = () => {
-    if (loading) {
+    // 1. Loading States
+    if (isCitySearchMode && isSearching) {
+         return <div className="text-center text-gray-500 py-10">Searching counselors in {cityFilters.join(', ')}...</div>;
+    }
+    if (!isCitySearchMode && allCounselorsLoading) {
       return (
         <div className="text-center text-gray-500">Loading counselors...</div>
       );
     }
 
-    if (error) {
-      return <div className="text-center text-red-500">Error: {error}</div>;
+    // 2. Error States
+    if (isCitySearchMode && searchError) {
+        return <div className="text-center text-red-500">Error: {searchError}</div>;
+    }
+    if (!isCitySearchMode && allCounselorsError) {
+      return <div className="text-center text-red-500">Error: {allCounselorsError}</div>;
     }
 
     const filteredCounselors = getFilteredAndSortedCounselors();
 
     if (filteredCounselors.length === 0) {
-      return <p>No counselors found matching your filters.</p>;
+      return <p className="text-center text-gray-500 py-10">No counselors found matching your filters.</p>;
     }
 
-    const totalPages = Math.ceil(filteredCounselors.length / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    const paginatedCounselors = filteredCounselors.slice(startIndex, endIndex);
+    // 3. Pagination Logic
+    let paginatedCounselors = [];
+    let totalPages = 0;
+
+    if (isCitySearchMode) {
+        // SERVER SIDE PAGINATION (Size 15)
+        // The API returned exactly the page we asked for.
+        // We do NOT slice it again.
+        paginatedCounselors = filteredCounselors; 
+        
+        const totalCount = searchResult?.totalCount || 0;
+        // Calculate total pages using the Server Count and Server Page Size (15)
+        totalPages = Math.ceil(totalCount / 15); 
+    } else {
+        // CLIENT SIDE PAGINATION (Size 9)
+        // We have the full list, so we slice it manually.
+        totalPages = Math.ceil(filteredCounselors.length / ITEMS_PER_PAGE);
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        const endIndex = startIndex + ITEMS_PER_PAGE;
+        paginatedCounselors = filteredCounselors.slice(startIndex, endIndex);
+    }
 
     return (
       <>

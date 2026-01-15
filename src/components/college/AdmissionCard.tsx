@@ -3,10 +3,10 @@ const AdmissionCard = () => {
     <>
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[#EFEFEF] shadow-[0_-4px_10px_0px_rgba(0,0,0,0.1)] px-4 py-3 flex items-center justify-between gap-3">
          <div className="flex flex-col">
-            <h3 className="text-[#343C6A] font-semibold text-[16px] leading-tight font-['Montserrat']">
+            <h3 className="text-[#343C6A] font-semibold text-[16px] leading-tight font-['Poppins']">
               Admissions Open
             </h3>
-            <span className="text-[#8C8CA1] text-[12px] font-medium font-['Montserrat']">
+            <span className="text-[#8C8CA1] text-[12px] font-medium font-['Poppins']">
               Session 2026-27
             </span>
          </div>
@@ -26,7 +26,7 @@ const AdmissionCard = () => {
            <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent opacity-60"></div>
            
            <div className="absolute top-3 right-3">
-              <span className="bg-[#FA660F] text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider font-['Montserrat']">
+              <span className="bg-[#FA660F] text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider font-['Poppins']">
                 New Batch
               </span>
            </div>
@@ -35,13 +35,13 @@ const AdmissionCard = () => {
         <div className="flex flex-col gap-2">
           <h3 
             className="text-[#343C6A] font-semibold"
-            style={{ fontFamily: 'Montserrat', fontSize: '20px', lineHeight: '125%' }}
+            style={{ fontFamily: 'Poppins', fontSize: '20px', lineHeight: '125%' }}
           >
             Admissions Open
           </h3>
           <p 
             className="text-[#8C8CA1] font-medium"
-            style={{ fontFamily: 'Montserrat', fontSize: '14px', lineHeight: '125%' }}
+            style={{ fontFamily: 'Poppins', fontSize: '14px', lineHeight: '125%' }}
           >
             Applications for the academic year 2026-27 are now being accepted. Secure your spot today.
           </p>

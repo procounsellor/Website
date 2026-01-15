@@ -35,7 +35,7 @@ const AlumniCard: React.FC<AlumniCardProps> = ({ name, batch, position, imageUrl
         >
           <h3 
             className="text-[#242645] font-semibold truncate text-[14px] leading-tight mt-1 md:mt-0 md:text-[20px] md:leading-[125%] md:max-w-[300px]"
-            style={{ fontFamily: 'Montserrat' }}
+            style={{ fontFamily: 'Poppins' }}
           >
             {name}
           </h3>
@@ -47,7 +47,7 @@ const AlumniCard: React.FC<AlumniCardProps> = ({ name, batch, position, imageUrl
         >
           <p 
             className="text-[#8C8CA1] font-medium text-[10px] md:text-[18px] md:leading-[125%]"
-            style={{ fontFamily: 'Montserrat' }}
+            style={{ fontFamily: 'Poppins' }}
           >
             {batch}
           </p>
