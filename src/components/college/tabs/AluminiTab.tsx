@@ -33,7 +33,7 @@ const ALUMNI_DATA = [
 
 const AluminiTab = () => {
   return (
-    <div className="w-full grid grid-cols-2 gap-3 md:flex md:flex-wrap md:gap-[23px] md:justify-center">
+    <div className="w-full grid grid-cols-2 gap-3 md:flex md:flex-wrap md:gap-[23px] md:justify-start">
       {ALUMNI_DATA.map((alumni) => (
         <AlumniCard
           key={alumni.id}
