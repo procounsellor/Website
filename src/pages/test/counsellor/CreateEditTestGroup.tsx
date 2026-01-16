@@ -197,6 +197,7 @@ export function CreateEditTestGroup() {
               setImageToCrop(imageUrl);
               setShowCropper(true);
             }}
+            required={true}
           />
         </div>
       </Dropdown>

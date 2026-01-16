@@ -397,6 +397,11 @@ export function AddQuestion() {
           setSelectedType("subjective");
         }
 
+        // Set solution and solution image
+        setSolution(question.solution || "");
+        setExistingSolutionImageUrl(question.solutionImageUrl || null);
+        setSolutionImage(null);
+
         // Scroll to top of form
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
