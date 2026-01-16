@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Plus, Edit, Trash2, Star, Users, Clock, FileText, Globe, GlobeLock, Pencil } from "lucide-react";
 import { toast } from "sonner";
-import { getTestGroupById, getAllTestSeriesOfTestGroup, publishUnpublishTestGroup, deleteTestSeries } from "@/api/testGroup";
+import { getTestGroupById, getAllTestSeriesOfTestGroupForCounselor, publishUnpublishTestGroup, deleteTestSeries } from "@/api/testGroup";
 import type { TestGroup, TestSeries } from "@/types/testGroup";
 
 export function TestGroupDetails() {
@@ -29,7 +29,7 @@ export function TestGroupDetails() {
       }
       
       // Fetch test series list
-      const seriesResponse = await getAllTestSeriesOfTestGroup(counsellorId, testGroupId!);
+      const seriesResponse = await getAllTestSeriesOfTestGroupForCounselor(counsellorId, testGroupId!);
       if (seriesResponse.status && seriesResponse.data) {
         setTestSeriesList(seriesResponse.data);
       }
@@ -312,13 +312,6 @@ export function TestGroupDetails() {
                       <FileText size={10} />
                       <span>{test.listOfSection.reduce((sum, s) => sum + s.totalQuestionsSupposedToBeAdded, 0)}Q</span>
                     </div>
-                  </div>
-
-                  {/* Price */}
-                  <div className="mt-auto flex items-center gap-1">
-                    <span className="font-semibold text-sm bg-clip-text text-transparent bg-gradient-to-r from-[#072EB1] to-[#03134B]">
-                      {test.priceType === "FREE" ? "Free" : `₹${test.price}`}
-                    </span>
                   </div>
 
                   {/* Action Buttons - Show on Hover */}

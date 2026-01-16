@@ -65,12 +65,23 @@ export const getTestGroupById = async (
   return response.json();
 };
 
-export const getAllTestSeriesOfTestGroup = async (
+export const getAllTestSeriesOfTestGroupForCounselor = async (
   counsellorId: string,
   testGroupId: string
 ) => {
   const response = await fetch(
     `${API_CONFIG.baseUrl}/api/counsellorTestGroup/getAllTestSeriesOfATestGroup?counsellorId=${counsellorId}&testGroupId=${testGroupId}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    }
+  );
+  return response.json();
+};
+
+export const getAllTestSeriesOfTestGroupForUser = async (userId: string, testGroupId: string) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/userTestSeries/getAllTestSeriesOfATestGroup?userId=${userId}&testGroupId=${testGroupId}`,
     {
       method: "GET",
       headers: getAuthHeaders(),
@@ -246,6 +257,104 @@ export const bookmarkTestGroup = async (userId: string, testGroupId: string) => 
       },
       body: JSON.stringify({
         userId,
+        testGroupId,
+      }),
+    }
+  );
+  return response.json();
+};
+
+// User-side APIs
+export const getAllTestGroupsOfCounsellorForUser = async (userId: string, counsellorId: string) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/userTestSeries/getAllTestGroupsOfACounsellor?userId=${userId}&counsellorId=${counsellorId}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    }
+  );
+  return response.json();
+};
+
+export const getTestGroupByIdForUser = async (userId: string, testGroupId: string) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/counsellorTestGroup/getTestGroupByIdForUser?userId=${userId}&testGroupId=${testGroupId}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    }
+  );
+  return response.json();
+};
+
+export const addReviewToTestGroup = async (
+  userId: string,
+  testGroupId: string,
+  rating: number,
+  reviewText: string
+) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/counsellorTestGroup/addReviewToTestGroup`,
+    {
+      method: "POST",
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId,
+        testGroupId,
+        rating,
+        reviewText,
+      }),
+    }
+  );
+  return response.json();
+};
+
+export const updateReviewToTestGroup = async (
+  userId: string,
+  reviewId: string,
+  testGroupId: string,
+  rating: number,
+  reviewText: string
+) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/counsellorTestGroup/updateReviewToTestGroup`,
+    {
+      method: "POST",
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId,
+        reviewId,
+        testGroupId,
+        rating,
+        reviewText,
+      }),
+    }
+  );
+  return response.json();
+};
+
+export const deleteReviewFromTestGroup = async (
+  userId: string,
+  reviewId: string,
+  testGroupId: string
+) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/counsellorTestGroup/deleteReviewFromTestGroup`,
+    {
+      method: "POST",
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId,
+        reviewId,
         testGroupId,
       }),
     }

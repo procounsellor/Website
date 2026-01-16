@@ -395,6 +395,8 @@ export function CreateTest() {
       console.log(result);
       
       if (result.status && result.data?.testSeriesId) {
+        const createdTestSeriesId = result.data.testSeriesId;
+        
         if (editMode) {
           // For edit mode, invalidate cache and navigate back
           toast.success("Test series updated successfully!");
@@ -412,16 +414,12 @@ export function CreateTest() {
             }
           }, 600);
         } else {
-          // For create mode, navigate back to test group details
-          toast.success("Test series created successfully!");
-          if (testGroupId) {
-            navigate(`/counselor/test-groups/${testGroupId}`, { replace: true });
-          } else {
-            navigate("/counsellor-dashboard", {
-              state: { activeTab: "courses" },
-              replace: true
-            });
-          }
+          // For create mode, navigate to add question page
+          toast.success("Test series created successfully! Add questions now.");
+          navigate(`/add-question/${createdTestSeriesId}`, { 
+            state: { testGroupId },
+            replace: true 
+          });
         }
       } else {
         toast.error(result.message || (editMode ? "Failed to update test series" : "Failed to create test series"));
@@ -663,7 +661,7 @@ export function CreateTest() {
           </p>
           <Input 
             label="Default Points for Correct Answer*" 
-            placeholder="4" 
+            placeholder="eg. 4" 
             value={formData.correctPoints}
             onChange={(value) => handleInputChange("correctPoints", value)}
           />
@@ -674,7 +672,7 @@ export function CreateTest() {
           />
           <Input
             label="Default Negative Marks"
-            placeholder="1"
+            placeholder="eg. 1"
             value={formData.wrongPoints}
             onChange={(value) => handleInputChange("wrongPoints", value)}
             disabled={!enableNegativeMarking}

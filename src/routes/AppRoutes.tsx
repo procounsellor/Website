@@ -32,7 +32,6 @@ import { AddQuestion } from '@/pages/AddQuestion';
 import { TestInfo } from '@/pages/test/user/TestInfo';
 import { TakeTest } from '@/pages/test/user/TakeTest';
 import { TestResult } from '@/pages/test/user/TestResult';
-import { TestGroupListing } from '@/pages/test/counsellor/TestGroupListing';
 import { CreateEditTestGroup } from '@/pages/test/counsellor/CreateEditTestGroup';
 import { TestGroupDetails } from '@/pages/test/counsellor/TestGroupDetails';
 import TestGroupDetailsPage from '@/pages/test/user/TestGroupDetailsPage';
@@ -64,8 +63,8 @@ export default function AppRoutes() {
                     <Route path="/privacy1" element={<ExternalPrivacyPage />} />
                     <Route path="/term1" element={<ExternalTermsPage />} />
 
-                    <Route path='/t/take/:testId' element={<TakeTest/>}/>
-                    <Route path='/t/result/:testId' element={<TestResult/>}/>
+                      <Route path='/take-test/:testId' element={<TakeTest/>}/>
+                        
 
                     <Route element={<MainLayout />}>
                         <Route path="/" element={<Home />} />
@@ -97,10 +96,11 @@ export default function AppRoutes() {
                         <Route path="/notifications" element={<NotificationsPage />} />
                         <Route path='/create-test' element={<CreateTest/>}/>
                         <Route path='/add-question/:testId' element={<AddQuestion/>}/>
-                        <Route path='/t/:testId' element={<TestInfo/>}/>
+                        <Route path='/test-info/:testId' element={<TestInfo/>}/>
+                        <Route path='/test-result/:testId' element={<TestResult/>}/>
+                     
                         
                         {/* Test Group Routes */}
-                        <Route path='/counselor/test-groups' element={<TestGroupListing/>}/>
                         <Route path='/counselor/test-groups/create' element={<CreateEditTestGroup/>}/>
                         <Route path='/counselor/test-groups/edit/:testGroupId' element={<CreateEditTestGroup/>}/>
                         <Route path='/counselor/test-groups/:testGroupId' element={<TestGroupDetails/>}/>
