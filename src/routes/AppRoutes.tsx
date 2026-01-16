@@ -27,8 +27,15 @@ import MyActivityPage from '@/pages/MyActivityPage';
 import LandingPage from '@/pages/AdityaLandingPage';
 import PromoPage from '@/pages/PromoPage';
 import ClientProfilePage from '@/pages/ClientProfilePage';
-import { CreateTest } from '@/pages/CreateTest';
+import { CreateTest } from '@/pages/test/counsellor/CreateTest';
 import { AddQuestion } from '@/pages/AddQuestion';
+import { TestInfo } from '@/pages/test/user/TestInfo';
+import { TakeTest } from '@/pages/test/user/TakeTest';
+import { TestResult } from '@/pages/test/user/TestResult';
+import { TestGroupListing } from '@/pages/test/counsellor/TestGroupListing';
+import { CreateEditTestGroup } from '@/pages/test/counsellor/CreateEditTestGroup';
+import { TestGroupDetails } from '@/pages/test/counsellor/TestGroupDetails';
+import TestGroupDetailsPage from '@/pages/test/user/TestGroupDetailsPage';
 import CollegeDetailsPageNew from '@/pages/CollegeDetailsPage';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
@@ -57,6 +64,9 @@ export default function AppRoutes() {
                     <Route path="/privacy1" element={<ExternalPrivacyPage />} />
                     <Route path="/term1" element={<ExternalTermsPage />} />
 
+                    <Route path='/t/take/:testId' element={<TakeTest/>}/>
+                    <Route path='/t/result/:testId' element={<TestResult/>}/>
+
                     <Route element={<MainLayout />}>
                         <Route path="/" element={<Home />} />
                         <Route path='/gurucool' element={<LandingPage />} />
@@ -64,7 +74,7 @@ export default function AppRoutes() {
                         <Route path="/counsellor-profile" element={<CounselorDetailsPage />} />
                         <Route path="/courses/:id" element={<CourseDetailsPage />} />
                         <Route path="/colleges/:id" element={<CollegeDetailsPage />} />
-                        <Route path="/colleges-details" element={<CollegeDetailsPageNew />} />
+                        <Route path="/colleges-details" element={<CollegeDetailsPageNew/>} />
                         <Route path="/exams" element={<ExamsListingPage />} />
                         <Route path="/about" element={<AboutPage />} />
                         <Route path="/contact" element={<ContactPage />} />
@@ -87,6 +97,18 @@ export default function AppRoutes() {
                         <Route path="/notifications" element={<NotificationsPage />} />
                         <Route path='/create-test' element={<CreateTest/>}/>
                         <Route path='/add-question/:testId' element={<AddQuestion/>}/>
+                        <Route path='/t/:testId' element={<TestInfo/>}/>
+                        
+                        {/* Test Group Routes */}
+                        <Route path='/counselor/test-groups' element={<TestGroupListing/>}/>
+                        <Route path='/counselor/test-groups/create' element={<CreateEditTestGroup/>}/>
+                        <Route path='/counselor/test-groups/edit/:testGroupId' element={<CreateEditTestGroup/>}/>
+                        <Route path='/counselor/test-groups/:testGroupId' element={<TestGroupDetails/>}/>
+                        <Route path='/counselor/test-groups/:testGroupId/create-test' element={<CreateTest/>}/>
+                        
+                        {/* User Test Group Routes */}
+                        <Route path='/test-group/:testGroupId' element={<TestGroupDetailsPage/>}/>
+                        
                         <Route element={<ProtectedRoute />}>
                             <Route path='/dashboard-student' element={<StudentDashboardPage />} />
                             <Route path='/live-sessions' element={<LiveSessionsPage />} />

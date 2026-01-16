@@ -1,0 +1,854 @@
+import { Section } from "@/components/create-test/user/Section";
+import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Question } from "@/components/create-test/user/Question";
+import { Option } from "@/components/create-test/user/Option";
+import { Timer } from "@/components/create-test/user/Timer";
+import { SubmitTestModal } from "@/components/modals/SubmitTestModal";
+import { toast } from "sonner";
+import {
+  getAllQuestionsUserOfAllSection,
+  getTestSeriesByIdForUser,
+  startTest,
+  saveOrMarkForReviewAnswer,
+  submitTestAndCalculateScore,
+} from "@/api/userTestSeries";
+
+interface QuestionType {
+  questionId: string;
+  questionText: string;
+  questionImageUrls: string[];
+  multipleAnswer: boolean;
+  subjective: boolean;
+  options: Array<{
+    optionId: string;
+    value: string;
+    imageUrl: string | null;
+  }> | null;
+  correctAnswerIds: string[] | null;
+}
+
+interface SectionType {
+  sectionName: string;
+  totalQuestions: number;
+  questions: QuestionType[];
+}
+
+interface QuestionState {
+  questionId: string;
+  sectionName: string;
+  status: "NOT_VISITED" | "ATTEMPTED" | "MARKED_FOR_REVIEW" | "CURRENT";
+  selectedAnswers: string[];
+}
+
+export function TakeTest() {
+  const { testId } = useParams();
+  const navigate = useNavigate();
+  const [showMobileSections, setShowMobileSections] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showStartModal, setShowStartModal] = useState(true);
+
+  // Test data
+  const [sections, setSections] = useState<SectionType[]>([]);
+  const [sectionDurations, setSectionDurations] = useState<number[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [attemptId, setAttemptId] = useState("");
+  const [testName, setTestName] = useState("Mock Test");
+  const [showSectionChangeModal, setShowSectionChangeModal] = useState(false);
+  const [pendingNavigationSection, setPendingNavigationSection] = useState<number | null>(null);
+  const [pendingNavigationQuestion, setPendingNavigationQuestion] = useState<number>(0);
+
+  // Current state
+  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [questionStates, setQuestionStates] = useState<
+    Map<string, QuestionState>
+  >(new Map());
+  const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
+  const [startTime, setStartTime] = useState<number>(Date.now());
+  const [testStarted, setTestStarted] = useState(false);
+
+  const userId = localStorage.getItem("phone") || "";
+  const sessionKey = `test_progress_${testId}_${userId}`;
+
+  // Get current question
+  const currentSection = sections[currentSectionIndex];
+  const currentQuestion = currentSection?.questions[currentQuestionIndex];
+  const totalQuestions = sections.reduce(
+    (sum, section) => sum + section.totalQuestions,
+    0
+  );
+
+  // Calculate stats
+  const getStats = () => {
+    let attempted = 0;
+    let markedForReview = 0;
+    let notVisited = 0;
+
+    questionStates.forEach((state) => {
+      if (state.status === "ATTEMPTED") attempted++;
+      else if (state.status === "MARKED_FOR_REVIEW") markedForReview++;
+      else if (state.status === "NOT_VISITED") notVisited++;
+    });
+
+    return { attempted, markedForReview, notVisited };
+  };
+  // Save progress to sessionStorage
+  const saveProgress = () => {
+    if (!testStarted) return;
+    const progress = {
+      attemptId,
+      currentSectionIndex,
+      currentQuestionIndex,
+      questionStates: Array.from(questionStates.entries()),
+      startTime,
+      testStarted,
+    };
+    sessionStorage.setItem(sessionKey, JSON.stringify(progress));
+  };
+
+  // Restore progress from sessionStorage
+  const restoreProgress = () => {
+    const saved = sessionStorage.getItem(sessionKey);
+    if (saved) {
+      try {
+        const progress = JSON.parse(saved);
+        setAttemptId(progress.attemptId);
+        setCurrentSectionIndex(progress.currentSectionIndex);
+        setCurrentQuestionIndex(progress.currentQuestionIndex);
+        setQuestionStates(new Map(progress.questionStates));
+        setStartTime(progress.startTime);
+        setTestStarted(progress.testStarted);
+        setShowStartModal(false);
+        return true;
+      } catch (error) {
+        console.error("Failed to restore progress:", error);
+      }
+    }
+    return false;
+  };
+
+  // Fetch all questions and test info
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const [questionsResponse, testInfoResponse] = await Promise.all([
+          getAllQuestionsUserOfAllSection(userId, testId!),
+          getTestSeriesByIdForUser(userId, testId!)
+        ]);
+        
+        if (questionsResponse.status) {
+          setSections(questionsResponse.data);
+          
+          // Extract section durations from test info
+          if (testInfoResponse.status && testInfoResponse.data.listOfSection) {
+            const durations = testInfoResponse.data.listOfSection.map(
+              (section: any) => section.sectionDurationInMinutes || 60
+            );
+            setSectionDurations(durations);
+            setTestName(testInfoResponse.data.testName || "Mock Test");
+          }
+          
+          // Try to restore progress first
+          const restored = restoreProgress();
+          
+          if (!restored) {
+            // Initialize question states only if not restored
+            const statesMap = new Map<string, QuestionState>();
+            questionsResponse.data.forEach((section: SectionType) => {
+              section.questions.forEach((question: QuestionType) => {
+                statesMap.set(question.questionId, {
+                  questionId: question.questionId,
+                  sectionName: section.sectionName,
+                  status: "NOT_VISITED",
+                  selectedAnswers: [],
+                });
+              });
+            });
+            setQuestionStates(statesMap);
+            
+            // Mark first question as current
+            if (questionsResponse.data[0]?.questions[0]) {
+              const firstQ = questionsResponse.data[0].questions[0];
+              statesMap.set(firstQ.questionId, {
+                ...statesMap.get(firstQ.questionId)!,
+                status: "CURRENT",
+              });
+              setQuestionStates(new Map(statesMap));
+            }
+          }
+        }
+      } catch (error) {
+        toast.error("Failed to load test questions");
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (testId) {
+      fetchQuestions();
+    }
+  }, [testId]);
+
+  // Start test API and enter fullscreen
+  const handleStartTest = async () => {
+    try {
+      const response = await startTest(userId, testId!);
+      if (response.status) {
+        setAttemptId(response.data.userTestAttemptsDataId);
+        setStartTime(Date.now());
+        setTestStarted(true);
+        setShowStartModal(false);
+        
+        // Save initial progress
+        setTimeout(saveProgress, 100);
+        
+        // Enter fullscreen after modal closes
+        setTimeout(() => {
+          document.documentElement.requestFullscreen?.().catch((err) => {
+            console.error("Fullscreen error:", err);
+            toast.warning("Please enable fullscreen for the best experience");
+          });
+        }, 100);
+      }
+    } catch (error) {
+      toast.error("Failed to start test");
+      console.error(error);
+    }
+  };
+
+  // Save answer
+  const handleSaveAnswer = async (
+    status: "ATTEMPTED" | "MARKED_FOR_REVIEW"
+  ) => {
+    if (!currentQuestion) return;
+
+    try {
+      await saveOrMarkForReviewAnswer({
+        attemptId,
+        userId,
+        sectionName: currentSection.sectionName,
+        questionId: currentQuestion.questionId,
+        answerIds: selectedAnswers,
+        status,
+      });
+
+      // Update question state
+      const newStates = new Map(questionStates);
+      newStates.set(currentQuestion.questionId, {
+        questionId: currentQuestion.questionId,
+        sectionName: currentSection.sectionName,
+        status: status,
+        selectedAnswers: selectedAnswers,
+      });
+      setQuestionStates(newStates);
+      
+      // Save progress after state update
+      setTimeout(saveProgress, 100);
+
+      toast.success(
+        status === "ATTEMPTED"
+          ? "Answer saved"
+          : "Marked for review"
+      );
+    } catch (error) {
+      toast.error("Failed to save answer");
+      console.error(error);
+    }
+  };
+
+  // Save and move to next question
+  const handleSaveAndNext = async () => {
+    await handleSaveAnswer("MARKED_FOR_REVIEW");
+    
+    // Check if last question of last section - submit test
+    if (currentSectionIndex === sections.length - 1 &&
+        currentQuestionIndex >= currentSection.questions.length - 1) {
+      setShowSubmitModal(true);
+      return;
+    }
+    
+    // Check if moving to next section
+    if (currentQuestionIndex >= currentSection.questions.length - 1 && 
+        currentSectionIndex < sections.length - 1) {
+      setPendingNavigationSection(currentSectionIndex + 1);
+      setShowSectionChangeModal(true);
+      return;
+    }
+
+    // Move to next question within same section
+    if (currentQuestionIndex < currentSection.questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
+
+  // Navigate to next question
+  const handleNext = async () => {
+    // Save current answer if any selected
+    if (selectedAnswers.length > 0) {
+      await handleSaveAnswer("ATTEMPTED");
+    }
+
+    // Check if moving to next section
+    if (currentQuestionIndex >= currentSection.questions.length - 1 && 
+        currentSectionIndex < sections.length - 1) {
+      // Show warning modal before moving to next section
+      setPendingNavigationSection(currentSectionIndex + 1);
+      setShowSectionChangeModal(true);
+      return;
+    }
+
+    // Move to next question within same section
+    if (currentQuestionIndex < currentSection.questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
+
+  // Navigate to previous question (within same section only)
+  const handlePrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    }
+    // Don't allow going back to previous section
+  };
+
+  // Update current question marker
+  const updateCurrentQuestion = () => {
+    const newStates = new Map(questionStates);
+    
+    // Clear all CURRENT statuses
+    newStates.forEach((state, key) => {
+      if (state.status === "CURRENT") {
+        newStates.set(key, {
+          ...state,
+          status: state.selectedAnswers.length > 0 ? "ATTEMPTED" : "NOT_VISITED",
+        });
+      }
+    });
+
+    // Set new current
+    const nextQuestion = sections[currentSectionIndex]?.questions[currentQuestionIndex];
+    if (nextQuestion) {
+      const currentState = newStates.get(nextQuestion.questionId);
+      newStates.set(nextQuestion.questionId, {
+        ...currentState!,
+        status: "CURRENT",
+      });
+      
+      // Load saved answers
+      setSelectedAnswers(currentState?.selectedAnswers || []);
+    }
+
+    setQuestionStates(newStates);
+    setTimeout(() => saveProgress(), 100);
+  };
+
+  // Handle section change confirmation
+  const handleConfirmSectionChange = () => {
+    if (pendingNavigationSection !== null) {
+      setCurrentSectionIndex(pendingNavigationSection);
+      setCurrentQuestionIndex(pendingNavigationQuestion);
+      setPendingNavigationSection(null);
+      setPendingNavigationQuestion(0);
+      setShowSectionChangeModal(false);
+    }
+  };
+
+  // Handle timer end - auto move to next section or submit
+  const handleTimerEnd = () => {
+    if (currentSectionIndex < sections.length - 1) {
+      toast.info(`Time's up for ${currentSection.sectionName}! Moving to next section.`);
+      setCurrentSectionIndex(currentSectionIndex + 1);
+      setCurrentQuestionIndex(0);
+    } else {
+      toast.warning("Time's up! Auto-submitting your test.");
+      // Auto-submit the test
+      setTimeout(() => {
+        handleSubmitTest();
+      }, 2000);
+    }
+  };
+
+  // Update current question marker when indices change
+  useEffect(() => {
+    if (sections.length > 0 && testStarted) {
+      updateCurrentQuestion();
+    }
+  }, [currentSectionIndex, currentQuestionIndex, sections]);
+
+  // Load selected answers when question changes
+  useEffect(() => {
+    if (currentQuestion) {
+      const state = questionStates.get(currentQuestion.questionId);
+      setSelectedAnswers(state?.selectedAnswers || []);
+    }
+  }, [currentQuestion, questionStates]);
+
+  // Submit test
+  const handleSubmitTest = async () => {
+    try {
+      const response = await submitTestAndCalculateScore(userId, attemptId);
+      if (response.status) {
+        toast.success("Test submitted successfully!");
+        setShowSubmitModal(false);
+        // Clear session storage
+        sessionStorage.removeItem(sessionKey);
+        // Navigate to results page with response data
+        navigate(`/t/result/${testId}`, { 
+          state: { 
+            resultData: response.data,
+            attemptId: attemptId 
+          } 
+        });
+      }
+    } catch (error) {
+      toast.error("Failed to submit test");
+      console.error(error);
+    }
+  };
+
+  // Fullscreen protection
+  useEffect(() => {
+    if (!attemptId) return; // Only after test started
+
+    // Warn before leaving page
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+
+    // Detect fullscreen exit
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        toast.error("Please stay in fullscreen during the test");
+        document.documentElement.requestFullscreen?.();
+      }
+    };
+
+    // Detect tab switch
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        console.log("User switched tab - logged for monitoring");
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [attemptId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-lg">Loading test...</p>
+      </div>
+    );
+  }
+
+  if (!currentQuestion) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-lg">No questions available</p>
+      </div>
+    );
+  }
+
+  const stats = getStats();
+  // Section-wise question number (restarts from 1 for each section)
+  const sectionQuestionNumber = currentQuestionIndex + 1;
+
+  // Check if current question is the last question
+  const isLastQuestion =
+    currentSectionIndex === sections.length - 1 &&
+    currentQuestionIndex === currentSection?.questions.length - 1;
+
+  // Calculate time taken for submit modal
+  const timeTakenMs = Date.now() - startTime;
+  const hours = Math.floor(timeTakenMs / (1000 * 60 * 60));
+  const minutes = Math.floor((timeTakenMs % (1000 * 60 * 60)) / (1000 * 60));
+  const timeTakenString = `${hours}h ${minutes}m`;
+
+  return (
+    <>
+      {/* Start Test Modal */}
+      {showStartModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-100 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 8V6C4 4.89543 4.89543 4 6 4H8M4 16V18C4 19.1046 4.89543 20 6 20H8M16 4H18C19.1046 4 20 4.89543 20 6V8M16 20H18C19.1046 20 20 19.1046 20 18V16" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <h2 className="text-2xl font-semibold text-(--text-app-primary)">
+                Enter Fullscreen Mode
+              </h2>
+            </div>
+            <div className="space-y-3 mb-6">
+              <p className="text-(--text-muted)">
+                This test will run in fullscreen mode to ensure a focused environment.
+              </p>
+              <ul className="space-y-2 text-sm text-(--text-muted)">
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-500 mt-0.5">•</span>
+                  <span>Do not exit fullscreen or switch tabs during the test</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-500 mt-0.5">•</span>
+                  <span>Ensure stable internet connection</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-500 mt-0.5">•</span>
+                  <span>Your progress will be saved automatically</span>
+                </li>
+              </ul>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => navigate(-1)}
+                className="flex-1 py-3 px-6 rounded-xl border-2 border-gray-300 text-(--text-app-primary) font-medium hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleStartTest}
+                className="flex-1 py-3 px-6 rounded-xl bg-(--btn-primary) text-white font-medium hover:opacity-90"
+              >
+                I Agree, Start Test
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Section Change Warning Modal */}
+      {showSectionChangeModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-100 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 9V11M12 15H12.01M5.07183 19H18.9282C20.4678 19 21.4301 17.3333 20.6603 16L13.7321 4C12.9623 2.66667 11.0378 2.66667 10.268 4L3.33978 16C2.56998 17.3333 3.53223 19 5.07183 19Z" stroke="#F97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <h2 className="text-2xl font-semibold text-(--text-app-primary)">
+                Warning
+              </h2>
+            </div>
+            <p className="text-(--text-muted) mb-6">
+              You are about to move to the next section. Once you proceed, you won't be able to return to this section. Are you sure you want to continue?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowSectionChangeModal(false);
+                  setPendingNavigationSection(null);
+                  setPendingNavigationQuestion(0);
+                }}
+                className="flex-1 py-3 px-6 rounded-xl border-2 border-gray-300 text-(--text-app-primary) font-medium hover:bg-gray-50"
+              >
+                Stay Here
+              </button>
+              <button
+                onClick={handleConfirmSectionChange}
+                className="flex-1 py-3 px-6 rounded-xl bg-orange-500 text-white font-medium hover:bg-orange-600"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Submit Test Modal */}
+      <SubmitTestModal
+        isOpen={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        onConfirm={handleSubmitTest}
+        testName={testName}
+        attemptedCount={stats.attempted}
+        unansweredCount={stats.markedForReview}
+        notVisitedCount={stats.notVisited}
+        timeTaken={timeTakenString}
+        completionRate={Math.round((stats.attempted / totalQuestions) * 100)}
+        sections={sections.map((section) => {
+          const sectionAttempted = Array.from(questionStates.values()).filter(
+            (state) =>
+              state.sectionName === section.sectionName &&
+              state.status === "ATTEMPTED"
+          ).length;
+          const sectionUnanswered = Array.from(questionStates.values()).filter(
+            (state) =>
+              state.sectionName === section.sectionName &&
+              (state.status === "NOT_VISITED" ||
+                state.status === "MARKED_FOR_REVIEW")
+          ).length;
+          return {
+            sectionName: section.sectionName,
+            attempted: sectionAttempted,
+            total: section.totalQuestions,
+            unanswered: sectionUnanswered,
+          };
+        })}
+        timeRemaining="15 minutes"
+      />
+
+      {/* Test Content - Hidden when start modal is showing */}
+      {!showStartModal && (
+      <div
+        className="w-screen min-h-screen bg-[#F9FAFB]"
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        <div>
+          {/* Header */}
+          <div className="flex flex-col md:flex-row justify-between pb-2 md:items-center w-full h-[90px] border border-[#d6d6d6] px-7.5 bg-white">
+            <div></div>
+            <h1 className="text-[#343C6A] text-[1rem] md:text-(--text-app-primary) font-semibold md:text-2xl">
+              {testName}
+            </h1>
+
+            <div className="sm:flex sm:flex-row sm:justify-between sm:items-center">
+              <Timer
+                time={(sectionDurations[currentSectionIndex] || 60).toString()}
+                onSectionClick={() => setShowMobileSections(true)}
+                onTimerEnd={handleTimerEnd}
+              />
+            </div>
+          </div>
+
+          <div className="flex bg-[#F9FAFB] relative min-h-[calc(100vh-90px)]">
+            <div className="flex-1 pb-[90px] md:pb-[173px] md:mr-[354px] p-5">
+              <div className="flex flex-col">
+                <Question
+                  questionId={currentQuestion.questionId}
+                  sectionName={currentSection.sectionName}
+                  questionNumber={sectionQuestionNumber.toString()}
+                  questionText={currentQuestion.questionText}
+                  questionImageUrls={currentQuestion.questionImageUrls}
+                />
+
+                <Option
+                  option={currentQuestion.options || []}
+                  multipleAnswer={currentQuestion.multipleAnswer}
+                  subjective={currentQuestion.subjective}
+                  selectedAnswers={selectedAnswers}
+                  onAnswerChange={setSelectedAnswers}
+                />
+
+                {/* Mobile prev/next buttons */}
+                <div className="flex md:hidden flex-wrap gap-2 items-stretch font-medium text-sm mt-4">
+                  <button
+                    onClick={handlePrevious}
+                    disabled={currentQuestionIndex === 0}
+                    className="flex-1 min-w-[120px] bg-[#DBE0E5] py-3 px-4 text-(--text-muted) rounded-[10px] disabled:opacity-50 h-[44px] flex items-center justify-center"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={handleSaveAndNext}
+                    className="flex-1 min-w-[120px] bg-[#F69E23] py-3 px-4 rounded-[10px] text-white font-medium h-[44px] flex items-center justify-center"
+                  >
+                    Save & Next
+                  </button>
+                  {!isLastQuestion && (
+                    <button
+                      onClick={handleNext}
+                      className="flex-1 min-w-[120px] bg-(--btn-primary) py-3 px-4 rounded-[10px] text-white h-[44px] flex items-center justify-center"
+                    >
+                      Next
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Fixed bottom area */}
+              <div className="fixed flex flex-col md:flex-row items-center justify-between gap-3 p-5 left-0 bottom-0 right-0 md:right-[354px] bg-[#f9fafb] border-t border-[#d6d6d6] z-10">
+                {/* Legend - Desktop only */}
+                <div className="hidden md:flex items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <div className="h-5 w-5 rounded-full bg-[#1980E5]"></div>
+                    <p className="text-(--text-app-primary) font-normal text-sm">
+                      Current
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-5 w-5 rounded-full bg-[#21C55D]"></div>
+                    <p className="text-(--text-app-primary) font-normal text-sm">
+                      Attempted
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-5 w-5 rounded-full bg-[#F69E23]"></div>
+                    <p className="text-(--text-app-primary) font-normal text-sm">
+                      Marked
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-5 w-5 rounded-full bg-[#EAEDF0]"></div>
+                    <p className="text-(--text-app-primary) font-normal text-sm">
+                      Not Visited
+                    </p>
+                  </div>
+                </div>
+
+                {/* Buttons */}
+                <div className="flex items-center gap-3 w-full md:w-auto justify-center flex-wrap">
+                  <button
+                    onClick={handlePrevious}
+                    disabled={currentQuestionIndex === 0}
+                    className="hidden md:flex bg-[#DBE0E5] py-3 px-9 text-(--text-muted) rounded-[10px] font-medium text-[1rem] disabled:opacity-50 h-[44px] items-center justify-center"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={handleSaveAndNext}
+                    className="hidden md:flex bg-[#F69E23] py-3 px-6 rounded-[10px] text-white font-medium text-[1rem] h-[44px] items-center justify-center"
+                  >
+                    Save & Next
+                  </button>
+                  {!isLastQuestion && (
+                    <button
+                      onClick={handleNext}
+                      className="hidden md:flex bg-(--btn-primary) py-3 px-9 rounded-[10px] text-white font-medium text-[1rem] h-[44px] items-center justify-center"
+                    >
+                      Next
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowSubmitModal(true)}
+                    className="bg-[#21C55D] py-3 px-9 rounded-[10px] text-white font-medium text-[1rem] h-[44px] flex items-center justify-center"
+                  >
+                    Submit Test
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Desktop Sections Sidebar */}
+            <div className="hidden md:block fixed right-0 top-[90px] h-[calc(100vh-90px)] w-[354px] bg-[#F1F2F4] overflow-y-auto z-20">
+              <div className="flex flex-col gap-4 p-5">
+                {sections.map((section, sectionIdx) => (
+                  <Section
+                    key={sectionIdx}
+                    sectionName={section.sectionName}
+                    questions={section.questions.map((q, qIdx) => {
+                      const state = questionStates.get(q.questionId);
+                      return {
+                        questionNumber: qIdx + 1,
+                        status: state?.status || "NOT_VISITED",
+                      };
+                    })}
+                    onQuestionClick={(questionIdx) => {
+                      // Check if navigating to a different section that's ahead
+                      if (sectionIdx > currentSectionIndex) {
+                        setPendingNavigationSection(sectionIdx);
+                        setPendingNavigationQuestion(questionIdx);
+                        setShowSectionChangeModal(true);
+                      } else {
+                        setCurrentSectionIndex(sectionIdx);
+                        setCurrentQuestionIndex(questionIdx);
+                      }
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Mobile Sections Drawer */}
+            {showMobileSections && (
+              <div className="md:hidden fixed inset-0 bg-white z-50 flex flex-col">
+                {/* Header */}
+                <div className="flex items-center gap-4 h-[90px] border-b border-[#d6d6d6] px-5">
+                  <button
+                    onClick={() => setShowMobileSections(false)}
+                    className="flex items-center gap-2 text-(--text-app-primary) font-medium"
+                  >
+                    <svg
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M15 18l-6-6 6-6" />
+                    </svg>
+                    Back to Test
+                  </button>
+                </div>
+
+                {/* Legend */}
+                <div className="flex flex-wrap gap-3 p-5 border-b border-[#d6d6d6] bg-[#F9FAFB]">
+                  <div className="flex items-center gap-2">
+                    <div className="h-5 w-5 rounded-full bg-[#1980E5]"></div>
+                    <p className="text-(--text-app-primary) font-normal text-sm">
+                      Current
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-5 w-5 rounded-full bg-[#21C55D]"></div>
+                    <p className="text-(--text-app-primary) font-normal text-sm">
+                      Attempted
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-5 w-5 rounded-full bg-[#F69E23]"></div>
+                    <p className="text-(--text-app-primary) font-normal text-sm">
+                      Marked
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-5 w-5 rounded-full bg-[#EAEDF0]"></div>
+                    <p className="text-(--text-app-primary) font-normal text-sm">
+                      Not Visited
+                    </p>
+                  </div>
+                </div>
+
+                {/* Sections */}
+                <div className="flex-1 overflow-y-auto bg-[#F1F2F4] p-5">
+                  <div className="flex flex-col gap-4">
+                    {sections.map((section, sectionIdx) => (
+                      <Section
+                        key={sectionIdx}
+                        sectionName={section.sectionName}
+                        questions={section.questions.map((q, qIdx) => {
+                          const state = questionStates.get(q.questionId);
+                          return {
+                            questionNumber: qIdx + 1,
+                            status: state?.status || "NOT_VISITED",
+                          };
+                        })}
+                        onQuestionClick={(questionIdx) => {
+                          // Check if navigating to a different section that's ahead
+                          if (sectionIdx > currentSectionIndex) {
+                            setPendingNavigationSection(sectionIdx);
+                            setPendingNavigationQuestion(questionIdx);
+                            setShowSectionChangeModal(true);
+                            setShowMobileSections(false);
+                          } else {
+                            setCurrentSectionIndex(sectionIdx);
+                            setCurrentQuestionIndex(questionIdx);
+                            setShowMobileSections(false);
+                          }
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      )}
+    </>
+  );
+}

@@ -5,6 +5,7 @@ import { CounselorProfileCard } from '@/components/counselor-details/CounselorPr
 import { AboutCounselorCard } from '@/components/counselor-details/AboutCounselorCard';
 import { CounselorReviews } from '@/components/counselor-details/CounselorReviews';
 import CounselorCoursesCard from '@/components/counselor-details/CounselorCoursesCard';
+import { CounselorTestGroupsCard } from '@/components/counselor-details/CounselorTestGroupsCard';
 import { FreeCareerAssessmentCard } from '@/components/shared/FreeCareerAssessmentCard';
 // import { FeaturedCollegesCard } from '@/components/shared/FeaturedCollegesCard';
 // import { LiveSessionCard } from '@/components/counselor-details/LiveSessionCard';
