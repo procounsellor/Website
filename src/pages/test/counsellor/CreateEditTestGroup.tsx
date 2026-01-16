@@ -98,11 +98,6 @@ export function CreateEditTestGroup() {
       return;
     }
 
-    if (!isEditMode && !bannerImage) {
-      toast.error("Please upload a banner image");
-      return;
-    }
-
     if (formData.testType === "COURSE_ATTACHED" && !formData.courseIdAttached) {
       toast.error("Please select a course");
       return;
