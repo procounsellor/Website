@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 import { createTestGroup, updateTestGroup, getTestGroupById } from "@/api/testGroup";
 import { getCoursesForCounsellorByCounsellorId } from "@/api/course";
 import { Input } from "@/components/create-test/components/Input";

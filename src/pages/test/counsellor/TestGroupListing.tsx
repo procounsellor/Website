@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Search, Trash2, Edit, Globe, GlobeLock } from "lucide-react";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 import { getAllTestGroups, deleteTestGroup, publishUnpublishTestGroup } from "@/api/testGroup";
 import type { TestGroup } from "@/types/testGroup";
 
