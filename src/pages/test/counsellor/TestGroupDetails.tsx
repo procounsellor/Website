@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Plus, Edit, Trash2, Star, Users, Clock, FileText, Globe, GlobeLock, Pencil } from "lucide-react";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 import { getTestGroupById, getAllTestSeriesOfTestGroup, publishUnpublishTestGroup, deleteTestSeries } from "@/api/testGroup";
 import type { TestGroup, TestSeries } from "@/types/testGroup";
 
