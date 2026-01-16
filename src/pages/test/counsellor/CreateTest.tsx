@@ -488,6 +488,7 @@ export function CreateTest() {
               setImageToCrop(imageUrl);
               setShowCropper(true);
             }}
+            required={true}
           />
 
           <div className="flex gap-2 flex-col">
