@@ -10,7 +10,7 @@ import { useState, useEffect } from "react";
 import { QuestionTable } from "@/components/create-test/components/QuestionTable";
 import { useAuthStore } from "@/store/AuthStore";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 
 interface Question {
   questionId: string;
@@ -30,6 +30,8 @@ interface Section {
   totalQuestionsSupposedToBeAdded?: number;
   totalQuestionsAdded?: number;
   sectionDurationInMinutes?: number;
+  pointsForCorrectAnswer?: number | null;
+  negativeMarks?: number | null;
   totalQuestions?: number;
   questions: Question[];
 }
@@ -39,6 +41,7 @@ interface TestData {
   counsellorId: string;
   testName: string;
   testDescription: string;
+  testGroupId?: string;
   listOfSection: Section[];
 }
 
@@ -71,6 +74,9 @@ export function AddQuestion() {
   ]);
   const [correctOption, setCorrectOption] = useState<string>("");
   const [correctOptions, setCorrectOptions] = useState<string[]>([]);
+  const [solution, setSolution] = useState<string>("");
+  const [solutionImage, setSolutionImage] = useState<File | null>(null);
+  const [existingSolutionImageUrl, setExistingSolutionImageUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ questionId: string; sectionName: string } | null>(null);
@@ -117,7 +123,7 @@ export function AddQuestion() {
       };
 
       fetch(
-        `https://procounsellor-backend-1000407154647.asia-south1.run.app/api/testSeries/getTestSeriesByIdForCounsellor?counsellorId=${user.phoneNumber}&testSeriesId=${testSeriesId}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/testSeries/getTestSeriesByIdForCounsellor?counsellorId=${user.phoneNumber}&testSeriesId=${testSeriesId}`,
         requestOptions
       )
         .then((response) => response.json())
@@ -154,23 +160,26 @@ export function AddQuestion() {
       };
 
       fetch(
-        `https://procounsellor-backend-1000407154647.asia-south1.run.app/api/testSeries/getAllQuestionsForCounsellorOfAllSection?counsellorId=${user.phoneNumber}&testSeriesId=${testSeriesId}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/testSeries/getAllQuestionsForCounsellorOfAllSection?counsellorId=${user.phoneNumber}&testSeriesId=${testSeriesId}`,
         requestOptions
       )
         .then((response) => response.json())
         .then((result) => {
           if (result.status && result.data) {
             // Merge fetched questions with testData sections
-            const updatedSections = result.data.map((section: Section) => ({
-              ...section,
-              totalQuestionsSupposedToBeAdded: testData.listOfSection?.find(
+            const updatedSections = result.data.map((section: Section) => {
+              const matchingSection = testData.listOfSection?.find(
                 (s) => s.sectionName === section.sectionName
-              )?.totalQuestionsSupposedToBeAdded,
-              sectionDurationInMinutes: testData.listOfSection?.find(
-                (s) => s.sectionName === section.sectionName
-              )?.sectionDurationInMinutes,
-              totalQuestionsAdded: section.totalQuestions || 0,
-            }));
+              );
+              return {
+                ...section,
+                totalQuestionsSupposedToBeAdded: matchingSection?.totalQuestionsSupposedToBeAdded,
+                sectionDurationInMinutes: matchingSection?.sectionDurationInMinutes,
+                pointsForCorrectAnswer: matchingSection?.pointsForCorrectAnswer ?? null,
+                negativeMarks: matchingSection?.negativeMarks ?? null,
+                totalQuestionsAdded: section.totalQuestions || 0,
+              };
+            });
             setSections(updatedSections);
           }
         })
@@ -194,7 +203,34 @@ export function AddQuestion() {
   const handleSubmitQuestion = async () => {
     if (!user?.phoneNumber || !testSeriesId || !selectedCategory || !questionText) {
       console.error("Missing required fields");
+      toast.error("Please fill in all required fields");
       return;
+    }
+
+    // Validate that question text is not empty
+    if (!questionText.trim()) {
+      toast.error("Please enter question text");
+      return;
+    }
+
+    // Validate that all options have text
+    const emptyOptions = options.filter(opt => !opt.text.trim());
+    if (emptyOptions.length > 0) {
+      toast.error(`Please fill in text for option(s): ${emptyOptions.map(o => o.id).join(", ")}`);
+      return;
+    }
+
+    // Validate that at least one correct answer is selected
+    if (responseType === "multi") {
+      if (correctOptions.length === 0) {
+        toast.error("Please select at least one correct answer");
+        return;
+      }
+    } else {
+      if (!correctOption) {
+        toast.error("Please select the correct answer");
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -213,6 +249,7 @@ export function AddQuestion() {
         imageUrl: null,
       })),
       correctAnswerIds: correctOptions.length > 0 ? correctOptions : (correctOption ? [correctOption] : []),
+      solution: solution || "",
     };
 
     const requestData: any = {
@@ -250,6 +287,10 @@ export function AddQuestion() {
       }
     });
 
+    if (solutionImage) {
+      formdata.append("solutionImage", solutionImage);
+    }
+
     const requestOptions: RequestInit = {
       method: "POST",
       headers: myHeaders,
@@ -259,8 +300,8 @@ export function AddQuestion() {
 
     try {
       const apiUrl = isEditing
-        ? "https://procounsellor-backend-1000407154647.asia-south1.run.app/api/testSeries/updateQuestion"
-        : "https://procounsellor-backend-1000407154647.asia-south1.run.app/api/testSeries/addQuestion";
+        ? `${import.meta.env.VITE_API_BASE_URL}/api/testSeries/updateQuestion`
+        : `${import.meta.env.VITE_API_BASE_URL}/api/testSeries/addQuestion`;
       
       const response = await fetch(apiUrl, requestOptions);
       const result = await response.json();
@@ -272,6 +313,9 @@ export function AddQuestion() {
         setQuestionText("");
         setQuestionImage(null);
         setExistingQuestionImageUrls([]);
+        setSolution("");
+        setSolutionImage(null);
+        setExistingSolutionImageUrl(null);
         setOptions([
           { id: "A", text: "", image: null, imageUrl: null },
           { id: "B", text: "", image: null, imageUrl: null },
@@ -312,7 +356,7 @@ export function AddQuestion() {
 
     try {
       const response = await fetch(
-        `https://procounsellor-backend-1000407154647.asia-south1.run.app/api/testSeries/getQuestionByIdForCounsellor?counsellorId=${user.phoneNumber}&testSeriesId=${testSeriesId}&sectionName=${sectionName}&questionId=${questionId}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/testSeries/getQuestionByIdForCounsellor?counsellorId=${user.phoneNumber}&testSeriesId=${testSeriesId}&sectionName=${sectionName}&questionId=${questionId}`,
         requestOptions
       );
       const result = await response.json();
@@ -394,7 +438,7 @@ export function AddQuestion() {
 
     try {
       const response = await fetch(
-        "https://procounsellor-backend-1000407154647.asia-south1.run.app/api/testSeries/deleteQuestion",
+        `${import.meta.env.VITE_API_BASE_URL}/api/testSeries/deleteQuestion`,
         requestOptions
       );
       const result = await response.json();
@@ -409,22 +453,25 @@ export function AddQuestion() {
         refetchHeaders.append("Accept", "application/json");
 
         fetch(
-          `https://procounsellor-backend-1000407154647.asia-south1.run.app/api/testSeries/getAllQuestionsForCounsellorOfAllSection?counsellorId=${counsellorId}&testSeriesId=${testSeriesId}`,
+          `${import.meta.env.VITE_API_BASE_URL}/api/testSeries/getAllQuestionsForCounsellorOfAllSection?counsellorId=${counsellorId}&testSeriesId=${testSeriesId}`,
           { method: "GET", headers: refetchHeaders }
         )
           .then((res) => res.json())
           .then((res) => {
             if (res.status && res.data) {
-              const updatedSections = res.data.map((section: Section) => ({
-                ...section,
-                totalQuestionsSupposedToBeAdded: testData?.listOfSection?.find(
+              const updatedSections = res.data.map((section: Section) => {
+                const matchingSection = testData?.listOfSection?.find(
                   (s) => s.sectionName === section.sectionName
-                )?.totalQuestionsSupposedToBeAdded,
-                sectionDurationInMinutes: testData?.listOfSection?.find(
-                  (s) => s.sectionName === section.sectionName
-                )?.sectionDurationInMinutes,
-                totalQuestionsAdded: section.totalQuestions || 0,
-              }));
+                );
+                return {
+                  ...section,
+                  totalQuestionsSupposedToBeAdded: matchingSection?.totalQuestionsSupposedToBeAdded,
+                  sectionDurationInMinutes: matchingSection?.sectionDurationInMinutes,
+                  pointsForCorrectAnswer: matchingSection?.pointsForCorrectAnswer ?? null,
+                  negativeMarks: matchingSection?.negativeMarks ?? null,
+                  totalQuestionsAdded: section.totalQuestions || 0,
+                };
+              });
               setSections(updatedSections);
             }
           })
@@ -509,7 +556,7 @@ export function AddQuestion() {
 
     try {
       const response = await fetch(
-        "https://procounsellor-backend-1000407154647.asia-south1.run.app/api/testSeries/publishTestSeries",
+        `${import.meta.env.VITE_API_BASE_URL}/api/testSeries/publishTestSeries`,
         requestOptions
       );
       const result = await response.json();
@@ -544,7 +591,26 @@ export function AddQuestion() {
   }
 
   return (
-    <div className="pt-28 pb-8 max-w-7xl min-h-screen mx-auto grid grid-cols-2 gap-4">
+    <div className="pt-28 pb-8 max-w-7xl min-h-screen mx-auto flex flex-col gap-4">
+      {/* Back button */}
+      <button
+        onClick={() => {
+          if (testData?.testGroupId) {
+            navigate(`/counselor/test-groups/${testData.testGroupId}`, { replace: true });
+          } else {
+            navigate("/counsellor-dashboard", {
+              state: { activeTab: "courses" },
+              replace: true
+            });
+          }
+        }}
+        className="flex items-center gap-2 text-(--text-app-primary) hover:text-(--btn-primary) transition-colors cursor-pointer w-fit"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        <span className="font-medium">{testData?.testGroupId ? "Back to Test Group" : "Back to Test Groups"}</span>
+      </button>
+      
+      <div className="grid grid-cols-2 gap-4">
       {/* creation side  */}
       <div className="shadow-[0px_0px_4px_0px_#00000026] rounded-2xl">
         <div className="bg-[#F9FAFB] w-full min-h-[72px] p-5 flex flex-col gap-4">
@@ -869,6 +935,67 @@ export function AddQuestion() {
             </>
           )}
 
+          {/* Solution Field */}
+          <div className="flex flex-col gap-2">
+            <label className="text-base font-medium leading-[125%] text-(--text-app-primary)">
+              Solution (Optional)
+            </label>
+            <div className="relative border border-[#E8EAED] rounded-xl p-4">
+              <textarea
+                value={solution}
+                onChange={(e) => setSolution(e.target.value)}
+                placeholder="Enter solution explanation here"
+                className="w-full min-h-[80px] resize-none text-base placeholder:text-gray-400 outline-none"
+              />
+              {/* Show existing solution image from API */}
+              {existingSolutionImageUrl && !solutionImage && (
+                <div className="mt-3 w-[237px] h-[237px] rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] flex items-center justify-center overflow-hidden relative">
+                  <img 
+                    src={existingSolutionImageUrl} 
+                    alt="Solution" 
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    onClick={() => setExistingSolutionImageUrl(null)}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+              {/* Show new uploaded solution image */}
+              {solutionImage && (
+                <div className="mt-3 w-[237px] h-[237px] rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] flex items-center justify-center overflow-hidden relative">
+                  <img 
+                    src={URL.createObjectURL(solutionImage)} 
+                    alt="Solution" 
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    onClick={() => setSolutionImage(null)}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+              <label htmlFor="solution-image" className="absolute bottom-3 right-3 text-gray-400 hover:text-gray-600 cursor-pointer">
+                <img src="/image.svg" alt="Add image" className="w-6 h-6" />
+                <input
+                  id="solution-image"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setSolutionImage(e.target.files[0]);
+                    }
+                  }}
+                />
+              </label>
+            </div>
+          </div>
+
           {/* Submit Button */}
           <div className="flex justify-center gap-3 mt-4">
             {editingQuestion && (
@@ -878,6 +1005,9 @@ export function AddQuestion() {
                   setQuestionText("");
                   setQuestionImage(null);
                   setExistingQuestionImageUrls([]);
+                  setSolution("");
+                  setSolutionImage(null);
+                  setExistingSolutionImageUrl(null);
                   setOptions([
                     { id: "A", text: "", image: null, imageUrl: null },
                     { id: "B", text: "", image: null, imageUrl: null },
@@ -1002,6 +1132,7 @@ export function AddQuestion() {
            // TODO: Implement view functionality
          }}
        />
+      </div>
       </div>
 
       {/* Delete Confirmation Modal */}
