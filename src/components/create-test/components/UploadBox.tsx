@@ -4,9 +4,10 @@ type UploadBoxProps = {
   file: File | null;
   setFile: (file: File | null) => void;
   existingImageUrl?: string | null;
+  onImageSelect?: (imageUrl: string) => void;
 };
 
-export default function UploadBox({ file, setFile, existingImageUrl }: UploadBoxProps) {
+export default function UploadBox({ file, setFile, existingImageUrl, onImageSelect }: UploadBoxProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = () => inputRef.current?.click();
@@ -18,7 +19,16 @@ export default function UploadBox({ file, setFile, existingImageUrl }: UploadBox
     if (!isValidType) return alert("Only PNG and JPG allowed");
     if (!isValidSize) return alert("Max size 10MB");
 
-    setFile(f);
+    // If onImageSelect callback is provided, trigger cropper
+    if (onImageSelect) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        onImageSelect(reader.result as string);
+      };
+      reader.readAsDataURL(f);
+    } else {
+      setFile(f);
+    }
   };
 
   const hasImage = file || existingImageUrl;
@@ -43,6 +53,8 @@ export default function UploadBox({ file, setFile, existingImageUrl }: UploadBox
         onChange={(e) => {
           const f = e.target.files?.[0];
           if (f) validateAndSet(f);
+          // Reset input value to allow selecting the same file again
+          e.target.value = '';
         }}
       />
 
@@ -80,11 +92,14 @@ export default function UploadBox({ file, setFile, existingImageUrl }: UploadBox
               </p>
             )}
             <div className="flex gap-3 mt-2">
-              <button onClick={handleClick} className="text-blue-600 text-xs cursor-pointer">
-                Change
-              </button>
-              <button onClick={() => setFile(null)} className="text-red-600 text-xs cursor-pointer">
-                Remove
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClick();
+                }} 
+                className="text-blue-600 text-xs cursor-pointer hover:text-blue-700 font-medium"
+              >
+                Replace Image
               </button>
             </div>
           </div>
