@@ -301,11 +301,6 @@ export function CreateTest() {
       return;
     }
 
-    if (!editMode && !file) {
-      toast.error("Please upload a banner image");
-      return;
-    }
-
     setIsSubmitting(true);
     const counsellorId = user.phoneNumber;
 
