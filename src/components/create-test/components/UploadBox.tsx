@@ -5,9 +5,10 @@ type UploadBoxProps = {
   setFile: (file: File | null) => void;
   existingImageUrl?: string | null;
   onImageSelect?: (imageUrl: string) => void;
+  required?: boolean;
 };
 
-export default function UploadBox({ file, setFile, existingImageUrl, onImageSelect }: UploadBoxProps) {
+export default function UploadBox({ file, setFile, existingImageUrl, onImageSelect, required = false }: UploadBoxProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = () => inputRef.current?.click();
@@ -34,17 +35,23 @@ export default function UploadBox({ file, setFile, existingImageUrl, onImageSele
   const hasImage = file || existingImageUrl;
 
   return (
-    <div
-      onClick={!hasImage ? handleClick : undefined}
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={(e) => {
-        e.preventDefault();
-        const f = e.dataTransfer.files[0];
-        if (f) validateAndSet(f);
-      }}
-      className="w-full h-[174px] border-2 border-dashed border-[#C1C1C1]
-                 rounded-xl flex items-center justify-center p-4 bg-[#F4F7FB]"
-    >
+    <div className="flex flex-col gap-2">
+      {required && (
+        <label className="text-[1rem] font-normal">
+          Banner Image <span className="text-red-500">*</span>
+        </label>
+      )}
+      <div
+        onClick={!hasImage ? handleClick : undefined}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          const f = e.dataTransfer.files[0];
+          if (f) validateAndSet(f);
+        }}
+        className="w-full h-[174px] border-2 border-dashed border-[#C1C1C1]
+                   rounded-xl flex items-center justify-center p-4 bg-[#F4F7FB]"
+      >
       <input
         ref={inputRef}
         type="file"
@@ -103,8 +110,9 @@ export default function UploadBox({ file, setFile, existingImageUrl, onImageSele
               </button>
             </div>
           </div>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
