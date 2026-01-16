@@ -301,7 +301,7 @@ export function TestInfo() {
               z-50 rounded-tr-xl rounded-tl-xl"
       >
         <button 
-          onClick={() => navigate(`/t/take/${testId}`)}
+          onClick={() => navigate(`/take-test/${testId}`)}
           className="bg-(--btn-primary) w-[335px] md:max-w-[166px] py-2.5 px-10 text-white font-medium text-xs md:text-lg shadow-[0px_2px_4px_0px_#FA660F33] rounded-[12px] md:rounded-2xl cursor-pointer hover:opacity-90 transition-opacity"
         >
           Start test

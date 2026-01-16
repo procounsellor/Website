@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BookOpen, Star, Users, Bookmark, Loader2, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
-import { getAllTestGroupsForUser, buyTestGroup, bookmarkTestGroup } from "@/api/testGroup";
+import { getAllTestGroupsOfCounsellorForUser, buyTestGroup, bookmarkTestGroup } from "@/api/testGroup";
 import type { TestGroup } from "@/types/testGroup";
 
 interface CounselorTestGroupsCardProps {
@@ -27,11 +27,14 @@ export function CounselorTestGroupsCard({ counsellorId, userId, userRole }: Coun
   }, [userId, counsellorId, userRole]);
 
   const fetchTestGroups = async () => {
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
-      const response = await getAllTestGroupsForUser(userId, counsellorId);
+      const response = await getAllTestGroupsOfCounsellorForUser(userId, counsellorId);
       if (response.status && response.data) {
         setTestGroups(response.data);
       }
@@ -101,6 +104,32 @@ export function CounselorTestGroupsCard({ counsellorId, userId, userRole }: Coun
     return null;
   }
 
+  if (!userId) {
+    return (
+      <div className="bg-white rounded-2xl p-6 border border-[#EFEFEF]">
+        <h2 className="text-lg font-semibold text-[#242645] mb-4">Test Series</h2>
+        <div className="text-center py-12">
+          <div className="relative inline-block mb-4">
+            <BookOpen className="w-16 h-16 text-gray-300 mx-auto" />
+            <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+          </div>
+          <p className="text-gray-700 font-medium mb-2">Login to View Test Series</p>
+          <p className="text-gray-500 text-sm mb-4">Sign in to explore available test groups and start learning</p>
+          <button
+            onClick={() => window.location.href = "/"}
+            className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+          >
+            Login Now
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="bg-white rounded-2xl p-6 border border-[#EFEFEF]">
@@ -151,7 +180,7 @@ export function CounselorTestGroupsCard({ counsellorId, userId, userRole }: Coun
               {/* Bookmark Button */}
               <button
                 onClick={(e) => handleBookmark(group.testGroupId, e)}
-                className="absolute top-2 right-2 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
+                className="absolute top-2 right-2 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors cursor-pointer"
                 title={bookmarkedIds.has(group.testGroupId) ? "Remove bookmark" : "Bookmark"}
               >
                 <Bookmark
@@ -204,7 +233,7 @@ export function CounselorTestGroupsCard({ counsellorId, userId, userRole }: Coun
                 ) : (
                   <button
                     onClick={(e) => handleBuyTestGroup(group.testGroupId, group.price, e)}
-                    className="flex items-center gap-2 px-4 py-2 bg-[--btn-primary] text-white rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
+                    className="flex items-center gap-2 px-4 py-2 bg-[--btn-primary] text-white rounded-lg hover:opacity-90 transition-opacity text-sm font-medium cursor-pointer"
                   >
                     <ShoppingCart size={16} />
                     {group.priceType === "FREE" ? "Enroll" : "Buy Now"}
