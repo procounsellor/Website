@@ -102,6 +102,9 @@ export function useAllCounselors(limit?: number) {
       
       return academicApi.getLoggedOutCounsellors();
     },
+
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
     enabled: !authLoading,
     select: (apiData) => {
       let transformedData = apiData.map(transformAllCounselorData);

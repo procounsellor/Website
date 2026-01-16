@@ -17,6 +17,13 @@ interface BookingResponse {
   bookingId?: string;
 }
 
+// interface SearchResponse {
+//   counsellors: AllCounselor[];
+//   total: number;
+//   totalPages: number;
+//   currentPage: number;
+// }
+
 async function fetcher<T>(endpoint: string): Promise<T> {
   if (!API_CONFIG.baseUrl) {
     throw new Error('API base URL not configured. Please check environment variables.');
@@ -91,6 +98,37 @@ export const academicApi = {
     });
     
     if (!res.ok) throw new Error("Failed to book appointment");
+    return res.json();
+  },
+
+  searchCounsellors: async (
+    userName: string, 
+    city: string, 
+    page: number = 0, 
+    pageSize: number = 15,
+  ) => {
+    const token = localStorage.getItem('jwt');
+    if (!token) throw new Error('Authentication token not found');
+
+    const params = new URLSearchParams({
+      userName: userName,
+      city: city,
+      page: page.toString(),
+      pageSize: pageSize.toString(),
+      sortBy: 'rating', 
+      sortOrder: 'desc'
+    });
+
+    const endpoint = `${API_CONFIG.endpoints.searchCounsellors}?${params.toString()}`;
+    
+    const res = await fetch(`${API_CONFIG.baseUrl}${endpoint}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!res.ok) throw new Error("Failed to search counselors");
     return res.json();
   },
 };

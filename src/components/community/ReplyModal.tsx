@@ -67,11 +67,11 @@ const ReplyModal: React.FC<ReplyModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#23232380] backdrop-blur-[35px]"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#23232380] backdrop-blur-[35px] p-3 md:p-0"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-[632px] p-10 bg-white rounded-2xl shadow-xl border border-[#EFEFEF]"
+        className="relative w-full max-w-[632px] p-6 md:p-10 bg-white rounded-2xl shadow-xl border border-[#EFEFEF] max-h-[90vh] md:max-h-none overflow-y-auto md:overflow-visible"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -114,7 +114,7 @@ const ReplyModal: React.FC<ReplyModalProps> = ({
             onChange={(e) => setReplyText(e.target.value)}
             placeholder="Add a comment"
             className="w-full h-[120px] resize-none bg-[#F5F7FA] border border-[#EFEFEF] rounded-lg p-3
-                       text-base font-medium text-[#242645]
+                       text-sm md:text-base font-medium text-[#242645]
                        placeholder:text-[#8C8CA180] placeholder:font-normal placeholder:text-sm
                        focus:outline-none focus:ring-2 focus:ring-[#13097D]"
           />
@@ -123,7 +123,7 @@ const ReplyModal: React.FC<ReplyModalProps> = ({
         <button
           onClick={handleSubmit}
           disabled={!replyText.trim() || isLoading}
-          className={`w-[335px] h-12 mx-auto rounded-xl text-white font-semibold transition-all duration-300
+          className={`w-full h-12 mx-auto rounded-xl text-white font-semibold transition-all duration-300
                      flex items-center justify-center
                      ${
                        !replyText.trim() || isLoading

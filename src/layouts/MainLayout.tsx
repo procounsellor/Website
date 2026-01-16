@@ -44,6 +44,8 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const isCollegeDetailsPage = location.pathname.includes('/colleges-details');
+
   useEffect(() => {
     if (isAuthenticated && role === "counselor" && location.pathname === "/") {
       navigate("/counsellor-dashboard");
@@ -183,7 +185,8 @@ export default function MainLayout() {
       {!isStreamActive && location.pathname !== '/promo' || location.pathname !== '/t' &&  (authUser?.role.trim().toLowerCase() == 'counsellor' ? authUser?.verified: true) && (
         <button
           onClick={toggleChatbot}
-          className="fixed bottom-6 right-6 cursor-pointer bg-[#FA660F] text-white w-16 h-16 flex items-center justify-center rounded-full shadow-lg z-50 hover:bg-orange-600 transition-all duration-300 transform hover:scale-110"
+          className={`fixed right-6 cursor-pointer bg-[#FA660F] text-white w-16 h-16 flex items-center justify-center rounded-full shadow-lg z-50 hover:bg-orange-600 transition-all duration-300 transform hover:scale-110 
+            ${isCollegeDetailsPage ? 'bottom-18 md:bottom-6' : 'bottom-6'}`}
           aria-label="Toggle Chatbot"
         >
            <MessageSquare size={32} />

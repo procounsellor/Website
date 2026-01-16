@@ -60,19 +60,19 @@ const ReplyItem: React.FC<ReplyItemProps> = ({ reply, onReplyClick }) => {
     <div className="flex gap-3">
       <img src={userImage} alt={reply.userFullName} className="w-6 h-6 rounded-full bg-[#D9D9D9] shrink-0 mt-1" />
       <div className="flex flex-col w-full">
-        <div className="flex items-center flex-wrap">
-          <span className="font-[Montserrat] font-semibold text-[14px] text-[#242645]">
+        <div className="flex items-center flex-wrap gap-2">
+          <span className="font-[Montserrat] font-semibold text-xs md:text-sm text-[#242645]">
             {reply.userFullName}
-            <span className="text-[#8C8CA1] font-normal text-xs ml-2">replying to {reply.replyTo}</span>
+            <span className="text-[#8C8CA1] text-[10px] md:text-xs ml-1">replying to {reply.replyTo}</span>
           </span>
           {displayTimestamp?.seconds && (
-            <span className="text-[10px] text-[#8C8CA1] ml-3">
+            <span className="text-[10px] md:text-xs text-[#8C8CA1]">
               {formatTimeAgo(displayTimestamp.seconds)}
               {reply.updated && " (edited)"}
             </span>
           )}
         </div>
-        <p className="font-[Montserrat] font-normal text-[13px] text-[#8C8CA1] mt-0.5">{reply.replyText}</p>
+        <p className="font-[Montserrat] font-normal text-xs md:text-[13px] text-[#8C8CA1] mt-0.5">{reply.replyText}</p>
         <div className="flex justify-between items-center mt-1">
           <button
             onClick={() => 
@@ -84,7 +84,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({ reply, onReplyClick }) => {
                     reply.replyText
                 )
             }
-            className="text-xs font-medium cursor-pointer text-[#242645] hover:underline"
+            className="text-xs md:text-sm font-medium cursor-pointer text-[#242645] hover:underline"
           >
             Reply
           </button>
