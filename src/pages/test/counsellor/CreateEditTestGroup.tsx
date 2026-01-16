@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Loader2 } from "lucide-react";
-import toast from "react-hot-toast";
+import { Loader2, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 import { createTestGroup, updateTestGroup, getTestGroupById } from "@/api/testGroup";
 import { getCoursesForCounsellorByCounsellorId } from "@/api/course";
 import { Input } from "@/components/create-test/components/Input";
@@ -125,7 +125,20 @@ export function CreateEditTestGroup() {
 
       if (response.status) {
         toast.success(isEditMode ? "Test group updated successfully" : "Test group created successfully");
-        navigate("/counsellor-dashboard", { state: { activeTab: "courses" } });
+        if (isEditMode) {
+          navigate(`/counselor/test-groups/${testGroupId}`);
+        } else {
+          // After creating, navigate to the newly created test group details
+          const newTestGroupId = response.data?.testGroupId;
+          if (newTestGroupId) {
+            navigate(`/counselor/test-groups/${newTestGroupId}`);
+          } else {
+             navigate("/counsellor-dashboard", {
+                state: { activeTab: "courses" },
+                replace: true
+              })
+          }
+        }
       } else {
         toast.error("Failed to save test group");
       }
@@ -137,8 +150,26 @@ export function CreateEditTestGroup() {
     }
   };
 
+  const isFormValid = 
+    formData.testGroupName.trim() &&
+    (isEditMode || bannerImage) &&
+    (formData.testType !== "COURSE_ATTACHED" || formData.courseIdAttached) &&
+    (formData.priceType !== "PAID" || formData.price > 0);
+
   return (
     <div className="pt-28 pb-8 w-full mx-auto max-w-7xl min-h-screen flex flex-col gap-4">
+      {/* Back Button */}
+     <button
+              onClick={() => navigate("/counsellor-dashboard", {
+                state: { activeTab: "courses" },
+                replace: true
+              })}
+              className="flex items-center gap-2 text-(--text-app-primary) hover:text-(--btn-primary) transition-colors font-medium mb-4 cursor-pointer"
+            >
+              <ArrowLeft size={20} />
+              Back to Test Groups
+            </button>
+
       {/* Top header */}
       <div className="p-5 bg-[#f8faf9] max-w-[1200px] text-(--text-app-primary) font-semibold text-[1.5rem] rounded-2xl">
         {isEditMode ? "Edit Test Group" : "Create Test Group"}
@@ -245,7 +276,7 @@ export function CreateEditTestGroup() {
             </div>
           </div>
 
-          {formData.priceType === "PAID" && (
+          {/* {formData.priceType === "PAID" && (
             <div className="flex flex-col gap-2">
               <label htmlFor="price" className="text-[1rem] font-normal">
                 Price (₹) *
@@ -260,24 +291,52 @@ export function CreateEditTestGroup() {
                 step="0.01"
               />
             </div>
-          )}
+          )} */}
+
+
+         {formData.priceType === "PAID" && (
+  <div className="flex flex-col gap-2">
+    <label htmlFor="price" className="text-[1rem] font-normal">
+      Price (₹) *
+    </label>
+
+    <input
+      type="number"
+      value={Number.isNaN(formData.price) ? "" : formData.price}
+      onChange={(e) => {
+        const raw = e.target.value;
+
+        // allow clearing input without forcing 0
+        if (raw === "") {
+          setFormData({ ...formData, price: NaN });
+          return;
+        }
+
+        const num = Number(raw);
+
+        // keep number type + block negatives
+        if (!Number.isNaN(num) && num >= 0) {
+          setFormData({ ...formData, price: num });
+        }
+      }}
+      placeholder="Enter price"
+      className="border border-[#13097D66] py-3 px-4 rounded-[12px] w-full placeholder:text-(--text-muted) placeholder:font-medium cursor-pointer"
+      min="0"
+      step="0.01"
+    />
+  </div>
+)}
+
+
         </div>
       </Dropdown>
 
-      {/* Submit Buttons */}
-      <div className="flex gap-4 max-w-[1200px]">
-        <button
-          type="button"
-          onClick={() => navigate("/counsellor-dashboard", { state: { activeTab: "courses" } })}
-          disabled={loading}
-          className="flex-1 py-3 px-6 border-2 border-gray-300 text-(--text-app-primary) rounded-xl font-medium hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Cancel
-        </button>
+      {/* Submit Button */}
+      <div className="flex justify-end max-w-[1200px]">
         <button
           onClick={handleSubmit}
-          disabled={loading}
-          className="flex-1 py-3 px-6 bg-(--btn-primary) text-white rounded-xl font-medium hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          disabled={loading || !isFormValid}
+          className="px-8 py-3 bg-(--btn-primary) text-white rounded-xl font-medium hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {loading && <Loader2 className="w-5 h-5 animate-spin" />}
           {loading ? "Saving..." : isEditMode ? "Update Test Group" : "Create Test Group"}

@@ -337,6 +337,7 @@ export default function CounselorDetailsPage() {
           {/* <LiveSessionCard counselorName={`${counselor.firstName} ${counselor.lastName}`} /> */}
           <FreeCareerAssessmentCard  counselor={counselor} user={user} onProfileIncomplete={handleProfileIncomplete}/>
           <CounselorCoursesCard counsellorId={computedId} userRole={role || "user"} />
+          <CounselorTestGroupsCard counsellorId={computedId} userId={userId} userRole={role || "user"} />
           {/* <FeaturedCollegesCard /> */}
         </div>
 
