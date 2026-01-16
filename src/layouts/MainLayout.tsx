@@ -142,7 +142,7 @@ export default function MainLayout() {
       </main>
 
       <footer className="bottom-0 left-0 right-0">
-        { location.pathname == '/t' && (<Footer />) 
+        { location.pathname !== '/promo' && (<Footer />) 
         }
       </footer>
 
@@ -182,7 +182,7 @@ export default function MainLayout() {
 
 
       {/* Chatbot Toggle Button */}
-      {!isStreamActive && location.pathname !== '/promo' || location.pathname !== '/t' &&  (authUser?.role.trim().toLowerCase() == 'counsellor' ? authUser?.verified: true) && (
+      {!isStreamActive && location.pathname !== '/promo' &&  (authUser?.role.trim().toLowerCase() == 'counsellor' ? authUser?.verified: true) && (
         <button
           onClick={toggleChatbot}
           className={`fixed right-6 cursor-pointer bg-[#FA660F] text-white w-16 h-16 flex items-center justify-center rounded-full shadow-lg z-50 hover:bg-orange-600 transition-all duration-300 transform hover:scale-110 
