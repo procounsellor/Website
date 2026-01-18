@@ -361,3 +361,25 @@ export const deleteReviewFromTestGroup = async (
   );
   return response.json();
 };
+
+export const getUserBoughtTestGroups = async (userId: string) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/counsellorTestGroup/getUserBoughtTestGroups?userId=${userId}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    }
+  );
+  return response.json();
+};
+
+export const getUserBookmarkedTestGroups = async (userId: string) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/counsellorTestGroup/getUserBookmarkedTestGroups?userId=${userId}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    }
+  );
+  return response.json();
+};

@@ -28,10 +28,11 @@ import LandingPage from '@/pages/AdityaLandingPage';
 import PromoPage from '@/pages/PromoPage';
 import ClientProfilePage from '@/pages/ClientProfilePage';
 import { CreateTest } from '@/pages/test/counsellor/CreateTest';
-import { AddQuestion } from '@/pages/AddQuestion';
+import { AddQuestion } from '@/pages/test/counsellor/AddQuestion';
 import { TestInfo } from '@/pages/test/user/TestInfo';
 import { TakeTest } from '@/pages/test/user/TakeTest';
 import { TestResult } from '@/pages/test/user/TestResult';
+import { TestAnalysisPage } from '@/pages/test/user/TestAnalysisPage';
 import { CreateEditTestGroup } from '@/pages/test/counsellor/CreateEditTestGroup';
 import { TestGroupDetails } from '@/pages/test/counsellor/TestGroupDetails';
 import TestGroupDetailsPage from '@/pages/test/user/TestGroupDetailsPage';
@@ -63,8 +64,9 @@ export default function AppRoutes() {
                     <Route path="/privacy1" element={<ExternalPrivacyPage />} />
                     <Route path="/term1" element={<ExternalTermsPage />} />
 
-                      <Route path='/take-test/:testId' element={<TakeTest/>}/>
-                        
+                    <Route path='/take-test/:testId' element={<TakeTest />} />
+                    <Route path='/t/analysis/:testId/:attemptId' element={<TestAnalysisPage />} />
+
 
                     <Route element={<MainLayout />}>
                         <Route path="/" element={<Home />} />
@@ -73,7 +75,7 @@ export default function AppRoutes() {
                         <Route path="/counsellor-profile" element={<CounselorDetailsPage />} />
                         <Route path="/courses/:id" element={<CourseDetailsPage />} />
                         <Route path="/colleges/:id" element={<CollegeDetailsPage />} />
-                        <Route path="/colleges-details" element={<CollegeDetailsPageNew/>} />
+                        <Route path="/colleges-details" element={<CollegeDetailsPageNew />} />
                         <Route path="/exams" element={<ExamsListingPage />} />
                         <Route path="/about" element={<AboutPage />} />
                         <Route path="/contact" element={<ContactPage />} />
@@ -94,21 +96,23 @@ export default function AppRoutes() {
                         <Route path="/community/my-activity" element={<MyActivityPage />} />
                         <Route path='/promo' element={<PromoPage />} />
                         <Route path="/notifications" element={<NotificationsPage />} />
-                        <Route path='/create-test' element={<CreateTest/>}/>
-                        <Route path='/add-question/:testId' element={<AddQuestion/>}/>
-                        <Route path='/test-info/:testId' element={<TestInfo/>}/>
-                        <Route path='/test-result/:testId' element={<TestResult/>}/>
-                     
-                        
+                        <Route path='/create-test' element={<CreateTest />} />
+                        <Route path='/add-question/:testId' element={<AddQuestion />} />
+                        <Route path='/test-info/:testId' element={<TestInfo />} />
+                        <Route path='/test-result/:testId' element={<TestResult />} />
+                        <Route path='/t/result/:testId' element={<TestResult />} />
+                        {/* TestAnalysisPage moved outside MainLayout */}
+
+
                         {/* Test Group Routes */}
-                        <Route path='/counselor/test-groups/create' element={<CreateEditTestGroup/>}/>
-                        <Route path='/counselor/test-groups/edit/:testGroupId' element={<CreateEditTestGroup/>}/>
-                        <Route path='/counselor/test-groups/:testGroupId' element={<TestGroupDetails/>}/>
-                        <Route path='/counselor/test-groups/:testGroupId/create-test' element={<CreateTest/>}/>
-                        
+                        <Route path='/counselor/test-groups/create' element={<CreateEditTestGroup />} />
+                        <Route path='/counselor/test-groups/edit/:testGroupId' element={<CreateEditTestGroup />} />
+                        <Route path='/counselor/test-groups/:testGroupId' element={<TestGroupDetails />} />
+                        <Route path='/counselor/test-groups/:testGroupId/create-test' element={<CreateTest />} />
+
                         {/* User Test Group Routes */}
-                        <Route path='/test-group/:testGroupId' element={<TestGroupDetailsPage/>}/>
-                        
+                        <Route path='/test-group/:testGroupId' element={<TestGroupDetailsPage />} />
+
                         <Route element={<ProtectedRoute />}>
                             <Route path='/dashboard-student' element={<StudentDashboardPage />} />
                             <Route path='/live-sessions' element={<LiveSessionsPage />} />

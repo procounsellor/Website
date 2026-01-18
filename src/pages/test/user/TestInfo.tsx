@@ -8,6 +8,7 @@ interface SectionData {
   totalQuestionsSupposedToBeAdded: number;
   totalQuestionsAdded: number;
   sectionDurationInMinutes: number;
+  pointsForCorrectAnswer?: number;
 }
 
 const generalInstructions = [
@@ -73,6 +74,8 @@ export function TestInfo() {
   const [pointsPerQuestion, setPointsPerQuestion] = useState(4);
   const [negativeMarks, setNegativeMarks] = useState(1);
   const [negativeMarkingEnabled, setNegativeMarkingEnabled] = useState(true);
+  // New state for attempts
+  const [attempts, setAttempts] = useState<any[]>([]);
 
   const userId = localStorage.getItem("phone") || "";
 
@@ -81,16 +84,20 @@ export function TestInfo() {
       try {
         const response = await getTestSeriesByIdForUser(userId, testId!);
         if (response.status && response.data) {
-          const testData = response.data;
-          
+          const data = response.data;
+
           // Set test details
-          setTestName(testData.testName || "Mock Test");
-          setPointsPerQuestion(testData.pointsForCorrectAnswer || 4);
-          setNegativeMarks(testData.negativeMarks || 1);
-          setNegativeMarkingEnabled(testData.negativeMarkingEnabled || false);
-          
+          setTestName(data.testName || "Mock Test");
+          setPointsPerQuestion(data.pointsForCorrectAnswer || 4);
+          setNegativeMarks(data.negativeMarks || 1);
+          setNegativeMarkingEnabled(data.negativeMarkingEnabled || false);
+
           // Extract section information from listOfSection
-          setSections(testData.listOfSection || []);
+          setSections(data.listOfSection || []);
+        }
+
+        if (response.attempts) {
+          setAttempts(response.attempts);
         }
       } catch (error) {
         toast.error("Failed to load test information");
@@ -103,7 +110,7 @@ export function TestInfo() {
     if (testId) {
       fetchTestData();
     }
-  }, [testId]);
+  }, [testId, userId]);
 
   const totalDuration = sections.reduce(
     (sum, row) => sum + (row.sectionDurationInMinutes || 0),
@@ -115,6 +122,24 @@ export function TestInfo() {
   );
   const totalMarks = totalQuestions * pointsPerQuestion;
 
+  // Logic to determine button state
+  const inProgressAttempt = attempts.find(a => a.status === "IN_PROGRESS");
+
+  // Handler for Start/Resume button
+  const handleMainAction = () => {
+    if (inProgressAttempt) {
+      // Resume
+      navigate(`/take-test/${testId}`, { state: { attemptId: inProgressAttempt.attemptId, isResume: true } });
+    } else {
+      // Start New
+      navigate(`/take-test/${testId}`); // TakeTest will handle creation
+    }
+  };
+
+  const handleAnalysis = (attemptId: string) => {
+    navigate(`/t/analysis/${testId}/${attemptId}`);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -124,7 +149,7 @@ export function TestInfo() {
   }
 
   return (
-    <div className="pt-16 md:pt-24 w-full mx-auto max-w-7xl  h-full flex flex-col items-center gap-4 px-3">
+    <div className="pt-16 md:pt-24 w-full mx-auto max-w-7xl h-full flex flex-col items-center gap-4 px-3 pb-24">
       <h1 className="text-(text-app-primary) font-semibold text-[1rem] md:text-2xl">
         {testName}
       </h1>
@@ -135,9 +160,8 @@ export function TestInfo() {
           {["Section", "No. of Question", "Duration", "Marks"].map((h, idx) => (
             <div
               key={h}
-              className={`px-3 py-4 font-normal text-xs md:text-base ${
-                idx === 0 ? "text-left pl-6 md:pl-10" : ""
-              }`}
+              className={`px-3 py-4 font-normal text-xs md:text-base ${idx === 0 ? "text-left pl-6 md:pl-10" : ""
+                }`}
             >
               {h}
             </div>
@@ -160,7 +184,8 @@ export function TestInfo() {
               {row.sectionDurationInMinutes} mins
             </div>
             <div className="px-3 py-4 font-semibold text-xs md:text-base">
-              {row.totalQuestionsSupposedToBeAdded * pointsPerQuestion}
+              {/* Show marking per section if different, otherwise implied global */}
+              {row.pointsForCorrectAnswer ? `+${row.pointsForCorrectAnswer}` : `+${pointsPerQuestion}`}
             </div>
           </div>
         ))}
@@ -168,7 +193,7 @@ export function TestInfo() {
         {/* SUMMARY */}
         <div className="border-t border-[#E4E8EC]">
           <div className="px-6 md:px-10 py-4">
-            <div className="flex gap-4 md:gap-10">
+            <div className="flex gap-4 md:gap-10 flex-wrap">
               <div className="flex flex-col md:flex-row md:gap-2">
                 <p className="text-xs font-normal md:text-sm text-(--text-muted)">
                   Total Time:
@@ -192,6 +217,7 @@ export function TestInfo() {
                   Marking Scheme:
                 </p>
                 <p className="text-sm font-semibold md:text-[1rem] text-(--text-app-primary)">
+                  {/* Simplification: mostly global, but if sections differ, maybe just show global default or "Variable" */}
                   +{pointsPerQuestion} {negativeMarkingEnabled ? `/ -${negativeMarks}` : '/ No negative'}
                 </p>
               </div>
@@ -199,6 +225,115 @@ export function TestInfo() {
           </div>
         </div>
       </div>
+
+      {/* Previous Attempts Section */}
+      {attempts.length > 0 && (
+        <div className="w-full max-w-[800px] lg:max-w-[1200px] mt-2">
+          <h2 className="text-(--text-app-primary) font-semibold text-lg md:text-xl mb-3 pl-2">
+            Previous Attempts
+          </h2>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block bg-white border border-[#E4E8EC] rounded-2xl overflow-hidden">
+            <table className="w-full text-left">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th className="px-6 py-4 text-sm font-medium text-gray-500">Date/Time</th>
+                  <th className="px-6 py-4 text-sm font-medium text-gray-500">Status</th>
+                  <th className="px-6 py-4 text-sm font-medium text-gray-500">Score</th>
+                  <th className="px-6 py-4 text-sm font-medium text-gray-500">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {attempts.map((attempt) => (
+                  <tr
+                    key={attempt.attemptId}
+                    className="hover:bg-gray-50/80 cursor-pointer transition-colors"
+                    onClick={() => {
+                      if (attempt.status === 'SUBMITTED') handleAnalysis(attempt.attemptId);
+                      else handleMainAction();
+                    }}
+                  >
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {new Date(attempt.attemptDateAndTime.seconds * 1000).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${attempt.status === 'SUBMITTED'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                        {attempt.status === 'SUBMITTED' ? 'Completed' : 'In Progress'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-lg font-bold text-gray-900">
+                        {attempt.status === 'SUBMITTED' ? `${attempt.score}/${attempt.maxScore}` : '-'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {attempt.status === 'SUBMITTED' ? (
+                        <button className="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline">
+                          View Analysis
+                        </button>
+                      ) : (
+                        <button className="text-orange-600 hover:text-orange-800 text-sm font-medium hover:underline">
+                          Resume Test
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-3">
+            {attempts.map((attempt) => (
+              <div
+                key={attempt.attemptId}
+                className="bg-white border border-[#E4E8EC] rounded-xl p-4 shadow-sm active:bg-gray-50 cursor-pointer"
+                onClick={() => {
+                  if (attempt.status === 'SUBMITTED') handleAnalysis(attempt.attemptId);
+                  else handleMainAction();
+                }}
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Date</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {new Date(attempt.attemptDateAndTime.seconds * 1000).toLocaleDateString()}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(attempt.attemptDateAndTime.seconds * 1000).toLocaleTimeString()}
+                    </p>
+                  </div>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${attempt.status === 'SUBMITTED'
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                    {attempt.status === 'SUBMITTED' ? 'Completed' : 'In Progress'}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-end border-t border-gray-100 pt-3">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Score</p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {attempt.status === 'SUBMITTED' ? `${attempt.score}/${attempt.maxScore}` : '-'}
+                    </p>
+                  </div>
+                  {attempt.status === 'SUBMITTED' ? (
+                    <span className="text-blue-600 text-sm font-medium">View Analysis →</span>
+                  ) : (
+                    <span className="text-orange-600 text-sm font-medium">Resume Test →</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* General Instructions Section */}
       <div className="w-full max-w-[800px] lg:max-w-[1200px] mt-2 mb-16">
@@ -228,12 +363,11 @@ export function TestInfo() {
                       ) : (
                         <div className="flex items-start gap-2">
                           {point.icon && (
-                            <span className={`inline-block w-3 h-3 rounded-full mt-1 ${
-                              point.icon === 'blue-circle' ? 'bg-blue-500' :
+                            <span className={`inline-block w-3 h-3 rounded-full mt-1 ${point.icon === 'blue-circle' ? 'bg-blue-500' :
                               point.icon === 'green-circle' ? 'bg-green-500' :
-                              point.icon === 'red-circle' ? 'bg-red-500' :
-                              point.icon === 'gray-circle' ? 'bg-[#EAEDF0]' : ''
-                            }`}></span>
+                                point.icon === 'red-circle' ? 'bg-red-500' :
+                                  point.icon === 'gray-circle' ? 'bg-[#EAEDF0]' : ''
+                              }`}></span>
                           )}
                           <span>{point.text}</span>
                         </div>
@@ -246,9 +380,8 @@ export function TestInfo() {
               {instruction.steps && (
                 <div className="ml-4 space-y-2">
                   {instruction.steps.map((step, idx) => (
-                    <div key={idx} className={`flex gap-2 text-sm md:text-base ${
-                      step.isWarning ? 'text-yellow-600 font-medium' : 'text-(--text-app-primary) font-normal'
-                    }`}>
+                    <div key={idx} className={`flex gap-2 text-sm md:text-base ${step.isWarning ? 'text-yellow-600 font-medium' : 'text-(--text-app-primary) font-normal'
+                      }`}>
                       <span className="font-semibold">{step.label}</span>
                       <span>{step.text}</span>
                     </div>
@@ -300,11 +433,11 @@ export function TestInfo() {
               py-2.5 px-5 border-[#D6D6D6] shadow-[0px_0px_4px_0px_rgba(0,0,0,0.15)]
               z-50 rounded-tr-xl rounded-tl-xl"
       >
-        <button 
-          onClick={() => navigate(`/take-test/${testId}`)}
-          className="bg-(--btn-primary) w-[335px] md:max-w-[166px] py-2.5 px-10 text-white font-medium text-xs md:text-lg shadow-[0px_2px_4px_0px_#FA660F33] rounded-[12px] md:rounded-2xl cursor-pointer hover:opacity-90 transition-opacity"
+        <button
+          onClick={handleMainAction}
+          className="bg-(--btn-primary) w-full md:w-auto md:min-w-[166px] py-2.5 px-6 text-white font-medium text-xs md:text-lg shadow-[0px_2px_4px_0px_#FA660F33] rounded-[12px] md:rounded-2xl cursor-pointer hover:opacity-90 transition-opacity whitespace-nowrap"
         >
-          Start test
+          {inProgressAttempt ? "Resume Test" : "Start Test"}
         </button>
       </div>
     </div>

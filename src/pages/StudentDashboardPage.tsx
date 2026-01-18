@@ -9,6 +9,7 @@ import CounsellorsTab from '@/components/student-dashboard/CounsellorsTab';
 import TransactionsTab from '@/components/student-dashboard/TransactionsTab';
 import ReviewsTab from '@/components/student-dashboard/ReviewsTab';
 import MyCoursesTab from '@/components/student-dashboard/tabs/MyCoursesTab';
+import MyTestSeriesTab from '@/components/student-dashboard/tabs/MyTestSeriesTab';
 import EditProfileModal from '@/components/student-dashboard/EditProfileModal';
 import EditPreferencesModal from '@/components/student-dashboard/EditPreferencesModal';
 import AddFundsPanel from '@/components/student-dashboard/AddFundsPanel';
@@ -24,7 +25,7 @@ declare global {
 }
 type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 
-const TABS = ['My Info', 'Appointments', 'Counsellors', 'My Courses', 'Transactions', 'Reviews'];
+const TABS = ['My Info', 'Appointments', 'Counsellors', 'My Courses', 'Test Series', 'Transactions', 'Reviews'];
 
 const StudentDashboardPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -78,17 +79,17 @@ const StudentDashboardPage: React.FC = () => {
     if (state?.openAddFunds) {
       setIsAddFundsOpen(true);
     }
-    
+
     if (state) {
       window.history.replaceState({}, document.title);
     }
-    
+
     if (urlTab) {
-        searchParams.delete('activeTab');
-        navigate({
-            pathname: location.pathname,
-            search: searchParams.toString(),
-        }, { replace: true });
+      searchParams.delete('activeTab');
+      navigate({
+        pathname: location.pathname,
+        search: searchParams.toString(),
+      }, { replace: true });
     }
   }, [location.state, searchParams, location.pathname, navigate]);
 
@@ -207,11 +208,10 @@ const StudentDashboardPage: React.FC = () => {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`${
-                  activeTab === tab
+                className={`${activeTab === tab
                     ? 'border-[#13097D] text-[#13097D]'
                     : 'border-transparent text-[#8C8CA1] hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-3 px-2 border-b-[3px] font-semibold text-[12px] md:text-sm transition-colors shrink-0 hover:cursor-pointer`}
+                  } whitespace-nowrap py-3 px-2 border-b-[3px] font-semibold text-[12px] md:text-sm transition-colors shrink-0 hover:cursor-pointer`}
               >
                 {tab}
               </button>
@@ -231,6 +231,7 @@ const StudentDashboardPage: React.FC = () => {
           {activeTab === 'Appointments' && <AppointmentsTab />}
           {activeTab === 'Counsellors' && <CounsellorsTab />}
           {activeTab === 'My Courses' && <MyCoursesTab />}
+          {activeTab === 'Test Series' && <MyTestSeriesTab />}
           {activeTab === 'Transactions' && (
             <TransactionsTab
               transactions={user.transactions || []}
