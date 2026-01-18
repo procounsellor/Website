@@ -1,8 +1,19 @@
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Trophy, CheckCircle2, XCircle, Circle } from "lucide-react";
+import { RotateCcw } from "lucide-react";
+import { resumeTest } from "@/api/userTestSeries";
+import { toast } from "sonner";
 
-interface ResultData {
+export interface SectionScore {
+  sectionName: string;
+  totalMarks: number;
+  score: number;
+  correct: number;
+  wrong: number;
+  unattempted: number;
+}
+
+export interface ResultData {
   attemptId: string;
   score: number;
   totalQuestions: number;
@@ -11,171 +22,224 @@ interface ResultData {
   unattempted: number;
   maxMarks: number;
   actualDurationTakenToCompleteTest: string;
+  sectionScores?: SectionScore[];
 }
 
-export function TestResult() {
+interface TestResultProps {
+  resultData?: ResultData | null;
+  onExit?: () => void;
+  onRetake?: () => void;
+}
+
+export function TestResult({ resultData: propResultData, onExit, onRetake }: TestResultProps) {
   const { testId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const [resultData, setResultData] = useState<ResultData | null>(null);
+  const [searchParams] = useSearchParams();
+  const [fetchedResultData, setFetchedResultData] = useState<ResultData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const finalResultData = propResultData || fetchedResultData;
+
+  const userId = localStorage.getItem("phone") || "";
+  const attemptId = searchParams.get("attemptId");
 
   useEffect(() => {
-    const data = location.state?.resultData;
-    if (data) {
-      setResultData(data);
-    } else {
-      // If no data in state, redirect back to test listing
-      navigate("/t");
+    if (propResultData) {
+      setLoading(false);
+      return;
     }
-  }, [location, navigate]);
 
-  if (!resultData) {
+    const fetchResult = async () => {
+      // Prioritize location.state data as it has sectionScores
+      const stateData = location.state?.resultData;
+
+      if (stateData) {
+        setFetchedResultData(stateData);
+        setLoading(false);
+        return;
+      }
+
+      if (attemptId && userId) {
+        try {
+          // Use resumeTest to get result details (since it returns attempt info including scores)
+          const response = await resumeTest(userId, attemptId);
+          if (response.status && response.data?.attempt) {
+            const att = response.data.attempt;
+            if (att.status === 'SUBMITTED') {
+              setFetchedResultData({
+                attemptId: att.userTestAttemptsDataId,
+                score: att.score || 0,
+                totalQuestions: att.totalQuestions || 0,
+                correct: att.correctCount || 0,
+                wrong: att.wrongCount || 0,
+                unattempted: att.unattemptedCount || 0,
+                maxMarks: att.maxMarks || 0,
+                actualDurationTakenToCompleteTest: att.actualDurationTakenToCompleteTest || "N/A"
+              });
+            } else {
+              toast.error("Test not submitted yet");
+              navigate(`/take-test/${testId}`);
+            }
+          } else {
+            toast.error("Failed to load result");
+          }
+        } catch (error) {
+          console.error(error);
+          toast.error("Error loading result");
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+        if (!fetchedResultData) navigate("/t");
+      }
+    };
+
+    fetchResult();
+  }, [location, attemptId, userId, navigate, testId, propResultData]);
+
+  // Loading State
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-lg">Loading results...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
-  const percentage = ((resultData.score / resultData.maxMarks) * 100).toFixed(2);
-  const isPass = parseFloat(percentage) >= 40; // Assuming 40% is passing
+  if (!finalResultData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-lg">No result found.</p>
+        <button onClick={onExit || (() => navigate(-1))} className="text-blue-600 ml-4">Go Back</button>
+      </div>
+    );
+  }
+
+  const percentage = ((finalResultData.score / finalResultData.maxMarks) * 100).toFixed(0);
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <button
-          onClick={() => navigate("/t")}
-          className="flex items-center gap-2 text-(--text-app-primary) font-medium mb-6 hover:opacity-70"
-        >
-          <ArrowLeft size={20} />
-          Back to Tests
-        </button>
+    <div className="fixed inset-0 bg-gray-500/50 flex items-center justify-center p-4 font-sans backdrop-blur-sm z-[100]">
+      <div className="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl relative animate-in fade-in zoom-in duration-300">
 
-        {/* Result Card */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          {/* Top Section - Score Banner */}
-          <div className={`${isPass ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gradient-to-r from-orange-500 to-red-500'} p-8 text-white text-center`}>
-            <div className="flex justify-center mb-4">
-              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                <Trophy size={40} />
-              </div>
+
+        {/* Header */}
+        <div className="flex-none p-6 pb-2">
+          <h2 className="text-xl font-bold text-gray-900 pr-8">
+            Test Score - {finalResultData.attemptId.substring(0, 8)}... {/* Improve if Test Name available */}
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Submitted on {new Date().toLocaleDateString()} {/* Replace with actual date if available */}
+          </p>
+        </div>
+
+        {/* Content (Scrollable) */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 scrollbar-hide">
+
+          {/* Score Banner */}
+          <div className="bg-[#F3F4F6] rounded-2xl p-4 flex items-center justify-center gap-8 mb-8">
+            <div className="text-center">
+              <p className="text-sm font-semibold text-gray-600 mb-1">Total Score</p>
+              <p className="text-2xl font-bold text-[#6C2BD9]">
+                {finalResultData.score}<span className="text-gray-400 text-lg">/{finalResultData.maxMarks}</span>
+              </p>
             </div>
-            <h1 className="text-3xl font-bold mb-2">
-              {isPass ? "Congratulations!" : "Test Completed"}
-            </h1>
-            <p className="text-lg opacity-90">
-              {isPass ? "You have passed the test!" : "Keep practicing to improve!"}
-            </p>
+            <div className="w-px h-10 bg-gray-300"></div>
+            <div className="text-center">
+              <p className="text-sm font-semibold text-gray-600 mb-1">Percentage</p>
+              <p className="text-2xl font-bold text-[#6C2BD9]">
+                {percentage}%
+              </p>
+            </div>
           </div>
 
-          {/* Score Details */}
-          <div className="p-8">
-            {/* Main Score */}
-            <div className="text-center mb-8 pb-8 border-b border-gray-200">
-              <div className="flex items-center justify-center gap-4 mb-2">
-                <span className="text-5xl font-bold text-(--text-app-primary)">
-                  {resultData.score}
-                </span>
-                <span className="text-3xl text-(--text-muted)">/</span>
-                <span className="text-3xl text-(--text-muted)">
-                  {resultData.maxMarks}
-                </span>
-              </div>
-              <p className="text-lg text-(--text-muted) mb-4">Your Score</p>
-              <div className={`inline-block px-6 py-2 rounded-full ${isPass ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'} font-semibold text-lg`}>
-                {percentage}%
-              </div>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+            {/* Correct */}
+            <div className="border border-gray-100 shadow-sm rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center text-center bg-white">
+              <div className="w-3 h-3 rounded-full bg-green-500 mb-2"></div>
+              <span className="text-xl md:text-2xl font-bold text-gray-900 mb-1 leading-none">
+                {finalResultData.correct}
+              </span>
+              <p className="text-xs text-gray-500 font-medium">Correct</p>
             </div>
 
-            {/* Statistics Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-green-50 rounded-xl p-6 text-center border border-green-200">
-                <div className="flex justify-center mb-3">
-                  <CheckCircle2 size={32} className="text-green-600" />
-                </div>
-                <p className="text-3xl font-bold text-green-700 mb-1">
-                  {resultData.correct}
-                </p>
-                <p className="text-sm text-green-600 font-medium">Correct</p>
-              </div>
+            {/* Incorrect */}
+            <div className="border border-gray-100 shadow-sm rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center text-center bg-white">
+              <div className="w-3 h-3 rounded-full bg-red-500 mb-2"></div>
+              <span className="text-xl md:text-2xl font-bold text-gray-900 mb-1 leading-none">
+                {finalResultData.wrong}
+              </span>
+              <p className="text-xs text-gray-500 font-medium">Incorrect</p>
+            </div>
 
-              <div className="bg-red-50 rounded-xl p-6 text-center border border-red-200">
-                <div className="flex justify-center mb-3">
-                  <XCircle size={32} className="text-red-600" />
-                </div>
-                <p className="text-3xl font-bold text-red-700 mb-1">
-                  {resultData.wrong}
-                </p>
-                <p className="text-sm text-red-600 font-medium">Wrong</p>
-              </div>
-
-              <div className="bg-gray-50 rounded-xl p-6 text-center border border-gray-200">
-                <div className="flex justify-center mb-3">
-                  <Circle size={32} className="text-gray-600" />
-                </div>
-                <p className="text-3xl font-bold text-gray-700 mb-1">
-                  {resultData.unattempted}
-                </p>
-                <p className="text-sm text-gray-600 font-medium">Unattempted</p>
-              </div>
-
-              <div className="bg-blue-50 rounded-xl p-6 text-center border border-blue-200">
-                <div className="flex justify-center mb-3">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-blue-600">
-                    <circle cx="12" cy="12" r="10" strokeWidth="2"/>
-                    <polyline points="12 6 12 12 16 14" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                </div>
-                <p className="text-3xl font-bold text-blue-700 mb-1">
-                  {resultData.totalQuestions}
-                </p>
-                <p className="text-sm text-blue-600 font-medium">Total Questions</p>
-              </div>
+            {/* Unattempted */}
+            <div className="border border-gray-100 shadow-sm rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center text-center bg-white">
+              <div className="w-3 h-3 rounded-full bg-gray-200 mb-2"></div>
+              <span className="text-xl md:text-2xl font-bold text-gray-900 mb-1 leading-none">
+                {finalResultData.unattempted}
+              </span>
+              <p className="text-xs text-gray-500 font-medium">Unattempted</p>
             </div>
 
             {/* Time Taken */}
-            <div className="bg-purple-50 rounded-xl p-6 border border-purple-200 mb-8">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-purple-600">
-                      <circle cx="12" cy="12" r="10" strokeWidth="2"/>
-                      <polyline points="12 6 12 12 16 14" strokeWidth="2" strokeLinecap="round"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm text-purple-600 font-medium">Time Taken</p>
-                    <p className="text-2xl font-bold text-purple-700">
-                      {resultData.actualDurationTakenToCompleteTest}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button
-                onClick={() => navigate("/t")}
-                className="flex-1 py-3 px-6 rounded-xl border-2 border-gray-300 text-(--text-app-primary) font-medium hover:bg-gray-50 transition-colors"
-              >
-                Back to Tests
-              </button>
-              <button
-                onClick={() => navigate(`/t/${testId}`)}
-                className="flex-1 py-3 px-6 rounded-xl bg-(--btn-primary) text-white font-medium hover:opacity-90 transition-opacity"
-              >
-                Retake Test
-              </button>
+            <div className="border border-gray-100 shadow-sm rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center text-center bg-white">
+              <div className="w-3 h-3 rounded-full bg-purple-400 mb-2"></div>
+              <span className="text-base md:text-lg font-bold text-gray-900 mb-1 leading-tight">
+                {finalResultData.actualDurationTakenToCompleteTest}
+              </span>
+              <p className="text-xs text-gray-500 font-medium">Time Taken</p>
             </div>
           </div>
+
+          {/* Section-wise Score */}
+          <div className="mb-6">
+            <h4 className="text-base font-bold text-gray-900 mb-4 text-left">
+              Section-wise Score
+            </h4>
+            <div className="space-y-4">
+              {finalResultData.sectionScores ? (
+                finalResultData.sectionScores.map((section, idx) => (
+                  <div key={idx} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-2 w-2 rounded-full bg-[#6C2BD9]" />
+                      <span className="font-semibold text-sm text-gray-800">
+                        {section.sectionName}
+                      </span>
+                    </div>
+                    <span className="text-[#6C2BD9] font-bold text-sm">
+                      {section.score}/{section.totalMarks}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-400 italic">Section details available in analysis.</p>
+              )}
+            </div>
+          </div>
+
         </div>
 
-        {/* Additional Info */}
-        <div className="mt-6 text-center text-sm text-(--text-muted)">
-          <p>Attempt ID: {resultData.attemptId}</p>
+        {/* Footer Buttons */}
+        <div className="flex-none p-6 pt-2 flex gap-4 bg-white">
+          {onRetake && (
+            <button
+              onClick={onRetake}
+              className="flex-1 py-3 px-4 rounded-full border border-gray-800 text-gray-900 text-xs md:text-base font-bold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <RotateCcw size={16} />
+              Retake Test
+            </button>
+          )}
+          <button
+            onClick={onExit || (() => navigate(`/t/${testId}`))}
+            className="flex-1 py-3 px-4 rounded-full bg-[#00C55E] text-white text-xs md:text-base font-bold hover:opacity-90 transition-opacity shadow-lg shadow-green-200 cursor-pointer"
+          >
+            Exit Test
+          </button>
         </div>
+
       </div>
     </div>
   );

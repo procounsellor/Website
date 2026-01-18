@@ -45,6 +45,7 @@ export default function MainLayout() {
   const location = useLocation();
 
   const isCollegeDetailsPage = location.pathname.includes('/colleges-details');
+  const shouldHideBanner = location.pathname.includes('/test-info') || location.pathname.includes('/test-result') || location.pathname.includes('/t/');
 
   useEffect(() => {
     if (isAuthenticated && role === "counselor" && location.pathname === "/") {
@@ -132,7 +133,8 @@ export default function MainLayout() {
 
   return (
     <div>
-      <AppInstallBanner />
+      {!shouldHideBanner && <AppInstallBanner />}
+
       <nav>
         <Header />
       </nav>
@@ -165,7 +167,7 @@ export default function MainLayout() {
           }}
           user={user}
           onUpdate={handleProfileUpdate}
-          onUploadComplete={() => {}}
+          onUploadComplete={() => { }}
         />
       )}
 
@@ -189,7 +191,7 @@ export default function MainLayout() {
             ${isCollegeDetailsPage ? 'bottom-18 md:bottom-6' : 'bottom-6'}`}
           aria-label="Toggle Chatbot"
         >
-           <MessageSquare size={32} />
+          <MessageSquare size={32} />
         </button>
       )}
       {isChatbotOpen && location.pathname !== '/promo' && <Chatbot />}

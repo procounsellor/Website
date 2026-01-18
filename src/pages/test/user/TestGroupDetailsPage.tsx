@@ -1,6 +1,6 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { BookOpen, Clock, FileText, Star, ShoppingCart, Bookmark, Lock, Loader2, Users, ArrowLeft } from "lucide-react";
+import { BookOpen, Clock, FileText, Star, ShoppingCart, Bookmark, Lock, Loader2, Users, ArrowLeft, Trash2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   getTestGroupByIdForUser,
@@ -8,7 +8,7 @@ import {
   bookmarkTestGroup,
   addReviewToTestGroup,
   updateReviewToTestGroup,
-  // deleteReviewFromTestGroup,
+  deleteReviewFromTestGroup,
 } from "@/api/testGroup";
 
 interface TestSeries {
@@ -49,6 +49,7 @@ interface TestGroupData {
     ratingCount: number | null;
     soldCount: number;
     published: boolean;
+    testType: string;
   };
   attachedTests: TestSeries[];
   reviews: Review[];
@@ -59,6 +60,7 @@ interface TestGroupData {
 export default function TestGroupDetailsPage() {
   const { testGroupId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [data, setData] = useState<TestGroupData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -75,7 +77,7 @@ export default function TestGroupDetailsPage() {
 
   const fetchTestGroupDetails = async () => {
     if (!userId || !testGroupId) return;
-    
+
     try {
       setLoading(true);
       const response = await getTestGroupByIdForUser(userId, testGroupId);
@@ -87,6 +89,10 @@ export default function TestGroupDetailsPage() {
           setUserReview(myReview);
           setReviewRating(myReview.rating);
           setReviewText(myReview.reviewText);
+        } else {
+          setUserReview(null);
+          setReviewRating(5);
+          setReviewText("");
         }
       }
     } catch (error) {
@@ -97,25 +103,33 @@ export default function TestGroupDetailsPage() {
     }
   };
 
+  const handleBack = () => {
+    if (location.state?.fromDashboard && location.state?.activeTab) {
+      navigate('/dashboard-student', { state: { activeTab: location.state.activeTab } });
+    } else {
+      navigate(-1);
+    }
+  };
+
   const handleBuy = async () => {
     if (!testGroupId || !data) return;
-    
+
     if (!userId) {
       toast.error("Please login to purchase");
       navigate("/");
       return;
     }
-    
+
     // For free test groups, just enroll
     if (data.testGroup.priceType === "FREE" || data.testGroup.price === 0) {
       try {
         const counsellorId = data.attachedTests[0]?.counsellorId || '';
-        
+
         if (!counsellorId) {
           toast.error("Unable to process enrollment");
           return;
         }
-        
+
         const response = await buyTestGroup(
           userId,
           counsellorId,
@@ -123,7 +137,7 @@ export default function TestGroupDetailsPage() {
           0,
           null
         );
-        
+
         if (response.status) {
           toast.success("Successfully enrolled!");
           fetchTestGroupDetails();
@@ -136,15 +150,15 @@ export default function TestGroupDetailsPage() {
       }
       return;
     }
-    
+
     // For paid test groups
     const counsellorId = data.attachedTests[0]?.counsellorId || '';
-    
+
     if (!counsellorId) {
       toast.error("Unable to process purchase");
       return;
     }
-    
+
     try {
       const response = await buyTestGroup(
         userId,
@@ -153,7 +167,7 @@ export default function TestGroupDetailsPage() {
         data.testGroup.price,
         null
       );
-      
+
       if (response.status) {
         toast.success("Test group purchased successfully!");
         fetchTestGroupDetails();
@@ -173,7 +187,7 @@ export default function TestGroupDetailsPage() {
 
   const handleBookmark = async () => {
     if (!userId || !testGroupId) return;
-    
+
     try {
       const response = await bookmarkTestGroup(userId, testGroupId);
       if (response.status) {
@@ -228,6 +242,33 @@ export default function TestGroupDetailsPage() {
     }
   };
 
+  const handleDeleteReview = async () => {
+    if (!userId || !testGroupId || !userReview) return;
+
+    if (!confirm("Are you sure you want to delete your review?")) return;
+
+    try {
+      const response = await deleteReviewFromTestGroup(
+        userId,
+        userReview.reviewId,
+        testGroupId
+      );
+      if (response.status) {
+        toast.success("Review deleted successfully");
+        setShowReviewModal(false);
+        setUserReview(null);
+        setReviewRating(5);
+        setReviewText("");
+        fetchTestGroupDetails();
+      } else {
+        toast.error(response.message || "Failed to delete review");
+      }
+    } catch (error) {
+      console.error("Failed to delete review:", error);
+      toast.error("Failed to delete review");
+    }
+  };
+
   const handleTestSeriesClick = (testSeriesId: string) => {
     if (data?.bought) {
       navigate(`/test-info/${testSeriesId}`);
@@ -255,282 +296,348 @@ export default function TestGroupDetailsPage() {
   const { testGroup, attachedTests, reviews, bookmarked, bought } = data;
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] pt-20 md:pt-24 pb-6 px-4 md:px-6">
+    <div className="min-h-screen bg-[#F9FAFB] pt-20 md:pt-24 pb-28 md:pb-6 px-4 md:px-6">
       <div className="max-w-6xl mx-auto">
         {/* Back Button */}
         <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-4 transition-colors cursor-pointer"
+          onClick={handleBack}
+          className="flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-6 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Back</span>
         </button>
 
-        {/* Header Section */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
-          {/* Banner */}
-          <div className="relative h-64 bg-gradient-to-r from-blue-500 to-purple-600">
-            {testGroup.bannerImagUrl ? (
-              <img
-                src={testGroup.bannerImagUrl}
-                alt={testGroup.testGroupName}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <BookOpen className="w-24 h-24 text-white opacity-50" />
-              </div>
-            )}
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content - Left Column */}
+          <div className="lg:col-span-2 space-y-6">
 
-          {/* Details */}
-          <div className="p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-[#242645] mb-2">
+            {/* Header Card */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden p-4 md:p-5 flex flex-col md:flex-row gap-4 md:gap-6">
+              <div className="w-full md:w-32 lg:w-40 aspect-square md:h-auto flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden self-center md:self-start max-w-[120px] md:max-w-none">
+                {testGroup.bannerImagUrl ? (
+                  <img
+                    src={testGroup.bannerImagUrl}
+                    alt={testGroup.testGroupName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-blue-50">
+                    <BookOpen className="w-10 h-10 md:w-12 md:h-12 text-blue-200" />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1 text-center md:text-left">
+                <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-2">
+                  <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] md:text-xs font-semibold uppercase tracking-wide">
+                    {testGroup.testType}
+                  </span>
+                  {bought && (
+                    <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded text-[10px] md:text-xs font-semibold flex items-center gap-1">
+                      <CheckCircle2 size={10} />
+                      Enrolled
+                    </span>
+                  )}
+                </div>
+
+                <h1 className="text-xl md:text-2xl font-bold text-[#242645] mb-2 leading-tight">
                   {testGroup.testGroupName}
                 </h1>
+
                 {testGroup.testGroupDescription && (
-                  <p className="text-gray-600 mb-4">{testGroup.testGroupDescription}</p>
+                  <p className="text-gray-600 text-xs md:text-sm mb-4 line-clamp-3">
+                    {testGroup.testGroupDescription}
+                  </p>
                 )}
-                
-                <div className="flex items-center gap-6 text-sm text-gray-600">
+
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 md:gap-4 text-xs md:text-sm text-gray-500">
                   <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">
-                      {testGroup.rating?.toFixed(1) || "N/A"}
-                    </span>
-                    <span>({testGroup.ratingCount || 0} reviews)</span>
+                    <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                    <span className="font-medium text-gray-900">{testGroup.rating?.toFixed(1) || "New"}</span>
+                    <span>({testGroup.ratingCount || 0})</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Users className="w-4 h-4" />
-                    <span>{testGroup.soldCount} enrolled</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <FileText className="w-4 h-4" />
-                    <span>{attachedTests.length} test series</span>
+                    <Users className="w-3.5 h-3.5" />
+                    <span>{testGroup.soldCount} students</span>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Price & Actions */}
-              <div className="flex flex-col items-end gap-3">
-                <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-                  {testGroup.priceType === "FREE" ? "Free" : `₹${testGroup.price}`}
-                </div>
-                <div className="flex gap-2">
+            {/* Test Series List */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base md:text-lg font-bold text-[#242645]">Test Series</h2>
+                <span className="text-xs md:text-sm text-gray-500">{attachedTests.length} Tests</span>
+              </div>
+
+              <div className="space-y-3">
+                {attachedTests.map((test) => {
+                  const totalQuestions = test.listOfSection.reduce(
+                    (sum, s) => sum + s.totalQuestionsSupposedToBeAdded,
+                    0
+                  );
+                  const totalAdded = test.listOfSection.reduce(
+                    (sum, s) => sum + s.totalQuestionsAdded,
+                    0
+                  );
+
+                  return (
+                    <div
+                      key={test.testSeriesId}
+                      onClick={() => handleTestSeriesClick(test.testSeriesId)}
+                      className={`flex items-center p-3 rounded-xl border transition-all ${bought
+                        ? "hover:border-blue-300 hover:bg-blue-50/30 cursor-pointer border-gray-100"
+                        : "border-gray-100 opacity-70 cursor-not-allowed"
+                        }`}
+                    >
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0 mr-3 md:mr-4">
+                        <FileText className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start">
+                          <h3 className="font-semibold text-gray-900 truncate pr-2 text-sm md:text-base">
+                            {test.testName}
+                          </h3>
+                          {!bought && <Lock className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400 flex-shrink-0" />}
+                        </div>
+                        <div className="flex items-center gap-2 md:gap-3 text-[10px] md:text-xs text-gray-500 mt-1">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> {test.durationInMinutes}m
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <span className="w-0.5 h-0.5 md:w-1 md:h-1 rounded-full bg-gray-300"></span>
+                            {totalAdded}/{totalQuestions} Qs
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Reviews Section */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6">
+              <div className="flex items-center justify-between mb-4 md:mb-6">
+                <h2 className="text-base md:text-lg font-bold text-[#242645]">Student Reviews</h2>
+                {bought && (
                   <button
-                    onClick={handleBookmark}
-                    className={`p-2 rounded-lg border transition-colors cursor-pointer ${
-                      bookmarked
-                        ? "bg-blue-50 border-blue-200 text-blue-600"
-                        : "bg-white border-gray-200 text-gray-600 hover:border-blue-200"
-                    }`}
+                    onClick={() => setShowReviewModal(true)}
+                    className="px-3 py-1.5 md:px-4 md:py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-xs md:text-sm font-medium cursor-pointer"
                   >
-                    <Bookmark className={`w-5 h-5 ${bookmarked ? "fill-current" : ""}`} />
+                    {userReview ? "Edit" : "Write Review"}
                   </button>
+                )}
+              </div>
+
+              {reviews.length === 0 ? (
+                <div className="text-center py-6 md:py-8 text-gray-500 bg-gray-50 rounded-xl">
+                  <Star className="w-8 h-8 md:w-10 md:h-10 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm">No reviews yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reviews.map((review) => (
+                    <div key={review.reviewId} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className="flex">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-3 h-3 md:w-3.5 md:h-3.5 ${i < review.rating
+                                  ? "fill-yellow-400 text-yellow-400"
+                                  : "text-gray-300"
+                                  }`}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-xs font-medium text-gray-900">
+                            {review.userId === userId ? "You" : "Student"}
+                          </span>
+                        </div>
+                        <span className="text-[10px] md:text-xs text-gray-500">
+                          {new Date(review.createdAt.seconds * 1000).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <p className="text-xs md:text-sm text-gray-600 leading-relaxed">{review.reviewText}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+          </div>
+
+          {/* Sidebar - Right Column - Hidden on Mobile, Fixed Bar used instead */}
+          <div className="hidden md:block lg:col-span-1">
+            <div className="sticky top-24 space-y-4">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div className="mb-6">
+                  <p className="text-sm text-gray-500 mb-1">Total Price</p>
+                  <div className="flex items-end gap-2">
+                    <span className="text-4xl font-bold text-gray-900">
+                      {testGroup.priceType === "FREE" ? "Free" : `₹${testGroup.price}`}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
                   {!bought ? (
                     <button
                       onClick={handleBuy}
-                      className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
+                      className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:opacity-90 transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      {testGroup.priceType === "FREE" || testGroup.price === 0 ? (
+                      {testGroup.priceType === "FREE" ? (
                         <>
-                          <BookOpen className="w-5 h-5" />
-                          Enroll Free
+                          <BookOpen className="w-5 h-5" /> Enroll for Free
                         </>
                       ) : (
                         <>
-                          <ShoppingCart className="w-5 h-5" />
-                          Buy Now
+                          <ShoppingCart className="w-5 h-5" /> Buy Now
                         </>
                       )}
                     </button>
                   ) : (
-                    <div className="px-6 py-2 bg-green-50 text-green-600 rounded-lg border border-green-200 font-medium">
-                      ✓ Purchased
-                    </div>
+                    <button disabled className="w-full py-3.5 bg-green-50 text-green-700 rounded-xl font-semibold flex items-center justify-center gap-2 border border-green-200">
+                      <CheckCircle2 className="w-5 h-5" /> Enrolled
+                    </button>
                   )}
+
+                  <button
+                    onClick={handleBookmark}
+                    className={`w-full py-3.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer border ${bookmarked
+                      ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+                      : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                      }`}
+                  >
+                    <Bookmark className={`w-5 h-5 ${bookmarked ? "fill-yellow-500 text-yellow-500" : ""}`} />
+                    {bookmarked ? "Bookmarked" : "Add to Bookmarks"}
+                  </button>
+                </div>
+
+                <div className="mt-6 pt-6 border-t border-gray-100">
+                  <h3 className="font-semibold text-gray-900 mb-3 text-sm">This test group includes:</h3>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-gray-400" />
+                      <span>Full lifetime access</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-gray-400" />
+                      <span>{attachedTests.length} complete tests</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Trophy className="w-4 h-4 text-gray-400" />
+                      <span>Performance analytics</span>
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Test Series List */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-          <h2 className="text-xl font-semibold text-[#242645] mb-4">Test Series</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {attachedTests.map((test) => {
-              const totalQuestions = test.listOfSection.reduce(
-                (sum, s) => sum + s.totalQuestionsSupposedToBeAdded,
-                0
-              );
-              const totalAdded = test.listOfSection.reduce(
-                (sum, s) => sum + s.totalQuestionsAdded,
-                0
-              );
+          {/* Mobile Fixed Bottom Bar */}
+          <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50 flex items-center justify-between shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+            <div>
+              <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Total Price</p>
+              <div className="flex items-center gap-2">
+                <span className="text-xl font-extrabold text-[#242645]">
+                  {testGroup.priceType === "FREE" ? "Free" : `₹${testGroup.price}`}
+                </span>
+              </div>
+            </div>
 
-              return (
-                <div
-                  key={test.testSeriesId}
-                  onClick={() => handleTestSeriesClick(test.testSeriesId)}
-                  className={`border rounded-xl overflow-hidden transition-all ${
-                    bought
-                      ? "hover:shadow-lg cursor-pointer border-gray-200"
-                      : "border-gray-200 opacity-60 cursor-not-allowed"
-                  }`}
-                >
-                  {/* Banner */}
-                  <div className="relative h-32 bg-gradient-to-r from-blue-400 to-purple-500">
-                    {test.bannerImagUrl ? (
-                      <img
-                        src={test.bannerImagUrl}
-                        alt={test.testName}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <FileText className="w-12 h-12 text-white opacity-50" />
-                      </div>
-                    )}
-                    {!bought && (
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                        <Lock className="w-8 h-8 text-white" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-4">
-                    <h3 className="font-semibold text-[#242645] mb-2 line-clamp-2">
-                      {test.testName}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                      {test.testDescription}
-                    </p>
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        <span>{test.durationInMinutes} mins</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <FileText className="w-3 h-3" />
-                        <span>{totalAdded}/{totalQuestions}Q</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">+{test.pointsForCorrectAnswer}</span>
-                        {test.negativeMarkingEnabled && (
-                          <span> / -{test.negativeMarks}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Reviews Section */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-[#242645]">Reviews</h2>
-            {bought && (
+            <div className="flex gap-2 items-center">
               <button
-                onClick={() => setShowReviewModal(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm cursor-pointer"
+                onClick={handleBookmark}
+                className={`p-3 rounded-xl border ${bookmarked
+                  ? "bg-yellow-50 border-yellow-200 text-yellow-600"
+                  : "bg-gray-50 border-gray-200 text-gray-500"
+                  }`}
               >
-                {userReview ? "Edit Review" : "Write Review"}
+                <Bookmark size={20} className={bookmarked ? "fill-current" : ""} />
               </button>
-            )}
+
+              {!bought ? (
+                <button
+                  onClick={handleBuy}
+                  className="px-8 py-3 bg-[--btn-primary] text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-500/25 flex items-center gap-2"
+                >
+                  {testGroup.priceType === "FREE" ? "Enroll Free" : "Buy Now"}
+                </button>
+              ) : (
+                <button disabled className="px-6 py-3 bg-green-50 text-green-700 rounded-xl font-bold text-sm border border-green-200 flex items-center gap-1.5">
+                  <CheckCircle2 size={16} /> Enrolled
+                </button>
+              )}
+            </div>
           </div>
 
-          {reviews.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <Star className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-              <p>No reviews yet</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {reviews.map((review) => (
-                <div key={review.reviewId} className="border-b border-gray-100 pb-4 last:border-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-4 h-4 ${
-                            i < review.rating
-                              ? "fill-yellow-400 text-yellow-400"
-                              : "text-gray-300"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-xs text-gray-500">
-                      {new Date(review.createdAt.seconds * 1000).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <p className="text-gray-700">{review.reviewText}</p>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Review Modal */}
         {showReviewModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl p-6 max-w-md w-full">
-              <h3 className="text-xl font-semibold mb-4">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl p-5 md:p-6 max-w-md w-full shadow-xl animate-in fade-in zoom-in duration-200">
+              <h3 className="text-lg md:text-xl font-bold mb-4 text-[#242645]">
                 {userReview ? "Edit Review" : "Write Review"}
               </h3>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">Rating</label>
-                <div className="flex gap-2">
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-3 text-gray-700">How would you rate this test?</label>
+                <div className="flex gap-2 justify-center">
                   {[1, 2, 3, 4, 5].map((rating) => (
                     <button
                       key={rating}
                       onClick={() => setReviewRating(rating)}
-                      className="transition-transform hover:scale-110 cursor-pointer"
+                      className="transition-transform hover:scale-110 cursor-pointer p-1"
                     >
                       <Star
-                        className={`w-8 h-8 ${
-                          rating <= reviewRating
-                            ? "fill-yellow-400 text-yellow-400"
-                            : "text-gray-300"
-                        }`}
+                        className={`w-8 h-8 ${rating <= reviewRating
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "text-gray-200"
+                          }`}
                       />
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">Review</label>
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-2 text-gray-700">Your Experience</label>
                 <textarea
                   value={reviewText}
                   onChange={(e) => setReviewText(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  rows={4}
-                  placeholder="Share your experience..."
+                  className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px] resize-none"
+                  placeholder="Tell us what you liked or didn't like..."
                 />
               </div>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowReviewModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
+              <div className="flex flex-col gap-3">
                 <button
                   onClick={handleSubmitReview}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+                  className="w-full py-3 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
                 >
-                  Submit
+                  {userReview ? "Update Review" : "Submit Review"}
+                </button>
+
+                {userReview && (
+                  <button
+                    onClick={handleDeleteReview}
+                    className="w-full py-3 bg-red-50 text-red-600 rounded-xl text-sm font-semibold hover:bg-red-100 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Trash2 size={16} /> Delete Review
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setShowReviewModal(false)}
+                  className="w-full py-3 text-gray-500 text-sm font-medium hover:text-gray-700 transition-colors cursor-pointer"
+                >
+                  Cancel
                 </button>
               </div>
             </div>
@@ -539,4 +646,28 @@ export default function TestGroupDetailsPage() {
       </div>
     </div>
   );
+}
+
+function Trophy(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+      <path d="M4 22h16" />
+      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+      <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+    </svg>
+  )
 }

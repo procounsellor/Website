@@ -5,7 +5,7 @@ import { CounselorProfileCard } from '@/components/counselor-details/CounselorPr
 import { AboutCounselorCard } from '@/components/counselor-details/AboutCounselorCard';
 import { CounselorReviews } from '@/components/counselor-details/CounselorReviews';
 import CounselorCoursesCard from '@/components/counselor-details/CounselorCoursesCard';
-// import { CounselorTestGroupsCard } from '@/components/counselor-details/CounselorTestGroupsCard';
+import { CounselorTestGroupsCard } from '@/components/counselor-details/CounselorTestGroupsCard';
 import { FreeCareerAssessmentCard } from '@/components/shared/FreeCareerAssessmentCard';
 // import { FeaturedCollegesCard } from '@/components/shared/FeaturedCollegesCard';
 // import { LiveSessionCard } from '@/components/counselor-details/LiveSessionCard';
@@ -79,82 +79,82 @@ export default function CounselorDetailsPage() {
   };
 
   useEffect(() => {
-  if (!computedId || !userId || !token) {
-    setLoadingData(false);
-    return;
-  }
+    if (!computedId || !userId || !token) {
+      setLoadingData(false);
+      return;
+    }
 
-  const fetchData = async () => {
-    try {
-      setLoadingData(true);
+    const fetchData = async () => {
+      try {
+        setLoadingData(true);
 
-      if (role === "counselor") {
-        console.log("Skipping subscription and review fetch for counselor login");
-        setSubscriptionDetails(null);
-        setReviews([]);
-        return;
-      }
-
-      const results = await Promise.allSettled([
-        getSubscribedCounsellors(userId, token),
-        getReviewsByCounselorId(userId, computedId, token)
-      ]);
-
-      if (results[0].status === "fulfilled") {
-        const subscribedList: ApiSubscribedCounselor[] = results[0].value;
-        const currentApiSubscription = subscribedList.find(c => c.counsellorId === computedId);
-
-        if (currentApiSubscription && currentApiSubscription.plan) {
-          const formattedSubscription: SubscribedCounsellor = {
-            counsellorId: currentApiSubscription.counsellorId,
-            plan: currentApiSubscription.plan,
-            subscriptionMode: currentApiSubscription.subscriptionMode ?? "unknown",
-          };
-          setSubscriptionDetails(formattedSubscription);
-        } else {
+        if (role === "counselor") {
+          console.log("Skipping subscription and review fetch for counselor login");
           setSubscriptionDetails(null);
+          setReviews([]);
+          return;
         }
-      } else {
-        console.error("Failed to fetch subscription status:", results[0].reason);
-      }
 
-      if (results[1].status === "fulfilled") {
-        const fetchedReviews = results[1].value;
-        setReviews(fetchedReviews);
-        if (userId && (role as string) !== "counselor") {
-            const foundReview = fetchedReviews.find(r => r.userName === userId); 
+        const results = await Promise.allSettled([
+          getSubscribedCounsellors(userId, token),
+          getReviewsByCounselorId(userId, computedId, token)
+        ]);
+
+        if (results[0].status === "fulfilled") {
+          const subscribedList: ApiSubscribedCounselor[] = results[0].value;
+          const currentApiSubscription = subscribedList.find(c => c.counsellorId === computedId);
+
+          if (currentApiSubscription && currentApiSubscription.plan) {
+            const formattedSubscription: SubscribedCounsellor = {
+              counsellorId: currentApiSubscription.counsellorId,
+              plan: currentApiSubscription.plan,
+              subscriptionMode: currentApiSubscription.subscriptionMode ?? "unknown",
+            };
+            setSubscriptionDetails(formattedSubscription);
+          } else {
+            setSubscriptionDetails(null);
+          }
+        } else {
+          console.error("Failed to fetch subscription status:", results[0].reason);
+        }
+
+        if (results[1].status === "fulfilled") {
+          const fetchedReviews = results[1].value;
+          setReviews(fetchedReviews);
+          if (userId && (role as string) !== "counselor") {
+            const foundReview = fetchedReviews.find(r => r.userName === userId);
             setUserReview(foundReview || null);
           } else {
             setUserReview(null);
           }
-      } else {
-        console.error("Failed to fetch reviews (this may be expected if none exist):", results[1].reason);
-        setReviews([]);
-        setUserReview(null);
+        } else {
+          console.error("Failed to fetch reviews (this may be expected if none exist):", results[1].reason);
+          setReviews([]);
+          setUserReview(null);
+        }
+
+      } catch (err) {
+        console.error("An unexpected error occurred in fetchData:", err);
+      } finally {
+        setLoadingData(false);
       }
+    };
 
-    } catch (err) {
-      console.error("An unexpected error occurred in fetchData:", err);
-    } finally {
-      setLoadingData(false);
-    }
-  };
+    fetchData();
+  }, [userId, token, computedId, role]);
 
-  fetchData();
-}, [userId, token, computedId, role]);
-
-  const handleProfileIncomplete = (action: () => void) =>{
+  const handleProfileIncomplete = (action: () => void) => {
     setPendingAction(() => action);
     setIsEditProfileModalOpen(true);
   };
 
   const handleUpdateProfile = async (updatedData: { firstName: string; lastName: string; email: string }) => {
-    if(!userId || !token){
+    if (!userId || !token) {
       throw new Error("User not authenticated");
     }
     await updateUserProfile(userId, updatedData, token);
     await refreshUser(true);
-    if(pendingAction){
+    if (pendingAction) {
       pendingAction();
       setPendingAction(null);
     }
@@ -170,7 +170,7 @@ export default function CounselorDetailsPage() {
     }
     const optimisticReview: CounselorReview = {
       reviewId: `temp-${Date.now()}`,
-      userFullName: String(user.fullName || "Your Name"), 
+      userFullName: String(user.fullName || "Your Name"),
       userPhotoUrl: user.photoSmall || `https://ui-avatars.com/api/?name=${user.fullName || 'U'}`,
       reviewText,
       rating,
@@ -190,7 +190,7 @@ export default function CounselorDetailsPage() {
         rating,
         receiverFcmToken: null,
       };
-      
+
       const response = await postReview({ ...reviewData, token });
       toast.dismiss(loadingToastId);
       if (response.status === 'success') {
@@ -230,7 +230,7 @@ export default function CounselorDetailsPage() {
       };
 
       await updateUserReview(payload, token);
-      
+
       toast.dismiss(loadingToastId);
       toast.success("Review updated successfully!", { duration: 2000 });
 
@@ -245,25 +245,25 @@ export default function CounselorDetailsPage() {
 
   const handleToggleFavourite = async () => {
     const { isAuthenticated, toggleLogin } = useAuthStore.getState();
-    
+
     const toggleFavAction = async () => {
       const freshUserId = localStorage.getItem('phone');
       const freshToken = localStorage.getItem('jwt');
-      
+
       if (!freshUserId || !computedId || !freshToken) {
         toast.error("Could not get user ID after login. Please try again.", { duration: 2000 });
         return;
       }
 
       setIsTogglingFavourite(true);
-      setIsFavourite(prevState => !prevState); 
+      setIsFavourite(prevState => !prevState);
 
       try {
         await addFav(freshUserId, computedId);
-        await refreshUser(true); 
+        await refreshUser(true);
         toast.success("Favourite status updated!", { duration: 2000 });
       } catch (err) {
-        setIsFavourite(prevState => !prevState); 
+        setIsFavourite(prevState => !prevState);
         toast.error("Could not update favourite status.", { duration: 2000 });
       } finally {
         setIsTogglingFavourite(false);
@@ -300,29 +300,29 @@ export default function CounselorDetailsPage() {
 
   return (
     <div className="bg-gray-50 pt-20 md:pt-28 pb-8 px-4">
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-      <div className="max-w-7xl mx-auto mb-6 hidden md:block">
-        <h1 className="text-2xl font-bold text-gray-800">Counsellor Profile</h1>
-        <p className="text-gray-500">Discover their expertise and find the right guidance for your future</p>
-      </div>
+        <div className="max-w-7xl mx-auto mb-6 hidden md:block">
+          <h1 className="text-2xl font-bold text-gray-800">Counsellor Profile</h1>
+          <p className="text-gray-500">Discover their expertise and find the right guidance for your future</p>
+        </div>
 
-      {/* Main Content Grid */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left Column */}
-        <div className="lg:col-span-2 flex flex-col gap-8">
-          <CounselorProfileCard 
-            counselor={counselor} 
-            subscription={subscriptionDetails} 
-            isFavourite={isFavourite}
-            onToggleFavourite={handleToggleFavourite}
-            isTogglingFavourite={isTogglingFavourite}  
-            user={user}
-            onProfileIncomplete={handleProfileIncomplete}
-          />
-          <AboutCounselorCard counselor={counselor} />
-          <CounselorReviews 
+        {/* Main Content Grid */}
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+          {/* Left Column */}
+          <div className="lg:col-span-2 flex flex-col gap-8">
+            <CounselorProfileCard
+              counselor={counselor}
+              subscription={subscriptionDetails}
+              isFavourite={isFavourite}
+              onToggleFavourite={handleToggleFavourite}
+              isTogglingFavourite={isTogglingFavourite}
+              user={user}
+              onProfileIncomplete={handleProfileIncomplete}
+            />
+            <AboutCounselorCard counselor={counselor} />
+            <CounselorReviews
               reviews={reviews}
               isSubscribed={!!subscriptionDetails}
               counsellorId={computedId}
@@ -330,18 +330,18 @@ export default function CounselorDetailsPage() {
               userReview={userReview}
               onUpdateReview={handleUpdateReview}
             />
-        </div>
+          </div>
 
-        {/* Right Column */}
-        <div className="lg:col-span-1 flex flex-col gap-8">
-          {/* <LiveSessionCard counselorName={`${counselor.firstName} ${counselor.lastName}`} /> */}
-          <FreeCareerAssessmentCard  counselor={counselor} user={user} onProfileIncomplete={handleProfileIncomplete}/>
-          <CounselorCoursesCard counsellorId={computedId} userRole={role || "user"} />
-          {/* <CounselorTestGroupsCard counsellorId={computedId} userId={userId} userRole={role || "user"} /> */}
-          {/* <FeaturedCollegesCard /> */}
-        </div>
+          {/* Right Column */}
+          <div className="lg:col-span-1 flex flex-col gap-8">
+            {/* <LiveSessionCard counselorName={`${counselor.firstName} ${counselor.lastName}`} /> */}
+            <FreeCareerAssessmentCard counselor={counselor} user={user} onProfileIncomplete={handleProfileIncomplete} />
+            <CounselorCoursesCard counsellorId={computedId} userRole={role || "user"} />
+            <CounselorTestGroupsCard counsellorId={computedId} userId={userId} userRole={role || "user"} />
+            {/* <FeaturedCollegesCard /> */}
+          </div>
 
-      </div>
+        </div>
       </main>
       {user && (
         <EditProfileModal
@@ -349,7 +349,7 @@ export default function CounselorDetailsPage() {
           onClose={handleCloseModal}
           user={user}
           onUpdate={handleUpdateProfile}
-          onUploadComplete={() => {}} 
+          onUploadComplete={() => { }}
         />
       )}
     </div>
