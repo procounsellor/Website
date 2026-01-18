@@ -662,7 +662,7 @@ export function AddQuestion() {
             <label className="text-base font-medium leading-[125%] text-(--text-app-primary)">
               Question
             </label>
-            <div className="relative border border-[#E8EAED] rounded-xl p-4">
+            <div className="relative border border-[#E8EAED] rounded-xl p-4 pb-12">
               <textarea
                 value={questionText}
                 onChange={(e) => setQuestionText(e.target.value)}
@@ -671,19 +671,19 @@ export function AddQuestion() {
               />
               {/* Show existing images from API */}
               {existingQuestionImageUrls.length > 0 && !questionImage && (
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-3 mb-2 flex flex-wrap gap-2">
                   {existingQuestionImageUrls.map((url, index) => (
-                    <div key={index} className="w-[237px] h-[237px] rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] flex items-center justify-center overflow-hidden relative">
+                    <div key={index} className="max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
                       <img 
                         src={url} 
                         alt={`Question ${index + 1}`} 
-                        className="w-full h-full object-cover"
+                        className="max-w-full h-auto max-h-[400px] object-contain"
                       />
                       <button
                         onClick={() => {
                           setExistingQuestionImageUrls(prev => prev.filter((_, i) => i !== index));
                         }}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
                       >
                         ×
                       </button>
@@ -693,15 +693,17 @@ export function AddQuestion() {
               )}
               {/* Show new uploaded image */}
               {questionImage && (
-                <div className="mt-3 w-[237px] h-[237px] rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] flex items-center justify-center overflow-hidden relative">
+                <div className="mt-3 mb-2 max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
                   <img 
                     src={URL.createObjectURL(questionImage)} 
                     alt="Question" 
-                    className="w-full h-full object-cover"
+                    className="max-w-full h-auto max-h-[400px] object-contain"
                   />
                   <button
-                    onClick={() => setQuestionImage(null)}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                    onClick={(e) =>{
+                       e.stopPropagation()
+                       setQuestionImage(null)}}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
                   >
                     ×
                   </button>
@@ -858,14 +860,14 @@ export function AddQuestion() {
                     
                     {/* Show option images inside the same box */}
                     {(option.imageUrl || option.image) && (
-                      <div className="mt-3 flex flex-wrap gap-2">
+                      <div className="mt-3 mb-2 flex flex-wrap gap-2">
                         {/* Show existing image from API */}
                         {option.imageUrl && (
-                          <div className="w-[237px] h-[237px] rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] flex items-center justify-center overflow-hidden relative">
+                          <div className="max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
                             <img 
                               src={option.imageUrl} 
                               alt={`Option ${option.id} (existing)`} 
-                              className="w-full h-full object-cover"
+                              className="max-w-full h-auto max-h-[300px] object-contain"
                             />
                             <button
                               onClick={() => {
@@ -873,7 +875,7 @@ export function AddQuestion() {
                                 newOptions[index].imageUrl = null;
                                 setOptions(newOptions);
                               }}
-                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
                             >
                               ×
                             </button>
@@ -882,11 +884,11 @@ export function AddQuestion() {
                         
                         {/* Show newly uploaded image */}
                         {option.image && (
-                          <div className="w-[237px] h-[237px] rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] flex items-center justify-center overflow-hidden relative">
+                          <div className="max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
                             <img 
                               src={URL.createObjectURL(option.image)} 
                               alt={`Option ${option.id} (new)`} 
-                              className="w-full h-full object-cover"
+                              className="max-w-full h-auto max-h-[300px] object-contain"
                             />
                             <button
                               onClick={() => {
@@ -894,7 +896,7 @@ export function AddQuestion() {
                                 newOptions[index].image = null;
                                 setOptions(newOptions);
                               }}
-                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
                             >
                               ×
                             </button>
@@ -945,7 +947,7 @@ export function AddQuestion() {
             <label className="text-base font-medium leading-[125%] text-(--text-app-primary)">
               Solution (Optional)
             </label>
-            <div className="relative border border-[#E8EAED] rounded-xl p-4">
+            <div className="relative border border-[#E8EAED] rounded-xl p-4 pb-12">
               <textarea
                 value={solution}
                 onChange={(e) => setSolution(e.target.value)}
@@ -954,15 +956,15 @@ export function AddQuestion() {
               />
               {/* Show existing solution image from API */}
               {existingSolutionImageUrl && !solutionImage && (
-                <div className="mt-3 w-[237px] h-[237px] rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] flex items-center justify-center overflow-hidden relative">
+                <div className="mt-3 mb-2 max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
                   <img 
                     src={existingSolutionImageUrl} 
                     alt="Solution" 
-                    className="w-full h-full object-cover"
+                    className="max-w-full h-auto max-h-[400px] object-contain"
                   />
                   <button
                     onClick={() => setExistingSolutionImageUrl(null)}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
                   >
                     ×
                   </button>
@@ -970,15 +972,15 @@ export function AddQuestion() {
               )}
               {/* Show new uploaded solution image */}
               {solutionImage && (
-                <div className="mt-3 w-[237px] h-[237px] rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] flex items-center justify-center overflow-hidden relative">
+                <div className="mt-3 mb-2 max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
                   <img 
                     src={URL.createObjectURL(solutionImage)} 
                     alt="Solution" 
-                    className="w-full h-full object-cover"
+                    className="max-w-full h-auto max-h-[400px] object-contain"
                   />
                   <button
                     onClick={() => setSolutionImage(null)}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
                   >
                     ×
                   </button>
