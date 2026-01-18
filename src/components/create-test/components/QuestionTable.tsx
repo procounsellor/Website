@@ -5,7 +5,24 @@ interface QuestionTableProps {
   onDelete?: (questionId: string, sectionName: string) => void;
 }
 
+import { useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+
 export function QuestionTable({ data, onView, onEdit, onDelete }: QuestionTableProps) {
+  const [displayCount, setDisplayCount] = useState(10);
+  const INITIAL_COUNT = 10;
+  const INCREMENT_COUNT = 5;
+
+  const handleShowMore = () => {
+    setDisplayCount(prev => Math.min(prev + INCREMENT_COUNT, data.length));
+  };
+
+  const handleShowLess = () => {
+    setDisplayCount(INITIAL_COUNT);
+  };
+
+  const displayedData = data.slice(0, displayCount);
+
   return (
     <div className="w-full">
       <table className="w-full border-collapse">
@@ -36,7 +53,7 @@ export function QuestionTable({ data, onView, onEdit, onDelete }: QuestionTableP
               </td>
             </tr>
           ) : (
-            data.map((q: any) => (
+            displayedData.map((q: any) => (
               <tr
                 key={q.questionId}
                 className="border-b border-[#E8EAED] hover:bg-gray-50"
@@ -59,19 +76,19 @@ export function QuestionTable({ data, onView, onEdit, onDelete }: QuestionTableP
                 {/* Actions */}
                 <td className="px-3 py-3">
                   <div className="flex items-center gap-3">
-                    <button 
+                    <button
                       onClick={() => onView?.(q.questionId)}
                       className="hover:opacity-80 cursor-pointer"
                     >
                       <img src="/eye.svg" alt="View" className="w-5 h-5" />
                     </button>
-                    <button 
+                    <button
                       onClick={() => onEdit?.(q.questionId, q.sectionName)}
                       className="hover:opacity-80 cursor-pointer"
                     >
                       <img src="/pencil.svg" alt="Edit" className="w-5 h-5" />
                     </button>
-                    <button 
+                    <button
                       onClick={() => onDelete?.(q.questionId, q.sectionName)}
                       className="hover:opacity-80 cursor-pointer"
                     >
@@ -84,6 +101,35 @@ export function QuestionTable({ data, onView, onEdit, onDelete }: QuestionTableP
           )}
         </tbody>
       </table>
+
+      {/* Pagination Controls */}
+      {data.length > INITIAL_COUNT && (
+        <div className="flex justify-center items-center gap-4 py-4 border-t border-gray-100">
+          <p className="text-sm text-gray-500">
+            Showing {Math.min(displayCount, data.length)} of {data.length} questions
+          </p>
+
+          <div className="flex gap-2">
+            {displayCount < data.length && (
+              <button
+                onClick={handleShowMore}
+                className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
+              >
+                See More <ChevronDown size={16} />
+              </button>
+            )}
+
+            {displayCount > INITIAL_COUNT && (
+              <button
+                onClick={handleShowLess}
+                className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                Show Less <ChevronUp size={16} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

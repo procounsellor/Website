@@ -82,3 +82,27 @@ export const submitTestAndCalculateScore = async (
   );
   return response.json();
 };
+
+export const resumeTest = async (userId: string, attemptId: string) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/userTestSeries/resumeTest`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ userId, attemptId }),
+    }
+  );
+  return response.json();
+};
+
+export const compareAnswers = async (userId: string, attemptId: string) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/userTestSeries/compareAnswers`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ userId, attemptId }),
+    }
+  );
+  return response.json();
+};

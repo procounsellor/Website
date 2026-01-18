@@ -5,6 +5,7 @@ interface SectionProps {
         status: "NOT_VISITED" | "ATTEMPTED" | "MARKED_FOR_REVIEW" | "CURRENT";
     }>;
     onQuestionClick?: (questionIndex: number) => void;
+    isDisabled?: boolean;
 }
 
 const bgMap = {
@@ -14,30 +15,29 @@ const bgMap = {
     NOT_VISITED: "bg-[#EAEDF0]",
 };
 
-export function Section({ sectionName, questions, onQuestionClick }: SectionProps) {
+export function Section({ sectionName, questions, onQuestionClick, isDisabled }: SectionProps) {
     return (
-        <div className="border border-[#D8D8D8] max-w-[314px] rounded-2xl overflow-hidden">
+        <div className={`border border-[#D8D8D8] max-w-[314px] rounded-2xl overflow-hidden ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}>
             <h1 className="flex items-center justify-center bg-[#EAEDF0] border-b border-[#D8D8D8] py-2 font-medium text-(--text-app-primary)">
                 {sectionName}
             </h1>
-            <div className="grid grid-cols-6 p-3 gap-3 bg-white">
+            <div className={`grid grid-cols-6 p-3 gap-3 bg-white ${isDisabled ? "pointer-events-none" : ""}`}>
                 {questions.map((q, i) => {
                     const isCurrent = q.status === "CURRENT";
                     return (
                         <div
                             key={i}
-                            onClick={() => onQuestionClick?.(i)}
-                            className={`flex items-center justify-center h-8 w-8 ${
-                                isCurrent || q.status === "ATTEMPTED"
-                                    ? "text-white"
-                                    : "text-(--text-muted)"
-                            } text-sm font-medium rounded-[8px] ${bgMap[q.status]} cursor-pointer hover:opacity-80 transition-opacity`}
+                            onClick={() => !isDisabled && onQuestionClick?.(i)}
+                            className={`flex items-center justify-center h-8 w-8 ${isCurrent || q.status === "ATTEMPTED" || q.status === "MARKED_FOR_REVIEW"
+                                ? "text-white"
+                                : "text-(--text-muted)"
+                                } text-sm font-medium rounded-[8px] ${bgMap[q.status]} ${isDisabled ? "" : "cursor-pointer hover:opacity-80"} transition-opacity`}
                         >
                             {q.questionNumber}
                         </div>
                     );
                 })}
             </div>
-        </div>
+        </div >
     );
 }
