@@ -6,6 +6,7 @@ interface SubmitTestModalProps {
   onConfirm: () => void;
   testName: string;
   attemptedCount: number;
+  markedForReviewCount: number;
   unansweredCount: number;
   notVisitedCount: number;
   timeTaken: string;
@@ -25,6 +26,7 @@ export function SubmitTestModal({
   onConfirm,
   testName,
   attemptedCount,
+  markedForReviewCount,
   unansweredCount,
   notVisitedCount,
   timeTaken,
@@ -34,7 +36,7 @@ export function SubmitTestModal({
 }: SubmitTestModalProps) {
   if (!isOpen) return null;
 
-  const hasUnanswered = unansweredCount + notVisitedCount > 0;
+  const hasUnanswered = unansweredCount + notVisitedCount + markedForReviewCount > 0;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4 font-sans">
@@ -75,13 +77,13 @@ export function SubmitTestModal({
               <p className="text-[10px] md:text-xs text-gray-500 font-medium">Attempted</p>
             </div>
 
-            {/* Unanswered */}
+            {/* Marked for Review */}
             <div className="border border-gray-100 shadow-sm rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center text-center bg-white">
-              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-amber-400 mb-1.5 md:mb-2"></div>
+              <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-orange-400 mb-1.5 md:mb-2"></div>
               <span className="text-xl md:text-2xl font-bold text-gray-900 mb-0.5 md:mb-1 leading-none">
-                {unansweredCount}
+                {markedForReviewCount}
               </span>
-              <p className="text-[10px] md:text-xs text-gray-500 font-medium">Unanswered</p>
+              <p className="text-[10px] md:text-xs text-gray-500 font-medium whitespace-nowrap">Marked</p>
             </div>
 
             {/* Not Visited */}
@@ -163,7 +165,7 @@ export function SubmitTestModal({
                 </div>
                 <div>
                   <h5 className="text-sm font-semibold text-red-500 mb-1">
-                    You have {unansweredCount + notVisitedCount} unanswered questions
+                    You have {markedForReviewCount + notVisitedCount} questions to review
                   </h5>
                   <p className="text-sm text-red-400 leading-relaxed">
                     Time remaining: {timeRemaining}, you can go back and attempt them

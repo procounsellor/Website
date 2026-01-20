@@ -127,7 +127,7 @@ export function TestResult({ resultData: propResultData, onExit, onRetake }: Tes
         {/* Header */}
         <div className="flex-none p-6 pb-2">
           <h2 className="text-xl font-bold text-gray-900 pr-8">
-            Test Score - {finalResultData.attemptId.substring(0, 8)}... {/* Improve if Test Name available */}
+            Test Completed
           </h2>
           <p className="text-sm text-gray-500 mt-1">
             Submitted on {new Date().toLocaleDateString()} {/* Replace with actual date if available */}

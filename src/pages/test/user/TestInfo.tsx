@@ -11,7 +11,7 @@ interface SectionData {
   pointsForCorrectAnswer?: number;
 }
 
-const generalInstructions = [
+const getGeneralInstructions = (negativeMarkingEnabled: boolean, pointsPerQuestion: number, negativeMarks: number) => [
   {
     id: 1,
     title: "Test Timer.",
@@ -49,19 +49,16 @@ const generalInstructions = [
   {
     id: 4,
     title: "Marking Scheme",
-    sections: [
-      {
-        subtitle: "Objective Type Questions:",
-        points: [
-          "Negative marking is applicable.",
-          "¼ (one-fourth) of the marks will be deducted for every incorrect answer."
-        ]
-      },
-      {
-        subtitle: "Numerical Type Questions:",
-        points: ["No negative marking."]
-      }
-    ]
+    points: negativeMarkingEnabled
+      ? [
+        `+${pointsPerQuestion} marks will be awarded for every correct answer.`,
+        `Negative marking is applicable.`,
+        `-${negativeMarks} mark(s) will be deducted for every incorrect answer.`
+      ]
+      : [
+        `+${pointsPerQuestion} marks will be awarded for every correct answer.`,
+        `No negative marking.`
+      ]
   }
 ];
 
@@ -74,6 +71,7 @@ export function TestInfo() {
   const [pointsPerQuestion, setPointsPerQuestion] = useState(4);
   const [negativeMarks, setNegativeMarks] = useState(1);
   const [negativeMarkingEnabled, setNegativeMarkingEnabled] = useState(true);
+  const [sectionSwitchingAllowed, setSectionSwitchingAllowed] = useState(false);
   // New state for attempts
   const [attempts, setAttempts] = useState<any[]>([]);
 
@@ -91,6 +89,7 @@ export function TestInfo() {
           setPointsPerQuestion(data.pointsForCorrectAnswer || 4);
           setNegativeMarks(data.negativeMarks || 1);
           setNegativeMarkingEnabled(data.negativeMarkingEnabled || false);
+          setSectionSwitchingAllowed(data.sectionSwitchingAllowed || false);
 
           // Extract section information from listOfSection
           setSections(data.listOfSection || []);
@@ -124,6 +123,7 @@ export function TestInfo() {
 
   // Logic to determine button state
   const inProgressAttempt = attempts.find(a => a.status === "IN_PROGRESS");
+  const hasCompletedAttempts = attempts.some(a => a.status === "SUBMITTED");
 
   // Handler for Start/Resume button
   const handleMainAction = () => {
@@ -184,8 +184,7 @@ export function TestInfo() {
               {row.sectionDurationInMinutes} mins
             </div>
             <div className="px-3 py-4 font-semibold text-xs md:text-base">
-              {/* Show marking per section if different, otherwise implied global */}
-              {row.pointsForCorrectAnswer ? `+${row.pointsForCorrectAnswer}` : `+${pointsPerQuestion}`}
+              {(row.pointsForCorrectAnswer || pointsPerQuestion) * row.totalQuestionsSupposedToBeAdded}
             </div>
           </div>
         ))}
@@ -221,6 +220,15 @@ export function TestInfo() {
                   +{pointsPerQuestion} {negativeMarkingEnabled ? `/ -${negativeMarks}` : '/ No negative'}
                 </p>
               </div>
+
+              <div className="flex flex-col md:flex-row md:gap-2">
+                <p className="text-xs font-normal md:text-sm text-(--text-muted)">
+                  Section Navigation:
+                </p>
+                <p className={`text-sm font-semibold md:text-[1rem] ${sectionSwitchingAllowed ? 'text-green-600' : 'text-orange-600'}`}>
+                  {sectionSwitchingAllowed ? 'Free Switching' : 'Sequential Only'}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -241,7 +249,6 @@ export function TestInfo() {
                   <th className="px-6 py-4 text-sm font-medium text-gray-500">Date/Time</th>
                   <th className="px-6 py-4 text-sm font-medium text-gray-500">Status</th>
                   <th className="px-6 py-4 text-sm font-medium text-gray-500">Score</th>
-                  <th className="px-6 py-4 text-sm font-medium text-gray-500">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -269,17 +276,6 @@ export function TestInfo() {
                       <span className="text-lg font-bold text-gray-900">
                         {attempt.status === 'SUBMITTED' ? `${attempt.score}/${attempt.maxScore}` : '-'}
                       </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {attempt.status === 'SUBMITTED' ? (
-                        <button className="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline">
-                          View Analysis
-                        </button>
-                      ) : (
-                        <button className="text-orange-600 hover:text-orange-800 text-sm font-medium hover:underline">
-                          Resume Test
-                        </button>
-                      )}
                     </td>
                   </tr>
                 ))}
@@ -342,7 +338,7 @@ export function TestInfo() {
         </h2>
 
         <div className="p-6 md:p-8 space-y-6">
-          {generalInstructions.map((instruction) => (
+          {getGeneralInstructions(negativeMarkingEnabled, pointsPerQuestion, negativeMarks).map((instruction) => (
             <div key={instruction.id} className="text-left">
               <h3 className="font-medium text-base md:text-[1.25rem] text-(--text-app-primary) mb-3">
                 {instruction.id}. {instruction.title}
@@ -404,24 +400,7 @@ export function TestInfo() {
                 </div>
               )}
 
-              {instruction.sections && (
-                <div className="ml-4 space-y-3">
-                  {instruction.sections.map((section, idx) => (
-                    <div key={idx}>
-                      <p className="font-semibold text-sm md:text-base text-(--text-app-primary) mb-2">
-                        {section.subtitle}
-                      </p>
-                      <ul className="ml-4 space-y-1">
-                        {section.points.map((point, pointIdx) => (
-                          <li key={pointIdx} className="text-sm md:text-base text-(--text-app-primary) list-disc font-normal">
-                            {point}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              )}
+
             </div>
           ))}
         </div>
@@ -437,7 +416,7 @@ export function TestInfo() {
           onClick={handleMainAction}
           className="bg-(--btn-primary) w-full md:w-auto md:min-w-[166px] py-2.5 px-6 text-white font-medium text-xs md:text-lg shadow-[0px_2px_4px_0px_#FA660F33] rounded-[12px] md:rounded-2xl cursor-pointer hover:opacity-90 transition-opacity whitespace-nowrap"
         >
-          {inProgressAttempt ? "Resume Test" : "Start Test"}
+          {inProgressAttempt ? "Resume Test" : (hasCompletedAttempts ? "Retake Test" : "Start Test")}
         </button>
       </div>
     </div>
