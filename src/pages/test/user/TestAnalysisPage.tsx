@@ -78,20 +78,6 @@ export function TestAnalysisPage() {
     const currentSection = data.sections[currentSectionIndex];
     const currentQuestion = currentSection.questions[currentQuestionIndex];
 
-    // Calculate stats for sidebar
-    const getQuestionStatus = (q: Question) => {
-        if (q.userAnswerIds.length === 0) return "NOT_VISITED";
-        if (q.isCorrect) return "ATTEMPTED"; // Reusing ATTEMPTED color for Correct (Green) logic in Sidebar if needed, but better to map correctly
-        return "MARKED_FOR_REVIEW"; // Reusing MARKED for Wrong (Orange/Red) logic
-    };
-
-    // Custom Section component mapper
-    const mapStatusToColor = (q: Question) => {
-        if (q.userAnswerIds.length === 0) return "NOT_VISITED"; // Gray
-        if (q.isCorrect) return "ATTEMPTED"; // Green
-        return "MARKED_FOR_REVIEW"; // Orange/Red - Using this to represent WRONG in standard UI or need custom
-    };
-
     const handlePrev = () => {
         if (!data) return;
         if (currentQuestionIndex > 0) {
