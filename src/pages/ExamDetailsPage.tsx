@@ -6,7 +6,7 @@ import { useCourses } from '@/hooks/useCourses';
 import { ExamHeroCard } from '@/components/exam-details/ExamHeroCard';
 import { ExamInfoTabs } from '@/components/exam-details/ExamInfoTabs';
 import { SimilarExamsCard } from '@/components/exam-details/SimilarExamsCard';
-import { FeaturedCollegesCard } from '@/components/shared/FeaturedCollegesCard';
+// import { FeaturedCollegesCard } from '@/components/shared/FeaturedCollegesCard';
 import { ExamDetailGridCard } from '@/components/exam-details/ExamDetailGridCard';
 import { ExamStatsCard } from '@/components/exam-details/ExamStatsCard';
 import { InfoCard } from '@/components/exam-details/InfoCard';
@@ -91,7 +91,7 @@ export default function ExamDetailsPage() {
                     
                     <InfoCard title="Contact">
                       <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center w-12 h-12 bg-blue-100/50 rounded-full flex-shrink-0">
+                        <div className="flex items-center justify-center w-12 h-12 bg-blue-100/50 rounded-full shrink-0">
                         <Globe className="w-7 h-7 text-[#13097D]"/>
                         </div>
                         <div>
@@ -143,7 +143,7 @@ export default function ExamDetailsPage() {
 
           <div className="hidden lg:col-span-1 lg:flex flex-col gap-8">
             <SimilarExamsCard />
-            <FeaturedCollegesCard />
+            {/* <FeaturedCollegesCard /> */}
           </div>
         </div>
       </main>

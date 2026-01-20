@@ -186,4 +186,36 @@ export const academicApi = {
     if (!res.ok) throw new Error("Failed to search all counselors");
     return res.json();
   },
+
+  searchExams: async (
+    filters: {
+      search?: string;
+      level?: string;
+      type?: string;
+      sortBy?: string;
+      sortOrder?: string;
+    }, 
+    page: number = 0, 
+    pageSize: number = 9
+  ) => {
+    const params = new URLSearchParams();
+    
+    if (filters.search) params.append("search", filters.search);
+    if (filters.level) params.append("examLevel", filters.level);
+    if (filters.type) params.append("examType", filters.type);
+    if (filters.sortBy) params.append("sortBy", filters.sortBy);
+    if (filters.sortOrder) params.append("sortOrder", filters.sortOrder);
+    
+    params.append("page", page.toString());
+    params.append("pageSize", pageSize.toString());
+
+    const res = await fetch(`${API_CONFIG.baseUrl}/api/exams/all/search?${params.toString()}`, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!res.ok) throw new Error("Failed to search exams");
+    return res.json();
+  },
 };
