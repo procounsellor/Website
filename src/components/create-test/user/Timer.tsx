@@ -66,17 +66,17 @@ export function Timer({ time, initialSeconds, onSectionClick, onTimerEnd, onTick
                 <div className="flex gap-3 items-start">
                     <div className="flex flex-col items-center">
                         <p className="text-[1.5rem] font-semibold text-(--text-app-primary)">{formatTime(hours)}</p>
-                        <span className="font-medium text-xs text-(--text-muted)">Hours</span>
+                        <span className="font-medium text-xs text-(--text-muted)">h</span>
                     </div>
                     <span className="text-[1.5rem] font-semibold text-(--text-app-primary)">:</span>
                     <div className="flex flex-col items-center">
                         <p className="text-[1.5rem] font-semibold text-(--text-app-primary)">{formatTime(minutes)}</p>
-                        <span className="font-medium text-xs text-(--text-muted)">Minutes</span>
+                        <span className="font-medium text-xs text-(--text-muted)">m</span>
                     </div>
                     <span className="text-[1.5rem] font-semibold text-(--text-app-primary)">:</span>
                     <div className="flex flex-col items-center">
                         <p className="text-[1.5rem] font-semibold text-(--text-app-primary)">{formatTime(secs)}</p>
-                        <span className="font-medium text-xs text-(--text-muted)">Seconds</span>
+                        <span className="font-medium text-xs text-(--text-muted)">s</span>
                     </div>
                 </div>
             </div>

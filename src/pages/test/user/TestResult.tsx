@@ -186,8 +186,8 @@ export function TestResult({ resultData: propResultData, onExit, onRetake }: Tes
             {/* Time Taken */}
             <div className="border border-gray-100 shadow-sm rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center text-center bg-white">
               <div className="w-3 h-3 rounded-full bg-purple-400 mb-2"></div>
-              <span className="text-base md:text-lg font-bold text-gray-900 mb-1 leading-tight">
-                {finalResultData.actualDurationTakenToCompleteTest}
+              <span className="text-sm md:text-lg font-bold text-gray-900 mb-1 leading-tight">
+                {finalResultData.actualDurationTakenToCompleteTest.replace(/\s*min[a-z]*/gi, "m").replace(/\s*sec[a-z]*/gi, "s")}
               </span>
               <p className="text-xs text-gray-500 font-medium">Time Taken</p>
             </div>

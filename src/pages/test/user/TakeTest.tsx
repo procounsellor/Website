@@ -615,17 +615,7 @@ export function TakeTest() {
         });
       });
 
-      const resultData = {
-        attemptId: attemptId || "temp-id",
-        score: score,
-        totalQuestions: totalQuestions,
-        correct: correct,
-        wrong: wrong,
-        unattempted: unattempted,
-        maxMarks: sections.reduce((acc, sec) => acc + (sec.totalQuestions * (sec.pointsForCorrectAnswer || 4)), 0),
-        actualDurationTakenToCompleteTest: timeTakenString,
-        sectionScores: sectionScores
-      };
+
 
       if (response.status && response.data) {
         toast.success("Test submitted successfully!");

@@ -38,6 +38,12 @@ export function SubmitTestModal({
 
   const hasUnanswered = unansweredCount + notVisitedCount + markedForReviewCount > 0;
 
+  const unansweredTotal = unansweredCount + notVisitedCount;
+  const warningParts = [];
+  if (markedForReviewCount > 0) warningParts.push(`${markedForReviewCount} marked for review`);
+  if (unansweredTotal > 0) warningParts.push(`${unansweredTotal} unanswered questions`);
+  const warningMessage = `You have ${warningParts.join(" and ")}`;
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4 font-sans">
       <div className="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
@@ -99,7 +105,7 @@ export function SubmitTestModal({
             <div className="border border-gray-100 shadow-sm rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center text-center bg-white">
               <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-purple-400 mb-1.5 md:mb-2"></div>
               <span className="text-base md:text-lg font-bold text-gray-900 mb-0.5 md:mb-1 leading-tight">
-                {timeTaken}
+                {timeTaken.replace(/\s*min[a-z]*/gi, "m").replace(/\s*sec[a-z]*/gi, "s")}
               </span>
               <p className="text-[10px] md:text-xs text-gray-500 font-medium">Time Taken</p>
             </div>
@@ -165,7 +171,7 @@ export function SubmitTestModal({
                 </div>
                 <div>
                   <h5 className="text-sm font-semibold text-red-500 mb-1">
-                    You have {markedForReviewCount + notVisitedCount} questions to review
+                    {warningMessage}
                   </h5>
                   <p className="text-sm text-red-400 leading-relaxed">
                     Time remaining: {timeRemaining}, you can go back and attempt them
