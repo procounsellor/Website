@@ -37,6 +37,7 @@ interface Section {
   sectionDurationInMinutes: number;
   pointsForCorrectAnswer: number;
   negativeMarks: number;
+  newSectionName?: string; // For renaming sections in update requests
 }
 
 interface SectionInput {
@@ -85,6 +86,8 @@ export function CreateTest() {
   const [sections, setSections] = useState<Section[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [testSeriesId, setTestSeriesId] = useState<string | null>(null);
+  const [editingSectionIndex, setEditingSectionIndex] = useState<number | null>(null);
+  const [originalSectionName, setOriginalSectionName] = useState<string>(""); // Track original name for renaming
   const [currentSection, setCurrentSection] = useState<SectionInput>({
     sectionName: "",
     totalQuestions: "",
@@ -210,17 +213,39 @@ export function CreateTest() {
   const handleAddSection = () => {
     if (currentSection.sectionName && currentSection.totalQuestions && currentSection.sectionDuration &&
       currentSection.correctPoints && currentSection.negativeMarks) {
-      const newSection: Section = {
-        sectionName: currentSection.sectionName,
-        totalQuestionsSupposedToBeAdded: parseInt(currentSection.totalQuestions),
-        sectionDurationInMinutes: parseInt(currentSection.sectionDuration),
-        pointsForCorrectAnswer: parseFloat(currentSection.correctPoints),
-        negativeMarks: parseFloat(currentSection.negativeMarks),
-      };
 
-      // Add new section
-      setSections([...sections, newSection]);
-      toast.success("Section added");
+      const trimmedSectionName = currentSection.sectionName.trim();
+
+      if (editingSectionIndex !== null) {
+        // Update existing section
+        const updatedSections = [...sections];
+        const isNameChanged = originalSectionName !== trimmedSectionName;
+
+        updatedSections[editingSectionIndex] = {
+          sectionName: originalSectionName, // Keep original name for API identification
+          totalQuestionsSupposedToBeAdded: parseInt(currentSection.totalQuestions),
+          sectionDurationInMinutes: parseInt(currentSection.sectionDuration),
+          pointsForCorrectAnswer: parseFloat(currentSection.correctPoints),
+          negativeMarks: parseFloat(currentSection.negativeMarks),
+          ...(isNameChanged ? { newSectionName: trimmedSectionName } : {}),
+        };
+
+        setSections(updatedSections);
+        setEditingSectionIndex(null);
+        setOriginalSectionName("");
+        toast.success("Section updated");
+      } else {
+        // Add new section
+        const newSection: Section = {
+          sectionName: trimmedSectionName,
+          totalQuestionsSupposedToBeAdded: parseInt(currentSection.totalQuestions),
+          sectionDurationInMinutes: parseInt(currentSection.sectionDuration),
+          pointsForCorrectAnswer: parseFloat(currentSection.correctPoints),
+          negativeMarks: parseFloat(currentSection.negativeMarks),
+        };
+        setSections([...sections, newSection]);
+        toast.success("Section added");
+      }
 
       setCurrentSection({
         sectionName: "",
@@ -235,8 +260,42 @@ export function CreateTest() {
     }
   };
 
+  const handleEditSection = (index: number) => {
+    const section = sections[index];
+    setCurrentSection({
+      sectionName: section.newSectionName || section.sectionName, // Show new name if renamed
+      totalQuestions: section.totalQuestionsSupposedToBeAdded.toString(),
+      sectionDuration: section.sectionDurationInMinutes.toString(),
+      correctPoints: section.pointsForCorrectAnswer.toString(),
+      negativeMarks: section.negativeMarks.toString(),
+    });
+    setOriginalSectionName(section.sectionName); // Store original name for API
+    setEditingSectionIndex(index);
+    toast.info('Editing section: ' + (section.newSectionName || section.sectionName));
+  };
+
+  const handleCancelEdit = () => {
+    setCurrentSection({
+      sectionName: "",
+      totalQuestions: "",
+      sectionDuration: "",
+      correctPoints: "",
+      negativeMarks: "",
+    });
+    setEditingSectionIndex(null);
+    setOriginalSectionName("");
+  };
+
   const handleRemoveSection = (index: number) => {
+    if (editingSectionIndex === index) {
+      toast.error("Cannot remove section while editing. Cancel edit first.");
+      return;
+    }
     setSections(sections.filter((_, i) => i !== index));
+    // Adjust editing index if needed
+    if (editingSectionIndex !== null && index < editingSectionIndex) {
+      setEditingSectionIndex(editingSectionIndex - 1);
+    }
     toast.success("Section removed");
     // Duration will be auto-calculated by useEffect
   };
@@ -286,32 +345,76 @@ export function CreateTest() {
     let requestData: any;
 
     if (editMode && testSeriesId) {
-      // For update, send ALL editable fields
+      // For update, only send counsellorId, testSeriesId and changed fields
       requestData = {
         counsellorId,
         testSeriesId: testSeriesId,
-        testName: formData.name,
-        testDescription: formData.description,
-        stream: formData.stream,
-        testType: null,
-        courseIdAttached: null,
-        priceType: null,
-        price: null,
-        sectionSwitchingAllowed: sectionSwitchingAllowed,
-        durationInMinutes: parseInt(formData.duration),
-        pointsForCorrectAnswer: parseInt(formData.correctPoints),
-        negativeMarkingEnabled: enableNegativeMarking,
-        negativeMarks: enableNegativeMarking ? parseFloat(formData.wrongPoints) : 0,
-        testInstructuctions: formData.instructions,
-        sections: sections.map(section => ({
-          sectionName: section.sectionName,
-          totalQuestionsSupposedToBeAdded: section.totalQuestionsSupposedToBeAdded,
-          sectionDurationInMinutes: section.sectionDurationInMinutes,
-          pointsForCorrectAnswer: section.pointsForCorrectAnswer ?? 0,
-          negativeMarks: section.negativeMarks ?? 0
-        })),
-        testGroupId: selectedTestGroupId || testGroupId,
       };
+
+      // Only add fields that have changed
+      if (existingTestData) {
+        if (formData.name !== existingTestData.testName) {
+          requestData.testName = formData.name;
+        }
+        if (formData.description !== existingTestData.testDescription) {
+          requestData.testDescription = formData.description;
+        }
+        if (formData.stream !== existingTestData.stream) {
+          requestData.stream = formData.stream;
+        }
+        if (sectionSwitchingAllowed !== existingTestData.sectionSwitchingAllowed) {
+          requestData.sectionSwitchingAllowed = sectionSwitchingAllowed;
+        }
+        if (parseInt(formData.duration) !== existingTestData.durationInMinutes) {
+          requestData.durationInMinutes = parseInt(formData.duration);
+        }
+        if (parseInt(formData.correctPoints) !== existingTestData.pointsForCorrectAnswer) {
+          requestData.pointsForCorrectAnswer = parseInt(formData.correctPoints);
+        }
+        if (enableNegativeMarking !== existingTestData.negativeMarkingEnabled) {
+          requestData.negativeMarkingEnabled = enableNegativeMarking;
+        }
+        const currentNegativeMarks = enableNegativeMarking ? parseFloat(formData.wrongPoints) : 0;
+        if (currentNegativeMarks !== existingTestData.negativeMarks) {
+          requestData.negativeMarks = currentNegativeMarks;
+        }
+        if (formData.instructions !== existingTestData.testInstructuctions) {
+          requestData.testInstructuctions = formData.instructions;
+        }
+
+        // Check if test group changed
+        const newTestGroupId = selectedTestGroupId || testGroupId;
+        if (newTestGroupId !== existingTestData.testGroupId) {
+          requestData.testGroupId = newTestGroupId;
+        }
+
+        // Check if sections changed - compare stringified versions or include if any section has newSectionName
+        const hasSectionChanges = sections.some(s => s.newSectionName) ||
+          JSON.stringify(sections.map(s => ({
+            sectionName: s.sectionName,
+            totalQuestionsSupposedToBeAdded: s.totalQuestionsSupposedToBeAdded,
+            sectionDurationInMinutes: s.sectionDurationInMinutes,
+            pointsForCorrectAnswer: s.pointsForCorrectAnswer,
+            negativeMarks: s.negativeMarks
+          }))) !== JSON.stringify(existingTestData.listOfSection?.map((s: any) => ({
+            sectionName: s.sectionName,
+            totalQuestionsSupposedToBeAdded: s.totalQuestionsSupposedToBeAdded,
+            sectionDurationInMinutes: s.sectionDurationInMinutes,
+            pointsForCorrectAnswer: s.pointsForCorrectAnswer,
+            negativeMarks: s.negativeMarks
+          })));
+
+        if (hasSectionChanges) {
+          requestData.sections = sections.map(section => ({
+            sectionName: section.sectionName,
+            totalQuestionsSupposedToBeAdded: section.totalQuestionsSupposedToBeAdded,
+            sectionDurationInMinutes: section.sectionDurationInMinutes,
+            pointsForCorrectAnswer: section.pointsForCorrectAnswer ?? 0,
+            negativeMarks: section.negativeMarks ?? 0,
+            ...(section.newSectionName ? { newSectionName: section.newSectionName } : {})
+          }));
+        }
+      }
     } else {
       // For create, send all fields
       requestData = {
@@ -584,7 +687,7 @@ export function CreateTest() {
                    shadow-[0px_4px_12px_rgba(250,102,15,0.2)]
                    rounded-2xl hover:cursor-pointer"
               >
-                Add
+                {editingSectionIndex !== null ? "Update" : "Add"}
               </button>
             </div>
           </div>
@@ -593,15 +696,36 @@ export function CreateTest() {
             <div className="flex flex-col gap-2 mt-4">
               <h3 className="text-[1rem] font-semibold text-(--text-app-primary)">Added Sections:</h3>
               {sections.map((section, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-[#f8faf9] rounded-lg">
+                <div key={index} className={`flex items-center justify-between p-3 rounded-lg ${editingSectionIndex === index ? 'bg-blue-50 border border-blue-200' : 'bg-[#f8faf9]'}`}>
                   <div className="grid grid-cols-5 gap-3 flex-1 items-center">
-                    <span className="text-[0.875rem]"><strong className="inline-block w-14">Name:</strong> {section.sectionName}</span>
+                    <span className="text-[0.875rem]"><strong className="inline-block w-14">Name:</strong> {section.newSectionName || section.sectionName}</span>
                     <span className="text-[0.875rem]"><strong className="inline-block w-20">Questions:</strong> {section.totalQuestionsSupposedToBeAdded}</span>
                     <span className="text-[0.875rem]"><strong className="inline-block w-18 px-1">Duration:</strong> {section.sectionDurationInMinutes} min</span>
                     <span className="text-[0.875rem]"><strong className="inline-block w-28">Correct Points:</strong> {section.pointsForCorrectAnswer}</span>
                     <span className="text-[0.875rem]"><strong className="inline-block w-32">Negative Marks:</strong> {section.negativeMarks}</span>
                   </div>
                   <div className="flex gap-2 ml-4">
+                    {editingSectionIndex === index ? (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCancelEdit();
+                        }}
+                        className="text-gray-500 hover:text-gray-700 font-medium cursor-pointer px-3 py-1 hover:bg-gray-100 rounded transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditSection(index);
+                        }}
+                        className="text-blue-500 hover:text-blue-700 font-medium cursor-pointer px-3 py-1 hover:bg-blue-50 rounded transition-colors"
+                      >
+                        Edit
+                      </button>
+                    )}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
