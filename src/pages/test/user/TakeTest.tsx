@@ -5,14 +5,15 @@ import { Question } from "@/components/create-test/user/Question";
 import { Option } from "@/components/create-test/user/Option";
 import { Timer } from "@/components/create-test/user/Timer";
 import { SubmitTestModal } from "@/components/modals/SubmitTestModal";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 import {
   getAllQuestionsUserOfAllSection,
   getTestSeriesByIdForUser,
   startTest,
   saveOrMarkForReviewAnswer,
   submitTestAndCalculateScore,
-  resumeTest
+  resumeTest,
+  resetAnswer
 } from "@/api/userTestSeries";
 
 interface QuestionType {
@@ -320,7 +321,7 @@ export function TakeTest() {
         setTimeout(() => {
           document.documentElement.requestFullscreen?.().catch((err) => {
             console.error("Fullscreen error:", err);
-            toast.warning("Please enable fullscreen for the best experience");
+            toast("Please enable fullscreen for the best experience");
           });
         }, 100);
       }
@@ -366,6 +367,45 @@ export function TakeTest() {
       );
     } catch (error) {
       toast.error("Failed to save answer");
+      console.error(error);
+    }
+  };
+
+  // Clear/Reset answer (unattempt)
+  const handleClearResponse = async () => {
+    if (!currentQuestion) return;
+    if (selectedAnswers.length === 0) {
+      toast.error("No answer to clear");
+      return;
+    }
+
+    try {
+      await resetAnswer(
+        userId,
+        currentQuestion.questionId,
+        attemptId,
+        currentSection.sectionName
+      );
+
+      // Clear selected answers
+      setSelectedAnswers([]);
+
+      // Update question state to NOT_VISITED (or visited but unattempted)
+      const newStates = new Map(questionStates);
+      newStates.set(currentQuestion.questionId, {
+        questionId: currentQuestion.questionId,
+        sectionName: currentSection.sectionName,
+        status: "CURRENT",
+        selectedAnswers: [],
+      });
+      setQuestionStates(newStates);
+
+      // Save progress after state update
+      setTimeout(saveProgress, 100);
+
+      toast.success("Response cleared");
+    } catch (error) {
+      toast.error("Failed to clear response");
       console.error(error);
     }
   };
@@ -656,9 +696,9 @@ export function TakeTest() {
       e.returnValue = "";
     };
 
-    // Detect fullscreen exit
+    // Detect fullscreen exit - but don't re-request if test is completed (testResult is set)
     const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) {
+      if (!document.fullscreenElement && !testResult) {
         toast.error("Please stay in fullscreen during the test");
         document.documentElement.requestFullscreen?.();
       }
@@ -680,7 +720,7 @@ export function TakeTest() {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [attemptId]);
+  }, [attemptId, testResult]);
 
   if (loading) {
     return (
@@ -876,10 +916,10 @@ export function TakeTest() {
                       // Auto move to next section without confirmation (time ran out)
                       setCurrentSectionIndex(currentSectionIndex + 1);
                       setCurrentQuestionIndex(0);
-                      toast.info(`Time up for ${currentSection.sectionName}. Moving to next section.`);
+                      toast(`Time up for ${currentSection.sectionName}. Moving to next section.`);
                     } else {
                       // Last section - auto submit
-                      toast.info("Time's up! Auto-submitting your test...");
+                      toast("Time's up! Auto-submitting your test...");
                       handleSubmitTest();
                     }
                   }}
@@ -922,6 +962,13 @@ export function TakeTest() {
                           className="flex-1 min-w-[120px] bg-[#F69E23] py-3 px-4 rounded-[10px] text-white font-medium h-[44px] flex items-center justify-center cursor-pointer"
                         >
                           Mark & Next
+                        </button>
+                        <button
+                          onClick={handleClearResponse}
+                          disabled={selectedAnswers.length === 0}
+                          className="flex-1 min-w-[80px] bg-red-100 py-3 px-3 rounded-[10px] text-red-600 font-medium h-[44px] flex items-center justify-center cursor-pointer disabled:opacity-50"
+                        >
+                          Clear
                         </button>
                         <button
                           onClick={handleNext}
@@ -997,6 +1044,13 @@ export function TakeTest() {
                           Mark & Next
                         </button>
                         <button
+                          onClick={handleClearResponse}
+                          disabled={selectedAnswers.length === 0}
+                          className="hidden md:flex bg-red-100 py-3 px-6 rounded-[10px] text-red-600 font-medium text-[1rem] h-[44px] items-center justify-center cursor-pointer disabled:opacity-50"
+                        >
+                          Clear Response
+                        </button>
+                        <button
                           onClick={handleNext}
                           className="hidden md:flex bg-(--btn-primary) py-3 px-9 rounded-[10px] text-white font-medium text-[1rem] h-[44px] items-center justify-center cursor-pointer"
                         >
@@ -1053,7 +1107,7 @@ export function TakeTest() {
                         } else {
                           // Logic: Cannot go back to previous sections. Only current or forward (with warning).
                           if (sectionIdx < currentSectionIndex) {
-                            toast.warning("You cannot navigate back to previous sections.");
+                            toast.error("You cannot navigate back to previous sections.");
                             return;
                           }
 
@@ -1149,7 +1203,7 @@ export function TakeTest() {
                               setCurrentQuestionIndex(questionIdx);
                             } else {
                               if (sectionIdx < currentSectionIndex) {
-                                toast.warning("You cannot navigate back to previous sections.");
+                                toast.error("You cannot navigate back to previous sections.");
                                 return;
                               }
                               if (sectionIdx > currentSectionIndex) {
@@ -1174,13 +1228,21 @@ export function TakeTest() {
       )}
 
       {/* Result Modal - Show if present */}
-      {testResult && (
-        <TestResult
-          resultData={testResult}
-          onRetake={() => window.location.reload()}
-          onExit={() => navigate(`/test-info/${testId}`)} // Return to Test Info
-        />
-      )}
+      {
+        testResult && (
+          <TestResult
+            resultData={testResult}
+            onRetake={() => window.location.reload()}
+            onExit={() => {
+              // Exit fullscreen first
+              if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => { });
+              }
+              navigate(`/test-info/${testId}`);
+            }}
+          />
+        )
+      }
     </>
   );
 }
