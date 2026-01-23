@@ -2,7 +2,7 @@ import { useNavigate, useParams, useSearchParams, useLocation } from "react-rout
 import { useEffect, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { resumeTest } from "@/api/userTestSeries";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 
 export interface SectionScore {
   sectionName: string;
@@ -233,7 +233,18 @@ export function TestResult({ resultData: propResultData, onExit, onRetake }: Tes
             </button>
           )}
           <button
-            onClick={onExit || (() => navigate(`/t/${testId}`))}
+            onClick={() => {
+              // Exit fullscreen if active
+              if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => { });
+              }
+              // Navigate
+              if (onExit) {
+                onExit();
+              } else {
+                navigate(`/test-info/${testId}`);
+              }
+            }}
             className="flex-1 py-3 px-4 rounded-full bg-[#00C55E] text-white text-xs md:text-base font-bold hover:opacity-90 transition-opacity shadow-lg shadow-green-200 cursor-pointer"
           >
             Exit Test

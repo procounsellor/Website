@@ -1,7 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getTestSeriesByIdForUser } from "@/api/userTestSeries";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface SectionData {
   sectionName: string;
@@ -56,14 +57,34 @@ const getGeneralInstructions = (
       steps: [
         { label: "A.", text: "Click on a question number in the Question Palette to jump directly to that question." },
         { label: "⚠️", text: "Note: This does not save your current answer automatically.", isWarning: true },
-        { label: "B.", text: "Click Save & Next to save your answer and move to the next question." },
-        { label: "C.", text: "Click Mark for Review & Next to save your answer, mark the question for review, and move to the next question." }
+        { label: "B.", text: "Click Save & Next to save your answer and move to the next question. Only this saves your answer for evaluation." },
+        { label: "C.", text: "Click Mark & Next to flag the question for later review and move to the next question. This does NOT save your answer." }
       ],
-      footer: "An answer will be considered saved only if you click:",
-      footerPoints: ["Save & Next", "Save & Mark for Review"]
+      footer: "An answer will only be considered for scoring if you click:",
+      footerPoints: ["Save & Next"]
     },
     {
       id: 4,
+      title: "Mark for Review",
+      points: [
+        "Mark & Next is only for flagging questions you want to revisit.",
+        "Marking does NOT save your answer - it is just a visual reminder.",
+        "If you want your answer to be evaluated, you MUST click Save & Next.",
+        "Marked questions without saved answers will NOT be counted in results."
+      ]
+    },
+    {
+      id: 5,
+      title: "Reset Answer (Unattempt)",
+      points: [
+        "If you have selected an answer but want to remove it, use the Clear Response button.",
+        "This will reset the question to unattempted state.",
+        "Unattempted questions will not receive any marks or negative marking.",
+        "You can re-attempt the question anytime before submitting."
+      ]
+    },
+    {
+      id: 6,
       title: "Marking Scheme",
       points: negativeMarkingEnabled
         ? [
@@ -77,7 +98,7 @@ const getGeneralInstructions = (
         ]
     },
     {
-      id: 5,
+      id: 7,
       title: "Section Navigation",
       points: sectionSwitchingAllowed
         ? [
@@ -106,10 +127,19 @@ export function TestInfo() {
   const [sectionSwitchingAllowed, setSectionSwitchingAllowed] = useState(false);
   // New state for attempts
   const [attempts, setAttempts] = useState<any[]>([]);
+  // Pagination state
+  const [visibleAttempts, setVisibleAttempts] = useState(3);
 
   const hasCompletedAttempts = attempts.some(a => a.status === 'SUBMITTED');
 
   const userId = localStorage.getItem("phone") || "";
+
+  // Exit fullscreen when TestInfo page loads (after coming back from test)
+  useEffect(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => { });
+    }
+  }, []);
 
   useEffect(() => {
     const fetchTestData = async () => {
@@ -177,6 +207,16 @@ export function TestInfo() {
     navigate(`/t/analysis/${testId}/${attemptId}`);
   };
 
+  const handleShowMore = () => {
+    setVisibleAttempts(prev => prev + 3);
+  };
+
+  const handleShowLess = () => {
+    setVisibleAttempts(3);
+  };
+
+  const displayedAttempts = attempts.slice(0, visibleAttempts);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -186,7 +226,7 @@ export function TestInfo() {
   }
 
   return (
-    <div className="pt-16 md:pt-24 w-full mx-auto max-w-7xl h-full flex flex-col items-center gap-4 px-3 pb-16">
+    <div className="pt-14 md:pt-24 w-full mx-auto max-w-7xl h-full flex flex-col items-center gap-4 px-3 pb-4">
       <h1 className="text-(text-app-primary) font-semibold text-[1rem] md:text-2xl">
         {testName}
       </h1>
@@ -290,7 +330,7 @@ export function TestInfo() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {attempts.map((attempt) => (
+                {displayedAttempts.map((attempt) => (
                   <tr
                     key={attempt.attemptId}
                     className="hover:bg-gray-50/80 cursor-pointer transition-colors"
@@ -321,56 +361,65 @@ export function TestInfo() {
             </table>
           </div>
 
-          {/* Mobile Card View */}
-          <div className="md:hidden space-y-3">
-            {attempts.map((attempt) => (
+          {/* Mobile Card View - Compact design, fully clickable */}
+          <div className="md:hidden space-y-2">
+            {displayedAttempts.map((attempt) => (
               <div
                 key={attempt.attemptId}
-                className="bg-white border border-[#E4E8EC] rounded-xl p-4 shadow-sm active:bg-gray-50 cursor-pointer"
+                className="bg-white border border-[#E4E8EC] rounded-lg px-3 py-2.5 shadow-sm active:bg-gray-50 cursor-pointer flex items-center justify-between gap-3"
                 onClick={() => {
                   if (attempt.status === 'SUBMITTED') handleAnalysis(attempt.attemptId);
                   else handleMainAction();
                 }}
               >
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Date</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {new Date(attempt.attemptDateAndTime.seconds * 1000).toLocaleDateString()}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(attempt.attemptDateAndTime.seconds * 1000).toLocaleTimeString()}
-                    </p>
-                  </div>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${attempt.status === 'SUBMITTED'
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-yellow-100 text-yellow-800'
+                {/* Left - Date and Status */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-gray-900 truncate">
+                    {new Date(attempt.attemptDateAndTime.seconds * 1000).toLocaleDateString()} • {new Date(attempt.attemptDateAndTime.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium mt-1 ${attempt.status === 'SUBMITTED'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-yellow-100 text-yellow-700'
                     }`}>
                     {attempt.status === 'SUBMITTED' ? 'Completed' : 'In Progress'}
                   </span>
                 </div>
 
-                <div className="flex justify-between items-end border-t border-gray-100 pt-3">
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Score</p>
-                    <p className="text-xl font-bold text-gray-900">
-                      {attempt.status === 'SUBMITTED' ? `${attempt.score}/${attempt.maxScore}` : '-'}
-                    </p>
-                  </div>
-                  {attempt.status === 'SUBMITTED' ? (
-                    <span className="text-blue-600 text-sm font-medium">View Analysis →</span>
-                  ) : (
-                    <span className="text-orange-600 text-sm font-medium">Resume Test →</span>
-                  )}
+                {/* Right - Score */}
+                <div className="text-right">
+                  <p className="text-base font-bold text-gray-900">
+                    {attempt.status === 'SUBMITTED' ? `${attempt.score}/${attempt.maxScore}` : '-'}
+                  </p>
                 </div>
               </div>
             ))}
           </div>
+
+          {/* Show More/Less Buttons */}
+          {attempts.length > 3 && (
+            <div className="flex justify-center mt-3">
+              {visibleAttempts < attempts.length ? (
+                <button
+                  onClick={handleShowMore}
+                  className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 cursor-pointer py-1 px-3"
+                >
+                  Show More <ChevronDown size={16} />
+                </button>
+              ) : (
+                <button
+                  onClick={handleShowLess}
+                  className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 cursor-pointer py-1 px-3"
+                >
+                  Show Less <ChevronUp size={16} />
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
       {/* General Instructions Section */}
-      <div className="w-full max-w-[800px] lg:max-w-[1200px] mt-2 mb-8">
+      <div className="w-full max-w-[800px] lg:max-w-[1200px] mt-2 mb-4">
         <h2 className="text-(--text-app-primary) font-semibold text-lg md:text-2xl mb-2 text-center">
           General Instructions
         </h2>

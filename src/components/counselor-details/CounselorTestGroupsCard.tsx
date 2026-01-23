@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Star, Users, Bookmark, Loader2, ChevronDown, ChevronUp } from "lucide-react";
-import { toast } from "sonner";
+import { BookOpen, Star, Users, Bookmark, Loader2, ChevronDown, ChevronUp, CheckCircle2 } from "lucide-react";
+import toast from "react-hot-toast";
 import { getAllTestGroupsOfCounsellorForUser, buyTestGroup, bookmarkTestGroup } from "@/api/testGroup";
 import type { TestGroup } from "@/types/testGroup";
 
@@ -38,6 +38,16 @@ export function CounselorTestGroupsCard({ counsellorId, userId, userRole }: Coun
       const response = await getAllTestGroupsOfCounsellorForUser(userId, counsellorId);
       if (response.status && response.data) {
         setTestGroups(response.data);
+
+        // Initialize bookmarked and purchased states from API response
+        const bookmarked = new Set<string>();
+        const purchased = new Set<string>();
+        response.data.forEach((group: any) => {
+          if (group.bookmarked) bookmarked.add(group.testGroupId);
+          if (group.brought || group.bought) purchased.add(group.testGroupId);
+        });
+        setBookmarkedIds(bookmarked);
+        setPurchasedIds(purchased);
       }
     } catch (error) {
       console.error("Failed to fetch test groups:", error);
@@ -191,8 +201,8 @@ export function CounselorTestGroupsCard({ counsellorId, userId, userRole }: Coun
                 </span>
 
                 {purchasedIds.has(group.testGroupId) ? (
-                  <span className="px-2 py-1 bg-green-50 text-green-600 rounded-md text-[10px] md:text-xs font-medium border border-green-100">
-                    Purchased
+                  <span className="px-2 py-1 bg-green-50 text-green-600 rounded-md text-[10px] md:text-xs font-medium border border-green-100 flex items-center gap-1">
+                    <CheckCircle2 size={10} /> Purchased
                   </span>
                 ) : (
                   <button
