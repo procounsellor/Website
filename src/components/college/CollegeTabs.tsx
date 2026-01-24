@@ -1,7 +1,7 @@
 import React from 'react';
 
 const TABS = [
-  "Info", "Counsellors", "Infrastructure", "Alumini", "Important Dates"
+  "Info", "Counsellors"
 ];
 
 interface CollegeTabsProps {

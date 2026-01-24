@@ -53,6 +53,73 @@ export interface CollegeApiResponse {
   popularityCount: number;
 }
 
+export interface CollegeDetails {
+  collegeId: string;
+  collegeName: string;
+  collegeType: string;
+  establishedYear: string;
+  collegesLocationCity: string;
+  collegesLocationState: string;
+  collegeFullAddress: string;
+  pincode: string;
+  logoUrl: string;
+  bannerUrl: string;
+  collegeInfo: string; // HTML content
+  nirfOverallRank: string;
+  naacGrade: string;
+  approvals: string[];
+  website: string;
+  contactEmail: string;
+  contactPhone: string;
+  universityAffiliatedTo: string;
+  accreditation: string;
+  brochure: string;
+  popularityCount: number;
+  coursesOffered: CourseOffered[];
+  scholarships: Scholarship[];
+  events: CollegeEvent[];
+  alumni: Alumni[];
+  infrastructure: Infrastructure[];
+  importantDates: ImportantDate[];
+}
+
+export interface Scholarship {
+  scholarshipId: number;
+  scholarshipName: string;
+  amount: string;
+  eligibilityCriteria: string;
+  applicationProcess: string;
+}
+
+export interface CollegeEvent {
+  eventId: number;
+  eventHeading: string;
+  eventFullDescription: string;
+  organizingDepartment: string;
+  frequency: string;
+}
+
+export interface Alumni {
+  alumniId: number;
+  name: string;
+  jobTitle: string;
+  company: string;
+  graduationYear: string;
+  branch: string;
+}
+
+export interface Infrastructure {
+  infraDescription: string;
+  infraPhotos: { photoUrl: string; linkId: number }[];
+  infraVideo: { videoUrl: string; linkId: number }[];
+}
+
+export interface ImportantDate {
+  importantDateId: number;
+  event: string;
+  details: { date: string; stage: string; detailId: number }[];
+}
+
 export interface CourseOffered {
   courseType: string;
   nirfRank: string;

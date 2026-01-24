@@ -1,5 +1,5 @@
 import { API_CONFIG } from "./config";
-import type { CollegeApiResponse, ExamApiResponse, CourseApiResponse, CounsellorApiResponse, AllCounselor, CounselorDetails } from "../types/academic";
+import type { CollegeDetails,CollegeApiResponse, ExamApiResponse, CourseApiResponse, CounsellorApiResponse, AllCounselor, CounselorDetails } from "../types/academic";
 
 interface BookingRequest {
   userId: string;
@@ -55,6 +55,7 @@ async function authFetcher<T>(endpoint: string, token: string): Promise<T> {
 
 export const academicApi = {
   getColleges: () => fetcher<CollegeApiResponse[]>(API_CONFIG.endpoints.getColleges),
+  getCollegeById: (id: string) => fetcher<CollegeDetails>(`/api/colleges/getCollegeById?collegeId=${id}`),
   getExams: () => fetcher<ExamApiResponse[]>(API_CONFIG.endpoints.getExams),
   getExamById: (id: string) => fetcher<any>(`/api/exams/getExamById?examId=${id}`),
   getCourses: () => fetcher<CourseApiResponse[]>(API_CONFIG.endpoints.getCourses),
