@@ -906,22 +906,13 @@ export function TakeTest() {
 
               <div className="sm:flex sm:flex-row sm:justify-between sm:items-center">
                 <Timer
-                  key={currentSectionIndex} // Reset timer when section changes
-                  initialSeconds={sectionDurations[currentSectionIndex] * 60} // Use section duration
-                  time={sectionDurations[currentSectionIndex].toString()} // Show section limit
+                  initialSeconds={timeLeft ?? (sectionDurations.reduce((a, b) => a + b, 0) * 60)}
                   onSectionClick={() => setShowMobileSections(true)}
                   onTick={(seconds) => setTimeLeft(seconds)}
                   onTimerEnd={() => {
-                    if (currentSectionIndex < sections.length - 1) {
-                      // Auto move to next section without confirmation (time ran out)
-                      setCurrentSectionIndex(currentSectionIndex + 1);
-                      setCurrentQuestionIndex(0);
-                      toast(`Time up for ${currentSection.sectionName}. Moving to next section.`);
-                    } else {
-                      // Last section - auto submit
-                      toast("Time's up! Auto-submitting your test...");
-                      handleSubmitTest();
-                    }
+                    // Timer ended - auto submit test
+                    toast("Time's up! Auto-submitting your test...");
+                    handleSubmitTest();
                   }}
                 />
               </div>
@@ -980,6 +971,13 @@ export function TakeTest() {
                     ) : (
                       <>
                         <button
+                          onClick={handleClearResponse}
+                          disabled={selectedAnswers.length === 0}
+                          className="flex-1 min-w-[80px] bg-red-100 py-3 px-3 rounded-[10px] text-red-600 font-medium h-[44px] flex items-center justify-center cursor-pointer disabled:opacity-50"
+                        >
+                          Clear
+                        </button>
+                        <button
                           onClick={() => handleSaveAnswer("ATTEMPTED")}
                           disabled={selectedAnswers.length === 0}
                           className="flex-1 min-w-[100px] bg-(--btn-primary) py-3 px-4 rounded-[10px] text-white font-medium h-[44px] flex items-center justify-center cursor-pointer disabled:opacity-50"
@@ -1022,12 +1020,12 @@ export function TakeTest() {
                     <div className="flex items-center gap-2">
                       <div className="h-5 w-5 rounded-full bg-[#EAEDF0]"></div>
                       <p className="text-(--text-app-primary) font-normal text-sm">
-                        Not Visited
+                        Unanswered
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 w-full md:w-auto justify-center flex-wrap">
+                  <div className="flex items-center gap-3 w-full md:w-auto justify-center flex-nowrap overflow-x-auto">
                     <button
                       onClick={handlePrevious}
                       disabled={currentQuestionIndex === 0}
@@ -1060,15 +1058,22 @@ export function TakeTest() {
                     ) : (
                       <>
                         <button
+                          onClick={handleClearResponse}
+                          disabled={selectedAnswers.length === 0}
+                          className="hidden md:flex bg-red-100 py-3 px-6 rounded-[10px] text-red-600 font-medium text-[1rem] h-[44px] items-center justify-center cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                        >
+                          Clear
+                        </button>
+                        <button
                           onClick={() => handleSaveAnswer("ATTEMPTED")}
                           disabled={selectedAnswers.length === 0}
-                          className="hidden md:flex bg-(--btn-primary) py-3 px-9 rounded-[10px] text-white font-medium text-[1rem] h-[44px] items-center justify-center cursor-pointer disabled:opacity-50"
+                          className="hidden md:flex bg-(--btn-primary) py-3 px-9 rounded-[10px] text-white font-medium text-[1rem] h-[44px] items-center justify-center cursor-pointer disabled:opacity-50 whitespace-nowrap"
                         >
                           Save Answer
                         </button>
                         <button
                           onClick={() => handleSaveAnswer("MARKED_FOR_REVIEW")}
-                          className="hidden md:flex bg-[#F69E23] py-3 px-6 rounded-[10px] text-white font-medium text-[1rem] h-[44px] items-center justify-center cursor-pointer"
+                          className="hidden md:flex bg-[#F69E23] py-3 px-6 rounded-[10px] text-white font-medium text-[1rem] h-[44px] items-center justify-center cursor-pointer whitespace-nowrap"
                         >
                           Mark for Review
                         </button>

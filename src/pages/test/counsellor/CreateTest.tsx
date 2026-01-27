@@ -38,6 +38,7 @@ interface Section {
   pointsForCorrectAnswer: number;
   negativeMarks: number;
   newSectionName?: string; // For renaming sections in update requests
+  totalQuestionsAdded?: number; // For edit mode - shows existing questions
 }
 
 interface SectionInput {
@@ -47,6 +48,10 @@ interface SectionInput {
   correctPoints: string;
   negativeMarks: string;
 }
+
+// Validation constants
+const MAX_SECTION_DURATION = 600; // Maximum 600 minutes
+const MAX_MARKS_VALUE = 99.99; // Maximum 2 digits with decimals
 
 const STREAMS = [
   { value: "ENGINEERING", label: "Engineering" },
@@ -112,6 +117,22 @@ export function CreateTest() {
   const [allTestGroups, setAllTestGroups] = useState<{ testGroupId: string; testGroupName: string }[]>([]);
   const [selectedTestGroupId, setSelectedTestGroupId] = useState<string | null>(testGroupId);
   const [isLoadingTestGroups, setIsLoadingTestGroups] = useState<boolean>(false);
+  const [removedSectionNames, setRemovedSectionNames] = useState<string[]>([]); // Track removed sections for update API
+
+  // Section input validation errors
+  const [sectionErrors, setSectionErrors] = useState<{
+    sectionDuration?: string;
+    correctPoints?: string;
+    negativeMarks?: string;
+  }>({});
+
+  // Deletion confirmation modal state
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState<{
+    isOpen: boolean;
+    sectionIndex: number;
+    sectionName: string;
+    questionCount: number;
+  }>({ isOpen: false, sectionIndex: -1, sectionName: "", questionCount: 0 });
 
   // Prefill data in edit mode
   useEffect(() => {
@@ -130,13 +151,14 @@ export function CreateTest() {
       });
       setSectionSwitchingAllowed(existingTestData.sectionSwitchingAllowed || false);
       setEnableNegativeMarking(existingTestData.negativeMarkingEnabled || false);
-      // Map sections with default values for new fields
+      // Map sections with default values for new fields including question counts
       const mappedSections = (existingTestData.listOfSection || []).map((section: any) => ({
         sectionName: section.sectionName,
         totalQuestionsSupposedToBeAdded: section.totalQuestionsSupposedToBeAdded,
         sectionDurationInMinutes: section.sectionDurationInMinutes,
         pointsForCorrectAnswer: section.pointsForCorrectAnswer ?? 0,
         negativeMarks: section.negativeMarks ?? 0,
+        totalQuestionsAdded: section.totalQuestionsAdded ?? 0, // Include question count for edit mode
       }));
       setSections(mappedSections);
       if (existingTestData.bannerImagUrl) {
@@ -200,10 +222,48 @@ export function CreateTest() {
     }
   }, [sections, editMode]);
 
+  // Validation helper for marks (max 99.99)
+  const validateMarks = (value: string): { isValid: boolean; error?: string } => {
+    if (!value) return { isValid: true };
+    const num = parseFloat(value);
+    if (isNaN(num)) return { isValid: false, error: "Must be a number" };
+    if (num < 0) return { isValid: false, error: "Cannot be negative" };
+    if (num > MAX_MARKS_VALUE) return { isValid: false, error: `Max ${MAX_MARKS_VALUE}` };
+    // Check format: max 2 digits before decimal
+    const parts = value.split('.');
+    if (parts[0] && parts[0].length > 2) return { isValid: false, error: "Max 2 digits" };
+    return { isValid: true };
+  };
+
+  // Validation helper for duration (max 600)
+  const validateDuration = (value: string): { isValid: boolean; error?: string } => {
+    if (!value) return { isValid: true };
+    const num = parseInt(value);
+    if (isNaN(num)) return { isValid: false, error: "Must be a number" };
+    if (num < 0) return { isValid: false, error: "Cannot be negative" };
+    if (num > MAX_SECTION_DURATION) return { isValid: false, error: `Max ${MAX_SECTION_DURATION} minutes` };
+    return { isValid: true };
+  };
+
   const handleSectionInputChange = (
     field: keyof SectionInput,
     value: string
   ) => {
+    // Validate and update errors
+    let newErrors = { ...sectionErrors };
+
+    if (field === "sectionDuration") {
+      const validation = validateDuration(value);
+      newErrors.sectionDuration = validation.error;
+    } else if (field === "correctPoints") {
+      const validation = validateMarks(value);
+      newErrors.correctPoints = validation.error;
+    } else if (field === "negativeMarks") {
+      const validation = validateMarks(value);
+      newErrors.negativeMarks = validation.error;
+    }
+
+    setSectionErrors(newErrors);
     setCurrentSection((prev) => ({
       ...prev,
       [field]: value,
@@ -211,6 +271,12 @@ export function CreateTest() {
   };
 
   const handleAddSection = () => {
+    // Check for validation errors first
+    if (sectionErrors.sectionDuration || sectionErrors.correctPoints || sectionErrors.negativeMarks) {
+      toast.error("Please fix validation errors before adding section");
+      return;
+    }
+
     if (currentSection.sectionName && currentSection.totalQuestions && currentSection.sectionDuration &&
       currentSection.correctPoints && currentSection.negativeMarks) {
 
@@ -291,13 +357,51 @@ export function CreateTest() {
       toast.error("Cannot remove section while editing. Cancel edit first.");
       return;
     }
+
+    const sectionToRemove = sections[index];
+    const sectionName = sectionToRemove.sectionName;
+    const questionCount = sectionToRemove.totalQuestionsAdded || 0;
+
+    // In edit mode, if section has questions, show confirmation modal
+    if (editMode && questionCount > 0) {
+      setDeleteConfirmModal({
+        isOpen: true,
+        sectionIndex: index,
+        sectionName: sectionName,
+        questionCount: questionCount,
+      });
+      return;
+    }
+
+    // Proceed with deletion
+    confirmSectionDeletion(index, sectionName);
+  };
+
+  const confirmSectionDeletion = (index: number, sectionName: string) => {
+    // In edit mode, track the removed section name to send with update API
+    if (editMode) {
+      setRemovedSectionNames(prev => [...prev, sectionName]);
+    }
+
+    // Remove from UI
     setSections(sections.filter((_, i) => i !== index));
+
     // Adjust editing index if needed
     if (editingSectionIndex !== null && index < editingSectionIndex) {
       setEditingSectionIndex(editingSectionIndex - 1);
     }
-    toast.success("Section removed");
+    toast.success(`Section "${sectionName}" removed`);
     // Duration will be auto-calculated by useEffect
+  };
+
+  const handleConfirmDelete = () => {
+    const { sectionIndex, sectionName } = deleteConfirmModal;
+    confirmSectionDeletion(sectionIndex, sectionName);
+    setDeleteConfirmModal({ isOpen: false, sectionIndex: -1, sectionName: "", questionCount: 0 });
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteConfirmModal({ isOpen: false, sectionIndex: -1, sectionName: "", questionCount: 0 });
   };
 
   const handleSaveDraft = async () => {
@@ -326,16 +430,6 @@ export function CreateTest() {
 
     if (!formData.duration || parseInt(formData.duration) <= 0) {
       toast.error("Please enter a valid duration");
-      return;
-    }
-
-    if (!formData.correctPoints || parseInt(formData.correctPoints) <= 0) {
-      toast.error("Please enter points for correct answer");
-      return;
-    }
-
-    if (enableNegativeMarking && (!formData.wrongPoints || parseFloat(formData.wrongPoints) < 0)) {
-      toast.error("Please enter valid negative marks");
       return;
     }
 
@@ -388,6 +482,11 @@ export function CreateTest() {
           requestData.testGroupId = newTestGroupId;
         }
 
+        // Include removed section names if any
+        if (removedSectionNames.length > 0) {
+          requestData.removedSectionName = removedSectionNames;
+        }
+
         // Check if sections changed - compare stringified versions or include if any section has newSectionName
         const hasSectionChanges = sections.some(s => s.newSectionName) ||
           JSON.stringify(sections.map(s => ({
@@ -417,6 +516,11 @@ export function CreateTest() {
       }
     } else {
       // For create, send all fields
+      // Derive default scoring from first section (or use sensible defaults)
+      const defaultCorrectPoints = sections[0]?.pointsForCorrectAnswer || 4;
+      const hasNegativeMarking = sections.some(s => s.negativeMarks > 0);
+      const defaultNegativeMarks = sections[0]?.negativeMarks || 0;
+
       requestData = {
         counsellorId,
         testName: formData.name,
@@ -428,9 +532,9 @@ export function CreateTest() {
         price: null,
         sectionSwitchingAllowed: sectionSwitchingAllowed,
         durationInMinutes: parseInt(formData.duration),
-        pointsForCorrectAnswer: parseInt(formData.correctPoints),
-        negativeMarkingEnabled: enableNegativeMarking,
-        negativeMarks: enableNegativeMarking ? parseFloat(formData.wrongPoints) : 0,
+        pointsForCorrectAnswer: defaultCorrectPoints,
+        negativeMarkingEnabled: hasNegativeMarking,
+        negativeMarks: defaultNegativeMarks,
         testInstructuctions: formData.instructions,
         sections: sections,
         testGroupId: testGroupId,
@@ -516,13 +620,48 @@ export function CreateTest() {
     sections.length > 0 &&
     formData.duration &&
     parseInt(formData.duration) > 0 &&
-    formData.correctPoints &&
-    parseInt(formData.correctPoints) > 0 &&
-    (!enableNegativeMarking || (formData.wrongPoints && parseFloat(formData.wrongPoints) >= 0)) &&
     (editMode || file);
 
   return (
     <div className="pt-28 pb-8 w-full mx-auto max-w-7xl  min-h-screen flex flex-col gap-4">
+      {/* Delete Section Confirmation Modal */}
+      {deleteConfirmModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Delete Section?</h3>
+                <p className="text-sm text-gray-500">This action cannot be undone</p>
+              </div>
+            </div>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+              <p className="text-red-800 text-sm">
+                <strong>Warning:</strong> Section "<strong>{deleteConfirmModal.sectionName}</strong>" has <strong>{deleteConfirmModal.questionCount}</strong> question{deleteConfirmModal.questionCount !== 1 ? 's' : ''} that will also be deleted.
+              </p>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={handleCancelDelete}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg font-medium transition-colors cursor-pointer"
+              >
+                Delete Section
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Back button and title */}
       <div className="flex items-center gap-4">
         <button
@@ -657,25 +796,31 @@ export function CreateTest() {
             <div>
               <Input
                 label="Duration (minutes) *"
-                placeholder="eg. 60"
+                placeholder="eg. 60 (max 600)"
                 value={currentSection.sectionDuration}
                 onChange={(value) => handleSectionInputChange("sectionDuration", value)}
+                error={!!sectionErrors.sectionDuration}
+                errorMessage={sectionErrors.sectionDuration}
               />
             </div>
             <div>
               <Input
                 label="Points for Correct *"
-                placeholder="eg. 4"
+                placeholder="eg. 4 (max 99.99)"
                 value={currentSection.correctPoints}
                 onChange={(value) => handleSectionInputChange("correctPoints", value)}
+                error={!!sectionErrors.correctPoints}
+                errorMessage={sectionErrors.correctPoints}
               />
             </div>
             <div>
               <Input
                 label="Negative Marks *"
-                placeholder="eg. 1 (or 0 for no negative)"
+                placeholder="eg. 1 (max 99.99)"
                 value={currentSection.negativeMarks}
                 onChange={(value) => handleSectionInputChange("negativeMarks", value)}
+                error={!!sectionErrors.negativeMarks}
+                errorMessage={sectionErrors.negativeMarks}
               />
             </div>
             <div className="flex items-end gap-2">
@@ -762,32 +907,6 @@ export function CreateTest() {
               placeholder="Add sections to calculate duration"
             />
           </div>
-        </div>
-      </Dropdown>
-
-      <Dropdown label="Scoring System (Default)">
-        <div className="flex flex-col gap-4">
-          <p className="text-sm text-gray-600">
-            Set default scoring. Each section can have custom points and negative marks.
-          </p>
-          <Input
-            label="Default Points for Correct Answer*"
-            placeholder="eg. 4"
-            value={formData.correctPoints}
-            onChange={(value) => handleInputChange("correctPoints", value)}
-          />
-          <Checkbox
-            label="Enable Negative Marking"
-            checked={enableNegativeMarking}
-            onChange={setEnableNegativeMarking}
-          />
-          <Input
-            label="Default Negative Marks"
-            placeholder="eg. 1"
-            value={formData.wrongPoints}
-            onChange={(value) => handleInputChange("wrongPoints", value)}
-            disabled={!enableNegativeMarking}
-          />
         </div>
       </Dropdown>
 

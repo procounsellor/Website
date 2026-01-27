@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { SendHorizonal, Mic } from "lucide-react";
 import { useVoiceChatStore } from "@/store/VoiceChatStore";
 
@@ -10,17 +10,18 @@ type ChatInputProps = {
   setInput: (value: string) => void;
 };
 
+export interface ChatInputRef {
+  focus: () => void;
+}
+
 const isSpeechRecognitionSupported =
   typeof window !== "undefined" &&
   (("SpeechRecognition" in window) || ("webkitSpeechRecognition" in window));
 
-export default function ChatInput({
-  handleKeyPress,
-  handleSend,
-  loading,
-  input,
-  setInput,
-}: ChatInputProps): React.ReactElement {
+const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(function ChatInput(
+  { handleKeyPress, handleSend, loading, input, setInput },
+  ref
+) {
   const { toggleVoiceChat } = useVoiceChatStore();
 
   const [isListening, setIsListening] = useState(false);
@@ -105,17 +106,22 @@ export default function ChatInput({
 
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
+
   useEffect(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
-    
-   
+
+
     textarea.style.height = 'auto';
-  
+
     const newHeight = Math.min(textarea.scrollHeight, 200);
     textarea.style.height = `${newHeight}px`;
   }, [input]);
+
+  // Expose focus method to parent via ref
+  useImperativeHandle(ref, () => ({
+    focus: () => textareaRef.current?.focus(),
+  }));
 
   return (
     <div className="max-w-[57.6rem] w-full mx-auto">
@@ -137,9 +143,8 @@ export default function ChatInput({
               <button
                 type="button"
                 onClick={handleMicClick}
-                className={`cursor-pointer flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full transition-all ${
-                  isListening ? "bg-red-600 text-white shadow-lg" : "bg-gray-800 text-white/90 hover:bg-gray-700"
-                }`}
+                className={`cursor-pointer flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full transition-all ${isListening ? "bg-red-600 text-white shadow-lg" : "bg-gray-800 text-white/90 hover:bg-gray-700"
+                  }`}
                 aria-label="Use microphone for dictation"
               >
                 <Mic className="w-4 h-4 md:w-[18px] md:h-[18px]" />
@@ -176,4 +181,6 @@ export default function ChatInput({
       </div>
     </div>
   );
-}
+});
+
+export default ChatInput;
