@@ -75,7 +75,7 @@ export default function AppRoutes() {
                         <Route path="/counsellor-profile" element={<CounselorDetailsPage />} />
                         <Route path="/courses/:id" element={<CourseDetailsPage />} />
                         <Route path="/colleges/:id" element={<CollegeDetailsPage />} />
-                        <Route path="/colleges-details" element={<CollegeDetailsPageNew />} />
+                        <Route path="/college-details/:id" element={<CollegeDetailsPageNew />} />
                         <Route path="/exams" element={<ExamsListingPage />} />
                         <Route path="/about" element={<AboutPage />} />
                         <Route path="/contact" element={<ContactPage />} />
