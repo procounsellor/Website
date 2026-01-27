@@ -25,13 +25,13 @@ export default function CourseTab(props: CourseTabProps) {
   const { role, userId } = useAuthStore();
   const navigate = useNavigate();
   const [createCourse, setCreateCourse] = useState(false);
-  
+
   // Persist active tab in localStorage
   const [activeTab, setActiveTab] = useState<SubTab>(() => {
     const savedTab = localStorage.getItem('counsellorCoursesActiveTab');
     return (savedTab as SubTab) || 'Courses';
   });
-  
+
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ testGroupId: string; testGroupName: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -94,38 +94,37 @@ export default function CourseTab(props: CourseTabProps) {
   return (
     <div className="md:bg-white md:py-5 md:px-4 md:rounded-2xl md:border md:border-[#EFEFEF]">
       <div className="bg-white p-2 rounded-xl border border-[#EFEFEF] md:bg-transparent md:p-0 md:border-none md:mb-5">
-      <div className='flex justify-between'>
+        <div className='flex justify-between'>
           <div className="flex items-center gap-2">
-          {TABS.map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 md:flex-none px-4 py-2 text-[12px] md:text-base font-medium rounded-full transition-colors duration-200 cursor-pointer ${
-                activeTab === tab
-                  ? 'bg-[#E8E7F2] text-[#13097D]'
-                  : 'bg-transparent text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+            {TABS.map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 md:flex-none px-4 py-2 text-[12px] md:text-base font-medium rounded-full transition-colors duration-200 cursor-pointer ${activeTab === tab
+                    ? 'bg-[#E8E7F2] text-[#13097D]'
+                    : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                  }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
 
-        <div className="flex gap-2">
-          <button
-            onClick={() => navigate('/counselor/test-groups/create')}
-            className='flex bg-[#655E95] hover:bg-[#655E95]/90 rounded-2xl md:rounded-[0.75rem] cursor-pointer text-clip border text-xs py-2 lg:py-3 px-3 lg:px-6 text-white items-center justify-center lg:font-semibold'
-          >
-            Create Test Group
-          </button>
-          <button
-            onClick={()=>setCreateCourse(true)}
-            className='flex bg-[#655E95] hover:bg-[#655E95]/90 rounded-2xl md:rounded-[0.75rem] cursor-pointer text-clip border text-xs py-2 lg:py-3 px-3 lg:px-6 text-white items-center justify-center lg:font-semibold'
-          >
-            Create a Course
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate('/counselor/test-groups/create')}
+              className='flex bg-[#655E95] hover:bg-[#655E95]/90 rounded-2xl md:rounded-[0.75rem] cursor-pointer text-clip border text-xs py-2 lg:py-3 px-3 lg:px-6 text-white items-center justify-center lg:font-semibold'
+            >
+              Create Test Group
+            </button>
+            <button
+              onClick={() => setCreateCourse(true)}
+              className='flex bg-[#655E95] hover:bg-[#655E95]/90 rounded-2xl md:rounded-[0.75rem] cursor-pointer text-clip border text-xs py-2 lg:py-3 px-3 lg:px-6 text-white items-center justify-center lg:font-semibold'
+            >
+              Create a Course
+            </button>
+          </div>
         </div>
-      </div>
 
       </div>
 
@@ -141,8 +140,8 @@ export default function CourseTab(props: CourseTabProps) {
         ) : testGroupsData?.data?.length > 0 ? (
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mt-4">
             {testGroupsData.data.map((group: TestGroup) => (
-              <div 
-                key={group.testGroupId} 
+              <div
+                key={group.testGroupId}
                 onClick={() => navigate(`/counselor/test-groups/${group.testGroupId}`)}
                 className="bg-white rounded-xl overflow-hidden hover:shadow-lg transition-shadow border border-[#E8EAED] cursor-pointer"
               >
@@ -213,7 +212,7 @@ export default function CourseTab(props: CourseTabProps) {
                       className={`flex items-center justify-center gap-1 py-2 px-3 ${group.published ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-600 hover:bg-green-700'} text-white rounded-lg transition-colors text-sm font-medium cursor-pointer`}
                       title={group.published ? "Unpublish" : "Publish"}
                     >
-                      {group.published ? 'Unpub' : 'Publish'}
+                      {group.published ? 'Unpublish' : 'Publish'}
                     </button>
                     <button
                       onClick={(e) => {
@@ -256,12 +255,12 @@ export default function CourseTab(props: CourseTabProps) {
         ) : filteredCourses.length > 0 ? (
           <div className="grid gap-2 grid-cols-2 md:grid-col-4 lg:grid-cols-5 mt-2">
             {filteredCourses.map(course => (
-              <div 
-                key={course.courseId} 
-                className='cursor-pointer' 
+              <div
+                key={course.courseId}
+                className='cursor-pointer'
                 onClick={() => navigate(`/detail/${course.courseId}/${role}`, { state: { from: 'courses' } })}
               >
-                <CourseCard 
+                <CourseCard
                   course={{
                     id: course.courseId,
                     name: course.courseName,
@@ -272,7 +271,7 @@ export default function CourseTab(props: CourseTabProps) {
                     image: course.courseThumbnailUrl,
                     courseTimeHours: (course as any).courseTimeHours || 0,
                     courseTimeMinutes: (course as any).courseTimeMinutes || 0,
-                  }} 
+                  }}
                   role={role || "counselor"}
                 />
               </div>
@@ -285,7 +284,7 @@ export default function CourseTab(props: CourseTabProps) {
         )
       )}
 
-      {createCourse && <CreateCourseCard onClose={onClose}/>}
+      {createCourse && <CreateCourseCard onClose={onClose} />}
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmation && (

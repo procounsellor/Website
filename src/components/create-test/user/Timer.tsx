@@ -6,8 +6,9 @@ interface Timer {
     initialSeconds?: number
     onSectionClick?: () => void
     onTimerEnd?: () => void
+    onTick?: (seconds: number) => void // Report current seconds to parent
 }
-export function Timer({ time, initialSeconds, onSectionClick, onTimerEnd }: Timer) {
+export function Timer({ time, initialSeconds, onSectionClick, onTimerEnd, onTick }: Timer) {
     const [seconds, setSeconds] = useState(() => {
         if (initialSeconds !== undefined) return initialSeconds;
         return time ? parseInt(time) * 60 : 0;
@@ -29,12 +30,14 @@ export function Timer({ time, initialSeconds, onSectionClick, onTimerEnd }: Time
                     onTimerEnd?.()
                     return 0
                 }
-                return prev - 1
+                const newSeconds = prev - 1;
+                onTick?.(newSeconds);
+                return newSeconds;
             })
         }, 1000)
 
         return () => clearInterval(interval)
-    }, [onTimerEnd])
+    }, [onTimerEnd, onTick])
 
     const hours = Math.floor(seconds / 3600)
     const minutes = Math.floor((seconds % 3600) / 60)
@@ -63,17 +66,17 @@ export function Timer({ time, initialSeconds, onSectionClick, onTimerEnd }: Time
                 <div className="flex gap-3 items-start">
                     <div className="flex flex-col items-center">
                         <p className="text-[1.5rem] font-semibold text-(--text-app-primary)">{formatTime(hours)}</p>
-                        <span className="font-medium text-xs text-(--text-muted)">Hours</span>
+                        <span className="font-medium text-xs text-(--text-muted)">h</span>
                     </div>
                     <span className="text-[1.5rem] font-semibold text-(--text-app-primary)">:</span>
                     <div className="flex flex-col items-center">
                         <p className="text-[1.5rem] font-semibold text-(--text-app-primary)">{formatTime(minutes)}</p>
-                        <span className="font-medium text-xs text-(--text-muted)">Minutes</span>
+                        <span className="font-medium text-xs text-(--text-muted)">m</span>
                     </div>
                     <span className="text-[1.5rem] font-semibold text-(--text-app-primary)">:</span>
                     <div className="flex flex-col items-center">
                         <p className="text-[1.5rem] font-semibold text-(--text-app-primary)">{formatTime(secs)}</p>
-                        <span className="font-medium text-xs text-(--text-muted)">Seconds</span>
+                        <span className="font-medium text-xs text-(--text-muted)">s</span>
                     </div>
                 </div>
             </div>
