@@ -778,3 +778,146 @@ export async function updateQuestion(
     throw error;
   }
 }
+
+export async function searchCommunityQuestions(
+  userId: string,
+  searchTerm: string,
+  token: string
+): Promise<GetCommunityDashboardResponse> {
+  try {
+    const url = `${baseUrl}${API_CONFIG.endpoints.getCommunityDashboard}/search?userId=${userId}&search=${encodeURIComponent(searchTerm)}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to search questions. Details: ${errorBody}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Search Community Questions Error:', error);
+    throw error;
+  }
+}
+
+export async function searchQuestionsList(
+  loggedInUserId: string,
+  searchTerm: string,
+  token: string
+): Promise<GetQuestionsListResponse> {
+  try {
+    const url = `${baseUrl}${API_CONFIG.endpoints.getQuestionsList}/search?loggedInUserId=${loggedInUserId}&search=${encodeURIComponent(searchTerm)}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(
+        `HTTP ${response.status}: Failed to search questions list. Details: ${errorBody}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Search Questions List Error:', error);
+    throw error;
+  }
+}
+
+export async function searchMyQuestions(
+  userId: string,
+  searchTerm: string,
+  token: string
+): Promise<GetCommunityDashboardResponse> {
+  try {
+    const url = `${baseUrl}${API_CONFIG.endpoints.getMyQuestions}/search?userId=${userId}&search=${encodeURIComponent(searchTerm)}`;
+    
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`HTTP ${response.status}: Failed to search my questions. Details: ${errorBody}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Search My Questions Error:', error);
+    throw error;
+  }
+}
+
+export async function searchMyAnswers(
+  userId: string,
+  searchTerm: string,
+  token: string
+): Promise<GetMyAnswersResponse> {
+  try {
+    const url = `${baseUrl}${API_CONFIG.endpoints.getMyAnswers}/search?userId=${userId}&search=${encodeURIComponent(searchTerm)}`;
+    
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`HTTP ${response.status}: Failed to search my answers. Details: ${errorBody}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Search My Answers Error:', error);
+    throw error;
+  }
+}
+
+export async function searchMyBookmarkedQuestions(
+  userId: string,
+  searchTerm: string,
+  token: string
+): Promise<GetQuestionsListResponse> {
+  try {
+    const url = `${baseUrl}${API_CONFIG.endpoints.getMyBookmarkedQuestions}/search?userId=${userId}&search=${encodeURIComponent(searchTerm)}`;
+    
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`HTTP ${response.status}: Failed to search bookmarks. Details: ${errorBody}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Search Bookmarks Error:', error);
+    throw error;
+  }
+}

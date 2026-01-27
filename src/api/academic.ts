@@ -1,5 +1,5 @@
 import { API_CONFIG } from "./config";
-import type { CollegeApiResponse, ExamApiResponse, CourseApiResponse, CounsellorApiResponse, AllCounselor, CounselorDetails } from "../types/academic";
+import type { CollegeDetails,CollegeApiResponse, ExamApiResponse, CourseApiResponse, CounsellorApiResponse, AllCounselor, CounselorDetails } from "../types/academic";
 
 interface BookingRequest {
   userId: string;
@@ -55,6 +55,7 @@ async function authFetcher<T>(endpoint: string, token: string): Promise<T> {
 
 export const academicApi = {
   getColleges: () => fetcher<CollegeApiResponse[]>(API_CONFIG.endpoints.getColleges),
+  getCollegeById: (id: string) => fetcher<CollegeDetails>(`/api/colleges/getCollegeById?collegeId=${id}`),
   getExams: () => fetcher<ExamApiResponse[]>(API_CONFIG.endpoints.getExams),
   getExamById: (id: string) => fetcher<any>(`/api/exams/getExamById?examId=${id}`),
   getCourses: () => fetcher<CourseApiResponse[]>(API_CONFIG.endpoints.getCourses),
@@ -102,33 +103,120 @@ export const academicApi = {
   },
 
   searchCounsellors: async (
-    userName: string, 
-    city: string, 
-    page: number = 0, 
-    pageSize: number = 15,
+    userName: string,
+    filters: {
+      city?: string;
+      languagesKnow?: string;
+      workingDays?: string;
+      experience?: string;
+      minPrice?: string;
+      maxPrice?: string;
+      search?: string;
+    },
+    page: number = 0,
+    pageSize: number = 9
   ) => {
-    const token = localStorage.getItem('jwt');
-    if (!token) throw new Error('Authentication token not found');
+    const token = localStorage.getItem("jwt");
+    if (!token) throw new Error("Authentication token not found");
 
-    const params = new URLSearchParams({
-      userName: userName,
-      city: city,
-      page: page.toString(),
-      pageSize: pageSize.toString(),
-      sortBy: 'rating', 
-      sortOrder: 'desc'
-    });
+    const params = new URLSearchParams();
+
+    params.append("userName", userName);
+    params.append("page", page.toString());
+    params.append("pageSize", pageSize.toString());
+    params.append("sortBy", "priority");
+    params.append("sortOrder", "desc");
+
+    if (filters.city) params.append("city", filters.city);
+    if (filters.languagesKnow) params.append("languagesKnow", filters.languagesKnow);
+    if (filters.workingDays) params.append("workingDays", filters.workingDays);
+    if (filters.experience) params.append("experience", filters.experience);
+    if (filters.minPrice) params.append("minPrice", filters.minPrice);
+    if (filters.maxPrice) params.append("maxPrice", filters.maxPrice);
+    if (filters.search) params.append("search", filters.search);
 
     const endpoint = `${API_CONFIG.endpoints.searchCounsellors}?${params.toString()}`;
-    
+
     const res = await fetch(`${API_CONFIG.baseUrl}${endpoint}`, {
       headers: {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!res.ok) throw new Error("Failed to search counselors");
+    return res.json();
+  },
+
+  searchAllLoggedOutCounsellors: async (
+    filters: {
+      city?: string;
+      languagesKnow?: string;
+      workingDays?: string;
+      experience?: string;
+      minPrice?: string;
+      maxPrice?: string;
+      search?: string;
+    },
+    page: number = 0,
+    pageSize: number = 9
+  ) => {
+    const params = new URLSearchParams();
+    
+    params.append("page", page.toString());
+    params.append("pageSize", pageSize.toString());
+    params.append("sortBy", "priority");
+    params.append("sortOrder", "desc");
+
+    if (filters.city) params.append("city", filters.city);
+    if (filters.languagesKnow) params.append("languagesKnow", filters.languagesKnow);
+    if (filters.workingDays) params.append("workingDays", filters.workingDays);
+    if (filters.experience) params.append("experience", filters.experience);
+    if (filters.minPrice) params.append("minPrice", filters.minPrice);
+    if (filters.maxPrice) params.append("maxPrice", filters.maxPrice);
+    if (filters.search) params.append("search", filters.search);
+
+    const endpoint = `/api/shared/getAllCounsellors/search?${params.toString()}`;
+
+    const res = await fetch(`${API_CONFIG.baseUrl}${endpoint}`, {
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!res.ok) throw new Error("Failed to search all counselors");
+    return res.json();
+  },
+
+  searchExams: async (
+    filters: {
+      search?: string;
+      level?: string;
+      type?: string;
+      sortBy?: string;
+      sortOrder?: string;
+    }, 
+    page: number = 0, 
+    pageSize: number = 9
+  ) => {
+    const params = new URLSearchParams();
+    
+    if (filters.search) params.append("search", filters.search);
+    if (filters.level) params.append("examLevel", filters.level);
+    if (filters.type) params.append("examType", filters.type);
+    if (filters.sortBy) params.append("sortBy", filters.sortBy);
+    if (filters.sortOrder) params.append("sortOrder", filters.sortOrder);
+    
+    params.append("page", page.toString());
+    params.append("pageSize", pageSize.toString());
+
+    const res = await fetch(`${API_CONFIG.baseUrl}/api/exams/all/search?${params.toString()}`, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!res.ok) throw new Error("Failed to search exams");
     return res.json();
   },
 };
