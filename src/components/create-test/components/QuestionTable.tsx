@@ -7,6 +7,7 @@ interface QuestionTableProps {
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { MathText } from "@/components/common/MathText";
 
 export function QuestionTable({ data, onView, onEdit, onDelete }: QuestionTableProps) {
   const [displayCount, setDisplayCount] = useState(10);
@@ -60,7 +61,7 @@ export function QuestionTable({ data, onView, onEdit, onDelete }: QuestionTableP
               >
                 {/* Question */}
                 <td className="px-3 py-3 text-sm font-medium text-(--text-app-primary)">
-                  {q.questionText}
+                  <MathText>{q.questionText}</MathText>
                 </td>
 
                 {/* Type */}
