@@ -12,7 +12,7 @@ import {
 import SmartImage from "@/components/ui/SmartImage";
 import { Button } from "../ui";
 import toast from "react-hot-toast";
-import ChatInput from "./components/ChatInput";
+import ChatInput, { type ChatInputRef } from "./components/ChatInput";
 import Sidear from "./components/Sidear";
 import ChatMessage from "./components/ChatMessage";
 import { ChatbotCounselorCard } from "./components/ChatbotCounselorCard";
@@ -111,6 +111,7 @@ export default function Chatbot() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<ChatInputRef>(null);
 
   // Initialize sidebar state based on screen size
   useEffect(() => {
@@ -178,6 +179,8 @@ export default function Chatbot() {
     setInput("");
     const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null;
     await sendMessage(messageToSend, userId, role, token);
+    // Auto-focus input after sending message
+    setTimeout(() => inputRef.current?.focus(), 50);
   };
 
   const handleNewChat = () => {
@@ -329,14 +332,14 @@ export default function Chatbot() {
                     >
                       <button
                         onClick={() => {
-                          navigate("/dashboard-student");
+                          navigate(role === "counselor" ? "/counsellor-dashboard" : "/dashboard-student");
                           setIsDropdownOpen(false);
                           toggleChatbot();
                         }}
                         className="w-full flex items-center gap-3 px-4 py-2 cursor-pointer text-sm text-white hover:bg-gray-700"
                       >
                         <LayoutDashboard size={16} />
-                        <span>Profile</span>
+                        <span>{role === "counselor" ? "Dashboard" : "Profile"}</span>
                       </button>
                       <button
                         onClick={handleLogout}
@@ -398,6 +401,7 @@ export default function Chatbot() {
 
                 <div className="mb-6 md:mb-8">
                   <ChatInput
+                    ref={inputRef}
                     input={input}
                     setInput={setInput}
                     handleKeyPress={handleKeyPress}
@@ -694,6 +698,7 @@ export default function Chatbot() {
                   )}
 
                   <ChatInput
+                    ref={inputRef}
                     input={input}
                     setInput={setInput}
                     handleKeyPress={handleKeyPress}

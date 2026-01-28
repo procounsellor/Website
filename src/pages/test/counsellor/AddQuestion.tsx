@@ -370,9 +370,11 @@ export function AddQuestion() {
         setEditingQuestion({ questionId, sectionName });
         setQuestionText(question.questionText);
         setSelectedCategory(sectionName);
-        setResponseType(question.isMultipleAnswer ? "multi" : "single");
-        setCorrectOptions(question.correctAnswerIds);
-        if (!question.isMultipleAnswer && question.correctAnswerIds.length > 0) {
+        // Check both field names as API uses inconsistent naming (multipleAnswer vs isMultipleAnswer)
+        const isMulti = question.isMultipleAnswer || question.multipleAnswer || false;
+        setResponseType(isMulti ? "multi" : "single");
+        setCorrectOptions(question.correctAnswerIds || []);
+        if (!isMulti && question.correctAnswerIds?.length > 0) {
           setCorrectOption(question.correctAnswerIds[0]);
         }
 
@@ -502,10 +504,12 @@ export function AddQuestion() {
     let allQuestions: any[] = [];
     sections.forEach((section) => {
       section.questions.forEach((q: Question) => {
+        // Check both field names as API uses inconsistent naming
+        const isMulti = (q as any).isMultipleAnswer || (q as any).multipleAnswer || false;
         allQuestions.push({
           ...q,
           sectionName: section.sectionName,
-          type: q.isMultipleAnswer ? "Multi Select" : "Single Select",
+          type: isMulti ? "Multi Select" : "Single Select",
         });
       });
     });
@@ -630,13 +634,13 @@ export function AddQuestion() {
                 <button
                   onClick={() => setSelectedType("objective")}
                   className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all w-[149px] h-[39px] cursor-pointer ${selectedType === "objective"
-                      ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
-                      : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
+                    ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
+                    : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
                     }`}
                 >
                   <span className={`flex items-center justify-center w-6 h-6 rounded-full border font-bold ${selectedType === "objective"
-                      ? "bg-white text-(--btn-primary) border-white"
-                      : "bg-transparent border-[#E9EBEC]"
+                    ? "bg-white text-(--btn-primary) border-white"
+                    : "bg-transparent border-[#E9EBEC]"
                     }`}>
                     {selectedType === "objective" && "✓"}
                   </span>
@@ -666,6 +670,22 @@ export function AddQuestion() {
                 <textarea
                   value={questionText}
                   onChange={(e) => setQuestionText(e.target.value)}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    const pastedText = e.clipboardData.getData('text/plain');
+                    // Clean and normalize the pasted text
+                    const cleanedText = pastedText
+                      .normalize('NFC') // Normalize Unicode
+                      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ''); // Remove control characters except newline/tab
+                    const start = e.currentTarget.selectionStart;
+                    const end = e.currentTarget.selectionEnd;
+                    const newText = questionText.substring(0, start) + cleanedText + questionText.substring(end);
+                    setQuestionText(newText);
+                    // Set cursor position after paste
+                    setTimeout(() => {
+                      e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + cleanedText.length;
+                    }, 0);
+                  }}
                   placeholder="Enter your question here"
                   className="w-full min-h-[100px] resize-none text-base placeholder:text-gray-400 outline-none"
                 />
@@ -744,13 +764,13 @@ export function AddQuestion() {
                         key={section.sectionName}
                         onClick={() => setSelectedCategory(section.sectionName)}
                         className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all capitalize cursor-pointer ${selectedCategory === section.sectionName
-                            ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
-                            : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
+                          ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
+                          : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
                           }`}
                       >
                         <span className={`flex items-center justify-center w-6 h-6 rounded-full border font-bold ${selectedCategory === section.sectionName
-                            ? "bg-white text-(--btn-primary) border-white"
-                            : "bg-transparent border-[#E9EBEC]"
+                          ? "bg-white text-(--btn-primary) border-white"
+                          : "bg-transparent border-[#E9EBEC]"
                           }`}>
                           {selectedCategory === section.sectionName && "✓"}
                         </span>
@@ -778,13 +798,13 @@ export function AddQuestion() {
                     <button
                       onClick={() => setResponseType("single")}
                       className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all cursor-pointer ${responseType === "single"
-                          ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
-                          : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
+                        ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
+                        : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
                         }`}
                     >
                       <span className={`flex items-center justify-center w-6 h-6 rounded-full border font-bold ${responseType === "single"
-                          ? "bg-white text-(--btn-primary) border-white"
-                          : "bg-transparent border-[#E9EBEC]"
+                        ? "bg-white text-(--btn-primary) border-white"
+                        : "bg-transparent border-[#E9EBEC]"
                         }`}>
                         {responseType === "single" && "✓"}
                       </span>
@@ -794,13 +814,13 @@ export function AddQuestion() {
                     <button
                       onClick={() => setResponseType("multi")}
                       className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all cursor-pointer ${responseType === "multi"
-                          ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
-                          : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
+                        ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
+                        : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
                         }`}
                     >
                       <span className={`flex items-center justify-center w-6 h-6 rounded-full border font-bold ${responseType === "multi"
-                          ? "bg-white text-(--btn-primary) border-white"
-                          : "bg-transparent border-[#E9EBEC]"
+                        ? "bg-white text-(--btn-primary) border-white"
+                        : "bg-transparent border-[#E9EBEC]"
                         }`}>
                         {responseType === "multi" && "✓"}
                       </span>
@@ -840,6 +860,22 @@ export function AddQuestion() {
                           onChange={(e) => {
                             const newOptions = [...options];
                             newOptions[index].text = e.target.value;
+                            setOptions(newOptions);
+                          }}
+                          onPaste={(e) => {
+                            e.preventDefault();
+                            const pastedText = e.clipboardData.getData('text/plain');
+                            // Clean and normalize the pasted text
+                            const cleanedText = pastedText
+                              .normalize('NFC') // Normalize Unicode
+                              .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+                              .replace(/\n/g, ' '); // Replace newlines with space for single-line input
+                            const start = e.currentTarget.selectionStart || 0;
+                            const end = e.currentTarget.selectionEnd || 0;
+                            const currentText = option.text;
+                            const newText = currentText.substring(0, start) + cleanedText + currentText.substring(end);
+                            const newOptions = [...options];
+                            newOptions[index].text = newText;
                             setOptions(newOptions);
                           }}
                           placeholder="Write option here"
@@ -955,6 +991,20 @@ export function AddQuestion() {
                 <textarea
                   value={solution}
                   onChange={(e) => setSolution(e.target.value)}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    const pastedText = e.clipboardData.getData('text/plain');
+                    const cleanedText = pastedText
+                      .normalize('NFC')
+                      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+                    const start = e.currentTarget.selectionStart;
+                    const end = e.currentTarget.selectionEnd;
+                    const newText = solution.substring(0, start) + cleanedText + solution.substring(end);
+                    setSolution(newText);
+                    setTimeout(() => {
+                      e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + cleanedText.length;
+                    }, 0);
+                  }}
                   placeholder="Enter solution explanation here"
                   className="w-full min-h-[80px] resize-none text-base placeholder:text-gray-400 outline-none"
                 />

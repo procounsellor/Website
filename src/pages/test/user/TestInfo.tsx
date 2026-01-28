@@ -10,6 +10,7 @@ interface SectionData {
   totalQuestionsAdded: number;
   sectionDurationInMinutes: number;
   pointsForCorrectAnswer?: number;
+  negativeMarks?: number;
 }
 
 interface InstructionItem {
@@ -24,9 +25,6 @@ interface InstructionItem {
 }
 
 const getGeneralInstructions = (
-  negativeMarkingEnabled: boolean,
-  pointsPerQuestion: number,
-  negativeMarks: number,
   sectionSwitchingAllowed: boolean
 ): InstructionItem[] => [
     {
@@ -46,8 +44,8 @@ const getGeneralInstructions = (
       points: [
         { icon: "blue-circle", text: "You are currently on this question" },
         { icon: "green-circle", text: "You have answered the question." },
-        { icon: "red-circle", text: "You have not answered the question." },
-        { icon: "gray-circle", text: "You have not visited the question yet." }
+        { icon: "orange-circle", text: "Marked for review (answer not saved)." },
+        { icon: "gray-circle", text: "Unanswered (not yet answered)." }
       ]
     },
     {
@@ -86,16 +84,12 @@ const getGeneralInstructions = (
     {
       id: 6,
       title: "Marking Scheme",
-      points: negativeMarkingEnabled
-        ? [
-          `+${pointsPerQuestion} marks will be awarded for every correct answer.`,
-          `Negative marking is applicable.`,
-          `-${negativeMarks} mark(s) will be deducted for every incorrect answer.`
-        ]
-        : [
-          `+${pointsPerQuestion} marks will be awarded for every correct answer.`,
-          `No negative marking.`
-        ]
+      points: [
+        "Each section has its own marking scheme displayed in the section table above.",
+        "Correct marks (+) and negative marks (-) vary by section.",
+        "Please check the section details for specific marking values.",
+        "Unattempted questions do not receive any marks or negative marking."
+      ]
     },
     {
       id: 7,
@@ -122,8 +116,6 @@ export function TestInfo() {
   const [loading, setLoading] = useState(true);
   const [testName, setTestName] = useState("Mock Test");
   const [pointsPerQuestion, setPointsPerQuestion] = useState(4);
-  const [negativeMarks, setNegativeMarks] = useState(1);
-  const [negativeMarkingEnabled, setNegativeMarkingEnabled] = useState(true);
   const [sectionSwitchingAllowed, setSectionSwitchingAllowed] = useState(false);
   // New state for attempts
   const [attempts, setAttempts] = useState<any[]>([]);
@@ -151,8 +143,6 @@ export function TestInfo() {
           // Set test details
           setTestName(data.testName || "Mock Test");
           setPointsPerQuestion(data.pointsForCorrectAnswer || 4);
-          setNegativeMarks(data.negativeMarks || 1);
-          setNegativeMarkingEnabled(data.negativeMarkingEnabled || false);
           setSectionSwitchingAllowed(data.sectionSwitchingAllowed || false);
 
           // Extract section information from listOfSection
@@ -232,70 +222,77 @@ export function TestInfo() {
       </h1>
 
       <div className="w-full max-w-[800px] lg:max-w-[1200px] border border-t-0 border-[#E4E8EC] rounded-2xl bg-white overflow-hidden">
-        {/* HEADER */}
-        <div className="grid grid-cols-4 gap-x-4 lg:gap-x-12 bg-[#F8F9FA] text-center text-(--text-muted) rounded-tr-[15px] rounded-tl-[15px] rounded-b-2xl">
-          {["Section", "No. of Question", "Duration", "Marks"].map((h, idx) => (
+        {/* Scrollable table container for mobile */}
+        <div className="overflow-x-auto">
+          {/* HEADER */}
+          <div className="grid grid-cols-6 min-w-[500px] gap-x-1 md:gap-x-4 bg-[#F8F9FA] text-center text-(--text-muted) rounded-tr-[15px] rounded-tl-[15px] rounded-b-2xl">
+            {["Section", "Qs", "Time", "+ve", "-ve", "Total"].map((h, idx) => (
+              <div
+                key={h}
+                className={`px-1 md:px-2 py-3 md:py-4 font-normal text-[9px] md:text-sm ${idx === 0 ? "text-left pl-2 md:pl-6" : ""
+                  }`}
+              >
+                {h}
+              </div>
+            ))}
+          </div>
+
+          {/* BODY */}
+          {sections?.map((row, index) => (
             <div
-              key={h}
-              className={`px-3 py-4 font-normal text-xs md:text-base ${idx === 0 ? "text-left pl-6 md:pl-10" : ""
-                }`}
+              key={index}
+              className="grid grid-cols-6 min-w-[500px] gap-x-1 md:gap-x-4 text-center border-b border-gray-100 last:border-b-0"
             >
-              {h}
+              <div className="px-1 md:px-2 py-2 md:py-3 font-semibold text-[9px] md:text-sm text-left pl-2 md:pl-6 truncate">
+                {row.sectionName}
+              </div>
+              <div className="px-1 md:px-2 py-2 md:py-3 font-semibold text-[9px] md:text-sm">
+                {row.totalQuestionsSupposedToBeAdded}
+              </div>
+              <div className="px-1 md:px-2 py-2 md:py-3 font-semibold text-[9px] md:text-sm">
+                {row.sectionDurationInMinutes}m
+              </div>
+              <div className="px-1 md:px-2 py-2 md:py-3 font-semibold text-[9px] md:text-sm text-green-600">
+                +{row.pointsForCorrectAnswer ?? pointsPerQuestion}
+              </div>
+              <div className="px-1 md:px-2 py-2 md:py-3 font-semibold text-[9px] md:text-sm text-red-600">
+                {(row.negativeMarks ?? 0) > 0 ? `-${row.negativeMarks}` : '0'}
+              </div>
+              <div className="px-1 md:px-2 py-2 md:py-3 font-semibold text-[9px] md:text-sm">
+                {(row.totalQuestionsSupposedToBeAdded || 0) * (row.pointsForCorrectAnswer ?? pointsPerQuestion)}
+              </div>
             </div>
           ))}
         </div>
 
-        {/* BODY */}
-        {sections?.map((row, index) => (
-          <div
-            key={index}
-            className="grid grid-cols-4 gap-x-4 lg:gap-x-12 text-center"
-          >
-            <div className="px-3 py-4 font-semibold text-xs md:text-base text-left pl-6 md:pl-10">
-              {row.sectionName}
-            </div>
-            <div className="px-3 py-4 font-semibold text-xs md:text-base">
-              {row.totalQuestionsSupposedToBeAdded}
-            </div>
-            <div className="px-3 py-4 font-semibold text-xs md:text-base">
-              {row.sectionDurationInMinutes} m
-            </div>
-            <div className="px-3 py-4 font-semibold text-xs md:text-base">
-              {/* Show total marks for the section */}
-              {(row.totalQuestionsSupposedToBeAdded || 0) * (row.pointsForCorrectAnswer || pointsPerQuestion)}
-            </div>
-          </div>
-        ))}
-
         {/* SUMMARY */}
         <div className="border-t border-[#E4E8EC]">
-          <div className="px-6 md:px-10 py-4">
-            <div className="flex gap-4 md:gap-10 flex-wrap">
+          <div className="px-4 md:px-6 py-4">
+            <div className="flex gap-4 md:gap-8 flex-wrap">
               <div className="flex flex-col md:flex-row md:gap-2">
                 <p className="text-xs font-normal md:text-sm text-(--text-muted)">
                   Total Time:
                 </p>
                 <p className="text-sm font-semibold md:text-[1rem] text-(--text-app-primary)">
-                  {totalDuration} m
+                  {totalDuration} min
                 </p>
               </div>
 
               <div className="flex flex-col md:flex-row md:gap-2">
                 <p className="text-xs font-normal md:text-sm text-(--text-muted)">
-                  Total Marks:
+                  Total Questions:
+                </p>
+                <p className="text-sm font-semibold md:text-[1rem] text-(--text-app-primary)">
+                  {totalQuestions}
+                </p>
+              </div>
+
+              <div className="flex flex-col md:flex-row md:gap-2">
+                <p className="text-xs font-normal md:text-sm text-(--text-muted)">
+                  Max Marks:
                 </p>
                 <p className="text-sm font-semibold md:text-[1rem] text-(--text-app-primary)">
                   {totalMarks}
-                </p>
-              </div>
-
-              <div className="flex flex-col md:flex-row md:gap-2">
-                <p className="text-xs font-normal md:text-sm text-(--text-muted)">
-                  Marking Scheme:
-                </p>
-                <p className="text-sm font-semibold md:text-[1rem] text-(--text-app-primary)">
-                  {/* Simplification: mostly global, but if sections differ, maybe just show global default or "Variable" */}
-                  +{pointsPerQuestion} {negativeMarkingEnabled ? `/ -${negativeMarks}` : '/ No negative'}
                 </p>
               </div>
 
@@ -425,7 +422,7 @@ export function TestInfo() {
         </h2>
 
         <div className="p-6 md:p-8 space-y-6">
-          {getGeneralInstructions(negativeMarkingEnabled, pointsPerQuestion, negativeMarks, sectionSwitchingAllowed).map((instruction) => (
+          {getGeneralInstructions(sectionSwitchingAllowed).map((instruction) => (
             <div key={instruction.id} className="text-left">
               <h3 className="font-medium text-base md:text-[1.25rem] text-(--text-app-primary) mb-3">
                 {instruction.id}. {instruction.title}
@@ -448,7 +445,7 @@ export function TestInfo() {
                           {point.icon && (
                             <span className={`inline-block w-3 h-3 rounded-full mt-1 ${point.icon === 'blue-circle' ? 'bg-blue-500' :
                               point.icon === 'green-circle' ? 'bg-green-500' :
-                                point.icon === 'red-circle' ? 'bg-red-500' :
+                                point.icon === 'orange-circle' ? 'bg-[#F69E23]' :
                                   point.icon === 'gray-circle' ? 'bg-[#EAEDF0]' : ''
                               }`}></span>
                           )}
