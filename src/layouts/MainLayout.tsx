@@ -44,7 +44,7 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isCollegeDetailsPage = location.pathname.includes('/colleges-details');
+  const isCollegeDetailsPage = location.pathname.includes('/college-details');
   const shouldHideBanner = location.pathname.includes('/test-info') || location.pathname.includes('/test-result') || location.pathname.includes('/t/');
 
   useEffect(() => {
@@ -188,7 +188,7 @@ export default function MainLayout() {
         <button
           onClick={toggleChatbot}
           className={`fixed right-6 cursor-pointer bg-[#FA660F] text-white w-16 h-16 flex items-center justify-center rounded-full shadow-lg z-50 hover:bg-orange-600 transition-all duration-300 transform hover:scale-110 
-            ${isCollegeDetailsPage ? 'bottom-18 md:bottom-6' : 'bottom-6'}`}
+            ${isCollegeDetailsPage ? 'bottom-20 md:bottom-6' : 'bottom-6'}`}
           aria-label="Toggle Chatbot"
         >
           <MessageSquare size={32} />

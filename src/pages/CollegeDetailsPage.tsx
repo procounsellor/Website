@@ -5,6 +5,7 @@ import type { CollegeDetails } from '@/types';
 import CollegeBannerCard from '@/components/college/CollegeBannerCard';
 import CollegeTabs from '@/components/college/CollegeTabs';
 import AdmissionCard from '@/components/college/AdmissionCard';
+import CollegeMapCard from '@/components/college/CollegeMapCard';
 import InfoTab from '@/components/college/tabs/InfoTab';
 import CoursesTab from '@/components/college/tabs/CoursesTab';
 import CounsellorsTab from '@/components/college/tabs/CounsellorsTab';
@@ -81,12 +82,7 @@ const CollegeDetailsPageNew = () => {
     <div className="min-h-screen bg-[#FFFFFF] pb-20">
       <div className="max-w-7xl mx-auto mt-14 md:mt-14 px-4 md:px-8 pt-4 md:pt-10">
         <div className="mb-6 md:mb-8">
-          <h1 
-            className="text-[#242645] font-semibold text-[20px] md:text-[24px] leading-[125%]"
-            style={{ fontFamily: 'Montserrat' }}
-          >
-            {collegeData.collegeName}
-          </h1>
+          
           <p 
             className="text-[#8C8CA1] font-medium mt-1 md:mt-2 text-[14px] md:text-[18px] leading-[135%] md:leading-[125%]"
             style={{ fontFamily: 'Montserrat' }}
@@ -112,8 +108,9 @@ const CollegeDetailsPageNew = () => {
             </div>
           </div>
 
-          <div className="w-full lg:w-[30%] max-w-[400px] shrink-0 sticky top-24">
+          <div className="w-full lg:w-[30%] max-w-[400px] shrink-0 flex flex-col gap-6">
              <AdmissionCard />
+             <CollegeMapCard address={collegeData.collegeFullAddress} />
           </div>
         </div>
       </div>
