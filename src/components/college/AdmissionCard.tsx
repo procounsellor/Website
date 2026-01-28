@@ -15,7 +15,7 @@ const AdmissionCard = () => {
          </button>
       </div>
 
-      <div className="hidden md:flex bg-white rounded-2xl border border-[#EFEFEF] shadow-[0px_0px_4px_0px_#23232326] p-5 flex-col gap-4 sticky top-24">
+      <div className="hidden md:flex bg-white rounded-2xl border border-[#EFEFEF] shadow-[0px_0px_4px_0px_#23232326] p-5 flex-col gap-4 top-24">
         
         <div className="w-full h-[220px] rounded-xl overflow-hidden relative">
            <img 
