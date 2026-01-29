@@ -42,29 +42,29 @@ export function Option({ multipleAnswer, subjective, option, selectedAnswers = [
                         <div
                             key={opt.optionId}
                             className={`p-3 md:p-4 rounded-xl transition-all cursor-pointer ${isSelected
-                                    ? 'border-2 border-(--btn-primary) bg-[#FFF5ED]'
-                                    : 'border border-[#D6D6D6] bg-transparent hover:border-[#13097D]'
+                                ? 'border-2 border-(--btn-primary) bg-[#FFF5ED]'
+                                : 'border border-[#D6D6D6] bg-transparent hover:border-[#13097D]'
                                 }`}
                             onClick={() => handleOptionChange(opt.optionId)}
                         >
                             <div className="flex items-center gap-3">
                                 <input
                                     type={multipleAnswer ? "checkbox" : "radio"}
-                                    name={multipleAnswer ? undefined : "answer-option"}
-                                    id={opt.optionId}
+                                    name={multipleAnswer ? `multi-${opt.optionId}` : "answer-option"}
                                     checked={isSelected}
-                                    onChange={() => handleOptionChange(opt.optionId)}
+                                    readOnly
                                     style={{
                                         width: '33.33px',
                                         height: '33.33px',
                                         minWidth: '33.33px',
                                         borderRadius: multipleAnswer ? '4px' : '50%',
                                         border: '2px solid #6B7280',
-                                        accentColor: 'var(--btn-primary)'
+                                        accentColor: 'var(--btn-primary)',
+                                        pointerEvents: 'none'
                                     }}
                                     className="cursor-pointer shrink-0"
                                 />
-                                <label htmlFor={opt.optionId} className="flex-1 cursor-pointer">
+                                <div className="flex-1">
                                     <div className="flex items-center gap-2">
                                         <span className="text-sm md:text-[1.125rem] font-normal text-(--text-muted) shrink-0">
                                             {opt.optionId}.
@@ -73,15 +73,15 @@ export function Option({ multipleAnswer, subjective, option, selectedAnswers = [
                                             <MathText>{opt.value}</MathText>
                                         </p>
                                     </div>
-                                </label>
+                                </div>
                             </div>
                             {opt.imageUrl && (
-                                <div className="mt-3 flex flex-col md:flex-row justify-center md:justify-start gap-2">
-                                    <div className="w-[237px] h-[237px] border border-[#D8D8D8] rounded-[16px] overflow-hidden">
+                                <div className="mt-3">
+                                    <div className="border border-[#D8D8D8] rounded-[16px] overflow-hidden bg-gray-50 p-2 inline-block">
                                         <img
                                             src={opt.imageUrl}
                                             alt={`Option ${opt.optionId}`}
-                                            className="w-full h-full object-center"
+                                            className="max-w-full h-auto max-h-[250px] md:max-h-[300px] object-contain rounded-lg"
                                         />
                                     </div>
                                 </div>

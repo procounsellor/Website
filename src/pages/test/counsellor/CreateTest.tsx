@@ -910,15 +910,6 @@ export function CreateTest() {
         </div>
       </Dropdown>
 
-      <Dropdown label="Instruction">
-        <Textarea
-          label="Test Instructions"
-          placeholder="Provide clear instructions for test takers. E.g , Choose the correct answer, Do not use external resources etc"
-          value={formData.instructions}
-          onChange={(value) => handleInputChange("instructions", value)}
-        />
-      </Dropdown>
-
       <div className=" w-full bg-white shadow-[0_0_4px_0_#00000026] hover:cursor-pointer rounded-2xl p-5 max-w-[1200px] flex flex-col gap-4">
         <div className="flex gap-10">
           <h1 className="text-(--text-app-primary) font-medium text-[1.125rem]">

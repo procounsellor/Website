@@ -4,6 +4,7 @@ import { ArrowLeft, Plus, Edit, Trash2, Star, Users, Clock, FileText, Globe, Glo
 import { toast } from "sonner";
 import { getTestGroupById, getAllTestSeriesOfTestGroupForCounselor, publishUnpublishTestGroup, deleteTestSeries } from "@/api/testGroup";
 import type { TestGroup, TestSeries } from "@/types/testGroup";
+import { DeleteConfirmationModal } from "@/components/modals/DeleteConfirmationModal";
 
 export function TestGroupDetails() {
   const navigate = useNavigate();
@@ -20,6 +21,11 @@ export function TestGroupDetails() {
   }[]>([]);
   const [loading, setLoading] = useState(true);
   const counsellorId = localStorage.getItem("phone") || "";
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string; name: string }>({
+    isOpen: false,
+    id: "",
+    name: "",
+  });
 
   useEffect(() => {
     if (testGroupId) {
@@ -71,11 +77,9 @@ export function TestGroupDetails() {
     }
   };
 
-  const handleDeleteTest = async (testSeriesId: string, testName: string) => {
-    if (!confirm(`Are you sure you want to delete "${testName}"?`)) return;
-
+  const handleDeleteTest = async () => {
     try {
-      await deleteTestSeries(counsellorId, testSeriesId);
+      await deleteTestSeries(counsellorId, deleteModal.id);
       toast.success("Test series deleted successfully");
       fetchData();
     } catch (error) {
@@ -168,8 +172,8 @@ export function TestGroupDetails() {
                       </h1>
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${testGroup.published
-                            ? "bg-green-100 text-green-700"
-                            : "bg-gray-100 text-gray-700"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-700"
                           }`}
                       >
                         {testGroup.published ? "Published" : "Draft"}
@@ -192,8 +196,8 @@ export function TestGroupDetails() {
                     <button
                       onClick={handlePublishToggle}
                       className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors text-sm cursor-pointer ${testGroup.published
-                          ? "bg-orange-50 text-orange-600 hover:bg-orange-100"
-                          : "bg-green-50 text-green-600 hover:bg-green-100"
+                        ? "bg-orange-50 text-orange-600 hover:bg-orange-100"
+                        : "bg-green-50 text-green-600 hover:bg-green-100"
                         }`}
                     >
                       {testGroup.published ? <GlobeLock size={14} /> : <Globe size={14} />}
@@ -289,8 +293,8 @@ export function TestGroupDetails() {
                     <div className="absolute top-2 right-2">
                       <span
                         className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${test.published
-                            ? "bg-green-500 text-white"
-                            : "bg-gray-500 text-white"
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-500 text-white"
                           }`}
                       >
                         {test.published ? "Live" : "Draft"}
@@ -349,7 +353,7 @@ export function TestGroupDetails() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDeleteTest(test.testSeriesId, test.testName);
+                          setDeleteModal({ isOpen: true, id: test.testSeriesId, name: test.testName });
                         }}
                         className="flex-1 flex items-center justify-center py-1.5 px-2 bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors cursor-pointer"
                         title="Delete Test"
@@ -419,6 +423,14 @@ export function TestGroupDetails() {
           )}
         </div>
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+        onConfirm={handleDeleteTest}
+        title="Delete Test Series?"
+        message={`Are you sure you want to delete "${deleteModal.name}"? This action cannot be undone.`}
+      />
     </div>
   );
 }

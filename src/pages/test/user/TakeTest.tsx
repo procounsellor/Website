@@ -1,6 +1,6 @@
 import { Section } from "@/components/create-test/user/Section";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Question } from "@/components/create-test/user/Question";
 import { Option } from "@/components/create-test/user/Option";
 import { Timer } from "@/components/create-test/user/Timer";
@@ -80,6 +80,10 @@ export function TakeTest() {
   const [startTime, setStartTime] = useState<number>(Date.now());
   const [testStarted, setTestStarted] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | undefined>(undefined);
+  const isLoadingAnswer = useRef(false); // Track if we're loading answer (to skip auto-save)
+  const [tabSwitchCount, setTabSwitchCount] = useState(0);
+  const [showTabWarning, setShowTabWarning] = useState(false);
+  const MAX_TAB_SWITCHES = 3;
 
   const userId = localStorage.getItem("phone") || "";
   const sessionKey = `test_progress_${testId}_${userId}`;
@@ -533,10 +537,86 @@ export function TakeTest() {
   // Load selected answers when question changes
   useEffect(() => {
     if (currentQuestion) {
+      isLoadingAnswer.current = true;
       const state = questionStates.get(currentQuestion.questionId);
       setSelectedAnswers(state?.selectedAnswers || []);
+      // Reset flag after state update
+      setTimeout(() => { isLoadingAnswer.current = false; }, 100);
     }
-  }, [currentQuestion, questionStates]);
+  }, [currentQuestion?.questionId]);
+
+  // Auto-save answers when they change (with debounce) - ONLY for multi-select questions
+  useEffect(() => {
+    // Only auto-save for multi-select questions (single-select saves on Next/Clear)
+    const isMultiSelect = currentQuestion?.multipleAnswer || (currentQuestion as any)?.isMultipleAnswer;
+
+    // Skip if: loading answer, no question, test not started, or single-select
+    if (isLoadingAnswer.current || !currentQuestion || !testStarted || !attemptId || !isMultiSelect) {
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        // If there are selected answers, save them
+        if (selectedAnswers.length > 0) {
+          await saveOrMarkForReviewAnswer({
+            attemptId,
+            userId,
+            sectionName: currentSection.sectionName,
+            questionId: currentQuestion.questionId,
+            answerIds: selectedAnswers,
+            status: "ATTEMPTED",
+          });
+        } else {
+          // If no answers selected, reset on backend
+          await resetAnswer(
+            userId,
+            currentQuestion.questionId,
+            attemptId,
+            currentSection.sectionName
+          );
+        }
+
+        // Update local state
+        const newStates = new Map(questionStates);
+        newStates.set(currentQuestion.questionId, {
+          questionId: currentQuestion.questionId,
+          sectionName: currentSection.sectionName,
+          status: selectedAnswers.length > 0 ? "ATTEMPTED" : "CURRENT",
+          selectedAnswers: selectedAnswers,
+        });
+        setQuestionStates(newStates);
+      } catch (error) {
+        console.error("Auto-save failed:", error);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [selectedAnswers, currentQuestion?.questionId, testStarted, attemptId]);
+
+  // Tab switch detection - warn users and auto-submit after MAX_TAB_SWITCHES
+  useEffect(() => {
+    if (!testStarted) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        // User switched tab or minimized
+        setTabSwitchCount(prev => {
+          const newCount = prev + 1;
+          if (newCount >= MAX_TAB_SWITCHES) {
+            // Auto-submit test after max switches
+            toast.error("Test auto-submitted due to multiple tab switches!");
+            handleSubmitTest();
+          }
+          return newCount;
+        });
+        setShowTabWarning(true);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [testStarted]);
 
   // Open submit modal - save current question first so stats are accurate
   const handleOpenSubmitModal = async () => {
@@ -845,6 +925,42 @@ export function TakeTest() {
         </div>
       )}
 
+      {/* Tab Switch Warning Modal */}
+      {showTabWarning && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[80] p-4">
+          <div className="bg-white rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl">
+            <div className="text-center mb-4">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-red-600 mb-2">
+                ⚠️ Tab Switch Detected!
+              </h3>
+              <p className="text-gray-700 mb-2">
+                You switched away from the test. This is not allowed during the exam.
+              </p>
+              <p className="text-lg font-semibold text-orange-600">
+                Warning {tabSwitchCount} of {MAX_TAB_SWITCHES}
+              </p>
+              <p className="text-sm text-gray-500 mt-2">
+                {MAX_TAB_SWITCHES - tabSwitchCount > 0
+                  ? `${MAX_TAB_SWITCHES - tabSwitchCount} more switch(es) will auto-submit your test!`
+                  : 'Your test is being submitted...'
+                }
+              </p>
+            </div>
+            <button
+              onClick={() => setShowTabWarning(false)}
+              className="w-full py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 cursor-pointer"
+            >
+              I Understand, Continue Test
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Submit Test Modal */}
       <SubmitTestModal
         isOpen={showSubmitModal}
@@ -874,8 +990,8 @@ export function TakeTest() {
 
             if (userSelectedAnswers.length > 0) {
               secAttempted++;
-            } else if (status !== "NOT_VISITED") {
-              // If not attempted and visited (including marked for review without answer), count as unanswered
+            } else {
+              // Both NOT_VISITED and visited-but-not-answered are unanswered
               secUnanswered++;
             }
           });
@@ -905,16 +1021,38 @@ export function TakeTest() {
               </h1>
 
               <div className="sm:flex sm:flex-row sm:justify-between sm:items-center">
-                <Timer
-                  initialSeconds={timeLeft ?? (sectionDurations.reduce((a, b) => a + b, 0) * 60)}
-                  onSectionClick={() => setShowMobileSections(true)}
-                  onTick={(seconds) => setTimeLeft(seconds)}
-                  onTimerEnd={() => {
-                    // Timer ended - auto submit test
-                    toast("Time's up! Auto-submitting your test...");
-                    handleSubmitTest();
-                  }}
-                />
+                {sectionSwitchingAllowed ? (
+                  // Section switching ALLOWED - Use collective timer for all sections
+                  <Timer
+                    initialSeconds={timeLeft ?? (sectionDurations.reduce((a, b) => a + b, 0) * 60)}
+                    onSectionClick={() => setShowMobileSections(true)}
+                    onTick={(seconds) => setTimeLeft(seconds)}
+                    onTimerEnd={() => {
+                      toast("Time's up! Auto-submitting your test...");
+                      handleSubmitTest();
+                    }}
+                  />
+                ) : (
+                  // Section switching NOT ALLOWED - Timer resets for each section
+                  <Timer
+                    key={currentSectionIndex} // Reset timer when section changes
+                    initialSeconds={sectionDurations[currentSectionIndex] * 60}
+                    onSectionClick={() => setShowMobileSections(true)}
+                    onTick={(seconds) => setTimeLeft(seconds)}
+                    onTimerEnd={() => {
+                      if (currentSectionIndex < sections.length - 1) {
+                        // Auto move to next section when section time expires
+                        setCurrentSectionIndex(currentSectionIndex + 1);
+                        setCurrentQuestionIndex(0);
+                        toast(`Time up for ${currentSection.sectionName}. Moving to next section.`);
+                      } else {
+                        // Last section - auto submit
+                        toast("Time's up! Auto-submitting your test...");
+                        handleSubmitTest();
+                      }
+                    }}
+                  />
+                )}
               </div>
             </div>
 
@@ -931,14 +1069,14 @@ export function TakeTest() {
 
                   <Option
                     option={currentQuestion.options || []}
-                    multipleAnswer={currentQuestion.multipleAnswer}
+                    multipleAnswer={currentQuestion.multipleAnswer || (currentQuestion as any).isMultipleAnswer || false}
                     subjective={currentQuestion.subjective}
                     selectedAnswers={selectedAnswers}
                     onAnswerChange={setSelectedAnswers}
                   />
 
-                  {/* Mobile prev/next buttons */}
-                  <div className="flex md:hidden flex-wrap gap-2 items-stretch font-medium text-sm mt-4">
+                  {/* Mobile + Small Laptop prev/next buttons (visible until xl breakpoint) */}
+                  <div className="flex xl:hidden flex-wrap gap-2 items-stretch font-medium text-sm mt-4">
                     <button
                       onClick={handlePrevious}
                       disabled={currentQuestionIndex === 0}
@@ -996,40 +1134,32 @@ export function TakeTest() {
                 </div>
 
                 {/* Fixed bottom area */}
-                <div className="fixed flex flex-col md:flex-row items-center justify-between gap-3 p-5 left-0 bottom-0 right-0 md:right-[354px] bg-[#f9fafb] border-t border-[#d6d6d6] z-10">
-                  {/* Legend - Desktop only */}
-                  <div className="hidden md:flex items-center gap-6">
+                <div className="fixed flex items-center justify-center xl:justify-between gap-3 p-4 xl:p-5 left-0 bottom-0 right-0 xl:right-[354px] bg-[#f9fafb] border-t border-[#d6d6d6] z-10">
+                  {/* Legend - Only visible on xl+ in bottom bar */}
+                  <div className="hidden xl:flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <div className="h-5 w-5 rounded-full bg-[#1980E5]"></div>
-                      <p className="text-(--text-app-primary) font-normal text-sm">
-                        Current
-                      </p>
+                      <div className="h-4 w-4 rounded-full bg-[#1980E5]"></div>
+                      <span className="text-sm text-gray-600">Current</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="h-5 w-5 rounded-full bg-[#21C55D]"></div>
-                      <p className="text-(--text-app-primary) font-normal text-sm">
-                        Attempted
-                      </p>
+                      <div className="h-4 w-4 rounded-full bg-[#21C55D]"></div>
+                      <span className="text-sm text-gray-600">Attempted</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="h-5 w-5 rounded-full bg-[#F69E23]"></div>
-                      <p className="text-(--text-app-primary) font-normal text-sm">
-                        Marked
-                      </p>
+                      <div className="h-4 w-4 rounded-full bg-[#F69E23]"></div>
+                      <span className="text-sm text-gray-600">Marked</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="h-5 w-5 rounded-full bg-[#EAEDF0]"></div>
-                      <p className="text-(--text-app-primary) font-normal text-sm">
-                        Unanswered
-                      </p>
+                      <div className="h-4 w-4 rounded-full bg-[#EAEDF0]"></div>
+                      <span className="text-sm text-gray-600">Unanswered</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 w-full md:w-auto justify-center flex-nowrap overflow-x-auto">
+                  <div className="flex items-center gap-2 xl:gap-3 justify-center flex-nowrap">
                     <button
                       onClick={handlePrevious}
                       disabled={currentQuestionIndex === 0}
-                      className="hidden md:flex bg-[#DBE0E5] py-3 px-9 text-(--text-muted) rounded-[10px] font-medium text-[1rem] disabled:opacity-50 h-[44px] items-center justify-center cursor-pointer"
+                      className="hidden xl:flex bg-[#DBE0E5] py-2.5 px-6 text-(--text-muted) rounded-[10px] font-medium text-sm disabled:opacity-50 h-[40px] items-center justify-center cursor-pointer whitespace-nowrap"
                     >
                       Previous
                     </button>
@@ -1037,20 +1167,20 @@ export function TakeTest() {
                       <>
                         <button
                           onClick={handleSaveAndNext}
-                          className="hidden md:flex bg-[#F69E23] py-3 px-6 rounded-[10px] text-white font-medium text-[1rem] h-[44px] items-center justify-center cursor-pointer"
+                          className="hidden xl:flex bg-[#F69E23] py-2.5 px-4 rounded-[10px] text-white font-medium text-sm h-[40px] items-center justify-center cursor-pointer whitespace-nowrap"
                         >
                           Mark & Next
                         </button>
                         <button
                           onClick={handleClearResponse}
                           disabled={selectedAnswers.length === 0}
-                          className="hidden md:flex bg-red-100 py-3 px-6 rounded-[10px] text-red-600 font-medium text-[1rem] h-[44px] items-center justify-center cursor-pointer disabled:opacity-50"
+                          className="hidden xl:flex bg-red-100 py-2.5 px-4 rounded-[10px] text-red-600 font-medium text-sm h-[40px] items-center justify-center cursor-pointer disabled:opacity-50 whitespace-nowrap"
                         >
-                          Clear Response
+                          Clear
                         </button>
                         <button
                           onClick={handleNext}
-                          className="hidden md:flex bg-(--btn-primary) py-3 px-9 rounded-[10px] text-white font-medium text-[1rem] h-[44px] items-center justify-center cursor-pointer"
+                          className="hidden xl:flex bg-(--btn-primary) py-2.5 px-6 rounded-[10px] text-white font-medium text-sm h-[40px] items-center justify-center cursor-pointer whitespace-nowrap"
                         >
                           Save & Next
                         </button>
@@ -1060,22 +1190,22 @@ export function TakeTest() {
                         <button
                           onClick={handleClearResponse}
                           disabled={selectedAnswers.length === 0}
-                          className="hidden md:flex bg-red-100 py-3 px-6 rounded-[10px] text-red-600 font-medium text-[1rem] h-[44px] items-center justify-center cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                          className="hidden xl:flex bg-red-100 py-2.5 px-4 rounded-[10px] text-red-600 font-medium text-sm h-[40px] items-center justify-center cursor-pointer disabled:opacity-50 whitespace-nowrap"
                         >
                           Clear
                         </button>
                         <button
                           onClick={() => handleSaveAnswer("ATTEMPTED")}
                           disabled={selectedAnswers.length === 0}
-                          className="hidden md:flex bg-(--btn-primary) py-3 px-9 rounded-[10px] text-white font-medium text-[1rem] h-[44px] items-center justify-center cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                          className="hidden xl:flex bg-(--btn-primary) py-2.5 px-6 rounded-[10px] text-white font-medium text-sm h-[40px] items-center justify-center cursor-pointer disabled:opacity-50 whitespace-nowrap"
                         >
-                          Save Answer
+                          Save
                         </button>
                         <button
                           onClick={() => handleSaveAnswer("MARKED_FOR_REVIEW")}
-                          className="hidden md:flex bg-[#F69E23] py-3 px-6 rounded-[10px] text-white font-medium text-[1rem] h-[44px] items-center justify-center cursor-pointer whitespace-nowrap"
+                          className="hidden xl:flex bg-[#F69E23] py-2.5 px-4 rounded-[10px] text-white font-medium text-sm h-[40px] items-center justify-center cursor-pointer whitespace-nowrap"
                         >
-                          Mark for Review
+                          Mark
                         </button>
                       </>
                     )}
@@ -1092,6 +1222,26 @@ export function TakeTest() {
               {/* Desktop Sections Sidebar */}
               <div className="hidden md:block fixed right-0 top-[90px] h-[calc(100vh-90px)] w-[354px] bg-[#F1F2F4] overflow-y-auto z-20">
                 <div className="flex flex-col gap-4 p-5">
+                  {/* Legend - Only visible on smaller screens (< xl) in sidebar */}
+                  <div className="flex xl:hidden flex-wrap gap-x-4 gap-y-2 pb-3 border-b border-gray-300">
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-4 w-4 rounded-full bg-[#1980E5]"></div>
+                      <span className="text-xs text-gray-600">Current</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-4 w-4 rounded-full bg-[#21C55D]"></div>
+                      <span className="text-xs text-gray-600">Attempted</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-4 w-4 rounded-full bg-[#F69E23]"></div>
+                      <span className="text-xs text-gray-600">Marked</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-4 w-4 rounded-full bg-[#EAEDF0]"></div>
+                      <span className="text-xs text-gray-600">Unanswered</span>
+                    </div>
+                  </div>
+
                   {sections.map((section, sectionIdx) => (
                     <Section
                       key={sectionIdx}
