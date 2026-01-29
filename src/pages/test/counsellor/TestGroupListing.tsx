@@ -167,11 +167,10 @@ export function TestGroupListing() {
                 {/* Publish Badge */}
                 <div className="absolute top-3 right-3">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      group.published
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-500 text-white"
-                    }`}
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${group.published
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-500 text-white"
+                      }`}
                   >
                     {group.published ? "Published" : "Draft"}
                   </span>
@@ -218,11 +217,10 @@ export function TestGroupListing() {
                       {[1, 2, 3, 4, 5].map((star) => (
                         <svg
                           key={star}
-                          className={`w-4 h-4 ${
-                            star <= group.rating!
-                              ? "fill-yellow-400 text-yellow-400"
-                              : "fill-gray-200 text-gray-200"
-                          }`}
+                          className={`w-4 h-4 ${star <= group.rating!
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "fill-gray-200 text-gray-200"
+                            }`}
                           viewBox="0 0 20 20"
                         >
                           <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
@@ -256,11 +254,10 @@ export function TestGroupListing() {
                       e.stopPropagation();
                       handlePublishToggle(group.testGroupId, group.published);
                     }}
-                    className={`flex items-center justify-center p-2 rounded-lg transition-colors cursor-pointer ${
-                      group.published
-                        ? "bg-orange-50 text-orange-600 hover:bg-orange-100"
-                        : "bg-green-50 text-green-600 hover:bg-green-100"
-                    }`}
+                    className={`flex items-center justify-center p-2 rounded-lg transition-colors cursor-pointer ${group.published
+                      ? "bg-orange-50 text-orange-600 hover:bg-orange-100"
+                      : "bg-green-50 text-green-600 hover:bg-green-100"
+                      }`}
                   >
                     {group.published ? <GlobeLock size={16} /> : <Globe size={16} />}
                   </button>

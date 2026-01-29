@@ -11,22 +11,108 @@ interface MathTextProps {
  * MathText Component
  * 
  * Renders text with LaTeX math formulas. Use $ for inline math and $$ for block math.
- * 
- * Examples:
- * - Subscript: "R$_e$" or "$R_e$" → Rₑ
- * - Superscript: "$10^{-4}$" → 10⁻⁴
- * - Scientific notation: "$6.25 \times 10^{-4}$"
- * - Fractions: "$\frac{GM}{R^2}$"
- * - Greek letters: "$\alpha, \beta, \theta$"
+ * Handles auto-conversion for Greek letters, chemistry formulas, and exponents.
  */
 export function MathText({ children, className = '' }: MathTextProps): React.ReactElement {
     if (!children) return <span className={className}></span>;
 
+    // Fix common encoding glitches (e.g., garbled dashes/symbols from double-encoding)
+    // and normalize common unicode math symbols to LaTeX for "perfect" rendering
+    let normalized = children
+        // Fix mangled dashes/punctuation from multi-stage encoding issues (UTF-8 bytes read as Latin-1)
+        .replace(/ÃÂ¢ÃÂÃÂ|Ã¢â‚¬â€œ|â€“|â€”|ÃÂ¢ÃÂ|ÃÂÃÂ|Ã‚Â|Ã‚Â²/g, '-')
+        .replace(/[\u2013\u2014\u2212\u2010\u2011]/g, '-')
+        .replace(/ÃÂ¢ÃÂÃÂ|Ã¢â‚¬â„¢|â€™|Ã¢â‚¬â„¢/g, "'")
+        .replace(/ÃÂ¢ÃÂÃÂ|Ã¢â‚¬Å“|Ã¢â‚¬Â|â€œ|â€|Ã¢â‚¬Â\u009D/g, '"');
+
+    // Automatically convert raw unicode Greek letters and math symbols to LaTeX
+    // only if they aren't already wrapped in $ symbols.
+    // This mapping helps them look "perfect" as formulas.
+    const symbolMap: Record<string, string> = {
+        // Greek Lowercase
+        'π': '\\pi', 'Ïâ‚¬': '\\pi', 'Ãπ': '\\pi', 'Ï\u0080': '\\pi',
+        'θ': '\\theta', 'Î¸': '\\theta', 'ÃŽÂ¸': '\\theta',
+        'α': '\\alpha', 'Î±': '\\alpha', 'ÃŽÂ±': '\\alpha',
+        'β': '\\beta', 'Î²': '\\beta', 'ÃÂ²': '\\beta', 'ÃŽÂ²': '\\beta',
+        'γ': '\\gamma', 'Î³': '\\gamma', 'ÃŽÂ³': '\\gamma',
+        'δ': '\\delta', 'Î´': '\\delta', 'ÃŽÂ´': '\\delta',
+        'λ': '\\lambda', 'Î»': '\\lambda', 'ÃŽÂ»': '\\lambda',
+        'μ': '\\mu', 'Î¼': '\\mu', 'ÃŽÂ¼': '\\mu',
+        'ω': '\\omega', 'Ï‰': '\\omega', 'ÃÏ‰': '\\omega',
+        'φ': '\\phi', 'Ïâ€': '\\phi', 'Ï\u0086': '\\phi',
+        'ψ': '\\psi', 'ÏË†': '\\psi',
+        'η': '\\eta', 'Î·': '\\eta',
+        'ρ': '\\rho', 'Ï\u0081': '\\rho',
+        'σ': '\\sigma', 'Ï\u0083': '\\sigma',
+        'τ': '\\tau', 'Ï\u0084': '\\tau',
+        'ε': '\\epsilon', 'Îµ': '\\epsilon',
+
+        // Greek Uppercase
+        'Δ': '\\Delta', 'Î”': '\\Delta', 'ÃŽ\u0094': '\\Delta', 'âˆ†': '\\Delta',
+        'Σ': '\\Sigma', 'Î£': '\\Sigma', 'ÃŽÂ£': '\\Sigma',
+        'Ω': '\\Omega', 'Î©': '\\Omega', 'ÃŽÂ©': '\\Omega',
+        'Φ': '\\Phi', 'Î¦': '\\Phi', 'ÃŽÂ¦': '\\Phi',
+
+        // Math Symbols
+        '±': '\\pm', 'Â±': '\\pm', 'Ã‚Â±': '\\pm',
+        '∞': '\\infty', 'âˆž': '\\infty', 'Ã¢Ë†Å¾': '\\infty',
+        '≈': '\\approx', 'â‰ˆ': '\\approx',
+        '≠': '\\neq', 'â‰\u00A0': '\\neq',
+        '≤': '\\le', 'â‰¤': '\\le',
+        '≥': '\\ge', 'â‰¥': '\\ge',
+        '×': '\\times', 'Ã—': '\\times', 'â€”': '\\times', 'Ã¢â‚¬â€\u009D': '\\times',
+        '÷': '\\div', 'Ã·': '\\div',
+        '→': '\\rightarrow', 'â†’': '\\rightarrow',
+        '⇒': '\\Rightarrow', 'â‡’': '\\Rightarrow',
+        '∠': '\\angle',
+        '∂': '\\partial', 'âˆ‚': '\\partial',
+        '∫': '\\int', 'âˆ«': '\\int',
+        '√': '\\sqrt', 'âˆš': '\\sqrt',
+        '∇': '\\nabla', 'âˆ‡': '\\nabla'
+    };
+
+    // Replace raw symbols (we'll wrap them in $ only if they aren't already in math)
+    Object.entries(symbolMap).forEach(([char, latex]) => {
+        const escapedChar = char.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(escapedChar, 'g');
+        normalized = normalized.replace(regex, (match: string, offset: number, fullString: string): string => {
+            // Check if already in math or preceded by backslash
+            const before = fullString.slice(Math.max(0, offset - 1), offset);
+            const after = fullString.slice(offset + match.length, offset + match.length + 1);
+            if (before === '$' || after === '$' || before === '\\') return latex;
+            return `$${latex}$`;
+        });
+    });
+
+    // --- SCIENCE AUTO-CONVERSION ---
+    // Handle standalone Greek words like 'pi', 'theta' if they are not in math
+    const greekKeywords = ['pi', 'theta', 'alpha', 'beta', 'gamma', 'delta', 'lambda', 'mu', 'phi', 'psi', 'omega'];
+    greekKeywords.forEach(kw => {
+        const re = new RegExp(`(?<![\\\\$])\\b${kw}\\b(?![\\$])`, 'gi');
+        normalized = normalized.replace(re, `$\\${kw}$`);
+    });
+
+    // Handle Simple Chemical Formulas: H2O, CO2, H2SO4
+    normalized = normalized.replace(/(?<![\$])\b([A-Z][a-z]?\d+([A-Z][a-z]?\d*)*)\b(?![\\$])/g, (match) => {
+        if (/\d/.test(match)) {
+            const latex = match.replace(/(\d+)/g, '_{$1}');
+            return `$${latex}$`;
+        }
+        return match;
+    });
+
+    // Handle simple powers: 10^5, x^2 (only if not in math)
+    normalized = normalized.replace(/(?<![\$])\b([a-zA-Z0-9]+)\^([a-zA-Z0-9]+)\b(?![\\$])/g, '$$$1^{$2}$$');
+
+    // Cleanup: Remove suspicious double $$ or $ $ created by the above logic
+    normalized = normalized.replace(/\$\$\$/g, '$');
+    normalized = normalized.replace(/([^$])\$ \$/g, '$1$');
+    normalized = normalized.replace(/\$\s+\$/g, '$');
+    normalized = normalized.replace(/\$\$+/g, (match) => match === '$$' ? '$$' : '$');
+
     // Parse text for LaTeX patterns
-    // Block math: $$...$$
-    // Inline math: $...$
     const parts: React.ReactNode[] = [];
-    let remaining = children;
+    let remaining = normalized;
     let key = 0;
 
     // First, handle block math ($$...$$)
