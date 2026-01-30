@@ -986,7 +986,7 @@ export function TakeTest() {
             const state = isPendingQ ? pendingQuestionState : questionStates.get(q.questionId);
             const isCurrentQ = currentQuestion && q.questionId === currentQuestion.questionId;
             const userSelectedAnswers = isCurrentQ ? selectedAnswers : (state?.selectedAnswers || []);
-            const status = state?.status || "NOT_VISITED";
+            // const status = state?.status || "NOT_VISITED";
 
             if (userSelectedAnswers.length > 0) {
               secAttempted++;
