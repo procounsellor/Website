@@ -92,13 +92,13 @@ export function SubmitTestModal({
               <p className="text-[10px] md:text-xs text-gray-500 font-medium whitespace-nowrap">Marked</p>
             </div>
 
-            {/* Not Visited */}
+            {/* Unanswered */}
             <div className="border border-gray-100 shadow-sm rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center text-center bg-white">
               <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-gray-200 mb-1.5 md:mb-2"></div>
               <span className="text-xl md:text-2xl font-bold text-gray-900 mb-0.5 md:mb-1 leading-none">
                 {notVisitedCount}
               </span>
-              <p className="text-[10px] md:text-xs text-gray-500 font-medium whitespace-nowrap">Not Visited</p>
+              <p className="text-[10px] md:text-xs text-gray-500 font-medium whitespace-nowrap">Unanswered</p>
             </div>
 
             {/* Time Taken */}

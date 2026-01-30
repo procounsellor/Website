@@ -21,10 +21,14 @@ export function Question({ questionId: _questionId, questionText, questionImageU
             <p
                 className="font-medium text-(--text-muted) text-sm md:text-lg"
             ><MathText>{questionText}</MathText></p>
-            <div className="flex flex-col md:flex-row justify-center md:justify-start gap-2 ">
-                {questionImageUrls?.map((image) => (
-                    <div className="w-[237px] h-[237px] border border-[#D8D8D8] rounded-[16px] overflow-hidden">
-                        <img src={image} alt={sectionName} className="w-full h-full object-center" />
+            <div className="flex flex-col md:flex-row justify-start gap-3 mt-2">
+                {questionImageUrls?.map((image, index) => (
+                    <div key={index} className="border border-[#D8D8D8] rounded-[16px] overflow-hidden bg-gray-50 p-2">
+                        <img
+                            src={image}
+                            alt={`Question image ${index + 1}`}
+                            className="max-w-full h-auto max-h-[300px] md:max-h-[400px] object-contain rounded-lg"
+                        />
                     </div>
                 ))}
             </div>
