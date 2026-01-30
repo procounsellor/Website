@@ -10,7 +10,6 @@ const CollegeMapCard: React.FC<CollegeMapCardProps> = ({
 }) => {
   const [isMapOpen, setIsMapOpen] = useState(false);
 
-  // corrected URL format for embedding
   const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(address)}&t=&z=14&ie=UTF8&iwloc=&output=embed`;
 
   return (
@@ -50,9 +49,8 @@ const CollegeMapCard: React.FC<CollegeMapCardProps> = ({
         </div>
       </div>
 
-      {/* Map Modal */}
       {isMapOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setIsMapOpen(false)}>
+        <div className="inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm sticky" onClick={() => setIsMapOpen(false)}>
           <div className="bg-white rounded-2xl w-full max-w-3xl h-[80vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center p-4 border-b border-[#EFEFEF]">
               <div>

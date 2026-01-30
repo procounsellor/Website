@@ -5,7 +5,7 @@ import type { CollegeDetails } from '@/types';
 import CollegeBannerCard from '@/components/college/CollegeBannerCard';
 import CollegeTabs from '@/components/college/CollegeTabs';
 import AdmissionCard from '@/components/college/AdmissionCard';
-import CollegeMapCard from '@/components/college/CollegeMapCard';
+// import CollegeMapCard from '@/components/college/CollegeMapCard';
 import InfoTab from '@/components/college/tabs/InfoTab';
 import CoursesTab from '@/components/college/tabs/CoursesTab';
 import CounsellorsTab from '@/components/college/tabs/CounsellorsTab';
@@ -91,7 +91,7 @@ const CollegeDetailsPageNew = () => {
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-6 md:gap-8 relative">
           <div className="flex-1 w-full lg:w-[70%]">
             <CollegeBannerCard 
               name={collegeData.collegeName} 
@@ -108,9 +108,9 @@ const CollegeDetailsPageNew = () => {
             </div>
           </div>
 
-          <div className="w-full lg:w-[30%] max-w-[400px] shrink-0 flex flex-col gap-6">
+          <div className="w-full lg:w-[30%] max-w-[400px] shrink-0 flex flex-col gap-6 sticky top-24 self-start h-fit">
              <AdmissionCard />
-             <CollegeMapCard address={collegeData.collegeFullAddress} />
+             {/* <CollegeMapCard address={collegeData.collegeFullAddress} /> */}
           </div>
         </div>
       </div>
