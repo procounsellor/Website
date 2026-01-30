@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Search, X } from "lucide-react";
 import { useSearchStore } from "@/store/SearchStore";
 import { SearchResults } from "./SearchResults";
+import { useLocation } from "react-router-dom"; //
 
 type GlobalSearchBarProps = {
   placeholder?: string;
@@ -24,8 +25,19 @@ export function GlobalSearchBar({
   const [showResults, setShowResults] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
   
   const { query, setQuery, performSearch, clearResults, setSearchOpen } = useSearchStore();
+
+  useEffect(() => {
+    clearResults();
+    setSearchOpen(false);
+    setShowResults(false);
+    setIsFocused(false);
+    if (inputRef.current) {
+        inputRef.current.blur();
+    }
+  }, [location.pathname, clearResults, setSearchOpen]); //
 
   useEffect(() => {
     const handler = setTimeout(() => {
