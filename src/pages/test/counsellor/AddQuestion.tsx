@@ -11,6 +11,7 @@ import { QuestionTable } from "@/components/create-test/components/QuestionTable
 import { useAuthStore } from "@/store/AuthStore";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft } from "lucide-react";
+import { QuestionPreviewModal } from "@/components/modals/QuestionPreviewModal";
 
 interface Question {
   questionId: string;
@@ -82,6 +83,10 @@ export function AddQuestion() {
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ questionId: string; sectionName: string } | null>(null);
   const [editingQuestion, setEditingQuestion] = useState<{ questionId: string; sectionName: string } | null>(null);
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
+  const [previewQuestion, setPreviewQuestion] = useState<{
+    question: any;
+    sectionName: string;
+  } | null>(null);
 
   const toggleCorrectOption = (optionId: string) => {
     if (responseType === "single") {
@@ -411,6 +416,43 @@ export function AddQuestion() {
       }
     } catch (error) {
       console.error("Error fetching question details:", error);
+    }
+  };
+
+  const handleViewQuestion = async (questionId: string, sectionName: string) => {
+    if (!user?.phoneNumber || !testSeriesId) return;
+
+    const token = localStorage.getItem("jwt");
+    if (!token) return;
+
+    const myHeaders = new Headers();
+    myHeaders.append("Authorization", `Bearer ${token}`);
+    myHeaders.append("Accept", "application/json");
+
+    const requestOptions: RequestInit = {
+      method: "GET",
+      headers: myHeaders,
+      redirect: "follow",
+    };
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/testSeries/getQuestionByIdForCounsellor?counsellorId=${user.phoneNumber}&testSeriesId=${testSeriesId}&sectionName=${sectionName}&questionId=${questionId}`,
+        requestOptions
+      );
+      const result = await response.json();
+
+      if (result.status && result.data?.question) {
+        setPreviewQuestion({
+          question: result.data.question,
+          sectionName: sectionName,
+        });
+      } else {
+        toast.error("Failed to load question preview");
+      }
+    } catch (error) {
+      console.error("Error fetching question details:", error);
+      toast.error("Error loading question preview");
     }
   };
 
@@ -1266,8 +1308,12 @@ export function AddQuestion() {
               setDeleteConfirmation({ questionId, sectionName });
             }}
             onView={(questionId) => {
-              console.log("View question:", questionId);
-              // TODO: Implement view functionality
+              // Find the question to get its section name
+              const allQ = getAllQuestions();
+              const q = allQ.find((question: any) => question.questionId === questionId);
+              if (q) {
+                handleViewQuestion(questionId, q.sectionName);
+              }
             }}
           />
         </div>
@@ -1303,6 +1349,14 @@ export function AddQuestion() {
           </div>
         </div>
       )}
+
+      {/* Question Preview Modal */}
+      <QuestionPreviewModal
+        isOpen={!!previewQuestion}
+        onClose={() => setPreviewQuestion(null)}
+        question={previewQuestion?.question || null}
+        sectionName={previewQuestion?.sectionName}
+      />
     </div>
   );
 }

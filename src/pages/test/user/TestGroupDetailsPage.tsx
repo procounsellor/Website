@@ -1,5 +1,5 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { BookOpen, Clock, FileText, Star, ShoppingCart, Bookmark, Lock, Loader2, Users, ArrowLeft, Trash2, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
 import {
@@ -10,6 +10,16 @@ import {
   updateReviewToTestGroup,
   deleteReviewFromTestGroup,
 } from "@/api/testGroup";
+import { useAuthStore } from "@/store/AuthStore";
+import startRecharge from "@/api/wallet";
+import AddFundsPanel from "@/components/student-dashboard/AddFundsPanel";
+
+declare global {
+  interface Window {
+    Razorpay: unknown;
+  }
+}
+type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 
 interface TestSeries {
   testSeriesId: string;
@@ -32,6 +42,7 @@ interface TestSeries {
 interface Review {
   reviewId: string;
   userId: string;
+  userFullName?: string;
   rating: number;
   reviewText: string;
   createdAt: { seconds: number; nanos: number };
@@ -68,7 +79,10 @@ export default function TestGroupDetailsPage() {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
   const [userReview, setUserReview] = useState<Review | null>(null);
+  const [addFundsOpen, setAddFundsOpen] = useState(false);
+  const pendingPurchaseRef = useRef(false);
   const userId = localStorage.getItem("phone") || "";
+  const { user, refreshUser } = useAuthStore();
 
   useEffect(() => {
     if (testGroupId && userId) {
@@ -152,7 +166,17 @@ export default function TestGroupDetailsPage() {
       return;
     }
 
-    // For paid test groups
+    // For paid test groups - check wallet balance first
+    const walletBalance = user?.walletAmount ?? 0;
+    const price = data.testGroup.price;
+
+    if (walletBalance < price) {
+      toast.error("Insufficient balance. Please add funds to your wallet.");
+      pendingPurchaseRef.current = true;
+      setAddFundsOpen(true);
+      return;
+    }
+
     const counsellorId = data.attachedTests[0]?.counsellorId || '';
 
     if (!counsellorId) {
@@ -171,11 +195,13 @@ export default function TestGroupDetailsPage() {
 
       if (response.status) {
         toast.success("Test group purchased successfully!");
+        pendingPurchaseRef.current = false;
         fetchTestGroupDetails();
       } else {
-        if (response.message?.includes("insufficient")) {
-          toast.error("Insufficient balance. Please recharge your wallet.");
-          setTimeout(() => navigate("/recharge-wallet"), 1500);
+        if (response.message?.toLowerCase().includes("insufficient")) {
+          toast.error("Insufficient balance. Please add funds to your wallet.");
+          pendingPurchaseRef.current = true;
+          setAddFundsOpen(true);
         } else {
           toast.error(response.message || "Failed to purchase");
         }
@@ -183,6 +209,54 @@ export default function TestGroupDetailsPage() {
     } catch (error) {
       console.error("Failed to buy:", error);
       toast.error("Failed to purchase test group");
+    }
+  };
+
+  const handleRecharge = async (amount: number) => {
+    if (!amount || amount <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+    try {
+      const order = await startRecharge(userId, amount);
+      const options = {
+        key: order.keyId,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.orderId,
+        name: "ProCounsel Wallet",
+        description: "Wallet Recharge",
+        notes: { userId },
+        handler: async function () {
+          toast.success("Payment successful. Your balance will be updated shortly.");
+          try {
+            await refreshUser(true);
+            setAddFundsOpen(false);
+            // Auto-retry purchase if there was a pending purchase
+            if (pendingPurchaseRef.current) {
+              setTimeout(() => {
+                handleBuy();
+              }, 500);
+            }
+          } catch (err) {
+            console.error('Failed to refresh user balance after payment.', err);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            console.log('Razorpay modal dismissed.');
+          }
+        },
+        theme: { color: "#3399cc" },
+      };
+
+      const Rz = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
+      const rzp = new Rz(options);
+      rzp.open();
+
+    } catch (error) {
+      console.error("Failed to initiate Razorpay order.", error);
+      toast.error("Could not start the payment process. Please try again later.");
     }
   };
 
@@ -465,7 +539,7 @@ export default function TestGroupDetailsPage() {
                             ))}
                           </div>
                           <span className="text-xs font-medium text-gray-900">
-                            {review.userId === userId ? "You" : "Student"}
+                            {review.userId === userId ? "You" : (review.userFullName || "Student")}
                           </span>
                         </div>
                         <span className="text-[10px] md:text-xs text-gray-500">
@@ -686,6 +760,17 @@ export default function TestGroupDetailsPage() {
           </div>
         )}
       </div>
+
+      {/* Add Funds Panel */}
+      <AddFundsPanel
+        isOpen={addFundsOpen}
+        onClose={() => {
+          setAddFundsOpen(false);
+          pendingPurchaseRef.current = false;
+        }}
+        balance={user?.walletAmount ?? 0}
+        onAddMoney={handleRecharge}
+      />
     </div>
   );
 }
