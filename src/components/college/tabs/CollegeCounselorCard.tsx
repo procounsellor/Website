@@ -87,7 +87,7 @@ export function CollegeCounselorCard({ counselor }: CounselorCardProps) {
 
         <div className="absolute top-[404px] left-2.5 flex items-center gap-2">
           <SmartImage
-             src='./Procoin.jpg'
+             src='/Procoin.jpg'
              alt="procoin_icon"
              className="w-8 h-8 object-contain rounded-full"
           />
@@ -138,7 +138,7 @@ export function CollegeCounselorCard({ counselor }: CounselorCardProps) {
              <hr className="my-2 border-t border-[#f0f0f0]" />
              <div className="flex items-center gap-1">
                 <SmartImage
-                    src='./Procoin.jpg'
+                    src='/Procoin.jpg'
                     alt="procoin_icon"
                     className="w-5 h-5 object-contain rounded-full"
                 />
