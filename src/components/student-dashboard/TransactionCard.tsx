@@ -40,8 +40,7 @@ const truncateText = (text: string | null | undefined, maxLength: number) => {
 
 const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
   const isFailed = transaction.status?.toLowerCase() === "failed";
-  const isDebit = transaction.type === "debit" && !isFailed;
-  
+
   const isOffline = transaction.method?.toLowerCase().includes('offline');
 
   const getTransactionDetails = () => {
@@ -77,8 +76,9 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
       desktopDescription = "Bank";
     } else {
       icon = (
-        <ArrowUpCircle className="w-10 h-10 text-blue-500 sm:w-12 sm:h-12 bg-blue-50 rounded-full p-1.5 sm:p-2 shrink-0" />
+        <ArrowUpCircle className="w-10 h-10 text-[#EE1C1F] sm:w-12 sm:h-12 bg-[#EE1C1F26] rounded-full p-1.5 sm:p-2 shrink-0" />
       );
+      amountColor = "text-[#EE1C1F]";
       mobileLine1 = "Transferred to";
       mobileLine2 = (transaction.description || "").replace(/^Paid to /i, "");
       desktopTitle = (
@@ -127,14 +127,13 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
           <p
             className={`font-medium text-base ${amountColor} flex items-center gap-1`}
           >
-            {isDebit ? "-" : ""}
-            
+
             {isOffline ? (
               <span>₹</span>
             ) : (
               <img src="/coin.svg" alt="coin" className="w-4 h-4" />
             )}
-            
+
             {formatCurrency(transaction.amount)}
           </p>
 
@@ -187,14 +186,13 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
             <p
               className={`font-semibold text-lg ${amountColor} flex items-center gap-1`}
             >
-              {isDebit ? "-" : ""}
-              
+
               {isOffline ? (
                 <span>₹</span>
               ) : (
                 <img src="/coin.svg" alt="coin" className="w-5 h-5" />
               )}
-              
+
               {formatCurrency(transaction.amount)}
             </p>
           </div>

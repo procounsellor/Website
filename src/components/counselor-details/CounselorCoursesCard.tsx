@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getCoursesForCounsellorByCounsellorId, getCoursesForUserByCounsellorId, getPublicCoursesForCounsellorId } from '@/api/course';
 import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import CourseCard from '@/components/course-cards/CourseCard';
 import { useAuthStore } from '@/store/AuthStore';
 
@@ -13,6 +14,7 @@ type CounselorCoursesCardProps = {
 export default function CounselorCoursesCard({ counsellorId, userRole = "user" }: CounselorCoursesCardProps) {
   const navigate = useNavigate();
   const { userId } = useAuthStore();
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const isCounselor = userRole === 'counselor';
   const isUserOrStudent = userRole === 'user' || userRole === 'student';
@@ -34,6 +36,7 @@ export default function CounselorCoursesCard({ counsellorId, userRole = "user" }
   });
 
   const courses = data?.data || [];
+  const displayedCourses = isExpanded ? courses : courses.slice(0, 4);
 
   if (isLoading) {
     return (
@@ -63,16 +66,16 @@ export default function CounselorCoursesCard({ counsellorId, userRole = "user" }
         <h2 className="text-xl font-bold text-gray-800">Courses</h2>
         <p className="text-sm text-gray-500 mt-1">Browse courses offered by this counsellor</p>
       </div>
-      
+
       <div className="p-4">
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
-          {courses.slice(0, 4).map(course => (
-            <div 
-              key={course.courseId} 
-              className='cursor-pointer' 
+          {displayedCourses.map(course => (
+            <div
+              key={course.courseId}
+              className='cursor-pointer'
               onClick={() => navigate(`/detail/${course.courseId}/${userRole}`)}
             >
-              <CourseCard 
+              <CourseCard
                 course={{
                   id: course.courseId,
                   name: course.courseName,
@@ -83,20 +86,28 @@ export default function CounselorCoursesCard({ counsellorId, userRole = "user" }
                   image: course.courseThumbnailUrl,
                   courseTimeHours: (course as any).courseTimeHours || 0,
                   courseTimeMinutes: (course as any).courseTimeMinutes || 0,
-                }} 
+                }}
                 role={userRole}
               />
             </div>
           ))}
         </div>
-        
+
         {courses.length > 4 && (
           <div className="mt-4 text-center">
             <button
-              onClick={() => navigate('/courses')}
-              className="text-[#13097D] text-sm font-semibold hover:underline"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex items-center justify-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 cursor-pointer py-1 mx-auto"
             >
-              View All Courses ({courses.length})
+              {isExpanded ? (
+                <>
+                  Show Less <ChevronUp size={14} />
+                </>
+              ) : (
+                <>
+                  See More ({courses.length - 4} more) <ChevronDown size={14} />
+                </>
+              )}
             </button>
           </div>
         )}
