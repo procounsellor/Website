@@ -83,6 +83,7 @@ export function TakeTest() {
   const isLoadingAnswer = useRef(false); // Track if we're loading answer (to skip auto-save)
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const [showTabWarning, setShowTabWarning] = useState(false);
+  const questionStartTimeRef = useRef<number>(Date.now()); // Track when user started viewing current question
   const MAX_TAB_SWITCHES = 3;
 
   const userId = localStorage.getItem("phone") || "";
@@ -341,6 +342,9 @@ export function TakeTest() {
   ) => {
     if (!currentQuestion) return;
 
+    // Calculate elapsed time in seconds
+    const elapsedTime = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
+
     try {
       await saveOrMarkForReviewAnswer({
         attemptId,
@@ -349,6 +353,7 @@ export function TakeTest() {
         questionId: currentQuestion.questionId,
         answerIds: selectedAnswers,
         status,
+        elapsedTime,
       });
 
       // Update question state
@@ -510,6 +515,8 @@ export function TakeTest() {
     }
 
     setQuestionStates(newStates);
+    // Reset elapsed time for new question
+    questionStartTimeRef.current = Date.now();
     setTimeout(() => saveProgress(), 100);
   };
 
@@ -559,6 +566,7 @@ export function TakeTest() {
       try {
         // If there are selected answers, save them
         if (selectedAnswers.length > 0) {
+          const elapsedTime = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
           await saveOrMarkForReviewAnswer({
             attemptId,
             userId,
@@ -566,6 +574,7 @@ export function TakeTest() {
             questionId: currentQuestion.questionId,
             answerIds: selectedAnswers,
             status: "ATTEMPTED",
+            elapsedTime,
           });
         } else {
           // If no answers selected, reset on backend
@@ -632,6 +641,7 @@ export function TakeTest() {
       setPendingQuestionState(newState);
 
       try {
+        const elapsedTime = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
         await saveOrMarkForReviewAnswer({
           attemptId,
           userId,
@@ -639,6 +649,7 @@ export function TakeTest() {
           questionId: currentQuestion.questionId,
           answerIds: selectedAnswers,
           status: "ATTEMPTED",
+          elapsedTime,
         });
         // Update local state
         const newStates = new Map(questionStates);
@@ -657,6 +668,7 @@ export function TakeTest() {
     try {
       // CRITICAL: Save current question's answer before submitting
       if (currentQuestion && selectedAnswers.length > 0) {
+        const elapsedTime = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
         await saveOrMarkForReviewAnswer({
           attemptId,
           userId,
@@ -664,6 +676,7 @@ export function TakeTest() {
           questionId: currentQuestion.questionId,
           answerIds: selectedAnswers,
           status: "ATTEMPTED",
+          elapsedTime,
         });
         // Update local state
         const newStates = new Map(questionStates);

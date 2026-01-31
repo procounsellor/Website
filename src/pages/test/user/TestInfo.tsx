@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getTestSeriesByIdForUser } from "@/api/userTestSeries";
 import toast from "react-hot-toast";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, ArrowLeft } from "lucide-react";
 
 interface SectionData {
   sectionName: string;
@@ -217,6 +217,17 @@ export function TestInfo() {
 
   return (
     <div className="pt-14 md:pt-24 w-full mx-auto max-w-7xl h-full flex flex-col items-center gap-4 px-3 pb-4">
+      {/* Back Button */}
+      <div className="w-full max-w-[800px] lg:max-w-[1200px]">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-2 transition-colors cursor-pointer"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Back</span>
+        </button>
+      </div>
+
       <h1 className="text-(text-app-primary) font-semibold text-[1rem] md:text-2xl">
         {testName}
       </h1>

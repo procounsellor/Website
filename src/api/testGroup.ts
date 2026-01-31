@@ -369,7 +369,7 @@ export const deleteReviewFromTestGroup = async (
   testGroupId: string
 ) => {
   const response = await fetch(
-    `${API_CONFIG.baseUrl}/api/counsellorTestGroup/deleteReviewFromTestGroup`,
+    `${API_CONFIG.baseUrl}/api/counsellorTestGroup/deleteTestGroupReview`,
     {
       method: "POST",
       headers: {

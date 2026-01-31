@@ -56,6 +56,7 @@ export const saveOrMarkForReviewAnswer = async (payload: {
   questionId: string;
   answerIds: string[];
   status: "ATTEMPTED" | "MARKED_FOR_REVIEW";
+  elapsedTime: number; // Time spent on question in seconds
 }) => {
   const response = await fetch(
     `${API_CONFIG.baseUrl}/api/userTestSeries/saveOrMarkForReviewAnswer`,
