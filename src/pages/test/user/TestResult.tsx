@@ -2,7 +2,7 @@ import { useNavigate, useParams, useSearchParams, useLocation } from "react-rout
 import { useEffect, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { resumeTest } from "@/api/userTestSeries";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 
 export interface SectionScore {
   sectionName: string;
@@ -127,7 +127,7 @@ export function TestResult({ resultData: propResultData, onExit, onRetake }: Tes
         {/* Header */}
         <div className="flex-none p-6 pb-2">
           <h2 className="text-xl font-bold text-gray-900 pr-8">
-            Test Score - {finalResultData.attemptId.substring(0, 8)}... {/* Improve if Test Name available */}
+            Test Completed
           </h2>
           <p className="text-sm text-gray-500 mt-1">
             Submitted on {new Date().toLocaleDateString()} {/* Replace with actual date if available */}
@@ -186,8 +186,8 @@ export function TestResult({ resultData: propResultData, onExit, onRetake }: Tes
             {/* Time Taken */}
             <div className="border border-gray-100 shadow-sm rounded-2xl p-3 md:p-4 flex flex-col items-center justify-center text-center bg-white">
               <div className="w-3 h-3 rounded-full bg-purple-400 mb-2"></div>
-              <span className="text-base md:text-lg font-bold text-gray-900 mb-1 leading-tight">
-                {finalResultData.actualDurationTakenToCompleteTest}
+              <span className="text-sm md:text-lg font-bold text-gray-900 mb-1 leading-tight">
+                {finalResultData.actualDurationTakenToCompleteTest.replace(/\s*min[a-z]*/gi, "m").replace(/\s*sec[a-z]*/gi, "s")}
               </span>
               <p className="text-xs text-gray-500 font-medium">Time Taken</p>
             </div>
@@ -233,7 +233,18 @@ export function TestResult({ resultData: propResultData, onExit, onRetake }: Tes
             </button>
           )}
           <button
-            onClick={onExit || (() => navigate(`/t/${testId}`))}
+            onClick={() => {
+              // Exit fullscreen if active
+              if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => { });
+              }
+              // Navigate
+              if (onExit) {
+                onExit();
+              } else {
+                navigate(`/test-info/${testId}`);
+              }
+            }}
             className="flex-1 py-3 px-4 rounded-full bg-[#00C55E] text-white text-xs md:text-base font-bold hover:opacity-90 transition-opacity shadow-lg shadow-green-200 cursor-pointer"
           >
             Exit Test

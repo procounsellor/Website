@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { compareAnswers } from "@/api/userTestSeries";
 import { ArrowLeft, CheckCircle2, XCircle, MinusCircle, Menu, X } from "lucide-react";
 import { toast } from "sonner";
+import { MathText } from "@/components/common/MathText";
 
 
 interface Option {
@@ -78,6 +79,7 @@ export function TestAnalysisPage() {
     const currentSection = data.sections[currentSectionIndex];
     const currentQuestion = currentSection.questions[currentQuestionIndex];
 
+<<<<<<< HEAD
     // // Calculate stats for sidebar
     // const getQuestionStatus = (q: Question) => {
     //     if (q.userAnswerIds.length === 0) return "NOT_VISITED";
@@ -92,6 +94,8 @@ export function TestAnalysisPage() {
     //     return "MARKED_FOR_REVIEW"; // Orange/Red - Using this to represent WRONG in standard UI or need custom
     // };
 
+=======
+>>>>>>> upstream/develop
     const handlePrev = () => {
         if (!data) return;
         if (currentQuestionIndex > 0) {
@@ -166,7 +170,7 @@ export function TestAnalysisPage() {
                                 </div>
 
                                 <p className="text-lg text-[#242645] font-medium mb-4 whitespace-pre-wrap">
-                                    {currentQuestion.questionText}
+                                    <MathText>{currentQuestion.questionText}</MathText>
                                 </p>
 
                                 {/* Options */}
@@ -194,7 +198,7 @@ export function TestAnalysisPage() {
                                                 )}
                                             </div>
                                             <div className="flex-1">
-                                                <div className="text-base text-[#242645]">{opt.value}</div>
+                                                <div className="text-base text-[#242645]"><MathText>{opt.value}</MathText></div>
                                                 {opt.imageUrl && (
                                                     <img src={opt.imageUrl} alt="Option" className="mt-2 max-h-40 object-contain rounded-lg" />
                                                 )}
@@ -210,7 +214,7 @@ export function TestAnalysisPage() {
                                     <h3 className="text-lg font-semibold text-blue-900 mb-3">Solution</h3>
                                     {currentQuestion.solution && (
                                         <p className="text-gray-700 whitespace-pre-wrap mb-4">
-                                            {currentQuestion.solution}
+                                            <MathText>{currentQuestion.solution}</MathText>
                                         </p>
                                     )}
                                     {currentQuestion.solutionImageUrl && (

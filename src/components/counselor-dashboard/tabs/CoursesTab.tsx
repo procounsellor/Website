@@ -212,7 +212,7 @@ export default function CourseTab(props: CourseTabProps) {
                       className={`flex items-center justify-center gap-1 py-2 px-3 ${group.published ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-600 hover:bg-green-700'} text-white rounded-lg transition-colors text-sm font-medium cursor-pointer`}
                       title={group.published ? "Unpublish" : "Publish"}
                     >
-                      {group.published ? 'Unpub' : 'Publish'}
+                      {group.published ? 'Unpublish' : 'Publish'}
                     </button>
                     <button
                       onClick={(e) => {

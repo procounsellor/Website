@@ -56,6 +56,7 @@ export const saveOrMarkForReviewAnswer = async (payload: {
   questionId: string;
   answerIds: string[];
   status: "ATTEMPTED" | "MARKED_FOR_REVIEW";
+  elapsedTime: number; // Time spent on question in seconds
 }) => {
   const response = await fetch(
     `${API_CONFIG.baseUrl}/api/userTestSeries/saveOrMarkForReviewAnswer`,
@@ -102,6 +103,23 @@ export const compareAnswers = async (userId: string, attemptId: string) => {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify({ userId, attemptId }),
+    }
+  );
+  return response.json();
+};
+
+export const resetAnswer = async (
+  userId: string,
+  questionId: string,
+  attemptId: string,
+  sectionName: string
+) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/userTestSeries/resetAnswer`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ userId, questionId, attemptId, sectionName }),
     }
   );
   return response.json();

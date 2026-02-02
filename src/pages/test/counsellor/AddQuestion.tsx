@@ -11,6 +11,7 @@ import { QuestionTable } from "@/components/create-test/components/QuestionTable
 import { useAuthStore } from "@/store/AuthStore";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft } from "lucide-react";
+import { QuestionPreviewModal } from "@/components/modals/QuestionPreviewModal";
 
 interface Question {
   questionId: string;
@@ -82,6 +83,10 @@ export function AddQuestion() {
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ questionId: string; sectionName: string } | null>(null);
   const [editingQuestion, setEditingQuestion] = useState<{ questionId: string; sectionName: string } | null>(null);
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
+  const [previewQuestion, setPreviewQuestion] = useState<{
+    question: any;
+    sectionName: string;
+  } | null>(null);
 
   const toggleCorrectOption = (optionId: string) => {
     if (responseType === "single") {
@@ -379,9 +384,11 @@ export function AddQuestion() {
         setEditingQuestion({ questionId, sectionName });
         setQuestionText(question.questionText);
         setSelectedCategory(sectionName);
-        setResponseType(question.isMultipleAnswer ? "multi" : "single");
-        setCorrectOptions(question.correctAnswerIds);
-        if (!question.isMultipleAnswer && question.correctAnswerIds.length > 0) {
+        // Check both field names as API uses inconsistent naming (multipleAnswer vs isMultipleAnswer)
+        const isMulti = question.isMultipleAnswer || question.multipleAnswer || false;
+        setResponseType(isMulti ? "multi" : "single");
+        setCorrectOptions(question.correctAnswerIds || []);
+        if (!isMulti && question.correctAnswerIds?.length > 0) {
           setCorrectOption(question.correctAnswerIds[0]);
         }
 
@@ -418,6 +425,43 @@ export function AddQuestion() {
       }
     } catch (error) {
       console.error("Error fetching question details:", error);
+    }
+  };
+
+  const handleViewQuestion = async (questionId: string, sectionName: string) => {
+    if (!user?.phoneNumber || !testSeriesId) return;
+
+    const token = localStorage.getItem("jwt");
+    if (!token) return;
+
+    const myHeaders = new Headers();
+    myHeaders.append("Authorization", `Bearer ${token}`);
+    myHeaders.append("Accept", "application/json");
+
+    const requestOptions: RequestInit = {
+      method: "GET",
+      headers: myHeaders,
+      redirect: "follow",
+    };
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/testSeries/getQuestionByIdForCounsellor?counsellorId=${user.phoneNumber}&testSeriesId=${testSeriesId}&sectionName=${sectionName}&questionId=${questionId}`,
+        requestOptions
+      );
+      const result = await response.json();
+
+      if (result.status && result.data?.question) {
+        setPreviewQuestion({
+          question: result.data.question,
+          sectionName: sectionName,
+        });
+      } else {
+        toast.error("Failed to load question preview");
+      }
+    } catch (error) {
+      console.error("Error fetching question details:", error);
+      toast.error("Error loading question preview");
     }
   };
 
@@ -511,10 +555,12 @@ export function AddQuestion() {
     let allQuestions: any[] = [];
     sections.forEach((section) => {
       section.questions.forEach((q: Question) => {
+        // Check both field names as API uses inconsistent naming
+        const isMulti = (q as any).isMultipleAnswer || (q as any).multipleAnswer || false;
         allQuestions.push({
           ...q,
           sectionName: section.sectionName,
-          type: q.isMultipleAnswer ? "Multi Select" : "Single Select",
+          type: isMulti ? "Multi Select" : "Single Select",
         });
       });
     });
@@ -675,6 +721,22 @@ export function AddQuestion() {
                 <textarea
                   value={questionText}
                   onChange={(e) => setQuestionText(e.target.value)}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    const pastedText = e.clipboardData.getData('text/plain');
+                    // Clean and normalize the pasted text
+                    const cleanedText = pastedText
+                      .normalize('NFC') // Normalize Unicode
+                      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ''); // Remove control characters except newline/tab
+                    const start = e.currentTarget.selectionStart;
+                    const end = e.currentTarget.selectionEnd;
+                    const newText = questionText.substring(0, start) + cleanedText + questionText.substring(end);
+                    setQuestionText(newText);
+                    // Set cursor position after paste
+                    setTimeout(() => {
+                      e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + cleanedText.length;
+                    }, 0);
+                  }}
                   placeholder="Enter your question here"
                   className="w-full min-h-[100px] resize-none text-base placeholder:text-gray-400 outline-none"
                 />
@@ -851,6 +913,22 @@ export function AddQuestion() {
                             newOptions[index].text = e.target.value;
                             setOptions(newOptions);
                           }}
+                          onPaste={(e) => {
+                            e.preventDefault();
+                            const pastedText = e.clipboardData.getData('text/plain');
+                            // Clean and normalize the pasted text
+                            const cleanedText = pastedText
+                              .normalize('NFC') // Normalize Unicode
+                              .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+                              .replace(/\n/g, ' '); // Replace newlines with space for single-line input
+                            const start = e.currentTarget.selectionStart || 0;
+                            const end = e.currentTarget.selectionEnd || 0;
+                            const currentText = option.text;
+                            const newText = currentText.substring(0, start) + cleanedText + currentText.substring(end);
+                            const newOptions = [...options];
+                            newOptions[index].text = newText;
+                            setOptions(newOptions);
+                          }}
                           placeholder="Write option here"
                           className="flex-1 text-lg font-normal leading-[100%] text-(--text-app-primary) outline-none placeholder:text-gray-400"
                         />
@@ -964,6 +1042,20 @@ export function AddQuestion() {
                 <textarea
                   value={solution}
                   onChange={(e) => setSolution(e.target.value)}
+                  onPaste={(e) => {
+                    e.preventDefault();
+                    const pastedText = e.clipboardData.getData('text/plain');
+                    const cleanedText = pastedText
+                      .normalize('NFC')
+                      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+                    const start = e.currentTarget.selectionStart;
+                    const end = e.currentTarget.selectionEnd;
+                    const newText = solution.substring(0, start) + cleanedText + solution.substring(end);
+                    setSolution(newText);
+                    setTimeout(() => {
+                      e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + cleanedText.length;
+                    }, 0);
+                  }}
                   placeholder="Enter solution explanation here"
                   className="w-full min-h-[80px] resize-none text-base placeholder:text-gray-400 outline-none"
                 />
@@ -1086,7 +1178,6 @@ export function AddQuestion() {
             <h1 className="text-(--text-app-primary) font-medium text-2xl">
               My Uploaded Questions
             </h1>
-
             <div className="relative group">
               <button
                 onClick={() => {
@@ -1151,7 +1242,7 @@ export function AddQuestion() {
             <div className="flex flex-col justify-between items-start p-4 bg-(--bg-second) rounded-2xl border border-[#E8EAED] w-[151px] h-[70px]">
               <h1 className="text-xs font-normal text-(--text-muted)">Total</h1>
               <p className="text-[1.125rem] font-medium text-(--text-app-primary)">
-                {sections.reduce((acc, s) => acc + (s.questions?.length || 0), 0)}
+                {sections.reduce((acc, s) => acc + (s.totalQuestions || s.totalQuestionsAdded || 0), 0)}
               </p>
             </div>
             <div className="flex flex-col justify-between items-start p-4 bg-(--bg-second) rounded-2xl border border-[#E8EAED] w-[151px] h-[70px]">
@@ -1226,8 +1317,12 @@ export function AddQuestion() {
               setDeleteConfirmation({ questionId, sectionName });
             }}
             onView={(questionId) => {
-              console.log("View question:", questionId);
-              // TODO: Implement view functionality
+              // Find the question to get its section name
+              const allQ = getAllQuestions();
+              const q = allQ.find((question: any) => question.questionId === questionId);
+              if (q) {
+                handleViewQuestion(questionId, q.sectionName);
+              }
             }}
           />
         </div>
@@ -1263,6 +1358,14 @@ export function AddQuestion() {
           </div>
         </div>
       )}
+
+      {/* Question Preview Modal */}
+      <QuestionPreviewModal
+        isOpen={!!previewQuestion}
+        onClose={() => setPreviewQuestion(null)}
+        question={previewQuestion?.question || null}
+        sectionName={previewQuestion?.sectionName}
+      />
     </div>
   );
 }

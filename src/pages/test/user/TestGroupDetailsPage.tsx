@@ -1,7 +1,7 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { BookOpen, Clock, FileText, Star, ShoppingCart, Bookmark, Lock, Loader2, Users, ArrowLeft, Trash2, CheckCircle2 } from "lucide-react";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 import {
   getTestGroupByIdForUser,
   buyTestGroup,
@@ -10,6 +10,16 @@ import {
   updateReviewToTestGroup,
   deleteReviewFromTestGroup,
 } from "@/api/testGroup";
+import { useAuthStore } from "@/store/AuthStore";
+import startRecharge from "@/api/wallet";
+import AddFundsPanel from "@/components/student-dashboard/AddFundsPanel";
+
+declare global {
+  interface Window {
+    Razorpay: unknown;
+  }
+}
+type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 
 interface TestSeries {
   testSeriesId: string;
@@ -32,6 +42,7 @@ interface TestSeries {
 interface Review {
   reviewId: string;
   userId: string;
+  userFullName?: string;
   rating: number;
   reviewText: string;
   createdAt: { seconds: number; nanos: number };
@@ -64,10 +75,14 @@ export default function TestGroupDetailsPage() {
   const [data, setData] = useState<TestGroupData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
   const [userReview, setUserReview] = useState<Review | null>(null);
+  const [addFundsOpen, setAddFundsOpen] = useState(false);
+  const pendingPurchaseRef = useRef(false);
   const userId = localStorage.getItem("phone") || "";
+  const { user, refreshUser } = useAuthStore();
 
   useEffect(() => {
     if (testGroupId && userId) {
@@ -151,7 +166,17 @@ export default function TestGroupDetailsPage() {
       return;
     }
 
-    // For paid test groups
+    // For paid test groups - check wallet balance first
+    const walletBalance = user?.walletAmount ?? 0;
+    const price = data.testGroup.price;
+
+    if (walletBalance < price) {
+      toast.error("Insufficient balance. Please add funds to your wallet.");
+      pendingPurchaseRef.current = true;
+      setAddFundsOpen(true);
+      return;
+    }
+
     const counsellorId = data.attachedTests[0]?.counsellorId || '';
 
     if (!counsellorId) {
@@ -170,11 +195,13 @@ export default function TestGroupDetailsPage() {
 
       if (response.status) {
         toast.success("Test group purchased successfully!");
+        pendingPurchaseRef.current = false;
         fetchTestGroupDetails();
       } else {
-        if (response.message?.includes("insufficient")) {
-          toast.error("Insufficient balance. Please recharge your wallet.");
-          setTimeout(() => navigate("/recharge-wallet"), 1500);
+        if (response.message?.toLowerCase().includes("insufficient")) {
+          toast.error("Insufficient balance. Please add funds to your wallet.");
+          pendingPurchaseRef.current = true;
+          setAddFundsOpen(true);
         } else {
           toast.error(response.message || "Failed to purchase");
         }
@@ -185,15 +212,67 @@ export default function TestGroupDetailsPage() {
     }
   };
 
+  const handleRecharge = async (amount: number) => {
+    if (!amount || amount <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+    try {
+      const order = await startRecharge(userId, amount);
+      const options = {
+        key: order.keyId,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.orderId,
+        name: "ProCounsel Wallet",
+        description: "Wallet Recharge",
+        notes: { userId },
+        handler: async function () {
+          toast.success("Payment successful. Your balance will be updated shortly.");
+          try {
+            await refreshUser(true);
+            setAddFundsOpen(false);
+            // Auto-retry purchase if there was a pending purchase
+            if (pendingPurchaseRef.current) {
+              setTimeout(() => {
+                handleBuy();
+              }, 500);
+            }
+          } catch (err) {
+            console.error('Failed to refresh user balance after payment.', err);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            console.log('Razorpay modal dismissed.');
+          }
+        },
+        theme: { color: "#3399cc" },
+      };
+
+      const Rz = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
+      const rzp = new Rz(options);
+      rzp.open();
+
+    } catch (error) {
+      console.error("Failed to initiate Razorpay order.", error);
+      toast.error("Could not start the payment process. Please try again later.");
+    }
+  };
+
   const handleBookmark = async () => {
     if (!userId || !testGroupId) return;
 
+    const currentlyBookmarked = data?.bookmarked || false;
+
     try {
       const response = await bookmarkTestGroup(userId, testGroupId);
-      if (response.status) {
-        setData(prev => prev ? { ...prev, bookmarked: response.bookmarked } : null);
-        toast.success(response.bookmarked ? "Added to bookmarks" : "Removed from bookmarks");
-      }
+      console.log("Bookmark API response:", response);
+
+      // Toggle the bookmark state regardless of response.status
+      const newBookmarkedState = response.bookmarked !== undefined ? response.bookmarked : !currentlyBookmarked;
+      setData(prev => prev ? { ...prev, bookmarked: newBookmarkedState } : null);
+      toast.success(newBookmarkedState ? "Added to bookmarks" : "Removed from bookmarks");
     } catch (error) {
       console.error("Failed to bookmark:", error);
       toast.error("Failed to update bookmark");
@@ -209,13 +288,19 @@ export default function TestGroupDetailsPage() {
 
     try {
       if (userReview) {
+        // Validation: Check if anything changed
+        if (reviewRating === userReview.rating && reviewText.trim() === userReview.reviewText) {
+          toast.error("No changes made to the review");
+          return;
+        }
+
         // Update existing review
         const response = await updateReviewToTestGroup(
           userId,
           userReview.reviewId,
           testGroupId,
           reviewRating,
-          reviewText
+          reviewText.trim()
         );
         if (response.status) {
           toast.success("Review updated successfully!");
@@ -228,7 +313,7 @@ export default function TestGroupDetailsPage() {
           userId,
           testGroupId,
           reviewRating,
-          reviewText
+          reviewText.trim()
         );
         if (response.status) {
           toast.success("Review added successfully!");
@@ -245,8 +330,6 @@ export default function TestGroupDetailsPage() {
   const handleDeleteReview = async () => {
     if (!userId || !testGroupId || !userReview) return;
 
-    if (!confirm("Are you sure you want to delete your review?")) return;
-
     try {
       const response = await deleteReviewFromTestGroup(
         userId,
@@ -255,6 +338,7 @@ export default function TestGroupDetailsPage() {
       );
       if (response.status) {
         toast.success("Review deleted successfully");
+        setShowDeleteConfirm(false);
         setShowReviewModal(false);
         setUserReview(null);
         setReviewRating(5);
@@ -455,7 +539,7 @@ export default function TestGroupDetailsPage() {
                             ))}
                           </div>
                           <span className="text-xs font-medium text-gray-900">
-                            {review.userId === userId ? "You" : "Student"}
+                            {review.userId === userId ? "You" : (review.userFullName || "Student")}
                           </span>
                         </div>
                         <span className="text-[10px] md:text-xs text-gray-500">
@@ -626,7 +710,7 @@ export default function TestGroupDetailsPage() {
 
                 {userReview && (
                   <button
-                    onClick={handleDeleteReview}
+                    onClick={() => setShowDeleteConfirm(true)}
                     className="w-full py-3 bg-red-50 text-red-600 rounded-xl text-sm font-semibold hover:bg-red-100 transition-colors flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Trash2 size={16} /> Delete Review
@@ -643,7 +727,50 @@ export default function TestGroupDetailsPage() {
             </div>
           </div>
         )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl p-5 md:p-6 max-w-sm w-full shadow-xl animate-in fade-in zoom-in duration-200">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Trash2 className="w-8 h-8 text-red-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Review?</h3>
+                <p className="text-sm text-gray-500">
+                  Are you sure you want to delete your review? This action cannot be undone.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteReview}
+                  className="flex-1 py-3 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors cursor-pointer"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Add Funds Panel */}
+      <AddFundsPanel
+        isOpen={addFundsOpen}
+        onClose={() => {
+          setAddFundsOpen(false);
+          pendingPurchaseRef.current = false;
+        }}
+        balance={user?.walletAmount ?? 0}
+        onAddMoney={handleRecharge}
+      />
     </div>
   );
 }

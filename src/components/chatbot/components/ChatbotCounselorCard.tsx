@@ -28,13 +28,15 @@ export function ChatbotCounselorCard({ counselor }: ChatbotCounselorCardProps) {
     officeEndTime: counselor.officeEndTime || "18:00",
   };
 
+  const fullName = `${counselor.firstName} ${counselor.lastName}`;
+
   return (
     <>
-      <div className="bg-[#141414] rounded-2xl px-3 md:px-4 pt-3 md:pt-4 pb-4 border-[#6C6969] border-[1px] w-fit h-fit max-w-[400px] max-h-[92px]">
-        <div className=" flex gap-2 md:gap-3 text-[#6C6969] font-sans">
+      <div className="bg-[#141414] rounded-2xl px-3 md:px-4 pt-3 md:pt-4 pb-4 border-[#6C6969] border-[1px] w-[320px] md:w-[380px] h-[92px]">
+        <div className="flex gap-2 md:gap-3 text-[#6C6969] font-sans">
           <img
             src={counselor?.photoUrlSmall || fallback}
-            alt={`${counselor.firstName} ${counselor.lastName}`}
+            alt={fullName}
             className="w-10 h-10 md:w-12 md:h-12 rounded-full border-[#6C6969] border-[1px] shrink-0"
             onError={(e) => {
               e.currentTarget.onerror = null;
@@ -43,19 +45,25 @@ export function ChatbotCounselorCard({ counselor }: ChatbotCounselorCardProps) {
           />
 
           {/* Left column: Name and City/Exp */}
-          <div className="flex gap-2 md:gap-[18px]">
+          <div className="flex gap-2 md:gap-[18px] flex-1 min-w-0">
             <div className="flex flex-col gap-1 md:gap-2 flex-1 min-w-0">
-              <h3 className="text-white font-medium text-sm md:text-base leading-tight">
-                {counselor.firstName} {counselor.lastName}
+              <h3
+                className="text-white font-medium text-sm md:text-base leading-tight truncate"
+                title={fullName}
+              >
+                {fullName}
               </h3>
 
-              <div className="flex items-center gap-[18px]">
-                <p className="flex items-center gap-0.5 md:gap-1 shrink-0 text-[1rem] font-normal">
+              <div className="flex items-center gap-3 md:gap-[18px]">
+                <p
+                  className="flex items-center gap-0.5 md:gap-1 text-[0.875rem] md:text-[1rem] font-normal max-w-[80px] md:max-w-[100px]"
+                  title={counselor?.city}
+                >
                   <img src="/location.svg" alt="" className="shrink-0 w-3 h-3 md:w-4 md:h-4" />
                   <span className="truncate">{counselor?.city}</span>
                 </p>
 
-                <p className="flex items-center gap-0.5 md:gap-1 shrink-0 text-[1rem] font-normal">
+                <p className="flex items-center gap-0.5 md:gap-1 shrink-0 text-[0.875rem] md:text-[1rem] font-normal">
                   <img src="/exp.svg" alt="" className="shrink-0 w-3 h-3 md:w-4 md:h-4" />
                   {counselor?.experience}+ Yrs
                 </p>
@@ -63,34 +71,29 @@ export function ChatbotCounselorCard({ counselor }: ChatbotCounselorCardProps) {
             </div>
 
             {/* Right column: Rating and Button */}
-            <div className="flex flex-col items-end justify-between">
+            <div className="flex flex-col items-end justify-between shrink-0">
               <p className="flex items-center gap-0.5 md:gap-1 text-sm md:text-base font-medium">
                 <Star className="w-3 h-3 md:w-4 md:h-4 text-yellow-400 fill-yellow-400 shrink-0" />
                 {counselor?.rating?.toFixed(1)}
               </p>
 
-              {/* <button 
-              onClick={handleBookNow}
-              className=" bg-white border rounded-[4px] text-[#1A1A1A] text-xs md:text-[0.875rem] font-medium px-2 md:px-3 py-1 hover:bg-gray-100 transition-colors max-h-[26px] max-w-[92px]"
-            >
-              Book Now
-            </button> */}
               <button
                 onClick={handleBookNow}
                 className="
-    bg-white
-    border
-    rounded-[4px]
-    text-[#1A1A1A]
-    text-xs md:text-[14px]
-    font-medium
-    h-[26px] w-[92px]
-    px-[12px] py-[4px]
-    whitespace-nowrap
-    flex items-center justify-center
-    hover:bg-gray-100
-    transition-colors
-  "
+                  bg-white
+                  border
+                  rounded-[4px]
+                  text-[#1A1A1A]
+                  text-xs md:text-[14px]
+                  font-medium
+                  h-[26px] w-[92px]
+                  px-[12px] py-[4px]
+                  whitespace-nowrap
+                  flex items-center justify-center
+                  hover:bg-gray-100
+                  transition-colors
+                  cursor-pointer
+                "
               >
                 Book Now
               </button>

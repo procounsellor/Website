@@ -184,6 +184,30 @@ export const deleteTestSeries = async (
   return response.json();
 };
 
+export const removeSectionsFromTestSeries = async (
+  counsellorId: string,
+  testSeriesId: string,
+  removedSectionNames: string[]
+) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/testSeries/removeSection`,
+    {
+      method: "POST",
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        counsellorId,
+        testSeriesId,
+        removedSectionName: removedSectionNames,
+      }),
+    }
+  );
+  return response.json();
+};
+
+
 export const publishTestSeries = async (
   counsellorId: string,
   testSeriesId: string,
@@ -345,7 +369,7 @@ export const deleteReviewFromTestGroup = async (
   testGroupId: string
 ) => {
   const response = await fetch(
-    `${API_CONFIG.baseUrl}/api/counsellorTestGroup/deleteReviewFromTestGroup`,
+    `${API_CONFIG.baseUrl}/api/counsellorTestGroup/deleteTestGroupReview`,
     {
       method: "POST",
       headers: {

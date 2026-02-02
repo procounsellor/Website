@@ -4,6 +4,7 @@ import { ArrowLeft, Plus, Edit, Trash2, Star, Users, Clock, FileText, Globe, Glo
 import { toast } from "sonner";
 import { getTestGroupById, getAllTestSeriesOfTestGroupForCounselor, publishUnpublishTestGroup, deleteTestSeries } from "@/api/testGroup";
 import type { TestGroup, TestSeries } from "@/types/testGroup";
+import { DeleteConfirmationModal } from "@/components/modals/DeleteConfirmationModal";
 
 interface Review {
   reviewId: string;
@@ -25,6 +26,11 @@ export function TestGroupDetails() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const counsellorId = localStorage.getItem("phone") || "";
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string; name: string }>({
+    isOpen: false,
+    id: "",
+    name: "",
+  });
 
   useEffect(() => {
     if (testGroupId) {
@@ -39,7 +45,7 @@ export function TestGroupDetails() {
       const groupResponse = await getTestGroupById(counsellorId, testGroupId!);
       if (groupResponse.status && groupResponse.data?.testGroup) {
         setTestGroup(groupResponse.data.testGroup);
-        // Store reviews from the response
+        // Store reviews from API response
         if (groupResponse.data.reviews) {
           setReviews(groupResponse.data.reviews);
         }
@@ -76,11 +82,9 @@ export function TestGroupDetails() {
     }
   };
 
-  const handleDeleteTest = async (testSeriesId: string, testName: string) => {
-    if (!confirm(`Are you sure you want to delete "${testName}"?`)) return;
-
+  const handleDeleteTest = async () => {
     try {
-      await deleteTestSeries(counsellorId, testSeriesId);
+      await deleteTestSeries(counsellorId, deleteModal.id);
       toast.success("Test series deleted successfully");
       fetchData();
     } catch (error) {
@@ -354,7 +358,7 @@ export function TestGroupDetails() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDeleteTest(test.testSeriesId, test.testName);
+                          setDeleteModal({ isOpen: true, id: test.testSeriesId, name: test.testName });
                         }}
                         className="flex-1 flex items-center justify-center py-1.5 px-2 bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors cursor-pointer"
                         title="Delete Test"
@@ -371,8 +375,8 @@ export function TestGroupDetails() {
 
         {/* Reviews Section */}
         <div className="bg-white rounded-xl shadow-sm p-4 mt-4">
-          <h2 className="text-lg font-bold text-(--text-app-primary) mb-4">Reviews</h2>
-          {reviews && reviews.length > 0 ? (
+          <h2 className="text-lg font-bold text-(--text-app-primary) mb-4">Reviews ({reviews.length})</h2>
+          {reviews.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {reviews.map((review) => (
                 <div
@@ -380,6 +384,7 @@ export function TestGroupDetails() {
                   className="bg-white rounded-xl p-4 flex flex-col gap-3 shadow-sm border border-gray-200"
                 >
                   <div className="flex items-center gap-3">
+                    {/* User Photo with Fallback */}
                     {review.photoUrl ? (
                       <img
                         src={review.photoUrl}
@@ -387,12 +392,14 @@ export function TestGroupDetails() {
                         className="w-12 h-12 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-white font-semibold">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-white font-semibold text-lg">
                         {review.userFullName?.charAt(0)?.toUpperCase() || 'U'}
                       </div>
                     )}
                     <div className="flex flex-col gap-1">
-                      <h3 className="text-base font-semibold text-(--text-app-primary)">{review.userFullName || 'Anonymous'}</h3>
+                      <h3 className="text-base font-semibold text-(--text-app-primary)">
+                        {review.userFullName || 'Anonymous User'}
+                      </h3>
                       <div className="flex items-center">
                         {[...Array(5)].map((_, starIndex) => (
                           <Star
@@ -421,6 +428,14 @@ export function TestGroupDetails() {
           )}
         </div>
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+        onConfirm={handleDeleteTest}
+        title="Delete Test Series?"
+        message={`Are you sure you want to delete "${deleteModal.name}"? This action cannot be undone.`}
+      />
     </div>
   );
 }
