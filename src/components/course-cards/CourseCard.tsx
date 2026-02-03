@@ -9,6 +9,7 @@ interface propsType {
   role: "user" | "student" | "counselor";
   userId?: string | null;
   showBookmark?: boolean;
+  isPublished?: boolean;
 }
 
 export default function CourseCard({
@@ -16,6 +17,7 @@ export default function CourseCard({
   role,
   userId,
   showBookmark = false,
+  isPublished,
 }: propsType) {
   const [loading, setLoading] = useState(false);
   const [bookmarked, setBookmarked] = useState<boolean>(
@@ -72,6 +74,14 @@ export default function CourseCard({
           loading="lazy"
         />
 
+        {/* Published/Draft Badge for counselor */}
+        {role === "counselor" && isPublished !== undefined && (
+          <span className={`absolute left-2 top-2 text-[10px] px-2 py-0.5 rounded-full font-medium shadow-sm ${isPublished ? 'bg-green-500 text-white' : 'bg-gray-500 text-white'
+            }`}>
+            {isPublished ? 'Published' : 'Draft'}
+          </span>
+        )}
+
         {showBookmark && (role === "user" || role === "student") && (
           <button
             onClick={handleBookmarkClick}
@@ -87,9 +97,8 @@ export default function CourseCard({
             "
           >
             <Bookmark
-              className={`h-4 w-4 text-white ${
-                bookmarked ? "fill-current" : ""
-              }`}
+              className={`h-4 w-4 text-white ${bookmarked ? "fill-current" : ""
+                }`}
             />
           </button>
         )}
