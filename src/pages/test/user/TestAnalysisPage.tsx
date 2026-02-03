@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { compareAnswers } from "@/api/userTestSeries";
 import { ArrowLeft, CheckCircle2, XCircle, MinusCircle, Menu, X } from "lucide-react";
@@ -17,6 +17,7 @@ interface Option {
 interface Question {
     questionId: string;
     questionText: string;
+    questionImageUrls?: string[];
     options: Option[] | null;
     userAnswerIds: string[];
     correctAnswerIds: string[];
@@ -43,6 +44,8 @@ export function TestAnalysisPage() {
     const routerAttemptId = attemptId; // Rename to avoid confusion
     const userId = localStorage.getItem("phone") || "";
 
+    const location = useLocation();
+    const testGroupId = location.state?.testGroupId;
     const [data, setData] = useState<AnalysisData | null>(null);
     const [loading, setLoading] = useState(true);
     const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
@@ -79,23 +82,6 @@ export function TestAnalysisPage() {
     const currentSection = data.sections[currentSectionIndex];
     const currentQuestion = currentSection.questions[currentQuestionIndex];
 
-<<<<<<< HEAD
-    // // Calculate stats for sidebar
-    // const getQuestionStatus = (q: Question) => {
-    //     if (q.userAnswerIds.length === 0) return "NOT_VISITED";
-    //     if (q.isCorrect) return "ATTEMPTED"; // Reusing ATTEMPTED color for Correct (Green) logic in Sidebar if needed, but better to map correctly
-    //     return "MARKED_FOR_REVIEW"; // Reusing MARKED for Wrong (Orange/Red) logic
-    // };
-
-    // // Custom Section component mapper
-    // const mapStatusToColor = (q: Question) => {
-    //     if (q.userAnswerIds.length === 0) return "NOT_VISITED"; // Gray
-    //     if (q.isCorrect) return "ATTEMPTED"; // Green
-    //     return "MARKED_FOR_REVIEW"; // Orange/Red - Using this to represent WRONG in standard UI or need custom
-    // };
-
-=======
->>>>>>> upstream/develop
     const handlePrev = () => {
         if (!data) return;
         if (currentQuestionIndex > 0) {
@@ -139,7 +125,7 @@ export function TestAnalysisPage() {
                 <div className="max-w-4xl mx-auto">
                     {/* Desktop Back Button */}
                     <button
-                        onClick={() => navigate(`/test-info/${testId}`)}
+                        onClick={() => navigate(`/test-info/${testId}`, { state: { testGroupId } })}
                         className="hidden md:flex items-center gap-2 text-gray-600 mb-6 hover:text-blue-600 transition-colors cursor-pointer"
                     >
                         <ArrowLeft size={20} />
@@ -172,6 +158,21 @@ export function TestAnalysisPage() {
                                 <p className="text-lg text-[#242645] font-medium mb-4 whitespace-pre-wrap">
                                     <MathText>{currentQuestion.questionText}</MathText>
                                 </p>
+
+                                {/* Question Images */}
+                                {currentQuestion.questionImageUrls && currentQuestion.questionImageUrls.length > 0 && (
+                                    <div className="flex flex-col md:flex-row justify-start gap-3 mb-6">
+                                        {currentQuestion.questionImageUrls.map((url, index) => (
+                                            <div key={index} className="border border-[#D8D8D8] rounded-[16px] overflow-hidden bg-gray-50 p-2 max-w-fit">
+                                                <img
+                                                    src={url}
+                                                    alt={`Question image ${index + 1}`}
+                                                    className="max-w-full h-auto max-h-[300px] md:max-h-[400px] object-contain rounded-lg"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
 
                                 {/* Options */}
                                 <div className="space-y-3">

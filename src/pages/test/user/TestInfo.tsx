@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getTestSeriesByIdForUser } from "@/api/userTestSeries";
 import toast from "react-hot-toast";
@@ -112,6 +112,8 @@ const getGeneralInstructions = (
 export function TestInfo() {
   const { testId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [testGroupId, setTestGroupId] = useState<string | undefined>(location.state?.testGroupId);
   const [sections, setSections] = useState<SectionData[]>([]);
   const [loading, setLoading] = useState(true);
   const [testName, setTestName] = useState("Mock Test");
@@ -132,6 +134,17 @@ export function TestInfo() {
       document.exitFullscreen().catch(() => { });
     }
   }, []);
+
+  // Persist testGroupId to sessionStorage
+  useEffect(() => {
+    const sessionKey = `test_group_context_${testId}`;
+    if (testGroupId) {
+      sessionStorage.setItem(sessionKey, testGroupId);
+    } else {
+      const saved = sessionStorage.getItem(sessionKey);
+      if (saved) setTestGroupId(saved);
+    }
+  }, [testGroupId, testId]);
 
   useEffect(() => {
     const fetchTestData = async () => {
@@ -186,15 +199,15 @@ export function TestInfo() {
   const handleMainAction = () => {
     if (inProgressAttempt) {
       // Resume
-      navigate(`/take-test/${testId}`, { state: { attemptId: inProgressAttempt.attemptId, isResume: true } });
+      navigate(`/take-test/${testId}`, { state: { attemptId: inProgressAttempt.attemptId, isResume: true, testGroupId } });
     } else {
       // Start New
-      navigate(`/take-test/${testId}`); // TakeTest will handle creation
+      navigate(`/take-test/${testId}`, { state: { testGroupId } }); // TakeTest will handle creation
     }
   };
 
   const handleAnalysis = (attemptId: string) => {
-    navigate(`/t/analysis/${testId}/${attemptId}`);
+    navigate(`/t/analysis/${testId}/${attemptId}`, { state: { testGroupId } });
   };
 
   const handleShowMore = () => {
@@ -220,7 +233,13 @@ export function TestInfo() {
       {/* Back Button */}
       <div className="w-full max-w-[800px] lg:max-w-[1200px]">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            if (testGroupId) {
+              navigate(`/test-group/${testGroupId}`);
+            } else {
+              navigate(-1);
+            }
+          }}
           className="flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-2 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />

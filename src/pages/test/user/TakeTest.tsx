@@ -19,7 +19,7 @@ import {
 interface QuestionType {
   questionId: string;
   questionText: string;
-  questionImageUrls: string[];
+  questionImageUrls?: string[];
   multipleAnswer: boolean;
   subjective: boolean;
   options: Array<{
@@ -51,6 +51,7 @@ import { TestResult, type ResultData } from "./TestResult";
 export function TakeTest() {
   const { testId } = useParams();
   const location = useLocation();
+  const [testGroupId, setTestGroupId] = useState<string | undefined>(location.state?.testGroupId);
   const navigate = useNavigate();
 
   const [testResult, setTestResult] = useState<ResultData | null>(null);
@@ -137,6 +138,7 @@ export function TakeTest() {
     if (!testStarted) return;
     const progress = {
       attemptId,
+      testGroupId,
       currentSectionIndex,
       currentQuestionIndex,
       questionStates: Array.from(questionStates.entries()),
@@ -159,6 +161,10 @@ export function TakeTest() {
         setQuestionStates(new Map(progress.questionStates));
         setStartTime(progress.startTime);
         setTestStarted(progress.testStarted);
+        setTimeLeft(progress.timeLeft);
+        if (progress.testGroupId && !testGroupId) {
+          setTestGroupId(progress.testGroupId);
+        }
         setShowStartModal(false);
         return true;
       } catch (error) {
@@ -215,10 +221,23 @@ export function TakeTest() {
             // CALL RESUME API
             const resumeData = await resumeTest(userId, resumeAttemptId);
             if (resumeData.status && resumeData.data) {
-              const { attempt, answers, timeLeftInSeconds } = resumeData.data;
+              const { attempt, answers, timeLeftInSeconds: overallTimeLeft } = resumeData.data;
+
+              // Determine which timer to use: section-specific for sequential, overall for free switching
+              let finalTimeLeft = overallTimeLeft;
+              const isSwitchingAllowed = testInfoResponse.data.sectionSwitchingAllowed || false;
+
+              if (!isSwitchingAllowed && attempt.currentSectionName && attempt.sectionTimeList) {
+                const currentSectionTime = attempt.sectionTimeList.find(
+                  (s: any) => s.sectionName === attempt.currentSectionName
+                );
+                if (currentSectionTime && currentSectionTime.timeLeftInSeconds) {
+                  finalTimeLeft = parseInt(currentSectionTime.timeLeftInSeconds);
+                }
+              }
 
               setAttemptId(resumeAttemptId);
-              setTimeLeft(timeLeftInSeconds);
+              setTimeLeft(finalTimeLeft);
               setTestStarted(true);
               setShowStartModal(false); // Skip start modal on resume
 
@@ -314,10 +333,13 @@ export function TakeTest() {
         setStartTime(Date.now());
         setTestStarted(true);
         setShowStartModal(false);
-        // Set initial timer if needed, though Timer component defaults to section durations?
-        // Actually, we should sum up section durations for total time if 'timeLeft' is not set
-        const totalMins = sectionDurations.reduce((a, b) => a + b, 0);
-        setTimeLeft(totalMins * 60);
+        // Set initial timer based on mode
+        if (sectionSwitchingAllowed) {
+          const totalMins = sectionDurations.reduce((a, b) => a + b, 0);
+          setTimeLeft(totalMins * 60);
+        } else if (sectionDurations.length > 0) {
+          setTimeLeft(sectionDurations[0] * 60);
+        }
 
         // Save initial progress
         setTimeout(saveProgress, 100);
@@ -525,6 +547,12 @@ export function TakeTest() {
     if (pendingNavigationSection !== null) {
       setCurrentSectionIndex(pendingNavigationSection);
       setCurrentQuestionIndex(pendingNavigationQuestion);
+
+      // Reset timer for the new section if sequential
+      if (!sectionSwitchingAllowed && sectionDurations[pendingNavigationSection]) {
+        setTimeLeft(sectionDurations[pendingNavigationSection] * 60);
+      }
+
       setPendingNavigationSection(null);
       setPendingNavigationQuestion(0);
       setShowSectionChangeModal(false);
@@ -1049,14 +1077,16 @@ export function TakeTest() {
                   // Section switching NOT ALLOWED - Timer resets for each section
                   <Timer
                     key={currentSectionIndex} // Reset timer when section changes
-                    initialSeconds={sectionDurations[currentSectionIndex] * 60}
+                    initialSeconds={timeLeft ?? (sectionDurations[currentSectionIndex] * 60)}
                     onSectionClick={() => setShowMobileSections(true)}
                     onTick={(seconds) => setTimeLeft(seconds)}
                     onTimerEnd={() => {
                       if (currentSectionIndex < sections.length - 1) {
                         // Auto move to next section when section time expires
-                        setCurrentSectionIndex(currentSectionIndex + 1);
+                        const nextIdx = currentSectionIndex + 1;
+                        setCurrentSectionIndex(nextIdx);
                         setCurrentQuestionIndex(0);
+                        setTimeLeft(sectionDurations[nextIdx] * 60);
                         toast(`Time up for ${currentSection.sectionName}. Moving to next section.`);
                       } else {
                         // Last section - auto submit
@@ -1406,7 +1436,7 @@ export function TakeTest() {
               if (document.fullscreenElement) {
                 document.exitFullscreen().catch(() => { });
               }
-              navigate(`/test-info/${testId}`);
+              navigate(`/test-info/${testId}`, { state: { testGroupId } });
             }}
           />
         )
