@@ -242,7 +242,8 @@ export function TestResult({ resultData: propResultData, onExit, onRetake }: Tes
               if (onExit) {
                 onExit();
               } else {
-                navigate(`/test-info/${testId}`);
+                const testGroupId = location.state?.testGroupId;
+                navigate(`/test-info/${testId}`, { state: { testGroupId } });
               }
             }}
             className="flex-1 py-3 px-4 rounded-full bg-[#00C55E] text-white text-xs md:text-base font-bold hover:opacity-90 transition-opacity shadow-lg shadow-green-200 cursor-pointer"
