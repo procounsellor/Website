@@ -22,6 +22,7 @@ import NotificationDropdown from "@/components/notifications/NotificationDropdow
 
 // TODO: Update with the actual course ID for the promo page
 const PROMO_COURSE_ID = "a997f3a9-4a36-4395-9f90-847b739fb225";
+const TEST_SERIES_ID = "3baef8b7-5d0a-41a6-a21c-6aebb5f32bbb";
 
 interface NewHeaderButtonProps {
   label: string;
@@ -60,7 +61,11 @@ export default function Header() {
   const shouldShowNewHeader = !isAuthenticated || !isCounselor;
 
   const isHomePage = location.pathname === "/";
-  const isPromoPage = location.pathname === "/promo";
+  const isPromoPage = ["/promo", "/testSeries/pcsat"].includes(location.pathname);
+
+  const currentPromoId = location.pathname === "/testSeries/pcsat" 
+    ? TEST_SERIES_ID 
+    : PROMO_COURSE_ID;
 
   const isUserLoaded = user !== null && user !== undefined;
   const { data: boughtCoursesData } = useQuery({
@@ -86,7 +91,7 @@ export default function Header() {
 
   const isCoursePurchased =
     boughtCoursesData?.data?.some(
-      (course) => course.courseId === PROMO_COURSE_ID
+      (course) => course.courseId === currentPromoId
     ) ?? false;
 
   const shouldShowSimplifiedPromoHeader =
@@ -238,7 +243,7 @@ export default function Header() {
               }}
               className="bg-[#FF660F] hover:bg-[#e15500] text-white px-4 sm:px-8 py-2 sm:py-6 text-xs sm:text-lg font-medium rounded-xl cursor-pointer whitespace-nowrap"
             >
-              Enroll Now
+              {location.pathname === "/testSeries/pcsat" ? "Register Now" : "Enroll Now"}
             </Button>
           </div>
         ) : shouldShowNewHeader ? (
