@@ -1,6 +1,6 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import { BookOpen, Clock, FileText, Star, ShoppingCart, Bookmark, Lock, Loader2, Users, ArrowLeft, Trash2, CheckCircle2 } from "lucide-react";
+import { BookOpen, Clock, FileText, Star, ShoppingCart, Bookmark, Lock, Loader2, Users, ArrowLeft, Trash2, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import toast from "react-hot-toast";
 import {
   getTestGroupByIdForUser,
@@ -83,6 +83,8 @@ export default function TestGroupDetailsPage() {
   const pendingPurchaseRef = useRef(false);
   const userId = localStorage.getItem("phone") || "";
   const { user, refreshUser } = useAuthStore();
+  const [visibleTests, setVisibleTests] = useState(3);
+  const TESTS_PER_PAGE = 3;
 
   useEffect(() => {
     if (testGroupId && userId) {
@@ -456,7 +458,7 @@ export default function TestGroupDetailsPage() {
               </div>
 
               <div className="space-y-3">
-                {attachedTests.map((test) => {
+                {attachedTests.slice(0, visibleTests).map((test) => {
                   const totalQuestions = test.listOfSection.reduce(
                     (sum, s) => sum + s.totalQuestionsSupposedToBeAdded,
                     0
@@ -500,6 +502,30 @@ export default function TestGroupDetailsPage() {
                   );
                 })}
               </div>
+
+              {/* Pagination Controls */}
+              {attachedTests.length > TESTS_PER_PAGE && (
+                <div className="flex justify-center gap-3 mt-4">
+                  {visibleTests < attachedTests.length && (
+                    <button
+                      onClick={() => setVisibleTests(prev => prev + TESTS_PER_PAGE)}
+                      className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-(--text-app-primary) rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
+                    >
+                      <span>See More</span>
+                      <ChevronDown size={16} />
+                    </button>
+                  )}
+                  {visibleTests > TESTS_PER_PAGE && (
+                    <button
+                      onClick={() => setVisibleTests(TESTS_PER_PAGE)}
+                      className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-(--text-app-primary) rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
+                    >
+                      <span>See Less</span>
+                      <ChevronUp size={16} />
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Reviews Section */}
