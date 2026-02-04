@@ -1,24 +1,38 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, Edit, Trash2, Star, Users, Clock, FileText, Globe, GlobeLock, Pencil } from "lucide-react";
+import { ArrowLeft, Plus, Edit, Trash2, Star, Users, Clock, FileText, Globe, GlobeLock, Pencil, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { getTestGroupById, getAllTestSeriesOfTestGroupForCounselor, publishUnpublishTestGroup, deleteTestSeries } from "@/api/testGroup";
 import type { TestGroup, TestSeries } from "@/types/testGroup";
 import { DeleteConfirmationModal } from "@/components/modals/DeleteConfirmationModal";
+
+interface Review {
+  reviewId: string;
+  testGroupId: string;
+  userId: string;
+  userFullName: string;
+  photoUrl: string | null;
+  rating: number;
+  reviewText: string;
+  createdAt: { seconds: number; nanos: number };
+  updatedAt: { seconds: number; nanos: number };
+}
+
+interface AssociatedCourse {
+  courseId: string;
+  courseName: string;
+  courseBannerUrl: string;
+  coursePrice: number;
+  discountedCoursePrice: number;
+}
 
 export function TestGroupDetails() {
   const navigate = useNavigate();
   const { testGroupId } = useParams();
   const [testGroup, setTestGroup] = useState<TestGroup | null>(null);
   const [testSeriesList, setTestSeriesList] = useState<TestSeries[]>([]);
-  const [reviews, setReviews] = useState<{
-    reviewId: string;
-    userId: string;
-    userFullName: string;
-    photoUrl: string | null;
-    rating: number;
-    reviewText: string;
-  }[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [associatedCourse, setAssociatedCourse] = useState<AssociatedCourse | null>(null);
   const [loading, setLoading] = useState(true);
   const counsellorId = localStorage.getItem("phone") || "";
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string; name: string }>({
@@ -43,6 +57,10 @@ export function TestGroupDetails() {
         // Store reviews from API response
         if (groupResponse.data.reviews) {
           setReviews(groupResponse.data.reviews);
+        }
+        // Store associated course if available
+        if (groupResponse.data.associatedCourse) {
+          setAssociatedCourse(groupResponse.data.associatedCourse);
         }
       }
 
@@ -367,6 +385,57 @@ export function TestGroupDetails() {
             </div>
           )}
         </div>
+
+        {/* Associated Course Section */}
+        {testGroup.testType === "COURSE_ATTACHED" && associatedCourse && (
+          <div className="bg-white rounded-xl shadow-sm p-4 mt-4">
+            <h2 className="text-lg font-bold text-(--text-app-primary) mb-3">Associated Course</h2>
+            <div
+              onClick={() => navigate(`/detail/${associatedCourse.courseId}/counselor`, {
+                state: { from: 'test-group' }
+              })}
+              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+            >
+              {/* Course Banner */}
+              <div className="w-16 h-16 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
+                {associatedCourse.courseBannerUrl ? (
+                  <img
+                    src={associatedCourse.courseBannerUrl}
+                    alt={associatedCourse.courseName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-blue-50">
+                    <BookOpen className="w-6 h-6 text-blue-200" />
+                  </div>
+                )}
+              </div>
+
+              {/* Course Info */}
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-900 mb-1 text-sm truncate">
+                  {associatedCourse.courseName}
+                </h3>
+                <div className="flex items-center gap-2">
+                  {associatedCourse.discountedCoursePrice > 0 && associatedCourse.discountedCoursePrice < associatedCourse.coursePrice ? (
+                    <>
+                      <span className="text-base font-bold text-green-600">
+                        ₹{Math.floor(associatedCourse.discountedCoursePrice)}
+                      </span>
+                      <span className="text-xs text-gray-500 line-through">
+                        ₹{Math.floor(associatedCourse.coursePrice)}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-base font-bold text-gray-900">
+                      ₹{Math.floor(associatedCourse.coursePrice)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Reviews Section */}
         <div className="bg-white rounded-xl shadow-sm p-4 mt-4">

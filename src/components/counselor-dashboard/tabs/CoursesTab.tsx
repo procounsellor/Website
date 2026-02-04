@@ -6,7 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/AuthStore';
 import CreateCourseCard from '@/components/course-cards/CreateCourseCard';
 import { getCoursesForCounsellorByCounsellorId } from '@/api/course';
-import { Loader2, Pencil, Plus, Trash2, BookOpen } from 'lucide-react';
+import type { CounsellorCourse } from '@/api/course';
+import { Loader2, Plus, BookOpen, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getAllTestGroups, deleteTestGroup, publishUnpublishTestGroup } from '@/api/testGroup';
 import type { TestGroup } from '@/types/testGroup';
@@ -90,7 +91,6 @@ export default function CourseTab(props: CourseTabProps) {
   };
 
 
-
   return (
     <div className="md:bg-white md:py-5 md:px-4 md:rounded-2xl md:border md:border-[#EFEFEF]">
       <div className="bg-white p-2 rounded-xl border border-[#EFEFEF] md:bg-transparent md:p-0 md:border-none md:mb-5">
@@ -101,8 +101,8 @@ export default function CourseTab(props: CourseTabProps) {
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`flex-1 md:flex-none px-4 py-2 text-[12px] md:text-base font-medium rounded-full transition-colors duration-200 cursor-pointer ${activeTab === tab
-                    ? 'bg-[#E8E7F2] text-[#13097D]'
-                    : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                  ? 'bg-[#E8E7F2] text-[#13097D]'
+                  : 'bg-transparent text-gray-600 hover:bg-gray-100'
                   }`}
               >
                 {tab}
@@ -254,7 +254,7 @@ export default function CourseTab(props: CourseTabProps) {
           </div>
         ) : filteredCourses.length > 0 ? (
           <div className="grid gap-2 grid-cols-2 md:grid-col-4 lg:grid-cols-5 mt-2">
-            {filteredCourses.map(course => (
+            {filteredCourses.map((course: CounsellorCourse) => (
               <div
                 key={course.courseId}
                 className='cursor-pointer'
@@ -273,6 +273,7 @@ export default function CourseTab(props: CourseTabProps) {
                     courseTimeMinutes: (course as any).courseTimeMinutes || 0,
                   }}
                   role={role || "counselor"}
+                  isPublished={course.isPublished}
                 />
               </div>
             ))}
@@ -316,6 +317,8 @@ export default function CourseTab(props: CourseTabProps) {
           </div>
         </div>
       )}
+
+
     </div>
   );
 }

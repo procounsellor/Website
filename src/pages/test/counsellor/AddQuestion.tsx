@@ -199,7 +199,16 @@ export function AddQuestion() {
   // Update sections when testData changes and set first section as default
   useEffect(() => {
     if (testData?.listOfSection) {
-      setSections(testData.listOfSection);
+      // Initialize with testData sections if no API data yet, or if API failed
+      // This serves as a fallback or initial state
+      if (sections.length === 0) {
+        setSections(testData.listOfSection.map(s => ({
+          ...s,
+          questions: [],
+          totalQuestionsAdded: 0
+        })));
+      }
+
       // Set first section as default category only if not already set
       if (!selectedCategory && testData.listOfSection.length > 0) {
         setSelectedCategory(testData.listOfSection[0].sectionName);

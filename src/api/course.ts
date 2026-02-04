@@ -336,6 +336,32 @@ export async function publishCourse(
   return response.text();
 }
 
+// Delete Course
+export async function deleteCourse(
+  counsellorId: string,
+  courseId: string
+): Promise<string> {
+  const token = localStorage.getItem('jwt');
+
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/counsellorCourses/deleteCourse?counsellorId=${counsellorId}&courseId=${courseId}`,
+    {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to delete course');
+  }
+
+  return response.text();
+}
+
 export type CounsellorCourse = {
   courseId: string;
   courseName: string;
@@ -345,6 +371,8 @@ export type CounsellorCourse = {
   coursePrice: number;
   discount: number;
   coursePriceAfterDiscount: number;
+  isPublished?: boolean;
+  counsellorId?: string;
 };
 
 export type GetCoursesResponse = {

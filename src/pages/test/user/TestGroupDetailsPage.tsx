@@ -66,6 +66,13 @@ interface TestGroupData {
   reviews: Review[];
   bookmarked: boolean;
   bought: boolean;
+  associatedCourse?: {
+    courseId: string;
+    courseName: string;
+    courseBannerUrl: string;
+    coursePrice: number;
+    discountedCoursePrice: number;
+  } | null;
 }
 
 export default function TestGroupDetailsPage() {
@@ -91,6 +98,32 @@ export default function TestGroupDetailsPage() {
       fetchTestGroupDetails();
     }
   }, [testGroupId, userId]);
+
+  // Persist navigation context (fromDashboard, activeTab) to sessionStorage
+  useEffect(() => {
+    if (!testGroupId) return;
+    const sessionKey = `test_group_back_context_${testGroupId}`;
+
+    // If we have state, save it
+    if (location.state?.fromDashboard) {
+      const context = {
+        fromDashboard: location.state.fromDashboard,
+        activeTab: location.state.activeTab
+      };
+      sessionStorage.setItem(sessionKey, JSON.stringify(context));
+    } else {
+      // If no state, try to restore from session
+      const saved = sessionStorage.getItem(sessionKey);
+      if (saved) {
+        try {
+          const context = JSON.parse(saved);
+          // We don't update location.state directly, but we'll use this in handleBack
+        } catch (e) {
+          console.error("Failed to parse navigation context", e);
+        }
+      }
+    }
+  }, [testGroupId, location.state]);
 
   const fetchTestGroupDetails = async () => {
     if (!userId || !testGroupId) return;
@@ -121,8 +154,20 @@ export default function TestGroupDetailsPage() {
   };
 
   const handleBack = () => {
-    if (location.state?.fromDashboard && location.state?.activeTab) {
-      navigate('/dashboard-student', { state: { activeTab: location.state.activeTab } });
+    const sessionKey = `test_group_back_context_${testGroupId}`;
+    const saved = sessionStorage.getItem(sessionKey);
+    let context = location.state;
+
+    if (!context?.fromDashboard && saved) {
+      try {
+        context = JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse stored context", e);
+      }
+    }
+
+    if (context?.fromDashboard && context?.activeTab) {
+      navigate('/dashboard-student', { state: { activeTab: context.activeTab } });
     } else {
       navigate(-1);
     }
@@ -357,7 +402,7 @@ export default function TestGroupDetailsPage() {
 
   const handleTestSeriesClick = (testSeriesId: string) => {
     if (data?.bought) {
-      navigate(`/test-info/${testSeriesId}`);
+      navigate(`/test-info/${testSeriesId}`, { state: { testGroupId } });
     } else {
       toast.error("Please purchase this test group first");
     }
@@ -578,6 +623,57 @@ export default function TestGroupDetailsPage() {
                 </div>
               )}
             </div>
+
+            {/* Associated Course Section */}
+            {testGroup.testType === "COURSE_ATTACHED" && data.associatedCourse && (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-5 mt-6">
+                <h2 className="text-base md:text-lg font-bold text-[#242645] mb-3">Associated Course</h2>
+                <div
+                  onClick={() => navigate(`/detail/${data.associatedCourse!.courseId}/user`, {
+                    state: { from: 'test-group' }
+                  })}
+                  className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                >
+                  {/* Course Banner */}
+                  <div className="w-14 h-14 md:w-16 md:h-16 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
+                    {data.associatedCourse.courseBannerUrl ? (
+                      <img
+                        src={data.associatedCourse.courseBannerUrl}
+                        alt={data.associatedCourse.courseName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-blue-50">
+                        <BookOpen className="w-5 h-5 md:w-6 md:h-6 text-blue-200" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Course Info */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 mb-1 text-sm truncate">
+                      {data.associatedCourse.courseName}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      {data.associatedCourse.discountedCoursePrice > 0 && data.associatedCourse.discountedCoursePrice < data.associatedCourse.coursePrice ? (
+                        <>
+                          <span className="text-sm md:text-base font-bold text-green-600">
+                            ₹{Math.floor(data.associatedCourse.discountedCoursePrice)}
+                          </span>
+                          <span className="text-xs text-gray-500 line-through">
+                            ₹{Math.floor(data.associatedCourse.coursePrice)}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-sm md:text-base font-bold text-gray-900">
+                          ₹{Math.floor(data.associatedCourse.coursePrice)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
           </div>
 
