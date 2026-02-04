@@ -116,7 +116,7 @@ export default function TestGroupDetailsPage() {
       const saved = sessionStorage.getItem(sessionKey);
       if (saved) {
         try {
-          const context = JSON.parse(saved);
+          // const context = JSON.parse(saved);
           // We don't update location.state directly, but we'll use this in handleBack
         } catch (e) {
           console.error("Failed to parse navigation context", e);
