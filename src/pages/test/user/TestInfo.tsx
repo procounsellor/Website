@@ -177,7 +177,10 @@ export function TestInfo() {
     (sum, row) => sum + (row.totalQuestionsSupposedToBeAdded || 0),
     0
   );
-  const totalMarks = totalQuestions * pointsPerQuestion;
+  const totalMarks = sections.reduce(
+    (sum, row) => sum + ((row.totalQuestionsSupposedToBeAdded || 0) * (row.pointsForCorrectAnswer ?? pointsPerQuestion)),
+    0
+  );
 
   // Logic to determine button state
   const inProgressAttempt = attempts.find(a => a.status === "IN_PROGRESS");
