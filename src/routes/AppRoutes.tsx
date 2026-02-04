@@ -37,6 +37,8 @@ import { CreateEditTestGroup } from '@/pages/test/counsellor/CreateEditTestGroup
 import { TestGroupDetails } from '@/pages/test/counsellor/TestGroupDetails';
 import TestGroupDetailsPage from '@/pages/test/user/TestGroupDetailsPage';
 import CollegeDetailsPageNew from '@/pages/CollegeDetailsPage';
+import RevampLayout from '@/layouts/RevampLayout';
+import ProBuddies from '@/pages/Revamp/ProBuddies';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
@@ -67,6 +69,12 @@ export default function AppRoutes() {
                     <Route path='/take-test/:testId' element={<TakeTest />} />
                     <Route path='/t/analysis/:testId/:attemptId' element={<TestAnalysisPage />} />
 
+
+                    <Route element={<RevampLayout/>}>
+
+                    <Route path='/pro' element={<ProBuddies/>}/>
+                    
+                    </Route>
 
                     <Route element={<MainLayout />}>
                         <Route path="/" element={<Home />} />
