@@ -20,27 +20,30 @@ export function Timer({ time, initialSeconds, onSectionClick, onTimerEnd, onTick
         onTickRef.current = onTick;
     }, [onTimerEnd, onTick]);
 
-    // Calculate initial seconds
-    const getInitialSeconds = useCallback(() => {
-        if (initialSeconds !== undefined) return initialSeconds;
-        return time ? parseInt(time) * 60 : 0;
-    }, [initialSeconds, time]);
+    // Calculate initial seconds once
+    const initialSecondsValue = initialSeconds !== undefined ? initialSeconds : (time ? parseInt(time) * 60 : 0);
+    
+    const [seconds, setSeconds] = useState(initialSecondsValue);
+    const endTimeRef = useRef<number>(Date.now() + initialSecondsValue * 1000);
+    const initializedRef = useRef(false);
 
-    const [seconds, setSeconds] = useState(getInitialSeconds);
-    const endTimeRef = useRef<number>(Date.now() + getInitialSeconds() * 1000);
-
-    // Reset timer when initialSeconds changes
+    // Reset timer only when initialSeconds prop actually changes
     useEffect(() => {
-        const newSeconds = getInitialSeconds();
+        if (!initializedRef.current) {
+            initializedRef.current = true;
+            return;
+        }
+        
+        const newSeconds = initialSeconds !== undefined ? initialSeconds : (time ? parseInt(time) * 60 : 0);
         setSeconds(newSeconds);
         endTimeRef.current = Date.now() + newSeconds * 1000;
-    }, [getInitialSeconds]);
+    }, [initialSeconds, time]);
 
     // Main timer effect using timestamp-based timing (survives browser throttling)
     useEffect(() => {
         const interval = setInterval(() => {
             const now = Date.now();
-            const remaining = Math.max(0, Math.ceil((endTimeRef.current - now) / 1000));
+            const remaining = Math.max(0, Math.floor((endTimeRef.current - now) / 1000));
 
             setSeconds(remaining);
             onTickRef.current?.(remaining);
@@ -49,7 +52,7 @@ export function Timer({ time, initialSeconds, onSectionClick, onTimerEnd, onTick
                 clearInterval(interval);
                 onTimerEndRef.current?.();
             }
-        }, 1000);
+        }, 1000); // Update every 1 second
 
         return () => clearInterval(interval);
     }, []); // Empty deps - uses refs for callbacks
@@ -59,7 +62,7 @@ export function Timer({ time, initialSeconds, onSectionClick, onTimerEnd, onTick
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
                 const now = Date.now();
-                const remaining = Math.max(0, Math.ceil((endTimeRef.current - now) / 1000));
+                const remaining = Math.max(0, Math.floor((endTimeRef.current - now) / 1000));
                 setSeconds(remaining);
                 onTickRef.current?.(remaining);
 
@@ -85,7 +88,7 @@ export function Timer({ time, initialSeconds, onSectionClick, onTimerEnd, onTick
             <div className="flex justify-between md:hidden items-center w-full">
                 <div className="flex items-center gap-2">
                     <img src="/clock.svg" alt="test-time" />
-                    <p className="text-[1rem] font-semibold text-(--text-app-primary)">
+                    <p className="text-[1rem] font-semibold text-(--text-app-primary) tabular-nums font-mono">
                         {formatTime(hours)}:{formatTime(minutes)}:{formatTime(secs)}
                     </p></div>
 
@@ -98,18 +101,18 @@ export function Timer({ time, initialSeconds, onSectionClick, onTimerEnd, onTick
             <div className="hidden md:flex flex-col items-center">
                 <h1 className="font-semibold text-(--text-app-primary) text-[1.25rem] mb-2">Time Left</h1>
                 <div className="flex gap-3 items-start">
-                    <div className="flex flex-col items-center">
-                        <p className="text-[1.5rem] font-semibold text-(--text-app-primary)">{formatTime(hours)}</p>
+                    <div className="flex flex-col items-center w-[2.5rem]">
+                        <p className="text-[1.5rem] font-semibold text-(--text-app-primary) tabular-nums font-mono">{formatTime(hours)}</p>
                         <span className="font-medium text-xs text-(--text-muted)">h</span>
                     </div>
                     <span className="text-[1.5rem] font-semibold text-(--text-app-primary)">:</span>
-                    <div className="flex flex-col items-center">
-                        <p className="text-[1.5rem] font-semibold text-(--text-app-primary)">{formatTime(minutes)}</p>
+                    <div className="flex flex-col items-center w-[2.5rem]">
+                        <p className="text-[1.5rem] font-semibold text-(--text-app-primary) tabular-nums font-mono">{formatTime(minutes)}</p>
                         <span className="font-medium text-xs text-(--text-muted)">m</span>
                     </div>
                     <span className="text-[1.5rem] font-semibold text-(--text-app-primary)">:</span>
-                    <div className="flex flex-col items-center">
-                        <p className="text-[1.5rem] font-semibold text-(--text-app-primary)">{formatTime(secs)}</p>
+                    <div className="flex flex-col items-center w-[2.5rem]">
+                        <p className="text-[1.5rem] font-semibold text-(--text-app-primary) tabular-nums font-mono">{formatTime(secs)}</p>
                         <span className="font-medium text-xs text-(--text-muted)">s</span>
                     </div>
                 </div>
