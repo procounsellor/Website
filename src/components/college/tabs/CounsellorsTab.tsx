@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { CollegeCounselorCard } from './CollegeCounselorCard';
 import { useAllCounselors } from '@/hooks/useCounselors';
+import { encodeCounselorId } from '@/lib/utils';
 
 const CounsellorsTab = () => {
   const { data: counsellors, loading, error } = useAllCounselors(4);
@@ -34,7 +35,7 @@ const CounsellorsTab = () => {
       <div className="grid grid-cols-2 gap-3 gap-y-6 md:flex md:flex-wrap md:gap-8 md:justify-center lg:justify-start">
         {counsellors.map((counselor) => (
           <div key={counselor.counsellorId} className="shrink-0 flex justify-center">
-             <Link to={`/counsellor-profile`} state={{ id: counselor.counsellorId }} className="block hover:no-underline">
+             <Link to={`/counsellor/${encodeCounselorId(counselor.counsellorId)}`} className="block hover:no-underline">
                 <CollegeCounselorCard counselor={counselor} />
              </Link>
           </div>

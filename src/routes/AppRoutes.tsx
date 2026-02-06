@@ -72,6 +72,7 @@ export default function AppRoutes() {
                         <Route path="/" element={<Home />} />
                         <Route path='/gurucool' element={<LandingPage />} />
                         <Route path="/counsellors" element={<CounselorListingPage />} />
+                        <Route path="/counsellor/:id" element={<CounselorDetailsPage />} />
                         <Route path="/counsellor-profile" element={<CounselorDetailsPage />} />
                         <Route path="/courses/:id" element={<CourseDetailsPage />} />
                         <Route path="/colleges/:id" element={<CollegeDetailsPage />} />

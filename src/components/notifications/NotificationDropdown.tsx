@@ -8,6 +8,7 @@ import { getAppointmentById } from '@/api/appointment';
 import { getUserById, getCounselorAppointmentById } from '@/api/counselor-Dashboard';
 import toast from 'react-hot-toast';
 import NotificationAppointmentModal from '@/components/notifications/NotificationAppointmentModal';
+import { encodeCounselorId } from '@/lib/utils';
 
 interface NotificationDropdownProps {
   notifications: ActivityLog[];
@@ -94,9 +95,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
     
     if (type === 'subscription' || type === 'subscribe') {
       onClose();
-      navigate('/counsellor-profile', { 
-        state: { id: notif.activitySenderId } 
-      });
+      navigate(`/counsellor/${encodeCounselorId(notif.activitySenderId)}`);
     }
 
     else if (type === 'appointment') {
@@ -154,10 +153,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ notificatio
           }
     } 
     else {
-        navigate('/counsellor-profile', { 
-            state: { id: targetId },
-            replace: false
-        });
+        navigate(`/counsellor/${encodeCounselorId(targetId)}`);
         setIsAppointmentModalOpen(false);
         setSelectedAppointment(null);
         setSelectedNotification(null);
