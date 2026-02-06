@@ -8,6 +8,7 @@ import { CounselorCard } from "../homecards/CounselorCard";
 import { Button } from "@/components/ui/button";
 import { useAllCounselors } from "../../hooks/useCounselors";
 import { AllCounselorCardSkeleton } from "../skeletons/CounselorSkeletons";
+import { encodeCounselorId } from "@/lib/utils";
 
 const addTrackpadScrolling = (emblaApi: EmblaCarouselType) => {
   const SCROLL_COOLDOWN_MS = 300; 
@@ -123,7 +124,7 @@ export function CounselorSection() {
           counselors?.map((counselor) => (
               <div key={counselor.counsellorId}
             className="shrink-0 w-[170px] lg:w-[282px] ">
-              <Link to={`/counsellor-profile`} state={{ id: counselor.counsellorId }} className="block">
+              <Link to={`/counsellor/${encodeCounselorId(counselor.counsellorId)}`} className="block">
                 <CounselorCard counselor={counselor}/>
               </Link>
             </div>

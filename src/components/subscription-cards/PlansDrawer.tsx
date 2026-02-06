@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 import type { SubscribedCounsellor } from "@/types/user";
 import { ConfirmationModal } from '@/components/shared/ConfirmationModal';
 import AddFundsPanel from '@/components/student-dashboard/AddFundsPanel';
+import { encodeCounselorId } from '@/lib/utils';
 
 declare global {
   interface Window {
@@ -118,7 +119,7 @@ export default function PlansDrawer({
       toast.success(isUpgrade ? 'Upgrade successful! Redirecting...' : 'Subscription successful! Redirecting...', { id: toastId });
 
       setTimeout(() => {
-        navigate(`/counsellor-profile`, { state: { id: counselor.userName } });
+        navigate(`/counsellor/${encodeCounselorId(counselor.userName)}`);
         onClose();
       }, 1500);
 

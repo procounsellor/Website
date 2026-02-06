@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useSearchStore } from "@/store/SearchStore";
 import type { SearchResult } from "@/store/SearchStore";
 import { Book,Users, Loader2 } from "lucide-react";
+import { encodeCounselorId } from "@/lib/utils";
 
 interface SearchResultsProps {
   onResultClick?: () => void;
@@ -28,7 +29,7 @@ export function SearchResults({ onResultClick }: SearchResultsProps) {
   const handleResultClick = (result: SearchResult) => {
     switch(result.type) {
       case 'counsellor': {
-        navigate('/counsellor-profile', { state: { id: result.id } });
+        navigate(`/counsellor/${encodeCounselorId(result.id)}`);
         break;
       }
       case 'exam': {

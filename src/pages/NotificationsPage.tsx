@@ -8,6 +8,7 @@ import { getUserById, getCounselorAppointmentById } from '@/api/counselor-Dashbo
 import type { ActivityLog } from '@/types/user';
 import toast from 'react-hot-toast';
 import NotificationAppointmentModal from '@/components/notifications/NotificationAppointmentModal';
+import { encodeCounselorId } from '@/lib/utils';
 
 const NotificationsPage = () => {
   const { user, isAuthenticated, toggleLogin, role, userId } = useAuthStore();
@@ -106,9 +107,7 @@ const NotificationsPage = () => {
       const type = notif.activityType?.toLowerCase();
   
       if (type === 'subscription' || type === 'subscribe') {
-        navigate('/counsellor-profile', { 
-          state: { id: notif.activitySenderId } 
-        });
+        navigate(`/counsellor/${encodeCounselorId(notif.activitySenderId)}`);
       }
   
       else if (type === 'appointment') {
@@ -165,10 +164,7 @@ const NotificationsPage = () => {
           }
     } 
     else {
-        navigate('/counsellor-profile', { 
-            state: { id: targetId },
-            replace: false
-        });
+        navigate(`/counsellor/${encodeCounselorId(targetId)}`);
         setIsAppointmentModalOpen(false);
         setSelectedAppointment(null);
         setSelectedNotification(null);
