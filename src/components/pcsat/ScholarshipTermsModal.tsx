@@ -74,13 +74,13 @@ export default function ScholarshipTermsModal({ isOpen, onClose }: ScholarshipTe
             <section>
               <h3 className="text-lg font-semibold text-[#0E1629] mb-3 flex items-center gap-2">
                 <span className="bg-gray-100 text-gray-700 text-xs font-bold px-2 py-1 rounded">TIER 2</span>
-                Next Top 5 Performers (50% Scholarship)
+                Next Top 10 Performers (50% Scholarship)
               </h3>
               <ul className="space-y-3">
                 <li className="flex gap-3 text-sm text-gray-600">
                   <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
                   <span>
-                    <strong>Eligibility:</strong> Candidates securing Ranks 4 through 8 in PCSAT 2026 are provisionally eligible for a 50% tuition fee waiver.
+                    <strong>Eligibility:</strong> Candidates securing Ranks 4 through 13 in PCSAT 2026 are provisionally eligible for a 50% tuition fee waiver.
                   </span>
                 </li>
                 <li className="flex gap-3 text-sm text-gray-600">
