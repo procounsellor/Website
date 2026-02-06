@@ -1,15 +1,17 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Star, Clock, Trophy, ChevronUp, ChevronRight, Tag, Gift, Award } from "lucide-react";
+import { Star, Clock, Trophy, ChevronUp, ChevronRight, Tag, Gift, Award, Info, Loader2 } from "lucide-react";
 import SmartImage from "@/components/ui/SmartImage";
 import { useAuthStore } from "@/store/AuthStore";
-// import { useQuery } from "@tanstack/react-query";
-// import { getBoughtCourses, buyCourse, applyCoupon } from "@/api/course";
-import startRecharge from "@/api/wallet"; // Restored for Razorpay
+import startRecharge from "@/api/wallet"; 
 import toast from "react-hot-toast";
 import CourseEnrollmentPopup from "@/components/landing-page/CourseEnrollmentPopup";
 import CouponCodeModal from "@/components/modals/CouponCodeModal";
+import ScholarshipTermsModal from "@/components/pcsat/ScholarshipTermsModal";
+import RegistrationFormModal from "@/components/pcsat/RegistrationFormModal";
+import { createRegistration, markFormAsPaid, checkRegistrationStatus } from "@/api/pcsat";
+import type { PcsatRegistrationData } from "@/api/pcsat"
 
 declare global {
   interface Window {
@@ -17,9 +19,6 @@ declare global {
     fbq?: any;
     gtag?: any;
     dataLayer?: any[];
-    __pc_fb_inited?: Record<string, boolean>;
-    __fb_script_blocked?: boolean;
-    __gtag_script_blocked?: boolean;
     [key: string]: any;
   }
 }
@@ -32,37 +31,70 @@ export const PROMO_TEST_PRICE = 99;
 export default function TestSeriesPromo() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const heroSectionRef = useRef<HTMLElement | null>(null);
-  const { userId, isAuthenticated, toggleLogin, refreshUser } =
-    useAuthStore();
+  
+  const { userId, isAuthenticated, toggleLogin, role } = useAuthStore();
 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  
+  const [isPurchased, setIsPurchased] = useState(false); 
+  const [isLoadingStatus, setIsLoadingStatus] = useState(false);
   const [showCouponModal, setShowCouponModal] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [discountedPrice, setDiscountedPrice] = useState<number | null>(null);
   const [discountPercentage, setDiscountPercentage] = useState<number | null>(null);
+  
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+
+  const pendingActionRef = useRef<"REGISTER" | "COUPON" | null>(null);
 
   useEffect(() => {
-    setAppliedCoupon(null);
-    setDiscountedPrice(null);
-    setDiscountPercentage(null);
-  }, []);
-  
-  const paymentCallbackRef = useRef<(() => void) | null>(null);
+    const verifyStatus = async () => {
+        if (isAuthenticated && userId) {
+            setIsLoadingStatus(true);
+            try {
+                const status = await checkRegistrationStatus(userId);
+                if (status.registered && status.paid) {
+                    setIsPurchased(true);
+                } else if (status.registered && !status.paid) {
+                    setIsPurchased(false);
+                } else {
+                    setIsPurchased(false);
+                }
+            } catch (error) {
+                console.error("Failed to check status", error);
+            } finally {
+                setIsLoadingStatus(false);
+            }
+        }
+    };
 
-  // --- LOGIC ---
-  const storeRole = useAuthStore((s) => s.role);
-  const isCounselor = storeRole === "counselor";
+    verifyStatus();
+  }, [isAuthenticated, userId]);
 
-  // STATIC MODE: Always false so user sees Register button
-  const isPurchased = false; 
+  useEffect(() => {
+    if (isAuthenticated && pendingActionRef.current) {
+        const action = pendingActionRef.current;
+        pendingActionRef.current = null;
+
+        if (role === "counselor") {
+            toast.error("Counsellors cannot register for the test.");
+            return;
+        }
+
+        if (action === "REGISTER") {
+            setTimeout(() => setShowRegistrationModal(true), 500);
+        } else if (action === "COUPON") {
+            setTimeout(() => setShowCouponModal(true), 500);
+        }
+    }
+  }, [isAuthenticated, role]);
+
 
   const handleFaqToggle = (index: number) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
   };
 
-  // Coupon Handlers
   const handleCouponApplied = (couponCode: string, finalPrice: number, percentage: number) => {
     setAppliedCoupon(couponCode);
     setDiscountedPrice(finalPrice);
@@ -75,198 +107,168 @@ export default function TestSeriesPromo() {
     setDiscountPercentage(null);
   };
 
-  // FIXED: Updated signature to accept (userId, courseId, couponCode)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const applyCouponWrapper = async (_userId: string, _courseId: string, couponCode: string) => {
-
     if (couponCode === "COEP50") {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      return {
-        status: true,
-        message: "50% Discount Applied!",
-        discountPercentage: 50,
-      };
+      return { status: true, message: "50% Discount Applied!", discountPercentage: 50 };
     }
-
-    return {
-      status: false,
-      message: "Invalid or expired coupon code",
-    };
+    return { status: false, message: "Invalid or expired coupon code" };
   };
 
   const handleCouponButtonClick = () => {
     if (isPurchased) return;
     
     if (!isAuthenticated) {
+      toast.error("Please login/signup to use a coupon");
+      pendingActionRef.current = "COUPON";
       useAuthStore.getState().setSkipOnboardingForPromo(true);
-      toggleLogin(async () => {
-        try {
-          await refreshUser(true);
-          // Static behavior: just open modal
-          setTimeout(() => { setShowCouponModal(true); }, 100);
-        } catch (error) { /* silent */ }
-      });
+      toggleLogin();
       return;
     }
     setShowCouponModal(true);
   };
 
-  // Payment Logic
-  const handleDirectPayment = async (amount: number) => {
-    if (isProcessing) return;
-
-    const authState = useAuthStore.getState();
-    const freshUser = authState.user;
-    const phoneNumber = localStorage.getItem("phone") || authState.tempPhone || freshUser?.phoneNumber;
-
-    if (!freshUser?.userName || !phoneNumber) {
-      toast.error("User information not found. Please try logging in again.");
-      return;
-    }
-
+  const handleRegistrationSubmit = async (formData: PcsatRegistrationData) => {
     setIsProcessing(true);
+    const toastId = toast.loading("Processing details...");
 
-    // Razorpay Purchase Flow
-    const loadingToast = toast.loading("Initiating payment...");
     try {
-      if (typeof window === "undefined" || !window.Razorpay) {
-        throw new Error("Payment system not loaded. Refresh and try again.");
-      }
+        if(!userId) throw new Error("User ID is missing. Please re-login.");
 
-      // NOTE: This call must succeed and return a valid Order ID for Razorpay to open.
-      const order = await startRecharge(freshUser.userName, amount);
-      if (!order || !order.orderId) throw new Error("Failed to create order.");
+        await createRegistration({
+            ...formData,
+            userId: userId
+        });
+        
+        toast.loading("Initiating payment...", { id: toastId });
 
-      let formattedPhone = phoneNumber.replace(/\D/g, "");
-      if (formattedPhone.length === 10) formattedPhone = "91" + formattedPhone;
+        const finalAmount = discountedPrice !== null ? discountedPrice : PROMO_TEST_PRICE;
+        const freshUser = useAuthStore.getState().user;
+        
+        const order = await startRecharge(freshUser?.userName || userId, finalAmount);
+        if (!order || !order.orderId) throw new Error("Failed to create payment order");
 
-      const options = {
-        key: order.keyId,
-        amount: order.amount,
-        currency: order.currency,
-        order_id: order.orderId,
-        name: "ProCounsel",
-        description: `${TEST_NAME} - Enrollment`,
-        prefill: {
-          contact: formattedPhone,
-          email: freshUser.email || "",
-          name: `${freshUser.firstName || ""} ${freshUser.lastName || ""}`.trim(),
-        },
-        notes: {
-          userId: freshUser.userName,
-          courseId: TEST_ID,
-          courseName: TEST_NAME,
-          ...(appliedCoupon && { couponCode: appliedCoupon }),
-        },
-        handler: async () => {
-          toast.dismiss(loadingToast);
-          const purchaseToast = toast.loading("Finalizing registration...");
+        const options = {
+            key: order.keyId,
+            amount: order.amount,
+            currency: order.currency,
+            order_id: order.orderId,
+            name: "ProCounsel",
+            description: `${TEST_NAME} - Enrollment`,
+            prefill: {
+                contact: formData.contactNumber, 
+                email: formData.email,           
+                name: formData.studentName,      
+            },
+            notes: {
+                userId: userId,
+                courseId: TEST_ID,
+                ...(appliedCoupon && { couponCode: appliedCoupon }),
+            },
+            handler: async () => {
+                try {
+                    toast.loading("Confirming registration...", { id: toastId });
+                    
+                    await markFormAsPaid(userId);
+                    
+                    toast.success("Registration Successful!", { id: toastId });
+                    
+                    setIsPurchased(true); 
+                    setShowRegistrationModal(false);
+                    setShowSuccessPopup(true);
+                    
+                } catch (error) {
+                    console.error(error);
+                    toast.error("Payment successful but verification failed. Please contact support.", { id: toastId });
+                } finally {
+                    setIsProcessing(false);
+                }
+            },
+            modal: {
+                ondismiss: () => {
+                    toast.dismiss(toastId);
+                    setIsProcessing(false);
+                    toast.error("Payment cancelled");
+                },
+            },
+            theme: { color: "#13097D" },
+        };
 
-          try {
+        const RZ = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
+        const rzp = new RZ(options);
+        rzp.open();
 
-            // await buyCourse({ userId: freshUser.userName, courseId: TEST_ID, ... });
-            
-            setTimeout(() => {
-                toast.success("Registration successful!", { id: purchaseToast });
-
-                // await refreshUser(true); 
-                setShowSuccessPopup(true);
-                setIsProcessing(false);
-            }, 1000);
-
-          } catch (error) {
-            toast.error("Enrollment failed locally.", { id: purchaseToast });
-            setIsProcessing(false);
-          }
-        },
-        modal: {
-          ondismiss: () => {
-            toast.dismiss(loadingToast);
-            setIsProcessing(false);
-          },
-        },
-        theme: { color: "#13097D" },
-      };
-
-      const RZ = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
-      const rzp = new RZ(options);
-      rzp.open();
-      toast.dismiss(loadingToast);
-    } catch (error) {
-      toast.error((error as Error).message);
-      toast.dismiss(loadingToast);
-      setIsProcessing(false);
-    }
-  };
-
-  const handleEnroll = async (amount: number) => {
-    if (isProcessing) return;
-
-    if (!isAuthenticated) {
-      useAuthStore.getState().setSkipOnboardingForPromo(true);
-      paymentCallbackRef.current = async () => {
-        try {
-          await refreshUser(true);
-          const freshState = useAuthStore.getState();
-
-          if (freshState.role === "counselor") {
-            toast.error("Counsellors cannot take the test.");
-            paymentCallbackRef.current = null;
-            return;
-          }
-
-          const finalAmount = discountedPrice !== null ? discountedPrice : amount;
-          await handleDirectPayment(finalAmount);
-          paymentCallbackRef.current = null;
-        } catch (error) {
-          toast.error("Something went wrong.");
-          paymentCallbackRef.current = null;
+    } catch (error: any) {
+        console.error(error);
+        if (error.status === 409 || (error.message && error.message.toLowerCase().includes("already registered"))) {
+             toast.error("You are already registered.", { id: toastId });
+             setIsPurchased(true); 
+             setShowRegistrationModal(false);
+        } else {
+             toast.error(error.message || "Registration failed", { id: toastId });
         }
-      };
-
-      toggleLogin(() => {
-        setTimeout(() => {
-          if (paymentCallbackRef.current) paymentCallbackRef.current();
-        }, 100);
-      });
-      return;
+        setIsProcessing(false);
     }
-
-    if (isCounselor) {
-      toast.error("Counsellors cannot take the test.");
-      return;
-    }
-    if (isPurchased) {
-      toast.error("You are already registered.");
-      return;
-    }
-
-    const finalAmount = discountedPrice !== null ? discountedPrice : amount;
-    await handleDirectPayment(finalAmount);
   };
 
   const handleEnrollNow = () => {
-    handleEnroll(PROMO_TEST_PRICE);
+    if (isProcessing || isLoadingStatus) return;
+
+    if (!isAuthenticated) {
+      toast("Please login/signup to continue the registration process", {
+         icon: '🔒',
+         duration: 4000
+      });
+      
+      pendingActionRef.current = "REGISTER";
+      
+      useAuthStore.getState().setSkipOnboardingForPromo(true);
+      toggleLogin();
+      return;
+    }
+
+    if (useAuthStore.getState().role === "counselor") {
+      toast.error("Counsellors cannot take the test.");
+      return;
+    }
+    
+    if (isPurchased) {
+      toast.success("You are already registered!");
+      return;
+    }
+
+    setShowRegistrationModal(true);
   };
 
   (window as any).__promoPageEnroll = handleEnrollNow;
 
   const EnrollmentButton = () => {
-    if (isCounselor) {
+    const role = useAuthStore.getState().role;
+    
+    if (isAuthenticated && role === "counselor") {
       return (
-        <Button disabled className="bg-red-500 text-white px-6 sm:px-8 py-4 sm:py-6 rounded-xl">
+        <Button disabled className="bg-red-500 text-white px-6 sm:px-8 py-4 sm:py-6 rounded-xl cursor-not-allowed">
           Counsellors cannot enroll
         </Button>
       );
     }
-    if (isPurchased) {
-      return (
-        <Button disabled className="bg-gray-400 text-white px-6 sm:px-8 py-4 sm:py-6 rounded-xl">
-          Already Registered
+
+    if (isLoadingStatus) {
+         return (
+        <Button disabled className="bg-gray-200 text-gray-500 px-6 sm:px-8 py-4 sm:py-6 rounded-xl flex items-center gap-2">
+          <Loader2 className="animate-spin w-4 h-4" /> Checking...
         </Button>
       );
     }
+
+    if (isPurchased) {
+      return (
+        <Button disabled className="bg-green-600/90 text-white px-6 sm:px-8 py-4 sm:py-6 rounded-xl font-medium flex items-center gap-2">
+          <Award className="w-5 h-5" /> Already Registered
+        </Button>
+      );
+    }
+
     return (
       <Button
         onClick={handleEnrollNow}
@@ -277,8 +279,7 @@ export default function TestSeriesPromo() {
       </Button>
     );
   };
-
-
+  
   const features = [
     {
       icon: <Trophy className="w-full h-full text-[#22C55D] p-1.5" />,
@@ -320,7 +321,7 @@ export default function TestSeriesPromo() {
     },
     {
       question: "What are the scholarship criteria?",
-      answer: "Top 3 students get 100% Scholarship. Top 20 get 50% Scholarship. Top 100 get Goodies.",
+      answer: "Top 3 students get 100% Scholarship. Next Top 5 get 50% Scholarship. Top 100 get Goodies.",
     },
     {
       question: "Is there a discount on the fee?",
@@ -340,11 +341,9 @@ export default function TestSeriesPromo() {
         }}
       >
         <div className="max-w-7xl mx-auto w-full">
-          {/* CHANGED: lg:flex-row -> md:flex-row (Side-by-side on tablets too) */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 lg:gap-12">
             
             {/* Left Content */}
-            {/* CHANGED: lg:w-[60%] -> md:w-[60%] */}
             <div className="w-full md:w-[60%] xl:w-[70%] space-y-4 sm:space-y-6 text-center md:text-left">
               <div className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-[#FEECE199] rounded-full gap-2">
                 <div className="w-2 h-2 bg-[#FA660F] rounded-full"></div>
@@ -602,7 +601,7 @@ export default function TestSeriesPromo() {
             {/* Right Column - Prizes Card */}
             <div className="w-full lg:w-[60%]">
               <Card 
-                className="bg-white border-none shadow-lg rounded-2xl overflow-hidden"
+                className="bg-white border-none shadow-lg rounded-2xl overflow-hidden relative"
                 style={{
                     boxShadow: "0px 0px 4px 0px #18003326",
                 }}
@@ -630,7 +629,7 @@ export default function TestSeriesPromo() {
                             <Award className="w-8 h-8" />
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500 font-medium">Top 20 Students</p>
+                            <p className="text-sm text-gray-500 font-medium">Next Top 5 Students</p>
                             <p className="text-xl font-bold text-[#232323]">50% Scholarship</p>
                         </div>
                     </div>
@@ -644,10 +643,21 @@ export default function TestSeriesPromo() {
                             <p className="text-xl font-bold text-[#232323]">Exciting Goodies & Hampers</p>
                         </div>
                     </div>
+                    
+                    <div className="flex justify-between items-center pt-2">
+                        <button 
+                            onClick={() => setShowTermsModal(true)}
+                            className="text-xs text-[#2F43F2] hover:text-blue-700 hover:underline cursor-pointer flex items-center gap-1 font-medium transition-colors"
+                        >
+                            <Info className="w-3 h-3" />
+                            *Terms & Conditions applied
+                        </button>
+                    </div>
+
                     {/* Participation */}
-                    <div className="bg-[#F9FAFB] p-4 rounded-xl text-center">
+                    <div className="bg-[#F9FAFB] p-4 rounded-xl text-center mt-2">
                         <p className="text-gray-600 font-medium">
-                            🎓 Participation Certificate for <span className="text-[#2F43F2] font-bold">ALL</span> students
+                         🎓 Participation Certificate for <span className="text-[#2F43F2] font-bold">ALL</span> students
                         </p>
                     </div>
                   </div>
@@ -737,6 +747,25 @@ export default function TestSeriesPromo() {
           applyCouponApi={applyCouponWrapper}
         />
       )}
+
+      <ScholarshipTermsModal 
+        isOpen={showTermsModal} 
+        onClose={() => setShowTermsModal(false)} 
+      />
+
+       <RegistrationFormModal 
+        isOpen={showRegistrationModal}
+        onClose={() => setShowRegistrationModal(false)}
+        onSubmit={handleRegistrationSubmit}
+        isProcessing={isProcessing}
+        initialData={{
+            studentName: useAuthStore.getState().user?.firstName 
+                ? `${useAuthStore.getState().user?.firstName} ${useAuthStore.getState().user?.lastName || ''}` 
+                : "",
+            contactNumber: useAuthStore.getState().user?.phoneNumber || "",
+            email: useAuthStore.getState().user?.email || "",
+        }}
+      />
     </div>
   );
 }
