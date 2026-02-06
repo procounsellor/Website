@@ -13,6 +13,7 @@ import SmartImage from "@/components/ui/SmartImage";
 import { Button } from "../ui";
 import toast from "react-hot-toast";
 import ChatInput, { type ChatInputRef } from "./components/ChatInput";
+import { encodeCounselorId } from "@/lib/utils";
 import Sidear from "./components/Sidear";
 import ChatMessage from "./components/ChatMessage";
 import { ChatbotCounselorCard } from "./components/ChatbotCounselorCard";
@@ -634,9 +635,7 @@ export default function Chatbot() {
                                         <div
                                           onClick={() => {
                                             toggleChatbot();
-                                            navigate("/counsellor-profile", {
-                                              state: { id: c.counsellorId },
-                                            });
+                                            navigate(`/counsellor/${encodeCounselorId(c.counsellorId)}`);
                                           }}
                                           className="w-full animate-in fade-in-50 slide-in-from-bottom-4 duration-500 cursor-pointer"
                                           style={{

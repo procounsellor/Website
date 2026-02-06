@@ -10,6 +10,7 @@ import AppointmentDetailsModal from './AppointmentDetailsModal';
 import CancelAppointmentModal from './CancelAppointmentModal';
 import RescheduleModalWrapper from './RescheduleModalWrapper';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { encodeCounselorId } from '@/lib/utils';
 
 type AppointmentFilter = 'All' | 'Upcoming' | 'Completed' | 'Cancelled';
 
@@ -90,7 +91,7 @@ const AppointmentsTab: React.FC = () => {
   };
 
   const handleNavigateToCounselor = (counselorId: string) => {
-    navigate('/counsellor-profile', { state: { id: counselorId } });
+    navigate(`/counsellor/${encodeCounselorId(counselorId)}`);
     setSelectedAppointment(null);
   };
   

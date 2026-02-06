@@ -1,5 +1,6 @@
 import { StarIcon, Bookmark, BadgeCheck, Briefcase, MapPin, Languages } from "lucide-react";
 import { Link } from "react-router-dom";
+import { encodeCounselorId } from "@/lib/utils";
 
 export type CounselorCardData = {
   id: string;
@@ -40,7 +41,7 @@ export function CounselorCard({ counselor, isFavourite, onToggleFavourite }: Cou
   };
 
   return (
-  <Link to={`/counsellor-profile`} state={{ id: counselor.id }} className="flex h-full">
+  <Link to={`/counsellor/${encodeCounselorId(counselor.id)}`} className="flex h-full">
     <div className="flex w-full max-w-sm flex-col overflow-hidden rounded-lg cursor-pointer border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg">
       <div className="relative">
         <img

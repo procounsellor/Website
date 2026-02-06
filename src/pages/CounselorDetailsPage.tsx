@@ -19,6 +19,7 @@ import type { SubscribedCounsellor } from '@/types/user';
 import EditProfileModal from '@/components/student-dashboard/EditProfileModal';
 import { updateUserProfile } from '@/api/user';
 import { unlockScroll } from '@/lib/scrollLock';
+import { decodeCounselorId } from '@/lib/utils';
 
 type ApiSubscribedCounselor = {
   counsellorId: string;
@@ -34,7 +35,11 @@ export default function CounselorDetailsPage() {
   type LocationState = { id?: string } | undefined;
   const state = location.state as LocationState;
   const queryId = searchParams.get('id');
-  const computedId = paramId || queryId || state?.id;
+  
+  // Decode the ID if it comes from URL params (encoded), otherwise use state/query (already plain)
+  const decodedParamId = paramId ? decodeCounselorId(paramId) : null;
+  const computedId = decodedParamId || queryId || state?.id;
+  
   const { counselor, loading, error } = useCounselorById(computedId ?? '');
   const { user, userId, refreshUser, role } = useAuthStore();
   const token = localStorage.getItem('jwt');
