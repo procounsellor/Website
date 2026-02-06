@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star, Clock, Trophy, ChevronUp, ChevronRight, Tag, Gift, Award, Info, Loader2 } from "lucide-react";
-import SmartImage from "@/components/ui/SmartImage";
+// import SmartImage from "@/components/ui/SmartImage";
 import { useAuthStore } from "@/store/AuthStore";
 import startRecharge from "@/api/wallet"; 
 import toast from "react-hot-toast";
@@ -108,7 +108,7 @@ export default function TestSeriesPromo() {
   };
 
   const applyCouponWrapper = async (_userId: string, _courseId: string, couponCode: string) => {
-    if (couponCode === "COEP50") {
+    if (couponCode === "AC50" || couponCode === "AC 50") {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return { status: true, message: "50% Discount Applied!", discountPercentage: 50 };
     }
@@ -321,7 +321,7 @@ export default function TestSeriesPromo() {
     },
     {
       question: "What are the scholarship criteria?",
-      answer: "Top 3 students get 100% Scholarship. Next Top 5 get 50% Scholarship. Top 100 get Goodies.",
+      answer: "Top 3 students get 100% Scholarship. Next Top 10 get 50% Scholarship. Top 100 get Goodies.",
     },
     {
       question: "Is there a discount on the fee?",
@@ -344,7 +344,7 @@ export default function TestSeriesPromo() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 lg:gap-12">
             
             {/* Left Content */}
-            <div className="w-full md:w-[60%] xl:w-[70%] space-y-4 sm:space-y-6 text-center md:text-left">
+            <div className="w-full md:w-[50%] xl:w-[60%] space-y-4 sm:space-y-6 text-center md:text-left">
               <div className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-[#FEECE199] rounded-full gap-2">
                 <div className="w-2 h-2 bg-[#FA660F] rounded-full"></div>
                 <span className="text-[#FA660F] font-normal text-xs sm:text-base tracking-normal">
@@ -419,7 +419,7 @@ export default function TestSeriesPromo() {
                   <div className="w-full max-w-md flex flex-col gap-2 items-center md:items-start">
                      {!appliedCoupon && (
                         <div className="text-xs text-[#2F43F2] font-medium bg-[#2F43F2]/10 px-3 py-1 rounded w-fit">
-                            💡 Use code <span className="font-bold">COEP50</span> for 50% OFF
+                            💡 Use code <span className="font-bold">AC50</span> for 50% OFF
                         </div>
                      )}
 
@@ -441,25 +441,22 @@ export default function TestSeriesPromo() {
               </div>
             </div>
 
-            {/* Right Image */}
+            {/* Video Section */}
             <div className="w-full md:w-[50%] xl:w-[40%] flex justify-center md:justify-end mt-8 md:mt-0">
-              <div className="relative w-full max-w-[450px]">
+              <div className="relative w-full max-w-[600px]">
                 <div 
-                  className="rounded-xl relative w-full aspect-4/3 overflow-hidden shadow-lg border border-white"
+                  className="rounded-xl relative w-full aspect-4/3 overflow-hidden shadow-lg border border-white bg-black"
                   style={{
-                    background: "linear-gradient(180deg, #F0F4FF 0%, #FFFFFF 100%)"
+                    boxShadow: "0px 12px 24px -8px rgba(0, 0, 0, 0.15)"
                   }}
                 >
-                  <SmartImage
-                    src="/pcsat.jpg"
-                    alt="Student preparing for PCSAT"
-                    className="object-contain w-full h-full"
-                  />
-                  {/* Overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/90 via-black/50 to-transparent p-5 text-white">
-                    <p className="font-semibold text-xl tracking-wide">PCSAT 2026</p>
-                    <p className="text-sm opacity-90 font-medium text-gray-100">Scholarship Aptitude Test</p>
-                  </div>
+                  <iframe
+                    className="w-full h-full"
+                    src="https://www.youtube.com/embed/k8OZb87pP8g?autoplay=1&mute=1&controls=1&loop=1&playlist=k8OZb87pP8g&playsinline=1&rel=0"
+                    title="PCSAT 2026 Promo"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
                 </div>
               </div>
             </div>
@@ -629,7 +626,7 @@ export default function TestSeriesPromo() {
                             <Award className="w-8 h-8" />
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500 font-medium">Next Top 5 Students</p>
+                            <p className="text-sm text-gray-500 font-medium">Next Top 10 Students</p>
                             <p className="text-xl font-bold text-[#232323]">50% Scholarship</p>
                         </div>
                     </div>
