@@ -135,10 +135,24 @@ export default function TestSeriesPromo() {
     try {
         if(!userId) throw new Error("User ID is missing. Please re-login.");
 
-        await createRegistration({
-            ...formData,
-            userId: userId
-        });
+        try {
+            await createRegistration({
+                ...formData,
+                userId: userId
+            });
+        } catch (regError: any) {
+            if (regError.status === 409 || (regError.message && regError.message.toLowerCase().includes("already registered"))) {
+                const status = await checkRegistrationStatus(userId);
+                
+                if (status.paid) {
+                    throw regError;
+                } else {
+                    toast.success("Resuming payment for existing registration...", { id: toastId });
+                }
+            } else {
+                throw regError;
+            }
+        }
         
         toast.loading("Initiating payment...", { id: toastId });
 
