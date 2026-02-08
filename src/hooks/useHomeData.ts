@@ -26,18 +26,19 @@ const transformCounselor = (apiData: any): AllCounselor => {
 };
 
 export function useHomeCounselors(limit: number = 8) {
-  const { userId, isAuthenticated, role, loading: authLoading } = useAuthStore();
+  const userId = useAuthStore((state) => state.userId);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const role = useAuthStore((state) => state.role);
 
   return useQuery({
-    queryKey: ["home-counselors", isAuthenticated, userId, limit],
+    queryKey: ["home-counselors", isAuthenticated, userId, role, limit], 
     queryFn: async () => {
       if (isAuthenticated && role === 'user' && userId) {
         return academicApi.getTopCounsellorsAuth(userId, limit);
       }
       return academicApi.getTopCounsellorsPublic(limit);
     },
-    select: (data) => (data.counsellors || []).map(transformCounselor),
-    enabled: !authLoading,
+    select: (data) => (data?.counsellors || []).map(transformCounselor),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   });
