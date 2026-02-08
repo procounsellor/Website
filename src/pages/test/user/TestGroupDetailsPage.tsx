@@ -4,6 +4,7 @@ import { BookOpen, Clock, FileText, Star, ShoppingCart, Bookmark, Lock, Loader2,
 import toast from "react-hot-toast";
 import {
   getTestGroupByIdForUser,
+  getPublicTestGroupById,
   buyTestGroup,
   bookmarkTestGroup,
   addReviewToTestGroup,
@@ -94,10 +95,10 @@ export default function TestGroupDetailsPage() {
   const TESTS_PER_PAGE = 3;
 
   useEffect(() => {
-    if (testGroupId && userId) {
+    if (testGroupId) {
       fetchTestGroupDetails();
     }
-  }, [testGroupId, userId]);
+  }, [testGroupId, isAuthenticated]);
 
   // Persist navigation context (fromDashboard, activeTab) to sessionStorage
   useEffect(() => {
@@ -126,23 +127,34 @@ export default function TestGroupDetailsPage() {
   }, [testGroupId, location.state]);
 
   const fetchTestGroupDetails = async () => {
-    if (!userId || !testGroupId) return;
+    if (!testGroupId) return;
 
     try {
       setLoading(true);
-      const response = await getTestGroupByIdForUser(userId, testGroupId);
+      let response;
+
+      if (isAuthenticated && userId) {
+        // Logged in - use authenticated endpoint
+        response = await getTestGroupByIdForUser(userId, testGroupId);
+      } else {
+        // Not logged in - use public endpoint
+        response = await getPublicTestGroupById(testGroupId);
+      }
+
       if (response.status && response.data) {
         setData(response.data);
-        // Find user's own review
-        const myReview = response.data.reviews.find((r: Review) => r.userId === userId);
-        if (myReview) {
-          setUserReview(myReview);
-          setReviewRating(myReview.rating);
-          setReviewText(myReview.reviewText);
-        } else {
-          setUserReview(null);
-          setReviewRating(5);
-          setReviewText("");
+        // Find user's own review (only for authenticated users)
+        if (isAuthenticated && userId) {
+          const myReview = response.data.reviews?.find((r: Review) => r.userId === userId);
+          if (myReview) {
+            setUserReview(myReview);
+            setReviewRating(myReview.rating);
+            setReviewText(myReview.reviewText);
+          } else {
+            setUserReview(null);
+            setReviewRating(5);
+            setReviewText("");
+          }
         }
       }
     } catch (error) {
@@ -176,87 +188,103 @@ export default function TestGroupDetailsPage() {
   const handleBuy = async () => {
     if (!testGroupId || !data) return;
 
-    if (!userId) {
-      toast.error("Please login to purchase");
-      navigate("/");
-      return;
-    }
+    // Define the actual purchase/enrollment action
+    const executePurchase = async () => {
+      const currentUserId = localStorage.getItem("phone") || "";
 
-    // For free test groups, just enroll
-    if (data.testGroup.priceType === "FREE" || data.testGroup.price === 0) {
-      try {
-        const counsellorId = data.attachedTests[0]?.counsellorId || '';
+      if (!currentUserId) {
+        toast.error("Please login to continue");
+        return;
+      }
 
-        if (!counsellorId) {
-          toast.error("Unable to process enrollment");
-          return;
+      // For free test groups, just enroll
+      if (data.testGroup.priceType === "FREE" || data.testGroup.price === 0) {
+        try {
+          const counsellorId = data.attachedTests[0]?.counsellorId || '';
+
+          if (!counsellorId) {
+            toast.error("Unable to process enrollment");
+            return;
+          }
+
+          const response = await buyTestGroup(
+            currentUserId,
+            counsellorId,
+            testGroupId,
+            0,
+            null
+          );
+
+          if (response.status) {
+            toast.success("Successfully enrolled!");
+            fetchTestGroupDetails();
+          } else {
+            toast.error(response.message || "Failed to enroll");
+          }
+        } catch (error) {
+          console.error("Failed to enroll:", error);
+          toast.error("Failed to enroll in test group");
         }
+        return;
+      }
 
+      // For paid test groups - check wallet balance first
+      const currentUser = useAuthStore.getState().user;
+      const walletBalance = currentUser?.walletAmount ?? 0;
+      const price = data.testGroup.price;
+
+      if (walletBalance < price) {
+        toast.error("Insufficient balance. Please add funds to your wallet.");
+        pendingPurchaseRef.current = true;
+        setAddFundsOpen(true);
+        return;
+      }
+
+      const counsellorId = data.attachedTests[0]?.counsellorId || '';
+
+      if (!counsellorId) {
+        toast.error("Unable to process purchase");
+        return;
+      }
+
+      try {
         const response = await buyTestGroup(
-          userId,
+          currentUserId,
           counsellorId,
           testGroupId,
-          0,
+          data.testGroup.price,
           null
         );
 
         if (response.status) {
-          toast.success("Successfully enrolled!");
+          toast.success("Test group purchased successfully!");
+          pendingPurchaseRef.current = false;
           fetchTestGroupDetails();
         } else {
-          toast.error(response.message || "Failed to enroll");
+          if (response.message?.toLowerCase().includes("insufficient")) {
+            toast.error("Insufficient balance. Please add funds to your wallet.");
+            pendingPurchaseRef.current = true;
+            setAddFundsOpen(true);
+          } else {
+            toast.error(response.message || "Failed to purchase");
+          }
         }
       } catch (error) {
-        console.error("Failed to enroll:", error);
-        toast.error("Failed to enroll in test group");
+        console.error("Failed to buy:", error);
+        toast.error("Failed to purchase test group");
       }
+    };
+
+    // Check authentication first
+    if (!isAuthenticated || !userId) {
+      console.log('User not authenticated, triggering login with callback');
+      setPendingAction(() => executePurchase);
+      toggleLogin();
       return;
     }
 
-    // For paid test groups - check wallet balance first
-    const walletBalance = user?.walletAmount ?? 0;
-    const price = data.testGroup.price;
-
-    if (walletBalance < price) {
-      toast.error("Insufficient balance. Please add funds to your wallet.");
-      pendingPurchaseRef.current = true;
-      setAddFundsOpen(true);
-      return;
-    }
-
-    const counsellorId = data.attachedTests[0]?.counsellorId || '';
-
-    if (!counsellorId) {
-      toast.error("Unable to process purchase");
-      return;
-    }
-
-    try {
-      const response = await buyTestGroup(
-        userId,
-        counsellorId,
-        testGroupId,
-        data.testGroup.price,
-        null
-      );
-
-      if (response.status) {
-        toast.success("Test group purchased successfully!");
-        pendingPurchaseRef.current = false;
-        fetchTestGroupDetails();
-      } else {
-        if (response.message?.toLowerCase().includes("insufficient")) {
-          toast.error("Insufficient balance. Please add funds to your wallet.");
-          pendingPurchaseRef.current = true;
-          setAddFundsOpen(true);
-        } else {
-          toast.error(response.message || "Failed to purchase");
-        }
-      }
-    } catch (error) {
-      console.error("Failed to buy:", error);
-      toast.error("Failed to purchase test group");
-    }
+    // User is authenticated, proceed with purchase
+    await executePurchase();
   };
 
   const handleRecharge = async (amount: number) => {
@@ -308,7 +336,14 @@ export default function TestGroupDetailsPage() {
   };
 
   const handleBookmark = async () => {
-    if (!userId || !testGroupId) return;
+    if (!testGroupId) return;
+
+    // Check authentication first
+    if (!isAuthenticated || !userId) {
+      toast.error("Please login to bookmark");
+      toggleLogin();
+      return;
+    }
 
     const currentlyBookmarked = data?.bookmarked || false;
 
