@@ -26,6 +26,7 @@ import CoursePage from '@/pages/CoursePage';
 import MyActivityPage from '@/pages/MyActivityPage';
 import LandingPage from '@/pages/AdityaLandingPage';
 import PromoPage from '@/pages/PromoPage';
+import TestSeriesPromo from '@/pages/TestSeriesPromo';
 import ClientProfilePage from '@/pages/ClientProfilePage';
 import { CreateTest } from '@/pages/test/counsellor/CreateTest';
 import { AddQuestion } from '@/pages/test/counsellor/AddQuestion';
@@ -96,6 +97,7 @@ export default function AppRoutes() {
                         <Route path="/community/answer" element={<AnswerPage />} />
                         <Route path="/community/my-activity" element={<MyActivityPage />} />
                         <Route path='/promo' element={<PromoPage />} />
+                        <Route path='/testSeries/pcsat' element={<TestSeriesPromo />} />
                         <Route path="/notifications" element={<NotificationsPage />} />
                         <Route path='/create-test' element={<CreateTest />} />
                         <Route path='/add-question/:testId' element={<AddQuestion />} />
