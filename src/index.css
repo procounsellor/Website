@@ -97,12 +97,12 @@ body[data-scroll-locked] {
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    font-family: 'Montserrat', sans-serif;
+    font-family: var(--font-primary);
   }
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Poppins', sans-serif;
   }
 
   h1,
@@ -119,7 +119,7 @@ body[data-scroll-locked] {
   input,
   textarea,
   label {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Poppins', sans-serif;
   }
 }
 
@@ -176,6 +176,7 @@ body[data-scroll-locked] {
 
 :root {
 
+  --text-main: #0E1629;
   --text-app-primary: #0E1629;
   --text-muted: #6B7280;
   --btn-primary: #2F43F2;
@@ -251,7 +252,7 @@ body[data-scroll-locked] {
 
 
 body {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* Hide scrollbars but keep scrolling functionality */
