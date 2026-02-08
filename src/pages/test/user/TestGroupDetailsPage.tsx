@@ -90,7 +90,7 @@ export default function TestGroupDetailsPage() {
   const [addFundsOpen, setAddFundsOpen] = useState(false);
   const pendingPurchaseRef = useRef(false);
   const userId = localStorage.getItem("phone") || "";
-  const { user, refreshUser } = useAuthStore();
+  const { user, refreshUser, isAuthenticated, toggleLogin, setPendingAction } = useAuthStore();
   const [visibleTests, setVisibleTests] = useState(3);
   const TESTS_PER_PAGE = 3;
 
@@ -117,7 +117,7 @@ export default function TestGroupDetailsPage() {
       const saved = sessionStorage.getItem(sessionKey);
       if (saved) {
         try {
-          // const context = JSON.parse(saved);
+          JSON.parse(saved); // Validate it's parseable
           // We don't update location.state directly, but we'll use this in handleBack
         } catch (e) {
           console.error("Failed to parse navigation context", e);
