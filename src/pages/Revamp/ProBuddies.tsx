@@ -1,5 +1,5 @@
-import AdvantageCard from "@/components/Revamp/probuddies/AdvantageCard";
 import AdvantageSection from "@/components/Revamp/probuddies/AdvantageSection";
+import CollegeSection from "@/components/Revamp/probuddies/CollegeSection";
 import Stories from "@/components/Revamp/probuddies/Stories";
 import { SearchIcon } from "lucide-react";
 
@@ -30,6 +30,7 @@ export default function ProBuddies() {
     </div>
 
     <div className=" bg-[#C6DDF040] flex flex-col pb-20">
+      <CollegeSection/>
       <AdvantageSection/>
       <Stories/>
     </div>

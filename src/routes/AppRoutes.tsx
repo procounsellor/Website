@@ -39,6 +39,7 @@ import TestGroupDetailsPage from '@/pages/test/user/TestGroupDetailsPage';
 import CollegeDetailsPageNew from '@/pages/CollegeDetailsPage';
 import RevampLayout from '@/layouts/RevampLayout';
 import ProBuddies from '@/pages/Revamp/ProBuddies';
+import RevampAbout from '@/components/Revamp/about/RevampAbout';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
@@ -71,9 +72,12 @@ export default function AppRoutes() {
 
 
                     <Route element={<RevampLayout/>}>
-
-                    <Route path='/pro' element={<ProBuddies/>}/>
-                    
+                        <Route path='/pro-buddies' element={<ProBuddies/>}/>
+                        <Route path="/community" element={<CommunityPage />} />
+                        <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
+                        <Route path="/community/answer" element={<AnswerPage />} />
+                        <Route path="/community/my-activity" element={<MyActivityPage />} />
+                        <Route path='/revamp-about'  element={<RevampAbout/>}/>
                     </Route>
 
                     <Route element={<MainLayout />}>
@@ -98,10 +102,6 @@ export default function AppRoutes() {
                         <Route path='/subscribe' element={<SubscriptionPage />} />
                         <Route path='/counsellor-dashboard' element={<CounselorDashboard />} />
                         <Route path='/counselor-dashboard/client-profile' element={<ClientProfilePage />} />
-                        <Route path="/community" element={<CommunityPage />} />
-                        <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
-                        <Route path="/community/answer" element={<AnswerPage />} />
-                        <Route path="/community/my-activity" element={<MyActivityPage />} />
                         <Route path='/promo' element={<PromoPage />} />
                         <Route path="/notifications" element={<NotificationsPage />} />
                         <Route path='/create-test' element={<CreateTest />} />

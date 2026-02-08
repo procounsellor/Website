@@ -4,10 +4,13 @@ import { useAuthStore } from '@/store/AuthStore';
 import type { CommunityDashboardItem } from '@/types/community';
 import DashboardCard from './DashboardCard';
 import { Loader2 } from 'lucide-react'; 
+import { getCommunityFeedCache, setCommunityFeedCache, isCommunityFeedCacheValid } from '@/utils/communityCache';
 
 interface DashboardFeedProps {
   selectedCategory?: string | null;
 }
+
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
   const [items, setItems] = useState<CommunityDashboardItem[]>([]);
@@ -18,8 +21,16 @@ const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
 
   const { userId } = useAuthStore();
   const token = localStorage.getItem('jwt');
+  const isMounted = useRef(true);
 
   const observer = useRef<IntersectionObserver | null>(null);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const lastElementRef = useCallback(
     (node: HTMLDivElement) => {
@@ -50,23 +61,44 @@ const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
     }
 
     const fetchFeed = async () => {
+      const cacheKey = `community-feed-${userId}`;
+      
+      // Check if we have valid cached data
+      if (isCommunityFeedCacheValid(cacheKey, CACHE_DURATION)) {
+        const cached = getCommunityFeedCache(cacheKey);
+        if (cached && isMounted.current) {
+          setItems(cached.data);
+          setNextPageToken(cached.nextPageToken);
+          setIsLoading(false);
+          return;
+        }
+      }
+
       try {
         setIsLoading(true);
         setError(null);
         
         const response = await getCommunityDashboard(userId, token);
         
-        if (response.status === 'Success') {
-          setItems(response.data);
-          setNextPageToken(response.nextPageToken);
-        } else {
-          setError('Failed to load feed.');
+        if (isMounted.current) {
+          if (response.status === 'Success') {
+            setItems(response.data);
+            setNextPageToken(response.nextPageToken);
+            // Cache the response
+            setCommunityFeedCache(cacheKey, response.data, response.nextPageToken);
+          } else {
+            setError('Failed to load feed.');
+          }
         }
       } catch (err) {
-        console.error(err);
-        setError('An error occurred while fetching the feed.');
+        if (isMounted.current) {
+          console.error(err);
+          setError('An error occurred while fetching the feed.');
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted.current) {
+          setIsLoading(false);
+        }
       }
     };
 
