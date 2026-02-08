@@ -88,6 +88,23 @@ export function AddQuestion() {
     sectionName: string;
   } | null>(null);
 
+  // Helper function to handle pasted images
+  const handleImagePaste = (e: React.ClipboardEvent, callback: (file: File) => void) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        e.preventDefault();
+        const blob = items[i].getAsFile();
+        if (blob) {
+          callback(blob);
+        }
+        break;
+      }
+    }
+  };
+
   const toggleCorrectOption = (optionId: string) => {
     if (responseType === "single") {
       setCorrectOption(optionId);
@@ -722,22 +739,28 @@ export function AddQuestion() {
                   value={questionText}
                   onChange={(e) => setQuestionText(e.target.value)}
                   onPaste={(e) => {
-                    e.preventDefault();
-                    const pastedText = e.clipboardData.getData('text/plain');
-                    // Clean and normalize the pasted text
-                    const cleanedText = pastedText
-                      .normalize('NFC') // Normalize Unicode
-                      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ''); // Remove control characters except newline/tab
-                    const start = e.currentTarget.selectionStart;
-                    const end = e.currentTarget.selectionEnd;
-                    const newText = questionText.substring(0, start) + cleanedText + questionText.substring(end);
-                    setQuestionText(newText);
-                    // Set cursor position after paste
-                    setTimeout(() => {
-                      e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + cleanedText.length;
-                    }, 0);
+                    // Try to handle image paste first
+                    handleImagePaste(e, (file) => setQuestionImage(file));
+
+                    // If no image, handle text paste
+                    if (!e.defaultPrevented) {
+                      e.preventDefault();
+                      const pastedText = e.clipboardData.getData('text/plain');
+                      // Clean and normalize the pasted text
+                      const cleanedText = pastedText
+                        .normalize('NFC') // Normalize Unicode
+                        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ''); // Remove control characters except newline/tab
+                      const start = e.currentTarget.selectionStart;
+                      const end = e.currentTarget.selectionEnd;
+                      const newText = questionText.substring(0, start) + cleanedText + questionText.substring(end);
+                      setQuestionText(newText);
+                      // Set cursor position after paste
+                      setTimeout(() => {
+                        e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + cleanedText.length;
+                      }, 0);
+                    }
                   }}
-                  placeholder="Enter your question here"
+                  placeholder="Enter your question here (paste images with Ctrl+V)"
                   className="w-full min-h-[100px] resize-none text-base placeholder:text-gray-400 outline-none"
                 />
                 {/* Show existing images from API */}
@@ -882,9 +905,26 @@ export function AddQuestion() {
 
                 {/* Options */}
                 <div className="flex flex-col gap-4">
-                  <label className="text-base font-medium leading-[125%] text-(--text-app-primary)">
-                    Options
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-base font-medium leading-[125%] text-(--text-app-primary)">
+                      Options
+                    </label>
+                    <button
+                      onClick={() => {
+                        const newOptions = [
+                          { id: "A", text: "A", image: null as File | null, imageUrl: null as string | null },
+                          { id: "B", text: "B", image: null as File | null, imageUrl: null as string | null },
+                          { id: "C", text: "C", image: null as File | null, imageUrl: null as string | null },
+                          { id: "D", text: "D", image: null as File | null, imageUrl: null as string | null },
+                        ];
+                        setOptions(newOptions);
+                        toast.success("Default options filled!");
+                      }}
+                      className="px-3 py-1.5 text-xs font-medium text-(--btn-primary) border border-(--btn-primary) rounded-lg hover:bg-(--btn-primary) hover:text-white transition-colors cursor-pointer"
+                    >
+                      Default Options
+                    </button>
+                  </div>
                   {options.map((option, index) => (
                     <div key={option.id} className="p-4 border border-[#E8EAED] rounded-xl bg-white">
                       <div className="flex items-center gap-3">
@@ -914,22 +954,32 @@ export function AddQuestion() {
                             setOptions(newOptions);
                           }}
                           onPaste={(e) => {
-                            e.preventDefault();
-                            const pastedText = e.clipboardData.getData('text/plain');
-                            // Clean and normalize the pasted text
-                            const cleanedText = pastedText
-                              .normalize('NFC') // Normalize Unicode
-                              .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
-                              .replace(/\n/g, ' '); // Replace newlines with space for single-line input
-                            const start = e.currentTarget.selectionStart || 0;
-                            const end = e.currentTarget.selectionEnd || 0;
-                            const currentText = option.text;
-                            const newText = currentText.substring(0, start) + cleanedText + currentText.substring(end);
-                            const newOptions = [...options];
-                            newOptions[index].text = newText;
-                            setOptions(newOptions);
+                            // Try to handle image paste first
+                            handleImagePaste(e, (file) => {
+                              const newOptions = [...options];
+                              newOptions[index].image = file;
+                              setOptions(newOptions);
+                            });
+
+                            // If no image, handle text paste
+                            if (!e.defaultPrevented) {
+                              e.preventDefault();
+                              const pastedText = e.clipboardData.getData('text/plain');
+                              // Clean and normalize the pasted text
+                              const cleanedText = pastedText
+                                .normalize('NFC') // Normalize Unicode
+                                .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+                                .replace(/\n/g, ' '); // Replace newlines with space for single-line input
+                              const start = e.currentTarget.selectionStart || 0;
+                              const end = e.currentTarget.selectionEnd || 0;
+                              const currentText = option.text;
+                              const newText = currentText.substring(0, start) + cleanedText + currentText.substring(end);
+                              const newOptions = [...options];
+                              newOptions[index].text = newText;
+                              setOptions(newOptions);
+                            }
                           }}
-                          placeholder="Write option here"
+                          placeholder="Write option here (paste images with Ctrl+V)"
                           className="flex-1 text-lg font-normal leading-[100%] text-(--text-app-primary) outline-none placeholder:text-gray-400"
                         />
                         <label className="text-gray-400 hover:text-gray-600 cursor-pointer">
@@ -1043,20 +1093,26 @@ export function AddQuestion() {
                   value={solution}
                   onChange={(e) => setSolution(e.target.value)}
                   onPaste={(e) => {
-                    e.preventDefault();
-                    const pastedText = e.clipboardData.getData('text/plain');
-                    const cleanedText = pastedText
-                      .normalize('NFC')
-                      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-                    const start = e.currentTarget.selectionStart;
-                    const end = e.currentTarget.selectionEnd;
-                    const newText = solution.substring(0, start) + cleanedText + solution.substring(end);
-                    setSolution(newText);
-                    setTimeout(() => {
-                      e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + cleanedText.length;
-                    }, 0);
+                    // Try to handle image paste first
+                    handleImagePaste(e, (file) => setSolutionImage(file));
+
+                    // If no image, handle text paste
+                    if (!e.defaultPrevented) {
+                      e.preventDefault();
+                      const pastedText = e.clipboardData.getData('text/plain');
+                      const cleanedText = pastedText
+                        .normalize('NFC')
+                        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+                      const start = e.currentTarget.selectionStart;
+                      const end = e.currentTarget.selectionEnd;
+                      const newText = solution.substring(0, start) + cleanedText + solution.substring(end);
+                      setSolution(newText);
+                      setTimeout(() => {
+                        e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + cleanedText.length;
+                      }, 0);
+                    }
                   }}
-                  placeholder="Enter solution explanation here"
+                  placeholder="Enter solution explanation here (paste images with Ctrl+V)"
                   className="w-full min-h-[80px] resize-none text-base placeholder:text-gray-400 outline-none"
                 />
                 {/* Show existing solution image from API */}

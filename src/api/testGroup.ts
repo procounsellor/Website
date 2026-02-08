@@ -407,3 +407,30 @@ export const getUserBookmarkedTestGroups = async (userId: string) => {
   );
   return response.json();
 };
+
+// Public APIs - No authentication required
+export const getPublicTestGroupsByCounsellor = async (counsellorId: string) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/shared/getAllTestGroupsOfACounsellor?counsellorId=${counsellorId}`,
+    {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    }
+  );
+  return response.json();
+};
+
+export const getPublicTestGroupById = async (testGroupId: string) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/shared/getTestGroupById?testGroupId=${testGroupId}`,
+    {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    }
+  );
+  return response.json();
+};

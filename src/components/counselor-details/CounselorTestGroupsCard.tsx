@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BookOpen, Star, Users, Bookmark, Loader2, ChevronDown, ChevronUp, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
-import { getAllTestGroupsOfCounsellorForUser, buyTestGroup, bookmarkTestGroup } from "@/api/testGroup";
+import { getAllTestGroupsOfCounsellorForUser, getPublicTestGroupsByCounsellor, buyTestGroup, bookmarkTestGroup } from "@/api/testGroup";
 import type { TestGroup } from "@/types/testGroup";
+import { useAuthStore } from "@/store/AuthStore";
 
 interface CounselorTestGroupsCardProps {
   counsellorId: string;
@@ -19,8 +20,10 @@ export function CounselorTestGroupsCard({ counsellorId, userId, userRole }: Coun
   const [purchasedIds, setPurchasedIds] = useState<Set<string>>(new Set());
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const { toggleLogin, setPendingAction } = useAuthStore();
+
   useEffect(() => {
-    if (userId && counsellorId && userRole !== "counselor") {
+    if (counsellorId && userRole !== "counselor") {
       fetchTestGroups();
     } else {
       setLoading(false);
@@ -28,26 +31,32 @@ export function CounselorTestGroupsCard({ counsellorId, userId, userRole }: Coun
   }, [userId, counsellorId, userRole]);
 
   const fetchTestGroups = async () => {
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoading(true);
-      const response = await getAllTestGroupsOfCounsellorForUser(userId, counsellorId);
+      let response;
+
+      if (userId) {
+        // Logged in - use authenticated endpoint
+        response = await getAllTestGroupsOfCounsellorForUser(userId, counsellorId);
+      } else {
+        // Not logged in - use public endpoint
+        response = await getPublicTestGroupsByCounsellor(counsellorId);
+      }
+
       if (response.status && response.data) {
         setTestGroups(response.data);
 
-        // Initialize bookmarked and purchased states from API response
-        const bookmarked = new Set<string>();
-        const purchased = new Set<string>();
-        response.data.forEach((group: any) => {
-          if (group.bookmarked) bookmarked.add(group.testGroupId);
-          if (group.brought || group.bought) purchased.add(group.testGroupId);
-        });
-        setBookmarkedIds(bookmarked);
-        setPurchasedIds(purchased);
+        // Initialize bookmarked and purchased states from API response (only for logged-in users)
+        if (userId) {
+          const bookmarked = new Set<string>();
+          const purchased = new Set<string>();
+          response.data.forEach((group: any) => {
+            if (group.bookmarked) bookmarked.add(group.testGroupId);
+            if (group.brought || group.bought) purchased.add(group.testGroupId);
+          });
+          setBookmarkedIds(bookmarked);
+          setPurchasedIds(purchased);
+        }
       }
     } catch (error) {
       console.error("Failed to fetch test groups:", error);
@@ -60,30 +69,48 @@ export function CounselorTestGroupsCard({ counsellorId, userId, userRole }: Coun
   const handleBuyTestGroup = async (testGroupId: string, price: number, e: React.MouseEvent) => {
     e.stopPropagation();
 
+    const executePurchase = async () => {
+      const currentUserId = userId || localStorage.getItem("phone") || "";
+
+      if (!currentUserId) {
+        toast.error("Please login to purchase");
+        return;
+      }
+
+      try {
+        const response = await buyTestGroup(currentUserId, counsellorId, testGroupId, price, null);
+        if (response.status) {
+          toast.success("Test group purchased successfully!");
+          setPurchasedIds(prev => new Set(prev).add(testGroupId));
+          fetchTestGroups(); // Refresh to get updated data
+        } else {
+          toast.error(response.message || "Failed to purchase test group");
+        }
+      } catch (error) {
+        console.error("Failed to buy test group:", error);
+        toast.error("Failed to purchase test group");
+      }
+    };
+
+    // Check authentication
     if (!userId) {
-      toast.error("Please login to purchase");
+      console.log('User not authenticated, triggering login with callback');
+      setPendingAction(() => executePurchase);
+      toggleLogin();
       return;
     }
 
-    try {
-      const response = await buyTestGroup(userId, counsellorId, testGroupId, price, null);
-      if (response.status) {
-        toast.success("Test group purchased successfully!");
-        setPurchasedIds(prev => new Set(prev).add(testGroupId));
-      } else {
-        toast.error(response.message || "Failed to purchase test group");
-      }
-    } catch (error) {
-      console.error("Failed to buy test group:", error);
-      toast.error("Failed to purchase test group");
-    }
+    await executePurchase();
   };
 
   const handleBookmark = async (testGroupId: string, e: React.MouseEvent) => {
     e.stopPropagation();
 
+    // Check authentication
     if (!userId) {
+      console.log('User not authenticated for bookmark, triggering login');
       toast.error("Please login to bookmark");
+      toggleLogin();
       return;
     }
 
@@ -115,8 +142,8 @@ export function CounselorTestGroupsCard({ counsellorId, userId, userRole }: Coun
     return null;
   }
 
-  // If user is not logged in or no test groups, hide the section entirely
-  if (!userId || (!loading && testGroups.length === 0)) {
+  // Hide the section if no test groups after loading
+  if (!loading && testGroups.length === 0) {
     return null;
   }
 
