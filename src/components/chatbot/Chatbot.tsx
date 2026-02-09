@@ -13,7 +13,6 @@ import SmartImage from "@/components/ui/SmartImage";
 import { Button } from "../ui";
 import toast from "react-hot-toast";
 import ChatInput, { type ChatInputRef } from "./components/ChatInput";
-import { encodeCounselorId } from "@/lib/utils";
 import Sidear from "./components/Sidear";
 import ChatMessage from "./components/ChatMessage";
 import { ChatbotCounselorCard } from "./components/ChatbotCounselorCard";
@@ -371,22 +370,39 @@ export default function Chatbot() {
       </header>
 
       {/* Content Area */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <Sidear
-          handleNewChat={handleNewChat}
-          isSidebarOpen={isSidebarOpen}
-          chatSessions={chatSessions}
-          currentSessionId={currentSessionId}
-          handleSelectChat={handleSelectChat}
-          handleDeleteChat={handleDeleteChat}
-          setIsSidebarOpen={setIsSidebarOpen}
-          isAuthenticated={isAuthenticated}
-          onLoginClick={handleLoginFromChatbot}
-        />
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Overlay for mobile when sidebar is open */}
+        {isSidebarOpen && (
+          <div
+            className="md:hidden fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
+        {/* Sidebar - slides from left on mobile */}
+        <div
+          className={`
+            fixed md:relative inset-y-0 left-0 z-50 md:z-auto
+            transform transition-transform duration-300 ease-out
+            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+            ${isSidebarOpen ? 'md:w-64' : 'md:w-0'}
+          `}
+        >
+          <Sidear
+            handleNewChat={handleNewChat}
+            isSidebarOpen={isSidebarOpen}
+            chatSessions={chatSessions}
+            currentSessionId={currentSessionId}
+            handleSelectChat={handleSelectChat}
+            handleDeleteChat={handleDeleteChat}
+            setIsSidebarOpen={setIsSidebarOpen}
+            isAuthenticated={isAuthenticated}
+            onLoginClick={handleLoginFromChatbot}
+          />
+        </div>
 
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden w-full md:w-auto">
           {messages.length === 0 && !loading ? (
             <div className="flex flex-col h-full items-center justify-center">
               <div className="w-full max-w-4xl mx-auto px-4">
@@ -635,7 +651,9 @@ export default function Chatbot() {
                                         <div
                                           onClick={() => {
                                             toggleChatbot();
-                                            navigate(`/counsellor/${encodeCounselorId(c.counsellorId)}`);
+                                            navigate("/counsellor-profile", {
+                                              state: { id: c.counsellorId },
+                                            });
                                           }}
                                           className="w-full animate-in fade-in-50 slide-in-from-bottom-4 duration-500 cursor-pointer"
                                           style={{
