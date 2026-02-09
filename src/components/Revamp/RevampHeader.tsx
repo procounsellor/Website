@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { buttonHoverScale, buttonTapScale, buttonTransition } from "@/components/common/PageTransition";
 
 const tabs = [
-    {id:1, name:'Admission', animationPath: '/admission.json', iconPath: '/Admissions.png', path: '/'},
+    {id:1, name:'Admission', animationPath: '/admission.json', iconPath: '/Admissions.png', path: '/admissions'},
     {id:2, name:'Courses', animationPath: '/courses.json', iconPath: '/Courses.svg', path: '/'},
     {id:3, name:'Community', animationPath: '/community.json', iconPath: '/Community.png', path: '/community'},
     {id:4, name:'ProBuddies', animationPath: '/probuddy.json', iconPath: '/ProBuddy.png', path: '/pro-buddies'},

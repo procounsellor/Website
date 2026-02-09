@@ -201,7 +201,7 @@ export default function Sidebar({
 
   return (
     <>
-      {/* ----------------- NEW DELETE CONFIRMATION MODAL ----------------- */}
+      {/* ----------------- DELETE CONFIRMATION MODAL ----------------- */}
       {chatToDelete && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-6 animate-in fade-in duration-200">
           <div className="bg-[#2a2a2a] rounded-2xl p-6 max-w-sm w-full border border-[#A0A0A099] shadow-2xl flex flex-col items-center text-center">
@@ -234,24 +234,9 @@ export default function Sidebar({
       )}
       {/* ----------------------------------------------------------------- */}
 
-      {isMobile && !isSidebarOpen && (
-        <div
-          className="fixed left-0 top-0 h-full w-8 z-40"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        />
-      )}
-
-      {isMobile && isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
+      {/* Tutorial for mobile users */}
       {showTutorial && isMobile && (
-        <div className="fixed inset-0 bg-black/70 z-200 flex items-center justify-center p-6">
+        <div className="fixed inset-0 bg-black/70 z-[200] flex items-center justify-center p-6">
           <div className="bg-[#2a2a2a] rounded-2xl p-6 max-w-sm border border-[#A0A0A099] shadow-2xl">
             <div className="flex justify-end mb-2">
               <button onClick={closeTutorial} className="text-white/60 hover:text-white cursor-pointer">
@@ -260,14 +245,11 @@ export default function Sidebar({
             </div>
             <div className="text-center">
               <div className="inline-block p-4 bg-[#FF660F]/20 rounded-full mb-4">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9 4L3 12L9 20" stroke="#FF660F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M3 12H21" stroke="#FF660F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <Menu className="h-10 w-10 text-[#FF660F]" />
               </div>
-              <h3 className="text-white font-semibold text-lg mb-2">Swipe to Open Menu</h3>
+              <h3 className="text-white font-semibold text-lg mb-2">Access Your Menu</h3>
               <p className="text-gray-400 text-sm mb-4">
-                Swipe from the left edge of the screen to access your chat history and menu options.
+                Tap the menu icon in the top left to access your chat history and options.
               </p>
               <button
                 onClick={closeTutorial}
@@ -280,21 +262,13 @@ export default function Sidebar({
         </div>
       )}
 
-      {isMobile && isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-150"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
       <div
         ref={sidebarRef}
-        className={`bg-[#232323] h-full border-t border-r border-[#A0A0A099] transition-all duration-300 ease-in-out relative ${isMobile ? 'fixed left-0 top-0 z-160' : ''
-          } ${isMobile && !isSidebarOpen ? 'hidden' : ''}`}
-        style={{ width: isMobile && isSidebarOpen ? '264px' : isSidebarOpen ? '264px' : '60px' }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        className={`
+          bg-[#232323] h-full border-r border-[#A0A0A099]
+          transition-all duration-300 ease-out
+          ${isMobile ? 'w-72' : isSidebarOpen ? 'w-64' : 'w-16'}
+        `}
       >
         {isSidebarOpen ? (
           <div className="w-full h-full p-4 flex flex-col">

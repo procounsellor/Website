@@ -40,6 +40,7 @@ import CollegeDetailsPageNew from '@/pages/CollegeDetailsPage';
 import RevampLayout from '@/layouts/RevampLayout';
 import ProBuddies from '@/pages/Revamp/ProBuddies';
 import RevampAbout from '@/components/Revamp/about/RevampAbout';
+import Admissions from '@/pages/Revamp/Admissions';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
@@ -73,6 +74,7 @@ export default function AppRoutes() {
 
                     <Route element={<RevampLayout/>}>
                         <Route path='/pro-buddies' element={<ProBuddies/>}/>
+                        <Route path='/admissions' element={<Admissions/>}/>
                         <Route path="/community" element={<CommunityPage />} />
                         <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
                         <Route path="/community/answer" element={<AnswerPage />} />
