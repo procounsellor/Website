@@ -27,7 +27,11 @@ export function GlobalSearchBar({
   const containerRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   
-  const { query, setQuery, performSearch, clearResults, setSearchOpen } = useSearchStore();
+  const performSearch = useSearchStore((state) => state.performSearch);
+  const clearResults = useSearchStore((state) => state.clearResults);
+  const setSearchOpen = useSearchStore((state) => state.setSearchOpen);
+  const setQuery = useSearchStore((state) => state.setQuery);
+  const query = useSearchStore((state) => state.query);
 
   useEffect(() => {
     clearResults();
@@ -37,7 +41,7 @@ export function GlobalSearchBar({
     if (inputRef.current) {
         inputRef.current.blur();
     }
-  }, [location.pathname, clearResults, setSearchOpen]); //
+  }, [location.pathname]); //
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -49,7 +53,7 @@ export function GlobalSearchBar({
     }, debounceTime);
 
     return () => clearTimeout(handler);
-  }, [query, performSearch, clearResults, debounceTime]);
+  }, [query, debounceTime]);
 
   useEffect(() => {
     if (autoFocus && inputRef.current) {
