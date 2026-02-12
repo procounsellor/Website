@@ -9,7 +9,7 @@ const tabs = [
     {id:2, name:'Courses', animationPath: '/courses.json', iconPath: '/Courses.svg', path: '/'},
     {id:3, name:'Community', animationPath: '/community.json', iconPath: '/Community.png', path: '/community'},
     {id:4, name:'ProBuddies', animationPath: '/probuddy.json', iconPath: '/ProBuddy.png', path: '/pro-buddies'},
-    {id:5, name:'About us', animationPath: '/admission.json', iconPath: '/Admissions.png', path: '/Revampabout'}
+    {id:5, name:'About us', animationPath: '/admission.json', iconPath: '/Admissions.png', path: '/revamp-about'}
 ]
 
 
