@@ -148,6 +148,52 @@ export const academicApi = {
     return res.json();
   },
 
+  searchAllLoggedInCounsellors: async (
+    userName: string,
+    filters: {
+      city?: string;
+      languagesKnow?: string;
+      workingDays?: string;
+      experience?: string;
+      minPrice?: string;
+      maxPrice?: string;
+      search?: string;
+    },
+    page: number = 0,
+    pageSize: number = 9
+  ) => {
+    const token = localStorage.getItem("jwt");
+    if (!token) throw new Error("Authentication token not found");
+
+    const params = new URLSearchParams();
+
+    params.append("userId", userName);
+    params.append("page", page.toString());
+    params.append("pageSize", pageSize.toString());
+    params.append("sortBy", "priority");
+    params.append("sortOrder", "desc");
+
+    if (filters.city) params.append("city", filters.city);
+    if (filters.languagesKnow) params.append("languagesKnow", filters.languagesKnow);
+    if (filters.workingDays) params.append("workingDays", filters.workingDays);
+    if (filters.experience) params.append("experience", filters.experience);
+    if (filters.minPrice) params.append("minPrice", filters.minPrice);
+    if (filters.maxPrice) params.append("maxPrice", filters.maxPrice);
+    if (filters.search) params.append("search", filters.search);
+
+    const endpoint = `${API_CONFIG.endpoints.searchLoggedInCounsellors}?${params.toString()}`;
+
+    const res = await fetch(`${API_CONFIG.baseUrl}${endpoint}`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) throw new Error("Failed to search counselors");
+    return res.json();
+  },
+
   searchAllLoggedOutCounsellors: async (
     filters: {
       city?: string;
