@@ -21,7 +21,7 @@ type SearchState = {
   searchRequestId: number;
   
   setQuery: (query: string) => void;
-  performSearch: (query: string) => Promise<void>;
+  performSearch: (query: string, userName?: string) => Promise<void>;
   setSearchOpen: (open: boolean) => void;
   clearResults: () => void;
 };
@@ -37,7 +37,7 @@ export const useSearchStore = create<SearchState>()(
 
       setQuery: (query: string) => set({ query }),
 
-      performSearch: async (query: string) => {
+      performSearch: async (query: string, userName?: string) => {
         if (!query.trim()) {
           set({ results: [], isSearching: false });
           return;
@@ -84,26 +84,54 @@ export const useSearchStore = create<SearchState>()(
           })
           .catch(err => console.error("Exam search failed", err));
 
-        const counselorsPromise = academicApi.searchAllLoggedOutCounsellors({ search: query })
-          .then((counselorsResponse) => {
-            if (get().searchRequestId !== currentRequestId) return;
-            if (counselorsResponse?.counsellors) {
-              const formatted: SearchResult[] = counselorsResponse.counsellors.map((counselor: any) => {
-                const fullName = `${counselor.firstName} ${counselor.lastName}`;
-                return {
-                  id: `counsellor-${counselor.counsellorId}`,
-                  originalId: counselor.counsellorId,
-                  name: fullName,
-                  type: 'counsellor',
-                  subtitle: `${counselor.city} • ${counselor.languagesKnow?.join(', ')}`,
-                  imageUrl: counselor.photoUrlSmall || undefined,
-                  url: `/counselors/${counselor.counsellorId}`
-                };
-              });
-              handleIncomingResults(formatted);
-            }
-          })
-          .catch(err => console.error("Counselor search failed", err));
+        let counselorsPromise;
+        
+        if (userName) {
+          counselorsPromise = academicApi.searchAllLoggedInCounsellors(userName, { search: query })
+            .then((counselorsResponse) => {
+              if (get().searchRequestId !== currentRequestId) return;
+              const list = counselorsResponse?.counsellors || counselorsResponse; 
+              
+              if (Array.isArray(list)) {
+                const formatted: SearchResult[] = list.map((counselor: any) => {
+                  const fullName = `${counselor.firstName} ${counselor.lastName}`;
+                  return {
+                    id: `counsellor-${counselor.counsellorId}`,
+                    originalId: counselor.counsellorId,
+                    name: fullName,
+                    type: 'counsellor',
+                    subtitle: `${counselor.city} • ${counselor.languagesKnow?.join(', ')}`,
+                    imageUrl: counselor.photoUrlSmall || undefined,
+                    url: `/counselors/${counselor.counsellorId}`
+                  };
+                });
+                handleIncomingResults(formatted);
+              }
+            })
+            .catch(err => console.error("Auth counselor search failed", err));
+
+        } else {
+          counselorsPromise = academicApi.searchAllLoggedOutCounsellors({ search: query })
+            .then((counselorsResponse) => {
+              if (get().searchRequestId !== currentRequestId) return;
+              if (counselorsResponse?.counsellors) {
+                const formatted: SearchResult[] = counselorsResponse.counsellors.map((counselor: any) => {
+                  const fullName = `${counselor.firstName} ${counselor.lastName}`;
+                  return {
+                    id: `counsellor-${counselor.counsellorId}`,
+                    originalId: counselor.counsellorId,
+                    name: fullName,
+                    type: 'counsellor',
+                    subtitle: `${counselor.city} • ${counselor.languagesKnow?.join(', ')}`,
+                    imageUrl: counselor.photoUrlSmall || undefined,
+                    url: `/counselors/${counselor.counsellorId}`
+                  };
+                });
+                handleIncomingResults(formatted);
+              }
+            })
+            .catch(err => console.error("Public counselor search failed", err));
+        }
 
         Promise.allSettled([examsPromise, counselorsPromise]).then(() => {
             if (get().searchRequestId === currentRequestId) {

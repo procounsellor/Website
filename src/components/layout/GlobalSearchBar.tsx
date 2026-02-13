@@ -3,6 +3,7 @@ import { Search, X } from "lucide-react";
 import { useSearchStore } from "@/store/SearchStore";
 import { SearchResults } from "./SearchResults";
 import { useLocation } from "react-router-dom"; 
+import { useAuthStore } from "@/store/AuthStore";
 
 type GlobalSearchBarProps = {
   placeholder?: string;
@@ -29,6 +30,7 @@ export function GlobalSearchBar({
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const location = useLocation();
+  const user = useAuthStore((state) => state.user);
   
   const performSearch = useSearchStore((state) => state.performSearch);
   const clearResults = useSearchStore((state) => state.clearResults);
@@ -57,7 +59,7 @@ export function GlobalSearchBar({
 
     debounceTimerRef.current = setTimeout(() => {
       if (newValue.trim()) {
-        performSearch(newValue);
+        performSearch(newValue, user?.userName);
       } else {
         clearResults();
       }
