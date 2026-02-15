@@ -8,6 +8,7 @@ import { DashboardCounselorCard } from './DashboardCounselorCard';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
+import { encodeCounselorId } from '@/lib/utils';
 
 type CounsellorFilter = 'Subscribed' | 'Favourite';
 
@@ -130,7 +131,7 @@ const CounsellorsTab: React.FC = () => {
               {counsellorsToDisplay.map((counsellor) => (
                 <div key={counsellor.counsellorId} className="flex-shrink-0">
                   <div className="w-[170px] h-[264px] bg-white rounded-2xl p-2.5 shadow-[0px_0px_4px_0px_#23232340]">
-                    <Link to="/counsellor-profile" state={{ id: counsellor.counsellorId }} className="h-full flex flex-col">
+                    <Link to={`/counsellor/${encodeCounselorId(counsellor.counsellorId)}`} className="h-full flex flex-col">
                       <DashboardCounselorCard counselor={counsellor} />
                     </Link>
                   </div>
@@ -159,7 +160,7 @@ const CounsellorsTab: React.FC = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {counsellorsToDisplay.map((counsellor) => (
               <div key={counsellor.counsellorId} className="bg-white border border-gray-200 rounded-2xl p-2.5 transition-shadow hover:shadow-lg">
-                <Link to="/counsellor-profile" state={{ id: counsellor.counsellorId }}>
+                <Link to={`/counsellor/${encodeCounselorId(counsellor.counsellorId)}`}>
                   <DashboardCounselorCard counselor={counsellor} />
                 </Link>
               </div>

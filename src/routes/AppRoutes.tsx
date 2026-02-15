@@ -26,6 +26,7 @@ import CoursePage from '@/pages/CoursePage';
 import MyActivityPage from '@/pages/MyActivityPage';
 import LandingPage from '@/pages/AdityaLandingPage';
 import PromoPage from '@/pages/PromoPage';
+import TestSeriesPromo from '@/pages/TestSeriesPromo';
 import ClientProfilePage from '@/pages/ClientProfilePage';
 import { CreateTest } from '@/pages/test/counsellor/CreateTest';
 import { AddQuestion } from '@/pages/test/counsellor/AddQuestion';
@@ -86,6 +87,7 @@ export default function AppRoutes() {
                         <Route path="/" element={<Home />} />
                         <Route path='/gurucool' element={<LandingPage />} />
                         <Route path="/counsellors" element={<CounselorListingPage />} />
+                        <Route path="/counsellor/:id" element={<CounselorDetailsPage />} />
                         <Route path="/counsellor-profile" element={<CounselorDetailsPage />} />
                         <Route path="/courses/:id" element={<CourseDetailsPage />} />
                         <Route path="/colleges/:id" element={<CollegeDetailsPage />} />
@@ -105,6 +107,7 @@ export default function AppRoutes() {
                         <Route path='/counsellor-dashboard' element={<CounselorDashboard />} />
                         <Route path='/counselor-dashboard/client-profile' element={<ClientProfilePage />} />
                         <Route path='/promo' element={<PromoPage />} />
+                        <Route path='/testSeries/pcsat' element={<TestSeriesPromo />} />
                         <Route path="/notifications" element={<NotificationsPage />} />
                         <Route path='/create-test' element={<CreateTest />} />
                         <Route path='/add-question/:testId' element={<AddQuestion />} />
