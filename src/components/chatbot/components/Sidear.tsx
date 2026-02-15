@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { EllipsisVertical, Search, ArrowLeft, X, Lock, Loader2, Bookmark, AlertTriangle } from "lucide-react";
+import { EllipsisVertical, Search, ArrowLeft, X, Lock, Loader2, Bookmark, AlertTriangle, Menu } from "lucide-react";
 import ChatOptionsMenu from './ChatOptionsMenu';
 import { useChatStore } from "@/store/ChatStore";
 import { useAuthStore } from "@/store/AuthStore";

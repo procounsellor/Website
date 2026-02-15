@@ -3,11 +3,31 @@
 }
 
 .cardWrapper:hover .bottom{
-    transform: scale(1.1);
+    background-color: #ffffff;
 }
 
 .cardWrapper:hover .bottom img{
-    transform: translateX(6px) scale(1.15);
+    animation: arrowSlide 0.6s ease-in-out;
+    filter: brightness(0) saturate(100%) invert(6%) sepia(12%) saturate(2329%) hue-rotate(189deg) brightness(98%) contrast(96%);
+}
+
+@keyframes arrowSlide {
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    50% {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+    51% {
+        transform: translateX(-30px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 .mainCard{
@@ -73,13 +93,30 @@
     justify-content: center;
     cursor: pointer;
     overflow: hidden;
-    transition: transform 0.3s ease;
+    transition: background-color 0.3s ease;
+}
+
+.bottom::before {
+    content: '';
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    left: -120px;
+    transition: left 0.5s ease;
+}
+
+.cardWrapper:hover .bottom::before {
+    left: 120px;
 }
 
 .bottom img{
     width: 20px;
     height: 20px;
-    transition: transform 0.3s ease;
+    transition: filter 0.3s ease;
+    position: relative;
+    z-index: 1;
 }
 
 

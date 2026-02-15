@@ -1,29 +1,33 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Stories from "@/components/Revamp/probuddies/Stories";
+import Faq from "@/components/Revamp/admissions/Faq";
+import Blogs from "@/components/Revamp/admissions/Blogs";
+import College from "@/components/Revamp/admissions/College";
+import Deadlines from "@/components/Revamp/admissions/Deadlines";
+import CounsellorSection from "@/components/Revamp/admissions/counsellor/CounsellorSection";
+import Timeline from "@/components/Revamp/admissions/Timeline";
 
 export default function Admissions() {
   const [showIntro, setShowIntro] = useState(true);
   const [showLogo, setShowLogo] = useState(false);
   const [showName, setShowName] = useState(false);
   const [nameLetters, setNameLetters] = useState<string[]>([]);
-  
+
   const name = "ProCounsel";
 
   useEffect(() => {
     // Check if user has visited before
     const hasVisited = sessionStorage.getItem("admissions-visited");
-    
+
     if (hasVisited) {
-      setShowIntro(false);
+      setShowIntro(true);
       return;
     }
 
-    // Animation sequence for first-time visitors
     const logoTimer = setTimeout(() => setShowLogo(true), 300);
     const nameTimer = setTimeout(() => setShowName(true), 1200);
-    
-    // Animate name letters one by one
+
     if (showName) {
       name.split("").forEach((letter, index) => {
         setTimeout(() => {
@@ -32,7 +36,6 @@ export default function Admissions() {
       });
     }
 
-    // Hide intro and show content after animation
     const hideIntroTimer = setTimeout(() => {
       setShowIntro(false);
       sessionStorage.setItem("admissions-visited", "true");
@@ -64,10 +67,10 @@ export default function Admissions() {
                       alt="ProCounsel Logo"
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
-                      transition={{ 
-                        type: "spring", 
-                        stiffness: 200, 
-                        damping: 20 
+                      transition={{
+                        type: "spring",
+                        stiffness: 200,
+                        damping: 20
                       }}
                       className="h-[120px] w-[117px]"
                     />
@@ -81,7 +84,7 @@ export default function Admissions() {
                         key={index}
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ 
+                        transition={{
                           duration: 0.2,
                           ease: "easeOut"
                         }}
@@ -112,15 +115,13 @@ export default function Admissions() {
           </p>
         </motion.div>
       </section>
-
-      <div className="container mx-auto px-4 py-12">
-        <p className="text-center text-gray-600">
-          Additional sections here
-        </p>
-      </div>
-
-
-      <Stories/>
+      <Timeline/>
+      <CounsellorSection/>
+      <College/>
+      <Deadlines/>
+      <Stories />
+      <Blogs/>
+      <Faq/>
     </div>
   );
 }
