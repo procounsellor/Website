@@ -3,3 +3,4 @@ export { AllCounselorSection } from './AllCounselorSection';
 export { CounselorSection } from './CounselorSection';
 export { CourseSection } from './CourseSection';
 export { ExamSection } from './ExamSection';
+export { FreeCoursesSection } from './FreeCoursesSection';
