@@ -7,6 +7,7 @@ import College from "@/components/Revamp/admissions/College";
 import Deadlines from "@/components/Revamp/admissions/Deadlines";
 import CounsellorSection from "@/components/Revamp/admissions/counsellor/CounsellorSection";
 import Timeline from "@/components/Revamp/admissions/Timeline";
+import RevampBannerSection from "@/components/Revamp/banners/RevampBannerSection";
 
 export default function Admissions() {
   const [showIntro, setShowIntro] = useState(true);
@@ -117,6 +118,7 @@ export default function Admissions() {
       </section>
       <Timeline/>
       <CounsellorSection/>
+      <RevampBannerSection/>
       <College/>
       <Deadlines/>
       <Stories />
