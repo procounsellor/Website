@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Star, Clock, Trophy, ChevronUp, ChevronRight, Tag, Gift, Award, Info, Loader2 } from "lucide-react";
 // import SmartImage from "@/components/ui/SmartImage";
 import { useAuthStore } from "@/store/AuthStore";
-import startRecharge from "@/api/wallet"; 
+import startRecharge from "@/api/wallet";
 import toast from "react-hot-toast";
 import CourseEnrollmentPopup from "@/components/landing-page/CourseEnrollmentPopup";
 import CouponCodeModal from "@/components/modals/CouponCodeModal";
@@ -31,18 +31,18 @@ export const PROMO_TEST_PRICE = 99;
 export default function TestSeriesPromo() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const heroSectionRef = useRef<HTMLElement | null>(null);
-  
+
   const { userId, isAuthenticated, toggleLogin, role } = useAuthStore();
 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isPurchased, setIsPurchased] = useState(false); 
+  const [isPurchased, setIsPurchased] = useState(false);
   const [isLoadingStatus, setIsLoadingStatus] = useState(false);
   const [showCouponModal, setShowCouponModal] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [discountedPrice, setDiscountedPrice] = useState<number | null>(null);
   const [discountPercentage, setDiscountPercentage] = useState<number | null>(null);
-  
+
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
 
@@ -50,23 +50,23 @@ export default function TestSeriesPromo() {
 
   useEffect(() => {
     const verifyStatus = async () => {
-        if (isAuthenticated && userId) {
-            setIsLoadingStatus(true);
-            try {
-                const status = await checkRegistrationStatus(userId);
-                if (status.registered && status.paid) {
-                    setIsPurchased(true);
-                } else if (status.registered && !status.paid) {
-                    setIsPurchased(false);
-                } else {
-                    setIsPurchased(false);
-                }
-            } catch (error) {
-                console.error("Failed to check status", error);
-            } finally {
-                setIsLoadingStatus(false);
-            }
+      if (isAuthenticated && userId) {
+        setIsLoadingStatus(true);
+        try {
+          const status = await checkRegistrationStatus(userId);
+          if (status.registered && status.paid) {
+            setIsPurchased(true);
+          } else if (status.registered && !status.paid) {
+            setIsPurchased(false);
+          } else {
+            setIsPurchased(false);
+          }
+        } catch (error) {
+          console.error("Failed to check status", error);
+        } finally {
+          setIsLoadingStatus(false);
         }
+      }
     };
 
     verifyStatus();
@@ -74,19 +74,19 @@ export default function TestSeriesPromo() {
 
   useEffect(() => {
     if (isAuthenticated && pendingActionRef.current) {
-        const action = pendingActionRef.current;
-        pendingActionRef.current = null;
+      const action = pendingActionRef.current;
+      pendingActionRef.current = null;
 
-        if (role === "counselor") {
-            toast.error("Counsellors cannot register for the test.");
-            return;
-        }
+      if (role === "counselor") {
+        toast.error("Counsellors cannot register for the test.");
+        return;
+      }
 
-        if (action === "REGISTER") {
-            setTimeout(() => setShowRegistrationModal(true), 500);
-        } else if (action === "COUPON") {
-            setTimeout(() => setShowCouponModal(true), 500);
-        }
+      if (action === "REGISTER") {
+        setTimeout(() => setShowRegistrationModal(true), 500);
+      } else if (action === "COUPON") {
+        setTimeout(() => setShowCouponModal(true), 500);
+      }
     }
   }, [isAuthenticated, role]);
 
@@ -112,12 +112,16 @@ export default function TestSeriesPromo() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return { status: true, message: "50% Discount Applied!", discountPercentage: 50 };
     }
+    if (couponCode.toUpperCase() === "ADITYA100") {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      return { status: true, message: "100% Discount Applied!", discountPercentage: 100 };
+    }
     return { status: false, message: "Invalid or expired coupon code" };
   };
 
   const handleCouponButtonClick = () => {
     if (isPurchased) return;
-    
+
     if (!isAuthenticated) {
       toast.error("Please login/signup to use a coupon");
       pendingActionRef.current = "COUPON";
@@ -133,95 +137,108 @@ export default function TestSeriesPromo() {
     const toastId = toast.loading("Processing details...");
 
     try {
-        if(!userId) throw new Error("User ID is missing. Please re-login.");
+      if (!userId) throw new Error("User ID is missing. Please re-login.");
 
-        try {
-            await createRegistration({
-                ...formData,
-                userId: userId
-            });
-        } catch (regError: any) {
-            if (regError.status === 409 || (regError.message && regError.message.toLowerCase().includes("already registered"))) {
-                const status = await checkRegistrationStatus(userId);
-                
-                if (status.paid) {
-                    throw regError;
-                } else {
-                    toast.success("Resuming payment for existing registration...", { id: toastId });
-                }
-            } else {
-                throw regError;
-            }
+      try {
+        await createRegistration({
+          ...formData,
+          userId: userId
+        });
+      } catch (regError: any) {
+        if (regError.status === 409 || (regError.message && regError.message.toLowerCase().includes("already registered"))) {
+          const status = await checkRegistrationStatus(userId);
+
+          if (status.paid) {
+            throw regError;
+          } else {
+            toast.success("Resuming payment for existing registration...", { id: toastId });
+          }
+        } else {
+          throw regError;
         }
-        
-        toast.loading("Initiating payment...", { id: toastId });
+      }
 
-        const finalAmount = discountedPrice !== null ? discountedPrice : PROMO_TEST_PRICE;
-        const freshUser = useAuthStore.getState().user;
-        
-        const order = await startRecharge(freshUser?.userName || userId, finalAmount);
-        if (!order || !order.orderId) throw new Error("Failed to create payment order");
+      toast.loading("Initiating payment...", { id: toastId });
 
-        const options = {
-            key: order.keyId,
-            amount: order.amount,
-            currency: order.currency,
-            order_id: order.orderId,
-            name: "ProCounsel",
-            description: `${TEST_NAME} - Enrollment`,
-            prefill: {
-                contact: formData.contactNumber, 
-                email: formData.email,           
-                name: formData.studentName,      
-            },
-            notes: {
-                userId: userId,
-                courseId: TEST_ID,
-                ...(appliedCoupon && { couponCode: appliedCoupon }),
-            },
-            handler: async () => {
-                try {
-                    toast.loading("Confirming registration...", { id: toastId });
-                    
-                    await markFormAsPaid(userId);
-                    
-                    toast.success("Registration Successful!", { id: toastId });
-                    
-                    setIsPurchased(true); 
-                    setShowRegistrationModal(false);
-                    setShowSuccessPopup(true);
-                    
-                } catch (error) {
-                    console.error(error);
-                    toast.error("Payment successful but verification failed. Please contact support.", { id: toastId });
-                } finally {
-                    setIsProcessing(false);
-                }
-            },
-            modal: {
-                ondismiss: () => {
-                    toast.dismiss(toastId);
-                    setIsProcessing(false);
-                    toast.error("Payment cancelled");
-                },
-            },
-            theme: { color: "#13097D" },
-        };
 
-        const RZ = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
-        const rzp = new RZ(options);
-        rzp.open();
+      const finalAmount = discountedPrice !== null ? discountedPrice : PROMO_TEST_PRICE;
+
+      if (finalAmount === 0) {
+        toast.loading("Completing registration...", { id: toastId });
+        await markFormAsPaid(userId);
+        toast.success("Registration Successful!", { id: toastId });
+        setIsPurchased(true);
+        setShowRegistrationModal(false);
+        setShowSuccessPopup(true);
+        setIsProcessing(false);
+        return;
+      }
+
+      const freshUser = useAuthStore.getState().user;
+
+      const order = await startRecharge(freshUser?.userName || userId, finalAmount);
+      if (!order || !order.orderId) throw new Error("Failed to create payment order");
+
+      const options = {
+        key: order.keyId,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.orderId,
+        name: "ProCounsel",
+        description: `${TEST_NAME} - Enrollment`,
+        prefill: {
+          contact: formData.contactNumber,
+          email: formData.email,
+          name: formData.studentName,
+        },
+        notes: {
+          userId: userId,
+          courseId: TEST_ID,
+          ...(appliedCoupon && { couponCode: appliedCoupon }),
+        },
+        handler: async () => {
+          try {
+            toast.loading("Confirming registration...", { id: toastId });
+
+            await markFormAsPaid(userId);
+
+            toast.success("Registration Successful!", { id: toastId });
+
+            setIsPurchased(true);
+            setShowRegistrationModal(false);
+            setShowSuccessPopup(true);
+
+          } catch (error) {
+            console.error(error);
+            toast.error("Payment successful but verification failed. Please contact support.", { id: toastId });
+          } finally {
+            setIsProcessing(false);
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            toast.dismiss(toastId);
+            setIsProcessing(false);
+            toast.error("Payment cancelled");
+          },
+        },
+        theme: { color: "#13097D" },
+      };
+
+      const RZ = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
+      const rzp = new RZ(options);
+      rzp.open();
 
     } catch (error: any) {
-        console.error(error);
-        if (error.status === 409 || (error.message && error.message.toLowerCase().includes("already registered"))) {
-             toast.error("You are already registered.", { id: toastId });
-             setIsPurchased(true); 
-             setShowRegistrationModal(false);
-        } else {
-             toast.error(error.message || "Registration failed", { id: toastId });
-        }
-        setIsProcessing(false);
+      console.error(error);
+      if (error.status === 409 || (error.message && error.message.toLowerCase().includes("already registered"))) {
+        toast.error("You are already registered.", { id: toastId });
+        setIsPurchased(true);
+        setShowRegistrationModal(false);
+      } else {
+        toast.error(error.message || "Registration failed", { id: toastId });
+      }
+      setIsProcessing(false);
     }
   };
 
@@ -230,12 +247,12 @@ export default function TestSeriesPromo() {
 
     if (!isAuthenticated) {
       toast("Please login/signup to continue the registration process", {
-         icon: '🔒',
-         duration: 4000
+        icon: '🔒',
+        duration: 4000
       });
-      
+
       pendingActionRef.current = "REGISTER";
-      
+
       useAuthStore.getState().setSkipOnboardingForPromo(true);
       toggleLogin();
       return;
@@ -245,7 +262,7 @@ export default function TestSeriesPromo() {
       toast.error("Counsellors cannot take the test.");
       return;
     }
-    
+
     if (isPurchased) {
       toast.success("You are already registered!");
       return;
@@ -258,7 +275,7 @@ export default function TestSeriesPromo() {
 
   const EnrollmentButton = () => {
     const role = useAuthStore.getState().role;
-    
+
     if (isAuthenticated && role === "counselor") {
       return (
         <Button disabled className="bg-red-500 text-white px-6 sm:px-8 py-4 sm:py-6 rounded-xl cursor-not-allowed">
@@ -268,7 +285,7 @@ export default function TestSeriesPromo() {
     }
 
     if (isLoadingStatus) {
-         return (
+      return (
         <Button disabled className="bg-gray-200 text-gray-500 px-6 sm:px-8 py-4 sm:py-6 rounded-xl flex items-center gap-2">
           <Loader2 className="animate-spin w-4 h-4" /> Checking...
         </Button>
@@ -293,7 +310,7 @@ export default function TestSeriesPromo() {
       </Button>
     );
   };
-  
+
   const features = [
     {
       icon: <Trophy className="w-full h-full text-[#22C55D] p-1.5" />,
@@ -356,7 +373,7 @@ export default function TestSeriesPromo() {
       >
         <div className="max-w-7xl mx-auto w-full">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 lg:gap-12">
-            
+
             {/* Left Content */}
             <div className="w-full md:w-[50%] xl:w-[60%] space-y-4 sm:space-y-6 text-center md:text-left">
               <div className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-[#FEECE199] rounded-full gap-2">
@@ -367,11 +384,11 @@ export default function TestSeriesPromo() {
               </div>
 
               <h1 className="text-[#232323] font-semibold text-2xl sm:text-3xl md:text-[36px] tracking-normal md:text-left">
-                ProCounsel Scholarship <br/>
+                ProCounsel Scholarship <br />
                 <span className="text-[#2F43F2]">Aptitude Test 2026</span>
               </h1>
 
-              <p 
+              <p
                 className="max-w-2xl text-sm sm:text-lg md:text-xl tracking-normal md:text-left mx-auto md:mx-0"
                 style={{ color: "#6B7280", fontWeight: 500 }}
               >
@@ -416,7 +433,9 @@ export default function TestSeriesPromo() {
                         </div>
                         <div className="flex items-baseline gap-3 flex-wrap">
                           <span className="text-base text-gray-400 line-through">₹{PROMO_TEST_PRICE}</span>
-                          <div className="text-3xl font-bold text-[#FF660F]">₹{discountedPrice}</div>
+                          <div className="text-3xl font-bold text-[#FF660F]">
+                            {discountedPrice === 0 ? "Free" : `₹${discountedPrice}`}
+                          </div>
                         </div>
                       </>
                     ) : (
@@ -428,14 +447,14 @@ export default function TestSeriesPromo() {
                   </div>
                   <EnrollmentButton />
                 </div>
-                
+
                 {!isPurchased && (
                   <div className="w-full max-w-md flex flex-col gap-2 items-center md:items-start">
-                     {!appliedCoupon && (
-                        <div className="text-xs text-[#2F43F2] font-medium bg-[#2F43F2]/10 px-3 py-1 rounded w-fit">
-                            💡 Use code <span className="font-bold">AC50</span> for 50% OFF
-                        </div>
-                     )}
+                    {!appliedCoupon && (
+                      <div className="text-xs text-[#2F43F2] font-medium bg-[#2F43F2]/10 px-3 py-1 rounded w-fit">
+                        💡 Use code <span className="font-bold">AC50</span> for 50% OFF
+                      </div>
+                    )}
 
                     {appliedCoupon ? (
                       <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex justify-between items-center w-full max-w-[300px]">
@@ -458,7 +477,7 @@ export default function TestSeriesPromo() {
             {/* Video Section */}
             <div className="w-full md:w-[50%] xl:w-[40%] flex justify-center md:justify-end mt-8 md:mt-0">
               <div className="relative w-full max-w-[600px]">
-                <div 
+                <div
                   className="rounded-xl relative w-full aspect-4/3 overflow-hidden shadow-lg border border-white bg-black"
                   style={{
                     boxShadow: "0px 12px 24px -8px rgba(0, 0, 0, 0.15)"
@@ -482,13 +501,13 @@ export default function TestSeriesPromo() {
       <section className="pt-12 sm:pt-16 pb-10 px-4 sm:px-5 lg:px-20">
         <div className="mx-auto">
           <div className="text-center mb-8 sm:mb-12">
-            <h2 
+            <h2
               className="mb-3 sm:mb-4 text-[18px] sm:text-3xl md:text-[32px]"
               style={{ fontWeight: 600, color: "#0E1629" }}
             >
               What You Get with PCSAT
             </h2>
-            <p 
+            <p
               className="text-[12px] sm:text-lg"
               style={{ fontWeight: 400, color: "#6B7280" }}
             >
@@ -498,52 +517,52 @@ export default function TestSeriesPromo() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {features.map((feature, index) => (
-              <Card 
-                key={index} 
+              <Card
+                key={index}
                 className="group transition-all duration-300 w-full shadow-none py-0 sm:min-h-[190px]"
                 style={{
-                    borderRadius: "24px",
-                    border: "1px solid #E8EAED",
-                    backgroundColor: "#FFFFFF",
-                    borderWidth: "1px",
-                    boxShadow: "none",
+                  borderRadius: "24px",
+                  border: "1px solid #E8EAED",
+                  backgroundColor: "#FFFFFF",
+                  borderWidth: "1px",
+                  boxShadow: "none",
                 }}
                 onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "#2F43F2";
+                  e.currentTarget.style.borderColor = "#2F43F2";
                 }}
                 onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "#E8EAED";
+                  e.currentTarget.style.borderColor = "#E8EAED";
                 }}
               >
                 <CardContent className="px-5 py-5 sm:px-6 sm:py-6 h-full">
-                   <div className="flex flex-col h-full">
-                      <div className="shrink-0 mb-4">
-                        <div className="rounded-lg flex items-center justify-center transition-all duration-300 bg-[#ECEEFE] group-hover:bg-[#2F43F2] w-12 h-12 sm:w-14 sm:h-14">
-                            <div className="icon-hover-white transition-all duration-300 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-[#2F43F2] group-hover:text-white">
-                                {feature.icon}
-                            </div>
+                  <div className="flex flex-col h-full">
+                    <div className="shrink-0 mb-4">
+                      <div className="rounded-lg flex items-center justify-center transition-all duration-300 bg-[#ECEEFE] group-hover:bg-[#2F43F2] w-12 h-12 sm:w-14 sm:h-14">
+                        <div className="icon-hover-white transition-all duration-300 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-[#2F43F2] group-hover:text-white">
+                          {feature.icon}
                         </div>
                       </div>
-                      <div className="flex-1">
-                        <h3 
-                            className="mb-2"
-                            style={{
-                                fontWeight: 500,
-                                fontSize: "16px",
-                                letterSpacing: "0%",
-                                color: "#0E1629",
-                            }}
-                        >
-                            <span className="sm:text-lg md:text-[20px]">{feature.title}</span>
-                        </h3>
-                        <p 
-                            className="font-normal text-[#6B7280]"
-                            style={{ fontSize: "14px" }}
-                        >
-                             <span className="sm:text-base md:text-[18px]">{feature.description}</span>
-                        </p>
-                      </div>
-                   </div>
+                    </div>
+                    <div className="flex-1">
+                      <h3
+                        className="mb-2"
+                        style={{
+                          fontWeight: 500,
+                          fontSize: "16px",
+                          letterSpacing: "0%",
+                          color: "#0E1629",
+                        }}
+                      >
+                        <span className="sm:text-lg md:text-[20px]">{feature.title}</span>
+                      </h3>
+                      <p
+                        className="font-normal text-[#6B7280]"
+                        style={{ fontSize: "14px" }}
+                      >
+                        <span className="sm:text-base md:text-[18px]">{feature.description}</span>
+                      </p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -552,21 +571,21 @@ export default function TestSeriesPromo() {
       </section>
 
       {/* Rewards & Benefits Section (Why Choose Us) */}
-      <section 
+      <section
         className="py-12 sm:py-16 px-4 sm:px-5 lg:px-20"
         style={{
-            background: "linear-gradient(180deg, rgba(255, 255, 255, 0.5) -10.21%, #F5F6FF 53.33%)",
+          background: "linear-gradient(180deg, rgba(255, 255, 255, 0.5) -10.21%, #F5F6FF 53.33%)",
         }}
       >
         <div className="mx-auto w-full">
           <div className="text-center mb-8 sm:mb-12">
-            <h2 
+            <h2
               className="mb-3 sm:mb-4 text-[18px] sm:text-3xl md:text-[32px]"
               style={{ fontWeight: 600, color: "#0E1629" }}
             >
               Rewards & Benefits
             </h2>
-            <p 
+            <p
               className="text-[12px] sm:text-lg"
               style={{ fontWeight: 400, color: "#6B7280" }}
             >
@@ -580,22 +599,22 @@ export default function TestSeriesPromo() {
               <h3 className="text-xl font-semibold mb-4 text-[#0E1629]">Why take PCSAT?</h3>
               {whyChooseUs.map((benefit, index) => (
                 <div key={index} className="flex gap-3">
-                  <div 
+                  <div
                     className="shrink-0 self-start rounded w-6 h-6 sm:w-8 sm:h-8 p-[3px] sm:p-1"
                     style={{
-                        backgroundColor: "#E9FBF0",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
+                      backgroundColor: "#E9FBF0",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
                     <img src="/checkcheck.svg" alt="check" className="w-[18px] h-[18px] sm:w-6 sm:h-6" />
                   </div>
-                  <p 
-                     style={{
-                        fontWeight: 500,
-                        fontSize: "14px",
-                        color: "#0E1629",
+                  <p
+                    style={{
+                      fontWeight: 500,
+                      fontSize: "14px",
+                      color: "#0E1629",
                     }}
                   >
                     <span className="sm:text-lg">{benefit}</span>
@@ -611,10 +630,10 @@ export default function TestSeriesPromo() {
 
             {/* Right Column - Prizes Card */}
             <div className="w-full lg:w-[60%]">
-              <Card 
+              <Card
                 className="bg-white border-none shadow-lg rounded-2xl overflow-hidden relative"
                 style={{
-                    boxShadow: "0px 0px 4px 0px #18003326",
+                  boxShadow: "0px 0px 4px 0px #18003326",
                 }}
               >
                 <div className="bg-[#2F43F2] p-4 text-center">
@@ -626,50 +645,50 @@ export default function TestSeriesPromo() {
                   <div className="space-y-6">
                     {/* Tier 1 */}
                     <div className="flex items-center gap-4 border-b border-dashed pb-4">
-                        <div className="bg-yellow-100 p-3 rounded-full text-yellow-600">
-                            <Trophy className="w-8 h-8" />
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500 font-medium">Top 3 Students</p>
-                            <p className="text-xl font-bold text-[#232323]">100% Scholarship</p>
-                        </div>
+                      <div className="bg-yellow-100 p-3 rounded-full text-yellow-600">
+                        <Trophy className="w-8 h-8" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 font-medium">Top 3 Students</p>
+                        <p className="text-xl font-bold text-[#232323]">100% Scholarship</p>
+                      </div>
                     </div>
-                     {/* Tier 2 */}
-                     <div className="flex items-center gap-4 border-b border-dashed pb-4">
-                        <div className="bg-gray-100 p-3 rounded-full text-gray-600">
-                            <Award className="w-8 h-8" />
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500 font-medium">Next Top 10 Students</p>
-                            <p className="text-xl font-bold text-[#232323]">50% Scholarship</p>
-                        </div>
+                    {/* Tier 2 */}
+                    <div className="flex items-center gap-4 border-b border-dashed pb-4">
+                      <div className="bg-gray-100 p-3 rounded-full text-gray-600">
+                        <Award className="w-8 h-8" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 font-medium">Next Top 10 Students</p>
+                        <p className="text-xl font-bold text-[#232323]">50% Scholarship</p>
+                      </div>
                     </div>
-                     {/* Tier 3 */}
-                     <div className="flex items-center gap-4 border-b border-dashed pb-4">
-                        <div className="bg-orange-100 p-3 rounded-full text-orange-600">
-                            <Gift className="w-8 h-8" />
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500 font-medium">Top 100 Students</p>
-                            <p className="text-xl font-bold text-[#232323]">Exciting Goodies & Hampers</p>
-                        </div>
+                    {/* Tier 3 */}
+                    <div className="flex items-center gap-4 border-b border-dashed pb-4">
+                      <div className="bg-orange-100 p-3 rounded-full text-orange-600">
+                        <Gift className="w-8 h-8" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 font-medium">Top 100 Students</p>
+                        <p className="text-xl font-bold text-[#232323]">Exciting Goodies & Hampers</p>
+                      </div>
                     </div>
-                    
+
                     <div className="flex justify-between items-center pt-2">
-                        <button 
-                            onClick={() => setShowTermsModal(true)}
-                            className="text-xs text-[#2F43F2] hover:text-blue-700 hover:underline cursor-pointer flex items-center gap-1 font-medium transition-colors"
-                        >
-                            <Info className="w-3 h-3" />
-                            *Terms & Conditions applied
-                        </button>
+                      <button
+                        onClick={() => setShowTermsModal(true)}
+                        className="text-xs text-[#2F43F2] hover:text-blue-700 hover:underline cursor-pointer flex items-center gap-1 font-medium transition-colors"
+                      >
+                        <Info className="w-3 h-3" />
+                        *Terms & Conditions applied
+                      </button>
                     </div>
 
                     {/* Participation */}
                     <div className="bg-[#F9FAFB] p-4 rounded-xl text-center mt-2">
-                        <p className="text-gray-600 font-medium">
-                         🎓 Participation Certificate for <span className="text-[#2F43F2] font-bold">ALL</span> students
-                        </p>
+                      <p className="text-gray-600 font-medium">
+                        🎓 Participation Certificate for <span className="text-[#2F43F2] font-bold">ALL</span> students
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -680,21 +699,21 @@ export default function TestSeriesPromo() {
       </section>
 
       {/* FAQ Section */}
-      <section 
+      <section
         className="py-12 sm:py-16 px-4 sm:px-5 lg:px-20"
         style={{
-            background: "linear-gradient(0deg, rgba(255, 255, 255, 0.5) -10.21%, #F5F6FF 53.33%)",
+          background: "linear-gradient(0deg, rgba(255, 255, 255, 0.5) -10.21%, #F5F6FF 53.33%)",
         }}
       >
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-8 sm:mb-12">
-            <h2 
+            <h2
               className="mb-3 sm:mb-4 text-[18px] sm:text-3xl md:text-[32px]"
               style={{ fontWeight: 600, color: "#0E1629" }}
             >
               Frequently Asked Questions
             </h2>
-            <p 
+            <p
               className="text-[12px] sm:text-lg"
               style={{ fontWeight: 400, color: "#6B7280" }}
             >
@@ -704,8 +723,8 @@ export default function TestSeriesPromo() {
 
           <div className="space-y-4">
             {faqs.map((faq, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="w-full rounded-2xl p-2 transition-all duration-300"
                 style={{ borderBottom: "1px solid #EFEFEF" }}
               >
@@ -720,12 +739,12 @@ export default function TestSeriesPromo() {
                 </button>
                 {openFaqIndex === index && (
                   <div className="mt-4 transition-transform">
-                     <p 
-                        className="text-xs sm:text-base"
-                        style={{ color: "#6C6969", fontWeight: 400 }}
-                     >
-                         {faq.answer}
-                     </p>
+                    <p
+                      className="text-xs sm:text-base"
+                      style={{ color: "#6C6969", fontWeight: 400 }}
+                    >
+                      {faq.answer}
+                    </p>
                   </div>
                 )}
               </div>
@@ -744,7 +763,7 @@ export default function TestSeriesPromo() {
           }}
         />
       )}
-      
+
       {userId && (
         <CouponCodeModal
           isOpen={showCouponModal}
@@ -759,23 +778,24 @@ export default function TestSeriesPromo() {
         />
       )}
 
-      <ScholarshipTermsModal 
-        isOpen={showTermsModal} 
-        onClose={() => setShowTermsModal(false)} 
+      <ScholarshipTermsModal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
       />
 
-       <RegistrationFormModal 
+      <RegistrationFormModal
         isOpen={showRegistrationModal}
         onClose={() => setShowRegistrationModal(false)}
         onSubmit={handleRegistrationSubmit}
         isProcessing={isProcessing}
         initialData={{
-            studentName: useAuthStore.getState().user?.firstName 
-                ? `${useAuthStore.getState().user?.firstName} ${useAuthStore.getState().user?.lastName || ''}` 
-                : "",
-            contactNumber: useAuthStore.getState().user?.phoneNumber || "",
-            email: useAuthStore.getState().user?.email || "",
+          studentName: useAuthStore.getState().user?.firstName
+            ? `${useAuthStore.getState().user?.firstName} ${useAuthStore.getState().user?.lastName || ''}`
+            : "",
+          contactNumber: useAuthStore.getState().user?.phoneNumber || "",
+          email: useAuthStore.getState().user?.email || "",
         }}
+        isFree={discountedPrice === 0}
       />
     </div>
   );
