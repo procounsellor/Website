@@ -9,6 +9,7 @@ interface RegistrationFormModalProps {
   onSubmit: (data: PcsatRegistrationData) => void;
   isProcessing: boolean;
   initialData?: Partial<PcsatRegistrationData>;
+  isFree?: boolean;
 }
 
 export default function RegistrationFormModal({
@@ -16,6 +17,8 @@ export default function RegistrationFormModal({
   onClose,
   onSubmit,
   isProcessing,
+  // initialData,
+  isFree = false
 }: RegistrationFormModalProps) {
   const [formData, setFormData] = useState<PcsatRegistrationData>({
     studentName: "",
@@ -39,17 +42,17 @@ export default function RegistrationFormModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={!isProcessing ? onClose : undefined}
       ></div>
 
       <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        
+
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50">
           <h2 className="text-lg font-semibold text-[#0E1629]">Candidate Registration</h2>
           {!isProcessing && (
-            <button 
+            <button
               onClick={onClose}
               className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500 cursor-pointer"
             >
@@ -59,7 +62,7 @@ export default function RegistrationFormModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          
+
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
               <User className="w-4 h-4 text-gray-400" /> Full Name
@@ -109,21 +112,21 @@ export default function RegistrationFormModal({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            
+
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700">Gender</label>
               <div className="relative">
                 <select
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 focus:border-[#2F43F2] focus:ring-2 focus:ring-blue-100 outline-none transition-all appearance-none cursor-pointer"
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 focus:border-[#2F43F2] focus:ring-2 focus:ring-blue-100 outline-none transition-all appearance-none cursor-pointer"
                 >
-                    <option value="MALE" className="cursor-pointer">Male</option>
-                    <option value="FEMALE" className="cursor-pointer">Female</option>
+                  <option value="MALE" className="cursor-pointer">Male</option>
+                  <option value="FEMALE" className="cursor-pointer">Female</option>
                 </select>
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                    <ChevronDown className="w-4 h-4" />
+                  <ChevronDown className="w-4 h-4" />
                 </div>
               </div>
             </div>
@@ -132,18 +135,18 @@ export default function RegistrationFormModal({
               <label className="text-sm font-medium text-gray-700">Category</label>
               <div className="relative">
                 <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 focus:border-[#2F43F2] focus:ring-2 focus:ring-blue-100 outline-none transition-all appearance-none cursor-pointer"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 focus:border-[#2F43F2] focus:ring-2 focus:ring-blue-100 outline-none transition-all appearance-none cursor-pointer"
                 >
-                    <option value="GEN" className="cursor-pointer">GEN</option>
-                    <option value="OBC" className="cursor-pointer">OBC</option>
-                    <option value="SC" className="cursor-pointer">SC</option>
-                    <option value="ST" className="cursor-pointer">ST</option>
+                  <option value="GEN" className="cursor-pointer">GEN</option>
+                  <option value="OBC" className="cursor-pointer">OBC</option>
+                  <option value="SC" className="cursor-pointer">SC</option>
+                  <option value="ST" className="cursor-pointer">ST</option>
                 </select>
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                    <ChevronDown className="w-4 h-4" />
+                  <ChevronDown className="w-4 h-4" />
                 </div>
               </div>
             </div>
@@ -155,11 +158,13 @@ export default function RegistrationFormModal({
               disabled={isProcessing}
               className="w-full bg-[#FF660F] hover:bg-[#e15500] text-white cursor-pointer py-6 text-lg font-medium rounded-xl shadow-lg shadow-orange-200 transition-all active:scale-[0.98]"
             >
-              {isProcessing ? "Processing..." : "Submit & Pay"}
+              {isProcessing ? "Processing..." : (isFree ? "Submit & Register" : "Submit & Pay")}
             </Button>
-            <p className="text-center text-xs text-gray-400 mt-3">
-              Secure payment powered by Razorpay
-            </p>
+            {!isFree && (
+              <p className="text-center text-xs text-gray-400 mt-3">
+                Secure payment powered by Razorpay
+              </p>
+            )}
           </div>
         </form>
       </div>
