@@ -4,3 +4,4 @@ export { CounselorSection } from './CounselorSection';
 export { CourseSection } from './CourseSection';
 export { ExamSection } from './ExamSection';
 export { FreeCoursesSection } from './FreeCoursesSection';
+export { JEEPredictorSection } from './JEEPredictorSection';
