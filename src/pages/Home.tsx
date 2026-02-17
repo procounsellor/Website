@@ -7,6 +7,7 @@ import {
   ExamSection,
   FreeCoursesSection,
   Hero,
+  JEEPredictorSection,
 } from "@/components";
 import AppInstallCard from "@/components/cards/AppInstallCard";
 import CourseBannerSection from "@/components/sections/CourseBannerSection";
@@ -23,6 +24,7 @@ export default function Home() {
       <CounselorSection />
       {/* <DiscoverSection/> */}
       <CourseBannerSection />
+      <JEEPredictorSection />
       <FreeCoursesSection />
       <AllCounselorSection />
 
