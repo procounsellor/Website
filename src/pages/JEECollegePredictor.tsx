@@ -295,15 +295,15 @@ export default function JEECollegePredictor() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-xs mb-6 text-gray-500 uppercase tracking-wider">
-          <Link to="/" className="hover:text-[#2F43F2] transition-colors">
+          <Link to="/" className="hover:text-[#2F43F2] transition-colors cursor-pointer">
             Home
           </Link>
           <ChevronsRight size={12} className="text-gray-400" />
           <Link
             to="/jee-college-predictor"
-            className="hover:text-[#2F43F2] transition-colors"
+            className="hover:text-[#2F43F2] transition-colors cursor-pointer"
           >
-            JEE Main 2024
+            JEE Main
           </Link>
           <ChevronsRight size={12} className="text-gray-400" />
           <span className="text-gray-800 font-bold">College Predictor</span>
@@ -330,7 +330,7 @@ export default function JEECollegePredictor() {
                       setPercentile("");
                       setPrediction(null);
                     }}
-                    className={`pb-3 px-1 text-sm font-medium transition-colors ${
+                    className={`pb-3 px-1 text-sm font-medium transition-colors cursor-pointer ${
                       mode === "marks"
                         ? "text-[#2F43F2] border-b-2 border-[#2F43F2]"
                         : "text-gray-500 hover:text-gray-700"
@@ -345,7 +345,7 @@ export default function JEECollegePredictor() {
                       setMarks("");
                       setPrediction(null);
                     }}
-                    className={`pb-3 px-1 text-sm font-medium transition-colors ${
+                    className={`pb-3 px-1 text-sm font-medium transition-colors cursor-pointer ${
                       mode === "percentile"
                         ? "text-[#2F43F2] border-b-2 border-[#2F43F2]"
                         : "text-gray-500 hover:text-gray-700"
@@ -460,7 +460,7 @@ export default function JEECollegePredictor() {
                     <Button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full h-12 bg-[#2F43F2] hover:bg-[#2F43F2]/90 text-white text-base font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
+                      className="w-full h-12 bg-[#2F43F2] hover:bg-[#2F43F2]/90 text-white text-base font-semibold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
                     >
                       {isLoading ? (
                         <>
@@ -490,7 +490,7 @@ export default function JEECollegePredictor() {
                     Predicted Colleges
                   </h1>
                   <p className="text-sm text-gray-500">
-                    Based on JoSAA 2025 Round 6 & CSAB Special Round Data
+                    Based on JoSAA Round 6 & CSAB Special Round Data
                   </p>
                 </div>
               </div>
@@ -507,7 +507,7 @@ export default function JEECollegePredictor() {
                       setInstituteFilter(filter);
                       setCurrentPage(1);
                     }}
-                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
                       instituteFilter === filter
                         ? "bg-[#2F43F2] text-white"
                         : "bg-gray-100 text-gray-600 hover:bg-[#2F43F2]/10"
@@ -592,7 +592,7 @@ export default function JEECollegePredictor() {
                                       onClick={() =>
                                         togglePrograms(actualIndex)
                                       }
-                                      className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#2F43F2] hover:text-[#2F43F2]/80 transition-colors"
+                                      className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#2F43F2] hover:text-[#2F43F2]/80 transition-colors cursor-pointer"
                                     >
                                       {isExpanded ? (
                                         <>
@@ -681,7 +681,7 @@ export default function JEECollegePredictor() {
                       setCurrentPage((prev) => Math.max(1, prev - 1))
                     }
                     disabled={currentPage === 1}
-                    className="w-10 h-10 flex items-center justify-center rounded border border-gray-200 hover:bg-[#2F43F2]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="w-10 h-10 flex items-center justify-center rounded border border-gray-200 hover:bg-[#2F43F2]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </button>
@@ -700,7 +700,7 @@ export default function JEECollegePredictor() {
                       <button
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
-                        className={`w-10 h-10 flex items-center justify-center rounded text-sm font-medium transition-colors ${
+                        className={`w-10 h-10 flex items-center justify-center rounded text-sm font-medium transition-colors cursor-pointer ${
                           currentPage === pageNum
                             ? "bg-[#2F43F2] text-white"
                             : "bg-white border border-gray-200 text-gray-700 hover:bg-[#2F43F2]/5"
@@ -716,7 +716,7 @@ export default function JEECollegePredictor() {
                   {totalPages > 5 && (
                     <button
                       onClick={() => setCurrentPage(totalPages)}
-                      className={`w-10 h-10 flex items-center justify-center rounded text-sm font-medium transition-colors ${
+                      className={`w-10 h-10 flex items-center justify-center rounded text-sm font-medium transition-colors cursor-pointer ${
                         currentPage === totalPages
                           ? "bg-[#2F43F2] text-white"
                           : "bg-white border border-gray-200 text-gray-700 hover:bg-[#2F43F2]/5"
@@ -730,7 +730,7 @@ export default function JEECollegePredictor() {
                       setCurrentPage((prev) => Math.min(totalPages, prev + 1))
                     }
                     disabled={currentPage === totalPages}
-                    className="w-10 h-10 flex items-center justify-center rounded border border-gray-200 hover:bg-[#2F43F2]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="w-10 h-10 flex items-center justify-center rounded border border-gray-200 hover:bg-[#2F43F2]/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
                   >
                     <ChevronRight className="h-5 w-5" />
                   </button>
@@ -750,7 +750,7 @@ export default function JEECollegePredictor() {
                   </p>
                   <Button
                     onClick={() => toggleLogin()}
-                    className="bg-[#2F43F2] hover:bg-[#2F43F2]/90 text-white px-8 py-2 rounded-xl font-semibold"
+                    className="bg-[#2F43F2] hover:bg-[#2F43F2]/90 text-white px-8 py-2 rounded-xl font-semibold cursor-pointer"
                   >
                     Login Now
                   </Button>
@@ -775,7 +775,7 @@ export default function JEECollegePredictor() {
                     setMode("marks");
                     setPercentile("");
                   }}
-                  className={`pb-3 px-1 text-base sm:text-lg font-medium transition-colors ${
+                  className={`pb-3 px-1 text-base sm:text-lg font-medium transition-colors cursor-pointer ${
                     mode === "marks"
                       ? "text-[#2F43F2] border-b-2 border-[#2F43F2]"
                       : "text-gray-500 hover:text-gray-700"
@@ -789,7 +789,7 @@ export default function JEECollegePredictor() {
                     setMode("percentile");
                     setMarks("");
                   }}
-                  className={`pb-3 px-1 text-base sm:text-lg font-medium transition-colors ${
+                  className={`pb-3 px-1 text-base sm:text-lg font-medium transition-colors cursor-pointer ${
                     mode === "percentile"
                       ? "text-[#2F43F2] border-b-2 border-[#2F43F2]"
                       : "text-gray-500 hover:text-gray-700"

@@ -148,7 +148,7 @@ export default function JEERankPredictor() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-12 bg-[#2F43F2] hover:bg-[#2F43F2]/90 text-white text-base font-semibold rounded-xl transition-all"
+                className="w-full h-12 bg-[#2F43F2] hover:bg-[#2F43F2]/90 text-white text-base font-semibold rounded-xl transition-all cursor-pointer"
               >
                 {isLoading ? (
                   <>
@@ -222,7 +222,7 @@ export default function JEERankPredictor() {
                   </p>
                   <Button
                     onClick={() => toggleLogin()}
-                    className="bg-[#2F43F2] hover:bg-[#2F43F2]/90 text-white px-8 py-2 rounded-xl font-semibold"
+                    className="bg-[#2F43F2] hover:bg-[#2F43F2]/90 text-white px-8 py-2 rounded-xl font-semibold cursor-pointer"
                   >
                     Login Now
                   </Button>

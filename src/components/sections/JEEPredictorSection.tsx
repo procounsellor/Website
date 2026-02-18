@@ -45,7 +45,7 @@ export function JEEPredictorSection() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => navigate("/jee-rank-predictor")}
-                    className="text-gray-900 underline font-medium text-sm hover:text-gray-700 transition-colors"
+                    className="text-gray-900 underline font-medium text-sm hover:text-gray-700 transition-colors cursor-pointer"
                   >
                     Predict Rank
                   </button>
@@ -113,7 +113,7 @@ export function JEEPredictorSection() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => navigate("/jee-college-predictor")}
-                    className="text-gray-900 underline font-medium text-sm hover:text-gray-700 transition-colors"
+                    className="text-gray-900 underline font-medium text-sm hover:text-gray-700 transition-colors cursor-pointer"
                   >
                     Predict College
                   </button>
