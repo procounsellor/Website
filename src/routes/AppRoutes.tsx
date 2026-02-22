@@ -38,8 +38,10 @@ import { CreateEditTestGroup } from '@/pages/test/counsellor/CreateEditTestGroup
 import { TestGroupDetails } from '@/pages/test/counsellor/TestGroupDetails';
 import TestGroupDetailsPage from '@/pages/test/user/TestGroupDetailsPage';
 import CollegeDetailsPageNew from '@/pages/CollegeDetailsPage';
-import JEERankPredictor from '@/pages/JEERankPredictor';
-import JEECollegePredictor from '@/pages/JEECollegePredictor';
+import RevampLayout from '@/layouts/RevampLayout';
+import ProBuddies from '@/pages/Revamp/ProBuddies';
+import RevampAbout from '@/components/Revamp/about/RevampAbout';
+import Admissions from '@/pages/Revamp/Admissions';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
@@ -71,6 +73,16 @@ export default function AppRoutes() {
                     <Route path='/t/analysis/:testId/:attemptId' element={<TestAnalysisPage />} />
 
 
+                    <Route element={<RevampLayout/>}>
+                        <Route path='/pro-buddies' element={<ProBuddies/>}/>
+                        <Route path='/admissions' element={<Admissions/>}/>
+                        <Route path="/community" element={<CommunityPage />} />
+                        <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
+                        <Route path="/community/answer" element={<AnswerPage />} />
+                        <Route path="/community/my-activity" element={<MyActivityPage />} />
+                        <Route path='/revamp-about'  element={<RevampAbout/>}/>
+                    </Route>
+
                     <Route element={<MainLayout />}>
                         <Route path="/" element={<Home />} />
                         <Route path='/gurucool' element={<LandingPage />} />
@@ -96,10 +108,6 @@ export default function AppRoutes() {
                         <Route path='/subscribe' element={<SubscriptionPage />} />
                         <Route path='/counsellor-dashboard' element={<CounselorDashboard />} />
                         <Route path='/counselor-dashboard/client-profile' element={<ClientProfilePage />} />
-                        <Route path="/community" element={<CommunityPage />} />
-                        <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
-                        <Route path="/community/answer" element={<AnswerPage />} />
-                        <Route path="/community/my-activity" element={<MyActivityPage />} />
                         <Route path='/promo' element={<PromoPage />} />
                         <Route path='/testSeries/pcsat' element={<TestSeriesPromo />} />
                         <Route path="/notifications" element={<NotificationsPage />} />
