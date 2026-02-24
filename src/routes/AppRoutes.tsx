@@ -40,6 +40,7 @@ import TestGroupDetailsPage from '@/pages/test/user/TestGroupDetailsPage';
 import CollegeDetailsPageNew from '@/pages/CollegeDetailsPage';
 import JEERankPredictor from '@/pages/JEERankPredictor';
 import JEECollegePredictor from '@/pages/JEECollegePredictor';
+import MHTCETCollegePredictor from '@/pages/MHTCETCollegePredictor';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
@@ -93,6 +94,7 @@ export default function AppRoutes() {
                         <Route path="/exams/:id" element={<ExamDetailsPage />} />
                         <Route path="/jee-rank-predictor" element={<JEERankPredictor />} />
                         <Route path="/jee-college-predictor" element={<JEECollegePredictor />} />
+                        <Route path="/mhtcet-college-predictor" element={<MHTCETCollegePredictor />} />
                         <Route path='/subscribe' element={<SubscriptionPage />} />
                         <Route path='/counsellor-dashboard' element={<CounselorDashboard />} />
                         <Route path='/counselor-dashboard/client-profile' element={<ClientProfilePage />} />
