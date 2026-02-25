@@ -18,29 +18,29 @@ export default function CollegeSection() {
       </div>
 
 
-        <div className="flex gap-6 justify-center">
-              <FancyCard/>
-              <FancyCard/>
-              <FancyCard/>
-              <FancyCard/>
+      <div className="flex gap-6 justify-center">
+        <FancyCard />
+        <FancyCard />
+        <FancyCard />
+        <FancyCard />
+      </div>
+
+
+
+      <div className={styles.controlsContainer}>
+        <div className={styles.progressBar}>
+          <div className={styles.progressFill} style={{ width: '25%' }}></div>
         </div>
 
-
-
-        <div className={styles.controlsContainer}>
-            <div className={styles.progressBar}>
-                <div className={styles.progressFill} style={{ width: '25%' }}></div>
-            </div>
-
-            <div className={styles.navButtons}>
-                <button className={styles.navButton}>
-                    <img src="/arrow.svg" alt="Previous" className={styles.leftArrow} />
-                </button>
-                <button className={styles.navButton}>
-                    <img src="/arrow.svg" alt="Next" className={styles.rightArrow} />
-                </button>
-            </div>
+        <div className={styles.navButtons}>
+          <button className={styles.navButton}>
+            <img src="/arrow.svg" alt="Previous" className={styles.leftArrow} />
+          </button>
+          <button className={styles.navButton}>
+            <img src="/arrow.svg" alt="Next" className={styles.rightArrow} />
+          </button>
         </div>
+      </div>
     </div>
   );
 }

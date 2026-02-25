@@ -17,8 +17,6 @@ export default function RevampHeader(){
     const navigate = useNavigate();
     const location = useLocation();
     const [activeTab, setActiveTab] = useState(1);
-    
-    // Sync active tab with current route
     useEffect(() => {
         const currentTab = tabs.find(tab => tab.path === location.pathname);
         if (currentTab) {
@@ -26,7 +24,7 @@ export default function RevampHeader(){
         }
     }, [location.pathname]);
 
-    return <div className="bg-[#C6DDF040] w-full h-40 px-[60px] py-4.5 flex flex-col gap-3">
+    return <div className="bg-[rgba(198, 221, 240, 0.95)] w-full h-40 px-[60px] py-4.5 flex flex-col gap-3 shadow-sm backdrop-blur-sm">
 
         <div className="flex justify-between">
             <div className="flex items-center gap-2">
