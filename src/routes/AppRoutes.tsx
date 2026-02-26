@@ -103,6 +103,8 @@ export default function AppRoutes() {
                         <Route path='/detail/:courseId/:role' element={<CoursePage />} />
                         <Route path="/add-college" element={<AddCollegePage />} />
                         <Route path="/exams/:id" element={<ExamDetailsPage />} />
+                        <Route path="/jee-rank-predictor" element={<JEERankPredictor />} />
+                        <Route path="/jee-college-predictor" element={<JEECollegePredictor />} />
                         <Route path='/subscribe' element={<SubscriptionPage />} />
                         <Route path='/counsellor-dashboard' element={<CounselorDashboard />} />
                         <Route path='/counselor-dashboard/client-profile' element={<ClientProfilePage />} />

@@ -65,10 +65,6 @@ export default function Sidebar({
   const [chatToDelete, setChatToDelete] = useState<string | null>(null);
 
   const editInputRef = useRef<HTMLInputElement>(null);
-  const [showTutorial, setShowTutorial] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   const searchPopupRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -134,51 +130,6 @@ export default function Sidebar({
       await deleteChatSession(chatToDelete, userId);
       setChatToDelete(null); // Close modal
     }
-  };
-
-  // Check if mobile and show tutorial on first visit
-  useEffect(() => {
-    const checkMobile = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-
-      if (mobile) {
-        const hasSeenTutorial = localStorage.getItem('chatbot-sidebar-tutorial-seen');
-        if (!hasSeenTutorial) {
-          setShowTutorial(true);
-        }
-      }
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!isMobile) return;
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isMobile) return;
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!isMobile || touchStart === null || touchEnd === null) return;
-    if (touchStart < 50 && touchEnd - touchStart > 100) {
-      setIsSidebarOpen(true);
-    }
-    if (isSidebarOpen && touchStart - touchEnd > 100) {
-      setIsSidebarOpen(false);
-    }
-  };
-
-  const closeTutorial = () => {
-    setShowTutorial(false);
-    localStorage.setItem('chatbot-sidebar-tutorial-seen', 'true');
   };
 
   const filteredChats = (chatSessions || []).filter(chat =>
@@ -277,7 +228,7 @@ export default function Sidebar({
                 <button
                   onClick={() => {
                     handleNewChat();
-                    if (isMobile) {
+                    if (window.innerWidth < 768) {
                       setIsSidebarOpen(false);
                     }
                   }}

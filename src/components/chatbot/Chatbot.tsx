@@ -13,7 +13,6 @@ import SmartImage from "@/components/ui/SmartImage";
 import { Button } from "../ui";
 import toast from "react-hot-toast";
 import ChatInput, { type ChatInputRef } from "./components/ChatInput";
-import { encodeCounselorId } from "@/lib/utils";
 import Sidear from "./components/Sidear";
 import ChatMessage from "./components/ChatMessage";
 import { ChatbotCounselorCard } from "./components/ChatbotCounselorCard";
@@ -104,11 +103,19 @@ export default function Chatbot() {
 
   // UI state
   const [input, setInput] = useState("");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // Lazy initialization to detect mobile BEFORE first render
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < 768
+  );
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth >= 768
+  );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [visibleCounselorsPerMessage, setVisibleCounselorsPerMessage] =
     useState<Record<number, number>>({});
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -117,8 +124,14 @@ export default function Chatbot() {
   // Initialize sidebar state based on screen size
   useEffect(() => {
     const initializeSidebar = () => {
-      const isMobile = window.innerWidth < 768;
-      setIsSidebarOpen(!isMobile);
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+
+      // Show tutorial on mobile first visit
+      if (mobile && !localStorage.getItem('chatbot-sidebar-tutorial-seen')) {
+        setShowTutorial(true);
+      }
+      setIsSidebarOpen(!mobile);
     };
 
     initializeSidebar();
@@ -185,12 +198,20 @@ export default function Chatbot() {
   };
 
   const handleNewChat = () => {
+    // Prevent creating new chat if current one is already empty
+    if (messages.length === 0) {
+      return;
+    }
     clearMessages();
     startNewChat();
   };
 
   const handleSelectChat = (sessionId: string) => {
     loadChatHistoryBySessionId(sessionId);
+    // Auto-close sidebar on mobile when selecting a chat
+    if (isMobile) {
+      setIsSidebarOpen(false);
+    }
   };
 
   const handleDeleteChat = (sessionId: string) => {
@@ -230,10 +251,43 @@ export default function Chatbot() {
   const chatbotZIndex =
     isLoginToggle && isLoginOpenFromChatbot ? "z-[40]" : "z-[100]";
 
+  const closeTutorial = () => {
+    setShowTutorial(false);
+    localStorage.setItem('chatbot-sidebar-tutorial-seen', 'true');
+  };
+
   return (
     <div
       className={`fixed inset-0 ${chatbotZIndex} flex flex-col bg-[#232323] font-sans`}
     >
+      {/* Tutorial for mobile users */}
+      {showTutorial && isMobile && (
+        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/70 p-6">
+          <div className="bg-[#2a2a2a] rounded-2xl p-6 max-w-sm border border-[#A0A0A099] shadow-2xl">
+            <div className="flex justify-end mb-2">
+              <button onClick={closeTutorial} className="text-white/60 hover:text-white cursor-pointer">
+                <Menu className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="text-center">
+              <div className="inline-block p-4 bg-[#FF660F]/20 rounded-full mb-4">
+                <Menu className="h-10 w-10 text-[#FF660F]" />
+              </div>
+              <h3 className="text-white font-semibold text-lg mb-2">Access Your Menu</h3>
+              <p className="text-gray-400 text-sm mb-4">
+                Tap the menu icon in the top left to access your chat history and options.
+              </p>
+              <button
+                onClick={closeTutorial}
+                className="w-full bg-[#FF660F] text-white font-semibold py-3 px-6 rounded-lg hover:bg-[#e55a0a] transition-colors cursor-pointer"
+              >
+                Got it!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Login Prompt Modal */}
       {showLoginPrompt && (
         <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/70 p-6">
@@ -652,7 +706,9 @@ export default function Chatbot() {
                                         <div
                                           onClick={() => {
                                             toggleChatbot();
-                                            navigate(`/counsellor/${encodeCounselorId(c.counsellorId)}`);
+                                            navigate("/counsellor-profile", {
+                                              state: { id: c.counsellorId },
+                                            });
                                           }}
                                           className="w-full animate-in fade-in-50 slide-in-from-bottom-4 duration-500 cursor-pointer"
                                           style={{

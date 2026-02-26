@@ -47,8 +47,11 @@ const bannerSlides = [
 const CourseBannerSection: React.FC = () => {
     const navigate = useNavigate();
     const { isAuthenticated, toggleLogin } = useAuthStore();
+    const slidesWithClone = [...bannerSlides, bannerSlides[0]];
+    
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
+    const [isTransitioning, setIsTransitioning] = useState(true);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // Auto-rotation logic
@@ -56,10 +59,29 @@ const CourseBannerSection: React.FC = () => {
         if (intervalRef.current) clearInterval(intervalRef.current);
         intervalRef.current = setInterval(() => {
             if (!isPaused) {
-                setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
+                setIsTransitioning(true);
+                setCurrentSlide((prev) => prev + 1);
             }
         }, 5000);
     }, [isPaused]);
+
+    useEffect(() => {
+        if (currentSlide === slidesWithClone.length - 1) {
+            const timer = setTimeout(() => {
+                setIsTransitioning(false);
+                setCurrentSlide(0);
+            }, 700);
+
+            return () => clearTimeout(timer);
+        }
+    }, [currentSlide, slidesWithClone.length]);
+
+    useEffect(() => {
+        if (!isTransitioning && currentSlide === 0) {
+            const timer = setTimeout(() => setIsTransitioning(true), 50);
+            return () => clearTimeout(timer);
+        }
+    }, [isTransitioning, currentSlide]);
 
     useEffect(() => {
         startAutoRotate();
@@ -70,6 +92,7 @@ const CourseBannerSection: React.FC = () => {
 
     // Handle dot click
     const goToSlide = (index: number) => {
+        setIsTransitioning(true);
         setCurrentSlide(index);
         startAutoRotate();
     };
@@ -97,48 +120,46 @@ const CourseBannerSection: React.FC = () => {
         }
     };
 
-    const currentBanner = bannerSlides[currentSlide];
-
     // Render Aaditya banner (original)
     const renderAadityaBanner = () => (
         <div className="z-10 relative">
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white mb-2 md:mb-4">
+            <h2 className="text-sm sm:text-xl md:text-2xl lg:text-3xl font-bold text-white mb-2 md:mb-4">
                 Explore Our Comprehensive Range of Courses By :
                 <br />
-                <span className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white">
+                <span className="text-xl sm:text-3xl md:text-4xl font-extrabold text-white">
                     Aaditya [COEP]
                 </span>
             </h2>
 
-            <div className="flex items-center space-x-3 mb-4 md:mb-8">
+            <div className="flex items-center space-x-2 sm:space-x-3 mb-4 md:mb-8">
                 <img
                     src={SUBSCRIBER_AVATARS_PATH}
                     alt="52.5K subscribers"
-                    className="h-9 sm:h-10 w-auto object-contain"
+                    className="h-7 sm:h-10 w-auto object-contain"
                 />
-                <p className="text-base sm:text-lg font-semibold text-white">
+                <p className="text-xs sm:text-lg font-semibold text-white">
                     52.5K subscribers
                 </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+            <div className="flex flex-row gap-2 md:gap-4 items-center">
                 <a
                     href={COURSE_EXPLORE_PATH}
                     onClick={handleExploreClick}
-                    className="inline-flex items-center justify-center px-4 py-2 sm:px-6 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-lg shadow-sm bg-white hover:bg-gray-50 transition duration-150 ease-in-out cursor-pointer"
+                    className="inline-flex items-center justify-center px-2 py-2 sm:px-6 sm:py-3 border border-transparent text-[10px] sm:text-base font-medium rounded-lg shadow-sm bg-white hover:bg-gray-50 transition duration-150 ease-in-out cursor-pointer whitespace-nowrap flex-1 sm:flex-none"
                     style={{ color: '#B68D9D' }}
                 >
-                    Explore Courses Now
-                    <ArrowUpRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" style={{ color: '#B68D9D' }} />
+                    Explore Courses
+                    <ArrowUpRight className="ml-1 w-3 h-3 sm:w-5 sm:h-5" style={{ color: '#B68D9D' }} />
                 </a>
 
                 <button
                     onClick={handleLiveSessionClick}
-                    className="inline-flex items-center justify-center px-4 py-2 sm:px-6 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-lg shadow-sm transition cursor-pointer duration-150 ease-in-out"
-                    style={{ background: 'white', color: '#B68D9D' }}
+                    className="inline-flex items-center justify-center px-2 py-2 sm:px-6 sm:py-3 border border-transparent text-[10px] sm:text-base font-medium rounded-lg shadow-sm transition cursor-pointer duration-150 ease-in-out bg-white flex-1 sm:flex-none whitespace-nowrap"
+                    style={{ color: '#B68D9D' }}
                 >
-                    Explore Live Sessions
-                    <ArrowUpRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" style={{ color: '#B68D9D' }} />
+                    Live Sessions
+                    <ArrowUpRight className="ml-1 w-3 h-3 sm:w-5 sm:h-5" style={{ color: '#B68D9D' }} />
                 </button>
             </div>
         </div>
@@ -194,62 +215,77 @@ const CourseBannerSection: React.FC = () => {
         <section className="bg-white py-8 md:py-16">
             <div className="container mx-auto px-4 md:px-38">
                 <div
-                    className="relative overflow-hidden rounded-xl p-6 md:p-12 lg:p-16 transition-all duration-700 ease-in-out"
-                    style={{ background: currentBanner.gradient }}
+                    className="relative overflow-hidden rounded-xl"
                     onMouseEnter={() => setIsPaused(true)}
                     onMouseLeave={() => setIsPaused(false)}
                 >
-                    {/* Content */}
-                    <div className="transition-opacity duration-500">
-                        {currentBanner.id === 'aaditya'
-                            ? renderAadityaBanner()
-                            : renderPromoBanner(currentBanner as typeof bannerSlides[1])
-                        }
+                    {/* Sliding Track */}
+                    <div 
+                        className="flex"
+                        style={{ 
+                            transform: `translateX(-${currentSlide * 100}%)`,
+                            transition: isTransitioning ? 'transform 700ms ease-in-out' : 'none'
+                        }}
+                    >
+                        {slidesWithClone.map((slide, index) => (
+                            <div
+                                key={`${slide.id}-${index}`}
+                                className="min-w-full p-6 md:p-12 lg:p-16 relative"
+                                style={{ background: slide.gradient }}
+                            >
+                                {/* Content */}
+                                <div className="transition-opacity duration-500">
+                                    {slide.id === 'aaditya'
+                                        ? renderAadityaBanner()
+                                        : renderPromoBanner(slide as typeof bannerSlides[1])
+                                    }
+                                </div>
+
+                                {/* Decorative elements for Aaditya banner */}
+                                {slide.id === 'aaditya' && (
+                                    <div className="absolute top-0 right-0 h-full w-1/4 hidden md:block z-0">
+                                        <div
+                                            className="absolute rounded-full z-[-1]"
+                                            style={{
+                                                top: '-20%',
+                                                right: '-80%',
+                                                width: '200%',
+                                                height: '140%',
+                                                backgroundColor: '#DCC1CA',
+                                                opacity: 0.15,
+                                            }}
+                                        />
+                                        <div
+                                            className="absolute rounded-full z-[-1]"
+                                            style={{
+                                                top: '10%',
+                                                right: '-30%',
+                                                width: '100%',
+                                                height: '100%',
+                                                backgroundColor: '#DCC1CA',
+                                                opacity: 0.25,
+                                            }}
+                                        />
+                                        <img
+                                            src={AADITYA_IMAGE_PATH}
+                                            alt="Aaditya [COEP] Counselor"
+                                            className="absolute bottom-0 right-0 h-full object-cover z-10"
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </div>
-
-                    {/* Decorative elements for Aaditya banner */}
-                    {currentBanner.id === 'aaditya' && (
-                        <div className="absolute top-0 right-0 h-full w-1/4 hidden md:block z-0">
-                            <div
-                                className="absolute rounded-full z-[-1]"
-                                style={{
-                                    top: '-20%',
-                                    right: '-80%',
-                                    width: '200%',
-                                    height: '140%',
-                                    backgroundColor: '#DCC1CA',
-                                    opacity: 0.15,
-                                }}
-                            />
-                            <div
-                                className="absolute rounded-full z-[-1]"
-                                style={{
-                                    top: '10%',
-                                    right: '-30%',
-                                    width: '100%',
-                                    height: '100%',
-                                    backgroundColor: '#DCC1CA',
-                                    opacity: 0.25,
-                                }}
-                            />
-                            <img
-                                src={AADITYA_IMAGE_PATH}
-                                alt="Aaditya [COEP] Counselor"
-                                className="absolute bottom-0 right-0 h-full object-cover z-10"
-                            />
-                        </div>
-                    )}
-
-
                 </div>
 
-                {/* Navigation Dots - Outside the card */}
+                {/* Navigation Dots - Use modulo to map back to original indices */}
                 <div className="flex justify-center mt-6 gap-2">
                     {bannerSlides.map((slide, index) => (
                         <button
                             key={slide.id}
                             onClick={() => goToSlide(index)}
-                            className={`h-2 rounded-full transition-all duration-300 hover:cursor-pointer ${index === currentSlide
+                            className={`h-2 rounded-full transition-all duration-300 hover:cursor-pointer ${
+                                (currentSlide % bannerSlides.length) === index
                                 ? 'w-6 bg-[#13097D]'
                                 : 'w-2 bg-gray-400'
                                 }`}

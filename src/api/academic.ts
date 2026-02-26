@@ -148,6 +148,52 @@ export const academicApi = {
     return res.json();
   },
 
+  searchAllLoggedInCounsellors: async (
+    userName: string,
+    filters: {
+      city?: string;
+      languagesKnow?: string;
+      workingDays?: string;
+      experience?: string;
+      minPrice?: string;
+      maxPrice?: string;
+      search?: string;
+    },
+    page: number = 0,
+    pageSize: number = 9
+  ) => {
+    const token = localStorage.getItem("jwt");
+    if (!token) throw new Error("Authentication token not found");
+
+    const params = new URLSearchParams();
+
+    params.append("userId", userName);
+    params.append("page", page.toString());
+    params.append("pageSize", pageSize.toString());
+    params.append("sortBy", "priority");
+    params.append("sortOrder", "desc");
+
+    if (filters.city) params.append("city", filters.city);
+    if (filters.languagesKnow) params.append("languagesKnow", filters.languagesKnow);
+    if (filters.workingDays) params.append("workingDays", filters.workingDays);
+    if (filters.experience) params.append("experience", filters.experience);
+    if (filters.minPrice) params.append("minPrice", filters.minPrice);
+    if (filters.maxPrice) params.append("maxPrice", filters.maxPrice);
+    if (filters.search) params.append("search", filters.search);
+
+    const endpoint = `${API_CONFIG.endpoints.searchLoggedInCounsellors}?${params.toString()}`;
+
+    const res = await fetch(`${API_CONFIG.baseUrl}${endpoint}`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) throw new Error("Failed to search counselors");
+    return res.json();
+  },
+
   searchAllLoggedOutCounsellors: async (
     filters: {
       city?: string;
@@ -217,6 +263,42 @@ export const academicApi = {
     });
     
     if (!res.ok) throw new Error("Failed to search exams");
+    return res.json();
+  },
+
+  getTopCounsellorsAuth: async (userName: string, limit: number = 8) => {
+    const token = localStorage.getItem("jwt");
+    if (!token) throw new Error("Authentication token not found");
+
+    const endpoint = `/api/user/counsellorsAccordingToInterestedCourse/search?userName=${userName}&page=0&pageSize=${limit}&sortBy=priority&sortOrder=desc`;
+
+    const res = await fetch(`${API_CONFIG.baseUrl}${endpoint}`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) throw new Error("Failed to fetch top authenticated counselors");
+    return res.json();
+  },
+
+  getTopCounsellorsPublic: async (limit: number = 8) => {
+    const endpoint = `/api/shared/getAllCounsellors/search?page=0&pageSize=${limit}&sortBy=priority&sortOrder=desc`;
+
+    const res = await fetch(`${API_CONFIG.baseUrl}${endpoint}`, {
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) throw new Error("Failed to fetch top public counselors");
+    return res.json();
+  },
+
+  getTopExams: async (limit: number = 8) => {
+    const endpoint = `/api/exams/all/search?page=0&pageSize=${limit}`;
+
+    const res = await fetch(`${API_CONFIG.baseUrl}${endpoint}`, {
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) throw new Error("Failed to fetch top exams");
     return res.json();
   },
 };

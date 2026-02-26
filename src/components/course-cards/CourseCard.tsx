@@ -133,7 +133,7 @@ export default function CourseCard({
             bg-gradient-to-r from-[#072EB1] to-[#03134B]
           "
         >
-          {course.price} Procoins
+          {Number(course.price) === 0 ? "Free" : `${course.price} Procoins`}
         </span>
       </div>
     </div>
