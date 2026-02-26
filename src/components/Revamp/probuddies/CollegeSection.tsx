@@ -1,3 +1,4 @@
+import { SeeAllButton } from "../components/LeftRightButton";
 import FancyCard from "./CollegeCard";
 import styles from "./CollegeSection.module.css";
 
@@ -32,14 +33,15 @@ export default function CollegeSection() {
           <div className={styles.progressFill} style={{ width: '25%' }}></div>
         </div>
 
-        <div className={styles.navButtons}>
+        {/* <div className={styles.navButtons}>
           <button className={styles.navButton}>
             <img src="/arrow.svg" alt="Previous" className={styles.leftArrow} />
           </button>
           <button className={styles.navButton}>
             <img src="/arrow.svg" alt="Next" className={styles.rightArrow} />
           </button>
-        </div>
+        </div> */}
+        <SeeAllButton/>
       </div>
     </div>
   );

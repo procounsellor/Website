@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 interface PageTransitionProps {
   children: ReactNode;
   transitionKey: string;
+  direction?: number;
 }
 
 // Page/Route transitions - Fast and subtle
@@ -147,7 +148,28 @@ export function Modal({
   );
 }
 
-export default function PageTransition({ children, transitionKey }: PageTransitionProps) {
+export default function PageTransition({ children, transitionKey, direction }: PageTransitionProps) {
+  const directionalVariants = {
+    initial: (dir: number) => ({
+      opacity: 1,
+      x: dir === 0 ? 0 : dir > 0 ? 84 : -84,
+    }),
+    animate: {
+      opacity: 1,
+      x: 0,
+    },
+    exit: (dir: number) => ({
+      opacity: 1,
+      x: dir === 0 ? 0 : dir > 0 ? -84 : 84,
+    }),
+  };
+
+  const directionalTransition = {
+    type: "tween",
+    duration: 0.42,
+    ease: [0.22, 0.61, 0.36, 1],
+  };
+
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -155,8 +177,10 @@ export default function PageTransition({ children, transitionKey }: PageTransiti
         initial="initial"
         animate="animate"
         exit="exit"
-        variants={pageTransitionVariants}
-        transition={pageTransition}
+        custom={direction}
+        variants={direction === undefined ? pageTransitionVariants : directionalVariants}
+        transition={direction === undefined ? pageTransition : directionalTransition}
+        style={{ willChange: "transform", transform: "translateZ(0)" }}
       >
         {children}
       </motion.div>

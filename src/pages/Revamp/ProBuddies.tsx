@@ -7,7 +7,7 @@ export default function ProBuddies() {
   return (
     <div className="">
         <div className="w-full h-[520px] bg-[url('/probuddiesbg.jpg')] bg-cover bg-center">
-      <div className="flex flex-col gap-10 items-center justify-center w-full h-full bg-[#0E1629A6]/95">
+      <div className="flex flex-col gap-10 items-center justify-center w-full h-full bg-[#0E1629A6]/100">
         <div className="relative">
           <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-(--text-muted)" />
           <input
