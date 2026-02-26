@@ -16,7 +16,6 @@ const TimelineItem = ({
   position,
 }: TimelineItemProps) => {
   if (position === "bottom") {
-    // Bottom items: flex-col with month, icon, line, content
     return (
       <div className="flex flex-col gap-[40px] items-center justify-center w-[151px] relative">
         <p className="font-bold not-italic text-[#2f43f2] text-[20px] text-center whitespace-pre-wrap leading-normal min-w-full w-[min-content] shrink-0">
@@ -47,7 +46,6 @@ const TimelineItem = ({
       </div>
     );
   } else {
-    // Top items: flex-col with content, month, icon
     return (
       <div className="flex flex-col gap-[40px] items-center justify-center w-[151px] relative">
         <div className="flex flex-col gap-[12px] items-center w-full shrink-0">
@@ -90,20 +88,20 @@ export default function Timeline() {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setIsVisible(true);
+            observer.disconnect();
           }
         });
       },
-      { threshold: 0.2 }
+      { threshold: 0.3 }
     );
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
+    const el = sectionRef.current;
+    if (el) {
+      observer.observe(el);
     }
 
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
-      }
+      observer.disconnect();
     };
   }, []);
 
@@ -111,66 +109,57 @@ export default function Timeline() {
     {
       month: "Dec-Jan",
       title: "Exam Preps & \nPre Boards",
-      iconUrl:
-        "https://www.figma.com/api/mcp/asset/9aaaa4e9-cf3f-4429-96f0-693f23e229ac",
+      iconUrl: "/timeline-icons/exam-time.png",
       position: "bottom" as const,
     },
     {
       month: "Feb-Mar",
       title: "Board Exams",
-      iconUrl:
-        "https://www.figma.com/api/mcp/asset/c459ce51-b194-4bc7-b4af-6cbae7fd7fa7",
+      iconUrl: "/timeline-icons/evaluation.png",
       position: "top" as const,
     },
     {
       month: "Mar-Apr",
       title: "Entrance Exam",
       subtitle: "(JEE, NEET)",
-      iconUrl:
-        "https://www.figma.com/api/mcp/asset/9aaaa4e9-cf3f-4429-96f0-693f23e229ac",
+      iconUrl: "/timeline-icons/exam-time.png",
       position: "bottom" as const,
     },
     {
       month: "May-Jun",
       title: "Registration",
-      iconUrl:
-        "https://www.figma.com/api/mcp/asset/27bb2bd5-77bb-4499-b5ea-15ab73e1a51d",
+      iconUrl: "/timeline-icons/application.png",
       position: "top" as const,
     },
     {
       month: "Jun-Jul",
       title: "Document verification",
-      iconUrl:
-        "https://www.figma.com/api/mcp/asset/c6f15257-00bc-4097-8eb8-f0d6e362a03d",
+      iconUrl: "/timeline-icons/registration.png",
       position: "bottom" as const,
     },
     {
       month: "Jul-Aug",
       title: "Seat Allotment/CAP",
-      iconUrl:
-        "https://www.figma.com/api/mcp/asset/448e9867-e3a5-433e-8a8a-83b47c28acd7",
+      iconUrl: "/timeline-icons/immigration.png",
       position: "top" as const,
     },
     {
       month: "Aug-Sep",
       title: "Non CAP/ SPOT/IL Rounds",
-      iconUrl:
-        "https://www.figma.com/api/mcp/asset/4b04085f-f603-4b8e-a055-6da4f7479550",
+      iconUrl: "/timeline-icons/non-cap.png",
       position: "bottom" as const,
     },
     {
       month: "Sep-Oct",
       title: "Start of Academic year",
-      iconUrl:
-        "https://www.figma.com/api/mcp/asset/0e2d865a-1345-421b-aab5-ed35cb2c8d08",
+      iconUrl: "/timeline-icons/college.png",
       position: "top" as const,
     },
     {
       month: "Aug-Sep",
       title:
         "Assistance with hostel, loans, internships, placements, and further studies",
-      iconUrl:
-        "https://www.figma.com/api/mcp/asset/04ccbbf4-202e-4c06-9b33-04509df9465a",
+      iconUrl: "/timeline-icons/assistance.png",
       position: "bottom" as const,
     },
   ];
@@ -184,11 +173,10 @@ export default function Timeline() {
 
       {/* Timeline Container */}
       <div className="relative h-[600px] w-full">
-        {/* Horizontal line at 264px - full width */}
         <div className="absolute h-0 left-0 top-[264px] w-full z-20">
         <div className="absolute inset-[-1px_0_0_0]" style={{
           background: "linear-gradient(90deg, #FF6B35 0%, #F7931E 50%, #FF6B35 100%)",
-          height: "2px"
+          height: "1px"
         }} />
       </div>
 
