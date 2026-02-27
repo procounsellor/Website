@@ -73,29 +73,29 @@ const getFileIcon = (type: string) => {
 // Helper to extract YouTube video ID
 const extractYouTubeVideoId = (urlOrId: string): string => {
   if (!urlOrId) return '';
-  
+
   // If it's already just an ID (11 characters), return it
   if (/^[a-zA-Z0-9_-]{11}$/.test(urlOrId)) {
     return urlOrId;
   }
-  
+
   // Extract from various YouTube URL formats
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/live\/)([a-zA-Z0-9_-]{11})/,
     /^.*(?:youtu.be\/|v\/|e\/|u\/\w+\/|embed\/|v=)([a-zA-Z0-9_-]{11})/
   ];
-  
+
   for (const pattern of patterns) {
     const match = urlOrId.match(pattern);
     if (match && match[1]) {
       return match[1];
     }
   }
-  
+
   return urlOrId;
 };
 
-export default function ContentCard({ 
+export default function ContentCard({
   courseContents = [],
   currentPath = ['root'],
   setCurrentPath,
@@ -107,7 +107,7 @@ export default function ContentCard({
   const [showFilePreview, setShowFilePreview] = useState(false);
   const [selectedFile, setSelectedFile] = useState<CourseContent | null>(null);
   const playerRef = useRef<YTPlayer | null>(null);
-  
+
   // Video player state
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -134,7 +134,7 @@ export default function ContentCard({
       const isMacScreenshot = (e.metaKey && e.shiftKey && ['3', '4', '5'].includes(e.key));
       const isWindowsSnip = (e.metaKey && e.shiftKey && e.key === 's');
       const isWindowsScreenRecording = (e.metaKey && e.altKey && e.key === 'r');
-      
+
       if (isPrintScreen || isMacScreenshot || isWindowsSnip || isWindowsScreenRecording) {
         e.preventDefault();
         toast.error('Screenshots and screen recording are not allowed for this content', {
@@ -169,7 +169,7 @@ export default function ContentCard({
     }
 
     const playerId = `player-${selectedFile.courseContentId}`;
-    
+
     // Load YouTube IFrame API if not already loaded
     if (!window.YT) {
       const tag = document.createElement('script');
@@ -199,11 +199,11 @@ export default function ContentCard({
   useEffect(() => {
     if (isFullscreen && selectedFile && window.YT) {
       const playerId = `player-fs-${selectedFile.courseContentId}`;
-      
+
       // Get current state from normal player BEFORE switching
       const wasPlaying = isPlaying;
       const currentPos = currentTime;
-      
+
       // Pause normal player to prevent audio overlap
       if (playerRef.current) {
         const normalPlayer = playerRef.current as any;
@@ -211,11 +211,11 @@ export default function ContentCard({
           normalPlayer.pauseVideo();
         }
       }
-      
+
       // Small delay to ensure DOM is ready
       setTimeout(() => {
         initializePlayer(playerId, fullscreenPlayerRef);
-        
+
         // After fullscreen player initializes, seek to position and play if needed
         setTimeout(() => {
           if (fullscreenPlayerRef.current) {
@@ -234,11 +234,11 @@ export default function ContentCard({
       const fsPlayer = fullscreenPlayerRef.current as any;
       const wasPlaying = isPlaying;
       const currentPos = fsPlayer.getCurrentTime ? fsPlayer.getCurrentTime() : currentTime;
-      
+
       // Destroy fullscreen player
       fullscreenPlayerRef.current.destroy();
       fullscreenPlayerRef.current = null;
-      
+
       // Resume normal player at same position
       setTimeout(() => {
         if (playerRef.current) {
@@ -266,8 +266,8 @@ export default function ContentCard({
     const handleKeyDown = (e: KeyboardEvent) => {
       // Only handle if video is selected
       if (!selectedFile || (selectedFile.type !== 'link' && selectedFile.type !== 'video')) return;
-      
-      switch(e.key.toLowerCase()) {
+
+      switch (e.key.toLowerCase()) {
         case ' ':
         case 'spacebar':
           e.preventDefault();
@@ -320,7 +320,7 @@ export default function ContentCard({
   const initializePlayer = (playerId: string, targetPlayerRef: React.MutableRefObject<YTPlayer | null>) => {
     if (!selectedFile) return;
 
-    const videoId = selectedFile.type === 'link' 
+    const videoId = selectedFile.type === 'link'
       ? extractYouTubeVideoId(selectedFile.documentUrl || '')
       : '';
 
@@ -358,7 +358,7 @@ export default function ContentCard({
                 console.warn('Could not get video duration:', error);
               }
             }
-            
+
             // Get available quality levels with error handling
             try {
               const qualities = event.target.getAvailableQualityLevels();
@@ -381,7 +381,7 @@ export default function ContentCard({
               setAvailableQualities(['hd1080', 'hd720', 'large', 'medium']);
               setCurrentQuality('hd720');
             }
-            
+
             // Get available playback rates and apply saved speed
             try {
               const speeds = event.target.getAvailablePlaybackRates();
@@ -391,7 +391,7 @@ export default function ContentCard({
                   console.log('📊 Available playback speeds:', speeds);
                 }
               }
-              
+
               // Apply saved playback speed (important for fullscreen transitions)
               if (playbackSpeed !== 1 && event.target.setPlaybackRate) {
                 event.target.setPlaybackRate(playbackSpeed);
@@ -404,7 +404,7 @@ export default function ContentCard({
                 console.warn('Could not get playback rates:', error);
               }
             }
-            
+
             // Sync fullscreen player with main player
             if (targetPlayerRef === fullscreenPlayerRef && playerRef.current) {
               const mainPlayer = playerRef.current as any;
@@ -475,11 +475,11 @@ export default function ContentCard({
             availableQualities: availableQualities
           });
         }
-        
+
         // Check if setPlaybackQuality method exists
         if (typeof activePlayer.setPlaybackQuality === 'function') {
           activePlayer.setPlaybackQuality(quality);
-          
+
           // Verify the quality actually changed (dev mode only)
           if (import.meta.env.DEV) {
             setTimeout(() => {
@@ -491,14 +491,14 @@ export default function ContentCard({
                   actualQuality: actualQuality,
                   changeSuccessful: actualQuality === quality
                 });
-                
+
                 if (actualQuality !== quality) {
                   console.warn('⚠️ Quality change partially applied. Requested:', quality, 'Got:', actualQuality);
                 }
               }
             }, 500);
           }
-          
+
           setCurrentQuality(quality);
           setShowQualityMenu(false);
           toast.success(`Quality changed to ${getQualityLabel(quality)}`);
@@ -540,11 +540,11 @@ export default function ContentCard({
             currentSpeed: playbackSpeed
           });
         }
-        
+
         // Check if setPlaybackRate method exists
         if (typeof activePlayer.setPlaybackRate === 'function') {
           activePlayer.setPlaybackRate(speed);
-          
+
           // Verify the speed actually changed (dev mode only)
           if (import.meta.env.DEV) {
             setTimeout(() => {
@@ -559,7 +559,7 @@ export default function ContentCard({
               }
             }, 200);
           }
-          
+
           setPlaybackSpeed(speed);
           setShowSpeedMenu(false);
           toast.success(`Playback speed: ${getSpeedLabel(speed)}`);
@@ -609,9 +609,9 @@ export default function ContentCard({
     try {
       const date = new Date(uploadedAt);
       // Format as "Dec 18, 2025, 7:30 PM"
-      return date.toLocaleString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
+      return date.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
         year: 'numeric',
         hour: 'numeric',
         minute: '2-digit',
@@ -626,16 +626,16 @@ export default function ContentCard({
     if (item.type === 'folder') {
       // Count only direct children (not grandchildren)
       const directChildren = courseContents.filter(c => c.parentPath === item.path);
-      
+
       const folders = directChildren.filter(c => c.type === 'folder').length;
       const videos = directChildren.filter(c => c.type === 'video' || c.type === 'link').length;
       const files = directChildren.filter(c => c.type === 'doc' || c.type === 'pdf' || c.type === 'image').length;
-      
+
       const parts = [];
       if (folders > 0) parts.push(`${folders} folder(s)`);
       if (videos > 0) parts.push(`${videos} video(s)`);
       if (files > 0) parts.push(`${files} file(s)`);
-      
+
       return parts.length > 0 ? parts.join(', ') : '0 items';
     }
     // Show date/time for videos in Live Sessions folder
@@ -687,11 +687,10 @@ export default function ContentCard({
                 {index > 0 && <ChevronRight className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />}
                 <button
                   onClick={() => handleBreadcrumbClick(index)}
-                  className={`cursor-pointer whitespace-nowrap ${
-                    index === currentPath.length - 1
-                      ? 'text-[#13097D] font-semibold'
-                      : 'text-gray-500 hover:text-[#13097D]'
-                  }`}
+                  className={`cursor-pointer whitespace-nowrap ${index === currentPath.length - 1
+                    ? 'text-[#13097D] font-semibold'
+                    : 'text-gray-500 hover:text-[#13097D]'
+                    }`}
                 >
                   {folder === 'root' ? 'Home' : folder === 'Contents' ? 'Contents' : folder}
                 </button>
@@ -700,14 +699,14 @@ export default function ContentCard({
           </div>
         )}
       </div>
-      
+
       {/* Show single "Contents" folder if we're at root */}
       {currentPath.length === 1 && currentPath[0] === 'root' ? (
         courseContents.filter(item => item.parentPath === 'root').length === 0 ? (
           <p className="text-[#8C8CA1] text-center py-8">No content available</p>
         ) : (
           <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ${shouldBlurContent ? "blur-md pointer-events-none" : ""}`}>
-            <div 
+            <div
               className="relative group h-14 bg-[#F5F5F5] rounded-[12px] flex justify-between items-center p-4 cursor-pointer hover:bg-gray-200 w-full"
               onClick={() => setCurrentPath && setCurrentPath(['root', 'Contents'])}
             >
@@ -733,8 +732,8 @@ export default function ContentCard({
         ) : (
           <div className={`flex gap-4 flex-wrap ${shouldBlurContent ? "blur-md pointer-events-none" : ""}`}>
             {courseContents.filter(item => item.parentPath === 'root').map((item) => (
-              <div 
-                key={item.courseContentId} 
+              <div
+                key={item.courseContentId}
                 className={`relative group h-14 bg-[#F5F5F5] w-90 rounded-[12px] flex justify-between items-center p-4 cursor-pointer hover:bg-gray-200`}
                 onClick={() => handleItemClick(item)}
               >
@@ -761,8 +760,8 @@ export default function ContentCard({
         ) : (
           <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ${shouldBlurContent ? "blur-md pointer-events-none" : ""}`}>
             {currentItems.map((item) => (
-              <div 
-                key={item.courseContentId} 
+              <div
+                key={item.courseContentId}
                 className={`relative group h-14 bg-[#F5F5F5] rounded-[12px] flex justify-between items-center p-4 cursor-pointer hover:bg-gray-200 w-full`}
                 onClick={() => handleItemClick(item)}
               >
@@ -817,42 +816,41 @@ export default function ContentCard({
           {/* Content Player/Viewer */}
           <div className="relative w-full bg-black rounded-lg overflow-hidden shadow-lg">
             {selectedFile.type === 'link' || selectedFile.type === 'video' ? (
-              <div 
+              <div
                 className="relative"
                 onMouseEnter={() => setShowControls(true)}
                 onMouseLeave={() => setShowControls(false)}
               >
                 {/* Video Player - with conditional rotation */}
                 <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                  <div 
+                  <div
                     id={`player-${selectedFile.courseContentId}`}
-                    className="absolute" 
+                    className="absolute"
                     style={
-                      selectedFile.source === 'youtube' 
+                      selectedFile.source === 'youtube'
                         ? {
-                            // YouTube videos: no rotation, normal display
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            height: '100%'
-                          }
+                          // YouTube videos: no rotation, normal display
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%'
+                        }
                         : {
-                            // Live streams/other videos: apply rotation for mobile recordings
-                            transform: 'rotate(-90deg)',
-                            transformOrigin: 'center center',
-                            width: '177.78%',
-                            height: '177.78%',
-                            left: '-38.89%',
-                            top: '-38.89%'
-                          }
-                    } 
+                          // Live streams/other videos: apply rotation for mobile recordings
+                          transform: 'rotate(-90deg)',
+                          transformOrigin: 'center center',
+                          width: '177.78%',
+                          height: '177.78%',
+                          left: '-38.89%',
+                          top: '-38.89%'
+                        }
+                    }
                   />
-                  
+
                   {/* Custom Controls Overlay */}
-                  <div 
-                    className={`absolute inset-0 z-20 transition-opacity duration-300 ${
-                      showControls ? 'opacity-100' : 'opacity-0'
-                    }`}
+                  <div
+                    className={`absolute inset-0 z-20 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'
+                      }`}
                   >
                     {/* Center Play/Pause Button Overlay */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -870,150 +868,148 @@ export default function ContentCard({
                         )}
                       </button>
                     </div>
-                    
+
                     {/* Bottom Controls Bar */}
                     <div className="absolute bottom-0 left-0 right-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)' }}>
-                    <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 space-y-2 md:space-y-3">
-                      {/* Progress Bar */}
-                      <input
-                        type="range"
-                        min="0"
-                        max={duration || 100}
-                        value={currentTime}
-                        onChange={(e) => handleSeek(Number(e.target.value))}
-                        className="w-full h-1 md:h-1.5 rounded-lg cursor-pointer"
-                        style={{
-                          background: `linear-gradient(to right, #FA660F 0%, #FA660F ${(currentTime / duration) * 100}%, #4B5563 ${(currentTime / duration) * 100}%, #4B5563 100%)`
-                        }}
-                      />
-                      
-                      {/* Control Buttons */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 md:gap-3">
-                          {/* Play/Pause */}
-                          <button
-                            onClick={handlePlayPause}
-                            className="w-10 h-10 md:w-12 md:h-12 bg-[#FA660F] hover:bg-[#e55e0e] rounded-full flex items-center justify-center transition cursor-pointer shadow-lg"
-                          >
-                            {isPlaying ? (
-                              <Pause className="w-5 h-5 md:w-6 md:h-6 text-white fill-white" />
-                            ) : (
-                              <Play className="w-5 h-5 md:w-6 md:h-6 text-white fill-white ml-0.5" />
-                            )}
-                          </button>
-                          
-                          {/* Skip Back 10s */}
-                          <button
-                            onClick={() => handleSkip(-10)}
-                            className="hidden sm:flex px-2 md:px-3 py-1.5 md:py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white text-xs md:text-sm font-semibold transition cursor-pointer items-center gap-1"
-                          >
-                            <SkipBack className="w-3 h-3 md:w-4 md:h-4" />
-                            <span>10s</span>
-                          </button>
-                          
-                          {/* Skip Forward 10s */}
-                          <button
-                            onClick={() => handleSkip(10)}
-                            className="hidden sm:flex px-2 md:px-3 py-1.5 md:py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white text-xs md:text-sm font-semibold transition cursor-pointer items-center gap-1"
-                          >
-                            <span>10s</span>
-                            <SkipForward className="w-3 h-3 md:w-4 md:h-4" />
-                          </button>
-                          
-                          {/* Time Display */}
-                          <span className="text-white text-xs md:text-sm font-medium hidden md:inline">
-                            {formatTime(currentTime)} / {formatTime(duration)}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          {/* Speed Selector */}
-                          <div className="relative">
+                      <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 space-y-2 md:space-y-3">
+                        {/* Progress Bar */}
+                        <input
+                          type="range"
+                          min="0"
+                          max={duration || 100}
+                          value={currentTime}
+                          onChange={(e) => handleSeek(Number(e.target.value))}
+                          className="w-full h-1 md:h-1.5 rounded-lg cursor-pointer"
+                          style={{
+                            background: `linear-gradient(to right, #FA660F 0%, #FA660F ${(currentTime / duration) * 100}%, #4B5563 ${(currentTime / duration) * 100}%, #4B5563 100%)`
+                          }}
+                        />
+
+                        {/* Control Buttons */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 md:gap-3">
+                            {/* Play/Pause */}
                             <button
-                              onClick={() => setShowSpeedMenu(!showSpeedMenu)}
-                              className="w-8 h-8 md:w-10 md:h-10 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition cursor-pointer"
+                              onClick={handlePlayPause}
+                              className="w-10 h-10 md:w-12 md:h-12 bg-[#FA660F] hover:bg-[#e55e0e] rounded-full flex items-center justify-center transition cursor-pointer shadow-lg"
                             >
-                              <Gauge className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                              {isPlaying ? (
+                                <Pause className="w-5 h-5 md:w-6 md:h-6 text-white fill-white" />
+                              ) : (
+                                <Play className="w-5 h-5 md:w-6 md:h-6 text-white fill-white ml-0.5" />
+                              )}
                             </button>
-                            
-                            {/* Speed Menu */}
-                            {showSpeedMenu && (
-                              <div className="absolute bottom-full right-0 mb-2 bg-black/90 rounded-lg overflow-hidden shadow-lg min-w-[120px]">
-                                <div className="px-3 py-2 text-white text-xs font-semibold border-b border-white/20">
-                                  Speed
-                                </div>
-                                <div className="max-h-60 overflow-y-auto scrollbar-hide">
-                                  {availableSpeeds.map((speed) => (
-                                    <button
-                                      key={speed}
-                                      onClick={() => handleSpeedChange(speed)}
-                                      className={`w-full px-3 py-2 text-left text-xs md:text-sm hover:bg-white/20 transition ${
-                                        playbackSpeed === speed ? 'text-[#FA660F] font-semibold bg-white/10' : 'text-white'
-                                      }`}
-                                    >
-                                      {getSpeedLabel(speed)}
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
+
+                            {/* Skip Back 10s */}
+                            <button
+                              onClick={() => handleSkip(-10)}
+                              className="hidden sm:flex px-2 md:px-3 py-1.5 md:py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white text-xs md:text-sm font-semibold transition cursor-pointer items-center gap-1"
+                            >
+                              <SkipBack className="w-3 h-3 md:w-4 md:h-4" />
+                              <span>10s</span>
+                            </button>
+
+                            {/* Skip Forward 10s */}
+                            <button
+                              onClick={() => handleSkip(10)}
+                              className="hidden sm:flex px-2 md:px-3 py-1.5 md:py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white text-xs md:text-sm font-semibold transition cursor-pointer items-center gap-1"
+                            >
+                              <span>10s</span>
+                              <SkipForward className="w-3 h-3 md:w-4 md:h-4" />
+                            </button>
+
+                            {/* Time Display */}
+                            <span className="text-white text-xs md:text-sm font-medium hidden md:inline">
+                              {formatTime(currentTime)} / {formatTime(duration)}
+                            </span>
                           </div>
-                          
-                          {/* Quality Selector */}
-                          {availableQualities.length > 0 && (
+
+                          <div className="flex items-center gap-2">
+                            {/* Speed Selector */}
                             <div className="relative">
                               <button
-                                onClick={() => setShowQualityMenu(!showQualityMenu)}
+                                onClick={() => setShowSpeedMenu(!showSpeedMenu)}
                                 className="w-8 h-8 md:w-10 md:h-10 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition cursor-pointer"
                               >
-                                <Settings className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                                <Gauge className="w-4 h-4 md:w-5 md:h-5 text-white" />
                               </button>
-                              
-                              {/* Quality Menu */}
-                              {showQualityMenu && (
+
+                              {/* Speed Menu */}
+                              {showSpeedMenu && (
                                 <div className="absolute bottom-full right-0 mb-2 bg-black/90 rounded-lg overflow-hidden shadow-lg min-w-[120px]">
                                   <div className="px-3 py-2 text-white text-xs font-semibold border-b border-white/20">
-                                    Quality
+                                    Speed
                                   </div>
                                   <div className="max-h-60 overflow-y-auto scrollbar-hide">
-                                    {availableQualities.map((quality) => (
+                                    {availableSpeeds.map((speed) => (
                                       <button
-                                        key={quality}
-                                        onClick={() => handleQualityChange(quality)}
-                                        className={`w-full px-3 py-2 text-left text-xs md:text-sm hover:bg-white/20 transition ${
-                                          currentQuality === quality ? 'text-[#FA660F] font-semibold bg-white/10' : 'text-white'
-                                        }`}
+                                        key={speed}
+                                        onClick={() => handleSpeedChange(speed)}
+                                        className={`w-full px-3 py-2 text-left text-xs md:text-sm hover:bg-white/20 transition ${playbackSpeed === speed ? 'text-[#FA660F] font-semibold bg-white/10' : 'text-white'
+                                          }`}
                                       >
-                                        {getQualityLabel(quality)}
+                                        {getSpeedLabel(speed)}
                                       </button>
                                     ))}
                                   </div>
                                 </div>
                               )}
                             </div>
-                          )}
-                          
-                          {/* Fullscreen Button */}
-                          <button
-                            onClick={() => setIsFullscreen(!isFullscreen)}
-                            className="w-8 h-8 md:w-10 md:h-10 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition cursor-pointer"
-                          >
-                            {isFullscreen ? (
-                              <Minimize className="w-4 h-4 md:w-5 md:h-5 text-white" />
-                            ) : (
-                              <Maximize className="w-4 h-4 md:w-5 md:h-5 text-white" />
+
+                            {/* Quality Selector */}
+                            {availableQualities.length > 0 && (
+                              <div className="relative">
+                                <button
+                                  onClick={() => setShowQualityMenu(!showQualityMenu)}
+                                  className="w-8 h-8 md:w-10 md:h-10 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition cursor-pointer"
+                                >
+                                  <Settings className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                                </button>
+
+                                {/* Quality Menu */}
+                                {showQualityMenu && (
+                                  <div className="absolute bottom-full right-0 mb-2 bg-black/90 rounded-lg overflow-hidden shadow-lg min-w-[120px]">
+                                    <div className="px-3 py-2 text-white text-xs font-semibold border-b border-white/20">
+                                      Quality
+                                    </div>
+                                    <div className="max-h-60 overflow-y-auto scrollbar-hide">
+                                      {availableQualities.map((quality) => (
+                                        <button
+                                          key={quality}
+                                          onClick={() => handleQualityChange(quality)}
+                                          className={`w-full px-3 py-2 text-left text-xs md:text-sm hover:bg-white/20 transition ${currentQuality === quality ? 'text-[#FA660F] font-semibold bg-white/10' : 'text-white'
+                                            }`}
+                                        >
+                                          {getQualityLabel(quality)}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             )}
-                          </button>
+
+                            {/* Fullscreen Button */}
+                            <button
+                              onClick={() => setIsFullscreen(!isFullscreen)}
+                              className="w-8 h-8 md:w-10 md:h-10 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition cursor-pointer"
+                            >
+                              {isFullscreen ? (
+                                <Minimize className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                              ) : (
+                                <Maximize className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                              )}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                    </div>
                   </div>
-                  
+
                   {/* Block YouTube clicks */}
-                  <div 
-                    className="absolute inset-0 z-10 cursor-default" 
-                    style={{ pointerEvents: showControls ? 'none' : 'auto' }} 
+                  <div
+                    className="absolute inset-0 z-10 cursor-default"
+                    style={{ pointerEvents: showControls ? 'none' : 'auto' }}
                     onClick={handlePlayPause}
                   />
                 </div>
@@ -1021,8 +1017,8 @@ export default function ContentCard({
             ) : selectedFile.type === 'image' ? (
               /* Image Viewer - inline display with fullscreen option */
               <div className="relative">
-                <img 
-                  src={selectedFile.documentUrl || ''} 
+                <img
+                  src={selectedFile.documentUrl || ''}
                   alt={selectedFile.name}
                   className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
                 />
@@ -1038,7 +1034,7 @@ export default function ContentCard({
               /* PDF Viewer - inline preview with fullscreen option, toolbar disabled */
               <div className="relative">
                 <iframe
-                  src={`${selectedFile.documentUrl || ''}#toolbar=0`}
+                  src={`https://docs.google.com/viewer?url=${encodeURIComponent(selectedFile.documentUrl || '')}&embedded=true`}
                   className="w-full h-[70vh] border-0 rounded-lg bg-white"
                   title={selectedFile.name}
                   allow="autoplay"
@@ -1057,13 +1053,13 @@ export default function ContentCard({
           {/* Info */}
           <div className="mt-4 p-4 bg-gray-50 rounded-lg">
             <p className="text-xs md:text-sm text-gray-600">
-              {selectedFile.type === 'link' || selectedFile.type === 'video' 
+              {selectedFile.type === 'link' || selectedFile.type === 'video'
                 ? 'Video is optimized for learning. Use the controls to play/pause and navigate.'
                 : selectedFile.type === 'image'
-                ? 'Image displayed above. Use browser zoom if needed.'
-                : (selectedFile.type === 'doc' || selectedFile.type === 'pdf')
-                ? 'PDF document displayed above. Scroll to read all pages.'
-                : ''}
+                  ? 'Image displayed above. Use browser zoom if needed.'
+                  : (selectedFile.type === 'doc' || selectedFile.type === 'pdf')
+                    ? 'PDF document displayed above. Scroll to read all pages.'
+                    : ''}
             </p>
           </div>
         </div>
@@ -1071,7 +1067,7 @@ export default function ContentCard({
 
       {/* Custom Fullscreen Modal */}
       {isFullscreen && selectedFile && (selectedFile.type === 'link' || selectedFile.type === 'video') && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] bg-black"
           onMouseEnter={() => setShowControls(true)}
           onMouseLeave={() => setShowControls(false)}
@@ -1081,36 +1077,36 @@ export default function ContentCard({
           {/* Full Screen Video - FILLS ENTIRE SCREEN WITH CONDITIONAL ROTATION */}
           <div className="absolute inset-0 bg-black overflow-hidden">
             {/* Video player */}
-            <div 
+            <div
               id={`player-fs-${selectedFile.courseContentId}`}
               style={
                 selectedFile.source === 'youtube'
                   ? {
-                      // YouTube videos: no rotation, normal fullscreen
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                    }
+                    // YouTube videos: no rotation, normal fullscreen
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                  }
                   : {
-                      // Live streams/other videos: apply rotation for mobile recordings
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      width: window.innerWidth < 768 ? '100vw' : '100vh',
-                      height: window.innerWidth < 768 ? '100vh' : '100vw',
-                      transform: window.innerWidth < 768 
-                        ? 'translate(-50%, -50%)' 
-                        : 'translate(-50%, -50%) rotate(-90deg)',
-                    }
+                    // Live streams/other videos: apply rotation for mobile recordings
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    width: window.innerWidth < 768 ? '100vw' : '100vh',
+                    height: window.innerWidth < 768 ? '100vh' : '100vw',
+                    transform: window.innerWidth < 768
+                      ? 'translate(-50%, -50%)'
+                      : 'translate(-50%, -50%) rotate(-90deg)',
+                  }
               }
             />
-            
+
             {/* Transparent overlay to block YouTube UI */}
-            <div 
+            <div
               className="absolute inset-0 z-[5]"
-              style={{ 
+              style={{
                 pointerEvents: showControls ? 'none' : 'auto',
                 background: 'transparent',
               }}
@@ -1118,12 +1114,11 @@ export default function ContentCard({
               onTouchEnd={(e) => { e.preventDefault(); handlePlayPause(); }}
             />
           </div>
-          
+
           {/* Controls Overlay - NOT rotated, always horizontal */}
-          <div 
-            className={`absolute inset-0 z-20 transition-opacity duration-300 ${
-              showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            }`}
+          <div
+            className={`absolute inset-0 z-20 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
+              }`}
             style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 50%)' }}
           >
             <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 lg:p-8 space-y-3 md:space-y-4">
@@ -1139,13 +1134,13 @@ export default function ContentCard({
                   background: `linear-gradient(to right, #FA660F 0%, #FA660F ${(currentTime / duration) * 100}%, #4B5563 ${(currentTime / duration) * 100}%, #4B5563 100%)`
                 }}
               />
-              
+
               {/* Control Buttons */}
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-2 md:gap-4">
                   {/* Play/Pause */}
-                  <button 
-                    onClick={handlePlayPause} 
+                  <button
+                    onClick={handlePlayPause}
                     className="w-12 h-12 md:w-14 md:h-14 bg-[#FA660F] hover:bg-[#e55e0e] rounded-full flex items-center justify-center transition cursor-pointer shadow-lg"
                   >
                     {isPlaying ? (
@@ -1154,31 +1149,31 @@ export default function ContentCard({
                       <Play className="w-6 h-6 md:w-7 md:h-7 text-white fill-white ml-0.5" />
                     )}
                   </button>
-                  
+
                   {/* Skip Back */}
-                  <button 
-                    onClick={() => handleSkip(-10)} 
+                  <button
+                    onClick={() => handleSkip(-10)}
                     className="hidden sm:flex px-3 md:px-4 py-2 md:py-3 bg-white/20 hover:bg-white/30 rounded-lg text-white text-sm md:text-base font-semibold transition cursor-pointer items-center gap-2"
                   >
                     <SkipBack className="w-4 h-4 md:w-5 md:h-5" />
                     <span>10s</span>
                   </button>
-                  
+
                   {/* Skip Forward */}
-                  <button 
-                    onClick={() => handleSkip(10)} 
+                  <button
+                    onClick={() => handleSkip(10)}
                     className="hidden sm:flex px-3 md:px-4 py-2 md:py-3 bg-white/20 hover:bg-white/30 rounded-lg text-white text-sm md:text-base font-semibold transition cursor-pointer items-center gap-2"
                   >
                     <span>10s</span>
                     <SkipForward className="w-4 h-4 md:w-5 md:h-5" />
                   </button>
-                  
+
                   {/* Time */}
                   <span className="text-white text-sm md:text-lg font-medium hidden md:inline">
                     {formatTime(currentTime)} / {formatTime(duration)}
                   </span>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   {/* Speed Selector */}
                   <div className="relative">
@@ -1189,7 +1184,7 @@ export default function ContentCard({
                       <Gauge className="w-4 h-4 md:w-5 md:h-5 text-white" />
                       <span className="text-white text-xs md:text-base font-semibold hidden sm:inline">{getSpeedLabel(playbackSpeed)}</span>
                     </button>
-                    
+
                     {/* Speed Menu */}
                     {showSpeedMenu && (
                       <div className="absolute bottom-full right-0 mb-2 bg-black/90 rounded-lg overflow-hidden shadow-lg min-w-[140px]">
@@ -1201,9 +1196,8 @@ export default function ContentCard({
                             <button
                               key={speed}
                               onClick={() => handleSpeedChange(speed)}
-                              className={`w-full px-4 py-3 text-left text-sm md:text-base hover:bg-white/20 transition ${
-                                playbackSpeed === speed ? 'text-[#FA660F] font-semibold bg-white/10' : 'text-white'
-                              }`}
+                              className={`w-full px-4 py-3 text-left text-sm md:text-base hover:bg-white/20 transition ${playbackSpeed === speed ? 'text-[#FA660F] font-semibold bg-white/10' : 'text-white'
+                                }`}
                             >
                               {getSpeedLabel(speed)}
                             </button>
@@ -1212,7 +1206,7 @@ export default function ContentCard({
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Quality Selector */}
                   {availableQualities.length > 0 && (
                     <div className="relative">
@@ -1223,7 +1217,7 @@ export default function ContentCard({
                         <Settings className="w-4 h-4 md:w-5 md:h-5 text-white" />
                         <span className="text-white text-xs md:text-base font-semibold hidden sm:inline">{getQualityLabel(currentQuality)}</span>
                       </button>
-                      
+
                       {/* Quality Menu */}
                       {showQualityMenu && (
                         <div className="absolute bottom-full right-0 mb-2 bg-black/90 rounded-lg overflow-hidden shadow-lg min-w-[140px]">
@@ -1235,9 +1229,8 @@ export default function ContentCard({
                               <button
                                 key={quality}
                                 onClick={() => handleQualityChange(quality)}
-                                className={`w-full px-4 py-3 text-left text-sm md:text-base hover:bg-white/20 transition ${
-                                  currentQuality === quality ? 'text-[#FA660F] font-semibold bg-white/10' : 'text-white'
-                                }`}
+                                className={`w-full px-4 py-3 text-left text-sm md:text-base hover:bg-white/20 transition ${currentQuality === quality ? 'text-[#FA660F] font-semibold bg-white/10' : 'text-white'
+                                  }`}
                               >
                                 {getQualityLabel(quality)}
                               </button>
@@ -1247,10 +1240,10 @@ export default function ContentCard({
                       )}
                     </div>
                   )}
-                  
+
                   {/* Exit Fullscreen */}
-                  <button 
-                    onClick={() => setIsFullscreen(false)} 
+                  <button
+                    onClick={() => setIsFullscreen(false)}
                     className="px-3 md:px-4 py-2 md:py-3 bg-white/20 hover:bg-white/30 rounded-lg flex items-center gap-2 transition cursor-pointer"
                   >
                     <Minimize className="w-4 h-4 md:w-5 md:h-5 text-white" />
@@ -1258,7 +1251,7 @@ export default function ContentCard({
                   </button>
                 </div>
               </div>
-              
+
               {/* Keyboard Hints */}
               <div className="hidden md:flex items-center gap-4 text-white/60 text-xs">
                 <span>Space: Play/Pause</span>
@@ -1290,7 +1283,7 @@ export default function ContentCard({
               {(selectedFile.type === 'doc' || selectedFile.type === 'pdf') ? (
                 /* PDF Viewer - direct link with toolbar disabled */
                 <iframe
-                  src={`${selectedFile.documentUrl || ''}#toolbar=0`}
+                  src={`https://docs.google.com/viewer?url=${encodeURIComponent(selectedFile.documentUrl || '')}&embedded=true`}
                   className="w-full h-full border-0"
                   title={selectedFile.name}
                   allow="autoplay"

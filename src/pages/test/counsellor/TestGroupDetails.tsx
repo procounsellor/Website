@@ -1,17 +1,45 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, Edit, Trash2, Star, Users, Clock, FileText, Globe, GlobeLock, Pencil } from "lucide-react";
+import { ArrowLeft, Plus, Edit, Trash2, Star, Users, Clock, FileText, Globe, GlobeLock, Pencil, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { getTestGroupById, getAllTestSeriesOfTestGroupForCounselor, publishUnpublishTestGroup, deleteTestSeries } from "@/api/testGroup";
 import type { TestGroup, TestSeries } from "@/types/testGroup";
+import { DeleteConfirmationModal } from "@/components/modals/DeleteConfirmationModal";
+
+interface Review {
+  reviewId: string;
+  testGroupId: string;
+  userId: string;
+  userFullName: string;
+  photoUrl: string | null;
+  rating: number;
+  reviewText: string;
+  createdAt: { seconds: number; nanos: number };
+  updatedAt: { seconds: number; nanos: number };
+}
+
+interface AssociatedCourse {
+  courseId: string;
+  courseName: string;
+  courseBannerUrl: string;
+  coursePrice: number;
+  discountedCoursePrice: number;
+}
 
 export function TestGroupDetails() {
   const navigate = useNavigate();
   const { testGroupId } = useParams();
   const [testGroup, setTestGroup] = useState<TestGroup | null>(null);
   const [testSeriesList, setTestSeriesList] = useState<TestSeries[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [associatedCourse, setAssociatedCourse] = useState<AssociatedCourse | null>(null);
   const [loading, setLoading] = useState(true);
   const counsellorId = localStorage.getItem("phone") || "";
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string; name: string }>({
+    isOpen: false,
+    id: "",
+    name: "",
+  });
 
   useEffect(() => {
     if (testGroupId) {
@@ -26,8 +54,16 @@ export function TestGroupDetails() {
       const groupResponse = await getTestGroupById(counsellorId, testGroupId!);
       if (groupResponse.status && groupResponse.data?.testGroup) {
         setTestGroup(groupResponse.data.testGroup);
+        // Store reviews from API response
+        if (groupResponse.data.reviews) {
+          setReviews(groupResponse.data.reviews);
+        }
+        // Store associated course if available
+        if (groupResponse.data.associatedCourse) {
+          setAssociatedCourse(groupResponse.data.associatedCourse);
+        }
       }
-      
+
       // Fetch test series list
       const seriesResponse = await getAllTestSeriesOfTestGroupForCounselor(counsellorId, testGroupId!);
       if (seriesResponse.status && seriesResponse.data) {
@@ -59,11 +95,9 @@ export function TestGroupDetails() {
     }
   };
 
-  const handleDeleteTest = async (testSeriesId: string, testName: string) => {
-    if (!confirm(`Are you sure you want to delete "${testName}"?`)) return;
-
+  const handleDeleteTest = async () => {
     try {
-      await deleteTestSeries(counsellorId, testSeriesId);
+      await deleteTestSeries(counsellorId, deleteModal.id);
       toast.success("Test series deleted successfully");
       fetchData();
     } catch (error) {
@@ -155,11 +189,10 @@ export function TestGroupDetails() {
                         {testGroup.testGroupName}
                       </h1>
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          testGroup.published
-                            ? "bg-green-100 text-green-700"
-                            : "bg-gray-100 text-gray-700"
-                        }`}
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${testGroup.published
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-700"
+                          }`}
                       >
                         {testGroup.published ? "Published" : "Draft"}
                       </span>
@@ -180,11 +213,10 @@ export function TestGroupDetails() {
                     </button>
                     <button
                       onClick={handlePublishToggle}
-                      className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors text-sm cursor-pointer ${
-                        testGroup.published
-                          ? "bg-orange-50 text-orange-600 hover:bg-orange-100"
-                          : "bg-green-50 text-green-600 hover:bg-green-100"
-                      }`}
+                      className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors text-sm cursor-pointer ${testGroup.published
+                        ? "bg-orange-50 text-orange-600 hover:bg-orange-100"
+                        : "bg-green-50 text-green-600 hover:bg-green-100"
+                        }`}
                     >
                       {testGroup.published ? <GlobeLock size={14} /> : <Globe size={14} />}
                       {testGroup.published ? "Unpublish" : "Publish"}
@@ -274,15 +306,14 @@ export function TestGroupDetails() {
                         <FileText className="w-10 h-10 text-gray-400" />
                       </div>
                     )}
-                    
+
                     {/* Status Badge */}
                     <div className="absolute top-2 right-2">
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                          test.published
-                            ? "bg-green-500 text-white"
-                            : "bg-gray-500 text-white"
-                        }`}
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${test.published
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-500 text-white"
+                          }`}
                       >
                         {test.published ? "Live" : "Draft"}
                       </span>
@@ -340,7 +371,7 @@ export function TestGroupDetails() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDeleteTest(test.testSeriesId, test.testName);
+                          setDeleteModal({ isOpen: true, id: test.testSeriesId, name: test.testName });
                         }}
                         className="flex-1 flex items-center justify-center py-1.5 px-2 bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors cursor-pointer"
                         title="Delete Test"
@@ -355,27 +386,89 @@ export function TestGroupDetails() {
           )}
         </div>
 
+        {/* Associated Course Section */}
+        {testGroup.testType === "COURSE_ATTACHED" && associatedCourse && (
+          <div className="bg-white rounded-xl shadow-sm p-4 mt-4">
+            <h2 className="text-lg font-bold text-(--text-app-primary) mb-3">Associated Course</h2>
+            <div
+              onClick={() => navigate(`/detail/${associatedCourse.courseId}/counselor`, {
+                state: { from: 'test-group' }
+              })}
+              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+            >
+              {/* Course Banner */}
+              <div className="w-16 h-16 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
+                {associatedCourse.courseBannerUrl ? (
+                  <img
+                    src={associatedCourse.courseBannerUrl}
+                    alt={associatedCourse.courseName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-blue-50">
+                    <BookOpen className="w-6 h-6 text-blue-200" />
+                  </div>
+                )}
+              </div>
+
+              {/* Course Info */}
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-900 mb-1 text-sm truncate">
+                  {associatedCourse.courseName}
+                </h3>
+                <div className="flex items-center gap-2">
+                  {associatedCourse.discountedCoursePrice > 0 && associatedCourse.discountedCoursePrice < associatedCourse.coursePrice ? (
+                    <>
+                      <span className="text-base font-bold text-green-600">
+                        ₹{Math.floor(associatedCourse.discountedCoursePrice)}
+                      </span>
+                      <span className="text-xs text-gray-500 line-through">
+                        ₹{Math.floor(associatedCourse.coursePrice)}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-base font-bold text-gray-900">
+                      ₹{Math.floor(associatedCourse.coursePrice)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Reviews Section */}
         <div className="bg-white rounded-xl shadow-sm p-4 mt-4">
-          <h2 className="text-lg font-bold text-(--text-app-primary) mb-4">Reviews</h2>
-          {testGroup.reviewIds && testGroup.reviewIds.length > 0 ? (
+          <h2 className="text-lg font-bold text-(--text-app-primary) mb-4">Reviews ({reviews.length})</h2>
+          {reviews.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {testGroup.reviewIds.map((reviewId: string, index: number) => (
+              {reviews.map((review) => (
                 <div
-                  key={reviewId}
+                  key={review.reviewId}
                   className="bg-white rounded-xl p-4 flex flex-col gap-3 shadow-sm border border-gray-200"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-white font-semibold">
-                      U{index + 1}
-                    </div>
+                    {/* User Photo with Fallback */}
+                    {review.photoUrl ? (
+                      <img
+                        src={review.photoUrl}
+                        alt={review.userFullName}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-white font-semibold text-lg">
+                        {review.userFullName?.charAt(0)?.toUpperCase() || 'U'}
+                      </div>
+                    )}
                     <div className="flex flex-col gap-1">
-                      <h3 className="text-base font-semibold text-(--text-app-primary)">User {index + 1}</h3>
+                      <h3 className="text-base font-semibold text-(--text-app-primary)">
+                        {review.userFullName || 'Anonymous User'}
+                      </h3>
                       <div className="flex items-center">
                         {[...Array(5)].map((_, starIndex) => (
                           <Star
                             key={starIndex}
-                            className={`w-4 h-4 ${starIndex < 4 ? 'text-yellow-400' : 'text-gray-300'}`}
+                            className={`w-4 h-4 ${starIndex < review.rating ? 'text-yellow-400' : 'text-gray-300'}`}
                             fill="currentColor"
                           />
                         ))}
@@ -383,7 +476,7 @@ export function TestGroupDetails() {
                     </div>
                   </div>
                   <p className="text-sm text-(--text-muted)">
-                    Review content will be displayed here once the review API is integrated.
+                    {review.reviewText || 'No review text provided.'}
                   </p>
                 </div>
               ))}
@@ -399,6 +492,14 @@ export function TestGroupDetails() {
           )}
         </div>
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+        onConfirm={handleDeleteTest}
+        title="Delete Test Series?"
+        message={`Are you sure you want to delete "${deleteModal.name}"? This action cannot be undone.`}
+      />
     </div>
   );
 }

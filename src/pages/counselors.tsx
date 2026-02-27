@@ -1,8 +1,8 @@
+// counselors.tsx
 import {
   CounselorCard,
   type CounselorCardData,
 } from "@/components/cards/CounselorListingCard";
-import { useAllCounselors } from "@/hooks/useCounselors";
 import type { AllCounselor } from "@/types/academic";
 import {
   Select,
@@ -11,14 +11,12 @@ import {
   SelectContent,
   SelectItem,
   SelectGroup,
-  SelectLabel,
 } from "@/components/ui/select";
-import { ChevronDown, ChevronRight, Search, X, Info } from "lucide-react";
-import { useState, useEffect, useMemo, useRef } from "react";
-import Pagination from "@/components/ui/Pagination";
+import { ChevronDown, ChevronRight, Search, X, Info, Loader2 } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useAuthStore } from "@/store/AuthStore";
 import { addFav } from "@/api/counsellor";
-import { academicApi } from "@/api/academic"; // Added this import
+import { academicApi } from "@/api/academic";
 import toast from "react-hot-toast";
 import EditProfileModal from "@/components/student-dashboard/EditProfileModal";
 import { updateUserProfile } from "@/api/user";
@@ -46,12 +44,10 @@ function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
 
   const workingDays = apiCounselor.workingDays || [];
   const availability = workingDays.map((day) => dayMapping[day] || day);
-
   const languages = apiCounselor.languagesKnow || ["English"];
-
   const experience = apiCounselor.experience || "0";
+  
   let experienceText: string;
-
   if (experience === "0" || !experience) {
     experienceText = "Entry Level";
   } else if (experience.toLowerCase().includes("year")) {
@@ -59,29 +55,24 @@ function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
   } else {
     experienceText = `${experience} Years Experience`;
   }
+
   const languageText = languages.slice(0, 2).join(" | ");
   const specialization =
     [experienceText, languageText].filter(Boolean).join(" • ") ||
     "General Counselor";
   const location = apiCounselor.city || "Location not specified";
 
-  const rating = apiCounselor.rating || 4.0;
-  const reviews = parseInt(apiCounselor.numberOfRatings || "0");
-
   return {
     id: apiCounselor.counsellorId || `temp-${Date.now()}`,
     name: fullName,
     imageUrl: imageUrl,
-    rating: rating,
-    reviews: reviews,
+    rating: apiCounselor.rating || 4.0,
+    reviews: parseInt(apiCounselor.numberOfRatings || "0"),
     verified: true,
     specialization: specialization,
     location: location,
     languages: languages,
-    availability:
-      availability.length > 0
-        ? availability
-        : ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    availability: availability.length > 0 ? availability : ["Mon", "Fri"],
     pricing: {
       plus: apiCounselor.plusAmount || 0,
       pro: apiCounselor.proAmount || 0,
@@ -91,255 +82,51 @@ function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
 }
 
 export default function CounselorListingPage() {
-  const { data: counselors, loading: allCounselorsLoading, error: allCounselorsError } = useAllCounselors();
-  const { user, userId, refreshUser, role } = useAuthStore();
-  const token = localStorage.getItem('jwt');
-
-  // Session storage keys
-  const STORAGE_KEY = "counselors_filters";
-
-  // Profile completion modal state
-  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
-  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
-
-  // Load initial state from session storage
-  const loadFromStorage = () => {
-    try {
-      const stored = sessionStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    } catch (e) {
-      console.error("Error loading from session storage:", e);
-    }
-    return null;
-  };
-
-  const savedState = loadFromStorage();
-
-  const [currentPage, setCurrentPage] = useState(savedState?.currentPage || 1);
+  const { user, userId, refreshUser } = useAuthStore();
+  
+  // --- STATE MANAGEMENT ---
+  const [counselors, setCounselors] = useState<AllCounselor[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [fetchingMore, setFetchingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Infinite Scroll State
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const observer = useRef<IntersectionObserver | null>(null);
+  
+  // Ref to store all fetched data for logged out users to enable client-side pagination
+  const allLoggedOutDataRef = useRef<AllCounselor[]>([]);
+  
   const ITEMS_PER_PAGE = 9;
-  const [favouriteIds, setFavouriteIds] = useState<Set<string>>(new Set());
 
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [filterCount, setFilterCount] = useState(0);
-  const [selected, setSelected] = useState<string[]>(
-    savedState?.selected || []
-  );
-  const [selectedSort, setSelectedSort] = useState(
-    savedState?.selectedSort || "popularity"
-  );
+  
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [selectedSort, setSelectedSort] = useState("popularity"); 
   const [citySearch, setCitySearch] = useState("");
+  
+  const [experienceFilters, setExperienceFilters] = useState<string[]>([]);
+  const [languageFilters, setLanguageFilters] = useState<string[]>([]);
+  const [cityFilters, setCityFilters] = useState<string[]>([]);
 
-  const [experienceFilters, setExperienceFilters] = useState<string[]>(
-    savedState?.experienceFilters || []
-  );
-  const [languageFilters, setLanguageFilters] = useState<string[]>(
-    savedState?.languageFilters || []
-  );
-  const [cityFilters, setCityFilters] = useState<string[]>(
-    savedState?.cityFilters || []
-  );
-  const [minPrice, setMinPrice] = useState(savedState?.minPrice || "");
-  const [maxPrice, setMaxPrice] = useState(savedState?.maxPrice || "");
+  // --- PRICE FILTER STATE ---
+  const [minPriceInput, setMinPriceInput] = useState("");
+  const [maxPriceInput, setMaxPriceInput] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
 
-  const [experienceToggle, setExperienceToggle] = useState(
-    savedState?.experienceToggle ?? false
-  );
-  const [languageToggle, setLanguageToggle] = useState(
-    savedState?.languageToggle ?? false
-  );
-  const [cityToggle, setCityToggle] = useState(savedState?.cityToggle ?? false);
-  const [priceToggle, setPriceToggle] = useState(
-    savedState?.priceToggle ?? false
-  );
-  const [workingDaysToggle, setWorkingDaysToggle] = useState(
-    savedState?.workingDaysToggle ?? false
-  );
+  const [experienceToggle, setExperienceToggle] = useState(false);
+  const [languageToggle, setLanguageToggle] = useState(false);
+  const [cityToggle, setCityToggle] = useState(false);
+  const [priceToggle, setPriceToggle] = useState(false);
+  const [workingDaysToggle, setWorkingDaysToggle] = useState(false);
 
-  // --- NEW STATE FOR SERVER-SIDE CITY SEARCH ---
-  const [searchResult, setSearchResult] = useState<{
-    data: AllCounselor[];
-    totalCount: number;
-  } | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
+  const [favouriteIds, setFavouriteIds] = useState<Set<string>>(new Set());
 
-  // Determine if we are in "City Search Mode"
-  const isCitySearchMode = cityFilters.length > 0;
-
-  const isMounted = useRef(false);
-
-  // Clear filters when coming from home page
-  useEffect(() => {
-    const referrer = sessionStorage.getItem("page_referrer");
-    if (referrer === "/" || referrer === "/home") {
-      // Clear all filters
-      sessionStorage.removeItem(STORAGE_KEY);
-      setCurrentPage(1);
-      setSelected([]);
-      setSelectedSort("popularity");
-      setExperienceFilters([]);
-      setLanguageFilters([]);
-      setCityFilters([]);
-      setMinPrice("");
-      setMaxPrice("");
-      setExperienceToggle(false);
-      setLanguageToggle(false);
-      setCityToggle(false);
-      setPriceToggle(false);
-      setWorkingDaysToggle(false);
-    }
-    // Store current page as referrer for next navigation
-    return () => {
-      sessionStorage.setItem("page_referrer", "/counsellors");
-    };
-  }, []);
-
-  // Save to session storage whenever filters or pagination changes
-  useEffect(() => {
-    const stateToSave = {
-      currentPage,
-      selected,
-      selectedSort,
-      experienceFilters,
-      languageFilters,
-      cityFilters,
-      minPrice,
-      maxPrice,
-      experienceToggle,
-      languageToggle,
-      cityToggle,
-      priceToggle,
-      workingDaysToggle,
-    };
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-  }, [
-    currentPage,
-    selected,
-    selectedSort,
-    experienceFilters,
-    languageFilters,
-    cityFilters,
-    minPrice,
-    maxPrice,
-    experienceToggle,
-    languageToggle,
-    cityToggle,
-    priceToggle,
-    workingDaysToggle,
-  ]);
-
-  useEffect(() => {
-    const fetchCityCounselors = async () => {
-      if (!isCitySearchMode || !userId) {
-        setSearchResult(null);
-        return;
-      }
-
-      setIsSearching(true);
-      setSearchError(null);
-
-      try {
-        const cityQuery = cityFilters.join(',');
-        const apiPage = currentPage > 0 ? currentPage - 1 : 0;
-        const response = await academicApi.searchCounsellors(
-            userId, 
-            cityQuery, 
-            apiPage, 
-            15 
-        );
-
-        setSearchResult({
-            data: response.counsellors || [], 
-            totalCount: response.total || 0
-        });
-      } catch (err) {
-        console.error(err);
-        setSearchError("Failed to fetch counselors for the selected city.");
-      } finally {
-        setIsSearching(false);
-      }
-    };
-
-    const timeoutId = setTimeout(() => {
-        fetchCityCounselors();
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [cityFilters, currentPage, userId, isCitySearchMode]);
-
-
-  useEffect(() => {
-    if (user?.favouriteCounsellorIds) {
-      setFavouriteIds(new Set(user.favouriteCounsellorIds));
-    }
-  }, [user]);
-
-  const handleProfileIncomplete = (action: () => void) => {
-    setPendingAction(() => action);
-    setIsEditProfileModalOpen(true);
-  };
-
-  const handleUpdateProfile = async (updatedData: { firstName: string; lastName: string; email: string }) => {
-    if (!userId || !token) {
-      throw new Error("User not authenticated");
-    }
-    await updateUserProfile(userId, updatedData, token);
-    await refreshUser(true);
-    if (pendingAction) {
-      pendingAction();
-      setPendingAction(null);
-    }
-  };
-
-  const handleCloseModal = () => {
-    setIsEditProfileModalOpen(false);
-    setPendingAction(null);
-  };
-
-  const handleToggleFavourite = async (counsellorId: string) => {
-    const { isAuthenticated, toggleLogin } = useAuthStore.getState();
-
-    const toggleFavAction = async () => {
-      const freshUserId = localStorage.getItem('phone');
-      const freshToken = localStorage.getItem('jwt');
-
-      if (!freshUserId || !counsellorId || !freshToken) {
-        toast.error("Could not get user ID after login. Please try again.", { duration: 2000 });
-        return;
-      }
-
-      const newFavouriteIds = new Set(favouriteIds);
-      if (newFavouriteIds.has(counsellorId)) {
-        newFavouriteIds.delete(counsellorId);
-      } else {
-        newFavouriteIds.add(counsellorId);
-      }
-      setFavouriteIds(newFavouriteIds);
-
-      try {
-        await addFav(freshUserId, counsellorId);
-        await refreshUser(true);
-        toast.success("Favourite status updated!", { duration: 2000 });
-      } catch (err) {
-        toast.error("Could not update favourite status.", { duration: 2000 });
-        setFavouriteIds(new Set(user?.favouriteCounsellorIds || []));
-      }
-    };
-
-    if (!isAuthenticated) {
-      toggleLogin(toggleFavAction);
-      return;
-    }
-
-    if (!user?.firstName || !user?.email) {
-      handleProfileIncomplete(toggleFavAction);
-      return;
-    }
-
-    await toggleFavAction();
-  };
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
   const sortTypes = [
     { label: "Popularity", value: "popularity" },
@@ -353,82 +140,196 @@ export default function CounselorListingPage() {
     { id: "senior", label: "Senior Level", description: "3+ years" },
   ];
 
-  const languageOptions = useMemo(() => {
-    if (!counselors)
-      return ["Hindi", "English", "Marathi", "Kannada", "Telugu", "Tamil"];
-    const allLanguages = counselors.flatMap((c) => c.languagesKnow || []);
-    return [...new Set(allLanguages)].sort();
-  }, [counselors]);
-
-  const cityOptions = useMemo(() => {
-    if (!counselors)
-      return [
-        "Greater Noida",
-        "Delhi",
-        "Mumbai",
-        "Bangalore",
-        "Chennai",
-        "Pune",
-      ];
-    const allCities = counselors.map((c) => c.city).filter(Boolean) as string[];
-    return [...new Set(allCities)].sort();
-  }, [counselors]);
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  
+  const languageOptions = ["Hindi", "English", "Marathi", "Kannada", "Telugu", "Tamil", "Malayalam", "Gujarati", "Bengali"];
+  
+  const cityOptions = ["Pune", "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Noida"];
 
   const filteredCityOptions = useMemo(() => {
-    return cityOptions.filter(
-      (city) =>
-        city &&
-        city.toLowerCase().includes(citySearch.toLowerCase())
+    return cityOptions.filter((city) =>
+      city.toLowerCase().includes(citySearch.toLowerCase())
     );
-  }, [cityOptions, citySearch]);
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  }, [citySearch]);
 
+
+  const generateSeniorYears = () => {
+    return Array.from({ length: 37 }, (_, i) => i + 4).join(",");
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMinPrice(minPriceInput);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [minPriceInput]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMaxPrice(maxPriceInput);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [maxPriceInput]);
+
+  useEffect(() => {
+    setPage(0);
+    setHasMore(true);
+    allLoggedOutDataRef.current = [];
+  }, [
+    experienceFilters, 
+    languageFilters, 
+    cityFilters, 
+    selectedDays, 
+    minPrice, 
+    maxPrice,
+    selectedSort
+  ]);
+
+  // --- FETCH DATA ---
+  const fetchCounselors = useCallback(async (isLoadMore: boolean) => {
+    if (isLoadMore) {
+      setFetchingMore(true);
+    } else {
+      setLoading(true);
+    }
+    setError(null);
+
+    try {
+      const dayMapping: Record<string, string> = {
+        Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday",
+        Fri: "Friday", Sat: "Saturday", Sun: "Sunday",
+      };
+      const apiDays = selectedDays.map(d => dayMapping[d] || d).join(",");
+
+      let apiExperience = "";
+      const selectedExp = [];
+      if (experienceFilters.includes("entry")) selectedExp.push("0,1");
+      if (experienceFilters.includes("junior")) selectedExp.push("1,2,3");
+      if (experienceFilters.includes("senior")) selectedExp.push(generateSeniorYears());
+      apiExperience = selectedExp.join(",");
+
+      const apiCities = cityFilters.join(",");
+      const apiLanguages = languageFilters.join(",");
+
+      const commonFilters = {
+        city: apiCities,
+        languagesKnow: apiLanguages,
+        workingDays: apiDays,
+        experience: apiExperience,
+        minPrice: minPrice, 
+        maxPrice: maxPrice, 
+      };
+
+      let response;
+
+      if (userId) {
+        // LOGGED IN: Interested Course API
+        response = await academicApi.searchCounsellors(
+          userId,
+          commonFilters,
+          page, 
+          ITEMS_PER_PAGE
+        );
+      } else {
+        // LOGGED OUT: Get All Counsellors API
+        response = await academicApi.searchAllLoggedOutCounsellors(
+          commonFilters,
+          page,
+          ITEMS_PER_PAGE
+        );
+      }
+
+      const newCounselors: AllCounselor[] = response.counsellors || [];
+      const totalItems = response.total || 0;
+
+      setCounselors(prev => {
+        if (isLoadMore) {
+          const existingIds = new Set(prev.map(c => c.counsellorId));
+          const uniqueNew = newCounselors.filter(c => !existingIds.has(c.counsellorId));
+          return [...prev, ...uniqueNew];
+        } else {
+          return newCounselors;
+        }
+      });
+
+      // Calculate if we have more pages based on server total
+      if (newCounselors.length < ITEMS_PER_PAGE || (page + 1) * ITEMS_PER_PAGE >= totalItems) {
+        setHasMore(false);
+      } else {
+        setHasMore(true);
+      }
+
+    } catch (err: any) {
+      console.error("Search Error:", err);
+      setError("Failed to load counselors. Please try again.");
+    } finally {
+      setLoading(false);
+      setFetchingMore(false);
+    }
+  }, [
+    userId, 
+    page,
+    selectedDays, 
+    experienceFilters, 
+    cityFilters, 
+    languageFilters, 
+    minPrice, 
+    maxPrice
+  ]);
+
+  useEffect(() => {
+    const isLoadMore = page > 0;
+    const timeoutId = setTimeout(() => {
+      fetchCounselors(isLoadMore);
+    }, 300); 
+
+    return () => clearTimeout(timeoutId);
+  }, [fetchCounselors, page]);
+
+  const lastCounselorRef = useCallback((node: HTMLDivElement | null) => {
+    if (loading || fetchingMore) return;
+    
+    if (observer.current) observer.current.disconnect();
+    
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        setPage(prevPage => prevPage + 1);
+      }
+    });
+    
+    if (node) observer.current.observe(node);
+  }, [loading, fetchingMore, hasMore]);
+
+
+  // Update Filter Count
   useEffect(() => {
     const count =
       experienceFilters.length +
       languageFilters.length +
       cityFilters.length +
-      selected.length +
-      (minPrice ? 1 : 0) +
-      (maxPrice ? 1 : 0);
+      selectedDays.length +
+      (minPriceInput ? 1 : 0) +
+      (maxPriceInput ? 1 : 0);
     setFilterCount(count);
-    if (isMounted.current) {
-      setCurrentPage(1);
-    } else {
-      isMounted.current = true;
-    }
   }, [
     experienceFilters,
     languageFilters,
     cityFilters,
-    selected,
-    minPrice,
-    maxPrice,
+    selectedDays,
+    minPriceInput,
+    maxPriceInput,
   ]);
 
-  useEffect(() => {
-    if (isMounted.current) {
-      setCurrentPage(1);
-    }
-  }, [selectedSort]);
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [currentPage]);
-
+  // --- EVENT HANDLERS ---
   const toggleExperienceFilter = (experience: string) => {
     setExperienceFilters((prev) =>
-      prev.includes(experience)
-        ? prev.filter((e) => e !== experience)
-        : [...prev, experience]
+      prev.includes(experience) ? prev.filter((e) => e !== experience) : [...prev, experience]
     );
   };
 
   const toggleLanguageFilter = (language: string) => {
     setLanguageFilters((prev) =>
-      prev.includes(language)
-        ? prev.filter((l) => l !== language)
-        : [...prev, language]
+      prev.includes(language) ? prev.filter((l) => l !== language) : [...prev, language]
     );
   };
 
@@ -439,7 +340,7 @@ export default function CounselorListingPage() {
   };
 
   const toggleDay = (day: string) => {
-    setSelected((prev) =>
+    setSelectedDays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
     );
   };
@@ -448,180 +349,237 @@ export default function CounselorListingPage() {
     setExperienceFilters([]);
     setLanguageFilters([]);
     setCityFilters([]);
-    setSelected([]);
+    setSelectedDays([]);
+    setMinPriceInput("");
+    setMaxPriceInput("");
     setMinPrice("");
     setMaxPrice("");
     setCitySearch("");
+    setPage(0);
   };
 
-  // --- UPDATED FILTERING LOGIC ---
-  const getFilteredAndSortedCounselors = () => {
-    let sourceData: AllCounselor[] = [];
-
-    // 1. Choose Data Source
-    if (isCitySearchMode) {
-      // If searching by city, use Server Data
-      sourceData = searchResult?.data || [];
-    } else {
-      // Otherwise use Initial Load Data
-      sourceData = counselors || [];
+  useEffect(() => {
+    if (user?.favouriteCounsellorIds) {
+      setFavouriteIds(new Set(user.favouriteCounsellorIds));
     }
+  }, [user]);
 
-    // 2. Apply Client-Side Filters (Experience, Language, Price, Days)
-    const filtered = sourceData.filter((counselor) => {
-      // Filter out logged-in counselor
-      if (role === "counselor" && userId && counselor.counsellorId === userId) {
-        return false;
-      }
-
-      // If NOT in city search mode, we manually filter cities here.
-      // If we ARE in city search mode, the API already filtered cities, so we skip this check.
-      if (!isCitySearchMode && cityFilters.length > 0) {
-        const counselorCity = counselor.city || "";
-        if (!cityFilters.includes(counselorCity) && counselorCity !== "")
-          return false;
-      }
-
-      if (experienceFilters.length > 0) {
-        const experience = parseInt(counselor.experience || "0");
-        const matchesExperience = experienceFilters.some((filter) => {
-          if (filter === "entry") return experience >= 0 && experience <= 1;
-          if (filter === "junior") return experience > 1 && experience <= 3;
-          if (filter === "senior") return experience > 3;
-          return false;
-        });
-        if (!matchesExperience) return false;
-      }
-
-      if (languageFilters.length > 0) {
-        const counselorLanguages = counselor.languagesKnow || ["English"];
-        if (!languageFilters.some((lang) => counselorLanguages.includes(lang)))
-          return false;
-      }
-
-      const counselorRate = counselor.ratePerYear || 0;
-      if (minPrice && counselorRate < parseInt(minPrice)) return false;
-      if (maxPrice && counselorRate > parseInt(maxPrice)) return false;
-
-      if (selected.length > 0) {
-        const counselorDays = counselor.workingDays || [];
-        const dayMapping: Record<string, string> = {
-          Mon: "Monday",
-          Tue: "Tuesday",
-          Wed: "Wednesday",
-          Thu: "Thursday",
-          Fri: "Friday",
-          Sat: "Saturday",
-          Sun: "Sunday",
-        };
-
-        const selectedFullDays = selected.map((day) => dayMapping[day] || day);
-        if (!selectedFullDays.some((day) => counselorDays.includes(day)))
-          return false;
-      }
-
-      return true;
-    });
-
-    // 3. Sorting (Applied Client-Side to the current page/result set)
-    const sorted = [...filtered];
-    switch (selectedSort) {
-      case "price-low":
-        sorted.sort(
-          (a, b) => (a.ratePerYear || 0) - (b.ratePerYear || 0)
-        );
-        break;
-      case "price-high":
-        sorted.sort(
-          (a, b) => (b.ratePerYear || 0) - (a.ratePerYear || 0)
-        );
-        break;
-      case "popularity":
-      default:
-        sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        break;
-    }
-
-    return sorted;
+  const handleToggleFavourite = async (counsellorId: string) => {
+     const { isAuthenticated, toggleLogin } = useAuthStore.getState();
+     const toggleFavAction = async () => {
+       const freshUserId = localStorage.getItem('phone');
+       if (!freshUserId || !counsellorId) return;
+ 
+       const newFavouriteIds = new Set(favouriteIds);
+       if (newFavouriteIds.has(counsellorId)) newFavouriteIds.delete(counsellorId);
+       else newFavouriteIds.add(counsellorId);
+       setFavouriteIds(newFavouriteIds);
+ 
+       try {
+         await addFav(freshUserId, counsellorId);
+         await refreshUser(true);
+         toast.success("Favourite status updated!", { duration: 2000 });
+       } catch (err) {
+         toast.error("Could not update favourite status.", { duration: 2000 });
+         setFavouriteIds(new Set(user?.favouriteCounsellorIds || []));
+       }
+     };
+ 
+     if (!isAuthenticated) {
+       toggleLogin(toggleFavAction);
+       return;
+     }
+     if (!user?.firstName || !user?.email) {
+       handleProfileIncomplete(toggleFavAction);
+       return;
+     }
+     await toggleFavAction();
   };
 
-  const renderContent = () => {
-    // 1. Loading States
-    if (isCitySearchMode && isSearching) {
-         return <div className="text-center text-gray-500 py-10">Searching counselors in {cityFilters.join(', ')}...</div>;
-    }
-    if (!isCitySearchMode && allCounselorsLoading) {
-      return (
-        <div className="text-center text-gray-500">Loading counselors...</div>
-      );
-    }
+  const handleProfileIncomplete = (action: () => void) => {
+    setPendingAction(() => action);
+    setIsEditProfileModalOpen(true);
+  };
 
-    // 2. Error States
-    if (isCitySearchMode && searchError) {
-        return <div className="text-center text-red-500">Error: {searchError}</div>;
+  const handleUpdateProfile = async (updatedData: { firstName: string; lastName: string; email: string }) => {
+    if (!userId) throw new Error("User not authenticated");
+    const token = localStorage.getItem('jwt');
+    if(token) await updateUserProfile(userId, updatedData, token);
+    await refreshUser(true);
+    if (pendingAction) {
+      pendingAction();
+      setPendingAction(null);
     }
-    if (!isCitySearchMode && allCounselorsError) {
-      return <div className="text-center text-red-500">Error: {allCounselorsError}</div>;
-    }
+  };
 
-    const filteredCounselors = getFilteredAndSortedCounselors();
+  const handleCloseModal = () => {
+    setIsEditProfileModalOpen(false);
+    setPendingAction(null);
+  };
 
-    if (filteredCounselors.length === 0) {
-      return <p className="text-center text-gray-500 py-10">No counselors found matching your filters.</p>;
-    }
-
-    // 3. Pagination Logic
-    let paginatedCounselors = [];
-    let totalPages = 0;
-
-    if (isCitySearchMode) {
-        // SERVER SIDE PAGINATION (Size 15)
-        // The API returned exactly the page we asked for.
-        // We do NOT slice it again.
-        paginatedCounselors = filteredCounselors; 
-        
-        const totalCount = searchResult?.totalCount || 0;
-        // Calculate total pages using the Server Count and Server Page Size (15)
-        totalPages = Math.ceil(totalCount / 15); 
-    } else {
-        // CLIENT SIDE PAGINATION (Size 9)
-        // We have the full list, so we slice it manually.
-        totalPages = Math.ceil(filteredCounselors.length / ITEMS_PER_PAGE);
-        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        const endIndex = startIndex + ITEMS_PER_PAGE;
-        paginatedCounselors = filteredCounselors.slice(startIndex, endIndex);
-    }
-
-    return (
-      <>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {paginatedCounselors.map((counselor) => {
-            const cardData = adaptApiDataToCardData(counselor);
-            const isFavourite = favouriteIds.has(cardData.id);
-            return (
-              <CounselorCard
-                key={counselor.counsellorId}
-                counselor={cardData}
-                isFavourite={isFavourite}
-                onToggleFavourite={handleToggleFavourite}
-              />
-            );
-          })}
+  const filterContent = (
+    <>
+      {/* Experience */}
+      <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
+        <div className="flex justify-between text-[#242645] cursor-pointer" onClick={() => setExperienceToggle(!experienceToggle)}>
+          <div className="flex items-center gap-2">
+            <p>Experience</p>
+            {experienceFilters.length > 0 && <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>}
+          </div>
+          {experienceToggle ? <ChevronDown className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
         </div>
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-      </>
-    );
-  };
+        {experienceToggle && (
+          <div className="flex flex-col gap-4 text-[#232323]">
+            <hr className="h-px" />
+            {experienceOptions.map((option) => (
+              <div key={option.id} className="flex gap-2 items-center cursor-pointer" onClick={() => toggleExperienceFilter(option.id)}>
+                <input type="checkbox" checked={experienceFilters.includes(option.id)} readOnly className="w-5 h-5 pointer-events-none" />
+                <p className="flex flex-col font-medium text-[14px]">
+                  {option.label}
+                  <span className="font-normal text-[12px]">{option.description}</span>
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Languages */}
+      <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
+        <div className="flex justify-between text-[#242645] cursor-pointer" onClick={() => setLanguageToggle(!languageToggle)}>
+          <div className="flex items-center gap-2">
+            <p>Languages</p>
+            {languageFilters.length > 0 && <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>}
+          </div>
+          {languageToggle ? <ChevronDown className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
+        </div>
+        {languageToggle && (
+          <div className="flex flex-col gap-4 text-[#232323]">
+            <hr className="h-px" />
+            {languageOptions.map((language) => (
+              <div key={language} className="flex gap-2 items-center cursor-pointer" onClick={() => toggleLanguageFilter(language)}>
+                <input type="checkbox" checked={languageFilters.includes(language)} readOnly className="w-5 h-5 pointer-events-none" />
+                <p className="font-medium text-[14px]">{language}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* City */}
+      <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
+        <div className="flex justify-between text-[#242645] cursor-pointer" onClick={() => setCityToggle(!cityToggle)}>
+          <div className="flex items-center gap-2">
+            <p>City</p>
+            {cityFilters.length > 0 && <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>}
+          </div>
+          {cityToggle ? <ChevronDown className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
+        </div>
+        {cityToggle && (
+          <div className="flex flex-col gap-4 text-[#232323]">
+            <hr className="h-px" />
+            <div className="flex items-center gap-2 px-3 rounded-md w-full h-10 border border-[#efefef] bg-white">
+              <Search size={15} className="text-[#343C6A]" />
+              <input type="text" placeholder="Search Cities" value={citySearch} onChange={(e) => setCitySearch(e.target.value)} className="w-full h-full text-sm outline-none bg-transparent" />
+            </div>
+            {filteredCityOptions.slice(0, 7).map((city) => (
+              <div key={city} className="flex gap-2 items-center cursor-pointer" onClick={() => toggleCityFilter(city)}>
+                <input type="checkbox" checked={cityFilters.includes(city)} readOnly className="w-5 h-5 pointer-events-none" />
+                <p className="font-medium text-[14px]">{city}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Price */}
+      <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
+        <div className="flex justify-between text-[#242645] cursor-pointer" onClick={() => setPriceToggle(!priceToggle)}>
+          <div className="flex items-center gap-2">
+            <p>Price</p>
+            <div className="relative group">
+              <Info className="w-3.5 h-3.5 text-gray-400 cursor-help" />
+              <div className="absolute left-0 top-full mt-1 hidden group-hover:flex items-center gap-1.5 bg-gray-800 text-white text-xs rounded px-2.5 py-1.5 whitespace-nowrap z-10">
+                <span className="flex items-center gap-0.5">
+                  <img src="/coin.svg" alt="coin" className="w-3 h-3 shrink-0" />
+                  1 = ₹1
+                </span>
+              </div>
+            </div>
+            {(minPriceInput || maxPriceInput) && <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>}
+          </div>
+          {priceToggle ? <ChevronDown className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
+        </div>
+        {priceToggle && (
+          <div className="flex flex-col gap-4 text-[#232323]">
+            <hr className="h-px" />
+            <div className="flex gap-3">
+              <div className="flex flex-col gap-2">
+                <p className="font-medium text-[14px]">Min Price</p>
+                <div className="rounded-xl flex-1 h-11 border border-[#efefef] bg-white flex items-center px-3 gap-1.5 transition-all focus-within:border-[#13097D]/30">
+                  <img src="/coin.svg" alt="coin" className="w-3.5 h-3.5 shrink-0 opacity-60" />
+                  <input
+                    type="text"
+                    placeholder="100"
+                    value={minPriceInput} 
+                    onChange={(e) => setMinPriceInput(e.target.value)}
+                    className="w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <p className="text-[14px] font-medium">Max Price</p>
+                <div className="rounded-xl flex-1 h-11 border border-[#efefef] bg-white flex items-center px-3 gap-1.5 transition-all focus-within:border-[#13097D]/30">
+                  <img src="/coin.svg" alt="coin" className="w-3.5 h-3.5 shrink-0 opacity-60" />
+                  <input
+                    type="text"
+                    placeholder="10000"
+                    value={maxPriceInput} 
+                    onChange={(e) => setMaxPriceInput(e.target.value)}
+                    className="w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+       {/* Working Days */}
+       <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
+        <div className="flex justify-between text-[#242645] cursor-pointer" onClick={() => setWorkingDaysToggle(!workingDaysToggle)}>
+          <div className="flex items-center gap-2">
+            <p>Working Days</p>
+            {selectedDays.length > 0 && <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>}
+          </div>
+          {workingDaysToggle ? <ChevronDown className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
+        </div>
+        {workingDaysToggle && (
+          <div className="flex flex-col gap-4 text-[#232323]">
+            <hr className="h-px" />
+            <div className="flex flex-wrap gap-2.5">
+              {days.map((day) => {
+                const isSelected = selectedDays.includes(day);
+                return (
+                  <div key={day} onClick={() => toggleDay(day)} className={`cursor-pointer px-2.5 py-2 rounded-[10px] border text-sm font-medium transition-colors ${isSelected ? "bg-[#232323] text-white" : "bg-white hover:bg-gray-100"}`}>
+                    {day}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
 
   return (
     <div className="bg-gray-50 pt-20 min-h-screen">
       <main className="container mx-auto px-4 py-4">
         <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
+          
           <aside className="lg:w-[312px] lg:shrink-0 lg:sticky lg:top-24 lg:self-start">
+            
             <div className="flex justify-center gap-6 items-center px-4 h-14 w-full sm:hidden">
               <div className="text-[#13097D] text-[16px] flex items-center gap-2">
                 <img src="./filter.svg" alt="filter_icon" className="w-6 h-6" />
@@ -638,610 +596,53 @@ export default function CounselorListingPage() {
 
             {mobileFilterOpen && (
               <div className="fixed inset-0 z-50 bg-gray-50 sm:hidden">
-                <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                  <h2 className="text-lg font-semibold text-[#232323]">
-                    Sort & Filters
-                  </h2>
-                  <button
-                    onClick={() => setMobileFilterOpen(false)}
-                    className="p-2 rounded-full hover:bg-gray-100"
-                  >
+                 <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                  <h2 className="text-lg font-semibold text-[#232323]">Sort & Filters</h2>
+                  <button onClick={() => setMobileFilterOpen(false)} className="p-2 rounded-full hover:bg-gray-100">
                     <X className="h-5 w-5" />
                   </button>
                 </div>
-
+                
                 <div className="flex-1 overflow-y-auto p-4 pb-20">
-                  <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl mb-3">
+                   <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl mb-3">
                     <h3 className="text-[#242645] font-medium">Sort By</h3>
-                    <Select
-                      value={selectedSort}
-                      onValueChange={setSelectedSort}
-                    >
+                    <Select value={selectedSort} onValueChange={setSelectedSort}>
                       <SelectTrigger className="w-full h-11 border border-[#efefef] bg-white rounded-xl px-3">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
                           {sortTypes.map((type) => (
-                            <SelectItem key={type.value} value={type.value}>
-                              {type.label}
-                            </SelectItem>
+                            <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
                           ))}
                         </SelectGroup>
                       </SelectContent>
                     </Select>
                   </div>
-
-                  <div className="space-y-4">
-                    <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl">
-                      <div className="flex justify-between text-[#242645]">
-                        <p>Experience</p>
-                        <button
-                          onClick={() => setExperienceToggle(!experienceToggle)}
-                          className="cursor-pointer"
-                        >
-                          {experienceToggle ? (
-                            <ChevronDown className="w-6 h-6" />
-                          ) : (
-                            <ChevronRight className="w-6 h-6" />
-                          )}
-                        </button>
-                      </div>
-                      {experienceToggle && (
-                        <div className="flex flex-col gap-4 text-[#232323]">
-                          <hr className="h-px" />
-                          {experienceOptions.slice(0, 7).map((option) => (
-                            <div
-                              key={option.id}
-                              className="flex gap-2 items-center cursor-pointer"
-                              onClick={() => toggleExperienceFilter(option.id)}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={experienceFilters.includes(option.id)}
-                                onChange={() => {}}
-                                className="w-5 h-5 cursor-pointer pointer-events-none"
-                              />
-                              <p className="flex flex-col font-medium text-[14px]">
-                                {option.label}
-                                <span className="font-normal text-[12px]">
-                                  {option.description}
-                                </span>
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl">
-                      <div className="flex justify-between text-[#242645]">
-                        <p>Languages</p>
-                        <button
-                          onClick={() => setLanguageToggle(!languageToggle)}
-                        >
-                          {languageToggle ? (
-                            <ChevronDown className="w-6 h-6" />
-                          ) : (
-                            <ChevronRight className="w-6 h-6" />
-                          )}
-                        </button>
-                      </div>
-                      {languageToggle && (
-                        <div className="flex flex-col gap-4 text-[#232323]">
-                          <hr className="h-px" />
-                          {languageOptions.slice(0, 7).map((language) => (
-                            <div
-                              key={language}
-                              className="flex gap-2 items-center cursor-pointer"
-                              onClick={() => toggleLanguageFilter(language)}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={languageFilters.includes(language)}
-                                onChange={() => {}}
-                                className="w-5 h-5 cursor-pointer pointer-events-none"
-                              />
-                              <p className="font-medium text-[14px]">
-                                {language}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl">
-                      <div className="flex justify-between text-[#242645]">
-                        <p>City</p>
-                        <button onClick={() => setCityToggle(!cityToggle)}>
-                          {cityToggle ? (
-                            <ChevronDown className="w-6 h-6" />
-                          ) : (
-                            <ChevronRight className="w-6 h-6" />
-                          )}
-                        </button>
-                      </div>
-                      {cityToggle && (
-                        <div className="flex flex-col gap-4 text-[#232323]">
-                          <hr className="h-px" />
-                          <div className="flex items-center gap-2 px-3 rounded-md w-full h-10 border border-[#efefef] bg-white">
-                            <Search size={15} className="text-[#343C6A]" />
-                            <input
-                              type="text"
-                              placeholder="Search Cities"
-                              value={citySearch}
-                              onChange={(e) => setCitySearch(e.target.value)}
-                              className="w-full h-full text-sm outline-none bg-transparent placeholder:text-[#232323]"
-                            />
-                          </div>
-                          {cityOptions
-                            .filter(
-                              (city) =>
-                                city &&
-                                city
-                                  .toLowerCase()
-                                  .includes(citySearch.toLowerCase())
-                            )
-                            .slice(0, citySearch ? cityOptions.length : 7)
-                            .map((city) => (
-                              <div
-                                key={city}
-                                className="flex gap-2 items-center cursor-pointer"
-                                onClick={() => toggleCityFilter(city)}
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={cityFilters.includes(city)}
-                                  onChange={() => {}}
-                                  className="w-5 h-5 cursor-pointer pointer-events-none"
-                                />
-                                <p className="font-medium text-[14px]">
-                                  {city}
-                                </p>
-                              </div>
-                            ))}
-                          <hr className="h-px" />
-                          <p className="font-normal text-[14px]">
-                            {citySearch ? filteredCityOptions.length : cityOptions.length} Cities
-                          </p>
-                          {!citySearch && cityOptions.length > 7 && (
-                            <p className="font-normal text-[12px] text-gray-500">
-                              Search to see more options
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl">
-                      <div className="flex justify-between text-[#242645]">
-                        <div className="flex items-center gap-2">
-                          <p>Price</p>
-                          <div className="relative group">
-                            <Info className="w-3.5 h-3.5 text-gray-400 cursor-help" />
-                            <div className="absolute left-0 top-full mt-1 hidden group-hover:flex items-center gap-1.5 bg-gray-800 text-white text-xs rounded px-2.5 py-1.5 whitespace-nowrap z-10">
-                              <span className="flex items-center gap-0.5">
-                                <img
-                                  src="/coin.svg"
-                                  alt="coin"
-                                  className="w-3 h-3 shrink-0"
-                                />
-                                1 = ₹1
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <button onClick={() => setPriceToggle(!priceToggle)}>
-                          {priceToggle ? (
-                            <ChevronDown className="w-6 h-6" />
-                          ) : (
-                            <ChevronRight className="w-6 h-6" />
-                          )}
-                        </button>
-                      </div>
-                      {priceToggle && (
-                        <div className="flex flex-col gap-4 text-[#232323]">
-                          <hr className="h-px" />
-                          <div className="flex gap-3">
-                            <div className="flex flex-col gap-2">
-                              <p className="font-medium text-[14px]">
-                                Min Price
-                              </p>
-                              <div className="rounded-[12px] flex-1 h-9 border border-[#efefef] bg-white flex items-center px-3 gap-1.5">
-                                <img
-                                  src="/coin.svg"
-                                  alt="coin"
-                                  className="w-3.5 h-3.5 shrink-0 opacity-60"
-                                />
-                                <input
-                                  type="text"
-                                  placeholder="100"
-                                  value={minPrice}
-                                  onChange={(e) => setMinPrice(e.target.value)}
-                                  className="w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold"
-                                />
-                              </div>
-                            </div>
-                            <div className="flex flex-col gap-2">
-                              <p className="text-[14px] font-medium">
-                                Max Price
-                              </p>
-                              <div className="rounded-[12px] flex-1 h-9 border border-[#efefef] bg-white flex items-center px-3 gap-1.5">
-                                <img
-                                  src="/coin.svg"
-                                  alt="coin"
-                                  className="w-3.5 h-3.5 shrink-0 opacity-60"
-                                />
-                                <input
-                                  type="text"
-                                  placeholder="10000"
-                                  value={maxPrice}
-                                  onChange={(e) => setMaxPrice(e.target.value)}
-                                  className="w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl">
-                      <div className="flex justify-between text-[#242645]">
-                        <p>Working Days</p>
-                        <button
-                          onClick={() =>
-                            setWorkingDaysToggle(!workingDaysToggle)
-                          }
-                        >
-                          {workingDaysToggle ? (
-                            <ChevronDown className="w-6 h-6" />
-                          ) : (
-                            <ChevronRight className="w-6 h-6" />
-                          )}
-                        </button>
-                      </div>
-                      {workingDaysToggle && (
-                        <div className="flex flex-col gap-4 text-[#232323]">
-                          <hr className="h-px" />
-                          <div className="flex flex-wrap gap-2.5">
-                            {days.map((day) => {
-                              const isSelected = selected.includes(day);
-                              return (
-                                <button
-                                  key={day}
-                                  onClick={() => toggleDay(day)}
-                                  className={`cursor-pointer px-2.5 py-2 rounded-[10px] border text-sm font-medium transition-colors ${
-                                    isSelected
-                                      ? "bg-[#232323] text-white border-[#232323]"
-                                      : "bg-white text-[#232323] border-[#E6E6E6] hover:bg-gray-100"
-                                  }`}
-                                >
-                                  {day}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                  
+                  <div className="flex flex-col gap-3">
+                    {filterContent}
                   </div>
-                </div>
-
-                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
-                  <div className="flex gap-3">
-                    <button
-                      onClick={clearAllFilters}
-                      className="flex-1 py-3 border border-gray-300 rounded-lg text-center font-medium text-gray-700 hover:bg-gray-50 cursor-pointer"
-                    >
-                      Clear All
-                    </button>
-                    <button
-                      onClick={() => setMobileFilterOpen(false)}
-                      className="flex-1 py-3 bg-[#13097D] text-white rounded-lg text-center font-medium hover:bg-[#13097D]/90"
-                    >
-                      Apply ({filterCount})
-                    </button>
-                  </div>
+                   
+                   <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+                    <div className="flex gap-3">
+                        <button onClick={clearAllFilters} className="flex-1 py-3 border border-gray-300 rounded-lg text-center font-medium">Clear All</button>
+                        <button onClick={() => setMobileFilterOpen(false)} className="flex-1 py-3 bg-[#13097D] text-white rounded-lg font-medium">Apply</button>
+                    </div>
+                   </div>
                 </div>
               </div>
             )}
 
-            {/* Desktop Filters - Sticky Sidebar */}
-            <div
-              className={`${
-                mobileFilterOpen ? "flex" : "hidden"
-              } lg:flex flex-col gap-6 w-full max-h-[calc(100vh-7rem)] overflow-y-auto scrollbar-hide`}
-            >
-              <div
-                className="flex justify-between w-full h-full max-w-[312px] max-h-[88px] 
-            p-5 bg-white border border-[#E6E6E6] rounded-xl"
-              >
-                <h2 className="flex gap-2">
-                  <img
-                    src="./filter.svg"
-                    alt="filter_icon"
-                    className="w-6 h-6 text-[#13097D]"
-                  />
-                  Filters
-                </h2>
-                <div className="bg-[#13097D] text-white w-7 h-7 flex items-center justify-center rounded-lg">
-                  {filterCount}
-                </div>
+            <div className={`hidden lg:flex flex-col gap-6 w-full max-h-[calc(100vh-7rem)] overflow-y-auto scrollbar-hide`}>
+              <div className="flex justify-between w-full p-5 bg-white border border-[#E6E6E6] rounded-xl">
+                <h2 className="flex gap-2"><img src="./filter.svg" alt="filter" className="w-6 h-6 text-[#13097D]" /> Filters</h2>
+                <div className="bg-[#13097D] text-white w-7 h-7 flex items-center justify-center rounded-lg">{filterCount}</div>
               </div>
 
-              <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
-                <div
-                  className="flex justify-between text-[#242645] cursor-pointer"
-                  onClick={() => setExperienceToggle(!experienceToggle)}
-                >
-                  <div className="flex items-center gap-2">
-                    <p>Experience</p>
-                    {experienceFilters.length > 0 && (
-                      <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
-                    )}
-                  </div>
-                  {experienceToggle ? (
-                    <ChevronDown className="w-6 h-6" />
-                  ) : (
-                    <ChevronRight className="w-6 h-6" />
-                  )}
-                </div>
+              {filterContent}
 
-                {experienceToggle && (
-                  <div className="flex flex-col gap-4 text-[#232323]">
-                    <hr className="h-px" />
-                    {experienceOptions.slice(0, 7).map((option) => (
-                      <div key={option.id} className="flex gap-2 items-center">
-                        <input
-                          type="checkbox"
-                          checked={experienceFilters.includes(option.id)}
-                          onChange={() => toggleExperienceFilter(option.id)}
-                          className="w-5 h-5 cursor-pointer"
-                        />
-                        <p className="flex flex-col font-medium text-[14px]">
-                          {option.label}
-                          <span className="font-normal text-[12px]">
-                            {option.description}
-                          </span>
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
-                <div
-                  className="flex justify-between text-[#242645] cursor-pointer"
-                  onClick={() => setLanguageToggle(!languageToggle)}
-                >
-                  <div className="flex items-center gap-2">
-                    <p>Languages</p>
-                    {languageFilters.length > 0 && (
-                      <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
-                    )}
-                  </div>
-                  {languageToggle ? (
-                    <ChevronDown className="w-6 h-6" />
-                  ) : (
-                    <ChevronRight className="w-6 h-6" />
-                  )}
-                </div>
-
-                {languageToggle && (
-                  <div className="flex flex-col gap-4 text-[#232323]">
-                    <hr className="h-px" />
-                    {languageOptions.slice(0, 7).map((language) => (
-                      <div key={language} className="flex gap-2 items-center">
-                        <input
-                          type="checkbox"
-                          checked={languageFilters.includes(language)}
-                          onChange={() => toggleLanguageFilter(language)}
-                          className="w-5 h-5 cursor-pointer"
-                        />
-                        <p className="font-medium text-[14px]">{language}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
-                <div
-                  className="flex justify-between text-[#242645] cursor-pointer"
-                  onClick={() => setCityToggle(!cityToggle)}
-                >
-                  <div className="flex items-center gap-2">
-                    <p>City</p>
-                    {cityFilters.length > 0 && (
-                      <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
-                    )}
-                  </div>
-                  {cityToggle ? (
-                    <ChevronDown className="w-6 h-6 cursor-pointer" />
-                  ) : (
-                    <ChevronRight className="w-6 h-6 cursor-pointer" />
-                  )}
-                </div>
-
-                {cityToggle && (
-                  <div className="flex flex-col gap-4 text-[#232323]">
-                    <hr className="h-px" />
-
-                    <div className="flex items-center gap-2 px-3 rounded-md w-[272px] h-10 border border-[#efefef] bg-white">
-                      <Search size={15} className="text-[#343C6A]" />
-                      <input
-                        type="text"
-                        placeholder="Search Cities"
-                        value={citySearch}
-                        onChange={(e) => setCitySearch(e.target.value)}
-                        className="w-full h-full text-sm outline-none bg-transparent placeholder:text-[#232323] "
-                      />
-                    </div>
-                    {cityOptions
-                      .filter(
-                        (city) =>
-                          city &&
-                          city.toLowerCase().includes(citySearch.toLowerCase())
-                      )
-                      .slice(0, citySearch ? cityOptions.length : 7)
-                      .map((city) => (
-                        <div 
-                          key={city} 
-                          className="flex gap-2 items-center cursor-pointer"
-                          onClick={() => toggleCityFilter(city)}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={cityFilters.includes(city)}
-                            onChange={() => {}}
-                            className="w-5 h-5 cursor-pointer pointer-events-none"
-                          />
-                          <p className="font-medium text-[14px]">{city}</p>
-                        </div>
-                      ))}
-
-                    <hr className="h-px" />
-                    <p className="font-normal text-[14px]">
-                      {citySearch ? filteredCityOptions.length : cityOptions.length} Cities
-                    </p>
-                    {!citySearch && cityOptions.length > 7 && (
-                      <p className="font-normal text-[12px] text-gray-500">
-                        Search to see more options
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
-                <div
-                  className="flex justify-between text-[#242645] cursor-pointer"
-                  onClick={() => setPriceToggle(!priceToggle)}
-                >
-                  <div className="flex items-center gap-2">
-                    <p>Price</p>
-                    <div className="relative group">
-                      <Info className="w-3.5 h-3.5 text-gray-400 cursor-help" />
-                      <div className="absolute left-0 top-full mt-1 hidden group-hover:flex items-center gap-1.5 bg-gray-800 text-white text-xs rounded px-2.5 py-1.5 whitespace-nowrap z-10">
-                        <span className="flex items-center gap-0.5">
-                          <img
-                            src="/coin.svg"
-                            alt="coin"
-                            className="w-3 h-3 shrink-0"
-                          />
-                          1 = ₹1
-                        </span>
-                      </div>
-                    </div>
-                    {(minPrice || maxPrice) && (
-                      <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
-                    )}
-                  </div>
-                  {priceToggle ? (
-                    <ChevronDown className="w-6 h-6" />
-                  ) : (
-                    <ChevronRight className="w-6 h-6" />
-                  )}
-                </div>
-
-                {priceToggle && (
-                  <div className="flex flex-col gap-4 text-[#232323]">
-                    <hr className="h-px" />
-
-                    <div className="flex gap-3">
-                      <div className="flex flex-col gap-2">
-                        <p className="font-medium text-[14px]">Min Price</p>
-                        <div className="rounded-[12px] w-32 h-9 border border-[#efefef] bg-white flex items-center px-3 gap-1.5">
-                          <img
-                            src="/coin.svg"
-                            alt="coin"
-                            className="w-3.5 h-3.5 shrink-0 opacity-60"
-                          />
-                          <input
-                            type="text"
-                            placeholder="100"
-                            value={minPrice}
-                            onChange={(e) => setMinPrice(e.target.value)}
-                            className="w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col gap-2">
-                        <p className="text-[14px] font-medium">Max Price</p>
-                        <div className="rounded-[12px] w-32 h-9 border border-[#efefef] bg-white flex items-center px-3 gap-1.5">
-                          <img
-                            src="/coin.svg"
-                            alt="coin"
-                            className="w-3.5 h-3.5 shrink-0 opacity-60"
-                          />
-                          <input
-                            type="text"
-                            placeholder="10000"
-                            value={maxPrice}
-                            onChange={(e) => setMaxPrice(e.target.value)}
-                            className="w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
-                <div
-                  className="flex justify-between text-[#242645] cursor-pointer"
-                  onClick={() => setWorkingDaysToggle(!workingDaysToggle)}
-                >
-                  <div className="flex items-center gap-2">
-                    <p>Working Days</p>
-                    {selected.length > 0 && (
-                      <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>
-                    )}
-                  </div>
-                  {workingDaysToggle ? (
-                    <ChevronDown className="w-6 h-6" />
-                  ) : (
-                    <ChevronRight className="w-6 h-6" />
-                  )}
-                </div>
-
-                {workingDaysToggle && (
-                  <div className="flex flex-col gap-4 text-[#232323]">
-                    <hr className="h-px" />
-
-                    <div className="flex flex-wrap gap-2.5">
-                      {days.map((day) => {
-                        const isSelected = selected.includes(day);
-                        return (
-                          <div
-                            key={day}
-                            onClick={() => toggleDay(day)}
-                            className={`cursor-pointer px-2.5 py-2 rounded-[10px] border text-sm font-medium transition-colors ${
-                              isSelected
-                                ? "bg-[#232323] text-white border-[#232323]"
-                                : "bg-white text-[#232323] border-[#E6E6E6] hover:bg-gray-100"
-                            }`}
-                          >
-                            {day}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={clearAllFilters}
-                className="w-full max-w-[312px] py-3 border border-gray-300 rounded-lg text-center font-medium text-gray-700 hover:bg-gray-50 cursor-pointer"
-              >
-                Clear All Filters
-              </button>
+              <button onClick={clearAllFilters} className="w-full max-w-[312px] py-3 border border-gray-300 rounded-lg text-center font-medium hover:bg-gray-50">Clear All Filters</button>
             </div>
           </aside>
 
@@ -1253,47 +654,70 @@ export default function CounselorListingPage() {
                   Filter by expertise, language, availability, and pricing.
                 </span>
               </h1>
-
+              
               <div className="hidden sm:flex items-center gap-3">
-                <p className="font-medium text-[16px] text-[#525055]">
-                  Sort By:
-                </p>
-
+                <p className="font-medium text-[16px] text-[#525055]">Sort By:</p>
                 <Select value={selectedSort} onValueChange={setSelectedSort}>
-                  <SelectTrigger className="w-[220px] h-11 border border-[#efefef] bg-white rounded-xl px-3 text-[16px] text-[#333] justify-between hover:cursor-pointer">
-                    <SelectValue
-                      placeholder="Popularity"
-                      className="text-[#525055] text-[16px]"
-                    />
-                  </SelectTrigger>
-
-                  <SelectContent
-                    className="w-[220px] bg-white border border-[#efefef] rounded-xl shadow-lg z-100 max-h-[200px] overflow-y-auto"
-                    position="popper"
-                    sideOffset={4}
-                  >
-                    <SelectGroup>
-                      <SelectLabel className="px-3 py-1 text-xs text-gray-400">
-                        Sort Options
-                      </SelectLabel>
-                      {sortTypes.map((type) => (
-                        <SelectItem
-                          key={type.value}
-                          value={type.value}
-                          className="flex justify-between items-center gap-6 px-3 py-2 text-[16px] text-[#525055] cursor-pointer focus:bg-gray-100 hover:bg-gray-50 hover:cursor-pointer"
-                        >
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
+                   <SelectTrigger className="w-[220px] h-11 border border-[#efefef] bg-white rounded-xl px-3 text-[16px] text-[#333]"><SelectValue placeholder="Popularity" /></SelectTrigger>
+                   <SelectContent>
+                      {sortTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                   </SelectContent>
                 </Select>
               </div>
             </div>
-            {renderContent()}
+
+            {loading ? (
+               <div className="flex justify-center py-20"><div className="animate-spin h-8 w-8 border-4 border-[#13097D] border-t-transparent rounded-full"></div></div>
+            ) : error ? (
+               <div className="text-center text-red-500 py-10">{error}</div>
+            ) : counselors.length === 0 ? (
+               <div className="text-center text-gray-500 py-10">No counselors found matching your filters.</div>
+            ) : (
+               <>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 pb-8">
+                  {counselors.map((counselor, index) => {
+                    const cardData = adaptApiDataToCardData(counselor);
+                    const isFavourite = favouriteIds.has(cardData.id);
+                    // Attach the ref to the last element
+                    if (index === counselors.length - 1) {
+                        return (
+                           <div key={counselor.counsellorId} ref={lastCounselorRef}>
+                              <CounselorCard
+                                counselor={cardData}
+                                isFavourite={isFavourite}
+                                onToggleFavourite={handleToggleFavourite}
+                              />
+                           </div>
+                        )
+                    }
+                    return (
+                      <CounselorCard
+                        key={counselor.counsellorId}
+                        counselor={cardData}
+                        isFavourite={isFavourite}
+                        onToggleFavourite={handleToggleFavourite}
+                      />
+                    );
+                  })}
+                </div>
+                
+                {fetchingMore && (
+                  <div className="flex justify-center py-6 w-full">
+                    <Loader2 className="animate-spin h-6 w-6 text-[#13097D]" />
+                  </div>
+                )}
+                
+                {!hasMore && counselors.length > 0 && (
+                   <div className="text-center py-8 text-gray-500 font-medium">
+                      You have reached the end
+                   </div>
+                )}
+               </>
+            )}
           </section>
         </div>
       </main>
+      
       {user && (
         <EditProfileModal
           isOpen={isEditProfileModalOpen}

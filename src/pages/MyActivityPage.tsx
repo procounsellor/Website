@@ -1,11 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/AuthStore';
 import {
   getMyQuestions,
   getMyBookmarkedQuestions,
-  getMyAnswers
+  getMyAnswers,
+  searchMyQuestions,
+  searchMyAnswers,
+  searchMyBookmarkedQuestions
 } from '@/api/community';
-import { Loader2, Search } from 'lucide-react';
+import { Loader2, Search, X } from 'lucide-react';
 import MyActivityQuestionCard from '@/components/community/MyActivityQuestionCard';
 import MyActivityAnswerCard from '@/components/community/MyActivityAnswerCard';
 import CategorySidebar from '@/components/community/CategorySidebar';
@@ -22,9 +26,15 @@ type TabType = 'My Questions' | 'My Answers' | 'Bookmarked Questions';
 export default function MyActivityPage() {
   const { userId } = useAuthStore();
   const token = localStorage.getItem("jwt");
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>('My Questions');
   const [searchQuery, setSearchQuery] = useState('');
   
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
   const [myQuestions, setMyQuestions] = useState<CommunityDashboardItem[]>([]);
@@ -39,6 +49,59 @@ export default function MyActivityPage() {
   const [error, setError] = useState<string | null>(null);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchQuery.trim().length >= 3 && userId && token) {
+        setIsSearching(true);
+        setShowDropdown(true);
+        try {
+          let response;
+          
+          if (activeTab === 'My Questions') {
+            response = await searchMyQuestions(userId, searchQuery, token);
+          } else if (activeTab === 'My Answers') {
+            response = await searchMyAnswers(userId, searchQuery, token);
+          } else if (activeTab === 'Bookmarked Questions') {
+            response = await searchMyBookmarkedQuestions(userId, searchQuery, token);
+          }
+
+          if (response && response.status === 'Success') {
+            setSearchResults(response.data);
+          } else {
+            setSearchResults([]);
+          }
+        } catch (error) {
+          console.error("Search failed", error);
+          setSearchResults([]);
+        } finally {
+          setIsSearching(false);
+        }
+      } else if (searchQuery.trim().length < 3) {
+        setSearchResults([]);
+        setShowDropdown(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery, userId, token, activeTab]);
+
+  const handleSearchResultClick = (item: any) => {
+    if (item.questionId) {
+      navigate(`/community/question/${item.questionId}`,{state: { from: 'my-activity' }});
+      setShowDropdown(false);
+    }
+  };
 
   const fetchQuestions = useCallback(
     async (isNextPage = false) => {
@@ -112,6 +175,8 @@ export default function MyActivityPage() {
   useEffect(() => {
     setSelectedCategory(null);
     setSearchQuery('');
+    setSearchResults([]);
+    setShowDropdown(false);
   }, [activeTab]);
 
   useEffect(() => {
@@ -144,26 +209,18 @@ export default function MyActivityPage() {
     return () => observer.disconnect();
   }, [activeTab, fetchQuestions]);
 
-  const filterData = <T extends { subject?: string, question?: string }>(data: T[]) => {
-    return data.filter(item => {
-      let matchesCategory = true;
+  const filterData = <T,>(data: T[]): T[] => {
+    return data.filter((item: any) => {
+      if (!selectedCategory) return true;
       
-      if (selectedCategory) {
-        const subject = item.subject || '';
-        const mainCategories = ['Colleges', 'Courses', 'Exams'];
+      const subject = item.subject || '';
+      const mainCategories = ['Colleges', 'Courses', 'Exams'];
 
-        if (selectedCategory === 'Other') {
-          matchesCategory = !mainCategories.includes(subject);
-        } else {
-          matchesCategory = subject === selectedCategory;
-        }
+      if (selectedCategory === 'Other') {
+        return !mainCategories.includes(subject);
       }
-
-      const matchesSearch = searchQuery 
-        ? item.question?.toLowerCase().includes(searchQuery.toLowerCase())
-        : true;
-
-      return matchesCategory && matchesSearch;
+      
+      return subject === selectedCategory;
     });
   };
 
@@ -294,16 +351,58 @@ export default function MyActivityPage() {
             showMobileBack={true} 
           />
           
-          <div className="w-full bg-white rounded-lg mb-4 p-4 md:p-5 shadow-sm border border-gray-200 flex flex-col gap-4 md:gap-5">
-            <div className="flex items-center gap-3">
-              <Search size={24} className="text-[#343C6A] shrink-0" />
-              <input
-                type="text"
-                placeholder="Search questions"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#F5F5F7] rounded-md p-2.5 md:p-3 text-[11px] md:text-sm placeholder-[#2F43F2] border border-transparent focus:outline-none focus:ring-2 focus:ring-[#13097D] focus:border-transparent"
-              />
+          <div className="w-full bg-white rounded-lg mb-4 p-4 md:p-5 shadow-sm border border-gray-200 flex flex-col gap-4 md:gap-5 z-20 relative">
+            
+            <div className="relative" ref={searchContainerRef}>
+              <div className="flex items-center gap-3 bg-[#F5F5F7] rounded-md px-3 border border-transparent focus-within:ring-2 focus-within:ring-[#13097D] focus-within:border-transparent">
+                <Search size={24} className="text-[#343C6A] shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Search questions"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-transparent p-2.5 md:p-3 text-[11px] md:text-sm placeholder-[#2F43F2] focus:outline-none"
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-gray-600">
+                     <X size={18} />
+                  </button>
+                )}
+              </div>
+
+              {showDropdown && searchQuery.length >= 3 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-100 max-h-[400px] overflow-y-auto z-50">
+                  {isSearching ? (
+                    <div className="p-4 flex items-center justify-center text-gray-500 gap-2">
+                      <Loader2 className="animate-spin w-4 h-4" />
+                      <span className="text-sm">Searching in {activeTab}...</span>
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    <ul>
+                      {searchResults.map((item) => (
+                        <li 
+                          key={item.questionId || item.myAnswerId}
+                          onClick={() => handleSearchResultClick(item)}
+                          className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-none transition-colors"
+                        >
+                          <p className="text-sm font-medium text-[#242645] line-clamp-2">
+                            {item.question}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                              {item.subject || 'General'}
+                            </span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="p-4 text-center text-sm text-gray-500">
+                      No results found in {activeTab} for "{searchQuery}"
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-center pt-1">

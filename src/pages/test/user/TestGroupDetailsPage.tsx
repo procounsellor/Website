@@ -1,15 +1,26 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { BookOpen, Clock, FileText, Star, ShoppingCart, Bookmark, Lock, Loader2, Users, ArrowLeft, Trash2, CheckCircle2 } from "lucide-react";
-import { toast } from "sonner";
+import { useState, useEffect, useRef } from "react";
+import { BookOpen, Clock, FileText, Star, ShoppingCart, Bookmark, Lock, Loader2, Users, ArrowLeft, Trash2, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
+import toast from "react-hot-toast";
 import {
   getTestGroupByIdForUser,
+  getPublicTestGroupById,
   buyTestGroup,
   bookmarkTestGroup,
   addReviewToTestGroup,
   updateReviewToTestGroup,
   deleteReviewFromTestGroup,
 } from "@/api/testGroup";
+import { useAuthStore } from "@/store/AuthStore";
+import startRecharge from "@/api/wallet";
+import AddFundsPanel from "@/components/student-dashboard/AddFundsPanel";
+
+declare global {
+  interface Window {
+    Razorpay: unknown;
+  }
+}
+type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 
 interface TestSeries {
   testSeriesId: string;
@@ -32,6 +43,7 @@ interface TestSeries {
 interface Review {
   reviewId: string;
   userId: string;
+  userFullName?: string;
   rating: number;
   reviewText: string;
   createdAt: { seconds: number; nanos: number };
@@ -55,6 +67,13 @@ interface TestGroupData {
   reviews: Review[];
   bookmarked: boolean;
   bought: boolean;
+  associatedCourse?: {
+    courseId: string;
+    courseName: string;
+    courseBannerUrl: string;
+    coursePrice: number;
+    discountedCoursePrice: number;
+  } | null;
 }
 
 export default function TestGroupDetailsPage() {
@@ -64,35 +83,78 @@ export default function TestGroupDetailsPage() {
   const [data, setData] = useState<TestGroupData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
   const [userReview, setUserReview] = useState<Review | null>(null);
+  const [addFundsOpen, setAddFundsOpen] = useState(false);
+  const pendingPurchaseRef = useRef(false);
   const userId = localStorage.getItem("phone") || "";
+  const { user, refreshUser, isAuthenticated, toggleLogin, setPendingAction } = useAuthStore();
+  const [visibleTests, setVisibleTests] = useState(3);
+  const TESTS_PER_PAGE = 3;
 
   useEffect(() => {
-    if (testGroupId && userId) {
+    if (testGroupId) {
       fetchTestGroupDetails();
     }
-  }, [testGroupId, userId]);
+  }, [testGroupId, isAuthenticated]);
+
+  // Persist navigation context (fromDashboard, activeTab) to sessionStorage
+  useEffect(() => {
+    if (!testGroupId) return;
+    const sessionKey = `test_group_back_context_${testGroupId}`;
+
+    // If we have state, save it
+    if (location.state?.fromDashboard) {
+      const context = {
+        fromDashboard: location.state.fromDashboard,
+        activeTab: location.state.activeTab
+      };
+      sessionStorage.setItem(sessionKey, JSON.stringify(context));
+    } else {
+      // If no state, try to restore from session
+      const saved = sessionStorage.getItem(sessionKey);
+      if (saved) {
+        try {
+          JSON.parse(saved); // Validate it's parseable
+          // We don't update location.state directly, but we'll use this in handleBack
+        } catch (e) {
+          console.error("Failed to parse navigation context", e);
+        }
+      }
+    }
+  }, [testGroupId, location.state]);
 
   const fetchTestGroupDetails = async () => {
-    if (!userId || !testGroupId) return;
+    if (!testGroupId) return;
 
     try {
       setLoading(true);
-      const response = await getTestGroupByIdForUser(userId, testGroupId);
+      let response;
+
+      if (isAuthenticated && userId) {
+        // Logged in - use authenticated endpoint
+        response = await getTestGroupByIdForUser(userId, testGroupId);
+      } else {
+        // Not logged in - use public endpoint
+        response = await getPublicTestGroupById(testGroupId);
+      }
+
       if (response.status && response.data) {
         setData(response.data);
-        // Find user's own review
-        const myReview = response.data.reviews.find((r: Review) => r.userId === userId);
-        if (myReview) {
-          setUserReview(myReview);
-          setReviewRating(myReview.rating);
-          setReviewText(myReview.reviewText);
-        } else {
-          setUserReview(null);
-          setReviewRating(5);
-          setReviewText("");
+        // Find user's own review (only for authenticated users)
+        if (isAuthenticated && userId) {
+          const myReview = response.data.reviews?.find((r: Review) => r.userId === userId);
+          if (myReview) {
+            setUserReview(myReview);
+            setReviewRating(myReview.rating);
+            setReviewText(myReview.reviewText);
+          } else {
+            setUserReview(null);
+            setReviewRating(5);
+            setReviewText("");
+          }
         }
       }
     } catch (error) {
@@ -104,8 +166,20 @@ export default function TestGroupDetailsPage() {
   };
 
   const handleBack = () => {
-    if (location.state?.fromDashboard && location.state?.activeTab) {
-      navigate('/dashboard-student', { state: { activeTab: location.state.activeTab } });
+    const sessionKey = `test_group_back_context_${testGroupId}`;
+    const saved = sessionStorage.getItem(sessionKey);
+    let context = location.state;
+
+    if (!context?.fromDashboard && saved) {
+      try {
+        context = JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse stored context", e);
+      }
+    }
+
+    if (context?.fromDashboard && context?.activeTab) {
+      navigate('/dashboard-student', { state: { activeTab: context.activeTab } });
     } else {
       navigate(-1);
     }
@@ -114,86 +188,173 @@ export default function TestGroupDetailsPage() {
   const handleBuy = async () => {
     if (!testGroupId || !data) return;
 
-    if (!userId) {
-      toast.error("Please login to purchase");
-      navigate("/");
-      return;
-    }
+    // Define the actual purchase/enrollment action
+    const executePurchase = async () => {
+      const currentUserId = localStorage.getItem("phone") || "";
 
-    // For free test groups, just enroll
-    if (data.testGroup.priceType === "FREE" || data.testGroup.price === 0) {
-      try {
-        const counsellorId = data.attachedTests[0]?.counsellorId || '';
+      if (!currentUserId) {
+        toast.error("Please login to continue");
+        return;
+      }
 
-        if (!counsellorId) {
-          toast.error("Unable to process enrollment");
-          return;
+      // For free test groups, just enroll
+      if (data.testGroup.priceType === "FREE" || data.testGroup.price === 0) {
+        try {
+          const counsellorId = data.attachedTests[0]?.counsellorId || '';
+
+          if (!counsellorId) {
+            toast.error("Unable to process enrollment");
+            return;
+          }
+
+          const response = await buyTestGroup(
+            currentUserId,
+            counsellorId,
+            testGroupId,
+            0,
+            null
+          );
+
+          if (response.status) {
+            toast.success("Successfully enrolled!");
+            fetchTestGroupDetails();
+          } else {
+            toast.error(response.message || "Failed to enroll");
+          }
+        } catch (error) {
+          console.error("Failed to enroll:", error);
+          toast.error("Failed to enroll in test group");
         }
+        return;
+      }
 
+      // For paid test groups - check wallet balance first
+      const currentUser = useAuthStore.getState().user;
+      const walletBalance = currentUser?.walletAmount ?? 0;
+      const price = data.testGroup.price;
+
+      if (walletBalance < price) {
+        toast.error("Insufficient balance. Please add funds to your wallet.");
+        pendingPurchaseRef.current = true;
+        setAddFundsOpen(true);
+        return;
+      }
+
+      const counsellorId = data.attachedTests[0]?.counsellorId || '';
+
+      if (!counsellorId) {
+        toast.error("Unable to process purchase");
+        return;
+      }
+
+      try {
         const response = await buyTestGroup(
-          userId,
+          currentUserId,
           counsellorId,
           testGroupId,
-          0,
+          data.testGroup.price,
           null
         );
 
         if (response.status) {
-          toast.success("Successfully enrolled!");
+          toast.success("Test group purchased successfully!");
+          pendingPurchaseRef.current = false;
           fetchTestGroupDetails();
         } else {
-          toast.error(response.message || "Failed to enroll");
+          if (response.message?.toLowerCase().includes("insufficient")) {
+            toast.error("Insufficient balance. Please add funds to your wallet.");
+            pendingPurchaseRef.current = true;
+            setAddFundsOpen(true);
+          } else {
+            toast.error(response.message || "Failed to purchase");
+          }
         }
       } catch (error) {
-        console.error("Failed to enroll:", error);
-        toast.error("Failed to enroll in test group");
+        console.error("Failed to buy:", error);
+        toast.error("Failed to purchase test group");
       }
+    };
+
+    // Check authentication first
+    if (!isAuthenticated || !userId) {
+      console.log('User not authenticated, triggering login with callback');
+      setPendingAction(() => executePurchase);
+      toggleLogin();
       return;
     }
 
-    // For paid test groups
-    const counsellorId = data.attachedTests[0]?.counsellorId || '';
+    // User is authenticated, proceed with purchase
+    await executePurchase();
+  };
 
-    if (!counsellorId) {
-      toast.error("Unable to process purchase");
+  const handleRecharge = async (amount: number) => {
+    if (!amount || amount <= 0) {
+      toast.error('Please enter a valid amount');
       return;
     }
-
     try {
-      const response = await buyTestGroup(
-        userId,
-        counsellorId,
-        testGroupId,
-        data.testGroup.price,
-        null
-      );
+      const order = await startRecharge(userId, amount);
+      const options = {
+        key: order.keyId,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.orderId,
+        name: "ProCounsel Wallet",
+        description: "Wallet Recharge",
+        notes: { userId },
+        handler: async function () {
+          toast.success("Payment successful. Your balance will be updated shortly.");
+          try {
+            await refreshUser(true);
+            setAddFundsOpen(false);
+            // Auto-retry purchase if there was a pending purchase
+            if (pendingPurchaseRef.current) {
+              setTimeout(() => {
+                handleBuy();
+              }, 500);
+            }
+          } catch (err) {
+            console.error('Failed to refresh user balance after payment.', err);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            console.log('Razorpay modal dismissed.');
+          }
+        },
+        theme: { color: "#3399cc" },
+      };
 
-      if (response.status) {
-        toast.success("Test group purchased successfully!");
-        fetchTestGroupDetails();
-      } else {
-        if (response.message?.includes("insufficient")) {
-          toast.error("Insufficient balance. Please recharge your wallet.");
-          setTimeout(() => navigate("/recharge-wallet"), 1500);
-        } else {
-          toast.error(response.message || "Failed to purchase");
-        }
-      }
+      const Rz = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
+      const rzp = new Rz(options);
+      rzp.open();
+
     } catch (error) {
-      console.error("Failed to buy:", error);
-      toast.error("Failed to purchase test group");
+      console.error("Failed to initiate Razorpay order.", error);
+      toast.error("Could not start the payment process. Please try again later.");
     }
   };
 
   const handleBookmark = async () => {
-    if (!userId || !testGroupId) return;
+    if (!testGroupId) return;
+
+    // Check authentication first
+    if (!isAuthenticated || !userId) {
+      toast.error("Please login to bookmark");
+      toggleLogin();
+      return;
+    }
+
+    const currentlyBookmarked = data?.bookmarked || false;
 
     try {
       const response = await bookmarkTestGroup(userId, testGroupId);
-      if (response.status) {
-        setData(prev => prev ? { ...prev, bookmarked: response.bookmarked } : null);
-        toast.success(response.bookmarked ? "Added to bookmarks" : "Removed from bookmarks");
-      }
+      console.log("Bookmark API response:", response);
+
+      // Toggle the bookmark state regardless of response.status
+      const newBookmarkedState = response.bookmarked !== undefined ? response.bookmarked : !currentlyBookmarked;
+      setData(prev => prev ? { ...prev, bookmarked: newBookmarkedState } : null);
+      toast.success(newBookmarkedState ? "Added to bookmarks" : "Removed from bookmarks");
     } catch (error) {
       console.error("Failed to bookmark:", error);
       toast.error("Failed to update bookmark");
@@ -209,13 +370,19 @@ export default function TestGroupDetailsPage() {
 
     try {
       if (userReview) {
+        // Validation: Check if anything changed
+        if (reviewRating === userReview.rating && reviewText.trim() === userReview.reviewText) {
+          toast.error("No changes made to the review");
+          return;
+        }
+
         // Update existing review
         const response = await updateReviewToTestGroup(
           userId,
           userReview.reviewId,
           testGroupId,
           reviewRating,
-          reviewText
+          reviewText.trim()
         );
         if (response.status) {
           toast.success("Review updated successfully!");
@@ -228,7 +395,7 @@ export default function TestGroupDetailsPage() {
           userId,
           testGroupId,
           reviewRating,
-          reviewText
+          reviewText.trim()
         );
         if (response.status) {
           toast.success("Review added successfully!");
@@ -245,8 +412,6 @@ export default function TestGroupDetailsPage() {
   const handleDeleteReview = async () => {
     if (!userId || !testGroupId || !userReview) return;
 
-    if (!confirm("Are you sure you want to delete your review?")) return;
-
     try {
       const response = await deleteReviewFromTestGroup(
         userId,
@@ -255,6 +420,7 @@ export default function TestGroupDetailsPage() {
       );
       if (response.status) {
         toast.success("Review deleted successfully");
+        setShowDeleteConfirm(false);
         setShowReviewModal(false);
         setUserReview(null);
         setReviewRating(5);
@@ -271,7 +437,7 @@ export default function TestGroupDetailsPage() {
 
   const handleTestSeriesClick = (testSeriesId: string) => {
     if (data?.bought) {
-      navigate(`/test-info/${testSeriesId}`);
+      navigate(`/test-info/${testSeriesId}`, { state: { testGroupId } });
     } else {
       toast.error("Please purchase this test group first");
     }
@@ -372,7 +538,7 @@ export default function TestGroupDetailsPage() {
               </div>
 
               <div className="space-y-3">
-                {attachedTests.map((test) => {
+                {attachedTests.slice(0, visibleTests).map((test) => {
                   const totalQuestions = test.listOfSection.reduce(
                     (sum, s) => sum + s.totalQuestionsSupposedToBeAdded,
                     0
@@ -416,6 +582,30 @@ export default function TestGroupDetailsPage() {
                   );
                 })}
               </div>
+
+              {/* Pagination Controls */}
+              {attachedTests.length > TESTS_PER_PAGE && (
+                <div className="flex justify-center gap-3 mt-4">
+                  {visibleTests < attachedTests.length && (
+                    <button
+                      onClick={() => setVisibleTests(prev => prev + TESTS_PER_PAGE)}
+                      className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-(--text-app-primary) rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
+                    >
+                      <span>See More</span>
+                      <ChevronDown size={16} />
+                    </button>
+                  )}
+                  {visibleTests > TESTS_PER_PAGE && (
+                    <button
+                      onClick={() => setVisibleTests(TESTS_PER_PAGE)}
+                      className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-(--text-app-primary) rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
+                    >
+                      <span>See Less</span>
+                      <ChevronUp size={16} />
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Reviews Section */}
@@ -455,7 +645,7 @@ export default function TestGroupDetailsPage() {
                             ))}
                           </div>
                           <span className="text-xs font-medium text-gray-900">
-                            {review.userId === userId ? "You" : "Student"}
+                            {review.userId === userId ? "You" : (review.userFullName || "Student")}
                           </span>
                         </div>
                         <span className="text-[10px] md:text-xs text-gray-500">
@@ -468,6 +658,57 @@ export default function TestGroupDetailsPage() {
                 </div>
               )}
             </div>
+
+            {/* Associated Course Section */}
+            {testGroup.testType === "COURSE_ATTACHED" && data.associatedCourse && (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-5 mt-6">
+                <h2 className="text-base md:text-lg font-bold text-[#242645] mb-3">Associated Course</h2>
+                <div
+                  onClick={() => navigate(`/detail/${data.associatedCourse!.courseId}/user`, {
+                    state: { from: 'test-group' }
+                  })}
+                  className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                >
+                  {/* Course Banner */}
+                  <div className="w-14 h-14 md:w-16 md:h-16 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
+                    {data.associatedCourse.courseBannerUrl ? (
+                      <img
+                        src={data.associatedCourse.courseBannerUrl}
+                        alt={data.associatedCourse.courseName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-blue-50">
+                        <BookOpen className="w-5 h-5 md:w-6 md:h-6 text-blue-200" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Course Info */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 mb-1 text-sm truncate">
+                      {data.associatedCourse.courseName}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      {data.associatedCourse.discountedCoursePrice > 0 && data.associatedCourse.discountedCoursePrice < data.associatedCourse.coursePrice ? (
+                        <>
+                          <span className="text-sm md:text-base font-bold text-green-600">
+                            ₹{Math.floor(data.associatedCourse.discountedCoursePrice)}
+                          </span>
+                          <span className="text-xs text-gray-500 line-through">
+                            ₹{Math.floor(data.associatedCourse.coursePrice)}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-sm md:text-base font-bold text-gray-900">
+                          ₹{Math.floor(data.associatedCourse.coursePrice)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
           </div>
 
@@ -626,7 +867,7 @@ export default function TestGroupDetailsPage() {
 
                 {userReview && (
                   <button
-                    onClick={handleDeleteReview}
+                    onClick={() => setShowDeleteConfirm(true)}
                     className="w-full py-3 bg-red-50 text-red-600 rounded-xl text-sm font-semibold hover:bg-red-100 transition-colors flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Trash2 size={16} /> Delete Review
@@ -643,7 +884,50 @@ export default function TestGroupDetailsPage() {
             </div>
           </div>
         )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl p-5 md:p-6 max-w-sm w-full shadow-xl animate-in fade-in zoom-in duration-200">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Trash2 className="w-8 h-8 text-red-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Review?</h3>
+                <p className="text-sm text-gray-500">
+                  Are you sure you want to delete your review? This action cannot be undone.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteReview}
+                  className="flex-1 py-3 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors cursor-pointer"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Add Funds Panel */}
+      <AddFundsPanel
+        isOpen={addFundsOpen}
+        onClose={() => {
+          setAddFundsOpen(false);
+          pendingPurchaseRef.current = false;
+        }}
+        balance={user?.walletAmount ?? 0}
+        onAddMoney={handleRecharge}
+      />
     </div>
   );
 }

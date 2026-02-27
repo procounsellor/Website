@@ -33,6 +33,7 @@ export const API_CONFIG = {
     updateQuestion: '/api/community/questions/updateQuestion',
     getAnswersByQuestionId: '/api/community/dashboard/getAnswersForMyAnswers',
     searchCounsellors: '/api/user/counsellorsAccordingToInterestedCourse/search',
+    searchLoggedInCounsellors: '/api/user/getAllCounsellors/search',
   },
   defaultTimeout: 10000,
 } as const;

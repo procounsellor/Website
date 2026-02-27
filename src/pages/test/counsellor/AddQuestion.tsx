@@ -11,6 +11,7 @@ import { QuestionTable } from "@/components/create-test/components/QuestionTable
 import { useAuthStore } from "@/store/AuthStore";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft } from "lucide-react";
+import { QuestionPreviewModal } from "@/components/modals/QuestionPreviewModal";
 
 interface Question {
   questionId: string;
@@ -51,13 +52,13 @@ export function AddQuestion() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated } = useAuthStore();
-  
+
   const [testData, setTestData] = useState<TestData | null>(
     location.state?.testData || null
   );
   const [sections, setSections] = useState<Section[]>([]);
   const [loadingTestData, setLoadingTestData] = useState<boolean>(false);
-  
+
   const [questionType, setQuestionType] = useState<string>("all");
   const [category, setCategory] = useState<string>("all");
   const [selectedType, setSelectedType] = useState<"objective" | "subjective">("objective");
@@ -82,6 +83,27 @@ export function AddQuestion() {
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ questionId: string; sectionName: string } | null>(null);
   const [editingQuestion, setEditingQuestion] = useState<{ questionId: string; sectionName: string } | null>(null);
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
+  const [previewQuestion, setPreviewQuestion] = useState<{
+    question: any;
+    sectionName: string;
+  } | null>(null);
+
+  // Helper function to handle pasted images
+  const handleImagePaste = (e: React.ClipboardEvent, callback: (file: File) => void) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        e.preventDefault();
+        const blob = items[i].getAsFile();
+        if (blob) {
+          callback(blob);
+        }
+        break;
+      }
+    }
+  };
 
   const toggleCorrectOption = (optionId: string) => {
     if (responseType === "single") {
@@ -167,17 +189,19 @@ export function AddQuestion() {
         .then((result) => {
           if (result.status && result.data) {
             // Merge fetched questions with testData sections
-            const updatedSections = result.data.map((section: Section) => {
-              const matchingSection = testData.listOfSection?.find(
-                (s) => s.sectionName === section.sectionName
+            const updatedSections = testData.listOfSection.map((masterSection: Section) => {
+              const fetchedSection = result.data.find(
+                (s: Section) => s.sectionName === masterSection.sectionName
               );
               return {
-                ...section,
-                totalQuestionsSupposedToBeAdded: matchingSection?.totalQuestionsSupposedToBeAdded,
-                sectionDurationInMinutes: matchingSection?.sectionDurationInMinutes,
-                pointsForCorrectAnswer: matchingSection?.pointsForCorrectAnswer ?? null,
-                negativeMarks: matchingSection?.negativeMarks ?? null,
-                totalQuestionsAdded: section.totalQuestions || 0,
+                ...masterSection,
+                ...fetchedSection, // Keep fetched data like questions
+                totalQuestionsSupposedToBeAdded: masterSection.totalQuestionsSupposedToBeAdded,
+                sectionDurationInMinutes: masterSection.sectionDurationInMinutes,
+                pointsForCorrectAnswer: masterSection.pointsForCorrectAnswer ?? null,
+                negativeMarks: masterSection.negativeMarks ?? null,
+                totalQuestionsAdded: fetchedSection?.totalQuestions || 0,
+                questions: fetchedSection?.questions || [],
               };
             });
             setSections(updatedSections);
@@ -192,7 +216,16 @@ export function AddQuestion() {
   // Update sections when testData changes and set first section as default
   useEffect(() => {
     if (testData?.listOfSection) {
-      setSections(testData.listOfSection);
+      // Initialize with testData sections if no API data yet, or if API failed
+      // This serves as a fallback or initial state
+      if (sections.length === 0) {
+        setSections(testData.listOfSection.map(s => ({
+          ...s,
+          questions: [],
+          totalQuestionsAdded: 0
+        })));
+      }
+
       // Set first section as default category only if not already set
       if (!selectedCategory && testData.listOfSection.length > 0) {
         setSelectedCategory(testData.listOfSection[0].sectionName);
@@ -237,7 +270,7 @@ export function AddQuestion() {
 
     const counsellorId = user.phoneNumber;
     const isEditing = editingQuestion !== null;
-    
+
     const questionData = {
       questionText,
       questionImageUrls: [],
@@ -258,7 +291,7 @@ export function AddQuestion() {
       sectionName: selectedCategory,
       question: questionData,
     };
-    
+
     if (isEditing) {
       requestData.questionId = editingQuestion.questionId;
     }
@@ -276,7 +309,7 @@ export function AddQuestion() {
 
     const formdata = new FormData();
     formdata.append("request", JSON.stringify(requestData));
-    
+
     if (questionImage) {
       formdata.append("questionImages", questionImage);
     }
@@ -302,14 +335,14 @@ export function AddQuestion() {
       const apiUrl = isEditing
         ? `${import.meta.env.VITE_API_BASE_URL}/api/testSeries/updateQuestion`
         : `${import.meta.env.VITE_API_BASE_URL}/api/testSeries/addQuestion`;
-      
+
       const response = await fetch(apiUrl, requestOptions);
       const result = await response.json();
       console.log(result);
 
       if (result.status && result.data) {
         setTestData(result.data);
-        
+
         setQuestionText("");
         setQuestionImage(null);
         setExistingQuestionImageUrls([]);
@@ -325,7 +358,7 @@ export function AddQuestion() {
         setCorrectOption("");
         setCorrectOptions([]);
         setEditingQuestion(null);
-        
+
         console.log(isEditing ? "Question updated successfully" : "Question added successfully");
       } else {
         console.error("Failed to add question:", result.message);
@@ -368,9 +401,11 @@ export function AddQuestion() {
         setEditingQuestion({ questionId, sectionName });
         setQuestionText(question.questionText);
         setSelectedCategory(sectionName);
-        setResponseType(question.isMultipleAnswer ? "multi" : "single");
-        setCorrectOptions(question.correctAnswerIds);
-        if (!question.isMultipleAnswer && question.correctAnswerIds.length > 0) {
+        // Check both field names as API uses inconsistent naming (multipleAnswer vs isMultipleAnswer)
+        const isMulti = question.isMultipleAnswer || question.multipleAnswer || false;
+        setResponseType(isMulti ? "multi" : "single");
+        setCorrectOptions(question.correctAnswerIds || []);
+        if (!isMulti && question.correctAnswerIds?.length > 0) {
           setCorrectOption(question.correctAnswerIds[0]);
         }
 
@@ -410,12 +445,49 @@ export function AddQuestion() {
     }
   };
 
+  const handleViewQuestion = async (questionId: string, sectionName: string) => {
+    if (!user?.phoneNumber || !testSeriesId) return;
+
+    const token = localStorage.getItem("jwt");
+    if (!token) return;
+
+    const myHeaders = new Headers();
+    myHeaders.append("Authorization", `Bearer ${token}`);
+    myHeaders.append("Accept", "application/json");
+
+    const requestOptions: RequestInit = {
+      method: "GET",
+      headers: myHeaders,
+      redirect: "follow",
+    };
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/testSeries/getQuestionByIdForCounsellor?counsellorId=${user.phoneNumber}&testSeriesId=${testSeriesId}&sectionName=${sectionName}&questionId=${questionId}`,
+        requestOptions
+      );
+      const result = await response.json();
+
+      if (result.status && result.data?.question) {
+        setPreviewQuestion({
+          question: result.data.question,
+          sectionName: sectionName,
+        });
+      } else {
+        toast.error("Failed to load question preview");
+      }
+    } catch (error) {
+      console.error("Error fetching question details:", error);
+      toast.error("Error loading question preview");
+    }
+  };
+
   const handleDeleteQuestion = async (questionId: string, sectionName: string) => {
     if (!user?.phoneNumber || !testSeriesId) return;
-    
+
     setIsDeleting(true);
     const counsellorId = user.phoneNumber;
-    
+
     const requestData = {
       counsellorId,
       testSeriesId,
@@ -451,7 +523,7 @@ export function AddQuestion() {
       if (result.status && result.data) {
         toast.success("Question deleted successfully!");
         setTestData(result.data);
-        
+
         // Refetch questions to update the list smoothly
         const refetchHeaders = new Headers();
         refetchHeaders.append("Authorization", `Bearer ${token}`);
@@ -496,20 +568,22 @@ export function AddQuestion() {
 
   const getAllQuestions = () => {
     if (!sections || sections.length === 0) return [];
-    
+
     let allQuestions: any[] = [];
     sections.forEach((section) => {
       section.questions.forEach((q: Question) => {
+        // Check both field names as API uses inconsistent naming
+        const isMulti = (q as any).isMultipleAnswer || (q as any).multipleAnswer || false;
         allQuestions.push({
           ...q,
           sectionName: section.sectionName,
-          type: q.isMultipleAnswer ? "Multi Select" : "Single Select",
+          type: isMulti ? "Multi Select" : "Single Select",
         });
       });
     });
-    
+
     let filtered = allQuestions;
-    
+
     if (questionType !== "all") {
       filtered = filtered.filter((q) => {
         if (questionType === "objective") {
@@ -520,11 +594,11 @@ export function AddQuestion() {
         return true;
       });
     }
-    
+
     if (category !== "all") {
       filtered = filtered.filter((q) => q.sectionName === category);
     }
-    
+
     return filtered;
   };
 
@@ -565,7 +639,7 @@ export function AddQuestion() {
         requestOptions
       );
       const result = await response.json();
-      
+
       if (result.status) {
         toast.success("Test Series published successfully!");
         setTimeout(() => {
@@ -614,532 +688,700 @@ export function AddQuestion() {
         <ArrowLeft className="w-5 h-5" />
         <span className="font-medium">{testData?.testGroupId ? "Back to Test Group" : "Back to Test Groups"}</span>
       </button>
-      
-      <div className="grid grid-cols-2 gap-4">
-      {/* creation side  */}
-      <div className="shadow-[0px_0px_4px_0px_#00000026] rounded-2xl">
-        <div className="bg-[#F9FAFB] w-full min-h-[72px] p-5 flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-(--text-app-primary) font-medium text-2xl">
-              Question Type
-            </h1>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => setSelectedType("objective")}
-                className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all w-[149px] h-[39px] cursor-pointer ${
-                  selectedType === "objective"
+      <div className="grid grid-cols-2 gap-4">
+        {/* creation side  */}
+        <div className="shadow-[0px_0px_4px_0px_#00000026] rounded-2xl">
+          <div className="bg-[#F9FAFB] w-full min-h-[72px] p-5 flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <h1 className="text-(--text-app-primary) font-medium text-2xl">
+                Question Type
+              </h1>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setSelectedType("objective")}
+                  className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all w-[149px] h-[39px] cursor-pointer ${selectedType === "objective"
                     ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
                     : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
-                }`}
-              >
-                <span className={`flex items-center justify-center w-6 h-6 rounded-full border font-bold ${
-                  selectedType === "objective" 
-                    ? "bg-white text-(--btn-primary) border-white" 
+                    }`}
+                >
+                  <span className={`flex items-center justify-center w-6 h-6 rounded-full border font-bold ${selectedType === "objective"
+                    ? "bg-white text-(--btn-primary) border-white"
                     : "bg-transparent border-[#E9EBEC]"
-                }`}>
-                  {selectedType === "objective" && "✓"}
-                </span>
-                Objective
-              </button>
+                    }`}>
+                    {selectedType === "objective" && "✓"}
+                  </span>
+                  Objective
+                </button>
 
-              <button
-                disabled
-                className="flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all w-[149px] h-[39px] bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed opacity-60"
-              >
-                <span className="flex items-center justify-center w-6 h-6 rounded-full border font-bold bg-transparent border-gray-300">
-                </span>
-                Subjective
-              </button>
+                <button
+                  disabled
+                  className="flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all w-[149px] h-[39px] bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed opacity-60"
+                >
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full border font-bold bg-transparent border-gray-300">
+                  </span>
+                  Subjective
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Form Content */}
-        <div className="p-5 flex flex-col gap-6">
-          {/* Question Field */}
-          <div className="flex flex-col gap-2">
-            <label className="text-base font-medium leading-[125%] text-(--text-app-primary)">
-              Question
-            </label>
-            <div className="relative border border-[#E8EAED] rounded-xl p-4 pb-12">
-              <textarea
-                value={questionText}
-                onChange={(e) => setQuestionText(e.target.value)}
-                placeholder="Enter your question here"
-                className="w-full min-h-[100px] resize-none text-base placeholder:text-gray-400 outline-none"
-              />
-              {/* Show existing images from API */}
-              {existingQuestionImageUrls.length > 0 && !questionImage && (
-                <div className="mt-3 mb-2 flex flex-wrap gap-2">
-                  {existingQuestionImageUrls.map((url, index) => (
-                    <div key={index} className="max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
-                      <img 
-                        src={url} 
-                        alt={`Question ${index + 1}`} 
-                        className="max-w-full h-auto max-h-[400px] object-contain"
-                      />
-                      <button
-                        onClick={() => {
-                          setExistingQuestionImageUrls(prev => prev.filter((_, i) => i !== index));
-                        }}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {/* Show new uploaded image */}
-              {questionImage && (
-                <div className="mt-3 mb-2 max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
-                  <img 
-                    src={URL.createObjectURL(questionImage)} 
-                    alt="Question" 
-                    className="max-w-full h-auto max-h-[400px] object-contain"
-                  />
-                  <button
-                    onClick={(e) =>{
-                       e.stopPropagation()
-                       setQuestionImage(null)}}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
-                  >
-                    ×
-                  </button>
-                </div>
-              )}
-              <label htmlFor="question-image" className="absolute bottom-3 right-3 text-gray-400 hover:text-gray-600 cursor-pointer">
-                <img src="/image.svg" alt="Add image" className="w-6 h-6" />
-                <input
-                  id="question-image"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      setQuestionImage(e.target.files[0]);
+          {/* Form Content */}
+          <div className="p-5 flex flex-col gap-6">
+            {/* Question Field */}
+            <div className="flex flex-col gap-2">
+              <label className="text-base font-medium leading-[125%] text-(--text-app-primary)">
+                Question
+              </label>
+              <div className="relative border border-[#E8EAED] rounded-xl p-4 pb-12">
+                <textarea
+                  value={questionText}
+                  onChange={(e) => setQuestionText(e.target.value)}
+                  onPaste={(e) => {
+                    // Try to handle image paste first
+                    handleImagePaste(e, (file) => setQuestionImage(file));
+
+                    // If no image, handle text paste
+                    if (!e.defaultPrevented) {
+                      e.preventDefault();
+                      const pastedText = e.clipboardData.getData('text/plain');
+                      // Clean and normalize the pasted text
+                      const cleanedText = pastedText
+                        .normalize('NFC') // Normalize Unicode
+                        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ''); // Remove control characters except newline/tab
+                      const start = e.currentTarget.selectionStart;
+                      const end = e.currentTarget.selectionEnd;
+                      const newText = questionText.substring(0, start) + cleanedText + questionText.substring(end);
+                      setQuestionText(newText);
+                      // Set cursor position after paste
+                      setTimeout(() => {
+                        e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + cleanedText.length;
+                      }, 0);
                     }
                   }}
+                  placeholder="Enter your question here (paste images with Ctrl+V)"
+                  className="w-full min-h-[100px] resize-none text-base placeholder:text-gray-400 outline-none"
                 />
-              </label>
-            </div>
-          </div>
-
-          {/* Select Category */}
-          <div className="flex flex-col gap-3">
-            <label className="text-base font-medium leading-[125%] text-(--text-app-primary)">
-              Select Category
-            </label>
-            <div className="flex gap-3 flex-wrap">
-              {sections.length > 0 ? (
-                sections.map((section) => (
-                  <button
-                    key={section.sectionName}
-                    onClick={() => setSelectedCategory(section.sectionName)}
-                    className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all capitalize cursor-pointer ${
-                      selectedCategory === section.sectionName
-                        ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
-                        : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
-                    }`}
-                  >
-                    <span className={`flex items-center justify-center w-6 h-6 rounded-full border font-bold ${
-                      selectedCategory === section.sectionName 
-                        ? "bg-white text-(--btn-primary) border-white" 
-                        : "bg-transparent border-[#E9EBEC]"
-                    }`}>
-                      {selectedCategory === section.sectionName && "✓"}
-                    </span>
-                    {section.sectionName}
-                  </button>
-                ))
-              ) : (
-                <p className="text-gray-400 text-sm">No sections available. Please create a test first.</p>
-              )}
-            </div>
-          </div>
-
-          {/* Response Type - Only for Objective */}
-          {selectedType === "objective" && (
-            <>
-              <div className="flex flex-col gap-3">
-                <label className="text-base font-medium leading-[125%] text-(--text-app-primary)">
-                  Response Type
+                {/* Show existing images from API */}
+                {existingQuestionImageUrls.length > 0 && !questionImage && (
+                  <div className="mt-3 mb-2 flex flex-wrap gap-2">
+                    {existingQuestionImageUrls.map((url, index) => (
+                      <div key={index} className="max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
+                        <img
+                          src={url}
+                          alt={`Question ${index + 1}`}
+                          className="max-w-full h-auto max-h-[400px] object-contain"
+                        />
+                        <button
+                          onClick={() => {
+                            setExistingQuestionImageUrls(prev => prev.filter((_, i) => i !== index));
+                          }}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {/* Show new uploaded image */}
+                {questionImage && (
+                  <div className="mt-3 mb-2 max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
+                    <img
+                      src={URL.createObjectURL(questionImage)}
+                      alt="Question"
+                      className="max-w-full h-auto max-h-[400px] object-contain"
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setQuestionImage(null)
+                      }}
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+                <label htmlFor="question-image" className="absolute bottom-3 right-3 text-gray-400 hover:text-gray-600 cursor-pointer">
+                  <img src="/image.svg" alt="Add image" className="w-6 h-6" />
+                  <input
+                    id="question-image"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setQuestionImage(e.target.files[0]);
+                      }
+                    }}
+                  />
                 </label>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setResponseType("single")}
-                    className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all cursor-pointer ${
-                      responseType === "single"
-                        ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
-                        : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
-                    }`}
-                  >
-                    <span className={`flex items-center justify-center w-6 h-6 rounded-full border font-bold ${
-                      responseType === "single" 
-                        ? "bg-white text-(--btn-primary) border-white" 
-                        : "bg-transparent border-[#E9EBEC]"
-                    }`}>
-                      {responseType === "single" && "✓"}
-                    </span>
-                    Single select
-                  </button>
-
-                  <button
-                    onClick={() => setResponseType("multi")}
-                    className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all cursor-pointer ${
-                      responseType === "multi"
-                        ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
-                        : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
-                    }`}
-                  >
-                    <span className={`flex items-center justify-center w-6 h-6 rounded-full border font-bold ${
-                      responseType === "multi" 
-                        ? "bg-white text-(--btn-primary) border-white" 
-                        : "bg-transparent border-[#E9EBEC]"
-                    }`}>
-                      {responseType === "multi" && "✓"}
-                    </span>
-                    Multi select
-                  </button>
-                </div>
               </div>
+            </div>
 
-              {/* Options */}
-              <div className="flex flex-col gap-4">
-                <label className="text-base font-medium leading-[125%] text-(--text-app-primary)">
-                  Options
-                </label>
-                {options.map((option, index) => (
-                  <div key={option.id} className="p-4 border border-[#E8EAED] rounded-xl bg-white">
-                    <div className="flex items-center gap-3">
-                      <input
-                        type={responseType === "single" ? "radio" : "checkbox"}
-                        name={responseType === "single" ? "correctOption" : undefined}
-                        checked={correctOptions.includes(option.id)}
-                        onChange={() => toggleCorrectOption(option.id)}
-                        style={{
-                          width: '33.33px',
-                          height: '33.33px',
-                          borderRadius: '6px',
-                          border: '2px solid #6B7280',
-                          accentColor: 'var(--btn-primary)'
-                        }}
-                        className="cursor-pointer shrink-0"
-                      />
-                      <span className="text-lg font-normal leading-[100%] text-[#6B7280]">
-                        {option.id}.
+            {/* Select Category */}
+            <div className="flex flex-col gap-3">
+              <label className="text-base font-medium leading-[125%] text-(--text-app-primary)">
+                Select Category
+              </label>
+              <div className="flex gap-3 flex-wrap">
+                {sections.length > 0 ? (
+                  sections.map((section) => {
+                    const addedCount = section.questions?.length || 0;
+                    const requiredCount = section.totalQuestionsSupposedToBeAdded || 0;
+                    const isComplete = addedCount >= requiredCount && addedCount > 0;
+
+                    return (
+                      <button
+                        key={section.sectionName}
+                        onClick={() => setSelectedCategory(section.sectionName)}
+                        className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all capitalize cursor-pointer ${selectedCategory === section.sectionName
+                          ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
+                          : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
+                          }`}
+                      >
+                        <span className={`flex items-center justify-center w-6 h-6 rounded-full border font-bold ${selectedCategory === section.sectionName
+                          ? "bg-white text-(--btn-primary) border-white"
+                          : "bg-transparent border-[#E9EBEC]"
+                          }`}>
+                          {selectedCategory === section.sectionName && "✓"}
+                        </span>
+                        {section.sectionName}
+                        <span className={`text-xs ml-1 ${isComplete ? 'text-green-500' : 'text-red-500'}`}>
+                          ({addedCount}/{requiredCount})
+                        </span>
+                      </button>
+                    );
+                  })
+                ) : (
+                  <p className="text-gray-400 text-sm">No sections available. Please create a test first.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Response Type - Only for Objective */}
+            {selectedType === "objective" && (
+              <>
+                <div className="flex flex-col gap-3">
+                  <label className="text-base font-medium leading-[125%] text-(--text-app-primary)">
+                    Response Type
+                  </label>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setResponseType("single")}
+                      className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all cursor-pointer ${responseType === "single"
+                        ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
+                        : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
+                        }`}
+                    >
+                      <span className={`flex items-center justify-center w-6 h-6 rounded-full border font-bold ${responseType === "single"
+                        ? "bg-white text-(--btn-primary) border-white"
+                        : "bg-transparent border-[#E9EBEC]"
+                        }`}>
+                        {responseType === "single" && "✓"}
                       </span>
-                      <input
-                        type="text"
-                        value={option.text}
-                        onChange={(e) => {
-                          const newOptions = [...options];
-                          newOptions[index].text = e.target.value;
-                          setOptions(newOptions);
-                        }}
-                        placeholder="Write option here"
-                        className="flex-1 text-lg font-normal leading-[100%] text-(--text-app-primary) outline-none placeholder:text-gray-400"
-                      />
-                      <label className="text-gray-400 hover:text-gray-600 cursor-pointer">
-                        <img src="/image.svg" alt="Add image" className="w-5 h-5" />
+                      Single select
+                    </button>
+
+                    <button
+                      onClick={() => setResponseType("multi")}
+                      className={`flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg font-medium text-base transition-all cursor-pointer ${responseType === "multi"
+                        ? "bg-(--btn-primary) text-white border border-(--btn-primary)"
+                        : "bg-transparent text-(--text-app-primary) border border-[#E9EBEC]"
+                        }`}
+                    >
+                      <span className={`flex items-center justify-center w-6 h-6 rounded-full border font-bold ${responseType === "multi"
+                        ? "bg-white text-(--btn-primary) border-white"
+                        : "bg-transparent border-[#E9EBEC]"
+                        }`}>
+                        {responseType === "multi" && "✓"}
+                      </span>
+                      Multi select
+                    </button>
+                  </div>
+                </div>
+
+                {/* Options */}
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-base font-medium leading-[125%] text-(--text-app-primary)">
+                      Options
+                    </label>
+                    <button
+                      onClick={() => {
+                        const newOptions = [
+                          { id: "A", text: "A", image: null as File | null, imageUrl: null as string | null },
+                          { id: "B", text: "B", image: null as File | null, imageUrl: null as string | null },
+                          { id: "C", text: "C", image: null as File | null, imageUrl: null as string | null },
+                          { id: "D", text: "D", image: null as File | null, imageUrl: null as string | null },
+                        ];
+                        setOptions(newOptions);
+                        toast.success("Default options filled!");
+                      }}
+                      className="px-3 py-1.5 text-xs font-medium text-(--btn-primary) border border-(--btn-primary) rounded-lg hover:bg-(--btn-primary) hover:text-white transition-colors cursor-pointer"
+                    >
+                      Default Options
+                    </button>
+                  </div>
+                  {options.map((option, index) => (
+                    <div key={option.id} className="p-4 border border-[#E8EAED] rounded-xl bg-white">
+                      <div className="flex items-center gap-3">
                         <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
+                          type={responseType === "single" ? "radio" : "checkbox"}
+                          name={responseType === "single" ? "correctOption" : undefined}
+                          checked={correctOptions.includes(option.id)}
+                          onChange={() => toggleCorrectOption(option.id)}
+                          style={{
+                            width: '33.33px',
+                            height: '33.33px',
+                            borderRadius: '6px',
+                            border: '2px solid #6B7280',
+                            accentColor: 'var(--btn-primary)'
+                          }}
+                          className="cursor-pointer shrink-0"
+                        />
+                        <span className="text-lg font-normal leading-[100%] text-[#6B7280]">
+                          {option.id}.
+                        </span>
+                        <input
+                          type="text"
+                          value={option.text}
                           onChange={(e) => {
-                            if (e.target.files && e.target.files[0]) {
+                            const newOptions = [...options];
+                            newOptions[index].text = e.target.value;
+                            setOptions(newOptions);
+                          }}
+                          onPaste={(e) => {
+                            // Try to handle image paste first
+                            handleImagePaste(e, (file) => {
                               const newOptions = [...options];
-                              newOptions[index].image = e.target.files[0];
+                              newOptions[index].image = file;
+                              setOptions(newOptions);
+                            });
+
+                            // If no image, handle text paste
+                            if (!e.defaultPrevented) {
+                              e.preventDefault();
+                              const pastedText = e.clipboardData.getData('text/plain');
+                              // Clean and normalize the pasted text
+                              const cleanedText = pastedText
+                                .normalize('NFC') // Normalize Unicode
+                                .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+                                .replace(/\n/g, ' '); // Replace newlines with space for single-line input
+                              const start = e.currentTarget.selectionStart || 0;
+                              const end = e.currentTarget.selectionEnd || 0;
+                              const currentText = option.text;
+                              const newText = currentText.substring(0, start) + cleanedText + currentText.substring(end);
+                              const newOptions = [...options];
+                              newOptions[index].text = newText;
                               setOptions(newOptions);
                             }
                           }}
+                          placeholder="Write option here (paste images with Ctrl+V)"
+                          className="flex-1 text-lg font-normal leading-[100%] text-(--text-app-primary) outline-none placeholder:text-gray-400"
                         />
-                      </label>
-                    </div>
-                    
-                    {/* Show option images inside the same box */}
-                    {(option.imageUrl || option.image) && (
-                      <div className="mt-3 mb-2 flex flex-wrap gap-2">
-                        {/* Show existing image from API */}
-                        {option.imageUrl && (
-                          <div className="max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
-                            <img 
-                              src={option.imageUrl} 
-                              alt={`Option ${option.id} (existing)`} 
-                              className="max-w-full h-auto max-h-[300px] object-contain"
-                            />
-                            <button
-                              onClick={() => {
+                        <label className="text-gray-400 hover:text-gray-600 cursor-pointer">
+                          <img src="/image.svg" alt="Add image" className="w-5 h-5" />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files[0]) {
                                 const newOptions = [...options];
-                                newOptions[index].imageUrl = null;
+                                newOptions[index].image = e.target.files[0];
                                 setOptions(newOptions);
-                              }}
-                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        )}
-                        
-                        {/* Show newly uploaded image */}
-                        {option.image && (
-                          <div className="max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
-                            <img 
-                              src={URL.createObjectURL(option.image)} 
-                              alt={`Option ${option.id} (new)`} 
-                              className="max-w-full h-auto max-h-[300px] object-contain"
-                            />
-                            <button
-                              onClick={() => {
-                                const newOptions = [...options];
-                                newOptions[index].image = null;
-                                setOptions(newOptions);
-                              }}
-                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        )}
+                              }
+                            }}
+                          />
+                        </label>
                       </div>
-                    )}
-                  </div>
-                ))}
-              </div>
 
-              {/* Correct Option - Show for both Single and Multi Select */}
-              <div className="flex flex-col gap-2">
-                <label className="text-base font-medium leading-[125%] text-(--text-app-primary)">
-                  Correct Option{responseType === "multi" ? "s" : ""}
-                </label>
-                {responseType === "single" ? (
-                  <Select value={correctOption} onValueChange={(value) => {
-                    setCorrectOption(value);
-                    setCorrectOptions([value]);
-                  }}>
-                    <SelectTrigger className="border border-[#E8EAED] rounded-xl p-3 text-base">
-                      <SelectValue placeholder="Option A" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {options.map((opt) => (
-                        <SelectItem key={opt.id} value={opt.id} className="text-base">
-                          Option {opt.id}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <div className="p-3 border border-[#E8EAED] rounded-xl bg-gray-50">
-                    <p className="text-sm text-(--text-muted)">
-                      {correctOptions.length > 0 
-                        ? `Selected: ${correctOptions.map(id => `Option ${id}`).join(", ")}`
-                        : "Select correct options using checkboxes above"}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
+                      {/* Show option images inside the same box */}
+                      {(option.imageUrl || option.image) && (
+                        <div className="mt-3 mb-2 flex flex-wrap gap-2">
+                          {/* Show existing image from API */}
+                          {option.imageUrl && (
+                            <div className="max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
+                              <img
+                                src={option.imageUrl}
+                                alt={`Option ${option.id} (existing)`}
+                                className="max-w-full h-auto max-h-[300px] object-contain"
+                              />
+                              <button
+                                onClick={() => {
+                                  const newOptions = [...options];
+                                  newOptions[index].imageUrl = null;
+                                  setOptions(newOptions);
+                                }}
+                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          )}
 
-          {/* Solution Field */}
-          <div className="flex flex-col gap-2">
-            <label className="text-base font-medium leading-[125%] text-(--text-app-primary)">
-              Solution (Optional)
-            </label>
-            <div className="relative border border-[#E8EAED] rounded-xl p-4 pb-12">
-              <textarea
-                value={solution}
-                onChange={(e) => setSolution(e.target.value)}
-                placeholder="Enter solution explanation here"
-                className="w-full min-h-[80px] resize-none text-base placeholder:text-gray-400 outline-none"
-              />
-              {/* Show existing solution image from API */}
-              {existingSolutionImageUrl && !solutionImage && (
-                <div className="mt-3 mb-2 max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
-                  <img 
-                    src={existingSolutionImageUrl} 
-                    alt="Solution" 
-                    className="max-w-full h-auto max-h-[400px] object-contain"
-                  />
-                  <button
-                    onClick={() => setExistingSolutionImageUrl(null)}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
-                  >
-                    ×
-                  </button>
+                          {/* Show newly uploaded image */}
+                          {option.image && (
+                            <div className="max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
+                              <img
+                                src={URL.createObjectURL(option.image)}
+                                alt={`Option ${option.id} (new)`}
+                                className="max-w-full h-auto max-h-[300px] object-contain"
+                              />
+                              <button
+                                onClick={() => {
+                                  const newOptions = [...options];
+                                  newOptions[index].image = null;
+                                  setOptions(newOptions);
+                                }}
+                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              )}
-              {/* Show new uploaded solution image */}
-              {solutionImage && (
-                <div className="mt-3 mb-2 max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
-                  <img 
-                    src={URL.createObjectURL(solutionImage)} 
-                    alt="Solution" 
-                    className="max-w-full h-auto max-h-[400px] object-contain"
-                  />
-                  <button
-                    onClick={() => setSolutionImage(null)}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
-                  >
-                    ×
-                  </button>
+
+                {/* Correct Option - Show for both Single and Multi Select */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-base font-medium leading-[125%] text-(--text-app-primary)">
+                    Correct Option{responseType === "multi" ? "s" : ""}
+                  </label>
+                  {responseType === "single" ? (
+                    <Select value={correctOption} onValueChange={(value) => {
+                      setCorrectOption(value);
+                      setCorrectOptions([value]);
+                    }}>
+                      <SelectTrigger className="border border-[#E8EAED] rounded-xl p-3 text-base">
+                        <SelectValue placeholder="Option A" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {options.map((opt) => (
+                          <SelectItem key={opt.id} value={opt.id} className="text-base">
+                            Option {opt.id}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="p-3 border border-[#E8EAED] rounded-xl bg-gray-50">
+                      <p className="text-sm text-(--text-muted)">
+                        {correctOptions.length > 0
+                          ? `Selected: ${correctOptions.map(id => `Option ${id}`).join(", ")}`
+                          : "Select correct options using checkboxes above"}
+                      </p>
+                    </div>
+                  )}
                 </div>
-              )}
-              <label htmlFor="solution-image" className="absolute bottom-3 right-3 text-gray-400 hover:text-gray-600 cursor-pointer">
-                <img src="/image.svg" alt="Add image" className="w-6 h-6" />
-                <input
-                  id="solution-image"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      setSolutionImage(e.target.files[0]);
+              </>
+            )}
+
+            {/* Solution Field */}
+            <div className="flex flex-col gap-2">
+              <label className="text-base font-medium leading-[125%] text-(--text-app-primary)">
+                Solution (Optional)
+              </label>
+              <div className="relative border border-[#E8EAED] rounded-xl p-4 pb-12">
+                <textarea
+                  value={solution}
+                  onChange={(e) => setSolution(e.target.value)}
+                  onPaste={(e) => {
+                    // Try to handle image paste first
+                    handleImagePaste(e, (file) => setSolutionImage(file));
+
+                    // If no image, handle text paste
+                    if (!e.defaultPrevented) {
+                      e.preventDefault();
+                      const pastedText = e.clipboardData.getData('text/plain');
+                      const cleanedText = pastedText
+                        .normalize('NFC')
+                        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+                      const start = e.currentTarget.selectionStart;
+                      const end = e.currentTarget.selectionEnd;
+                      const newText = solution.substring(0, start) + cleanedText + solution.substring(end);
+                      setSolution(newText);
+                      setTimeout(() => {
+                        e.currentTarget.selectionStart = e.currentTarget.selectionEnd = start + cleanedText.length;
+                      }, 0);
                     }
                   }}
+                  placeholder="Enter solution explanation here (paste images with Ctrl+V)"
+                  className="w-full min-h-[80px] resize-none text-base placeholder:text-gray-400 outline-none"
                 />
-              </label>
+                {/* Show existing solution image from API */}
+                {existingSolutionImageUrl && !solutionImage && (
+                  <div className="mt-3 mb-2 max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
+                    <img
+                      src={existingSolutionImageUrl}
+                      alt="Solution"
+                      className="max-w-full h-auto max-h-[400px] object-contain"
+                    />
+                    <button
+                      onClick={() => setExistingSolutionImageUrl(null)}
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+                {/* Show new uploaded solution image */}
+                {solutionImage && (
+                  <div className="mt-3 mb-2 max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
+                    <img
+                      src={URL.createObjectURL(solutionImage)}
+                      alt="Solution"
+                      className="max-w-full h-auto max-h-[400px] object-contain"
+                    />
+                    <button
+                      onClick={() => setSolutionImage(null)}
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+                <label htmlFor="solution-image" className="absolute bottom-3 right-3 text-gray-400 hover:text-gray-600 cursor-pointer">
+                  <img src="/image.svg" alt="Add image" className="w-6 h-6" />
+                  <input
+                    id="solution-image"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setSolutionImage(e.target.files[0]);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex justify-center gap-3 mt-4">
+              {editingQuestion && (
+                <button
+                  onClick={() => {
+                    setEditingQuestion(null);
+                    setQuestionText("");
+                    setQuestionImage(null);
+                    setExistingQuestionImageUrls([]);
+                    setSolution("");
+                    setSolutionImage(null);
+                    setExistingSolutionImageUrl(null);
+                    setOptions([
+                      { id: "A", text: "", image: null, imageUrl: null },
+                      { id: "B", text: "", image: null, imageUrl: null },
+                      { id: "C", text: "", image: null, imageUrl: null },
+                      { id: "D", text: "", image: null, imageUrl: null },
+                    ]);
+                    setCorrectOption("");
+                    setCorrectOptions([]);
+                  }}
+                  className="py-3 px-8 bg-gray-500 text-white font-medium text-base rounded-xl hover:bg-gray-600 transition-colors shadow-md cursor-pointer"
+                >
+                  Cancel Edit
+                </button>
+              )}
+              <div className="relative group">
+                <button
+                  onClick={() => {
+                    // Check if section limit is reached
+                    const section = sections.find(s => s.sectionName === selectedCategory);
+                    if (!editingQuestion && section) {
+                      const added = section.questions?.length || 0;
+                      const limit = section.totalQuestionsSupposedToBeAdded || 0;
+                      if (added >= limit) {
+                        toast.error(`Section "${section.sectionName}" is full. You cannot add more questions.`);
+                        return;
+                      }
+                    }
+                    handleSubmitQuestion();
+                  }}
+                  disabled={isSubmitting || !questionText || !selectedCategory || (selectedType === "objective" && correctOptions.length === 0) || (!editingQuestion && (() => {
+                    const section = sections.find(s => s.sectionName === selectedCategory);
+                    return section && (section.questions?.length || 0) >= (section.totalQuestionsSupposedToBeAdded || 0);
+                  })())}
+                  className="py-3 px-8 bg-[#00C853] text-white font-medium text-base rounded-xl hover:bg-[#00B04A] transition-colors shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
+                >
+                  {isSubmitting && <Loader2 className="w-5 h-5 animate-spin" />}
+                  {isSubmitting ? (editingQuestion ? "Updating..." : "Submitting...") : (editingQuestion ? "Update Question" : "Submit Question")}
+                </button>
+                {/* Tooltip for full section */}
+                {(!editingQuestion && selectedCategory && (() => {
+                  const section = sections.find(s => s.sectionName === selectedCategory);
+                  return section && (section.questions?.length || 0) >= (section.totalQuestionsSupposedToBeAdded || 0);
+                })()) && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-3 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                      Section limit reached
+                    </div>
+                  )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* listing side */}
+        <div className="shadow-[0px_0px_4px_0px_#00000026] rounded-2xl flex  flex-col gap-4">
+          <div className="bg-(--bg-second) w-full h-[72px] flex items-center justify-between px-3">
+            <h1 className="text-(--text-app-primary) font-medium text-2xl">
+              My Uploaded Questions
+            </h1>
+            <div className="relative group">
+              <button
+                onClick={() => {
+                  const validationErrors = sections.map(section => {
+                    const added = section.questions?.length || 0;
+                    const required = section.totalQuestionsSupposedToBeAdded || 0;
+                    if (added === 0) return `${section.sectionName}: Empty`;
+                    if (added < required) return `${section.sectionName}: Need ${required}, has ${added}`;
+                    return null;
+                  }).filter(Boolean);
+
+                  if (validationErrors.length > 0) {
+                    console.log("Validation blocked publish:", validationErrors);
+                    toast.error("Please add all required questions before publishing.");
+                    return;
+                  }
+                  handlePublishTestSeries();
+                }}
+                disabled={isPublishing || sections.reduce((acc, s) => acc + (s.questions?.length || 0), 0) === 0 || (() => {
+                  const errors = sections.map(section => {
+                    const added = section.questions?.length || 0;
+                    const required = section.totalQuestionsSupposedToBeAdded || 0;
+                    if (added === 0) return true;
+                    if (added < required) return true;
+                    return false;
+                  });
+                  return errors.some(e => e);
+                })()}
+                className="py-2 px-6 bg-(--btn-primary) text-white font-medium text-base rounded-xl hover:opacity-90 transition-all shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
+              >
+                {isPublishing && <Loader2 className="w-5 h-5 animate-spin" />}
+                {isPublishing ? "Publishing..." : "Publish Test Series"}
+              </button>
+
+              {/* Custom Tooltip for Validation Errors */}
+              {(sections.reduce((acc, s) => acc + (s.questions?.length || 0), 0) === 0 || sections.some(s => {
+                const added = s.questions?.length || 0;
+                const required = s.totalQuestionsSupposedToBeAdded || 0;
+                return added === 0 || added < required;
+              })) && (
+                  <div className="absolute right-0 top-full mt-2 w-max max-w-xs p-3 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                    <ul className="list-disc pl-4 space-y-1">
+                      {sections.map((section, idx) => {
+                        const added = section.questions?.length || 0;
+                        const required = section.totalQuestionsSupposedToBeAdded || 0;
+
+                        if (added === 0) {
+                          return <li key={idx}><span className="font-semibold">{section.sectionName}</span> is empty.</li>;
+                        }
+                        if (added < required) {
+                          return <li key={idx}><span className="font-semibold">{section.sectionName}</span>: {required - added} more required.</li>;
+                        }
+                        return null;
+                      })}
+                      {sections.length === 0 && <li>No sections found.</li>}
+                    </ul>
+                  </div>
+                )}
+            </div>
+          </div>
+          <div className="flex gap-4 px-3">
+            <div className="flex flex-col justify-between items-start p-4 bg-(--bg-second) rounded-2xl border border-[#E8EAED] w-[151px] h-[70px]">
+              <h1 className="text-xs font-normal text-(--text-muted)">Total</h1>
+              <p className="text-[1.125rem] font-medium text-(--text-app-primary)">
+                {sections.reduce((acc, s) => acc + (s.totalQuestions || s.totalQuestionsAdded || 0), 0)}
+              </p>
+            </div>
+            <div className="flex flex-col justify-between items-start p-4 bg-(--bg-second) rounded-2xl border border-[#E8EAED] w-[151px] h-[70px]">
+              <h1 className="text-xs font-normal text-(--text-muted)">
+                Objective
+              </h1>
+              <p className="text-[1.125rem] font-medium text-(--text-app-primary)">
+                {sections.reduce((acc, s) => acc + s.questions.filter((q: Question) => q.options?.length > 0).length, 0)}
+              </p>
+            </div>
+            <div className="flex flex-col justify-between items-start p-4 bg-(--bg-second) rounded-2xl border border-[#E8EAED] w-[151px] h-[70px]">
+              <h1 className="text-xs font-normal text-(--text-muted)">
+                Subjective
+              </h1>
+              <p className="text-[1.125rem] font-medium text-(--text-app-primary)">
+                {sections.reduce((acc, s) => acc + s.questions.filter((q: Question) => !q.options || q.options.length === 0).length, 0)}
+              </p>
+            </div>
+            <div className="flex flex-col justify-between items-start p-4 bg-(--bg-second) rounded-2xl border border-[#E8EAED] w-[151px] h-[70px]">
+              <h1 className="text-xs font-normal text-(--text-muted)">
+                Categories
+              </h1>
+              <p className="text-[1.125rem] font-medium text-(--text-app-primary)">
+                {sections.length}
+              </p>
             </div>
           </div>
 
-          {/* Submit Button */}
-          <div className="flex justify-center gap-3 mt-4">
-            {editingQuestion && (
-              <button 
-                onClick={() => {
-                  setEditingQuestion(null);
-                  setQuestionText("");
-                  setQuestionImage(null);
-                  setExistingQuestionImageUrls([]);
-                  setSolution("");
-                  setSolutionImage(null);
-                  setExistingSolutionImageUrl(null);
-                  setOptions([
-                    { id: "A", text: "", image: null, imageUrl: null },
-                    { id: "B", text: "", image: null, imageUrl: null },
-                    { id: "C", text: "", image: null, imageUrl: null },
-                    { id: "D", text: "", image: null, imageUrl: null },
-                  ]);
-                  setCorrectOption("");
-                  setCorrectOptions([]);
-                }}
-                className="py-3 px-8 bg-gray-500 text-white font-medium text-base rounded-xl hover:bg-gray-600 transition-colors shadow-md cursor-pointer"
-              >
-                Cancel Edit
-              </button>
-            )}
-            <button 
-              onClick={handleSubmitQuestion}
-              disabled={isSubmitting || !questionText || !selectedCategory || (selectedType === "objective" && correctOptions.length === 0)}
-              className="py-3 px-8 bg-[#00C853] text-white font-medium text-base rounded-xl hover:bg-[#00B04A] transition-colors shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
-            >
-              {isSubmitting && <Loader2 className="w-5 h-5 animate-spin" />}
-              {isSubmitting ? (editingQuestion ? "Updating..." : "Submitting...") : (editingQuestion ? "Update Question" : "Submit Question")}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* listing side */}
-      <div className="shadow-[0px_0px_4px_0px_#00000026] rounded-2xl flex  flex-col gap-4">
-        <div className="bg-(--bg-second) w-full h-[72px] flex items-center justify-between px-3">
-          <h1 className="text-(--text-app-primary) font-medium text-2xl">
-            My Uploaded Questions
-          </h1>
-          <button
-            onClick={handlePublishTestSeries}
-            disabled={isPublishing || sections.reduce((acc, s) => acc + (s.totalQuestions || s.totalQuestionsAdded || 0), 0) === 0}
-            className="py-2 px-6 bg-(--btn-primary) text-white font-medium text-base rounded-xl hover:opacity-90 transition-all shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
-          >
-            {isPublishing && <Loader2 className="w-5 h-5 animate-spin" />}
-            {isPublishing ? "Publishing..." : "Publish Test Series"}
-          </button>
-        </div>
-        <div className="flex gap-4 px-3">
-          <div className="flex flex-col justify-between items-start p-4 bg-(--bg-second) rounded-2xl border border-[#E8EAED] w-[151px] h-[70px]">
-            <h1 className="text-xs font-normal text-(--text-muted)">Total</h1>
-            <p className="text-[1.125rem] font-medium text-(--text-app-primary)">
-              {sections.reduce((acc, s) => acc + (s.totalQuestions || s.totalQuestionsAdded || 0), 0)}
-            </p>
-          </div>
-          <div className="flex flex-col justify-between items-start p-4 bg-(--bg-second) rounded-2xl border border-[#E8EAED] w-[151px] h-[70px]">
-            <h1 className="text-xs font-normal text-(--text-muted)">
-              Objective
-            </h1>
-            <p className="text-[1.125rem] font-medium text-(--text-app-primary)">
-              {sections.reduce((acc, s) => acc + s.questions.filter((q: Question) => q.options?.length > 0).length, 0)}
-            </p>
-          </div>
-          <div className="flex flex-col justify-between items-start p-4 bg-(--bg-second) rounded-2xl border border-[#E8EAED] w-[151px] h-[70px]">
-            <h1 className="text-xs font-normal text-(--text-muted)">
-              Subjective
-            </h1>
-            <p className="text-[1.125rem] font-medium text-(--text-app-primary)">
-              {sections.reduce((acc, s) => acc + s.questions.filter((q: Question) => !q.options || q.options.length === 0).length, 0)}
-            </p>
-          </div>
-          <div className="flex flex-col justify-between items-start p-4 bg-(--bg-second) rounded-2xl border border-[#E8EAED] w-[151px] h-[70px]">
-            <h1 className="text-xs font-normal text-(--text-muted)">
-              Categories
-            </h1>
-            <p className="text-[1.125rem] font-medium text-(--text-app-primary)">
-              {sections.length}
-            </p>
-          </div>
-        </div>
-
-        {/* filters  */}
-        <div className="flex gap-6 border-b border-t border-[#E9EBEC] p-3">
-          <Select value={questionType} onValueChange={setQuestionType}>
-            <SelectTrigger className="w-[227px] h-9 border border-[#E8EAED] rounded-[12px] text-xs font-medium text-(--text-app-primary) leading-[125%] cursor-pointer">
-              <SelectValue placeholder="All Questions" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" className="text-xs font-medium">
-                All Questions
-              </SelectItem>
-              <SelectItem value="objective" className="text-xs font-medium">
-                Objective
-              </SelectItem>
-              <SelectItem value="subjective" className="text-xs font-medium">
-                Subjective
-              </SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-[227px] h-9 border border-[#E8EAED] rounded-[12px] text-xs font-medium text-(--text-app-primary) leading-[125%] cursor-pointer">
-              <SelectValue placeholder="All Categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" className="text-xs font-medium">
-                All Categories
-              </SelectItem>
-              {sections.map((section) => (
-                <SelectItem key={section.sectionName} value={section.sectionName} className="text-xs font-medium capitalize">
-                  {section.sectionName}
+          {/* filters  */}
+          <div className="flex gap-6 border-b border-t border-[#E9EBEC] p-3">
+            <Select value={questionType} onValueChange={setQuestionType}>
+              <SelectTrigger className="w-[227px] h-9 border border-[#E8EAED] rounded-[12px] text-xs font-medium text-(--text-app-primary) leading-[125%] cursor-pointer">
+                <SelectValue placeholder="All Questions" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="text-xs font-medium">
+                  All Questions
                 </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+                <SelectItem value="objective" className="text-xs font-medium">
+                  Objective
+                </SelectItem>
+                <SelectItem value="subjective" className="text-xs font-medium">
+                  Subjective
+                </SelectItem>
+              </SelectContent>
+            </Select>
 
-        {/* questions table  */}
-       <QuestionTable 
-         data={getAllQuestions()} 
-         onEdit={(questionId, sectionName) => {
-           handleEditQuestion(questionId, sectionName);
-         }}
-         onDelete={(questionId, sectionName) => {
-           setDeleteConfirmation({ questionId, sectionName });
-         }}
-         onView={(questionId) => {
-           console.log("View question:", questionId);
-           // TODO: Implement view functionality
-         }}
-       />
-      </div>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="w-[227px] h-9 border border-[#E8EAED] rounded-[12px] text-xs font-medium text-(--text-app-primary) leading-[125%] cursor-pointer">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="text-xs font-medium">
+                  All Categories
+                </SelectItem>
+                {sections.map((section) => (
+                  <SelectItem key={section.sectionName} value={section.sectionName} className="text-xs font-medium capitalize">
+                    {section.sectionName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* questions table  */}
+          <QuestionTable
+            data={getAllQuestions()}
+            onEdit={(questionId, sectionName) => {
+              handleEditQuestion(questionId, sectionName);
+            }}
+            onDelete={(questionId, sectionName) => {
+              setDeleteConfirmation({ questionId, sectionName });
+            }}
+            onView={(questionId) => {
+              // Find the question to get its section name
+              const allQ = getAllQuestions();
+              const q = allQ.find((question: any) => question.questionId === questionId);
+              if (q) {
+                handleViewQuestion(questionId, q.sectionName);
+              }
+            }}
+          />
+        </div>
       </div>
 
       {/* Delete Confirmation Modal */}
@@ -1172,6 +1414,14 @@ export function AddQuestion() {
           </div>
         </div>
       )}
+
+      {/* Question Preview Modal */}
+      <QuestionPreviewModal
+        isOpen={!!previewQuestion}
+        onClose={() => setPreviewQuestion(null)}
+        question={previewQuestion?.question || null}
+        sectionName={previewQuestion?.sectionName}
+      />
     </div>
   );
 }

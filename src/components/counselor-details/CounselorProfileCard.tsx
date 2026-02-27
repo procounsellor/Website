@@ -1,5 +1,5 @@
 import type { CounselorDetails } from '@/types/academic';
-import { Bookmark, Briefcase, Languages, Lock, CheckCircle, MessageSquare, Phone, Zap, Info, X } from 'lucide-react';
+import { Bookmark, Briefcase, Languages, Lock, CheckCircle, MessageSquare, Phone, Zap, Info, X, Share2, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isManualSubscriptionRequest } from '@/api/counsellor';
@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/AuthStore';
 import toast from 'react-hot-toast';
 import { PlanBenefitsModal } from './PlanBenefitsModal';
 import getAllPlans from '@/api/subscriptionPlans';
+import { encodeCounselorId } from '@/lib/utils';
 
 type Props = {
   counselor: CounselorDetails;
@@ -29,8 +30,24 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
   const [showImageModal, setShowImageModal] = useState(false);
   const [planData, setPlanData] = useState<any>(null);
   const [selectedPlan, setSelectedPlan] = useState<'plus' | 'pro' | 'elite' | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const isCurrentUserCounselor = loggedInUserRole === 'counselor';
+
+  const handleCopyLink = () => {
+    const encodedId = encodeCounselorId(counselor.userName);
+    const shareableLink = `${window.location.origin}/counsellor/${encodedId}`;
+    
+    navigator.clipboard.writeText(shareableLink)
+      .then(() => {
+        setCopied(true);
+        toast.success('Profile link copied to clipboard!', { duration: 2000 });
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => {
+        toast.error('Failed to copy link', { duration: 2000 });
+      });
+  };
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -140,7 +157,16 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
                 <h1 className="text-sm font-semibold text-[#343C6A]">{`Mr. ${fullName}`}</h1>
                 <p className="text-xs text-[#718EBF] mt-1">{`${counselor.organisationName}, ${counselor.fullOfficeAddress?.city}`}</p>
               </div>
-              <BookmarkButton />
+              <div className="flex gap-2">
+                <button 
+                  onClick={handleCopyLink}
+                  className="p-1 text-gray-600 hover:text-blue-600 transition-colors"
+                  aria-label="Copy profile link"
+                >
+                  {copied ? <Check className="w-5 h-5 text-green-600" /> : <Share2 className="w-5 h-5" />}
+                </button>
+                <BookmarkButton />
+              </div>
             </div>
           </div>
         </div>
@@ -253,7 +279,17 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
                 <h1 className="text-2xl font-bold text-[#343C6A]">{fullName}</h1>
                 <p className="text-md text-[#718EBF] mt-1">{counselor.fullOfficeAddress?.city || 'Location not specified'}</p>
               </div>
-              <BookmarkButton className="p-2 hover:cursor-pointer" />
+              <div className="flex gap-2 items-center">
+                <button 
+                  onClick={handleCopyLink}
+                  className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  aria-label="Copy profile link"
+                  title="Copy profile link"
+                >
+                  {copied ? <Check className="w-5 h-5 text-green-600" /> : <Share2 className="w-5 h-5" />}
+                </button>
+                <BookmarkButton className="p-2 hover:cursor-pointer" />
+              </div>
             </div>
             <div className="mt-4 flex items-center justify-center sm:justify-start gap-x-8 gap-y-4 text-gray-700">
               <div className="flex items-center gap-3">

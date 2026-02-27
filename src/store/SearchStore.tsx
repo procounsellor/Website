@@ -1,10 +1,10 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { academicApi } from "@/api/academic";
-import type { ExamApiResponse, AllCounselor } from "@/types/academic";
 
 export interface SearchResult {
   id: string;
+  originalId: string;
   name: string;
   type: 'exam' | 'counsellor';
   subtitle?: string; 
@@ -18,99 +18,135 @@ type SearchState = {
   results: SearchResult[];
   isSearching: boolean;
   isSearchOpen: boolean;
+  searchRequestId: number;
   
   setQuery: (query: string) => void;
-  performSearch: (query: string) => Promise<void>;
+  performSearch: (query: string, userName?: string) => Promise<void>;
   setSearchOpen: (open: boolean) => void;
   clearResults: () => void;
 };
 
 export const useSearchStore = create<SearchState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       query: "",
       results: [],
       isSearching: false,
       isSearchOpen: false,
+      searchRequestId: 0,
 
       setQuery: (query: string) => set({ query }),
 
-      performSearch: async (query: string) => {
+      performSearch: async (query: string, userName?: string) => {
         if (!query.trim()) {
-          set({ results: [] });
+          set({ results: [], isSearching: false });
           return;
         }
 
-        set({ isSearching: true, query });
+        const currentRequestId = Date.now();
 
-        try {
-          const [exams, counselors] = await Promise.all([
-            academicApi.getExams().catch(() => []),
-            academicApi.getLoggedOutCounsellors().catch(() => [])
-          ]);
+        set({ 
+          isSearching: true, 
+          query, 
+          results: [], 
+          searchRequestId: currentRequestId 
+        });
 
-          const results: SearchResult[] = [];
-          const searchLower = query.toLowerCase();
+        const handleIncomingResults = (newResults: SearchResult[]) => {
+          const state = get();
+          if (state.searchRequestId !== currentRequestId) return;
 
-          exams.forEach((exam: ExamApiResponse) => {
-            if (exam.examName?.toLowerCase().includes(searchLower) || 
-                exam.examLevel?.toLowerCase().includes(searchLower) ||
-                exam.examType?.toLowerCase().includes(searchLower)) {
-              results.push({
-                id: exam.examId,
+          set((state) => {
+            const existingIds = new Set(state.results.map(r => r.id));
+            const uniqueNewResults = newResults.filter(r => !existingIds.has(r.id));
+
+            return {
+              results: [...state.results, ...uniqueNewResults],
+            };
+          });
+        };
+        
+        const examsPromise = academicApi.searchExams({ search: query })
+          .then((examsResponse) => {
+            if (get().searchRequestId !== currentRequestId) return;
+            if (examsResponse?.exams) {
+              const formatted: SearchResult[] = examsResponse.exams.map((exam: any) => ({
+                id: `exam-${exam.examId}`,
+                originalId: exam.examId,
                 name: exam.examName,
                 type: 'exam',
                 subtitle: `${exam.examLevel} • ${exam.examType}`,
                 imageUrl: exam.iconUrl,
                 url: `/exams/${exam.examId}`
-              });
+              }));
+              handleIncomingResults(formatted);
             }
-          });
+          })
+          .catch(err => console.error("Exam search failed", err));
 
+        let counselorsPromise;
+        
+        if (userName) {
+          counselorsPromise = academicApi.searchAllLoggedInCounsellors(userName, { search: query })
+            .then((counselorsResponse) => {
+              if (get().searchRequestId !== currentRequestId) return;
+              const list = counselorsResponse?.counsellors || counselorsResponse; 
+              
+              if (Array.isArray(list)) {
+                const formatted: SearchResult[] = list.map((counselor: any) => {
+                  const fullName = `${counselor.firstName} ${counselor.lastName}`;
+                  return {
+                    id: `counsellor-${counselor.counsellorId}`,
+                    originalId: counselor.counsellorId,
+                    name: fullName,
+                    type: 'counsellor',
+                    subtitle: `${counselor.city} • ${counselor.languagesKnow?.join(', ')}`,
+                    imageUrl: counselor.photoUrlSmall || undefined,
+                    url: `/counselors/${counselor.counsellorId}`
+                  };
+                });
+                handleIncomingResults(formatted);
+              }
+            })
+            .catch(err => console.error("Auth counselor search failed", err));
 
-          counselors.forEach((counselor: AllCounselor) => {
-            const fullName = `${counselor.firstName} ${counselor.lastName}`;
-            if (fullName?.toLowerCase().includes(searchLower) ||
-                counselor.city?.toLowerCase().includes(searchLower) ||
-                counselor.languagesKnow?.some((lang: string) => 
-                  lang.toLowerCase().includes(searchLower))) {
-              results.push({
-                id: counselor.counsellorId,
-                name: fullName,
-                type: 'counsellor',
-                subtitle: `${counselor.city} • ${counselor.languagesKnow?.join(', ')}`,
-                imageUrl: counselor.photoUrlSmall || undefined,
-                url: `/counselors/${counselor.counsellorId}`
-              });
-            }
-          });
-
-          results.sort((a, b) => {
-            const aExact = a.name.toLowerCase() === searchLower ? 1 : 0;
-            const bExact = b.name.toLowerCase() === searchLower ? 1 : 0;
-            if (aExact !== bExact) return bExact - aExact;
-            
-            const aStarts = a.name.toLowerCase().startsWith(searchLower) ? 1 : 0;
-            const bStarts = b.name.toLowerCase().startsWith(searchLower) ? 1 : 0;
-            return bStarts - aStarts;
-          });
-
-          set({ results: results.slice(0, 20), isSearching: false });
-
-        } catch (error) {
-          console.error('Search error:', error);
-          set({ results: [], isSearching: false });
+        } else {
+          counselorsPromise = academicApi.searchAllLoggedOutCounsellors({ search: query })
+            .then((counselorsResponse) => {
+              if (get().searchRequestId !== currentRequestId) return;
+              if (counselorsResponse?.counsellors) {
+                const formatted: SearchResult[] = counselorsResponse.counsellors.map((counselor: any) => {
+                  const fullName = `${counselor.firstName} ${counselor.lastName}`;
+                  return {
+                    id: `counsellor-${counselor.counsellorId}`,
+                    originalId: counselor.counsellorId,
+                    name: fullName,
+                    type: 'counsellor',
+                    subtitle: `${counselor.city} • ${counselor.languagesKnow?.join(', ')}`,
+                    imageUrl: counselor.photoUrlSmall || undefined,
+                    url: `/counselors/${counselor.counsellorId}`
+                  };
+                });
+                handleIncomingResults(formatted);
+              }
+            })
+            .catch(err => console.error("Public counselor search failed", err));
         }
+
+        Promise.allSettled([examsPromise, counselorsPromise]).then(() => {
+            if (get().searchRequestId === currentRequestId) {
+                set({ isSearching: false });
+            }
+        });
       },
 
       setSearchOpen: (open: boolean) => set({ isSearchOpen: open }),
-
-      clearResults: () => set({ results: [], query: "" })
+      clearResults: () => set({ results: [], query: "", isSearching: false })
     }),
     {
       name: "search-store",
       storage: createJSONStorage(() => localStorage),
-      partialize: () => ({}),
+      partialize: (_state) => ({ }), 
     }
   )
 );

@@ -44,7 +44,9 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isCollegeDetailsPage = location.pathname.includes('/colleges-details');
+  const PROMO_ROUTES = ['/promo', '/testSeries/pcsat']; 
+  const isPromoPage = PROMO_ROUTES.includes(location.pathname);
+  const isCollegeDetailsPage = location.pathname.includes('/college-details');
   const shouldHideBanner = location.pathname.includes('/test-info') || location.pathname.includes('/test-result') || location.pathname.includes('/t/');
 
   useEffect(() => {
@@ -144,7 +146,7 @@ export default function MainLayout() {
       </main>
 
       <footer className="bottom-0 left-0 right-0">
-        { location.pathname !== '/promo' && (<Footer />) 
+        { !isPromoPage && (<Footer />) 
         }
       </footer>
 
@@ -184,17 +186,17 @@ export default function MainLayout() {
 
 
       {/* Chatbot Toggle Button */}
-      {!isStreamActive && location.pathname !== '/promo' &&  (authUser?.role.trim().toLowerCase() == 'counsellor' ? authUser?.verified: true) && (
+      {!isStreamActive && !isPromoPage &&  (authUser?.role.trim().toLowerCase() == 'counsellor' ? authUser?.verified: true) && (
         <button
           onClick={toggleChatbot}
           className={`fixed right-6 cursor-pointer bg-[#FA660F] text-white w-16 h-16 flex items-center justify-center rounded-full shadow-lg z-50 hover:bg-orange-600 transition-all duration-300 transform hover:scale-110 
-            ${isCollegeDetailsPage ? 'bottom-18 md:bottom-6' : 'bottom-6'}`}
+            ${isCollegeDetailsPage ? 'bottom-20 md:bottom-6' : 'bottom-6'}`}
           aria-label="Toggle Chatbot"
         >
           <MessageSquare size={32} />
         </button>
       )}
-      {isChatbotOpen && location.pathname !== '/promo' && <Chatbot />}
+      {isChatbotOpen && !isPromoPage && <Chatbot />}
       {isVoiceChatOpen && <VoiceChat />}
 
       {isStreamActive && <LiveStreamView />}

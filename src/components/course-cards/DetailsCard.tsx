@@ -61,9 +61,9 @@ export default function ({
   const totalBought = courseDetails?.soldCount?.toString() || "0";
   const moneyEarned = courseDetails
     ? (
-        (courseDetails.soldCount || 0) *
-        (courseDetails.coursePriceAfterDiscount || 0)
-      ).toString()
+      (courseDetails.soldCount || 0) *
+      (courseDetails.coursePriceAfterDiscount || 0)
+    ).toString()
     : "0";
 
   return (
@@ -85,9 +85,8 @@ export default function ({
                 aria-label="Bookmark course"
               >
                 <Bookmark
-                  className={`h-3.5 w-3.5 md:h-4 md:w-4 text-white transition-colors ${
-                    isBookmarked ? "fill-current" : ""
-                  }`}
+                  className={`h-3.5 w-3.5 md:h-4 md:w-4 text-white transition-colors ${isBookmarked ? "fill-current" : ""
+                    }`}
                 />
               </button>
             )}
@@ -120,14 +119,14 @@ export default function ({
 
               {/* Mobile only badges - show below on mobile */}
               {role === "counselor" && courseDetails && (
-                  <span className="bg-[#FDEFE2] rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 font-medium text-[#EF7F21] text-[0.5rem] md:text-sm whitespace-nowrap">
-                    <img
-                      src="/orangeRuppe.svg"
-                      alt=""
-                      className="w-3.5 md:w-5 md:h-5 h-3.5"
-                    />
-                    ₹{moneyEarned}
-                  </span>
+                <span className="bg-[#FDEFE2] rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 font-medium text-[#EF7F21] text-[0.5rem] md:text-sm whitespace-nowrap">
+                  <img
+                    src="/orangeRuppe.svg"
+                    alt=""
+                    className="w-3.5 md:w-5 md:h-5 h-3.5"
+                  />
+                  ₹{moneyEarned}
+                </span>
               )}
 
               {role !== 'counselor' && course.rating && course.reviews && (
@@ -156,7 +155,7 @@ export default function ({
                 )}
               </p>
             </div>
-{/* 
+            {/* 
             {role === "counselor" && courseDetails && (
               <div className="hidden md:flex gap-5 mt-1">
                 <p className="bg-[#FDEFE2] rounded-[12px] p-1 flex items-center justify-center max-h-7.5 font-medium text-[#EF7F21] text-center">
@@ -181,13 +180,16 @@ export default function ({
             <div className="flex gap-1.5 md:gap-2 items-center">
               <img src="/coin.svg" alt="" className="w-4 h-4 md:w-5 md:h-5" />
               <h3 className="text-[#07B02E] text-xl md:text-[1.5rem] font-bold">
-                ₹{courseDetails?.coursePriceAfterDiscount || course.price}
+                {(courseDetails?.coursePriceAfterDiscount === 0 || Number(course.price) === 0)
+                  ? "Free"
+                  : `₹${courseDetails?.coursePriceAfterDiscount || course.price}`
+                }
               </h3>
             </div>
             {courseDetails?.coursePrice &&
-              courseDetails.coursePriceAfterDiscount &&
-              courseDetails.coursePrice >
-                courseDetails.coursePriceAfterDiscount && (
+              courseDetails.coursePriceAfterDiscount !== undefined &&
+              courseDetails.coursePrice > courseDetails.coursePriceAfterDiscount &&
+              courseDetails.coursePriceAfterDiscount > 0 && (
                 <div className="flex gap-1.5 md:gap-2 items-center">
                   <span className="text-[#8C8CA1] text-xs md:text-sm line-through">
                     ₹{courseDetails.coursePrice}
@@ -197,7 +199,7 @@ export default function ({
                       ((courseDetails.coursePrice -
                         courseDetails.coursePriceAfterDiscount) /
                         courseDetails.coursePrice) *
-                        100
+                      100
                     )}
                     % off
                   </span>
@@ -211,7 +213,12 @@ export default function ({
               disabled={isBuying}
               className="px-5 py-2 md:px-6 md:py-2.5 bg-[#13097D] hover:bg-[#0d0659] text-white rounded-lg font-semibold transition-colors hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base whitespace-nowrap md:w-full"
             >
-              {isBuying ? "Processing..." : "Buy Course"}
+              {isBuying
+                ? "Processing..."
+                : (courseDetails?.coursePriceAfterDiscount === 0 || Number(course.price) === 0)
+                  ? "Enroll for Free"
+                  : "Buy Course"
+              }
             </button>
           )}
         </div>

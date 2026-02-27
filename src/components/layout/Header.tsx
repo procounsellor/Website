@@ -22,6 +22,7 @@ import NotificationDropdown from "@/components/notifications/NotificationDropdow
 
 // TODO: Update with the actual course ID for the promo page
 const PROMO_COURSE_ID = "a997f3a9-4a36-4395-9f90-847b739fb225";
+const TEST_SERIES_ID = "3baef8b7-5d0a-41a6-a21c-6aebb5f32bbb";
 
 interface NewHeaderButtonProps {
   label: string;
@@ -60,7 +61,11 @@ export default function Header() {
   const shouldShowNewHeader = !isAuthenticated || !isCounselor;
 
   const isHomePage = location.pathname === "/";
-  const isPromoPage = location.pathname === "/promo";
+  const isPromoPage = ["/promo", "/testSeries/pcsat"].includes(location.pathname);
+
+  const currentPromoId = location.pathname === "/testSeries/pcsat" 
+    ? TEST_SERIES_ID 
+    : PROMO_COURSE_ID;
 
   const isUserLoaded = user !== null && user !== undefined;
   const { data: boughtCoursesData } = useQuery({
@@ -86,7 +91,7 @@ export default function Header() {
 
   const isCoursePurchased =
     boughtCoursesData?.data?.some(
-      (course) => course.courseId === PROMO_COURSE_ID
+      (course) => course.courseId === currentPromoId
     ) ?? false;
 
   const shouldShowSimplifiedPromoHeader =
@@ -196,18 +201,18 @@ export default function Header() {
     if (isNotificationOpen) setIsNotificationOpen(false);
   };
 
-  const shouldOffsetForBanner = isBannerVisible && !scrolled && !isPromoPage;
+  // Pages where banner should be hidden (same as MainLayout logic)
+  const shouldHideBanner = location.pathname.includes('/test-info') || location.pathname.includes('/test-result') || location.pathname.includes('/t/');
+  const shouldOffsetForBanner = isBannerVisible && !scrolled && !isPromoPage && !shouldHideBanner;
 
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 border border-[#d6d6d6] shadow-xs transition-all duration-300 ease-out ${
-          shouldOffsetForBanner ? "top-[60px] md:top-0" : "top-0"
-        } ${
-          scrolled || !isHomePage || isPromoPage
+        className={`fixed top-0 left-0 right-0 z-50 border border-[#d6d6d6] shadow-xs transition-all duration-300 ease-out ${shouldOffsetForBanner ? "top-[60px] md:top-0" : "top-0"
+          } ${scrolled || !isHomePage || isPromoPage
             ? "bg-white/85 backdrop-blur-xl  shadow-lg shadow-black/5"
             : "bg-transparent"
-        }`}
+          }`}
       >
         {shouldShowSimplifiedPromoHeader ? (
           <div className="flex h-14 md:h-20 items-center justify-between px-5 lg:px-20">
@@ -238,7 +243,7 @@ export default function Header() {
               }}
               className="bg-[#FF660F] hover:bg-[#e15500] text-white px-4 sm:px-8 py-2 sm:py-6 text-xs sm:text-lg font-medium rounded-xl cursor-pointer whitespace-nowrap"
             >
-              Enroll Now
+              {location.pathname === "/testSeries/pcsat" ? "Register Now" : "Enroll Now"}
             </Button>
           </div>
         ) : shouldShowNewHeader ? (
@@ -440,24 +445,24 @@ export default function Header() {
                   <>
                     {(user?.role?.trim().toLowerCase() == "counsellor" ||
                       user?.verified) && (
-                      <div
-                        className="hidden md:block relative"
-                        ref={notificationRef}
-                      >
-                        <button
-                          onClick={toggleNotifications}
-                          className="p-2 hover:cursor-pointer rounded-full hover:bg-gray-100 transition-colors"
+                        <div
+                          className="hidden md:block relative"
+                          ref={notificationRef}
                         >
-                          <Bell className="h-6 w-6 text-gray-700" />
-                        </button>
-                        {isNotificationOpen && user && (
-                          <NotificationDropdown
-                            notifications={user.activityLog || []}
-                            onClose={() => setIsNotificationOpen(false)}
-                          />
-                        )}
-                      </div>
-                    )}
+                          <button
+                            onClick={toggleNotifications}
+                            className="p-2 hover:cursor-pointer rounded-full hover:bg-gray-100 transition-colors"
+                          >
+                            <Bell className="h-6 w-6 text-gray-700" />
+                          </button>
+                          {isNotificationOpen && user && (
+                            <NotificationDropdown
+                              notifications={user.activityLog || []}
+                              onClose={() => setIsNotificationOpen(false)}
+                            />
+                          )}
+                        </div>
+                      )}
 
                     <div className="relative" ref={dropdownRef}>
                       <button

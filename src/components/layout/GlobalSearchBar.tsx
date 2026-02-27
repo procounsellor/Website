@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { Search, X } from "lucide-react";
 import { useSearchStore } from "@/store/SearchStore";
 import { SearchResults } from "./SearchResults";
+import { useLocation } from "react-router-dom"; 
+import { useAuthStore } from "@/store/AuthStore";
 
 type GlobalSearchBarProps = {
   placeholder?: string;
@@ -22,22 +24,47 @@ export function GlobalSearchBar({
 }: GlobalSearchBarProps) {
   const [isFocused, setIsFocused] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const location = useLocation();
+  const user = useAuthStore((state) => state.user);
   
-  const { query, setQuery, performSearch, clearResults, setSearchOpen } = useSearchStore();
+  const performSearch = useSearchStore((state) => state.performSearch);
+  const clearResults = useSearchStore((state) => state.clearResults);
+  const setSearchOpen = useSearchStore((state) => state.setSearchOpen);
+  const setQuery = useSearchStore((state) => state.setQuery);
+  const query = useSearchStore((state) => state.query);
 
   useEffect(() => {
-    const handler = setTimeout(() => {
-      if (query.trim()) {
-        performSearch(query);
+    clearResults();
+    setSearchOpen(false);
+    setShowResults(false);
+    setIsFocused(false);
+    if (inputRef.current) {
+        inputRef.current.blur();
+    }
+  }, [location.pathname]); 
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    
+    setQuery(newValue);
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      if (newValue.trim()) {
+        performSearch(newValue, user?.userName);
       } else {
         clearResults();
       }
     }, debounceTime);
-
-    return () => clearTimeout(handler);
-  }, [query, performSearch, clearResults, debounceTime]);
+  };
 
   useEffect(() => {
     if (autoFocus && inputRef.current) {
@@ -81,6 +108,7 @@ export function GlobalSearchBar({
   const handleClearInput = () => {
     setQuery("");
     inputRef.current?.focus();
+    clearResults();
   };
 
   const handleResultClick = () => {
@@ -111,7 +139,7 @@ export function GlobalSearchBar({
             ref={inputRef}
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={handleInputChange}
             onFocus={handleFocus}
             placeholder={placeholder}
             className="flex-1 text-[#232323] text-md placeholder:text-black focus:outline-none bg-transparent"
@@ -127,7 +155,6 @@ export function GlobalSearchBar({
           )}
         </div>
 
-        
         {showResults && (
           <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-96 overflow-hidden">
             <SearchResults onResultClick={handleResultClick} />

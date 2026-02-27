@@ -5,9 +5,12 @@ import Autoplay from "embla-carousel-autoplay";
 
 import { AllCounselorCard } from "../homecards/AllCounselorCard";
 import { Button } from "@/components/ui/button";
-import { useAllCounselors } from "../../hooks/useCounselors";
+// import { useAllCounselors } from "../../hooks/useCounselors";
 import { AllCounselorCardSkeleton } from "../skeletons/CounselorSkeletons";
 import { useNavigate, Link } from "react-router-dom";
+import { encodeCounselorId } from "@/lib/utils";
+import { useHomeCounselors } from "@/hooks/useHomeData";
+import type { AllCounselor } from "@/types";
 
 const addTrackpadScrolling = (emblaApi: EmblaCarouselType) => {
   const SCROLL_COOLDOWN_MS = 300; 
@@ -40,7 +43,15 @@ const addTrackpadScrolling = (emblaApi: EmblaCarouselType) => {
 
 export function AllCounselorSection() {
   const navigate = useNavigate();
-  const { data: counselors, loading, error, refetch } = useAllCounselors(8);
+  const { 
+  data: counselors, 
+  isLoading: loading, 
+  isError, 
+  error: queryError, 
+  refetch 
+} = useHomeCounselors(8);
+
+const error = isError ? (queryError as Error)?.message : null;
 
   const autoplay = React.useRef(
     Autoplay({ 
@@ -183,12 +194,12 @@ export function AllCounselorSection() {
         <div className="relative">
           <div className="overflow-x-hidden py-4 px-0.5" ref={emblaRef}>
             <div className="flex gap-4 lg:gap-6 px-3 lg:px-6">
-              {counselors.map((counselor) => (
+              {counselors.map((counselor: AllCounselor) => (
                 <div
                   key={counselor.counsellorId}
                   className="shrink-0 w-[170px] lg:w-[282px]"
                 >
-                  <Link to={`/counsellor-profile`} state={{ id: counselor.counsellorId }} className="block">
+                  <Link to={`/counsellor/${encodeCounselorId(counselor.counsellorId)}`} className="block">
                     <AllCounselorCard counselor={counselor} />
                   </Link>
                 </div>

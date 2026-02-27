@@ -1,7 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { academicApi } from '@/api/academic';
+import type { CollegeDetails } from '@/types';
 import CollegeBannerCard from '@/components/college/CollegeBannerCard';
 import CollegeTabs from '@/components/college/CollegeTabs';
 import AdmissionCard from '@/components/college/AdmissionCard';
+// import CollegeMapCard from '@/components/college/CollegeMapCard';
 import InfoTab from '@/components/college/tabs/InfoTab';
 import CoursesTab from '@/components/college/tabs/CoursesTab';
 import CounsellorsTab from '@/components/college/tabs/CounsellorsTab';
@@ -13,12 +17,34 @@ import ExamsTab from '@/components/college/tabs/ExamsTab';
 import ImportantDatesTab from '@/components/college/tabs/ImportantDatesTab';
 
 const CollegeDetailsPageNew = () => {
+  const { id } = useParams();
   const [activeTab, setActiveTab] = useState("Info");
+  const [collegeData, setCollegeData] = useState<CollegeDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCollegeDetails = async () => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const response = await academicApi.getCollegeById(id);
+        setCollegeData(response);
+      } catch (error) {
+        console.error("Failed to fetch college details:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCollegeDetails();
+  }, [id]);
 
   const renderTabContent = () => {
+    if (!collegeData) return null;
+
     switch (activeTab) {
       case "Info":
-        return <InfoTab />;
+        return <InfoTab data={collegeData} />;
       case "Courses":
         return <CoursesTab />;
       case "Counsellors":
@@ -42,18 +68,21 @@ const CollegeDetailsPageNew = () => {
           </div>
         );
     }
-}
+  }
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  if (!collegeData) {
+    return <div className="min-h-screen flex items-center justify-center">College not found</div>;
+  }
 
   return (
     <div className="min-h-screen bg-[#FFFFFF] pb-20">
       <div className="max-w-7xl mx-auto mt-14 md:mt-14 px-4 md:px-8 pt-4 md:pt-10">
         <div className="mb-6 md:mb-8">
-          <h1 
-            className="text-[#242645] font-semibold text-[20px] md:text-[24px] leading-[125%]"
-            style={{ fontFamily: 'Montserrat' }}
-          >
-            IIT Delhi
-          </h1>
+          
           <p 
             className="text-[#8C8CA1] font-medium mt-1 md:mt-2 text-[14px] md:text-[18px] leading-[135%] md:leading-[125%]"
             style={{ fontFamily: 'Montserrat' }}
@@ -62,9 +91,13 @@ const CollegeDetailsPageNew = () => {
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-6 md:gap-8 relative">
           <div className="flex-1 w-full lg:w-[70%]">
-            <CollegeBannerCard name="IIT Delhi" location="New Delhi, Delhi" />
+            <CollegeBannerCard 
+              name={collegeData.collegeName} 
+              location={`${collegeData.collegesLocationCity}, ${collegeData.collegesLocationState}`}
+              imageUrl={collegeData.bannerUrl}
+            />
 
             <div className="mt-6 md:mt-8">
                <CollegeTabs activeTab={activeTab} onTabChange={setActiveTab} />
@@ -75,8 +108,9 @@ const CollegeDetailsPageNew = () => {
             </div>
           </div>
 
-          <div className="w-full lg:w-[30%] max-w-[400px] shrink-0 sticky top-24">
+          <div className="w-full lg:w-[30%] max-w-[400px] shrink-0 flex flex-col gap-6 sticky top-24 self-start h-fit">
              <AdmissionCard />
+             {/* <CollegeMapCard address={collegeData.collegeFullAddress} /> */}
           </div>
         </div>
       </div>

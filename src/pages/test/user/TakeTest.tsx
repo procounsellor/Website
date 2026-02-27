@@ -1,24 +1,25 @@
 import { Section } from "@/components/create-test/user/Section";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Question } from "@/components/create-test/user/Question";
 import { Option } from "@/components/create-test/user/Option";
 import { Timer } from "@/components/create-test/user/Timer";
 import { SubmitTestModal } from "@/components/modals/SubmitTestModal";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 import {
   getAllQuestionsUserOfAllSection,
   getTestSeriesByIdForUser,
   startTest,
   saveOrMarkForReviewAnswer,
   submitTestAndCalculateScore,
-  resumeTest
+  resumeTest,
+  resetAnswer
 } from "@/api/userTestSeries";
 
 interface QuestionType {
   questionId: string;
   questionText: string;
-  questionImageUrls: string[];
+  questionImageUrls?: string[];
   multipleAnswer: boolean;
   subjective: boolean;
   options: Array<{
@@ -50,6 +51,7 @@ import { TestResult, type ResultData } from "./TestResult";
 export function TakeTest() {
   const { testId } = useParams();
   const location = useLocation();
+  const [testGroupId, setTestGroupId] = useState<string | undefined>(location.state?.testGroupId);
   const navigate = useNavigate();
 
   const [testResult, setTestResult] = useState<ResultData | null>(null);
@@ -66,6 +68,7 @@ export function TakeTest() {
   const [showSectionChangeModal, setShowSectionChangeModal] = useState(false);
   const [pendingNavigationSection, setPendingNavigationSection] = useState<number | null>(null);
   const [pendingNavigationQuestion, setPendingNavigationQuestion] = useState<number>(0);
+  const [sectionSwitchingAllowed, setSectionSwitchingAllowed] = useState(false);
 
   // Current state
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
@@ -74,9 +77,15 @@ export function TakeTest() {
     Map<string, QuestionState>
   >(new Map());
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
+  const [pendingQuestionState, setPendingQuestionState] = useState<QuestionState | null>(null); // Track pending state for current question
   const [startTime, setStartTime] = useState<number>(Date.now());
   const [testStarted, setTestStarted] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | undefined>(undefined);
+  const isLoadingAnswer = useRef(false); // Track if we're loading answer (to skip auto-save)
+  const [tabSwitchCount, setTabSwitchCount] = useState(0);
+  const [showTabWarning, setShowTabWarning] = useState(false);
+  const questionStartTimeRef = useRef<number>(Date.now()); // Track when user started viewing current question
+  const MAX_TAB_SWITCHES = 3;
 
   const userId = localStorage.getItem("phone") || "";
   const sessionKey = `test_progress_${testId}_${userId}`;
@@ -98,14 +107,16 @@ export function TakeTest() {
 
     sections.forEach((section) => {
       section.questions.forEach((q) => {
-        const state = questionStates.get(q.questionId);
+        // Check if this question has a pending state update
+        const isPendingQ = pendingQuestionState && q.questionId === pendingQuestionState.questionId;
+        const state = isPendingQ ? pendingQuestionState : questionStates.get(q.questionId);
 
         // Critical: Use live state for current question
         const isCurrentQ = currentQuestion && q.questionId === currentQuestion.questionId;
         const userSelectedAnswers = isCurrentQ ? selectedAnswers : (state?.selectedAnswers || []);
         const status = state?.status || "NOT_VISITED";
 
-        if (state?.status === "MARKED_FOR_REVIEW") {
+        if (status === "MARKED_FOR_REVIEW") {
           markedForReview++;
         } else if (userSelectedAnswers.length > 0) {
           // If selected answers exist, count as attempted regardless of stored status (which might lag)
@@ -127,6 +138,7 @@ export function TakeTest() {
     if (!testStarted) return;
     const progress = {
       attemptId,
+      testGroupId,
       currentSectionIndex,
       currentQuestionIndex,
       questionStates: Array.from(questionStates.entries()),
@@ -149,6 +161,10 @@ export function TakeTest() {
         setQuestionStates(new Map(progress.questionStates));
         setStartTime(progress.startTime);
         setTestStarted(progress.testStarted);
+        setTimeLeft(progress.timeLeft);
+        if (progress.testGroupId && !testGroupId) {
+          setTestGroupId(progress.testGroupId);
+        }
         setShowStartModal(false);
         return true;
       } catch (error) {
@@ -195,6 +211,7 @@ export function TakeTest() {
             setSectionDurations(durations);
           }
           setTestName(testInfoResponse.data.testName || "Mock Test");
+          setSectionSwitchingAllowed(testInfoResponse.data.sectionSwitchingAllowed || false);
 
           // 2. Check if Resuming (from Location or Session)
           const resumeAttemptId = location.state?.attemptId;
@@ -204,10 +221,23 @@ export function TakeTest() {
             // CALL RESUME API
             const resumeData = await resumeTest(userId, resumeAttemptId);
             if (resumeData.status && resumeData.data) {
-              const { attempt, answers, timeLeftInSeconds } = resumeData.data;
+              const { attempt, answers, timeLeftInSeconds: overallTimeLeft } = resumeData.data;
+
+              // Determine which timer to use: section-specific for sequential, overall for free switching
+              let finalTimeLeft = overallTimeLeft;
+              const isSwitchingAllowed = testInfoResponse.data.sectionSwitchingAllowed || false;
+
+              if (!isSwitchingAllowed && attempt.currentSectionName && attempt.sectionTimeList) {
+                const currentSectionTime = attempt.sectionTimeList.find(
+                  (s: any) => s.sectionName === attempt.currentSectionName
+                );
+                if (currentSectionTime && currentSectionTime.timeLeftInSeconds) {
+                  finalTimeLeft = parseInt(currentSectionTime.timeLeftInSeconds);
+                }
+              }
 
               setAttemptId(resumeAttemptId);
-              setTimeLeft(timeLeftInSeconds);
+              setTimeLeft(finalTimeLeft);
               setTestStarted(true);
               setShowStartModal(false); // Skip start modal on resume
 
@@ -303,10 +333,13 @@ export function TakeTest() {
         setStartTime(Date.now());
         setTestStarted(true);
         setShowStartModal(false);
-        // Set initial timer if needed, though Timer component defaults to section durations?
-        // Actually, we should sum up section durations for total time if 'timeLeft' is not set
-        const totalMins = sectionDurations.reduce((a, b) => a + b, 0);
-        setTimeLeft(totalMins * 60);
+        // Set initial timer based on mode
+        if (sectionSwitchingAllowed) {
+          const totalMins = sectionDurations.reduce((a, b) => a + b, 0);
+          setTimeLeft(totalMins * 60);
+        } else if (sectionDurations.length > 0) {
+          setTimeLeft(sectionDurations[0] * 60);
+        }
 
         // Save initial progress
         setTimeout(saveProgress, 100);
@@ -315,7 +348,7 @@ export function TakeTest() {
         setTimeout(() => {
           document.documentElement.requestFullscreen?.().catch((err) => {
             console.error("Fullscreen error:", err);
-            toast.warning("Please enable fullscreen for the best experience");
+            toast("Please enable fullscreen for the best experience");
           });
         }, 100);
       }
@@ -331,6 +364,9 @@ export function TakeTest() {
   ) => {
     if (!currentQuestion) return;
 
+    // Calculate elapsed time in seconds
+    const elapsedTime = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
+
     try {
       await saveOrMarkForReviewAnswer({
         attemptId,
@@ -339,6 +375,7 @@ export function TakeTest() {
         questionId: currentQuestion.questionId,
         answerIds: selectedAnswers,
         status,
+        elapsedTime,
       });
 
       // Update question state
@@ -365,6 +402,45 @@ export function TakeTest() {
     }
   };
 
+  // Clear/Reset answer (unattempt)
+  const handleClearResponse = async () => {
+    if (!currentQuestion) return;
+    if (selectedAnswers.length === 0) {
+      toast.error("No answer to clear");
+      return;
+    }
+
+    try {
+      await resetAnswer(
+        userId,
+        currentQuestion.questionId,
+        attemptId,
+        currentSection.sectionName
+      );
+
+      // Clear selected answers
+      setSelectedAnswers([]);
+
+      // Update question state to NOT_VISITED (or visited but unattempted)
+      const newStates = new Map(questionStates);
+      newStates.set(currentQuestion.questionId, {
+        questionId: currentQuestion.questionId,
+        sectionName: currentSection.sectionName,
+        status: "CURRENT",
+        selectedAnswers: [],
+      });
+      setQuestionStates(newStates);
+
+      // Save progress after state update
+      setTimeout(saveProgress, 100);
+
+      toast.success("Response cleared");
+    } catch (error) {
+      toast.error("Failed to clear response");
+      console.error(error);
+    }
+  };
+
   // Save and move to next question
   const handleSaveAndNext = async () => {
     await handleSaveAnswer("MARKED_FOR_REVIEW");
@@ -372,15 +448,22 @@ export function TakeTest() {
     // Check if last question of last section - submit test
     if (currentSectionIndex === sections.length - 1 &&
       currentQuestionIndex >= currentSection.questions.length - 1) {
-      setShowSubmitModal(true);
+      handleOpenSubmitModal();
       return;
     }
 
     // Check if moving to next section
     if (currentQuestionIndex >= currentSection.questions.length - 1 &&
       currentSectionIndex < sections.length - 1) {
-      setPendingNavigationSection(currentSectionIndex + 1);
-      setShowSectionChangeModal(true);
+      if (sectionSwitchingAllowed) {
+        // Section switching allowed - navigate directly without modal
+        setCurrentSectionIndex(currentSectionIndex + 1);
+        setCurrentQuestionIndex(0);
+      } else {
+        // Show warning modal
+        setPendingNavigationSection(currentSectionIndex + 1);
+        setShowSectionChangeModal(true);
+      }
       return;
     }
 
@@ -400,9 +483,15 @@ export function TakeTest() {
     // Check if moving to next section
     if (currentQuestionIndex >= currentSection.questions.length - 1 &&
       currentSectionIndex < sections.length - 1) {
-      // Show warning modal before moving to next section
-      setPendingNavigationSection(currentSectionIndex + 1);
-      setShowSectionChangeModal(true);
+      if (sectionSwitchingAllowed) {
+        // Section switching allowed - navigate directly without modal
+        setCurrentSectionIndex(currentSectionIndex + 1);
+        setCurrentQuestionIndex(0);
+      } else {
+        // Show warning modal before moving to next section
+        setPendingNavigationSection(currentSectionIndex + 1);
+        setShowSectionChangeModal(true);
+      }
       return;
     }
 
@@ -448,6 +537,8 @@ export function TakeTest() {
     }
 
     setQuestionStates(newStates);
+    // Reset elapsed time for new question
+    questionStartTimeRef.current = Date.now();
     setTimeout(() => saveProgress(), 100);
   };
 
@@ -456,6 +547,12 @@ export function TakeTest() {
     if (pendingNavigationSection !== null) {
       setCurrentSectionIndex(pendingNavigationSection);
       setCurrentQuestionIndex(pendingNavigationQuestion);
+
+      // Reset timer for the new section if sequential
+      if (!sectionSwitchingAllowed && sectionDurations[pendingNavigationSection]) {
+        setTimeLeft(sectionDurations[pendingNavigationSection] * 60);
+      }
+
       setPendingNavigationSection(null);
       setPendingNavigationQuestion(0);
       setShowSectionChangeModal(false);
@@ -475,14 +572,151 @@ export function TakeTest() {
   // Load selected answers when question changes
   useEffect(() => {
     if (currentQuestion) {
+      isLoadingAnswer.current = true;
       const state = questionStates.get(currentQuestion.questionId);
       setSelectedAnswers(state?.selectedAnswers || []);
+      // Reset flag after state update
+      setTimeout(() => { isLoadingAnswer.current = false; }, 100);
     }
-  }, [currentQuestion, questionStates]);
+  }, [currentQuestion?.questionId]);
+
+  // Auto-save answers when they change (with debounce) - ONLY for multi-select questions
+  useEffect(() => {
+    // Only auto-save for multi-select questions (single-select saves on Next/Clear)
+    const isMultiSelect = currentQuestion?.multipleAnswer || (currentQuestion as any)?.isMultipleAnswer;
+
+    // Skip if: loading answer, no question, test not started, or single-select
+    if (isLoadingAnswer.current || !currentQuestion || !testStarted || !attemptId || !isMultiSelect) {
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        // If there are selected answers, save them
+        if (selectedAnswers.length > 0) {
+          const elapsedTime = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
+          await saveOrMarkForReviewAnswer({
+            attemptId,
+            userId,
+            sectionName: currentSection.sectionName,
+            questionId: currentQuestion.questionId,
+            answerIds: selectedAnswers,
+            status: "ATTEMPTED",
+            elapsedTime,
+          });
+        } else {
+          // If no answers selected, reset on backend
+          await resetAnswer(
+            userId,
+            currentQuestion.questionId,
+            attemptId,
+            currentSection.sectionName
+          );
+        }
+
+        // Update local state
+        const newStates = new Map(questionStates);
+        newStates.set(currentQuestion.questionId, {
+          questionId: currentQuestion.questionId,
+          sectionName: currentSection.sectionName,
+          status: selectedAnswers.length > 0 ? "ATTEMPTED" : "CURRENT",
+          selectedAnswers: selectedAnswers,
+        });
+        setQuestionStates(newStates);
+      } catch (error) {
+        console.error("Auto-save failed:", error);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [selectedAnswers, currentQuestion?.questionId, testStarted, attemptId]);
+
+  // Tab switch detection - warn users and auto-submit after MAX_TAB_SWITCHES
+  useEffect(() => {
+    if (!testStarted) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        // User switched tab or minimized
+        setTabSwitchCount(prev => {
+          const newCount = prev + 1;
+          if (newCount >= MAX_TAB_SWITCHES) {
+            // Auto-submit test after max switches
+            toast.error("Test auto-submitted due to multiple tab switches!");
+            handleSubmitTest();
+          }
+          return newCount;
+        });
+        setShowTabWarning(true);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [testStarted]);
+
+  // Open submit modal - save current question first so stats are accurate
+  const handleOpenSubmitModal = async () => {
+    // If current question has selected answers, save them first
+    if (currentQuestion && selectedAnswers.length > 0) {
+      const newState: QuestionState = {
+        questionId: currentQuestion.questionId,
+        sectionName: currentSection.sectionName,
+        status: "ATTEMPTED",
+        selectedAnswers: selectedAnswers,
+      };
+      // Set pending state BEFORE async call so UI updates immediately
+      setPendingQuestionState(newState);
+
+      try {
+        const elapsedTime = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
+        await saveOrMarkForReviewAnswer({
+          attemptId,
+          userId,
+          sectionName: currentSection.sectionName,
+          questionId: currentQuestion.questionId,
+          answerIds: selectedAnswers,
+          status: "ATTEMPTED",
+          elapsedTime,
+        });
+        // Update local state
+        const newStates = new Map(questionStates);
+        newStates.set(currentQuestion.questionId, newState);
+        setQuestionStates(newStates);
+      } catch (error) {
+        console.error("Failed to save current answer before submit:", error);
+        // Still show modal even if save fails
+      }
+    }
+    setShowSubmitModal(true);
+  };
 
   // Submit test
   const handleSubmitTest = async () => {
     try {
+      // CRITICAL: Save current question's answer before submitting
+      if (currentQuestion && selectedAnswers.length > 0) {
+        const elapsedTime = Math.floor((Date.now() - questionStartTimeRef.current) / 1000);
+        await saveOrMarkForReviewAnswer({
+          attemptId,
+          userId,
+          sectionName: currentSection.sectionName,
+          questionId: currentQuestion.questionId,
+          answerIds: selectedAnswers,
+          status: "ATTEMPTED",
+          elapsedTime,
+        });
+        // Update local state
+        const newStates = new Map(questionStates);
+        newStates.set(currentQuestion.questionId, {
+          questionId: currentQuestion.questionId,
+          sectionName: currentSection.sectionName,
+          status: "ATTEMPTED",
+          selectedAnswers: selectedAnswers,
+        });
+        setQuestionStates(newStates);
+      }
+
       const response = await submitTestAndCalculateScore(userId, attemptId);
       // Calculate Result Data locally for immediate display
       let correct = 0;
@@ -542,26 +776,30 @@ export function TakeTest() {
         });
       });
 
-      const resultData = {
-        attemptId: attemptId || "temp-id",
-        score: score,
-        totalQuestions: totalQuestions,
-        correct: correct,
-        wrong: wrong,
-        unattempted: unattempted,
-        maxMarks: sections.reduce((acc, sec) => acc + (sec.totalQuestions * (sec.pointsForCorrectAnswer || 4)), 0),
-        actualDurationTakenToCompleteTest: timeTakenString,
-        sectionScores: sectionScores
-      };
 
-      if (response.status) {
+
+      if (response.status && response.data) {
         toast.success("Test submitted successfully!");
         setShowSubmitModal(false);
         // Clear session storage
         sessionStorage.removeItem(sessionKey);
 
+        // Use backend response data directly
+        const backendData = response.data;
+        const resultData: ResultData = {
+          attemptId: backendData.attemptId || attemptId,
+          score: backendData.score,
+          totalQuestions: backendData.totalQuestions,
+          correct: backendData.correct,
+          wrong: backendData.wrong,
+          unattempted: backendData.unattempted,
+          maxMarks: backendData.maxMarks,
+          actualDurationTakenToCompleteTest: backendData.actualDurationTakenToCompleteTest,
+          sectionScores: backendData.sectionScores || undefined
+        };
+
         // Show result modal on same page
-        setTestResult(resultData as ResultData);
+        setTestResult(resultData);
       }
     } catch (error) {
       toast.error("Failed to submit test");
@@ -579,9 +817,9 @@ export function TakeTest() {
       e.returnValue = "";
     };
 
-    // Detect fullscreen exit
+    // Detect fullscreen exit - but don't re-request if test is completed (testResult is set)
     const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) {
+      if (!document.fullscreenElement && !testResult) {
         toast.error("Please stay in fullscreen during the test");
         document.documentElement.requestFullscreen?.();
       }
@@ -603,7 +841,7 @@ export function TakeTest() {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [attemptId]);
+  }, [attemptId, testResult]);
 
   if (loading) {
     return (
@@ -728,13 +966,53 @@ export function TakeTest() {
         </div>
       )}
 
+      {/* Tab Switch Warning Modal */}
+      {showTabWarning && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[80] p-4">
+          <div className="bg-white rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl">
+            <div className="text-center mb-4">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-red-600 mb-2">
+                ⚠️ Tab Switch Detected!
+              </h3>
+              <p className="text-gray-700 mb-2">
+                You switched away from the test. This is not allowed during the exam.
+              </p>
+              <p className="text-lg font-semibold text-orange-600">
+                Warning {tabSwitchCount} of {MAX_TAB_SWITCHES}
+              </p>
+              <p className="text-sm text-gray-500 mt-2">
+                {MAX_TAB_SWITCHES - tabSwitchCount > 0
+                  ? `${MAX_TAB_SWITCHES - tabSwitchCount} more switch(es) will auto-submit your test!`
+                  : 'Your test is being submitted...'
+                }
+              </p>
+            </div>
+            <button
+              onClick={() => setShowTabWarning(false)}
+              className="w-full py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 cursor-pointer"
+            >
+              I Understand, Continue Test
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Submit Test Modal */}
       <SubmitTestModal
         isOpen={showSubmitModal}
-        onClose={() => setShowSubmitModal(false)}
+        onClose={() => {
+          setShowSubmitModal(false);
+          setPendingQuestionState(null);
+        }}
         onConfirm={handleSubmitTest}
         testName={testName}
         attemptedCount={stats.attempted}
+        markedForReviewCount={stats.markedForReview}
         unansweredCount={stats.unanswered}
         notVisitedCount={stats.notVisited}
         timeTaken={timeTakenString}
@@ -744,15 +1022,17 @@ export function TakeTest() {
           let secUnanswered = 0;
 
           section.questions.forEach((q) => {
-            const state = questionStates.get(q.questionId);
+            // Check if this question has a pending state update
+            const isPendingQ = pendingQuestionState && q.questionId === pendingQuestionState.questionId;
+            const state = isPendingQ ? pendingQuestionState : questionStates.get(q.questionId);
             const isCurrentQ = currentQuestion && q.questionId === currentQuestion.questionId;
             const userSelectedAnswers = isCurrentQ ? selectedAnswers : (state?.selectedAnswers || []);
-            const status = state?.status || "NOT_VISITED";
+            // const status = state?.status || "NOT_VISITED";
 
             if (userSelectedAnswers.length > 0) {
               secAttempted++;
-            } else if (status !== "NOT_VISITED") {
-              // If not attempted and visited (including marked for review without answer), count as unanswered
+            } else {
+              // Both NOT_VISITED and visited-but-not-answered are unanswered
               secUnanswered++;
             }
           });
@@ -764,7 +1044,7 @@ export function TakeTest() {
             unanswered: secUnanswered,
           };
         })}
-        timeRemaining="15 minutes"
+        timeRemaining={timeLeft ? (timeLeft % 60 > 0 ? `${Math.floor(timeLeft / 60)} min ${timeLeft % 60} sec` : `${Math.floor(timeLeft / 60)} min`) : "N/A"}
       />
 
       {/* Test Content - Hidden when start modal is showing */}
@@ -782,24 +1062,40 @@ export function TakeTest() {
               </h1>
 
               <div className="sm:flex sm:flex-row sm:justify-between sm:items-center">
-                <Timer
-                  key={currentSectionIndex} // Reset timer when section changes
-                  initialSeconds={sectionDurations[currentSectionIndex] * 60} // Use section duration
-                  time={sectionDurations[currentSectionIndex].toString()} // Show section limit
-                  onSectionClick={() => setShowMobileSections(true)}
-                  onTimerEnd={() => {
-                    if (currentSectionIndex < sections.length - 1) {
-                      // Auto move to next section
-                      handleConfirmSectionChange(); // Need to adapt this or create new function separate from modal
-                      // Actually, just call:
-                      setCurrentSectionIndex(currentSectionIndex + 1);
-                      setCurrentQuestionIndex(0);
-                      toast.info(`Time up for ${currentSection.sectionName}. Moving to next section.`);
-                    } else {
+                {sectionSwitchingAllowed ? (
+                  // Section switching ALLOWED - Use collective timer for all sections
+                  <Timer
+                    initialSeconds={timeLeft ?? (sectionDurations.reduce((a, b) => a + b, 0) * 60)}
+                    onSectionClick={() => setShowMobileSections(true)}
+                    onTick={(seconds) => setTimeLeft(seconds)}
+                    onTimerEnd={() => {
+                      toast("Time's up! Auto-submitting your test...");
                       handleSubmitTest();
-                    }
-                  }}
-                />
+                    }}
+                  />
+                ) : (
+                  // Section switching NOT ALLOWED - Timer resets for each section
+                  <Timer
+                    key={currentSectionIndex} // Reset timer when section changes
+                    initialSeconds={timeLeft ?? (sectionDurations[currentSectionIndex] * 60)}
+                    onSectionClick={() => setShowMobileSections(true)}
+                    onTick={(seconds) => setTimeLeft(seconds)}
+                    onTimerEnd={() => {
+                      if (currentSectionIndex < sections.length - 1) {
+                        // Auto move to next section when section time expires
+                        const nextIdx = currentSectionIndex + 1;
+                        setCurrentSectionIndex(nextIdx);
+                        setCurrentQuestionIndex(0);
+                        setTimeLeft(sectionDurations[nextIdx] * 60);
+                        toast(`Time up for ${currentSection.sectionName}. Moving to next section.`);
+                      } else {
+                        // Last section - auto submit
+                        toast("Time's up! Auto-submitting your test...");
+                        handleSubmitTest();
+                      }
+                    }}
+                  />
+                )}
               </div>
             </div>
 
@@ -816,14 +1112,14 @@ export function TakeTest() {
 
                   <Option
                     option={currentQuestion.options || []}
-                    multipleAnswer={currentQuestion.multipleAnswer}
+                    multipleAnswer={currentQuestion.multipleAnswer || (currentQuestion as any).isMultipleAnswer || false}
                     subjective={currentQuestion.subjective}
                     selectedAnswers={selectedAnswers}
                     onAnswerChange={setSelectedAnswers}
                   />
 
-                  {/* Mobile prev/next buttons */}
-                  <div className="flex md:hidden flex-wrap gap-2 items-stretch font-medium text-sm mt-4">
+                  {/* Mobile + Small Laptop prev/next buttons (visible until xl breakpoint) */}
+                  <div className="flex xl:hidden flex-wrap gap-2 items-stretch font-medium text-sm mt-4">
                     <button
                       onClick={handlePrevious}
                       disabled={currentQuestionIndex === 0}
@@ -831,81 +1127,133 @@ export function TakeTest() {
                     >
                       Previous
                     </button>
-                    {!isLastQuestion && (
-                      <button
-                        onClick={handleSaveAndNext}
-                        className="flex-1 min-w-[120px] bg-[#F69E23] py-3 px-4 rounded-[10px] text-white font-medium h-[44px] flex items-center justify-center cursor-pointer"
-                      >
-                        Save & Next
-                      </button>
-                    )}
-                    {!isLastQuestion && (
-                      <button
-                        onClick={handleNext}
-                        className="flex-1 min-w-[120px] bg-(--btn-primary) py-3 px-4 rounded-[10px] text-white h-[44px] flex items-center justify-center cursor-pointer"
-                      >
-                        Next
-                      </button>
+                    {!isLastQuestion ? (
+                      <>
+                        <button
+                          onClick={handleSaveAndNext}
+                          className="flex-1 min-w-[120px] bg-[#F69E23] py-3 px-4 rounded-[10px] text-white font-medium h-[44px] flex items-center justify-center cursor-pointer"
+                        >
+                          Mark & Next
+                        </button>
+                        <button
+                          onClick={handleClearResponse}
+                          disabled={selectedAnswers.length === 0}
+                          className="flex-1 min-w-[80px] bg-red-100 py-3 px-3 rounded-[10px] text-red-600 font-medium h-[44px] flex items-center justify-center cursor-pointer disabled:opacity-50"
+                        >
+                          Clear
+                        </button>
+                        <button
+                          onClick={handleNext}
+                          className="flex-1 min-w-[120px] bg-(--btn-primary) py-3 px-4 rounded-[10px] text-white h-[44px] flex items-center justify-center cursor-pointer"
+                        >
+                          Save & Next
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={handleClearResponse}
+                          disabled={selectedAnswers.length === 0}
+                          className="flex-1 min-w-[80px] bg-red-100 py-3 px-3 rounded-[10px] text-red-600 font-medium h-[44px] flex items-center justify-center cursor-pointer disabled:opacity-50"
+                        >
+                          Clear
+                        </button>
+                        <button
+                          onClick={() => handleSaveAnswer("ATTEMPTED")}
+                          disabled={selectedAnswers.length === 0}
+                          className="flex-1 min-w-[100px] bg-(--btn-primary) py-3 px-4 rounded-[10px] text-white font-medium h-[44px] flex items-center justify-center cursor-pointer disabled:opacity-50"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => handleSaveAnswer("MARKED_FOR_REVIEW")}
+                          className="flex-1 min-w-[100px] bg-[#F69E23] py-3 px-4 rounded-[10px] text-white font-medium h-[44px] flex items-center justify-center cursor-pointer"
+                        >
+                          Mark
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
 
                 {/* Fixed bottom area */}
-                <div className="fixed flex flex-col md:flex-row items-center justify-between gap-3 p-5 left-0 bottom-0 right-0 md:right-[354px] bg-[#f9fafb] border-t border-[#d6d6d6] z-10">
-                  {/* Legend - Desktop only */}
-                  <div className="hidden md:flex items-center gap-6">
+                <div className="fixed flex items-center justify-center xl:justify-between gap-3 p-4 xl:p-5 left-0 bottom-0 right-0 xl:right-[354px] bg-[#f9fafb] border-t border-[#d6d6d6] z-10">
+                  {/* Legend - Only visible on xl+ in bottom bar */}
+                  <div className="hidden xl:flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <div className="h-5 w-5 rounded-full bg-[#1980E5]"></div>
-                      <p className="text-(--text-app-primary) font-normal text-sm">
-                        Current
-                      </p>
+                      <div className="h-4 w-4 rounded-full bg-[#1980E5]"></div>
+                      <span className="text-sm text-gray-600">Current</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="h-5 w-5 rounded-full bg-[#21C55D]"></div>
-                      <p className="text-(--text-app-primary) font-normal text-sm">
-                        Attempted
-                      </p>
+                      <div className="h-4 w-4 rounded-full bg-[#21C55D]"></div>
+                      <span className="text-sm text-gray-600">Attempted</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="h-5 w-5 rounded-full bg-[#F69E23]"></div>
-                      <p className="text-(--text-app-primary) font-normal text-sm">
-                        Marked
-                      </p>
+                      <div className="h-4 w-4 rounded-full bg-[#F69E23]"></div>
+                      <span className="text-sm text-gray-600">Marked</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="h-5 w-5 rounded-full bg-[#EAEDF0]"></div>
-                      <p className="text-(--text-app-primary) font-normal text-sm">
-                        Not Visited
-                      </p>
+                      <div className="h-4 w-4 rounded-full bg-[#EAEDF0]"></div>
+                      <span className="text-sm text-gray-600">Unanswered</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 w-full md:w-auto justify-center flex-wrap">
+                  <div className="flex items-center gap-2 xl:gap-3 justify-center flex-nowrap">
                     <button
                       onClick={handlePrevious}
                       disabled={currentQuestionIndex === 0}
-                      className="hidden md:flex bg-[#DBE0E5] py-3 px-9 text-(--text-muted) rounded-[10px] font-medium text-[1rem] disabled:opacity-50 h-[44px] items-center justify-center cursor-pointer"
+                      className="hidden xl:flex bg-[#DBE0E5] py-2.5 px-6 text-(--text-muted) rounded-[10px] font-medium text-sm disabled:opacity-50 h-[40px] items-center justify-center cursor-pointer whitespace-nowrap"
                     >
                       Previous
                     </button>
-                    {!isLastQuestion && (
-                      <button
-                        onClick={handleSaveAndNext}
-                        className="hidden md:flex bg-[#F69E23] py-3 px-6 rounded-[10px] text-white font-medium text-[1rem] h-[44px] items-center justify-center cursor-pointer"
-                      >
-                        Save & Next
-                      </button>
-                    )}
-                    {!isLastQuestion && (
-                      <button
-                        onClick={handleNext}
-                        className="hidden md:flex bg-(--btn-primary) py-3 px-9 rounded-[10px] text-white font-medium text-[1rem] h-[44px] items-center justify-center cursor-pointer"
-                      >
-                        Next
-                      </button>
+                    {!isLastQuestion ? (
+                      <>
+                        <button
+                          onClick={handleSaveAndNext}
+                          className="hidden xl:flex bg-[#F69E23] py-2.5 px-4 rounded-[10px] text-white font-medium text-sm h-[40px] items-center justify-center cursor-pointer whitespace-nowrap"
+                        >
+                          Mark & Next
+                        </button>
+                        <button
+                          onClick={handleClearResponse}
+                          disabled={selectedAnswers.length === 0}
+                          className="hidden xl:flex bg-red-100 py-2.5 px-4 rounded-[10px] text-red-600 font-medium text-sm h-[40px] items-center justify-center cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                        >
+                          Clear
+                        </button>
+                        <button
+                          onClick={handleNext}
+                          className="hidden xl:flex bg-(--btn-primary) py-2.5 px-6 rounded-[10px] text-white font-medium text-sm h-[40px] items-center justify-center cursor-pointer whitespace-nowrap"
+                        >
+                          Save & Next
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={handleClearResponse}
+                          disabled={selectedAnswers.length === 0}
+                          className="hidden xl:flex bg-red-100 py-2.5 px-4 rounded-[10px] text-red-600 font-medium text-sm h-[40px] items-center justify-center cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                        >
+                          Clear
+                        </button>
+                        <button
+                          onClick={() => handleSaveAnswer("ATTEMPTED")}
+                          disabled={selectedAnswers.length === 0}
+                          className="hidden xl:flex bg-(--btn-primary) py-2.5 px-6 rounded-[10px] text-white font-medium text-sm h-[40px] items-center justify-center cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => handleSaveAnswer("MARKED_FOR_REVIEW")}
+                          className="hidden xl:flex bg-[#F69E23] py-2.5 px-4 rounded-[10px] text-white font-medium text-sm h-[40px] items-center justify-center cursor-pointer whitespace-nowrap"
+                        >
+                          Mark
+                        </button>
+                      </>
                     )}
                     <button
-                      onClick={() => setShowSubmitModal(true)}
+                      onClick={handleOpenSubmitModal}
                       className="bg-[#21C55D] py-3 px-9 rounded-[10px] text-white font-medium text-[1rem] h-[44px] flex items-center justify-center cursor-pointer"
                     >
                       Submit Test
@@ -917,11 +1265,31 @@ export function TakeTest() {
               {/* Desktop Sections Sidebar */}
               <div className="hidden md:block fixed right-0 top-[90px] h-[calc(100vh-90px)] w-[354px] bg-[#F1F2F4] overflow-y-auto z-20">
                 <div className="flex flex-col gap-4 p-5">
+                  {/* Legend - Only visible on smaller screens (< xl) in sidebar */}
+                  <div className="flex xl:hidden flex-wrap gap-x-4 gap-y-2 pb-3 border-b border-gray-300">
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-4 w-4 rounded-full bg-[#1980E5]"></div>
+                      <span className="text-xs text-gray-600">Current</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-4 w-4 rounded-full bg-[#21C55D]"></div>
+                      <span className="text-xs text-gray-600">Attempted</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-4 w-4 rounded-full bg-[#F69E23]"></div>
+                      <span className="text-xs text-gray-600">Marked</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-4 w-4 rounded-full bg-[#EAEDF0]"></div>
+                      <span className="text-xs text-gray-600">Unanswered</span>
+                    </div>
+                  </div>
+
                   {sections.map((section, sectionIdx) => (
                     <Section
                       key={sectionIdx}
                       sectionName={section.sectionName}
-                      isDisabled={sectionIdx < currentSectionIndex}
+                      isDisabled={!sectionSwitchingAllowed && sectionIdx < currentSectionIndex}
                       questions={section.questions.map((q, qIdx) => {
                         const state = questionStates.get(q.questionId);
                         return {
@@ -930,20 +1298,26 @@ export function TakeTest() {
                         };
                       })}
                       onQuestionClick={(questionIdx) => {
-                        // Logic: Cannot go back to previous sections. Only current or forward (with warning).
-                        if (sectionIdx < currentSectionIndex) {
-                          toast.warning("You cannot navigate back to previous sections.");
-                          return;
-                        }
-
-                        // Check if navigating to a different section that's ahead
-                        if (sectionIdx > currentSectionIndex) {
-                          setPendingNavigationSection(sectionIdx);
-                          setPendingNavigationQuestion(questionIdx);
-                          setShowSectionChangeModal(true);
-                        } else {
+                        if (sectionSwitchingAllowed) {
+                          // Section switching allowed - navigate directly
                           setCurrentSectionIndex(sectionIdx);
                           setCurrentQuestionIndex(questionIdx);
+                        } else {
+                          // Logic: Cannot go back to previous sections. Only current or forward (with warning).
+                          if (sectionIdx < currentSectionIndex) {
+                            toast.error("You cannot navigate back to previous sections.");
+                            return;
+                          }
+
+                          // Check if navigating to a different section that's ahead
+                          if (sectionIdx > currentSectionIndex) {
+                            setPendingNavigationSection(sectionIdx);
+                            setPendingNavigationQuestion(questionIdx);
+                            setShowSectionChangeModal(true);
+                          } else {
+                            setCurrentSectionIndex(sectionIdx);
+                            setCurrentQuestionIndex(questionIdx);
+                          }
                         }
                       }}
                     />
@@ -1009,7 +1383,7 @@ export function TakeTest() {
                         <Section
                           key={sectionIdx}
                           sectionName={section.sectionName}
-                          isDisabled={sectionIdx < currentSectionIndex}
+                          isDisabled={!sectionSwitchingAllowed && sectionIdx < currentSectionIndex}
                           questions={section.questions.map((q, qIdx) => {
                             const state = questionStates.get(q.questionId);
                             return {
@@ -1018,19 +1392,26 @@ export function TakeTest() {
                             };
                           })}
                           onQuestionClick={(questionIdx) => {
-                            if (sectionIdx < currentSectionIndex) {
-                              toast.warning("You cannot navigate back to previous sections.");
-                              return;
-                            }
                             // Logic: close drawer and navigate
                             setShowMobileSections(false);
-                            if (sectionIdx > currentSectionIndex) {
-                              setPendingNavigationSection(sectionIdx);
-                              setPendingNavigationQuestion(questionIdx);
-                              setShowSectionChangeModal(true);
-                            } else {
+
+                            if (sectionSwitchingAllowed) {
+                              // Section switching allowed - navigate directly
                               setCurrentSectionIndex(sectionIdx);
                               setCurrentQuestionIndex(questionIdx);
+                            } else {
+                              if (sectionIdx < currentSectionIndex) {
+                                toast.error("You cannot navigate back to previous sections.");
+                                return;
+                              }
+                              if (sectionIdx > currentSectionIndex) {
+                                setPendingNavigationSection(sectionIdx);
+                                setPendingNavigationQuestion(questionIdx);
+                                setShowSectionChangeModal(true);
+                              } else {
+                                setCurrentSectionIndex(sectionIdx);
+                                setCurrentQuestionIndex(questionIdx);
+                              }
                             }
                           }}
                         />
@@ -1045,13 +1426,21 @@ export function TakeTest() {
       )}
 
       {/* Result Modal - Show if present */}
-      {testResult && (
-        <TestResult
-          resultData={testResult}
-          onRetake={() => window.location.reload()}
-          onExit={() => navigate(`/test-info/${testId}`)} // Return to Test Info
-        />
-      )}
+      {
+        testResult && (
+          <TestResult
+            resultData={testResult}
+            onRetake={() => window.location.reload()}
+            onExit={() => {
+              // Exit fullscreen first
+              if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => { });
+              }
+              navigate(`/test-info/${testId}`, { state: { testGroupId } });
+            }}
+          />
+        )
+      }
     </>
   );
 }
