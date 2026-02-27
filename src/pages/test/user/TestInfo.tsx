@@ -232,7 +232,7 @@ export function TestInfo() {
   }
 
   return (
-    <div className="pt-14 md:pt-24 w-full mx-auto max-w-7xl h-full flex flex-col items-center gap-4 px-3 pb-4">
+    <div className="pt-4 w-full mx-auto max-w-7xl h-full flex flex-col items-center gap-4 px-3 pb-4">
       {/* Back Button */}
       <div className="w-full max-w-[800px] lg:max-w-[1200px]">
         <button

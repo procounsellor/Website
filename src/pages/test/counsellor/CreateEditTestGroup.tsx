@@ -133,10 +133,10 @@ export function CreateEditTestGroup() {
           if (newTestGroupId) {
             navigate(`/counselor/test-groups/${newTestGroupId}`);
           } else {
-             navigate("/counsellor-dashboard", {
-                state: { activeTab: "courses" },
-                replace: true
-              })
+            navigate("/counsellor-dashboard", {
+              state: { activeTab: "courses" },
+              replace: true
+            })
           }
         }
       } else {
@@ -150,25 +150,25 @@ export function CreateEditTestGroup() {
     }
   };
 
-  const isFormValid = 
+  const isFormValid =
     formData.testGroupName.trim() &&
     (isEditMode || bannerImage) &&
     (formData.testType !== "COURSE_ATTACHED" || formData.courseIdAttached) &&
     (formData.priceType !== "PAID" || formData.price > 0);
 
   return (
-    <div className="pt-28 pb-8 w-full mx-auto max-w-7xl min-h-screen flex flex-col gap-4">
+    <div className="pt-4 pb-8 w-full mx-auto max-w-7xl min-h-screen flex flex-col gap-4">
       {/* Back Button */}
-     <button
-              onClick={() => navigate("/counsellor-dashboard", {
-                state: { activeTab: "courses" },
-                replace: true
-              })}
-              className="flex items-center gap-2 text-(--text-app-primary) hover:text-(--btn-primary) transition-colors font-medium mb-4 cursor-pointer"
-            >
-              <ArrowLeft size={20} />
-              Back to Test Groups
-            </button>
+      <button
+        onClick={() => navigate("/counsellor-dashboard", {
+          state: { activeTab: "courses" },
+          replace: true
+        })}
+        className="flex items-center gap-2 text-(--text-app-primary) hover:text-(--btn-primary) transition-colors font-medium mb-4 cursor-pointer"
+      >
+        <ArrowLeft size={20} />
+        Back to Test Groups
+      </button>
 
       {/* Top header */}
       <div className="p-5 bg-[#f8faf9] max-w-[1200px] text-(--text-app-primary) font-semibold text-[1.5rem] rounded-2xl">
@@ -189,9 +189,9 @@ export function CreateEditTestGroup() {
             value={formData.testGroupDescription}
             onChange={(value) => setFormData({ ...formData, testGroupDescription: value })}
           />
-          <UploadBox 
-            file={bannerImage} 
-            setFile={setBannerImage} 
+          <UploadBox
+            file={bannerImage}
+            setFile={setBannerImage}
             existingImageUrl={bannerPreview}
             onImageSelect={(imageUrl) => {
               setImageToCrop(imageUrl);
@@ -295,38 +295,38 @@ export function CreateEditTestGroup() {
           )} */}
 
 
-         {formData.priceType === "PAID" && (
-  <div className="flex flex-col gap-2">
-    <label htmlFor="price" className="text-[1rem] font-normal">
-      Price (₹) *
-    </label>
+          {formData.priceType === "PAID" && (
+            <div className="flex flex-col gap-2">
+              <label htmlFor="price" className="text-[1rem] font-normal">
+                Price (₹) *
+              </label>
 
-    <input
-      type="number"
-      value={Number.isNaN(formData.price) ? "" : formData.price}
-      onChange={(e) => {
-        const raw = e.target.value;
+              <input
+                type="number"
+                value={Number.isNaN(formData.price) ? "" : formData.price}
+                onChange={(e) => {
+                  const raw = e.target.value;
 
-        // allow clearing input without forcing 0
-        if (raw === "") {
-          setFormData({ ...formData, price: NaN });
-          return;
-        }
+                  // allow clearing input without forcing 0
+                  if (raw === "") {
+                    setFormData({ ...formData, price: NaN });
+                    return;
+                  }
 
-        const num = Number(raw);
+                  const num = Number(raw);
 
-        // keep number type + block negatives
-        if (!Number.isNaN(num) && num >= 0) {
-          setFormData({ ...formData, price: num });
-        }
-      }}
-      placeholder="Enter price"
-      className="border border-[#13097D66] py-3 px-4 rounded-[12px] w-full placeholder:text-(--text-muted) placeholder:font-medium cursor-pointer"
-      min="0"
-      step="0.01"
-    />
-  </div>
-)}
+                  // keep number type + block negatives
+                  if (!Number.isNaN(num) && num >= 0) {
+                    setFormData({ ...formData, price: num });
+                  }
+                }}
+                placeholder="Enter price"
+                className="border border-[#13097D66] py-3 px-4 rounded-[12px] w-full placeholder:text-(--text-muted) placeholder:font-medium cursor-pointer"
+                min="0"
+                step="0.01"
+              />
+            </div>
+          )}
 
 
         </div>

@@ -35,11 +35,11 @@ export default function CounselorDetailsPage() {
   type LocationState = { id?: string } | undefined;
   const state = location.state as LocationState;
   const queryId = searchParams.get('id');
-  
+
   // Decode the ID if it comes from URL params (encoded), otherwise use state/query (already plain)
   const decodedParamId = paramId ? decodeCounselorId(paramId) : null;
   const computedId = decodedParamId || queryId || state?.id;
-  
+
   const { counselor, loading, error } = useCounselorById(computedId ?? '');
   const { user, userId, refreshUser, role } = useAuthStore();
   const token = localStorage.getItem('jwt');
@@ -304,7 +304,7 @@ export default function CounselorDetailsPage() {
   }
 
   return (
-    <div className="bg-gray-50 pt-20 md:pt-28 pb-8 px-4">
+    <div className="bg-gray-50 pt-4 pb-8 px-4">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <div className="max-w-7xl mx-auto mb-6 hidden md:block">

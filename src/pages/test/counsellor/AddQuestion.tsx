@@ -643,7 +643,7 @@ export function AddQuestion() {
 
   if (loadingTestData) {
     return (
-      <div className="pt-28 pb-8 max-w-7xl min-h-screen mx-auto flex items-center justify-center">
+      <div className="pt-4 pb-8 max-w-7xl min-h-screen mx-auto flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-t-[#13097D] border-gray-200 rounded-full animate-spin"></div>
           <p className="text-(--text-muted) text-lg">Loading test data...</p>
@@ -653,7 +653,7 @@ export function AddQuestion() {
   }
 
   return (
-    <div className="pt-28 pb-8 max-w-7xl min-h-screen mx-auto flex flex-col gap-4">
+    <div className="pt-4 pb-8 max-w-7xl min-h-screen mx-auto flex flex-col gap-4">
       {/* Back button */}
       <button
         onClick={() => {

@@ -1,5 +1,4 @@
 import { Suspense, lazy } from 'react';
-import MainLayout from "@/layouts/MainLayout";
 import Home from "@/pages/Home";
 import { Routes, Route } from "react-router-dom";
 import AboutPage from "@/pages/About";
@@ -67,34 +66,43 @@ export default function AppRoutes() {
             />
             <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
                 <Routes>
+                    {/* Standalone pages (no layout) */}
                     <Route path="/privacy1" element={<ExternalPrivacyPage />} />
                     <Route path="/term1" element={<ExternalTermsPage />} />
-
                     <Route path='/take-test/:testId' element={<TakeTest />} />
                     <Route path='/t/analysis/:testId/:attemptId' element={<TestAnalysisPage />} />
 
+                    {/* All pages under RevampLayout */}
+                    <Route element={<RevampLayout />}>
+                        {/* Core Revamp Pages */}
+                        <Route path="/" element={<Home />} />
+                        <Route path='/admissions' element={<Admissions />} />
+                        <Route path='/pro-buddies' element={<ProBuddies />} />
+                        <Route path='/revamp-courses' element={<Courses />} />
+                        <Route path='/revamp-about' element={<RevampAbout />} />
 
-                    <Route element={<RevampLayout/>}>
-                        <Route path='/pro-buddies' element={<ProBuddies/>}/>
-                        <Route path='/admissions' element={<Admissions/>}/>
-                        <Route path='/revamp-courses' element={<Courses/>}/>
+                        {/* Community */}
                         <Route path="/community" element={<CommunityPage />} />
                         <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
                         <Route path="/community/answer" element={<AnswerPage />} />
                         <Route path="/community/my-activity" element={<MyActivityPage />} />
-                        <Route path='/revamp-about'  element={<RevampAbout/>}/>
-                    </Route>
 
-                    <Route element={<MainLayout />}>
-                        <Route path="/" element={<Home />} />
-                        <Route path='/gurucool' element={<LandingPage />} />
+                        {/* Counsellor */}
                         <Route path="/counsellors" element={<CounselorListingPage />} />
                         <Route path="/counsellor/:id" element={<CounselorDetailsPage />} />
                         <Route path="/counsellor-profile" element={<CounselorDetailsPage />} />
+
+                        {/* Courses & Colleges */}
                         <Route path="/courses/:id" element={<CourseDetailsPage />} />
                         <Route path="/colleges/:id" element={<CollegeDetailsPage />} />
                         <Route path="/college-details/:id" element={<CollegeDetailsPageNew />} />
+                        <Route path='/detail/:courseId/:role' element={<CoursePage />} />
+
+                        {/* Exams */}
                         <Route path="/exams" element={<ExamsListingPage />} />
+                        <Route path="/exams/:id" element={<ExamDetailsPage />} />
+
+                        {/* Info / Static Pages */}
                         <Route path="/about" element={<AboutPage />} />
                         <Route path="/contact" element={<ContactPage />} />
                         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
@@ -102,32 +110,36 @@ export default function AppRoutes() {
                         <Route path="/cancellation-refund" element={<CancellationRefundPage />} />
                         <Route path="/shipping-exchange" element={<ShippingExchangePage />} />
                         <Route path="/sitemap" element={<SitemapPage />} />
-                        <Route path='/detail/:courseId/:role' element={<CoursePage />} />
                         <Route path="/add-college" element={<AddCollegePage />} />
-                        <Route path="/exams/:id" element={<ExamDetailsPage />} />
-                        <Route path='/subscribe' element={<SubscriptionPage />} />
-                        <Route path='/counsellor-dashboard' element={<CounselorDashboard />} />
-                        <Route path='/counselor-dashboard/client-profile' element={<ClientProfilePage />} />
+
+                        {/* Landing / Promo */}
+                        <Route path='/gurucool' element={<LandingPage />} />
                         <Route path='/promo' element={<PromoPage />} />
                         <Route path='/testSeries/pcsat' element={<TestSeriesPromo />} />
+
+                        {/* Subscription / Notifications */}
+                        <Route path='/subscribe' element={<SubscriptionPage />} />
                         <Route path="/notifications" element={<NotificationsPage />} />
+
+                        {/* Counselor Dashboard */}
+                        <Route path='/counsellor-dashboard' element={<CounselorDashboard />} />
+                        <Route path='/counselor-dashboard/client-profile' element={<ClientProfilePage />} />
+
+                        {/* Test Routes */}
                         <Route path='/create-test' element={<CreateTest />} />
                         <Route path='/add-question/:testId' element={<AddQuestion />} />
                         <Route path='/test-info/:testId' element={<TestInfo />} />
                         <Route path='/test-result/:testId' element={<TestResult />} />
                         <Route path='/t/result/:testId' element={<TestResult />} />
-                        {/* TestAnalysisPage moved outside MainLayout */}
-
 
                         {/* Test Group Routes */}
                         <Route path='/counselor/test-groups/create' element={<CreateEditTestGroup />} />
                         <Route path='/counselor/test-groups/edit/:testGroupId' element={<CreateEditTestGroup />} />
                         <Route path='/counselor/test-groups/:testGroupId' element={<TestGroupDetails />} />
                         <Route path='/counselor/test-groups/:testGroupId/create-test' element={<CreateTest />} />
-
-                        {/* User Test Group Routes */}
                         <Route path='/test-group/:testGroupId' element={<TestGroupDetailsPage />} />
 
+                        {/* Protected Routes */}
                         <Route element={<ProtectedRoute />}>
                             <Route path='/dashboard-student' element={<StudentDashboardPage />} />
                             <Route path='/live-sessions' element={<LiveSessionsPage />} />

@@ -10,32 +10,29 @@ import Timeline from "@/components/Revamp/admissions/Timeline";
 import RevampBannerSection from "@/components/Revamp/banners/RevampBannerSection";
 
 export default function Admissions() {
-  const [splashPhase, setSplashPhase] = useState(0);
-  // Splash Phase 0: Logo appears centered (scale in)
-  // Splash Phase 1: Logo shrinks back (goes "into" screen)
-  // Splash Phase 2: Logo shifts left, text slides in from right
-  // Splash Phase 3: Splash fades out, hero revealed
+  const hasSeenSplash = sessionStorage.getItem('admissions-splash-seen') === 'true';
 
-  const [animationPhase, setAnimationPhase] = useState(0);
-  // Phase 1: Heading appears
-  // Phase 2: Subtitle appears
-  // Phase 3: Button appears
-  // Phase 4: Cards rise up
+  const [splashPhase, setSplashPhase] = useState(hasSeenSplash ? 3 : 0);
+  const [animationPhase, setAnimationPhase] = useState(hasSeenSplash ? 4 : 0);
 
   useEffect(() => {
+    if (hasSeenSplash) return; // Skip animation if already seen this session
+
     const timers = [
-      setTimeout(() => setSplashPhase(1), 800),    // logo shrinks back
-      setTimeout(() => setSplashPhase(2), 1400),   // logo shifts left + text appears
-      setTimeout(() => setSplashPhase(3), 3000),   // splash fades out
-      // Hero content starts after splash fade
-      setTimeout(() => setAnimationPhase(1), 3600),   // heading
-      setTimeout(() => setAnimationPhase(2), 4100),   // subtitle
-      setTimeout(() => setAnimationPhase(3), 4500),   // button
-      setTimeout(() => setAnimationPhase(4), 4900),   // cards
+      setTimeout(() => setSplashPhase(1), 800),
+      setTimeout(() => setSplashPhase(2), 1400),
+      setTimeout(() => setSplashPhase(3), 3000),
+      setTimeout(() => setAnimationPhase(1), 3600),
+      setTimeout(() => setAnimationPhase(2), 4100),
+      setTimeout(() => setAnimationPhase(3), 4500),
+      setTimeout(() => {
+        setAnimationPhase(4);
+        sessionStorage.setItem('admissions-splash-seen', 'true');
+      }, 4900),
     ];
 
     return () => timers.forEach(clearTimeout);
-  }, []);
+  }, [hasSeenSplash]);
 
   return (
     <div className="min-h-screen">
@@ -61,15 +58,15 @@ export default function Admissions() {
                     splashPhase === 0
                       ? { scale: 1.2, opacity: 1, x: 0 }
                       : splashPhase === 1
-                      ? { scale: 0.75, opacity: 1, x: 0 }
-                      : { scale: 0.75, opacity: 1, x: -175 }
+                        ? { scale: 0.75, opacity: 1, x: 0 }
+                        : { scale: 0.75, opacity: 1, x: -175 }
                   }
                   transition={
                     splashPhase === 0
                       ? { type: "spring", stiffness: 200, damping: 20, delay: 0.2 }
                       : splashPhase === 1
-                      ? { duration: 0.5, ease: "easeInOut" }
-                      : { duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }
+                        ? { duration: 0.5, ease: "easeInOut" }
+                        : { duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }
                   }
                 />
 
@@ -141,9 +138,9 @@ export default function Admissions() {
                 transition={{ duration: 0.7, delay: 0, ease: "easeOut" }}
                 className="absolute left-16 top-0 w-[243px] h-[245px] bg-[#ffc8af] rounded-[28px] overflow-hidden"
               >
-                <img 
-                  src="https://www.figma.com/api/mcp/asset/ac2e860d-8957-4a4d-9eb2-a8dd1ba74368" 
-                  alt="Student" 
+                <img
+                  src="https://www.figma.com/api/mcp/asset/ac2e860d-8957-4a4d-9eb2-a8dd1ba74368"
+                  alt="Student"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[rgba(14,22,41,0.7)]" />
@@ -177,9 +174,9 @@ export default function Admissions() {
                 transition={{ duration: 0.7, delay: 0.15, ease: "easeOut" }}
                 className="absolute left-[331px] top-[80px] w-[243px] h-[330px] rounded-[28px] overflow-hidden bg-gray-700"
               >
-                <img 
-                  src="https://www.figma.com/api/mcp/asset/d48e6154-5b62-4bb7-9861-ed29f4b1034a" 
-                  alt="Courses" 
+                <img
+                  src="https://www.figma.com/api/mcp/asset/d48e6154-5b62-4bb7-9861-ed29f4b1034a"
+                  alt="Courses"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[rgba(14,22,41,0.7)]" />
@@ -203,7 +200,7 @@ export default function Admissions() {
                   <p className="text-white text-[14px] font-['Poppins'] text-center">
                     <span className="font-semibold">120+</span> Members | <span className="font-semibold">20+</span> Monthly Events
                   </p>
-            
+
                 </div>
               </motion.div>
 
@@ -214,9 +211,9 @@ export default function Admissions() {
                 transition={{ duration: 0.7, delay: 0.35, ease: "easeOut" }}
                 className="absolute left-[865px] top-[80px] w-[243px] h-[330px] rounded-[28px] overflow-hidden bg-gray-700"
               >
-                <img 
-                  src="https://www.figma.com/api/mcp/asset/5444efa2-6311-4862-be75-6146c9cb7754" 
-                  alt="ProBuddies" 
+                <img
+                  src="https://www.figma.com/api/mcp/asset/5444efa2-6311-4862-be75-6146c9cb7754"
+                  alt="ProBuddies"
                   className="absolute inset-0 w-full h-full object-fit"
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[rgba(14,22,41,0.7)]" />
@@ -235,9 +232,9 @@ export default function Admissions() {
                 transition={{ duration: 0.7, delay: 0.45, ease: "easeOut" }}
                 className="absolute right-16 top-[8px] w-[243px] h-[245px] bg-[#68aab8] rounded-[28px] overflow-hidden"
               >
-                <img 
-                  src="https://www.figma.com/api/mcp/asset/4acbf56a-e5d4-416a-8c98-ccc41915373b" 
-                  alt="Scholarships" 
+                <img
+                  src="https://www.figma.com/api/mcp/asset/4acbf56a-e5d4-416a-8c98-ccc41915373b"
+                  alt="Scholarships"
                   className="absolute inset-0 w-full h-full object-fit"
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[rgba(14,22,41,0.1)] to-[rgba(14,22,41,0.2)]" />
@@ -260,14 +257,14 @@ export default function Admissions() {
           </div>
         </div>
       </section>
-      <Timeline/>
-      <CounsellorSection/>
-      <RevampBannerSection/>
-      <College/>
-      <Deadlines/>
+      <Timeline />
+      <CounsellorSection />
+      <RevampBannerSection />
+      <College />
+      <Deadlines />
       <Stories />
-      <Blogs/>
-      <Faq/>
+      <Blogs />
+      <Faq />
     </div>
   );
 }
