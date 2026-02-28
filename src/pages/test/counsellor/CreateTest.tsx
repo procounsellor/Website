@@ -14,10 +14,11 @@ import {
 import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/AuthStore";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Video } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { getAllTestGroups } from "@/api/testGroup";
+import VideoExplanationPlayer from "@/components/common/VideoExplanationPlayer";
 
 interface EventFormData {
   name: string;
@@ -112,6 +113,7 @@ export function CreateTest() {
     instructions: "",
   });
   const [sectionSwitchingAllowed, setSectionSwitchingAllowed] = useState<boolean>(false);
+  const [solutionVideoUrl, setSolutionVideoUrl] = useState<string>("");
 
   // Test group selection state (for edit mode)
   const [allTestGroups, setAllTestGroups] = useState<{ testGroupId: string; testGroupName: string }[]>([]);
@@ -167,6 +169,10 @@ export function CreateTest() {
       // Set selected test group ID from existing data
       if (existingTestData.testGroupId) {
         setSelectedTestGroupId(existingTestData.testGroupId);
+      }
+      // Set solution video URL if exists
+      if (existingTestData.solutionVideoUrl) {
+        setSolutionVideoUrl(existingTestData.solutionVideoUrl);
       }
     }
   }, [editMode, existingTestData]);
@@ -476,6 +482,13 @@ export function CreateTest() {
           requestData.testInstructuctions = formData.instructions;
         }
 
+        // Check if solutionVideoUrl changed
+        const currentVideoUrl = solutionVideoUrl.trim() || null;
+        const existingVideoUrl = existingTestData.solutionVideoUrl || null;
+        if (currentVideoUrl !== existingVideoUrl) {
+          requestData.solutionVideoUrl = currentVideoUrl || "";
+        }
+
         // Check if test group changed
         const newTestGroupId = selectedTestGroupId || testGroupId;
         if (newTestGroupId !== existingTestData.testGroupId) {
@@ -538,6 +551,7 @@ export function CreateTest() {
         testInstructuctions: formData.instructions,
         sections: sections,
         testGroupId: testGroupId,
+        ...(solutionVideoUrl.trim() ? { solutionVideoUrl: solutionVideoUrl.trim() } : {}),
       };
     }
 
@@ -552,6 +566,8 @@ export function CreateTest() {
 
     myHeaders.append("Authorization", `Bearer ${token}`);
     myHeaders.append("Accept", "application/json");
+
+    console.log("Request Body:", JSON.stringify(requestData, null, 2));
 
     const formdata = new FormData();
     formdata.append("request", JSON.stringify(requestData));
@@ -907,6 +923,28 @@ export function CreateTest() {
               placeholder="Add sections to calculate duration"
             />
           </div>
+        </div>
+      </Dropdown>
+
+      <Dropdown label="Solution Video (Optional)">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <label className="text-[1rem] font-normal flex items-center gap-2">
+              <Video className="w-5 h-5 text-purple-600" />
+              YouTube Video URL
+            </label>
+            <input
+              type="url"
+              value={solutionVideoUrl}
+              onChange={(e) => setSolutionVideoUrl(e.target.value)}
+              placeholder="Paste YouTube video URL here (e.g. https://youtube.com/watch?v=...)"
+              className="border border-[#13097D66] py-3 px-4 rounded-[12px] w-full placeholder:text-(--text-muted) placeholder:font-medium outline-none focus:border-[#13097D] transition-colors"
+            />
+            <p className="text-sm text-(--text-muted)">This video will be shown to users who have completed at least one attempt of this test.</p>
+          </div>
+          {solutionVideoUrl && (
+            <VideoExplanationPlayer videoUrl={solutionVideoUrl} title="Video Preview" />
+          )}
         </div>
       </Dropdown>
 
