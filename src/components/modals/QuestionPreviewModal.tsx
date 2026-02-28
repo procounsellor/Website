@@ -91,13 +91,13 @@ export function QuestionPreviewModal({ isOpen, onClose, question, sectionName }:
                                     <div
                                         key={opt.optionId}
                                         className={`p-4 rounded-xl border flex items-start gap-3 ${isCorrect
-                                                ? 'bg-green-50 border-green-200'
-                                                : 'bg-white border-gray-200'
+                                            ? 'bg-green-50 border-green-200'
+                                            : 'bg-white border-gray-200'
                                             }`}
                                     >
                                         <div className={`mt-0.5 w-6 h-6 rounded-full border flex items-center justify-center shrink-0 font-medium text-sm ${isCorrect
-                                                ? 'bg-green-500 border-green-500 text-white'
-                                                : 'border-gray-300 text-gray-600'
+                                            ? 'bg-green-500 border-green-500 text-white'
+                                            : 'border-gray-300 text-gray-600'
                                             }`}>
                                             {isCorrect ? (
                                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
