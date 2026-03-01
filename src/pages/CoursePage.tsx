@@ -383,6 +383,72 @@ export default function CoursePage() {
         />
       </div>
 
+      {/* Associated Test Groups Section */}
+      {courseDetails.associatedTestGroupList && courseDetails.associatedTestGroupList.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 md:px-6 mb-6">
+          <h2 className="text-[0.875rem] md:text-[1.25rem] text-[#343C6A] font-semibold mb-4">
+            Associated Test Series
+          </h2>
+          <div className="flex flex-col gap-3">
+            {courseDetails.associatedTestGroupList.map((group) => (
+              <div
+                key={group.testGroupId}
+                onClick={() => navigate(
+                  isCounselor
+                    ? `/counselor/test-groups/${group.testGroupId}`
+                    : `/test-group/${group.testGroupId}`
+                )}
+                className="group flex items-center gap-4 bg-white rounded-2xl border border-gray-100 p-3 md:p-4 hover:shadow-md hover:border-[#13097D]/20 transition-all duration-300 cursor-pointer"
+              >
+                {/* Thumbnail */}
+                <div className="relative w-20 h-20 md:w-28 md:h-20 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#13097D] to-[#4A3AFF]">
+                  {group.testGroupBannerUrl ? (
+                    <img
+                      src={group.testGroupBannerUrl}
+                      alt={group.testGroupName}
+                      className="w-full h-full object-cover transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                        <rect x="9" y="3" width="6" height="4" rx="1" />
+                        <path d="m9 14 2 2 4-4" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm md:text-base font-semibold text-[#242645] group-hover:text-[#13097D] transition-colors truncate">
+                    {group.testGroupName}
+                  </h3>
+                  <p className="text-xs text-gray-400 mt-1">Test Series</p>
+                </div>
+
+                {/* Price + Arrow */}
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  {group.price != null && (
+                    <span className={`text-xs md:text-sm font-bold px-3 py-1 rounded-full ${!group.price
+                      ? 'bg-green-50 text-green-600'
+                      : 'bg-[#13097D]/5 text-[#13097D]'
+                      }`}>
+                      {!group.price ? 'Free' : `₹${group.price}`}
+                    </span>
+                  )}
+                  <div className="w-8 h-8 rounded-full bg-gray-50 group-hover:bg-[#13097D] flex items-center justify-center transition-colors duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         <CourseReviewsCard
           courseId={courseId as string}

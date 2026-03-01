@@ -121,7 +121,7 @@ export function TestAnalysisPage() {
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 pb-[80px] md:pb-0 md:mr-[350px] p-4 md:p-6 overflow-y-auto h-screen">
+            <div className="flex-1 pb-[100px] md:pb-8 md:mr-[350px] p-4 md:p-6 overflow-y-auto min-h-screen">
                 <div className="max-w-4xl mx-auto">
                     {/* Desktop Back Button */}
                     <button
@@ -227,8 +227,9 @@ export function TestAnalysisPage() {
                                     )}
                                 </div>
                             )}
+
                             {/* Desktop Navigation */}
-                            <div className="hidden md:flex justify-between items-center mt-6 pt-6 border-t border-gray-100">
+                            <div className="hidden md:flex justify-between items-center mt-6 pt-6 pb-4 border-t border-gray-100">
                                 <button
                                     onClick={handlePrev}
                                     disabled={currentQuestionIndex === 0 && currentSectionIndex === 0}
