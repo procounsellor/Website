@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useAuthStore } from '@/store/AuthStore';
 import { getAllAnswersForSpecificQuestion } from '@/api/community';
 import type { QuestionDetailData, CommunityQuestion } from '@/types/community';
@@ -7,14 +7,14 @@ import QuestionCard from '@/components/community/QuestionCard';
 import AnswerCard from '@/components/community/AnswerCard';
 // import CategorySidebar from '@/components/community/CategorySidebar';
 // import RightSideAds from '@/components/community/RightSideAds';
-import CommunityBreadcrumbs from "@/components/community/CommunityBreadcrumbs";
-import type { BreadcrumbPath } from '@/components/community/CommunityBreadcrumbs';
+// import CommunityBreadcrumbs from "@/components/community/CommunityBreadcrumbs";
+// import type { BreadcrumbPath } from '@/components/community/CommunityBreadcrumbs';
 
 export default function QuestionDetailPage() {
   const { questionId } = useParams<{ questionId: string }>();
   const { userId, user } = useAuthStore();
   const token = localStorage.getItem('jwt');
-  const location = useLocation();
+  // const location = useLocation();
 
   const [details, setDetails] = useState<QuestionDetailData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,7 +66,7 @@ export default function QuestionDetailPage() {
         questionBookmarkedByMe: details.questionBookmarkedByMe
       }
     : null;
-  
+  {/*
   const getBreadcrumbs = (): BreadcrumbPath[] => {
     const basePaths: BreadcrumbPath[] = [
       { name: "Community Dashboard", link: "/community" }
@@ -80,6 +80,8 @@ export default function QuestionDetailPage() {
     return basePaths;
   };
 
+  */}
+
   return (
     <div className="bg-gray-50 min-h-screen p-4 md:p-8">
       <div className="max-w-[1440px] mx-auto flex justify-center gap-3">
@@ -87,7 +89,7 @@ export default function QuestionDetailPage() {
           {/* <CategorySidebar selectedCategory={null} onSelectCategory={() => {}}/> */}
         </div>
         <div className="flex flex-col w-full md:w-[800px] shrink-0">
-          <CommunityBreadcrumbs paths={getBreadcrumbs()} showMobileBack={true} />
+          {/*<CommunityBreadcrumbs paths={getBreadcrumbs()} showMobileBack={true} /> */}
           <div className="w-full bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
             
             {isLoading && (

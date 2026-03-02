@@ -80,14 +80,24 @@ const TimelineItem = ({
 
 export default function Timeline() {
   const [isVisible, setIsVisible] = useState(false);
+  const [showArrows, setShowArrows] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setIsVisible(true);
+            
+            // The last timeline item starts at 2000ms and fades in over 800ms.
+            // So we trigger the arrows at 2800ms when the timeline is fully visible.
+            timeoutId = setTimeout(() => {
+              setShowArrows(true);
+            }, 2800);
+            
             observer.disconnect();
           }
         });
@@ -102,6 +112,7 @@ export default function Timeline() {
 
     return () => {
       observer.disconnect();
+      if (timeoutId) clearTimeout(timeoutId); // Cleanup timeout to prevent memory leaks
     };
   }, []);
 
@@ -183,61 +194,61 @@ export default function Timeline() {
         <div className="relative h-full w-full max-w-[1440px] mx-auto">
           <div className="absolute top-[10px] left-[91.5px] z-10 pointer-events-none">
             <div
-              className={`absolute bottom-full left-[628.5px] -translate-x-1/2 mb-2 font-medium text-[15px] text-center whitespace-nowrap transition-opacity duration-500 delay-[800ms] ${isVisible ? "opacity-100" : "opacity-0"}`}
+              className={`absolute bottom-full left-[628.5px] -translate-x-1/2 mb-2 font-medium text-[15px] text-center whitespace-nowrap transition-opacity duration-500 delay-[800ms] ${showArrows ? "opacity-100" : "opacity-0"}`}
               style={{ fontFamily: "Poppins", color: "#F7931E" }}
             >
               <strong>ProCounsel's secondary role:</strong><br />
               From subjects to success - guiding till projects & placements
             </div>
-            <div className={`absolute top-0 left-0 h-[2px] bg-[#F7931E] transition-all duration-[600ms] ease-linear delay-[200ms] ${isVisible ? "w-[1257px]" : "w-0"}`} />
-            <div className={`absolute top-0 left-0 w-[2px] bg-[#F7931E] transition-all duration-[200ms] ease-linear delay-[0ms] ${isVisible ? "h-[30px]" : "h-0"}`}>
-              <div className={`absolute -bottom-[6px] left-[-4px] w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-[#F7931E] transition-opacity duration-[100ms] delay-[200ms] ${isVisible ? "opacity-100" : "opacity-0"}`} />
+            <div className={`absolute top-0 left-0 h-[2px] bg-[#F7931E] transition-all duration-[600ms] ease-linear delay-[200ms] ${showArrows ? "w-[1257px]" : "w-0"}`} />
+            <div className={`absolute top-0 left-0 w-[2px] bg-[#F7931E] transition-all duration-[200ms] ease-linear delay-[0ms] ${showArrows ? "h-[30px]" : "h-0"}`}>
+              <div className={`absolute -bottom-[6px] left-[-4px] w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-[#F7931E] transition-opacity duration-[100ms] delay-[200ms] ${showArrows ? "opacity-100" : "opacity-0"}`} />
             </div>
-            <div className={`absolute top-0 left-[1257px] w-[2px] bg-[#F7931E] transition-all duration-[200ms] ease-linear delay-[800ms] ${isVisible ? "h-[30px]" : "h-0"}`}>
-              <div className={`absolute -bottom-[6px] left-[-4px] w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-[#F7931E] transition-opacity duration-[100ms] delay-[1000ms] ${isVisible ? "opacity-100" : "opacity-0"}`} />
+            <div className={`absolute top-0 left-[1257px] w-[2px] bg-[#F7931E] transition-all duration-[200ms] ease-linear delay-[800ms] ${showArrows ? "h-[30px]" : "h-0"}`}>
+              <div className={`absolute -bottom-[6px] left-[-4px] w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-[#F7931E] transition-opacity duration-[100ms] delay-[1000ms] ${showArrows ? "opacity-100" : "opacity-0"}`} />
             </div>
           </div>
 
           <div className="absolute top-[80px] left-[562.875px] z-10 pointer-events-none">
             <div
-              className={`absolute bottom-full left-[235.6875px] -translate-x-1/2 mb-2 font-medium text-[15px] text-center whitespace-nowrap transition-opacity duration-500 delay-[1100ms] ${isVisible ? "opacity-100" : "opacity-0"}`}
+              className={`absolute bottom-full left-[235.6875px] -translate-x-1/2 mb-2 font-medium text-[15px] text-center whitespace-nowrap transition-opacity duration-500 delay-[1100ms] ${showArrows ? "opacity-100" : "opacity-0"}`}
               style={{ fontFamily: "Poppins", color: "#2f43f2" }}
             >
               <strong>ProCounsel's Primary role:</strong><br />
               Turning aspirations into college admissions
             </div>
-            <div className={`absolute top-0 left-0 h-[2px] bg-[#2f43f2] transition-all duration-[400ms] ease-linear delay-[500ms] ${isVisible ? "w-[471.375px]" : "w-0"}`} />
-            <div className={`absolute top-0 left-0 w-[2px] bg-[#2f43f2] transition-all duration-[200ms] ease-linear delay-[300ms] ${isVisible ? "h-[30px]" : "h-0"}`}>
-              <div className={`absolute -bottom-[6px] left-[-4px] w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-[#2f43f2] transition-opacity duration-[100ms] delay-[500ms] ${isVisible ? "opacity-100" : "opacity-0"}`} />
+            <div className={`absolute top-0 left-0 h-[2px] bg-[#2f43f2] transition-all duration-[400ms] ease-linear delay-[500ms] ${showArrows ? "w-[471.375px]" : "w-0"}`} />
+            <div className={`absolute top-0 left-0 w-[2px] bg-[#2f43f2] transition-all duration-[200ms] ease-linear delay-[300ms] ${showArrows ? "h-[30px]" : "h-0"}`}>
+              <div className={`absolute -bottom-[6px] left-[-4px] w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-[#2f43f2] transition-opacity duration-[100ms] delay-[500ms] ${showArrows ? "opacity-100" : "opacity-0"}`} />
             </div>
-            <div className={`absolute top-0 left-[471.375px] w-[2px] bg-[#2f43f2] transition-all duration-[200ms] ease-linear delay-[900ms] ${isVisible ? "h-[30px]" : "h-0"}`}>
-              <div className={`absolute -bottom-[6px] left-[-4px] w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-[#2f43f2] transition-opacity duration-[100ms] delay-[1100ms] ${isVisible ? "opacity-100" : "opacity-0"}`} />
+            <div className={`absolute top-0 left-[471.375px] w-[2px] bg-[#2f43f2] transition-all duration-[200ms] ease-linear delay-[900ms] ${showArrows ? "h-[30px]" : "h-0"}`}>
+              <div className={`absolute -bottom-[6px] left-[-4px] w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-[#2f43f2] transition-opacity duration-[100ms] delay-[1100ms] ${showArrows ? "opacity-100" : "opacity-0"}`} />
             </div>
           </div>
 
           <div className="absolute left-0 top-[150px] z-10 pointer-events-none">
             <div
-              className={`absolute bottom-full left-[124px] -translate-x-1/2 mb-2 font-medium text-[15px] text-[#2A2B2A] text-center whitespace-nowrap transition-opacity duration-500 delay-[400ms] ${isVisible ? "opacity-100" : "opacity-0"}`}
+              className={`absolute bottom-full left-[124px] -translate-x-1/2 mb-2 font-medium text-[15px] text-[#2A2B2A] text-center whitespace-nowrap transition-opacity duration-500 delay-[400ms] ${showArrows ? "opacity-100" : "opacity-0"}`}
               style={{ fontFamily: "Poppins" }}
             >
               After Board Exams, school no<br />longer supports student.
             </div>
-            <div className={`absolute top-0 left-[calc(-50vw+50%)] h-[1.5px] bg-[#DC3A3A] transition-all duration-[250ms] ease-linear delay-0 ${isVisible ? "w-[calc(50vw-50%+249px)]" : "w-0"}`} />
-            <div className={`absolute top-0 left-[248px] w-[1.5px] bg-[#DC3A3A] transition-all duration-[150ms] ease-linear delay-[250ms] ${isVisible ? "h-[60px]" : "h-0"}`}>
-              <div className={`absolute -bottom-[6px] left-[-3.25px] w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[6px] border-t-[#DC3A3A] transition-opacity duration-[100ms] delay-[400ms] ${isVisible ? "opacity-100" : "opacity-0"}`} />
+            <div className={`absolute top-0 left-[calc(-50vw+50%)] h-[1.5px] bg-[#DC3A3A] transition-all duration-[250ms] ease-linear delay-0 ${showArrows ? "w-[calc(50vw-50%+249px)]" : "w-0"}`} />
+            <div className={`absolute top-0 left-[248px] w-[1.5px] bg-[#DC3A3A] transition-all duration-[150ms] ease-linear delay-[250ms] ${showArrows ? "h-[60px]" : "h-0"}`}>
+              <div className={`absolute -bottom-[6px] left-[-3.25px] w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[6px] border-t-[#DC3A3A] transition-opacity duration-[100ms] delay-[400ms] ${showArrows ? "opacity-100" : "opacity-0"}`} />
             </div>
           </div>
 
           <div className="absolute left-0 top-[560px] z-10 pointer-events-none">
             <div
-              className={`absolute top-full left-[202.5px] -translate-x-1/2 mt-2 font-medium text-[15px] text-[#2A2B2A] text-center whitespace-nowrap transition-opacity duration-500 delay-[650ms] ${isVisible ? "opacity-100" : "opacity-0"}`}
+              className={`absolute top-full left-[202.5px] -translate-x-1/2 mt-2 font-medium text-[15px] text-[#2A2B2A] text-center whitespace-nowrap transition-opacity duration-500 delay-[650ms] ${showArrows ? "opacity-100" : "opacity-0"}`}
               style={{ fontFamily: "Poppins", lineHeight: "100%" }}
             >
               Coaching role:<br />After results support ends
             </div>
-            <div className={`absolute top-0 left-[calc(-50vw+50%)] h-[1.5px] bg-[#DC3A3A] transition-all duration-[350ms] ease-linear delay-[150ms] ${isVisible ? "w-[calc(50vw-50%+406px)]" : "w-0"}`} />
-            <div className={`absolute bottom-0 left-[405px] w-[1.5px] bg-[#DC3A3A] transition-all duration-[150ms] ease-linear delay-[500ms] ${isVisible ? "h-[60px]" : "h-0"}`}>
-              <div className={`absolute -top-[6px] left-[-3.25px] w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[6px] border-b-[#DC3A3A] transition-opacity duration-[100ms] delay-[650ms] ${isVisible ? "opacity-100" : "opacity-0"}`} />
+            <div className={`absolute top-0 left-[calc(-50vw+50%)] h-[1.5px] bg-[#DC3A3A] transition-all duration-[350ms] ease-linear delay-[150ms] ${showArrows ? "w-[calc(50vw-50%+406px)]" : "w-0"}`} />
+            <div className={`absolute bottom-0 left-[405px] w-[1.5px] bg-[#DC3A3A] transition-all duration-[150ms] ease-linear delay-[500ms] ${showArrows ? "h-[60px]" : "h-0"}`}>
+              <div className={`absolute -top-[6px] left-[-3.25px] w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[6px] border-b-[#DC3A3A] transition-opacity duration-[100ms] delay-[650ms] ${showArrows ? "opacity-100" : "opacity-0"}`} />
             </div>
           </div>
 
