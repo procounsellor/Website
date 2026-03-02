@@ -6,7 +6,7 @@ export function JEEPredictorSection() {
   return (
     <section className="w-full py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Rank Predictor Card */}
           <div className="relative rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
             <div
@@ -136,6 +136,73 @@ export function JEEPredictorSection() {
                   <img 
                     src="/mortarboard-1.png" 
                     alt="College Predictor Icon" 
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* MHT-CET College Predictor Card */}
+          <div className="relative rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+            <div
+              className="p-8 h-full flex items-center justify-between"
+              style={{
+                background: "linear-gradient(101.59deg, #A5B4FC 0.68%, #FDF8F5 67.02%)",
+              }}
+            >
+              <div className="flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 
+                    className="mb-3"
+                    style={{
+                      fontSize: "20px",
+                      fontWeight: 600,
+                      fontStyle: "normal",
+                      color: "#111827",
+                    }}
+                  >
+                    MHT-CET College Predictor
+                  </h3>
+                  <p 
+                    className="leading-relaxed mb-6"
+                    style={{
+                      fontSize: "16px",
+                      fontWeight: 400,
+                      fontStyle: "normal",
+                      color: "#6B7280",
+                    }}
+                  >
+                    Discover which Maharashtra engineering colleges you can get into based on your MHT-CET marks, percentile or rank.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => navigate("/mhtcet-college-predictor")}
+                    className="text-gray-900 underline font-medium text-sm hover:text-gray-700 transition-colors cursor-pointer"
+                  >
+                    Predict College
+                  </button>
+                  <button
+                    onClick={() => navigate("/mhtcet-college-predictor")}
+                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                    aria-label="MHT-CET Predict College"
+                  >
+                    <img 
+                      src="/button-arrow.png" 
+                      alt="Arrow" 
+                      className="object-contain"
+                    />
+                  </button>
+                </div>
+              </div>
+
+              <div className="ml-6 shrink-0">
+                <div className="w-24 h-24 flex items-center justify-center">
+                  <img 
+                    src="/mortarboard-1.png" 
+                    alt="MHT-CET College Predictor Icon" 
                     className="w-full h-full object-contain"
                   />
                 </div>

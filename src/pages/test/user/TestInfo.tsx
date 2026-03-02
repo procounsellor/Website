@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getTestSeriesByIdForUser } from "@/api/userTestSeries";
 import toast from "react-hot-toast";
 import { ChevronDown, ChevronUp, ArrowLeft } from "lucide-react";
+import VideoExplanationPlayer from "@/components/common/VideoExplanationPlayer";
 
 interface SectionData {
   sectionName: string;
@@ -123,6 +124,7 @@ export function TestInfo() {
   const [attempts, setAttempts] = useState<any[]>([]);
   // Pagination state
   const [visibleAttempts, setVisibleAttempts] = useState(3);
+  const [solutionVideoUrl, setSolutionVideoUrl] = useState<string | null>(null);
 
   const hasCompletedAttempts = attempts.some(a => a.status === 'SUBMITTED');
 
@@ -160,6 +162,10 @@ export function TestInfo() {
 
           // Extract section information from listOfSection
           setSections(data.listOfSection || []);
+          // Set solution video URL if available
+          if (data.solutionVideoUrl) {
+            setSolutionVideoUrl(data.solutionVideoUrl);
+          }
         }
 
         if (response.attempts) {
@@ -443,6 +449,32 @@ export function TestInfo() {
                   Show Less <ChevronUp size={16} />
                 </button>
               )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Solution Video Section */}
+      {solutionVideoUrl && (
+        <div className="w-full max-w-[800px] lg:max-w-[1200px] mt-2">
+          {hasCompletedAttempts ? (
+            <div className="bg-white border border-[#E4E8EC] rounded-2xl overflow-hidden p-4 md:p-6">
+              <VideoExplanationPlayer videoUrl={solutionVideoUrl} title="Solution Video" />
+            </div>
+          ) : (
+            <div className="relative bg-gradient-to-br from-purple-50 via-white to-blue-50 border border-[#E4E8EC] rounded-2xl overflow-hidden p-6 md:p-8">
+              <div className="flex flex-col items-center text-center gap-3">
+                <div className="w-14 h-14 md:w-16 md:h-16 bg-purple-100 rounded-full flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 md:w-8 md:h-8 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
+                <h3 className="text-lg md:text-xl font-semibold text-[#242645]">Solution Video Available</h3>
+                <p className="text-sm md:text-base text-gray-500 max-w-md">
+                  Complete at least one attempt of this test to unlock the detailed solution video explanation.
+                </p>
+              </div>
             </div>
           )}
         </div>

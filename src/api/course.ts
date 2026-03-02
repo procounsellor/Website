@@ -516,6 +516,12 @@ export type CourseDetails = {
   bookmarkedByMe?: boolean;
   purchasedByMe?: boolean;
   userWalletAmount?: number;
+  associatedTestGroupList?: {
+    testGroupId: string;
+    testGroupName: string;
+    testGroupBannerUrl: string | null;
+    price: number | null;
+  }[];
 };
 
 export async function getCounsellorCourseByCourseId(
