@@ -1,5 +1,5 @@
 import Lottie from "lottie-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { buttonHoverScale, buttonTapScale, buttonTransition } from "@/components/common/PageTransition";
@@ -17,12 +17,32 @@ export default function RevampHeader() {
     const navigate = useNavigate();
     const location = useLocation();
     const [activeTab, setActiveTab] = useState(1);
+    const animationDataCache = useRef<Record<string, unknown>>({});
+    const [animationData, setAnimationData] = useState<Record<string, unknown>>({});
+
     useEffect(() => {
         const currentTab = tabs.find(tab => tab.path === location.pathname);
         if (currentTab) {
             setActiveTab(currentTab.id);
         }
     }, [location.pathname]);
+
+    useEffect(() => {
+        const activeTabData = tabs.find(tab => tab.id === activeTab);
+        if (!activeTabData) return;
+        const path = activeTabData.animationPath;
+        if (animationDataCache.current[path]) {
+            setAnimationData(prev => ({ ...prev, [path]: animationDataCache.current[path] }));
+            return;
+        }
+        fetch(path)
+            .then(res => res.json())
+            .then(data => {
+                animationDataCache.current[path] = data;
+                setAnimationData(prev => ({ ...prev, [path]: data }));
+            })
+            .catch(() => {});
+    }, [activeTab]);
 
     return <div className="bg-[rgba(198,221,240,0.95)] w-full h-40 px-[60px] py-4.5 flex flex-col gap-3 shadow-sm backdrop-blur-sm">
 
@@ -65,11 +85,11 @@ export default function RevampHeader() {
                         }`}
                 >
                     <div className="w-[44px] h-[44px] flex items-center justify-center flex-shrink-0">
-                        {activeTab === tab.id ? (
+                        {activeTab === tab.id && animationData[tab.animationPath] ? (
                             <Lottie
                                 loop={true}
                                 autoplay={true}
-                                path={tab.animationPath}
+                                animationData={animationData[tab.animationPath]}
                                 style={{ width: '100%', height: '100%' }}
                             />
                         ) : (
