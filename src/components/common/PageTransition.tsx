@@ -25,7 +25,7 @@ export const pageTransitionVariants = {
 
 export const pageTransition = {
   duration: 0.2,
-  ease: "easeOut",
+  ease: "easeOut" as const,
 };
 
 // Tab/Content switch animations - Very fast cross-fade
@@ -46,7 +46,7 @@ export const tabTransitionVariants = {
 
 export const tabTransition = {
   duration: 0.15,
-  ease: "easeOut",
+  ease: "easeOut" as const,
 };
 
 // Modal animations - Scale + fade
@@ -67,7 +67,7 @@ export const modalVariants = {
 
 export const modalTransition = {
   duration: 0.2,
-  ease: "easeOut",
+  ease: "easeOut" as const,
 };
 
 // Backdrop fade
@@ -165,9 +165,9 @@ export default function PageTransition({ children, transitionKey, direction }: P
   };
 
   const directionalTransition = {
-    type: "tween",
+    type: "tween" as const,
     duration: 0.42,
-    ease: [0.22, 0.61, 0.36, 1],
+    ease: [0.22, 0.61, 0.36, 1] as const,
   };
 
   return (
