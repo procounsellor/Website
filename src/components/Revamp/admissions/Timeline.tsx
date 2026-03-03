@@ -84,7 +84,7 @@ export default function Timeline() {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
 
     const observer = new IntersectionObserver(
       (entries) => {
