@@ -307,6 +307,21 @@ body {
   }
 }
 
+@keyframes fadeSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeSlideIn {
+  animation: fadeSlideIn 0.4s ease-out both;
+}
+
 .otp-no-glow [data-state="focused"],
 .otp-no-glow [data-state="focused"]::before,
 .otp-no-glow [data-state="focused"]::after,

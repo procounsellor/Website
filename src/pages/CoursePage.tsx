@@ -1,7 +1,7 @@
 import ContentCard from "@/components/course-cards/ContentCard";
 import CourseReviewsCard from "@/components/course-cards/CourseReviewsCard";
 import DetailsCard from "@/components/course-cards/DetailsCard";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getCounsellorCourseByCourseId,
@@ -13,7 +13,7 @@ import {
   deleteCourse
 } from "@/api/course";
 import { useAuthStore } from "@/store/AuthStore";
-import { Loader2, ArrowLeft, Edit, Plus, X, Globe, Trash2 } from "lucide-react";
+import { Loader2, Edit, Plus, X, Globe, Trash2 } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import EditCourseModal from "@/components/course-cards/EditCourseModal";
@@ -32,7 +32,6 @@ export default function CoursePage() {
   const { courseId, role: roleParam } = useParams();
   const { userId, user, role: userRole, toggleLogin } = useAuthStore();
   const navigate = useNavigate();
-  const location = useLocation();
   const queryClient = useQueryClient();
   const [currentPath, setCurrentPath] = useState<string[]>(['root']);
   const [addFundsOpen, setAddFundsOpen] = useState(false);
@@ -153,16 +152,7 @@ export default function CoursePage() {
     buyCourseMutation.mutate();
   };
 
-  const handleBack = () => {
-    const from = (location.state as any)?.from;
-    if (from === 'courses') {
-      navigate('/counsellor-dashboard', { state: { activeTab: 'courses' } });
-    } else if (from === 'my-courses') {
-      navigate('/dashboard-student', { state: { activeTab: 'My Courses' } });
-    } else {
-      navigate(-1);
-    }
-  };
+
 
   const handlePublishCourse = async () => {
     if (!courseDetails) return;
@@ -281,26 +271,18 @@ export default function CoursePage() {
   };
 
   return (
-    <div className="bg-[#F5F5F7] mt-20 p-6 md:mt-20">
-      <div className="max-w-7xl mx-auto mb-4 flex items-center justify-between">
-        <button
-          onClick={handleBack}
-          className="flex items-center gap-2 text-[#13097D] hover:text-[#0d0659] font-medium transition-colors hover:cursor-pointer"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back
-        </button>
-
-        {/* Published/Draft Badge - Show for counselor */}
-        {isCourseOwner && courseDetails && (
+    <div className="bg-[#F5F5F7] pt-4 p-6">
+      {/* Published/Draft Badge - Show for counselor */}
+      {isCourseOwner && courseDetails && (
+        <div className="max-w-7xl mx-auto mb-4 flex items-center justify-end">
           <span className={`text-sm px-4 py-1.5 rounded-full font-semibold ${courseDetails.isPublished
             ? 'bg-green-500 text-white'
             : 'bg-amber-500 text-white'
             }`}>
             {courseDetails.isPublished ? 'Published' : 'Draft'}
           </span>
-        )}
-      </div>
+        </div>
+      )}
 
       <DetailsCard
         role={role as string}

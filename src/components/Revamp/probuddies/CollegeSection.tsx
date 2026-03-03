@@ -12,9 +12,8 @@ export default function CollegeSection() {
         </div>
 
         <h1 className="text-(--text-main) text-2xl font-medium max-w-[682px] max-h-[108px]">
-          Discover curated programs across mental wellness, assessments,
-          admissions, and upskilling led by experienced professionals, built
-          around your needs.
+          Browse colleges with a ProBuddy on campus — get a real student's
+          view of the place you're planning to call home.
         </h1>
       </div>
 

@@ -1,14 +1,40 @@
 import { Star, Briefcase, MapPin } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { encodeCounselorId } from "@/lib/utils";
 
-export default function FancyCard() {
+interface FancyCardProps {
+  counsellorId: string;
+  name: string;
+  imageUrl: string;
+  rating: number;
+  experience: string;
+  city: string;
+  proCoins?: number;
+}
+
+export default function FancyCard({
+  counsellorId,
+  name,
+  imageUrl,
+  rating,
+  experience,
+  city,
+  proCoins,
+}: FancyCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/counsellor/${encodeCounselorId(counsellorId)}`);
+  };
 
   return (
-    <div 
+    <div
       className="relative w-[244px] h-[367px] cursor-pointer group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleClick}
     >
       <svg
         className="absolute inset-0 w-full h-full"
@@ -27,49 +53,51 @@ export default function FancyCard() {
         <div className="absolute top-[20px] left-[20px] flex items-center gap-1 z-10">
           <Star size={16} fill="#0E1629" className="text-[#0E1629]" />
           <p className="font-[Poppins] font-medium text-[14px] text-[#0E1629] tracking-[0.28px]">
-            4.0
+            {rating?.toFixed(1) || "N/A"}
           </p>
         </div>
 
         {/* Counsellor Image */}
-        <img 
-          src="/review3.jpeg" 
-          alt="counsellor_image" 
-          className="w-[220px] h-[208px] rounded-[10px] object-cover" 
+        <img
+          src={imageUrl}
+          alt={name}
+          className="w-[220px] h-[208px] rounded-[10px] object-cover"
         />
-        
+
         {/* Counsellor Name */}
         <div className="mt-2">
-          <p className="font-[Poppins] font-medium text-[18px] text-[#0E1629] leading-normal">
-            Dr. Subhash Ghai
+          <p className="font-[Poppins] font-medium text-[18px] text-[#0E1629] leading-normal truncate">
+            {name}
           </p>
         </div>
 
         {/* Details */}
         <div className="flex flex-col gap-1 mt-3">
           <div className="flex items-center gap-1">
-            <Briefcase size={20} className="text-[#6B7280]" strokeWidth={1.5} />
-            <p className="font-[Poppins] font-normal text-[14px] text-[#6B7280]">
-              8+ years of experience
+            <Briefcase size={20} className="text-[#6B7280] shrink-0" strokeWidth={1.5} />
+            <p className="font-[Poppins] font-normal text-[14px] text-[#6B7280] truncate">
+              {experience || "Entry Level"}
             </p>
           </div>
           <div className="flex items-center gap-1">
-            <MapPin size={20} className="text-[#6B7280]" strokeWidth={1.5} />
-            <p className="font-[Poppins] font-normal text-[14px] text-[#6B7280]">
-              Banglore
+            <MapPin size={20} className="text-[#6B7280] shrink-0" strokeWidth={1.5} />
+            <p className="font-[Poppins] font-normal text-[14px] text-[#6B7280] truncate">
+              {city || "Not specified"}
             </p>
           </div>
         </div>
 
         {/* ProCoins */}
-        <div className="flex items-center gap-1 mt-3">
-          <div className="w-[32px] h-[32px] flex items-center justify-center">
-            <img src="/coin.svg" alt="procoin_icon" className="w-full h-full" />
+        {proCoins != null && proCoins > 0 && (
+          <div className="flex items-center gap-1 mt-3">
+            <div className="w-[32px] h-[32px] flex items-center justify-center">
+              <img src="/coin.svg" alt="procoin_icon" className="w-full h-full" />
+            </div>
+            <p className="font-[Poppins] font-medium text-[16px] text-[#0E1629]">
+              {proCoins} ProCoins
+            </p>
           </div>
-          <p className="font-[Poppins] font-medium text-[16px] text-[#0E1629]">
-            1000 ProCoins
-          </p>
-        </div>
+        )}
       </div>
 
       {/* Arrow Button */}
@@ -89,26 +117,22 @@ export default function FancyCard() {
           />
         </svg>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[20px] h-[20px]">
-          {/* Arrow going out to right - white arrow on blue bg (default) */}
-          <img 
-            src="/arrow.svg" 
-            alt="arrow" 
-            className={`absolute inset-0 w-full h-full transition-all duration-600 ${
-              isHovered 
-                ? 'translate-x-[30px] opacity-0' 
+          <img
+            src="/arrow.svg"
+            alt="arrow"
+            className={`absolute inset-0 w-full h-full transition-all duration-600 ${isHovered
+                ? 'translate-x-[30px] opacity-0'
                 : 'translate-x-0 opacity-100'
-            }`}
+              }`}
             style={{ filter: 'brightness(0) invert(1)' }}
           />
-          {/* Arrow coming in from left - blue arrow on white bg (hover) */}
-          <img 
-            src="/arrow.svg" 
-            alt="arrow" 
-            className={`absolute inset-0 w-full h-full transition-all duration-600 ${
-              isHovered 
-                ? 'translate-x-0 opacity-100' 
+          <img
+            src="/arrow.svg"
+            alt="arrow"
+            className={`absolute inset-0 w-full h-full transition-all duration-600 ${isHovered
+                ? 'translate-x-0 opacity-100'
                 : '-translate-x-[30px] opacity-0'
-            }`}
+              }`}
             style={{ filter: 'brightness(0)' }}
           />
         </div>

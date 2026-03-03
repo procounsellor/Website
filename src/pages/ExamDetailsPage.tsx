@@ -29,7 +29,7 @@ export default function ExamDetailsPage() {
   if (!exam) return null;
 
   return (
-    <div className="bg-gray-50 pt-28 pb-8">
+    <div className="bg-gray-50 pt-4 pb-8">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800">{exam.examName}</h1>
@@ -39,7 +39,7 @@ export default function ExamDetailsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 flex flex-col gap-8">
             <ExamHeroCard name={exam.examName} level={exam.examLevel} bannerUrl={exam.bannerUrl} />
-            
+
             <div>
               <ExamInfoTabs activeTab={activeTab} setActiveTab={setActiveTab} />
               <div className="py-6">
@@ -55,7 +55,7 @@ export default function ExamDetailsPage() {
                     <InfoCard title="Exam Type">
                       <p className="text-[#718EBF] font-medium">{exam.examType || 'Computer Based Test'}</p>
                     </InfoCard>
-                    
+
                     <InfoCard title="Exam Mode">
                       <div className="flex flex-wrap gap-2">
                         {(exam.examMode || ['Online', 'Computer Based']).map((mode: string) => (
@@ -86,13 +86,13 @@ export default function ExamDetailsPage() {
                     </InfoCard>
 
                     <InfoCard title="Subjects & Marking Scheme">
-                       <p className="text-gray-600">Details about subjects and marking scheme.</p>
+                      <p className="text-gray-600">Details about subjects and marking scheme.</p>
                     </InfoCard>
-                    
+
                     <InfoCard title="Contact">
                       <div className="flex items-center gap-3">
                         <div className="flex items-center justify-center w-12 h-12 bg-blue-100/50 rounded-full shrink-0">
-                        <Globe className="w-7 h-7 text-[#13097D]"/>
+                          <Globe className="w-7 h-7 text-[#13097D]" />
                         </div>
                         <div>
                           <p className="text-xs text-[#9D9FA1]">Website</p>
@@ -108,7 +108,7 @@ export default function ExamDetailsPage() {
                     {coursesLoading && <p>Loading courses...</p>}
                     {coursesError && <p className="text-red-500">{coursesError}</p>}
                     {courses?.map((course) => (
-                       <ExamDetailGridCard
+                      <ExamDetailGridCard
                         key={course.id}
                         variant='compact'
                         imageSrc={course.photoUrl}

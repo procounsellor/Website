@@ -623,7 +623,7 @@ export function CreateTest() {
     (editMode || file);
 
   return (
-    <div className="pt-28 pb-8 w-full mx-auto max-w-7xl  min-h-screen flex flex-col gap-4">
+    <div className="pt-4 pb-8 w-full mx-auto max-w-7xl  min-h-screen flex flex-col gap-4">
       {/* Delete Section Confirmation Modal */}
       {deleteConfirmModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">

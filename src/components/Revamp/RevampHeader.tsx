@@ -5,15 +5,15 @@ import { motion } from "framer-motion";
 import { buttonHoverScale, buttonTapScale, buttonTransition } from "@/components/common/PageTransition";
 
 const tabs = [
-    {id:1, name:'Admission', animationPath: '/admission.json', iconPath: '/Admissions.png', path: '/admissions'},
-    {id:2, name:'Courses', animationPath: '/courses.json', iconPath: '/Courses.svg', path: '/revamp-courses'},
-    {id:3, name:'Community', animationPath: '/community.json', iconPath: '/Community.png', path: '/community'},
-    {id:4, name:'ProBuddies', animationPath: '/probuddy.json', iconPath: '/ProBuddy.png', path: '/pro-buddies'},
-    {id:5, name:'About us', animationPath: '/admission.json', iconPath: '/Admissions.png', path: '/revamp-about'}
+    { id: 1, name: 'Admission', animationPath: '/admission.json', iconPath: '/Admissions.png', path: '/admissions' },
+    { id: 2, name: 'Courses', animationPath: '/courses.json', iconPath: '/Courses.svg', path: '/revamp-courses' },
+    { id: 3, name: 'Community', animationPath: '/community.json', iconPath: '/Community.png', path: '/community' },
+    { id: 4, name: 'ProBuddies', animationPath: '/probuddy.json', iconPath: '/ProBuddy.png', path: '/pro-buddies' },
+    { id: 5, name: 'About us', animationPath: '/admission.json', iconPath: '/Admissions.png', path: '/revamp-about' }
 ]
 
 
-export default function RevampHeader(){
+export default function RevampHeader() {
     const navigate = useNavigate();
     const location = useLocation();
     const [activeTab, setActiveTab] = useState(1);
@@ -24,10 +24,10 @@ export default function RevampHeader(){
         }
     }, [location.pathname]);
 
-    return <div className="bg-[rgba(198, 221, 240, 0.95)] w-full h-40 px-[60px] py-4.5 flex flex-col gap-3 shadow-sm backdrop-blur-sm">
+    return <div className="bg-[rgba(198,221,240,0.95)] w-full h-40 px-[60px] py-4.5 flex flex-col gap-3 shadow-sm backdrop-blur-sm">
 
         <div className="flex justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/admissions')}>
 
                 <img src="/logo.svg" alt="procounsel_logo" className="h-10.5 w-10.5" />
 
@@ -36,7 +36,7 @@ export default function RevampHeader(){
             </div>
 
 
-            <motion.button 
+            <motion.button
                 whileHover={{ scale: buttonHoverScale }}
                 whileTap={{ scale: buttonTapScale }}
                 transition={buttonTransition}
@@ -51,9 +51,9 @@ export default function RevampHeader(){
 
         <div className="flex gap-[35px] px-2.5 pb-6 justify-center">
 
-            {tabs.map((tab)=>(
-                <motion.div 
-                    key={tab.id} 
+            {tabs.map((tab) => (
+                <motion.div
+                    key={tab.id}
                     onClick={() => {
                         setActiveTab(tab.id);
                         navigate(tab.path);
@@ -61,29 +61,27 @@ export default function RevampHeader(){
                     whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.1 }}
-                    className={`flex flex-row items-center justify-center gap-3 w-[236px] h-[60px] rounded-[16px] py-2 px-5 transition-all cursor-pointer ${
-                        activeTab === tab.id ? 'bg-(--text-main)' : 'bg-white'
-                    }`}
+                    className={`flex flex-row items-center justify-center gap-3 w-[236px] h-[60px] rounded-[16px] py-2 px-5 transition-all cursor-pointer ${activeTab === tab.id ? 'bg-(--text-main)' : 'bg-white'
+                        }`}
                 >
                     <div className="w-[44px] h-[44px] flex items-center justify-center flex-shrink-0">
                         {activeTab === tab.id ? (
-                            <Lottie 
+                            <Lottie
                                 loop={true}
                                 autoplay={true}
                                 path={tab.animationPath}
                                 style={{ width: '100%', height: '100%' }}
                             />
                         ) : (
-                            <img 
-                                src={tab.iconPath} 
+                            <img
+                                src={tab.iconPath}
                                 alt={tab.name}
                                 className="w-full h-full object-contain"
                             />
                         )}
                     </div>
-                    <h1 className={`font-poppins font-medium text-[18px] leading-[100%] ${
-                        activeTab === tab.id ? 'text-white' : 'text-(--text-main)'
-                    }`}>{tab.name}</h1>
+                    <h1 className={`font-poppins font-medium text-[18px] leading-[100%] ${activeTab === tab.id ? 'text-white' : 'text-(--text-main)'
+                        }`}>{tab.name}</h1>
                 </motion.div>
             ))}
 

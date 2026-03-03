@@ -145,7 +145,7 @@ export function TestGroupDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] pt-20 md:pt-24 pb-6 px-4 md:px-6">
+    <div className="min-h-screen bg-[#F9FAFB] pt-4 pb-6 px-4 md:px-6">
       <div className="max-w-7xl mx-auto">
         {/* Back Button */}
         <button

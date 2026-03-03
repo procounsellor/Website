@@ -427,7 +427,7 @@ export default function TestGroupDetailsPage() {
   const { testGroup, attachedTests, reviews, bookmarked, bought } = data;
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] pt-20 md:pt-24 pb-28 md:pb-6 px-4 md:px-6">
+    <div className="min-h-screen bg-[#F9FAFB] pt-4 pb-28 md:pb-6 px-4 md:px-6">
       <div className="max-w-6xl mx-auto">
         {/* Back Button */}
         <button
