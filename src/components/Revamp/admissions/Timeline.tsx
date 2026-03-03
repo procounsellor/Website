@@ -79,15 +79,19 @@ const TimelineItem = ({
 };
 
 export default function Timeline() {
-  const [isVisible, setIsVisible] = useState(false);
+  const hasSeenTimeline = sessionStorage.getItem('timeline-animation-seen') === 'true';
+  const [isVisible, setIsVisible] = useState(hasSeenTimeline);
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (hasSeenTimeline) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setIsVisible(true);
+            sessionStorage.setItem('timeline-animation-seen', 'true');
             observer.disconnect();
           }
         });
@@ -103,7 +107,7 @@ export default function Timeline() {
     return () => {
       observer.disconnect();
     };
-  }, []);
+  }, [hasSeenTimeline]);
 
   const timelineData = [
     {

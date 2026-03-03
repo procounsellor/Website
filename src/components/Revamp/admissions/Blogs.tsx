@@ -1,13 +1,14 @@
 import { SeeAllButton } from "../components/LeftRightButton";
-import FancyCard from "../probuddies/CollegeCard"
+import BlogCard from "./BlogCard";
 
 const blogData = {
   title:
     "Product Management Masterclass, you will learn with head of product Customer Plateform",
   author: "Sarah Jhonson",
-  readTime: "10 mins readd",
+  readTime: "10 mins read",
   imageUrl: "/blogCard.jpg",
 };
+
 export default function Blogs() {
   return (
     <div className="bg-[#C6DDF040] w-full h-full">
@@ -21,28 +22,21 @@ export default function Blogs() {
             </p>
           </div>
 
-          <h2 className="mt-5 max-w-[554px] text-(--text-muted) font-medium text-[1.25rem] ">
-            Lorem ipsum dolor sit amet consectetur. Senectus arcu cras at risus a tortor ut quam in. 
+          <h2 className="mt-5 max-w-[554px] text-(--text-muted) font-medium text-[1.25rem]">
+            Lorem ipsum dolor sit amet consectetur. Senectus arcu cras at risus a tortor ut quam in.
           </h2>
         </div>
 
-
-
-
         <div className="flex flex-col gap-10.5">
-            <div className="flex gap-9">
-            <FancyCard/>
-            <FancyCard/>
+          <div className="flex gap-9">
+            <BlogCard {...blogData} />
+            <BlogCard {...blogData} />
+          </div>
+
+          <div className="flex items-center justify-end">
+            <SeeAllButton />
+          </div>
         </div>
-
-        <div className="flex items-center justify-end">
-            <SeeAllButton/>
-        </div>
-        </div>
-
-
-
-
       </div>
     </div>
   );
