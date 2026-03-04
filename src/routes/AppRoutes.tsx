@@ -51,6 +51,7 @@ const ExamDetailsPage = lazy(() => import('@/pages/ExamDetailsPage'));
 const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
 const LiveSessionsPage = lazy(() => import('@/pages/LiveSessionsPage'));
 const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
+const ProBuddyProfilePage = lazy(() => import('@/pages/ProBuddyProfilePage'));
 
 export default function AppRoutes() {
     return (
@@ -79,6 +80,7 @@ export default function AppRoutes() {
                         <Route path="/" element={<Home />} />
                         <Route path='/admissions' element={<Admissions />} />
                         <Route path='/pro-buddies' element={<ProBuddies />} />
+                        <Route path="/probuddy/profile/:id" element={<ProBuddyProfilePage />} />
                         <Route path='/revamp-courses' element={<Courses />} />
                         <Route path='/revamp-about' element={<RevampAbout />} />
                         <Route path='/pro-buddies/registration' element={<ProBuddiesRegistration />} />
