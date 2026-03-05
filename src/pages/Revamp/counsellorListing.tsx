@@ -40,11 +40,33 @@ const CounsellorListing: React.FC = () => {
     };
 
     // Calculate total active filters
-    const isPriceChanged = minPrice !== 100 || maxPrice !== 1000;
+    const isPriceChanged = minPrice !== 1 || maxPrice !== 100000;
     const activeFilterCount = selectedExperience.length + selectedLanguages.length + selectedCities.length + selectedDays.length + (isPriceChanged ? 1 : 0);
 
     return (
         <div className="mt-8 ml-[60px]">
+
+            {/* Breadcrumb Navigation */}
+            <div className="flex flex-row items-center p-0 gap-[8px] mb-[24px]">
+                <span className="font-[Poppins] font-normal text-[16px] leading-[21px] text-[#6B7280] cursor-pointer hover:text-[#0E1629]">
+                    Probuddy
+                </span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g clip-path="url(#clip0_1_196)">
+                        <path d="M3.33594 8H12.6693" stroke="#6B7280" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M8.66406 12L12.6641 8" stroke="#6B7280" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M8.66406 4L12.6641 8" stroke="#6B7280" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" />
+                    </g>
+                    <defs>
+                        <clipPath id="clip0_1_196">
+                            <rect width="16" height="16" fill="white" />
+                        </clipPath>
+                    </defs>
+                </svg>
+                <span className="font-[Poppins] font-medium text-[16px] leading-[21px] text-[#0E1629]">
+                    List of Probuddy
+                </span>
+            </div>
 
             {/* Heading */}
             <div className="box-border flex flex-row justify-between items-center px-5 py-4 w-[312px] h-[64px] bg-white border border-[#E6E6E6] rounded-[8px] flex-none order-0 grow-0">
@@ -156,7 +178,7 @@ const CounsellorListing: React.FC = () => {
                     <div className="flex flex-col gap-[5px] w-[128px]">
                         <span className="font-[Poppins] font-medium text-[12px] leading-[18px] text-[#232323]">Min Price</span>
                         <div className="box-border w-[128px] h-[36px] bg-white border border-[#EFEFEF] rounded-[12px] flex items-center px-[12px]">
-                            <span className="font-[Poppins] font-semibold text-[14px] leading-[21px] text-[#232323] mr-1">₹</span>
+                            <span className="font-[Poppins] font-semibold text-[14px] leading-[21px] text-[#6B7280]">₹</span>
                             <input
                                 type="number"
                                 value={minPrice}
@@ -168,7 +190,7 @@ const CounsellorListing: React.FC = () => {
                     <div className="flex flex-col gap-[5px] w-[128px]">
                         <span className="font-[Poppins] font-medium text-[12px] leading-[18px] text-[#232323]">Max Price</span>
                         <div className="box-border w-[128px] h-[36px] bg-white border border-[#EFEFEF] rounded-[12px] flex items-center px-[12px]">
-                            <span className="font-[Poppins] font-semibold text-[14px] leading-[21px] text-[#232323] mr-1">₹</span>
+                            <span className="font-[Poppins] font-semibold text-[14px] leading-[21px] text-[#6B7280]">₹</span>
                             <input
                                 type="number"
                                 value={maxPrice}
