@@ -72,16 +72,6 @@ export default function AppRoutes() {
                     <Route path='/t/analysis/:testId/:attemptId' element={<TestAnalysisPage />} />
 
 
-                    <Route element={<RevampLayout/>}>
-                        <Route path='/pro-buddies' element={<ProBuddies/>}/>
-                        <Route path='/admissions' element={<Admissions/>}/>
-                        <Route path="/community" element={<CommunityPage />} />
-                        <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
-                        <Route path="/community/answer" element={<AnswerPage />} />
-                        <Route path="/community/my-activity" element={<MyActivityPage />} />
-                        <Route path='/revamp-about'  element={<RevampAbout/>}/>
-                    </Route>
-
                     <Route element={<MainLayout />}>
                         <Route path="/" element={<Home />} />
                         <Route path='/gurucool' element={<LandingPage />} />
@@ -108,6 +98,10 @@ export default function AppRoutes() {
                         <Route path='/subscribe' element={<SubscriptionPage />} />
                         <Route path='/counsellor-dashboard' element={<CounselorDashboard />} />
                         <Route path='/counselor-dashboard/client-profile' element={<ClientProfilePage />} />
+                        <Route path="/community" element={<CommunityPage />} />
+                        <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
+                        <Route path="/community/answer" element={<AnswerPage />} />
+                        <Route path="/community/my-activity" element={<MyActivityPage />} />
                         <Route path='/promo' element={<PromoPage />} />
                         <Route path='/testSeries/pcsat' element={<TestSeriesPromo />} />
                         <Route path="/notifications" element={<NotificationsPage />} />
