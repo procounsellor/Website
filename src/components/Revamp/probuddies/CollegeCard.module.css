@@ -1,0 +1,88 @@
+.cardWrapper{
+    cursor: pointer;
+}
+
+.cardWrapper:hover .bottom{
+    transform: scale(1.1);
+}
+
+.cardWrapper:hover .bottom img{
+    transform: translateX(6px) scale(1.15);
+}
+
+.mainCard{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 16px;
+	clip-path: path("M16,0H292A16,16 0,0,1 308,16V207A16,16 0,0,1 292,223H254A16,16 0,0,0 238,239V264A16,16 0,0,1 222,280H16A16,16 0,0,1 0,264V16A16,16 0,0,1 16,0Z");
+	width: 308px;
+	height: 280px;
+	background-color: #ffffff;
+	aspect-ratio: 11 / 10;
+}
+
+
+.image{
+    width: 284px;
+    height: 167px;
+    border-radius: 8px;
+}
+
+.textCard{
+    font-weight: 500;
+    font-size: 1rem;
+    color: #0E1629;
+}
+
+
+.location p{
+    font-size: 14px;
+    font-weight: 500;
+    color: #6B7280;
+}
+
+
+
+/* .bottom {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-color: #0E1629;
+    width: 62px;
+    height: 49px;
+    border-radius: 8px;
+
+} */
+
+
+.bottom{
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+    height: 49px;
+    width: 62px;
+    z-index: 20;
+    background-color: #0E1629;
+    border-bottom-right-radius: 16px;
+    border-top-left-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.bottom img{
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+}
+
+
+
+
+

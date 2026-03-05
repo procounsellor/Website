@@ -427,18 +427,17 @@ export default function Chatbot() {
       {/* Content Area */}
       <div className="flex flex-1 overflow-hidden relative">
         {/* Overlay for mobile when sidebar is open */}
-        {isSidebarOpen && isMobile && (
+        {isSidebarOpen && (
           <div
-            className="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
+            className="md:hidden fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
             onClick={() => setIsSidebarOpen(false)}
           />
         )}
 
-        {/* Sidebar - always rendered, slides from left on mobile */}
+        {/* Sidebar - slides from left on mobile */}
         <div
           className={`
             fixed md:relative inset-y-0 left-0 z-50 md:z-auto
-            w-72 md:w-auto
             transform transition-transform duration-300 ease-out
             ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
             ${isSidebarOpen ? 'md:w-64' : 'md:w-0'}
@@ -457,9 +456,8 @@ export default function Chatbot() {
           />
         </div>
 
-
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col overflow-hidden w-full">
+        <div className="flex-1 flex flex-col overflow-hidden w-full md:w-auto">
           {messages.length === 0 && !loading ? (
             <div className="flex flex-col h-full items-center justify-center">
               <div className="w-full max-w-4xl mx-auto px-4">

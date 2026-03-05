@@ -1,0 +1,59 @@
+.progressBar {
+    width: 262px;
+    height: 4px;
+    background-color: #EDEDED;
+    border-radius: 48px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progressFill {
+    height: 100%;
+    background-color: #0E1629;
+    border-radius: 48px;
+    transition: width 0.3s ease;
+}
+
+.navButtons {
+    display: flex;
+    gap: 12px;
+}
+
+.navButton {
+    width: 70px;
+    height: 64px;
+    background-color: #EDEDED;
+    border: none;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.navButton:hover {
+    background-color: #d8d8d8;
+}
+
+.navButton img {
+    width: 24px;
+    height: 24px;
+}
+
+.leftArrow {
+    transform: rotate(180deg);
+    filter: brightness(0) saturate(100%) invert(6%) sepia(12%) saturate(2329%) hue-rotate(189deg) brightness(98%) contrast(96%);
+}
+
+.rightArrow {
+    filter: brightness(0) saturate(100%) invert(6%) sepia(12%) saturate(2329%) hue-rotate(189deg) brightness(98%) contrast(96%);
+}
+
+.controlsContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: calc(308px * 4 + 24px * 3);
+    margin: 0 auto;
+}

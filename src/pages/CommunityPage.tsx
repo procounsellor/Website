@@ -3,14 +3,9 @@ import CommunityActions from "@/components/community/CommunityActions";
 import DashboardFeed from "@/components/community/DashboardFeed";
 import CategorySidebar from "@/components/community/CategorySidebar";
 // import RightSideAds from "@/components/community/RightSideAds";
-import CommunityBreadcrumbs from "@/components/community/CommunityBreadcrumbs";
 
 export default function CommunityPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
-  const breadcrumbPaths = [
-    { name: "Community Dashboard" }
-  ];
 
   return (
     <div className="bg-gray-50 min-h-screen p-4 md:p-8">
@@ -22,7 +17,6 @@ export default function CommunityPage() {
           />
         </div>
         <div className="flex flex-col w-full max-w-[800px] shrink-0">
-          <CommunityBreadcrumbs paths={breadcrumbPaths} showMobileBack={false} />
           <div className="w-full">
             <CommunityActions />
           </div>

@@ -185,9 +185,41 @@ export default function Sidebar({
       )}
       {/* ----------------------------------------------------------------- */}
 
+      {/* Tutorial for mobile users */}
+      {showTutorial && isMobile && (
+        <div className="fixed inset-0 bg-black/70 z-[200] flex items-center justify-center p-6">
+          <div className="bg-[#2a2a2a] rounded-2xl p-6 max-w-sm border border-[#A0A0A099] shadow-2xl">
+            <div className="flex justify-end mb-2">
+              <button onClick={closeTutorial} className="text-white/60 hover:text-white cursor-pointer">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="text-center">
+              <div className="inline-block p-4 bg-[#FF660F]/20 rounded-full mb-4">
+                <Menu className="h-10 w-10 text-[#FF660F]" />
+              </div>
+              <h3 className="text-white font-semibold text-lg mb-2">Access Your Menu</h3>
+              <p className="text-gray-400 text-sm mb-4">
+                Tap the menu icon in the top left to access your chat history and options.
+              </p>
+              <button
+                onClick={closeTutorial}
+                className="w-full bg-[#FF660F] text-white font-semibold py-3 px-6 rounded-lg hover:bg-[#e55a0a] transition-colors cursor-pointer"
+              >
+                Got it!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div
         ref={sidebarRef}
-        className="bg-[#232323] h-full border-r border-[#A0A0A099] transition-all duration-300 ease-out w-72 md:w-64"
+        className={`
+          bg-[#232323] h-full border-r border-[#A0A0A099]
+          transition-all duration-300 ease-out
+          ${isMobile ? 'w-72' : isSidebarOpen ? 'w-64' : 'w-16'}
+        `}
       >
         {isSidebarOpen ? (
           <div className="w-full h-full p-4 flex flex-col">
