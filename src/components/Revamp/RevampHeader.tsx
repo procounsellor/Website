@@ -41,7 +41,7 @@ export default function RevampHeader() {
                 animationDataCache.current[path] = data;
                 setAnimationData(prev => ({ ...prev, [path]: data }));
             })
-            .catch(() => {});
+            .catch(() => { });
     }, [activeTab]);
 
     return <div className="bg-[rgba(198,221,240,0.95)] w-full h-40 px-[60px] py-4.5 flex flex-col gap-3 shadow-sm backdrop-blur-sm">
