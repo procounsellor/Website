@@ -45,7 +45,6 @@ const CounsellorListing: React.FC = () => {
 
     return (
         <div className="mt-8 ml-[60px]">
-
             {/* Breadcrumb Navigation */}
             <div className="flex flex-row items-center p-0 gap-[8px] mb-[24px]">
                 <span className="font-[Poppins] font-normal text-[16px] leading-[21px] text-[#6B7280] cursor-pointer hover:text-[#0E1629]">
