@@ -1,10 +1,10 @@
 import React from 'react';
-import { Search, ChevronDown, Star, ArrowRight } from 'lucide-react';
+import { Search, ChevronDown, Star } from 'lucide-react';
 import counsellorsData from './counsellorsData.json';
 
 const CounsellorListingCards: React.FC = () => {
     return (
-        <div className="mt-8 ml-[400px]">
+        <div className="mt-18 ml-[60px]">
             {/* Top Actions Box */}
             <div className="box-border flex flex-row items-center p-2 bg-white rounded-lg w-[972px] h-[64px] flex-none order-0 self-stretch grow-0 shadow-[0px_2px_8px_rgba(0,0,0,0.15)]">
                 <div className="flex flex-row justify-between items-center w-[956px] h-[48px]">
@@ -42,7 +42,14 @@ const CounsellorListingCards: React.FC = () => {
             {/* Counsellors Grid */}
             <div className="mt-[24px] w-[972px] grid grid-cols-3 gap-[24px] pb-[80px]">
                 {counsellorsData.map((counsellor) => (
-                    <div key={counsellor.id} className="relative w-[308px] h-[367px] bg-white rounded-xl shadow-[0px_2px_8px_rgba(0,0,0,0.2)]">
+                    <div key={counsellor.id} style={{ filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.2))' }} className="relative w-[308px] h-[367px]">
+
+                        {/* SVG Background Layer */}
+                        <div className="absolute inset-0 z-[0]">
+                            <svg width="308" height="367" viewBox="0 0 308 367" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M296.154 0C302.696 5.03664e-06 308 5.83355 308 13.0296V300C308 306.627 302.627 312 296 312H266.196C260.316 312 255.303 316.26 254.353 322.062L248.647 356.938C247.697 362.74 242.684 367 236.804 367H11.8462C5.30371 367 8.34774e-08 361.166 0 353.97V13.0296C2.09886e-06 5.83355 5.3037 2.62325e-07 11.8462 0H296.154Z" fill="white" />
+                            </svg>
+                        </div>
 
                         {/* Image Frame */}
                         <div className="absolute left-[12px] top-[12px] w-[284px] h-[200px] bg-[#F5F5F7] rounded-[8px] overflow-hidden">
@@ -133,8 +140,25 @@ const CounsellorListingCards: React.FC = () => {
                         </div>
 
                         {/* Arrow Action Button */}
-                        <div className="absolute left-[255px] top-[317px] w-[53px] h-[50px] bg-[#0E1629] rounded-lg cursor-pointer hover:bg-[#1f2d4f] transition-colors flex justify-center items-center">
-                            <ArrowRight className="w-6 h-6 text-white" />
+                        <div className="absolute left-[255px] top-[317px] w-[53px] h-[50px] cursor-pointer hover:opacity-90 transition-opacity flex justify-center items-center">
+                            <svg width="53" height="50" viewBox="0 0 53 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <g clip-path="url(#clip0_1_363)">
+                                    <path d="M5.10657 7.05536C5.58513 3.03083 8.99772 0 13.0506 0H45C49.4183 0 53 3.58172 53 8V42C53 46.4183 49.4183 50 45 50H9.00764C4.2149 50 0.49769 45.8146 1.06361 41.0554L5.10657 7.05536Z" fill="#0E1629" />
+                                    <g clip-path="url(#clip1_1_363)">
+                                        <path d="M17.6667 24.3333H36.3334" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M31 29.6666L36.3333 24.3333" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M31 19L36.3333 24.3333" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                    </g>
+                                </g>
+                                <defs>
+                                    <clipPath id="clip0_1_363">
+                                        <rect width="53" height="50" fill="white" />
+                                    </clipPath>
+                                    <clipPath id="clip1_1_363">
+                                        <rect width="32" height="32" fill="white" transform="translate(11 9)" />
+                                    </clipPath>
+                                </defs>
+                            </svg>
                         </div>
 
                     </div>
