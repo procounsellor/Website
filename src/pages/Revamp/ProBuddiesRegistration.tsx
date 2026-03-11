@@ -40,9 +40,9 @@ export default function ProBuddiesRegistration() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#C6DDF040] pt-[80px] pb-20 flex flex-col items-center gap-[24px]">
+    <div className="w-full min-h-screen bg-[#C6DDF040] pb-20 flex flex-col items-center gap-[24px]">
 
-      <div className="w-[1200px] h-auto bg-white rounded-[8px] mt-[80px] p-[24px] box-border">
+      <div className="w-[1200px] h-auto bg-white rounded-[8px] mt-[40px] p-[24px] box-border">
         
         <div className="flex items-center gap-[10px] mb-[12px]">
           <div className="w-[24px] h-[24px] rounded-[12px] bg-[#2F43F2] flex items-center justify-center">
@@ -69,7 +69,7 @@ export default function ProBuddiesRegistration() {
               type="text" 
               id="firstName"
               placeholder="Enter your First Name as per Aadhar"
-              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B7280] placeholder:text-[12px]"
+              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
           </div>
@@ -86,7 +86,7 @@ export default function ProBuddiesRegistration() {
               type="text" 
               id="lastName"
               placeholder="Enter your Last Name as per Aadhar"
-              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B7280] placeholder:text-[12px]"
+              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
           </div>
@@ -161,7 +161,7 @@ export default function ProBuddiesRegistration() {
             type="text" 
             id="location"
             placeholder="e.g. Delhi, Mumbai"
-            className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B7280] placeholder:text-[12px]"
+            className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
             style={{ fontFamily: 'Poppins' }}
           />
         </div>
@@ -195,7 +195,7 @@ export default function ProBuddiesRegistration() {
               type="text" 
               id="institution"
               placeholder="e.g., IIT Delhi"
-              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B7280] placeholder:text-[12px]"
+              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
           </div>
@@ -212,7 +212,7 @@ export default function ProBuddiesRegistration() {
               type="text" 
               id="degree"
               placeholder="e.g., B.Tech"
-              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B7280] placeholder:text-[12px]"
+              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
           </div>
@@ -231,7 +231,7 @@ export default function ProBuddiesRegistration() {
               type="text" 
               id="course"
               placeholder="e.g., Computer Science Engineering"
-              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B7280] placeholder:text-[12px]"
+              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
           </div>
@@ -251,7 +251,7 @@ export default function ProBuddiesRegistration() {
                 className="appearance-none w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] bg-white cursor-pointer"
                 style={{ fontFamily: 'Poppins' }}
               >
-                <option value="" disabled className="text-[#6B7280]">Select Year</option>
+                <option value="" disabled className="text-[#6B728080]">Select Year</option>
                 <option value="1">1 Year</option>
                 <option value="2">2 Years</option>
                 <option value="3">3 Years</option>
@@ -295,7 +295,7 @@ export default function ProBuddiesRegistration() {
             type="text" 
             id="specialization"
             placeholder="e.g., Career Transition strategy"
-            className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B7280] placeholder:text-[12px]"
+            className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
             style={{ fontFamily: 'Poppins' }}
           />
         </div>
@@ -311,7 +311,7 @@ export default function ProBuddiesRegistration() {
           <textarea 
             id="aboutMe"
             placeholder="Tell us about yourself, your achievements and what you are passionate about.."
-            className="w-full h-[120px] p-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B7280] placeholder:text-[12px] resize-none"
+            className="w-full h-[120px] p-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px] resize-none"
             style={{ fontFamily: 'Poppins' }}
           />
         </div>
@@ -327,7 +327,7 @@ export default function ProBuddiesRegistration() {
           <textarea 
             id="whyConnect"
             placeholder="Describe what you offer..."
-            className="w-full h-[120px] p-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B7280] placeholder:text-[12px] resize-none"
+            className="w-full h-[120px] p-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px] resize-none"
             style={{ fontFamily: 'Poppins' }}
           />
         </div>
@@ -360,7 +360,7 @@ export default function ProBuddiesRegistration() {
             <textarea 
               id="option1"
               placeholder="Lorem ipsum"
-              className="w-full h-[68px] p-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B7280] placeholder:text-[12px] resize-none"
+              className="w-full h-[68px] p-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px] resize-none"
               style={{ fontFamily: 'Poppins' }}
             />
           </div>
@@ -376,7 +376,7 @@ export default function ProBuddiesRegistration() {
             <textarea 
               id="option2"
               placeholder="Lorem ipsum"
-              className="w-full h-[68px] p-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B7280] placeholder:text-[12px] resize-none"
+              className="w-full h-[68px] p-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px] resize-none"
               style={{ fontFamily: 'Poppins' }}
             />
           </div>
@@ -394,7 +394,7 @@ export default function ProBuddiesRegistration() {
             <textarea 
               id="option3"
               placeholder="Lorem ipsum"
-              className="w-full h-[68px] p-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B7280] placeholder:text-[12px] resize-none"
+              className="w-full h-[68px] p-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px] resize-none"
               style={{ fontFamily: 'Poppins' }}
             />
           </div>
@@ -410,7 +410,7 @@ export default function ProBuddiesRegistration() {
             <textarea 
               id="option4"
               placeholder="Lorem ipsum"
-              className="w-full h-[68px] p-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B7280] placeholder:text-[12px] resize-none"
+              className="w-full h-[68px] p-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px] resize-none"
               style={{ fontFamily: 'Poppins' }}
             />
           </div>
@@ -444,8 +444,8 @@ export default function ProBuddiesRegistration() {
             <input 
               type="text" 
               id="messFood"
-              placeholder="e.g., IIT Delhi"
-              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B7280] placeholder:text-[12px]"
+              placeholder="Start writing"
+              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
           </div>
@@ -461,8 +461,8 @@ export default function ProBuddiesRegistration() {
             <input 
               type="text" 
               id="attendance"
-              placeholder="e.g., B.Tech"
-              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B7280] placeholder:text-[12px]"
+              placeholder="Start writing"
+              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
           </div>
@@ -480,8 +480,8 @@ export default function ProBuddiesRegistration() {
             <input 
               type="text" 
               id="campusVibe"
-              placeholder="e.g., Computer Science Engineering"
-              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B7280] placeholder:text-[12px]"
+              placeholder="Start writing"
+              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
           </div>
@@ -494,21 +494,13 @@ export default function ProBuddiesRegistration() {
             >
               Faculty Quality
             </label>
-            <div className="relative w-full">
-              <select 
-                id="facultyQuality"
-                defaultValue=""
-                className="appearance-none w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] bg-white cursor-pointer"
-                style={{ fontFamily: 'Poppins' }}
-              >
-                <option value="" disabled className="text-[#6B7280]">Select Year</option>
-              </select>
-              <div className="absolute right-[12px] top-[10px] pointer-events-none">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 9L12 15L18 9" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-            </div>
+            <input 
+              type="text" 
+              id="campusVibe"
+              placeholder="Start writing"
+              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
+              style={{ fontFamily: 'Poppins' }}
+            />
           </div>
         </div>
 
