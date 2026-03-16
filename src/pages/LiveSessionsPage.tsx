@@ -30,7 +30,7 @@ function OngoingSessionAvatar({ session, onClick }: OngoingSessionAvatarProps) {
     return (
         <div 
             onClick={handleClick}
-            className="flex flex-col items-center gap-3 shrink-0 cursor-pointer transition-transform duration-300 hover:scale-105"
+            className="flex flex-col items-center gap-3 shrink-0 cursor-pointer transition-transform duration-300"
             style={{ width: '120px' }}
         >
             <div className="relative w-[120px] h-[120px]">
