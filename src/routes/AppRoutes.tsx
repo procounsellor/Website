@@ -42,6 +42,8 @@ import ProBuddies from '@/pages/Revamp/ProBuddies';
 import RevampAbout from '@/components/Revamp/about/RevampAbout';
 import Admissions from '@/pages/Revamp/Admissions';
 import Courses from '@/pages/Revamp/Courses';
+import BlogsPage from '@/pages/Revamp/BlogsPage';
+import BlogDetailPage from '@/pages/Revamp/BlogDetailPage';
 import ProBuddiesRegistration from '@/pages/Revamp/ProBuddiesRegistration';
 import CounsellorListingRevamp from '@/pages/Revamp/counsellorListing';
 import CounsellorListingCards from '@/pages/Revamp/counsellorListingCards';
@@ -82,6 +84,8 @@ export default function AppRoutes() {
                         {/* Core Revamp Pages */}
                         <Route path="/" element={<Home />} />
                         <Route path='/admissions' element={<Admissions />} />
+                        <Route path='/admissions/blogs' element={<BlogsPage />} />
+                        <Route path='/admissions/blogs/:id' element={<BlogDetailPage />} />
                         <Route path='/pro-buddies' element={<ProBuddies />} />
                         <Route path='/pro-buddies/dashboard' element={<ProBuddiesDashboard />} />
                         <Route path="/probuddy/profile/:id" element={<ProBuddyProfilePage />} />
