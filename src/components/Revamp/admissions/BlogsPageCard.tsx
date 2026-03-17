@@ -68,12 +68,6 @@ export default function BlogsPageCard({
           <p className="text-(--text-muted) text-[14px] font-normal">
             By: <span className="font-medium">{author}</span>
           </p>
-          <button
-            className="mt-1 text-[14px] font-medium text-[#2F43F2]"
-            onClick={() => navigate(`/admissions/blogs/${id}`)}
-          >
-            Read More
-          </button>
         </div>
       </div>
 

@@ -99,6 +99,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
             {blogs.slice(0, 2).map((blog) => (
               <BlogCard
                 key={blog.id}
+                id={blog.id}
                 title={blog.title}
                 author={blog.author}
                 readTime={blog.readTime}
