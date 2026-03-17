@@ -1,5 +1,5 @@
 import { API_CONFIG } from "./config";
-import type { CollegeDetails,CollegeApiResponse, ExamApiResponse, CourseApiResponse, CounsellorApiResponse, AllCounselor, CounselorDetails } from "../types/academic";
+import type { CollegeDetails, CollegeApiResponse, ExamApiResponse, CourseApiResponse, CounsellorApiResponse, AllCounselor, CounselorDetails } from "../types/academic";
 
 interface BookingRequest {
   userId: string;
@@ -28,10 +28,10 @@ async function fetcher<T>(endpoint: string): Promise<T> {
   if (!API_CONFIG.baseUrl) {
     throw new Error('API base URL not configured. Please check environment variables.');
   }
-  
-  const res = await fetch(`${API_CONFIG.baseUrl}${endpoint}`,{
-    headers:{
-        'Accept':'application/json'
+
+  const res = await fetch(`${API_CONFIG.baseUrl}${endpoint}`, {
+    headers: {
+      'Accept': 'application/json'
     }
   });
   if (!res.ok) throw new Error("API error");
@@ -42,7 +42,7 @@ async function authFetcher<T>(endpoint: string, token: string): Promise<T> {
   if (!API_CONFIG.baseUrl) {
     throw new Error('API base URL not configured.');
   }
-  
+
   const res = await fetch(`${API_CONFIG.baseUrl}${endpoint}`, {
     headers: {
       'Accept': 'application/json',
@@ -64,30 +64,30 @@ export const academicApi = {
   getLoggedInCounsellors: (userId: string, token: string) => authFetcher<AllCounselor[]>(`/api/user/counsellorsAccordingToInterestedCourse/all?userName=${userId}`, token),
   getCounselorById: (id: string) => fetcher<CounselorDetails>(`${API_CONFIG.endpoints.getCounsellorById}?counsellorId=${id}`),
   getCounselorNonAvailability: async (userId: string, counsellorId: string) => {
-  const token = localStorage.getItem('jwt');
+    const token = localStorage.getItem('jwt');
     if (!token) {
       throw new Error('Authentication token not found');
     }
-    
+
     const res = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.getCounsellorNonAvailability}?userId=${userId}&counsellorId=${counsellorId}`, {
       headers: {
         'Accept': 'application/json',
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     if (!res.ok) throw new Error("Failed to fetch counselor availability");
-    
+
     const data = await res.json();
     return data;
   },
-  
+
   bookAppointment: async (bookingData: BookingRequest): Promise<BookingResponse> => {
-  const token = localStorage.getItem('jwt');
+    const token = localStorage.getItem('jwt');
     if (!token) {
       throw new Error('Authentication token not found');
     }
-    
+
     const res = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.bookAppointment}`, {
       method: 'POST',
       headers: {
@@ -97,7 +97,7 @@ export const academicApi = {
       },
       body: JSON.stringify(bookingData)
     });
-    
+
     if (!res.ok) throw new Error("Failed to book appointment");
     return res.json();
   },
@@ -162,7 +162,7 @@ export const academicApi = {
     pageSize: number = 9
   ) => {
     const params = new URLSearchParams();
-    
+
     params.append("page", page.toString());
     params.append("pageSize", pageSize.toString());
     params.append("sortBy", "priority");
@@ -195,18 +195,18 @@ export const academicApi = {
       type?: string;
       sortBy?: string;
       sortOrder?: string;
-    }, 
-    page: number = 0, 
+    },
+    page: number = 0,
     pageSize: number = 9
   ) => {
     const params = new URLSearchParams();
-    
+
     if (filters.search) params.append("search", filters.search);
     if (filters.level) params.append("examLevel", filters.level);
     if (filters.type) params.append("examType", filters.type);
     if (filters.sortBy) params.append("sortBy", filters.sortBy);
     if (filters.sortOrder) params.append("sortOrder", filters.sortOrder);
-    
+
     params.append("page", page.toString());
     params.append("pageSize", pageSize.toString());
 
@@ -215,7 +215,7 @@ export const academicApi = {
         'Accept': 'application/json'
       }
     });
-    
+
     if (!res.ok) throw new Error("Failed to search exams");
     return res.json();
   },

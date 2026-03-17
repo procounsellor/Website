@@ -43,7 +43,7 @@ import RevampAbout from '@/components/Revamp/about/RevampAbout';
 import Admissions from '@/pages/Revamp/Admissions';
 import Courses from '@/pages/Revamp/Courses';
 import ProBuddiesRegistration from '@/pages/Revamp/ProBuddiesRegistration';
-import CounsellorListingRevamp from '@/pages/Revamp/counsellor-listing';
+import CounsellorListingRevamp from '@/pages/Revamp/counsellorListing';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
@@ -153,7 +153,6 @@ export default function AppRoutes() {
                         </Route>
                     </Route>
                 </Routes>
-
             </Suspense>
         </>
     );
