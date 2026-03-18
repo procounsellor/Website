@@ -82,9 +82,9 @@ export default function RevampHeader() {
                                     <img
                                         src={tab.iconPath}
                                         alt={tab.name}
-                                        className="w-[24px] h-[24px] object-contain"
+                                        className="w-[44px] h-[44px] object-contain"
                                     />
-                                    <span className="font-poppins font-medium text-[16px] text-[#232323]">
+                                    <span className="font-poppins font-medium text-[18px] text-[#232323]">
                                         {tab.name}
                                     </span>
                                 </div>
