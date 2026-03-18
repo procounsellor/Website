@@ -24,6 +24,9 @@ export default function BlogsPageCard({
   return (
     <div
       className="relative w-[308px] h-[331px] cursor-pointer"
+      onClick={() => navigate(`/admissions/blogs/${id}`)}
+      role="button"
+      tabIndex={0}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -65,16 +68,10 @@ export default function BlogsPageCard({
           <p className="text-(--text-muted) text-[14px] font-normal">
             By: <span className="font-medium">{author}</span>
           </p>
-          <button
-            className="mt-1 text-[14px] font-medium text-[#2F43F2]"
-            onClick={() => navigate(`/admissions/blogs/${id}`)}
-          >
-            Read More
-          </button>
         </div>
       </div>
 
-      <div className="absolute bottom-0 right-[-1px] overflow-hidden">
+      <div className="absolute bottom-0 -right-px overflow-hidden">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="61"

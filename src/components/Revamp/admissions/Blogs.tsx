@@ -46,7 +46,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
                 <button
                   key={category}
                   onClick={() => setActiveCategory(category)}
-                  className={`px-6 py-2 rounded-[5px] min-w-[160px] text-[0.875rem] font-medium whitespace-nowrap transition-all duration-300 ${
+                  className={`px-6 py-2 rounded-[5px] min-w-[160px] text-[0.875rem] font-medium whitespace-nowrap transition-all duration-300 cursor-pointer ${
                     isActive
                       ? "bg-[#0E1629] text-white"
                       : "bg-white text-(--text-main) border border-[rgba(14,22,41,0.25)] hover:border-[#0E1629]"
@@ -99,6 +99,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
             {blogs.slice(0, 2).map((blog) => (
               <BlogCard
                 key={blog.id}
+                id={blog.id}
                 title={blog.title}
                 author={blog.author}
                 readTime={blog.readTime}

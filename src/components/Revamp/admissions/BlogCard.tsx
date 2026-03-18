@@ -1,18 +1,28 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface BlogCardProps {
+  id?: number | string;
   title: string;
   author: string;
   readTime: string;
   imageUrl: string;
 }
 
-export default function BlogCard({ title, author, readTime, imageUrl }: BlogCardProps) {
+export default function BlogCard({ id, title, author, readTime, imageUrl }: BlogCardProps) {
+  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
       className="relative w-[308px] h-[331px] cursor-pointer"
+      onClick={() => {
+        if (id !== undefined && id !== null) {
+          navigate(`/admissions/blogs/${id}`);
+        }
+      }}
+      role="button"
+      tabIndex={0}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -32,7 +42,7 @@ export default function BlogCard({ title, author, readTime, imageUrl }: BlogCard
         </div>
       </div>
 
-      <div className="absolute bottom-0 right-[-1px] overflow-hidden">
+      <div className="absolute bottom-0 -right-px overflow-hidden">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="61"
