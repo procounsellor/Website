@@ -1,24 +1,21 @@
-import Lottie from "lottie-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { buttonHoverScale, buttonTapScale, buttonTransition } from "@/components/common/PageTransition";
 
 const tabs = [
-    { id: 1, name: 'Admission', animationPath: '/admission.json', iconPath: '/Admissions.png', path: '/admissions' },
-    { id: 2, name: 'Courses', animationPath: '/courses.json', iconPath: '/Courses.svg', path: '/revamp-courses' },
-    { id: 3, name: 'Community', animationPath: '/community.json', iconPath: '/Community.png', path: '/community' },
-    { id: 4, name: 'ProBuddies', animationPath: '/probuddy.json', iconPath: '/ProBuddy.png', path: '/pro-buddies' },
-    { id: 5, name: 'About us', animationPath: '/admission.json', iconPath: '/Admissions.png', path: '/revamp-about' }
-]
-
+    { id: 1, name: 'Admission', iconPath: '/Admissions.png', path: '/admissions' },
+    { id: 2, name: 'Courses', iconPath: '/Courses.svg', path: '/revamp-courses' },
+    { id: 3, name: 'Community', iconPath: '/Community.png', path: '/community' },
+    { id: 4, name: 'ProBuddies', iconPath: '/ProBuddy.png', path: '/pro-buddies' },
+    //{ id: 5, name: 'About us', iconPath: '/Admissions.png', path: '/revamp-about' }
+];
 
 export default function RevampHeader() {
     const navigate = useNavigate();
     const location = useLocation();
     const [activeTab, setActiveTab] = useState(1);
-    const animationDataCache = useRef<Record<string, unknown>>({});
-    const [animationData, setAnimationData] = useState<Record<string, unknown>>({});
+    const [isScrolled, setIsScrolled] = useState(false);
 
     useEffect(() => {
         const currentTab = tabs.find(tab => tab.path === location.pathname);
@@ -28,85 +25,119 @@ export default function RevampHeader() {
     }, [location.pathname]);
 
     useEffect(() => {
-        const activeTabData = tabs.find(tab => tab.id === activeTab);
-        if (!activeTabData) return;
-        const path = activeTabData.animationPath;
-        if (animationDataCache.current[path]) {
-            setAnimationData(prev => ({ ...prev, [path]: animationDataCache.current[path] }));
-            return;
-        }
-        fetch(path)
-            .then(res => res.json())
-            .then(data => {
-                animationDataCache.current[path] = data;
-                setAnimationData(prev => ({ ...prev, [path]: data }));
-            })
-            .catch(() => { });
-    }, [activeTab]);
+        const handleScroll = () => {
+            if (window.scrollY > 40) {
+                setIsScrolled(true);
+            } else {
+                setIsScrolled(false);
+            }
+        };
 
-    return <div className="bg-[rgba(198,221,240,0.95)] w-full h-40 px-[60px] py-4.5 flex flex-col gap-3 shadow-sm backdrop-blur-sm">
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
 
-        <div className="flex justify-between">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/admissions')}>
-
-                <img src="/logo.svg" alt="procounsel_logo" className="h-10.5 w-10.5" />
-
-                <h1 className="text-[#232323] font-semibold text-[1.25rem]">ProCounsel</h1>
-
-            </div>
-
-
-            <motion.button
-                whileHover={{ scale: buttonHoverScale }}
-                whileTap={{ scale: buttonTapScale }}
-                transition={buttonTransition}
-                className="bg-(--btn-primary) py-2 px-4 text-white text-xs font-medium rounded-[12px] border border-(--btn-primary) hover:cursor-pointer"
+    return (
+        <motion.header 
+            initial={false}
+            animate={{ height: isScrolled ? 100 : 184 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="sticky top-0 z-50 w-full bg-[#C6DDF0]/75 flex flex-col items-center relative border-b border-gray-100 backdrop-blur-md"
+        >
+            
+            <motion.div 
+                initial={false}
+                animate={{ marginTop: isScrolled ? "20px" : "24px" }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="relative w-full max-w-[1320px] h-[60px] px-[60px] flex justify-between items-center z-10"
             >
-                Login/Sign Up
-            </motion.button>
-        </div>
-
-
-
-
-        <div className="flex gap-[35px] px-2.5 pb-6 justify-center">
-
-            {tabs.map((tab) => (
-                <motion.div
-                    key={tab.id}
-                    onClick={() => {
-                        setActiveTab(tab.id);
-                        navigate(tab.path);
-                    }}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={{ duration: 0.1 }}
-                    className={`flex flex-row items-center justify-center gap-3 w-[236px] h-[60px] rounded-[16px] py-2 px-5 transition-all cursor-pointer ${activeTab === tab.id ? 'bg-(--text-main)' : 'bg-white'
-                        }`}
+                <div 
+                    className="flex items-center gap-2 cursor-pointer w-[170px] h-[43px]" 
+                    onClick={() => navigate('/admissions')}
                 >
-                    <div className="w-[44px] h-[44px] flex items-center justify-center flex-shrink-0">
-                        {activeTab === tab.id && animationData[tab.animationPath] ? (
-                            <Lottie
-                                loop={true}
-                                autoplay={true}
-                                animationData={animationData[tab.animationPath]}
-                                style={{ width: '100%', height: '100%' }}
-                            />
-                        ) : (
-                            <img
-                                src={tab.iconPath}
-                                alt={tab.name}
-                                className="w-full h-full object-contain"
-                            />
-                        )}
-                    </div>
-                    <h1 className={`font-poppins font-medium text-[18px] leading-[100%] ${activeTab === tab.id ? 'text-white' : 'text-(--text-main)'
-                        }`}>{tab.name}</h1>
-                </motion.div>
-            ))}
+                    <img src="/logo.svg" alt="procounsel_logo" className="h-[43px] w-[43px] object-contain" />
+                    <h1 className="text-[#232323] font-semibold text-[1.25rem]">ProCounsel</h1>
+                </div>
 
+                <AnimatePresence>
+                    {!isScrolled && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute left-1/2 -translate-x-1/2 flex items-center gap-[12px] h-full"
+                        >
+                            {tabs.map((tab) => (
+                                <div
+                                    key={tab.id}
+                                    onClick={() => {
+                                        setActiveTab(tab.id);
+                                        navigate(tab.path);
+                                    }}
+                                    className={`flex flex-row items-center justify-center gap-2 h-full py-[8px] cursor-pointer transition-all ${
+                                        activeTab === tab.id ? 'border-b-[1px] border-[#000000]' : 'border-b-[1px] border-transparent'
+                                    }`}
+                                >
+                                    <img
+                                        src={tab.iconPath}
+                                        alt={tab.name}
+                                        className="w-[24px] h-[24px] object-contain"
+                                    />
+                                    <span className="font-poppins font-medium text-[16px] text-[#232323]">
+                                        {tab.name}
+                                    </span>
+                                </div>
+                            ))}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
-        </div>
+                <motion.button
+                    whileHover={{ scale: buttonHoverScale }}
+                    whileTap={{ scale: buttonTapScale }}
+                    transition={buttonTransition}
+                    className="w-[123px] h-[34px] bg-[#2F43F2] border border-[#2F43F2] rounded-[8px] flex items-center justify-center gap-[10px] px-[16px] py-[8px] cursor-pointer"
+                >
+                    <span className="font-poppins font-medium text-[12px] leading-[100%] text-white text-nowrap">
+                        Login / Sign Up
+                    </span>
+                </motion.button>
+            </motion.div>
 
-    </div>
+            <motion.div 
+                initial={false}
+                animate={{ 
+                    top: isScrolled ? 24 : 108,
+                    left: "50%",
+                    x: "-50%" 
+                }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="absolute w-[456px] h-[52px] bg-[#FFFFFF] rounded-[12px] flex items-center pl-[12px] pr-[12px] shadow-sm border border-gray-50 z-20"
+            >
+                <input 
+                    type="text" 
+                    placeholder="Search for colleges" 
+                    className="w-full h-full bg-transparent outline-none font-poppins font-medium text-[16px] leading-[100%] text-[#232323] placeholder:text-[#6B7280]"
+                />
+                <svg 
+                    width="24" 
+                    height="24" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="text-[#6B7280] flex-shrink-0 ml-2"
+                >
+                    <path 
+                        d="M21 21L15.0001 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                    />
+                </svg>
+            </motion.div>
+
+        </motion.header>
+    );
 }
