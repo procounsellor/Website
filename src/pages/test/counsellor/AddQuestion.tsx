@@ -324,6 +324,15 @@ export function AddQuestion() {
       formdata.append("solutionImage", solutionImage);
     }
 
+    console.group(isEditing ? "📤 updateQuestion payload" : "📤 addQuestion payload");
+    console.log("request JSON:", requestData);
+    console.log("questionImage file:", questionImage);
+    options.forEach((opt) => {
+      if (opt.image) console.log(`option${opt.id}Image file:`, opt.image);
+    });
+    console.log("solutionImage file:", solutionImage);
+    console.groupEnd();
+
     const requestOptions: RequestInit = {
       method: "POST",
       headers: myHeaders,

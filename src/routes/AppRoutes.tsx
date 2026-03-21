@@ -11,6 +11,7 @@ import CancellationRefundPage from "@/pages/CancellationRefund";
 import ShippingExchangePage from "@/pages/ShippingExchange";
 import AddCollegePage from "@/pages/AddCollege";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import CounsellorRoute from "@/components/auth/CounsellorRoute";
 import ExternalPrivacyPage from "@/pages/external/Privacy";
 import ExternalTermsPage from "@/pages/external/Terms";
 import { Toaster } from 'react-hot-toast';
@@ -96,8 +97,6 @@ export default function AppRoutes() {
                         <Route path="/jee-college-predictor" element={<JEECollegePredictor />} />
                         <Route path="/mhtcet-college-predictor" element={<MHTCETCollegePredictor />} />
                         <Route path='/subscribe' element={<SubscriptionPage />} />
-                        <Route path='/counsellor-dashboard' element={<CounselorDashboard />} />
-                        <Route path='/counselor-dashboard/client-profile' element={<ClientProfilePage />} />
                         <Route path="/community" element={<CommunityPage />} />
                         <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
                         <Route path="/community/answer" element={<AnswerPage />} />
@@ -105,19 +104,23 @@ export default function AppRoutes() {
                         <Route path='/promo' element={<PromoPage />} />
                         <Route path='/testSeries/pcsat' element={<TestSeriesPromo />} />
                         <Route path="/notifications" element={<NotificationsPage />} />
-                        <Route path='/create-test' element={<CreateTest />} />
-                        <Route path='/add-question/:testId' element={<AddQuestion />} />
                         <Route path='/test-info/:testId' element={<TestInfo />} />
                         <Route path='/test-result/:testId' element={<TestResult />} />
                         <Route path='/t/result/:testId' element={<TestResult />} />
                         {/* TestAnalysisPage moved outside MainLayout */}
 
-
-                        {/* Test Group Routes */}
-                        <Route path='/counselor/test-groups/create' element={<CreateEditTestGroup />} />
-                        <Route path='/counselor/test-groups/edit/:testGroupId' element={<CreateEditTestGroup />} />
-                        <Route path='/counselor/test-groups/:testGroupId' element={<TestGroupDetails />} />
-                        <Route path='/counselor/test-groups/:testGroupId/create-test' element={<CreateTest />} />
+                        {/* Counsellor-only Routes — requires login + counselor role */}
+                        <Route element={<CounsellorRoute />}>
+                            <Route path='/counsellor-dashboard' element={<CounselorDashboard />} />
+                            <Route path='/counselor-dashboard/client-profile' element={<ClientProfilePage />} />
+                            <Route path='/create-test' element={<CreateTest />} />
+                            <Route path='/add-question/:testId' element={<AddQuestion />} />
+                            {/* Test Group Routes */}
+                            <Route path='/counselor/test-groups/create' element={<CreateEditTestGroup />} />
+                            <Route path='/counselor/test-groups/edit/:testGroupId' element={<CreateEditTestGroup />} />
+                            <Route path='/counselor/test-groups/:testGroupId' element={<TestGroupDetails />} />
+                            <Route path='/counselor/test-groups/:testGroupId/create-test' element={<CreateTest />} />
+                        </Route>
 
                         {/* User Test Group Routes */}
                         <Route path='/test-group/:testGroupId' element={<TestGroupDetailsPage />} />
