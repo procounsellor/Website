@@ -2,6 +2,8 @@ import AdvantageSection from "../probuddies/AdvantageSection";
 import CounsellorSection from "./Counsellor";
 import CoursePageBanner from "./CoursePageBanner";
 import CourseSection from "./CourseSection";
+import LiveSection from "./LiveSessions";
+import TestSection from "./TestSection";
 
 export default function Banner() {
     return (
@@ -42,9 +44,9 @@ export default function Banner() {
 
     <div className=" bg-[#C6DDF040] flex flex-col pb-20">
       <CourseSection/>
-      <CounsellorSection/>
-        <AdvantageSection/>
-        <CoursePageBanner/>
+      <CoursePageBanner/>
+      <TestSection/>
+      <LiveSection/>        
     
     </div>
 
