@@ -41,6 +41,7 @@ import CollegeDetailsPageNew from '@/pages/CollegeDetailsPage';
 import JEERankPredictor from '@/pages/JEERankPredictor';
 import JEECollegePredictor from '@/pages/JEECollegePredictor';
 import MHTCETCollegePredictor from '@/pages/MHTCETCollegePredictor';
+import KurukshetraTestSeries from '@/pages/KurukshetraTestSeries';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
@@ -104,6 +105,7 @@ export default function AppRoutes() {
                         <Route path="/community/my-activity" element={<MyActivityPage />} />
                         <Route path='/promo' element={<PromoPage />} />
                         <Route path='/testSeries/pcsat' element={<TestSeriesPromo />} />
+                        <Route path='/testSeries/kurukshetra' element={<KurukshetraTestSeries />} />
                         <Route path="/notifications" element={<NotificationsPage />} />
                         <Route path='/create-test' element={<CreateTest />} />
                         <Route path='/add-question/:testId' element={<AddQuestion />} />
