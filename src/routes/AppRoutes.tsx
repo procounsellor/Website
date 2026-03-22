@@ -42,6 +42,7 @@ import JEERankPredictor from '@/pages/JEERankPredictor';
 import JEECollegePredictor from '@/pages/JEECollegePredictor';
 import MHTCETCollegePredictor from '@/pages/MHTCETCollegePredictor';
 import KurukshetraTestSeries from '@/pages/KurukshetraTestSeries';
+import GrandMockTest from '@/pages/GrandMockTest';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
@@ -106,6 +107,7 @@ export default function AppRoutes() {
                         <Route path='/promo' element={<PromoPage />} />
                         <Route path='/testSeries/pcsat' element={<TestSeriesPromo />} />
                         <Route path='/testSeries/kurukshetra' element={<KurukshetraTestSeries />} />
+                        <Route path='/testSeries/grand-mock-test' element={<GrandMockTest />} />
                         <Route path="/notifications" element={<NotificationsPage />} />
                         <Route path='/create-test' element={<CreateTest />} />
                         <Route path='/add-question/:testId' element={<AddQuestion />} />

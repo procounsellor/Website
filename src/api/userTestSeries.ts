@@ -124,3 +124,49 @@ export const resetAnswer = async (
   );
   return response.json();
 };
+
+
+
+
+export interface MockTestRegistrationPayload {
+  userId: string;
+  fullName: string;
+  phoneNumber: string;
+  email: string;
+  city?: string;
+}
+
+export const registerGrandMockTestShared = async (payload: MockTestRegistrationPayload) => {
+  const response = await fetch(`${API_CONFIG.baseUrl}/api/shared/registerGrandMockTest`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  
+  if (!response.ok) throw new Error("Failed to register");
+  return response.json();
+};
+
+export const registerGrandMockTestAuth = async (payload: MockTestRegistrationPayload) => {
+  const response = await fetch(`${API_CONFIG.baseUrl}/api/grandMockTest/registerGrandMockTest`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+  
+  if (!response.ok) throw new Error("Failed to register");
+  return response.json();
+};
+
+export const checkGrandMockTestRegistration = async (userId: string) => {
+  const response = await fetch(`${API_CONFIG.baseUrl}/api/grandMockTest/hasRegistered?userId=${userId}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) throw new Error("Failed to check status");
+  return response.json(); 
+};
