@@ -199,7 +199,7 @@ export default function ProBuddyProfilePageFigma() {
                                                 </p>
                                             </div>
                                         </div>
-                                        
+
                                         <p className="mt-[2px] md:mt-[8px] font-medium md:font-semibold text-[#2f43f2] text-[12px] md:text-[16px] leading-[18px] md:leading-[1.25]">
                                             3rd Year B.Tech Student
                                         </p>
@@ -309,8 +309,8 @@ export default function ProBuddyProfilePageFigma() {
                                         I've helped 850+ aspiring students navigate their college journey at IIT Delhi.
                                         Passionate about making the admission process less stressful
                                         {!isReadMore ? "..." : " and sharing real college insights that matter. Currently in 3rd year, been through it all - exams, placements, hostel life, branch selection."}
-                                        <span 
-                                            onClick={() => setIsReadMore(!isReadMore)} 
+                                        <span
+                                            onClick={() => setIsReadMore(!isReadMore)}
                                             className="text-[#2F43F2] cursor-pointer ml-1"
                                         >
                                             {isReadMore ? "Read Less" : "Read More"}
@@ -446,7 +446,7 @@ export default function ProBuddyProfilePageFigma() {
                         <p className="absolute left-[20px] top-[24px] font-semibold text-[#0e1629] text-[16px] leading-[20px] font-['Poppins']">
                             College Life @College Name
                         </p>
-                        
+
                         <div className="relative h-[182px] mt-[68px]">
                             {collegeLifeItems.map((item, idx) => {
                                 // Calculate position based on slide
@@ -459,7 +459,7 @@ export default function ProBuddyProfilePageFigma() {
                                 else left = '600px'; // Far off-screen
 
                                 return (
-                                    <div 
+                                    <div
                                         key={idx}
                                         className={`absolute transition-all duration-300 w-[170px] h-[182px] rounded-[8px] border border-[#EDEDED] p-[12px] flex flex-col ${item.color}`}
                                         style={{ left }}
@@ -467,15 +467,15 @@ export default function ProBuddyProfilePageFigma() {
                                         <div className="mb-[12px]">
                                             <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                 <g clip-path="url(#clip0_2000_3261)">
-                                                <path d="M6.66797 6.66667C6.66797 5.95942 6.94892 5.28115 7.44902 4.78105C7.94911 4.28095 8.62739 4 9.33464 4H22.668C23.3752 4 24.0535 4.28095 24.5536 4.78105C25.0537 5.28115 25.3346 5.95942 25.3346 6.66667V25.3333C25.3346 26.0406 25.0537 26.7189 24.5536 27.219C24.0535 27.719 23.3752 28 22.668 28H9.33464C8.62739 28 7.94911 27.719 7.44902 27.219C6.94892 26.7189 6.66797 26.0406 6.66797 25.3333V6.66667Z" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M12 9.33337H20" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M12 14.6666H20" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M12 20H17.3333" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M6.66797 6.66667C6.66797 5.95942 6.94892 5.28115 7.44902 4.78105C7.94911 4.28095 8.62739 4 9.33464 4H22.668C23.3752 4 24.0535 4.28095 24.5536 4.78105C25.0537 5.28115 25.3346 5.95942 25.3346 6.66667V25.3333C25.3346 26.0406 25.0537 26.7189 24.5536 27.219C24.0535 27.719 23.3752 28 22.668 28H9.33464C8.62739 28 7.94911 27.719 7.44902 27.219C6.94892 26.7189 6.66797 26.0406 6.66797 25.3333V6.66667Z" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                                    <path d="M12 9.33337H20" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                                    <path d="M12 14.6666H20" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                                    <path d="M12 20H17.3333" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                                                 </g>
                                                 <defs>
-                                                <clipPath id="clip0_2000_3261">
-                                                <rect width="32" height="32" fill="white"/>
-                                                </clipPath>
+                                                    <clipPath id="clip0_2000_3261">
+                                                        <rect width="32" height="32" fill="white" />
+                                                    </clipPath>
                                                 </defs>
                                             </svg>
                                         </div>
@@ -493,17 +493,41 @@ export default function ProBuddyProfilePageFigma() {
                         {/* Navigation Arrows */}
                         <div className="absolute top-[262px] w-full flex justify-center">
                             <div className="relative w-[57px] h-[24px]">
-                                <button 
+                                <button
                                     onClick={prevSlide}
-                                    className="absolute left-[-15.75px] top-0 w-[26.25px] h-[24px] bg-[#EDEDED] rounded-[3px] flex items-center justify-center"
+                                    className="absolute left-[-15.75px] top-0 w-[27px] h-[24px] flex items-center justify-center transition-opacity"
                                 >
-                                    <ChevronLeft className="w-3 h-3 text-[#0E1629]" />
+                                    <svg width="27" height="24" viewBox="0 0 27 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M23.6285 2.63465C23.444 1.13037 22.1664 0 20.6509 0H3C1.34315 0 5.72205e-06 1.34315 5.72205e-06 3V21C5.72205e-06 22.6569 1.34315 24 3.00001 24H22.8594C24.6612 24 26.0565 22.423 25.8371 20.6346L23.6285 2.63465Z" fill="#EDEDED" />
+                                        <g clip-path="url(#clip0_2000_3301_cl)">
+                                            <path d="M16.625 11.7502H9.625" stroke="#0E1629" stroke-width="0.5625" stroke-linecap="round" stroke-linejoin="round" />
+                                            <path d="M11.625 13.7502L9.625 11.7502" stroke="#0E1629" stroke-width="0.5625" stroke-linecap="round" stroke-linejoin="round" />
+                                            <path d="M11.625 9.75L9.625 11.75" stroke="#0E1629" stroke-width="0.5625" stroke-linecap="round" stroke-linejoin="round" />
+                                        </g>
+                                        <defs>
+                                            <clipPath id="clip0_2000_3301_cl">
+                                                <rect width="12" height="12" fill="white" transform="matrix(-1 0 0 1 19.125 6)" />
+                                            </clipPath>
+                                        </defs>
+                                    </svg>
                                 </button>
-                                <button 
+                                <button
                                     onClick={nextSlide}
-                                    className="absolute left-[15px] top-0 w-[26.25px] h-[24px] bg-[#EDEDED] rounded-[3px] flex items-center justify-center transition-opacity"
+                                    className="absolute left-[15px] top-0 w-[27px] h-[24px] flex items-center justify-center transition-opacity"
                                 >
-                                    <ChevronRight className="w-3 h-3 text-[#0E1629]" />
+                                    <svg width="27" height="24" viewBox="0 0 27 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M2.62146 2.63465C2.80603 1.13037 4.08356 0 5.59913 0H23.25C24.9069 0 26.25 1.34315 26.25 3V21C26.25 22.6569 24.9068 24 23.25 24H3.39059C1.58882 24 0.193492 22.423 0.412917 20.6346L2.62146 2.63465Z" fill="#EDEDED" />
+                                        <g clip-path="url(#clip0_2000_3293_cl)">
+                                            <path d="M9.625 11.7502H16.625" stroke="#0E1629" stroke-width="0.5625" stroke-linecap="round" stroke-linejoin="round" />
+                                            <path d="M14.625 13.7502L16.625 11.7502" stroke="#0E1629" stroke-width="0.5625" stroke-linecap="round" stroke-linejoin="round" />
+                                            <path d="M14.625 9.75L16.625 11.75" stroke="#0E1629" stroke-width="0.5625" stroke-linecap="round" stroke-linejoin="round" />
+                                        </g>
+                                        <defs>
+                                            <clipPath id="clip0_2000_3293_cl">
+                                                <rect width="12" height="12" fill="white" transform="translate(7.125 6)" />
+                                            </clipPath>
+                                        </defs>
+                                    </svg>
                                 </button>
                             </div>
                         </div>
@@ -516,97 +540,97 @@ export default function ProBuddyProfilePageFigma() {
                         </p>
 
                         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
-                        <div className="bg-white rounded-[16px] p-3 min-h-[150px] sm:min-h-[170px]">
-                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <g clip-path="url(#clip0_2000_3261)">
-                                <path d="M6.66797 6.66667C6.66797 5.95942 6.94892 5.28115 7.44902 4.78105C7.94911 4.28095 8.62739 4 9.33464 4H22.668C23.3752 4 24.0535 4.28095 24.5536 4.78105C25.0537 5.28115 25.3346 5.95942 25.3346 6.66667V25.3333C25.3346 26.0406 25.0537 26.7189 24.5536 27.219C24.0535 27.719 23.3752 28 22.668 28H9.33464C8.62739 28 7.94911 27.719 7.44902 27.219C6.94892 26.7189 6.66797 26.0406 6.66797 25.3333V6.66667Z" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M12 9.33337H20" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M12 14.6666H20" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M12 20H17.3333" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                </g>
-                                <defs>
-                                <clipPath id="clip0_2000_3261">
-                                <rect width="32" height="32" fill="white"/>
-                                </clipPath>
-                                </defs>
-                            </svg>
-                            <p className="mt-4 sm:mt-5 font-['Poppins'] font-semibold text-[#0e1629] text-sm sm:text-base leading-normal">
-                                Mess Food
-                            </p>
-                            <p className="mt-2 font-['Poppins'] font-normal text-[#6b7280] text-xs sm:text-sm leading-normal">
-                                7/10 - Decent, but get yourself acquainted with local food joints
-                            </p>
-                        </div>
+                            <div className="bg-white rounded-[16px] p-3 min-h-[150px] sm:min-h-[170px]">
+                                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <g clip-path="url(#clip0_2000_3261)">
+                                        <path d="M6.66797 6.66667C6.66797 5.95942 6.94892 5.28115 7.44902 4.78105C7.94911 4.28095 8.62739 4 9.33464 4H22.668C23.3752 4 24.0535 4.28095 24.5536 4.78105C25.0537 5.28115 25.3346 5.95942 25.3346 6.66667V25.3333C25.3346 26.0406 25.0537 26.7189 24.5536 27.219C24.0535 27.719 23.3752 28 22.668 28H9.33464C8.62739 28 7.94911 27.719 7.44902 27.219C6.94892 26.7189 6.66797 26.0406 6.66797 25.3333V6.66667Z" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M12 9.33337H20" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M12 14.6666H20" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M12 20H17.3333" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                    </g>
+                                    <defs>
+                                        <clipPath id="clip0_2000_3261">
+                                            <rect width="32" height="32" fill="white" />
+                                        </clipPath>
+                                    </defs>
+                                </svg>
+                                <p className="mt-4 sm:mt-5 font-['Poppins'] font-semibold text-[#0e1629] text-sm sm:text-base leading-normal">
+                                    Mess Food
+                                </p>
+                                <p className="mt-2 font-['Poppins'] font-normal text-[#6b7280] text-xs sm:text-sm leading-normal">
+                                    7/10 - Decent, but get yourself acquainted with local food joints
+                                </p>
+                            </div>
 
-                        <div className="bg-[#0e1629] rounded-[16px] p-3 min-h-[150px] sm:min-h-[170px]">
-                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <g clip-path="url(#clip0_2000_3261)">
-                                <path d="M6.66797 6.66667C6.66797 5.95942 6.94892 5.28115 7.44902 4.78105C7.94911 4.28095 8.62739 4 9.33464 4H22.668C23.3752 4 24.0535 4.28095 24.5536 4.78105C25.0537 5.28115 25.3346 5.95942 25.3346 6.66667V25.3333C25.3346 26.0406 25.0537 26.7189 24.5536 27.219C24.0535 27.719 23.3752 28 22.668 28H9.33464C8.62739 28 7.94911 27.719 7.44902 27.219C6.94892 26.7189 6.66797 26.0406 6.66797 25.3333V6.66667Z" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M12 9.33337H20" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M12 14.6666H20" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M12 20H17.3333" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                </g>
-                                <defs>
-                                <clipPath id="clip0_2000_3261">
-                                <rect width="32" height="32" fill="white"/>
-                                </clipPath>
-                                </defs>
-                            </svg>
-                            <p className="mt-4 sm:mt-5 font-['Poppins'] font-semibold text-[#f5f5f5] text-sm sm:text-base leading-normal">
-                                Campus Vibe
-                            </p>
-                            <p className="mt-2 font-['Poppins'] font-normal text-[#f5f5f5] text-xs sm:text-sm leading-normal opacity-90">
-                                Competitive yet collaborative. Strong peer learning culture
-                            </p>
-                        </div>
+                            <div className="bg-[#0e1629] rounded-[16px] p-3 min-h-[150px] sm:min-h-[170px]">
+                                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <g clip-path="url(#clip0_2000_3261)">
+                                        <path d="M6.66797 6.66667C6.66797 5.95942 6.94892 5.28115 7.44902 4.78105C7.94911 4.28095 8.62739 4 9.33464 4H22.668C23.3752 4 24.0535 4.28095 24.5536 4.78105C25.0537 5.28115 25.3346 5.95942 25.3346 6.66667V25.3333C25.3346 26.0406 25.0537 26.7189 24.5536 27.219C24.0535 27.719 23.3752 28 22.668 28H9.33464C8.62739 28 7.94911 27.719 7.44902 27.219C6.94892 26.7189 6.66797 26.0406 6.66797 25.3333V6.66667Z" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M12 9.33337H20" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M12 14.6666H20" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M12 20H17.3333" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                    </g>
+                                    <defs>
+                                        <clipPath id="clip0_2000_3261">
+                                            <rect width="32" height="32" fill="white" />
+                                        </clipPath>
+                                    </defs>
+                                </svg>
+                                <p className="mt-4 sm:mt-5 font-['Poppins'] font-semibold text-[#f5f5f5] text-sm sm:text-base leading-normal">
+                                    Campus Vibe
+                                </p>
+                                <p className="mt-2 font-['Poppins'] font-normal text-[#f5f5f5] text-xs sm:text-sm leading-normal opacity-90">
+                                    Competitive yet collaborative. Strong peer learning culture
+                                </p>
+                            </div>
 
-                        <div className="bg-white rounded-[16px] p-3 min-h-[150px] sm:min-h-[170px]">
-                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-[12px]">
-                                <g clip-path="url(#clip0_2000_3261)">
-                                <path d="M6.66797 6.66667C6.66797 5.95942 6.94892 5.28115 7.44902 4.78105C7.94911 4.28095 8.62739 4 9.33464 4H22.668C23.3752 4 24.0535 4.28095 24.5536 4.78105C25.0537 5.28115 25.3346 5.95942 25.3346 6.66667V25.3333C25.3346 26.0406 25.0537 26.7189 24.5536 27.219C24.0535 27.719 23.3752 28 22.668 28H9.33464C8.62739 28 7.94911 27.719 7.44902 27.219C6.94892 26.7189 6.66797 26.0406 6.66797 25.3333V6.66667Z" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M12 9.33337H20" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M12 14.6666H20" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M12 20H17.3333" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                </g>
-                                <defs>
-                                <clipPath id="clip0_2000_3261">
-                                <rect width="32" height="32" fill="white"/>
-                                </clipPath>
-                                </defs>
-                            </svg>
-                            <p className="mt-4 sm:mt-5 font-['Poppins'] font-semibold text-[#0e1629] text-sm sm:text-base leading-normal">
-                                Attendance
-                            </p>
-                            <p className="mt-2 font-['Poppins'] font-normal text-[#6b7280] text-xs sm:text-sm leading-normal">
-                                Moderate enforcement. 75% mandatory, but professors are understanding.
-                            </p>
-                        </div>
+                            <div className="bg-white rounded-[16px] p-3 min-h-[150px] sm:min-h-[170px]">
+                                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-[12px]">
+                                    <g clip-path="url(#clip0_2000_3261)">
+                                        <path d="M6.66797 6.66667C6.66797 5.95942 6.94892 5.28115 7.44902 4.78105C7.94911 4.28095 8.62739 4 9.33464 4H22.668C23.3752 4 24.0535 4.28095 24.5536 4.78105C25.0537 5.28115 25.3346 5.95942 25.3346 6.66667V25.3333C25.3346 26.0406 25.0537 26.7189 24.5536 27.219C24.0535 27.719 23.3752 28 22.668 28H9.33464C8.62739 28 7.94911 27.719 7.44902 27.219C6.94892 26.7189 6.66797 26.0406 6.66797 25.3333V6.66667Z" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M12 9.33337H20" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M12 14.6666H20" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M12 20H17.3333" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                    </g>
+                                    <defs>
+                                        <clipPath id="clip0_2000_3261">
+                                            <rect width="32" height="32" fill="white" />
+                                        </clipPath>
+                                    </defs>
+                                </svg>
+                                <p className="mt-4 sm:mt-5 font-['Poppins'] font-semibold text-[#0e1629] text-sm sm:text-base leading-normal">
+                                    Attendance
+                                </p>
+                                <p className="mt-2 font-['Poppins'] font-normal text-[#6b7280] text-xs sm:text-sm leading-normal">
+                                    Moderate enforcement. 75% mandatory, but professors are understanding.
+                                </p>
+                            </div>
 
-                        <div className="bg-[rgba(159,168,184,0.5)] rounded-[16px] p-3 min-h-[150px] sm:min-h-[170px]">
-                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-[12px]">
-                                <g clip-path="url(#clip0_2000_3261)">
-                                <path d="M6.66797 6.66667C6.66797 5.95942 6.94892 5.28115 7.44902 4.78105C7.94911 4.28095 8.62739 4 9.33464 4H22.668C23.3752 4 24.0535 4.28095 24.5536 4.78105C25.0537 5.28115 25.3346 5.95942 25.3346 6.66667V25.3333C25.3346 26.0406 25.0537 26.7189 24.5536 27.219C24.0535 27.719 23.3752 28 22.668 28H9.33464C8.62739 28 7.94911 27.719 7.44902 27.219C6.94892 26.7189 6.66797 26.0406 6.66797 25.3333V6.66667Z" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M12 9.33337H20" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M12 14.6666H20" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M12 20H17.3333" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                </g>
-                                <defs>
-                                <clipPath id="clip0_2000_3261">
-                                <rect width="32" height="32" fill="white"/>
-                                </clipPath>
-                                </defs>
-                            </svg>
-                            <p className="mt-4 sm:mt-5 font-['Poppins'] font-semibold text-[#0e1629] text-sm sm:text-base leading-normal">
-                                Faculty Quality
-                            </p>
-                            <p className="mt-2 font-['Poppins'] font-normal text-[#6b7280] text-xs sm:text-sm leading-normal">
-                                Excellent. Most are research-active with real-world experience.
-                            </p>
+                            <div className="bg-[rgba(159,168,184,0.5)] rounded-[16px] p-3 min-h-[150px] sm:min-h-[170px]">
+                                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-[12px]">
+                                    <g clip-path="url(#clip0_2000_3261)">
+                                        <path d="M6.66797 6.66667C6.66797 5.95942 6.94892 5.28115 7.44902 4.78105C7.94911 4.28095 8.62739 4 9.33464 4H22.668C23.3752 4 24.0535 4.28095 24.5536 4.78105C25.0537 5.28115 25.3346 5.95942 25.3346 6.66667V25.3333C25.3346 26.0406 25.0537 26.7189 24.5536 27.219C24.0535 27.719 23.3752 28 22.668 28H9.33464C8.62739 28 7.94911 27.719 7.44902 27.219C6.94892 26.7189 6.66797 26.0406 6.66797 25.3333V6.66667Z" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M12 9.33337H20" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M12 14.6666H20" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M12 20H17.3333" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                    </g>
+                                    <defs>
+                                        <clipPath id="clip0_2000_3261">
+                                            <rect width="32" height="32" fill="white" />
+                                        </clipPath>
+                                    </defs>
+                                </svg>
+                                <p className="mt-4 sm:mt-5 font-['Poppins'] font-semibold text-[#0e1629] text-sm sm:text-base leading-normal">
+                                    Faculty Quality
+                                </p>
+                                <p className="mt-2 font-['Poppins'] font-normal text-[#6b7280] text-xs sm:text-sm leading-normal">
+                                    Excellent. Most are research-active with real-world experience.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
             {/* Success Stories Section */}
             <div className="bg-white">
@@ -616,7 +640,7 @@ export default function ProBuddyProfilePageFigma() {
                         <p className="font-['Poppins'] font-semibold text-[#0e1629] text-[16px] leading-[20px] mb-6">
                             Success Stories
                         </p>
-                        
+
                         <div className="relative h-[210px] overflow-hidden">
                             {reviews.map((review, idx) => {
                                 const position = idx - reviewSlide;
@@ -627,7 +651,7 @@ export default function ProBuddyProfilePageFigma() {
                                 else left = '600px';
 
                                 return (
-                                    <div 
+                                    <div
                                         key={idx}
                                         className={`absolute transition-all duration-300 w-[290px] ${review.dark ? 'h-[201px] bg-[#0E1629] top-0' : 'h-[186px] bg-white top-[7px] border border-[#f0f0f0]'} rounded-[15px] p-3 shadow-[0px_0px_25px_rgba(0,0,0,0.07)] flex flex-col`}
                                         style={{ left }}
@@ -660,17 +684,41 @@ export default function ProBuddyProfilePageFigma() {
                         {/* Navigation Arrows */}
                         <div className="absolute top-[257px] w-full flex justify-center">
                             <div className="relative w-[57px] h-[24px]">
-                                <button 
+                                <button
                                     onClick={prevReview}
-                                    className="absolute left-[-15.75px] top-0 w-[26.25px] h-[24px] bg-[#EDEDED] rounded-[3px] flex items-center justify-center"
+                                    className="absolute left-[-15.75px] top-0 w-[27px] h-[24px] flex items-center justify-center transition-opacity"
                                 >
-                                    <ChevronLeft className="w-3 h-3 text-[#0E1629]" />
+                                    <svg width="27" height="24" viewBox="0 0 27 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M23.6285 2.63465C23.444 1.13037 22.1664 0 20.6509 0H3C1.34315 0 5.72205e-06 1.34315 5.72205e-06 3V21C5.72205e-06 22.6569 1.34315 24 3.00001 24H22.8594C24.6612 24 26.0565 22.423 25.8371 20.6346L23.6285 2.63465Z" fill="#EDEDED" />
+                                        <g clip-path="url(#clip0_2000_3301_ss)">
+                                            <path d="M16.625 11.7502H9.625" stroke="#0E1629" stroke-width="0.5625" stroke-linecap="round" stroke-linejoin="round" />
+                                            <path d="M11.625 13.7502L9.625 11.7502" stroke="#0E1629" stroke-width="0.5625" stroke-linecap="round" stroke-linejoin="round" />
+                                            <path d="M11.625 9.75L9.625 11.75" stroke="#0E1629" stroke-width="0.5625" stroke-linecap="round" stroke-linejoin="round" />
+                                        </g>
+                                        <defs>
+                                            <clipPath id="clip0_2000_3301_ss">
+                                                <rect width="12" height="12" fill="white" transform="matrix(-1 0 0 1 19.125 6)" />
+                                            </clipPath>
+                                        </defs>
+                                    </svg>
                                 </button>
-                                <button 
+                                <button
                                     onClick={nextReview}
-                                    className="absolute left-[15px] top-0 w-[26.25px] h-[24px] bg-[#EDEDED] rounded-[3px] flex items-center justify-center"
+                                    className="absolute left-[15px] top-0 w-[27px] h-[24px] flex items-center justify-center transition-opacity"
                                 >
-                                    <ChevronRight className="w-3 h-3 text-[#0E1629]" />
+                                    <svg width="27" height="24" viewBox="0 0 27 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M2.62146 2.63465C2.80603 1.13037 4.08356 0 5.59913 0H23.25C24.9069 0 26.25 1.34315 26.25 3V21C26.25 22.6569 24.9068 24 23.25 24H3.39059C1.58882 24 0.193492 22.423 0.412917 20.6346L2.62146 2.63465Z" fill="#EDEDED" />
+                                        <g clip-path="url(#clip0_2000_3293_ss)">
+                                            <path d="M9.625 11.7502H16.625" stroke="#0E1629" stroke-width="0.5625" stroke-linecap="round" stroke-linejoin="round" />
+                                            <path d="M14.625 13.7502L16.625 11.7502" stroke="#0E1629" stroke-width="0.5625" stroke-linecap="round" stroke-linejoin="round" />
+                                            <path d="M14.625 9.75L16.625 11.75" stroke="#0E1629" stroke-width="0.5625" stroke-linecap="round" stroke-linejoin="round" />
+                                        </g>
+                                        <defs>
+                                            <clipPath id="clip0_2000_3293_ss">
+                                                <rect width="12" height="12" fill="white" transform="translate(7.125 6)" />
+                                            </clipPath>
+                                        </defs>
+                                    </svg>
                                 </button>
                             </div>
                         </div>
@@ -679,7 +727,7 @@ export default function ProBuddyProfilePageFigma() {
                     {/* Desktop View */}
                     <div className="hidden md:block">
                         <p className="font-['Poppins'] font-bold text-[#0e1629] text-xl sm:text-2xl leading-normal text-center">
-                            Success Stories
+                            Reviews
                         </p>
 
                         <div className="mt-6 flex flex-col md:flex-row md:justify-between md:items-end gap-6 md:gap-10">
@@ -787,12 +835,12 @@ export default function ProBuddyProfilePageFigma() {
             <div className="h-8 md:h-10" />
 
             {/* Footer CTA */}
-            <div className="bg-white md:bg-transparent">
+            <div className="bg-white">
                 <div className="max-w-[1440px] mx-auto md:border-t md:border-[#E5E7EB]">
                     <div className="py-0 md:py-16 text-center">
                         {/* Mobile View */}
                         <div className="md:hidden bg-gradient-to-t from-[#2F43F2] to-[#1B278C] rounded-none h-[288px] relative overflow-hidden">
-                             <p className="absolute left-1/2 -translate-x-1/2 top-[60px] w-[309px] font-['Poppins'] font-semibold text-white text-[16px] leading-[1.25]">
+                            <p className="absolute left-1/2 -translate-x-1/2 top-[60px] w-[309px] font-['Poppins'] font-semibold text-white text-[16px] leading-[1.25]">
                                 Ready to Make Your College Decision?
                             </p>
                             <p className="absolute left-1/2 -translate-x-1/2 top-[100px] w-[316px] font-['Poppins'] font-normal text-[#F5F5F5] text-[14px] leading-[21px] text-center">
@@ -802,7 +850,7 @@ export default function ProBuddyProfilePageFigma() {
                                 Book An Appointment
                             </button>
                         </div>
-                        
+
                         {/* Desktop View */}
                         <div className="hidden md:block px-4">
                             <p className="font-['Poppins'] font-semibold text-[#0e1629] text-2xl leading-snug">
