@@ -14,13 +14,13 @@ export default function GrandMockTest() {
   const [isRegistered, setIsRegistered] = useState(false); 
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, userId } = useAuthStore();
 
   useEffect(() => {
     const checkRegistrationStatus = async () => {
-      if (isAuthenticated && user?.phoneNumber) {
+      if (isAuthenticated && userId) {
         try {
-          const response = await checkGrandMockTestRegistration(user.phoneNumber);
+          const response = await checkGrandMockTestRegistration(userId);
           
           if (response?.data?.hasRegistered === true) {
             setIsRegistered(true);
@@ -32,7 +32,7 @@ export default function GrandMockTest() {
     };
 
     checkRegistrationStatus();
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, userId]);
 
   const handleFaqToggle = (index: number) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
