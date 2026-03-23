@@ -92,9 +92,9 @@ export default function Header() {
   });
 
   const { data: grandMockStatus } = useQuery({
-    queryKey: ["grandMockStatus", user?.phoneNumber],
-    queryFn: () => checkGrandMockTestRegistration(user?.phoneNumber as string),
-    enabled: isUserLoaded && !!user?.phoneNumber && isAuthenticated && !isCounselor && isGrandMockTestPage,
+    queryKey: ["grandMockStatus", userId],
+    queryFn: () => checkGrandMockTestRegistration(userId as string),
+    enabled: isUserLoaded && !!userId && isAuthenticated && !isCounselor && isGrandMockTestPage,
     staleTime: 5000,
   });
 

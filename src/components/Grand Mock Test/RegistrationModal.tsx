@@ -14,7 +14,7 @@ interface RegistrationModalProps {
 
 export default function RegistrationModal({ isOpen, onClose, onSuccess }: RegistrationModalProps) {
   // Bring in Auth store to check login status
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, userId } = useAuthStore();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -100,13 +100,12 @@ export default function RegistrationModal({ isOpen, onClose, onSuccess }: Regist
     setIsSubmitting(true);
     
     try {
-      // Construct the payload matching the Postman screenshot
       const payload = {
-        userId: formData.mobile,     // Phone number used as userId
+        userId: isAuthenticated && userId ? userId : formData.mobile,
         fullName: formData.name, 
         phoneNumber: formData.mobile,
         email: formData.email,
-        city: formData.city          // Included just in case your API uses it eventually
+        city: formData.city
       };
 
       // Call the corresponding API based on authentication status
