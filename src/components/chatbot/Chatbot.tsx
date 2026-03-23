@@ -116,7 +116,7 @@ export default function Chatbot() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const [showTutorial, setShowTutorial] = useState(false);
-
+  const chatContainerRef = useRef<HTMLDivElement>(null); // Add this line
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<ChatInputRef>(null);
@@ -173,9 +173,19 @@ export default function Chatbot() {
   }, [isDropdownOpen]);
 
   // Auto scroll
-  useEffect(() => {
+  // Auto scroll (Smart Scroll)
+useEffect(() => {
+  const container = chatContainerRef.current;
+  if (!container) return;
+
+  // Check if the user is currently near the bottom of the chat (within 150px)
+  const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+
+  // Only auto-scroll if they are near the bottom
+  if (isNearBottom) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+  }
+}, [messages]); // Note: Removed 'loading' from the dependency array so it doesn't jump aggressively
 
   const handleSend = async (textOverride?: string) => {
     const messageToSend = textOverride || input.trim();
@@ -485,56 +495,44 @@ export default function Chatbot() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-                  {/* Card 1: Course Guidance */}
-                  <div
-                    onClick={() => handleSend("Course Guidance")}
-                    className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center cursor-pointer hover:bg-[#333333] hover:border-[#FF660F] transition-all duration-200"
-                  >
-                    <img
-                      src="/book.svg"
-                      alt="Courses"
-                      className="w-5 h-5 md:w-6 md:h-6 shrink-0"
-                    />
-                    <p className="text-[13px] md:text-[14px] font-medium text-white font-sans">
-                      Course Guidance
-                    </p>
-                  </div>
+                  {/* Card 1: Rank Predictor (was Course Guidance) */}
+<div
+  onClick={() => handleSend("Rank Predictor")}
+  className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center cursor-pointer hover:bg-[#333333] hover:border-[#FF660F] transition-all duration-200"
+>
+  <img src="/book.svg" alt="Rank Predictor" className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
+  <p className="text-[13px] md:text-[14px] font-medium text-white font-sans">
+    Rank Predictor
+  </p>
+</div>
 
-                  {/* Card 2: College Guidance */}
-                  <div
-                    onClick={() => handleSend("College Guidance")}
-                    className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center cursor-pointer hover:bg-[#333333] hover:border-[#FF660F] transition-all duration-200"
-                  >
-                    <img
-                      src="/cap.svg"
-                      alt="Colleges"
-                      className="w-5 h-5 md:w-6 md:h-6 shrink-0"
-                    />
-                    <p className="text-[13px] md:text-[14px] font-medium text-white font-sans">
-                      College Guidance
-                    </p>
-                  </div>
+{/* Card 2: MHT CET Rank Predictor (was College Guidance) */}
+<div
+  onClick={() => handleSend("MHT CET Rank Predictor")}
+  className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center cursor-pointer hover:bg-[#333333] hover:border-[#FF660F] transition-all duration-200"
+>
+  <img src="/cap.svg" alt="MHT CET" className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
+  <p className="text-[13px] md:text-[14px] font-medium text-white font-sans">
+    MHT CET Rank Predictor
+  </p>
+</div>
 
-                  {/* Card 3: Expert Counselling */}
-                  <div
-                    onClick={() => handleSend("Expert Counselling")}
-                    className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center cursor-pointer hover:bg-[#333333] hover:border-[#FF660F] transition-all duration-200"
-                  >
-                    <img
-                      src="/person.svg"
-                      alt="Counselors"
-                      className="w-5 h-5 md:w-6 md:h-6 shrink-0"
-                    />
-                    <p className="text-[13px] md:text-[14px] font-medium text-white font-sans">
-                      Expert Counselling
-                    </p>
-                  </div>
+{/* Card 3: Mock Exam (was Expert Counselling) */}
+<div
+  onClick={() => handleSend("Mock Exam")}
+  className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center cursor-pointer hover:bg-[#333333] hover:border-[#FF660F] transition-all duration-200"
+>
+  <img src="/person.svg" alt="Mock Exam" className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
+  <p className="text-[13px] md:text-[14px] font-medium text-white font-sans">
+    Mock Exam
+  </p>
+</div>
                 </div>
               </div>
             </div>
           ) : (
             <>
-              <div className="flex-1 overflow-y-auto bg-[#232323] mt-2 px-3 md:px-6 py-4 md:py-6 scrollbar-hide">
+              <div ref={chatContainerRef} className="flex-1 overflow-y-auto bg-[#232323] mt-2 px-3 md:px-6 py-4 md:py-6 scrollbar-hide">
                 <div className="max-w-4xl mx-auto space-y-3 md:space-y-4">
                   {isLoadingHistory ? (
                     <div className="flex items-center justify-center py-12">
@@ -763,9 +761,9 @@ export default function Chatbot() {
                     <div className="flex justify-center mb-2 md:mb-3">
                       <button
                         onClick={stopGenerating}
-                        className="flex items-center justify-center gap-2 px-3 md:px-4 py-2 text-xs md:text-sm font-medium text-gray-200 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-sm hover:bg-[#3b3b3b] transition-all font-sans"
+                        className="flex items-center justify-center gap-2 px-3 md:px-4 py-2 text-xs md:text-sm font-medium text-gray-200 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-sm hover:bg-[#3b3b3b] transition-all font-sans cursor-pointer"
                       >
-                        <Square className="h-3 w-3 md:h-4 md:w-4" />
+                        <Square className="h-3 w-3 md:h-4 md:w-4 " />
                         Stop generating
                       </button>
                     </div>
