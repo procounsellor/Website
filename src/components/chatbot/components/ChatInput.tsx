@@ -135,7 +135,6 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(function ChatInput(
             placeholder={isListening ? "Listening..." : "Ask me anything..."}
             className="w-full bg-transparent text-white text-sm md:text-base p-3 md:p-4 pr-20 md:pr-24 resize-none outline-none overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent min-h-[52px] md:min-h-[56px]"
             style={{ height: '56px' }}
-            disabled={loading}
           />
           <div className="absolute right-3 md:right-5 bottom-1/2 translate-y-1/2 flex gap-2 md:gap-3 items-center">
             {/* Mic button - Only show when no text input */}
