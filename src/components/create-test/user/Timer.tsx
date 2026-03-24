@@ -26,6 +26,8 @@ export function Timer({ time, initialSeconds, onSectionClick, onTimerEnd, onTick
     const [seconds, setSeconds] = useState(initialSecondsValue);
     const endTimeRef = useRef<number>(Date.now() + initialSecondsValue * 1000);
     const initializedRef = useRef(false);
+    const lastReportedSecondsRef = useRef(initialSecondsValue);
+    const hasEndedRef = useRef(false);
 
     // Reset timer only when initialSeconds prop actually changes
     useEffect(() => {
@@ -37,22 +39,36 @@ export function Timer({ time, initialSeconds, onSectionClick, onTimerEnd, onTick
         const newSeconds = initialSeconds !== undefined ? initialSeconds : (time ? parseInt(time) * 60 : 0);
         setSeconds(newSeconds);
         endTimeRef.current = Date.now() + newSeconds * 1000;
+        lastReportedSecondsRef.current = newSeconds;
+        hasEndedRef.current = false;
     }, [initialSeconds, time]);
 
     // Main timer effect using timestamp-based timing (survives browser throttling)
     useEffect(() => {
-        const interval = setInterval(() => {
+        const syncRemainingTime = () => {
             const now = Date.now();
-            const remaining = Math.max(0, Math.floor((endTimeRef.current - now) / 1000));
+            // Use ceil so small scheduler delays don't visually skip a second (e.g. 10 -> 8).
+            const remaining = Math.max(0, Math.ceil((endTimeRef.current - now) / 1000));
 
-            setSeconds(remaining);
-            onTickRef.current?.(remaining);
+            if (remaining !== lastReportedSecondsRef.current) {
+                lastReportedSecondsRef.current = remaining;
+                setSeconds(remaining);
+                onTickRef.current?.(remaining);
+            }
 
-            if (remaining <= 0) {
-                clearInterval(interval);
+            if (remaining <= 0 && !hasEndedRef.current) {
+                hasEndedRef.current = true;
                 onTimerEndRef.current?.();
             }
-        }, 1000); // Update every 1 second
+        };
+
+        syncRemainingTime();
+        const interval = setInterval(() => {
+            syncRemainingTime();
+            if (hasEndedRef.current) {
+                clearInterval(interval);
+            }
+        }, 200); // Poll frequently to avoid second-skips on slower devices
 
         return () => clearInterval(interval);
     }, []); // Empty deps - uses refs for callbacks
@@ -62,11 +78,16 @@ export function Timer({ time, initialSeconds, onSectionClick, onTimerEnd, onTick
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
                 const now = Date.now();
-                const remaining = Math.max(0, Math.floor((endTimeRef.current - now) / 1000));
-                setSeconds(remaining);
-                onTickRef.current?.(remaining);
+                const remaining = Math.max(0, Math.ceil((endTimeRef.current - now) / 1000));
 
-                if (remaining <= 0) {
+                if (remaining !== lastReportedSecondsRef.current) {
+                    lastReportedSecondsRef.current = remaining;
+                    setSeconds(remaining);
+                    onTickRef.current?.(remaining);
+                }
+
+                if (remaining <= 0 && !hasEndedRef.current) {
+                    hasEndedRef.current = true;
                     onTimerEndRef.current?.();
                 }
             }
