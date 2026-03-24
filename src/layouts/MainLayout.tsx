@@ -44,7 +44,7 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const PROMO_ROUTES = ['/promo', '/testSeries/pcsat']; 
+  const PROMO_ROUTES = ['/promo', '/testSeries/pcsat', '/testSeries/kurukshetra', '/testSeries/grand-mock-test']; 
   const isPromoPage = PROMO_ROUTES.includes(location.pathname);
   const isCollegeDetailsPage = location.pathname.includes('/college-details');
   const shouldHideBanner = location.pathname.includes('/test-info') || location.pathname.includes('/test-result') || location.pathname.includes('/t/');
