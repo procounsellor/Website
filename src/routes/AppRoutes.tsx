@@ -44,6 +44,7 @@ import JEECollegePredictor from '@/pages/JEECollegePredictor';
 import MHTCETCollegePredictor from '@/pages/MHTCETCollegePredictor';
 import KurukshetraTestSeries from '@/pages/KurukshetraTestSeries';
 import GrandMockTest from '@/pages/GrandMockTest';
+import CounsellorRoute from '@/components/auth/CounsellorRoute';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
