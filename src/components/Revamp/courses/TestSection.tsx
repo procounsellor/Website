@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { CourseType } from "@/types/course";
-import CourseCard from "./CourseCard";
+import TestGroupCard from "./TestGroupCard";
 import { SeeAllButton } from "../components/LeftRightButton";
 
 type CourseTab = "my-courses" | "trending" | "all-courses";
@@ -184,15 +184,20 @@ export default function TestSection() {
                 <div className="flex gap-[25px] justify-center mb-6 min-h-[451px] items-start">
                     {isLoadingCourses ? (
                         Array.from({ length: 4 }).map((_, idx) => (
-                            <CourseCard key={`skeleton-${idx}`} isBaught={false} isLoading={true} />
+                            <div
+                                key={`skeleton-${idx}`}
+                                className="w-[312px] h-[420px] rounded-2xl bg-[#F3F4F6] animate-pulse"
+                            />
                         ))
                     ) : visibleCourses.length > 0 ? (
-                        visibleCourses.map((course) => (
-                            <CourseCard
+                        visibleCourses.map((course, index) => (
+                            <TestGroupCard
                                 key={course.id}
-                                course={course}
-                                isBaught={course.isPurchased}
-                                isLoading={false}
+                                image={course.image}
+                                rating={course.rating ?? "0.0"}
+                                title={course.name}
+                                totalTests={2 + ((safeStartIndex + index) % 4)}
+                                totalStudents={24 + (safeStartIndex + index) * 3}
                             />
                         ))
                     ) : (
