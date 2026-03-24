@@ -48,6 +48,7 @@ import ProBuddiesRegistration from '@/pages/Revamp/ProBuddiesRegistration';
 import CounsellorListingRevamp from '@/pages/Revamp/counsellorListing';
 import CounsellorListingCards from '@/pages/Revamp/counsellorListingCards';
 import ProBuddiesDashboard from '@/pages/Revamp/ProBuddiesDashboard';
+import UserProfile from '@/pages/Revamp/UserProfile';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
@@ -156,6 +157,7 @@ export default function AppRoutes() {
                         {/* Protected Routes */}
                         <Route element={<ProtectedRoute />}>
                             <Route path='/dashboard-student' element={<StudentDashboardPage />} />
+                            <Route path='/profile/:id' element={<UserProfile/>}/>
                             <Route path='/live-sessions' element={<LiveSessionsPage />} />
                             <Route path='/wallet' element={<RechargeWallet />} />
                         </Route>
