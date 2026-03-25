@@ -7,6 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { QuestionTable } from "@/components/create-test/components/QuestionTable";
 import { useAuthStore } from "@/store/AuthStore";
 import { toast } from "sonner";
@@ -57,7 +58,7 @@ export function AddQuestion() {
     location.state?.testData || null
   );
   const [sections, setSections] = useState<Section[]>([]);
-  const [loadingTestData, setLoadingTestData] = useState<boolean>(false);
+  const queryClient = useQueryClient();
 
   const [questionType, setQuestionType] = useState<string>("all");
   const [category, setCategory] = useState<string>("all");
@@ -65,7 +66,7 @@ export function AddQuestion() {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [responseType, setResponseType] = useState<"single" | "multi">("single");
   const [questionText, setQuestionText] = useState<string>("");
-  const [questionImage, setQuestionImage] = useState<File | null>(null);
+  const [questionImages, setQuestionImages] = useState<File[]>([]);
   const [existingQuestionImageUrls, setExistingQuestionImageUrls] = useState<string[]>([]);
   const [options, setOptions] = useState([
     { id: "A", text: "", image: null as File | null, imageUrl: null as string | null },
@@ -81,6 +82,13 @@ export function AddQuestion() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ questionId: string; sectionName: string } | null>(null);
+  const [imageDeleteConfirm, setImageDeleteConfirm] = useState<{
+    type: 'question' | 'option';
+    url?: string;
+    optionId?: string;
+    index: number;
+    isDeleting: boolean;
+  } | null>(null);
   const [editingQuestion, setEditingQuestion] = useState<{ questionId: string; sectionName: string } | null>(null);
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
   const [previewQuestion, setPreviewQuestion] = useState<{
@@ -100,7 +108,6 @@ export function AddQuestion() {
         if (blob) {
           callback(blob);
         }
-        break;
       }
     }
   };
@@ -118,120 +125,173 @@ export function AddQuestion() {
     }
   };
 
-  // Fetch test data on mount if not available from navigation state
+  // Fetch test data with useQuery
+  const { data: fetchedTestData, isLoading: isLoadingTestData } = useQuery({
+    queryKey: ['testData', user?.phoneNumber, testSeriesId],
+    queryFn: async () => {
+      const token = localStorage.getItem("jwt");
+      if (!token) throw new Error("No token");
+      const headers = { Authorization: `Bearer ${token}`, Accept: "application/json" };
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/testSeries/getTestSeriesByIdForCounsellor?counsellorId=${user?.phoneNumber}&testSeriesId=${testSeriesId}`, { headers });
+      return res.json();
+    },
+    enabled: !!isAuthenticated && !!user?.phoneNumber && !!testSeriesId,
+  });
+
   useEffect(() => {
-    if (!isAuthenticated || !user?.phoneNumber || !testSeriesId) {
-      navigate("/");
+    if (fetchedTestData?.status && fetchedTestData?.data && !testData) {
+      setTestData(fetchedTestData.data);
+    }
+  }, [fetchedTestData, testData]);
+
+  // Fetch all questions for all sections with useQuery
+  const { data: fetchedQuestions } = useQuery({
+    queryKey: ['questions', user?.phoneNumber, testSeriesId],
+    queryFn: async () => {
+      const token = localStorage.getItem("jwt");
+      if (!token) throw new Error("No token");
+      const headers = { Authorization: `Bearer ${token}`, Accept: "application/json" };
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/testSeries/getAllQuestionsForCounsellorOfAllSection?counsellorId=${user?.phoneNumber}&testSeriesId=${testSeriesId}`, { headers });
+      return res.json();
+    },
+    enabled: !!testData && !!user?.phoneNumber && !!testSeriesId,
+  });
+
+  useEffect(() => {
+    if (!testData?.listOfSection) return;
+
+    if (fetchedQuestions?.status && fetchedQuestions?.data) {
+      const updatedSections = testData.listOfSection.map((masterSection: Section) => {
+        const fetchedSection = fetchedQuestions.data.find(
+          (s: Section) => s.sectionName === masterSection.sectionName
+        );
+        return {
+          ...masterSection,
+          ...fetchedSection,
+          totalQuestionsSupposedToBeAdded: masterSection.totalQuestionsSupposedToBeAdded,
+          sectionDurationInMinutes: masterSection.sectionDurationInMinutes,
+          pointsForCorrectAnswer: masterSection.pointsForCorrectAnswer ?? null,
+          negativeMarks: masterSection.negativeMarks ?? null,
+          totalQuestionsAdded: fetchedSection?.totalQuestions || 0,
+          questions: fetchedSection?.questions || [],
+        };
+      });
+      setSections(updatedSections);
+    } else {
+      // Initialize with testData sections if no API data yet, or if API failed
+      setSections(prev => prev.length > 0 ? prev : testData.listOfSection.map(s => ({
+        ...s,
+        questions: [],
+        totalQuestionsAdded: 0
+      })));
+    }
+
+    // Set first section as default category only if not already set
+    if (!selectedCategory && testData.listOfSection.length > 0) {
+      setSelectedCategory(testData.listOfSection[0].sectionName);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchedQuestions, testData]);
+
+  const handleDeleteExistingQuestionImage = async (_url: string, index: number) => {
+    if (!user?.phoneNumber || !testSeriesId || !editingQuestion) {
+      setExistingQuestionImageUrls(prev => prev.filter((_, i) => i !== index));
       return;
     }
-
-    // If test data not available from navigation state, fetch it
-    if (!testData) {
-      setLoadingTestData(true);
-      const myHeaders = new Headers();
-      const token = localStorage.getItem("jwt");
-      if (!token) {
-        navigate("/");
-        return;
-      }
-
-      myHeaders.append("Authorization", `Bearer ${token}`);
-      myHeaders.append("Accept", "application/json");
-
-      const requestOptions: RequestInit = {
-        method: "GET",
-        headers: myHeaders,
-        redirect: "follow",
-      };
-
-      fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/testSeries/getTestSeriesByIdForCounsellor?counsellorId=${user.phoneNumber}&testSeriesId=${testSeriesId}`,
-        requestOptions
-      )
-        .then((response) => response.json())
-        .then((result) => {
-          if (result.status && result.data) {
-            setTestData(result.data);
-          } else {
-            console.error("Failed to fetch test data:", result.message);
-          }
-        })
-        .catch((error) => {
-          console.error("Error fetching test data:", error);
-        })
-        .finally(() => {
-          setLoadingTestData(false);
-        });
-    }
-  }, [isAuthenticated, user, testSeriesId, navigate, testData]);
-
-  // Fetch all questions for all sections
-  useEffect(() => {
-    if (testData && user?.phoneNumber && testSeriesId) {
+    
+    try {
       const token = localStorage.getItem("jwt");
       if (!token) return;
 
       const myHeaders = new Headers();
       myHeaders.append("Authorization", `Bearer ${token}`);
+      myHeaders.append("Content-Type", "application/json");
       myHeaders.append("Accept", "application/json");
 
-      const requestOptions: RequestInit = {
-        method: "GET",
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/testSeries/questionImage`, {
+        method: "DELETE",
         headers: myHeaders,
-        redirect: "follow",
-      };
-
-      fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/testSeries/getAllQuestionsForCounsellorOfAllSection?counsellorId=${user.phoneNumber}&testSeriesId=${testSeriesId}`,
-        requestOptions
-      )
-        .then((response) => response.json())
-        .then((result) => {
-          if (result.status && result.data) {
-            // Merge fetched questions with testData sections
-            const updatedSections = testData.listOfSection.map((masterSection: Section) => {
-              const fetchedSection = result.data.find(
-                (s: Section) => s.sectionName === masterSection.sectionName
-              );
-              return {
-                ...masterSection,
-                ...fetchedSection, // Keep fetched data like questions
-                totalQuestionsSupposedToBeAdded: masterSection.totalQuestionsSupposedToBeAdded,
-                sectionDurationInMinutes: masterSection.sectionDurationInMinutes,
-                pointsForCorrectAnswer: masterSection.pointsForCorrectAnswer ?? null,
-                negativeMarks: masterSection.negativeMarks ?? null,
-                totalQuestionsAdded: fetchedSection?.totalQuestions || 0,
-                questions: fetchedSection?.questions || [],
-              };
-            });
-            setSections(updatedSections);
-          }
+        body: JSON.stringify({
+          counsellorId: user.phoneNumber,
+          testSeriesId,
+          sectionName: editingQuestion.sectionName,
+          questionId: editingQuestion.questionId,
+          imageIndex: index
         })
-        .catch((error) => {
-          console.error("Error fetching questions:", error);
-        });
-    }
-  }, [testData, user?.phoneNumber, testSeriesId]);
-
-  // Update sections when testData changes and set first section as default
-  useEffect(() => {
-    if (testData?.listOfSection) {
-      // Initialize with testData sections if no API data yet, or if API failed
-      // This serves as a fallback or initial state
-      if (sections.length === 0) {
-        setSections(testData.listOfSection.map(s => ({
-          ...s,
-          questions: [],
-          totalQuestionsAdded: 0
-        })));
+      });
+      
+      let result;
+      try {
+        result = await response.json();
+      } catch (e) {
+        result = {};
       }
 
-      // Set first section as default category only if not already set
-      if (!selectedCategory && testData.listOfSection.length > 0) {
-        setSelectedCategory(testData.listOfSection[0].sectionName);
+      if (response.status === 200 || result?.status === true) {
+        toast.success("Image deleted successfully");
+        setExistingQuestionImageUrls(prev => prev.filter((_, i) => i !== index));
+        // Force refetch to ensure parent tables reflect the change
+        queryClient.invalidateQueries({ queryKey: ['questions'] });
+      } else {
+        toast.error(result?.message || "Failed to delete image");
       }
+    } catch (error) {
+      console.error("Error deleting question image:", error);
+      toast.error("An error occurred while deleting the image");
     }
-  }, [testData]);
+  };
+
+  const handleDeleteExistingOptionImage = async (optionId: string, index: number) => {
+    if (!user?.phoneNumber || !testSeriesId || !editingQuestion) {
+      const newOptions = [...options];
+      newOptions[index].imageUrl = null;
+      setOptions(newOptions);
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem("jwt");
+      if (!token) return;
+
+      const myHeaders = new Headers();
+      myHeaders.append("Authorization", `Bearer ${token}`);
+      myHeaders.append("Content-Type", "application/json");
+      myHeaders.append("Accept", "application/json");
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/testSeries/optionImage`, {
+        method: "DELETE",
+        headers: myHeaders,
+        body: JSON.stringify({
+          counsellorId: user.phoneNumber,
+          testSeriesId,
+          sectionName: editingQuestion.sectionName,
+          questionId: editingQuestion.questionId,
+          optionId: optionId
+        })
+      });
+      
+      let result;
+      try {
+        result = await response.json();
+      } catch (e) {
+        result = {};
+      }
+
+      if (response.status === 200 || result?.status === true) {
+        toast.success("Option image deleted successfully");
+        const newOptions = [...options];
+        newOptions[index].imageUrl = null;
+        setOptions(newOptions);
+        // Force refetch
+        queryClient.invalidateQueries({ queryKey: ['questions'] });
+      } else {
+        toast.error(result?.message || "Failed to delete option image");
+      }
+    } catch (error) {
+      console.error("Error deleting option image:", error);
+      toast.error("An error occurred while deleting the option image");
+    }
+  };
 
   const handleSubmitQuestion = async () => {
     if (!user?.phoneNumber || !testSeriesId || !selectedCategory || !questionText) {
@@ -310,8 +370,8 @@ export function AddQuestion() {
     const formdata = new FormData();
     formdata.append("request", JSON.stringify(requestData));
 
-    if (questionImage) {
-      formdata.append("questionImages", questionImage);
+    if (questionImages && questionImages.length > 0) {
+      questionImages.forEach((img) => formdata.append("questionImages", img));
     }
 
     options.forEach((opt) => {
@@ -324,14 +384,16 @@ export function AddQuestion() {
       formdata.append("solutionImage", solutionImage);
     }
 
-    console.group(isEditing ? "📤 updateQuestion payload" : "📤 addQuestion payload");
-    console.log("request JSON:", requestData);
-    console.log("questionImage file:", questionImage);
-    options.forEach((opt) => {
-      if (opt.image) console.log(`option${opt.id}Image file:`, opt.image);
-    });
-    console.log("solutionImage file:", solutionImage);
-    console.groupEnd();
+    if (import.meta.env.DEV) {
+      console.group(isEditing ? "📤 updateQuestion payload" : "📤 addQuestion payload");
+      console.log("request JSON:", requestData);
+      console.log("questionImages files:", questionImages);
+      options.forEach((opt) => {
+        if (opt.image) console.log(`option${opt.id}Image file:`, opt.image);
+      });
+      console.log("solutionImage file:", solutionImage);
+      console.groupEnd();
+    }
 
     const requestOptions: RequestInit = {
       method: "POST",
@@ -347,13 +409,15 @@ export function AddQuestion() {
 
       const response = await fetch(apiUrl, requestOptions);
       const result = await response.json();
-      console.log(result);
+      if (import.meta.env.DEV) {
+        console.log("API Response:", result);
+      }
 
       if (result.status && result.data) {
         setTestData(result.data);
 
         setQuestionText("");
-        setQuestionImage(null);
+        setQuestionImages([]);
         setExistingQuestionImageUrls([]);
         setSolution("");
         setSolutionImage(null);
@@ -368,7 +432,8 @@ export function AddQuestion() {
         setCorrectOptions([]);
         setEditingQuestion(null);
 
-        console.log(isEditing ? "Question updated successfully" : "Question added successfully");
+        toast.success(isEditing ? "Question updated successfully" : "Question added successfully");
+        queryClient.invalidateQueries({ queryKey: ['questions'] });
       } else {
         console.error("Failed to add question:", result.message);
       }
@@ -420,7 +485,7 @@ export function AddQuestion() {
 
         // Set existing question images
         setExistingQuestionImageUrls(question.questionImageUrls || []);
-        setQuestionImage(null);
+        setQuestionImages([]);
 
         // Set options with image URLs
         if (question.options && question.options.length > 0) {
@@ -533,35 +598,8 @@ export function AddQuestion() {
         toast.success("Question deleted successfully!");
         setTestData(result.data);
 
-        // Refetch questions to update the list smoothly
-        const refetchHeaders = new Headers();
-        refetchHeaders.append("Authorization", `Bearer ${token}`);
-        refetchHeaders.append("Accept", "application/json");
-
-        fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/testSeries/getAllQuestionsForCounsellorOfAllSection?counsellorId=${counsellorId}&testSeriesId=${testSeriesId}`,
-          { method: "GET", headers: refetchHeaders }
-        )
-          .then((res) => res.json())
-          .then((res) => {
-            if (res.status && res.data) {
-              const updatedSections = res.data.map((section: Section) => {
-                const matchingSection = testData?.listOfSection?.find(
-                  (s) => s.sectionName === section.sectionName
-                );
-                return {
-                  ...section,
-                  totalQuestionsSupposedToBeAdded: matchingSection?.totalQuestionsSupposedToBeAdded,
-                  sectionDurationInMinutes: matchingSection?.sectionDurationInMinutes,
-                  pointsForCorrectAnswer: matchingSection?.pointsForCorrectAnswer ?? null,
-                  negativeMarks: matchingSection?.negativeMarks ?? null,
-                  totalQuestionsAdded: section.totalQuestions || 0,
-                };
-              });
-              setSections(updatedSections);
-            }
-          })
-          .finally(() => setIsDeleting(false));
+        // Refetch questions using React Query
+        queryClient.invalidateQueries({ queryKey: ['questions'] });
       } else {
         toast.error(result.message || "Failed to delete question");
         setIsDeleting(false);
@@ -667,7 +705,7 @@ export function AddQuestion() {
     }
   };
 
-  if (loadingTestData) {
+  if (isLoadingTestData && !testData) {
     return (
       <div className="pt-28 pb-8 max-w-7xl min-h-screen mx-auto flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -749,7 +787,7 @@ export function AddQuestion() {
                   onChange={(e) => setQuestionText(e.target.value)}
                   onPaste={(e) => {
                     // Try to handle image paste first
-                    handleImagePaste(e, (file) => setQuestionImage(file));
+                    handleImagePaste(e, (file) => setQuestionImages(prev => [...prev, file]));
 
                     // If no image, handle text paste
                     if (!e.defaultPrevented) {
@@ -773,7 +811,7 @@ export function AddQuestion() {
                   className="w-full min-h-[100px] resize-none text-base placeholder:text-gray-400 outline-none"
                 />
                 {/* Show existing images from API */}
-                {existingQuestionImageUrls.length > 0 && !questionImage && (
+                {existingQuestionImageUrls.length > 0 && (
                   <div className="mt-3 mb-2 flex flex-wrap gap-2">
                     {existingQuestionImageUrls.map((url, index) => (
                       <div key={index} className="max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
@@ -783,8 +821,10 @@ export function AddQuestion() {
                           className="max-w-full h-auto max-h-[400px] object-contain"
                         />
                         <button
-                          onClick={() => {
-                            setExistingQuestionImageUrls(prev => prev.filter((_, i) => i !== index));
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setImageDeleteConfirm({ type: 'question', url, index, isDeleting: false });
                           }}
                           className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
                         >
@@ -795,22 +835,27 @@ export function AddQuestion() {
                   </div>
                 )}
                 {/* Show new uploaded image */}
-                {questionImage && (
-                  <div className="mt-3 mb-2 max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
-                    <img
-                      src={URL.createObjectURL(questionImage)}
-                      alt="Question"
-                      className="max-w-full h-auto max-h-[400px] object-contain"
-                    />
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setQuestionImage(null)
-                      }}
-                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
-                    >
-                      ×
-                    </button>
+                {questionImages.length > 0 && (
+                  <div className="mt-3 mb-2 flex flex-wrap gap-2">
+                    {questionImages.map((img, index) => (
+                      <div key={index} className="max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
+                        <img
+                          src={URL.createObjectURL(img)}
+                          alt={`New Question ${index + 1}`}
+                          className="max-w-full h-auto max-h-[400px] object-contain"
+                        />
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setQuestionImages(prev => prev.filter((_, i) => i !== index));
+                          }}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
                 <label htmlFor="question-image" className="absolute bottom-3 right-3 text-gray-400 hover:text-gray-600 cursor-pointer">
@@ -819,10 +864,12 @@ export function AddQuestion() {
                     id="question-image"
                     type="file"
                     accept="image/*"
+                    multiple
                     className="hidden"
                     onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setQuestionImage(e.target.files[0]);
+                      if (e.target.files) {
+                        const newFiles = Array.from(e.target.files);
+                        setQuestionImages(prev => [...prev, ...newFiles]);
                       }
                     }}
                   />
@@ -1012,7 +1059,7 @@ export function AddQuestion() {
                       {(option.imageUrl || option.image) && (
                         <div className="mt-3 mb-2 flex flex-wrap gap-2">
                           {/* Show existing image from API */}
-                          {option.imageUrl && (
+                          {option.imageUrl && !option.image && (
                             <div className="max-w-full h-auto rounded-2xl border border-[#E8EAED] bg-[#F9FAFB] p-2 relative">
                               <img
                                 src={option.imageUrl}
@@ -1020,10 +1067,10 @@ export function AddQuestion() {
                                 className="max-w-full h-auto max-h-[300px] object-contain"
                               />
                               <button
-                                onClick={() => {
-                                  const newOptions = [...options];
-                                  newOptions[index].imageUrl = null;
-                                  setOptions(newOptions);
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setImageDeleteConfirm({ type: 'option', optionId: option.id, index, isDeleting: false });
                                 }}
                                 className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 hover:cursor-pointer"
                               >
@@ -1180,7 +1227,7 @@ export function AddQuestion() {
                   onClick={() => {
                     setEditingQuestion(null);
                     setQuestionText("");
-                    setQuestionImage(null);
+                    setQuestionImages([]);
                     setExistingQuestionImageUrls([]);
                     setSolution("");
                     setSolutionImage(null);
@@ -1418,6 +1465,45 @@ export function AddQuestion() {
               >
                 {isDeleting && <Loader2 className="w-4 h-4 animate-spin" />}
                 {isDeleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Delete Confirmation Modal */}
+      {imageDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
+            <h2 className="text-xl font-semibold text-(--text-app-primary) mb-4">
+              Delete Image
+            </h2>
+            <p className="text-(--text-muted) mb-6">
+              Are you sure you want to delete this image? This action will immediately remove it from the server and cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setImageDeleteConfirm(null)}
+                disabled={imageDeleteConfirm.isDeleting}
+                className="px-4 py-2 rounded-lg border border-[#E9EBEC] text-(--text-app-primary) hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setImageDeleteConfirm(prev => prev ? { ...prev, isDeleting: true } : null);
+                  if (imageDeleteConfirm.type === 'question') {
+                    await handleDeleteExistingQuestionImage(imageDeleteConfirm.url!, imageDeleteConfirm.index);
+                  } else {
+                    await handleDeleteExistingOptionImage(imageDeleteConfirm.optionId!, imageDeleteConfirm.index);
+                  }
+                  setImageDeleteConfirm(null);
+                }}
+                disabled={imageDeleteConfirm.isDeleting}
+                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50"
+              >
+                {imageDeleteConfirm.isDeleting && <Loader2 className="w-4 h-4 animate-spin" />}
+                {imageDeleteConfirm.isDeleting ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>
