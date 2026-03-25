@@ -1,16 +1,66 @@
 import { useState, useRef } from "react";
-import type { DragEvent, ChangeEvent } from "react";
+import type { DragEvent, ChangeEvent, FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { useAuthStore } from "@/store/AuthStore";
+import { registerProBuddy, uploadProBuddyPhoto } from "@/api/proBuddy";
+
+const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 export default function ProBuddiesRegistration() {
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
+  
+  const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [formData, setFormData] = useState({
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    email: user?.email || "",
+    phoneNumber: user?.phoneNumber || "",
+    location: "",
+    institution: "",
+    degree: "",
+    course: "",
+    years: "",
+    specialization: "",
+    subHeading: "",
+    aboutMe: "",
+    whyConnect: "",
+    languagesKnow: "Hindi, English",
+    workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    officeStartTime: "09:00",
+    officeEndTime: "18:00",
+    messFood: "",
+    attendance: "",
+    campusVibe: "",
+    facultyQuality: ""
+  });
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const toggleDay = (day: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      workingDays: prev.workingDays.includes(day)
+        ? prev.workingDays.filter(d => d !== day)
+        : [...prev.workingDays, day]
+    }));
+  };
 
   const handleFile = (file: File) => {
     if (file && (file.type === "image/jpeg" || file.type === "image/png")) {
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
+      setSelectedImage(file);
     } else {
-      alert("Please upload a valid PNG or JPEG image.");
+      toast.error("Please upload a valid PNG or JPEG image.");
     }
   };
 
@@ -34,13 +84,72 @@ export default function ProBuddiesRegistration() {
   const removeImage = (e: React.MouseEvent) => {
     e.stopPropagation();
     setPreviewUrl(null);
+    setSelectedImage(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.firstName || !formData.lastName || !formData.location) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
+    const [city = "", state = ""] = formData.location.split(",").map(s => s.trim());
+    
+    const payload = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      phoneNumber: formData.phoneNumber,
+      email: formData.email,
+      collegeName: formData.institution,
+      currentYear: formData.years,
+      course: `${formData.degree} ${formData.course}`.trim(),
+      city: city || formData.location,
+      state: state || formData.location,
+      whoShouldConnect: formData.whyConnect,
+      aboutMe: {
+        heading: formData.specialization,
+        subHeading: formData.subHeading || "ProBuddy",
+        aboutMe: formData.aboutMe
+      },
+      offerings: {
+        "Mess Food": Number(formData.messFood) || 5,
+        "Attendance": Number(formData.attendance) || 5,
+        "Campus Vibe": Number(formData.campusVibe) || 5,
+        "Faculty Quality": Number(formData.facultyQuality) || 5
+      },
+      languagesKnow: formData.languagesKnow.split(",").map(l => l.trim()),
+      workingDays: formData.workingDays,
+      officeStartTime: formData.officeStartTime,
+      officeEndTime: formData.officeEndTime
+    };
+
+    try {
+      setLoading(true);
+      
+      const regResponse = await registerProBuddy(payload);
+      const newBuddyId = regResponse.id || regResponse.proBuddyId || regResponse.counsellorId; 
+      
+      if (selectedImage && newBuddyId) {
+        await uploadProBuddyPhoto(String(newBuddyId), selectedImage);
+      }
+
+      toast.success("Registration completed successfully!");
+      navigate("/pro-buddies/dashboard");
+    } catch (error: any) {
+      console.error("Signup error:", error);
+      toast.error(error.message || "Failed to register. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="w-full min-h-screen bg-[#C6DDF040] pb-20 flex flex-col items-center gap-[24px]">
+    <form onSubmit={handleSubmit} className="w-full min-h-screen bg-[#C6DDF040] pb-20 flex flex-col items-center gap-[24px]">
 
       <div className="w-[1200px] h-auto bg-white rounded-[8px] mt-[40px] p-[24px] box-border">
         
@@ -68,6 +177,9 @@ export default function ProBuddiesRegistration() {
             <input 
               type="text" 
               id="firstName"
+              value={formData.firstName}
+              onChange={handleInputChange}
+              required
               placeholder="Enter your First Name as per Aadhar"
               className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
@@ -85,7 +197,53 @@ export default function ProBuddiesRegistration() {
             <input 
               type="text" 
               id="lastName"
+              value={formData.lastName}
+              onChange={handleInputChange}
+              required
               placeholder="Enter your Last Name as per Aadhar"
+              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
+              style={{ fontFamily: 'Poppins' }}
+            />
+          </div>
+        </div>
+
+        {/* Missing Email & Phone Added Here Using Original Styling */}
+        <div className="flex gap-[120px] mb-[12px]">
+          <div className="flex flex-col gap-[14px] w-[510px] h-[68px]">
+            <label 
+              htmlFor="email" 
+              className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
+              style={{ fontFamily: 'Poppins' }}
+            >
+              Email*
+            </label>
+            <input 
+              type="email" 
+              id="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+              placeholder="Enter your email address"
+              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
+              style={{ fontFamily: 'Poppins' }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-[14px] w-[510px] h-[68px]">
+            <label 
+              htmlFor="phoneNumber" 
+              className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
+              style={{ fontFamily: 'Poppins' }}
+            >
+              Phone Number*
+            </label>
+            <input 
+              type="text" 
+              id="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleInputChange}
+              required
+              placeholder="Enter your phone number"
               className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
@@ -160,6 +318,9 @@ export default function ProBuddiesRegistration() {
           <input 
             type="text" 
             id="location"
+            value={formData.location}
+            onChange={handleInputChange}
+            required
             placeholder="e.g. Delhi, Mumbai"
             className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
             style={{ fontFamily: 'Poppins' }}
@@ -194,6 +355,8 @@ export default function ProBuddiesRegistration() {
             <input 
               type="text" 
               id="institution"
+              value={formData.institution}
+              onChange={handleInputChange}
               placeholder="e.g., IIT Delhi"
               className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
@@ -211,6 +374,8 @@ export default function ProBuddiesRegistration() {
             <input 
               type="text" 
               id="degree"
+              value={formData.degree}
+              onChange={handleInputChange}
               placeholder="e.g., B.Tech"
               className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
@@ -230,6 +395,8 @@ export default function ProBuddiesRegistration() {
             <input 
               type="text" 
               id="course"
+              value={formData.course}
+              onChange={handleInputChange}
               placeholder="e.g., Computer Science Engineering"
               className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
@@ -247,7 +414,8 @@ export default function ProBuddiesRegistration() {
             <div className="relative w-full">
               <select 
                 id="years"
-                defaultValue=""
+                value={formData.years}
+                onChange={handleInputChange}
                 className="appearance-none w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] bg-white cursor-pointer"
                 style={{ fontFamily: 'Poppins' }}
               >
@@ -294,7 +462,29 @@ export default function ProBuddiesRegistration() {
           <input 
             type="text" 
             id="specialization"
+            value={formData.specialization}
+            onChange={handleInputChange}
             placeholder="e.g., Career Transition strategy"
+            className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
+            style={{ fontFamily: 'Poppins' }}
+          />
+        </div>
+
+        {/* Missing Sub-Heading Added Here Using Original Styling */}
+        <div className="flex flex-col gap-[14px] w-full">
+          <label 
+            htmlFor="subHeading" 
+            className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
+            style={{ fontFamily: 'Poppins' }}
+          >
+            Profile Sub-heading
+          </label>
+          <input 
+            type="text" 
+            id="subHeading"
+            value={formData.subHeading}
+            onChange={handleInputChange}
+            placeholder="e.g., B.Tech Senior at IIT"
             className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
             style={{ fontFamily: 'Poppins' }}
           />
@@ -310,6 +500,8 @@ export default function ProBuddiesRegistration() {
           </label>
           <textarea 
             id="aboutMe"
+            value={formData.aboutMe}
+            onChange={handleInputChange}
             placeholder="Tell us about yourself, your achievements and what you are passionate about.."
             className="w-full h-[120px] p-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px] resize-none"
             style={{ fontFamily: 'Poppins' }}
@@ -326,6 +518,8 @@ export default function ProBuddiesRegistration() {
           </label>
           <textarea 
             id="whyConnect"
+            value={formData.whyConnect}
+            onChange={handleInputChange}
             placeholder="Describe what you offer..."
             className="w-full h-[120px] p-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px] resize-none"
             style={{ fontFamily: 'Poppins' }}
@@ -334,6 +528,7 @@ export default function ProBuddiesRegistration() {
 
       </div>
 
+      {/* REPLACED SECTION 4 WITH MISSING AVAILABILITY/LANGUAGES FIELDS */}
       <div className="w-[1200px] h-auto bg-white rounded-[8px] p-[24px] box-border flex flex-col gap-[24px]">
         
         <div className="flex items-center gap-[10px]">
@@ -344,73 +539,89 @@ export default function ProBuddiesRegistration() {
             className="text-[#0E1629] text-[20px] font-semibold leading-[100%]"
             style={{ fontFamily: 'Poppins' }}
           >
-            How Can You Help
+            Availability & Languages
           </h2>
         </div>
 
-        <div className="flex gap-[120px]">
-          <div className="flex flex-col gap-[14px] w-[510px]">
-            <label 
-              htmlFor="option1" 
-              className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
-              style={{ fontFamily: 'Poppins' }}
-            >
-              Option 1
-            </label>
-            <textarea 
-              id="option1"
-              placeholder="Lorem ipsum"
-              className="w-full h-[68px] p-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px] resize-none"
-              style={{ fontFamily: 'Poppins' }}
-            />
-          </div>
+        <div className="flex flex-col gap-[14px] w-full">
+          <label 
+            htmlFor="languagesKnow" 
+            className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
+            style={{ fontFamily: 'Poppins' }}
+          >
+            Languages Known (Comma separated)
+          </label>
+          <input 
+            type="text" 
+            id="languagesKnow"
+            value={formData.languagesKnow}
+            onChange={handleInputChange}
+            placeholder="e.g., Hindi, English"
+            className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
+            style={{ fontFamily: 'Poppins' }}
+          />
+        </div>
 
-          <div className="flex flex-col gap-[14px] w-[510px]">
-            <label 
-              htmlFor="option2" 
-              className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
-              style={{ fontFamily: 'Poppins' }}
-            >
-              Option 2
-            </label>
-            <textarea 
-              id="option2"
-              placeholder="Lorem ipsum"
-              className="w-full h-[68px] p-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px] resize-none"
-              style={{ fontFamily: 'Poppins' }}
-            />
+        <div className="flex flex-col gap-[14px] w-full">
+          <label 
+            className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
+            style={{ fontFamily: 'Poppins' }}
+          >
+            Working Days
+          </label>
+          <div className="flex gap-[16px] flex-wrap">
+            {DAYS_OF_WEEK.map((day) => (
+              <label key={day} className="flex items-center gap-[8px] cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={formData.workingDays.includes(day)} 
+                  onChange={() => toggleDay(day)} 
+                  className="w-[16px] h-[16px] accent-[#2F43F2] cursor-pointer" 
+                />
+                <span 
+                  className="text-[14px] text-[#0E1629]"
+                  style={{ fontFamily: 'Poppins' }}
+                >
+                  {day}
+                </span>
+              </label>
+            ))}
           </div>
         </div>
 
         <div className="flex gap-[120px]">
           <div className="flex flex-col gap-[14px] w-[510px]">
             <label 
-              htmlFor="option3" 
+              htmlFor="officeStartTime" 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
               style={{ fontFamily: 'Poppins' }}
             >
-              Option 3
+              Available From (Time)
             </label>
-            <textarea 
-              id="option3"
-              placeholder="Lorem ipsum"
-              className="w-full h-[68px] p-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px] resize-none"
+            <input 
+              type="time" 
+              id="officeStartTime"
+              value={formData.officeStartTime}
+              onChange={handleInputChange}
+              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
           </div>
 
           <div className="flex flex-col gap-[14px] w-[510px]">
             <label 
-              htmlFor="option4" 
+              htmlFor="officeEndTime" 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
               style={{ fontFamily: 'Poppins' }}
             >
-              Option 4
+              Available Until (Time)
             </label>
-            <textarea 
-              id="option4"
-              placeholder="Lorem ipsum"
-              className="w-full h-[68px] p-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px] resize-none"
+            <input 
+              type="time" 
+              id="officeEndTime"
+              value={formData.officeEndTime}
+              onChange={handleInputChange}
+              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
           </div>
@@ -444,6 +655,8 @@ export default function ProBuddiesRegistration() {
             <input 
               type="text" 
               id="messFood"
+              value={formData.messFood}
+              onChange={handleInputChange}
               placeholder="Start writing"
               className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
@@ -461,6 +674,8 @@ export default function ProBuddiesRegistration() {
             <input 
               type="text" 
               id="attendance"
+              value={formData.attendance}
+              onChange={handleInputChange}
               placeholder="Start writing"
               className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
@@ -480,6 +695,8 @@ export default function ProBuddiesRegistration() {
             <input 
               type="text" 
               id="campusVibe"
+              value={formData.campusVibe}
+              onChange={handleInputChange}
               placeholder="Start writing"
               className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
@@ -496,7 +713,9 @@ export default function ProBuddiesRegistration() {
             </label>
             <input 
               type="text" 
-              id="campusVibe"
+              id="facultyQuality"
+              value={formData.facultyQuality}
+              onChange={handleInputChange}
               placeholder="Start writing"
               className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
@@ -509,6 +728,8 @@ export default function ProBuddiesRegistration() {
       <div className="w-[1200px] flex justify-end gap-[16px]">
         <button 
           type="button"
+          onClick={() => navigate(-1)}
+          disabled={loading}
           className="w-[90px] h-[44px] rounded-[8px] border border-[#2F43F2] cursor-pointer bg-transparent py-[10px] px-[16px] flex items-center justify-center transition-colors hover:bg-gray-50"
         >
           <span 
@@ -521,17 +742,18 @@ export default function ProBuddiesRegistration() {
 
         <button 
           type="submit"
-          className="w-[214px] h-[44px] rounded-[8px] border border-[#2F43F2] bg-[#2F43F2] cursor-pointer py-[10px] px-[16px] flex items-center justify-center transition-opacity hover:opacity-90"
+          disabled={loading}
+          className="w-[214px] h-[44px] rounded-[8px] border border-[#2F43F2] bg-[#2F43F2] cursor-pointer py-[10px] px-[16px] flex items-center justify-center transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           <span 
             className="text-white text-[16px] font-medium leading-[100%] text-nowrap"
             style={{ fontFamily: 'Poppins' }}
           >
-            Complete Registration
+            {loading ? "Submitting..." : "Complete Registration"}
           </span>
         </button>
       </div>
 
-    </div>
+    </form>
   );
 }
