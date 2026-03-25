@@ -17,6 +17,8 @@ export default function RevampHeader() {
     const [activeTab, setActiveTab] = useState(1);
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const isDashboard = location.pathname === '/pro-buddies/dashboard';
+    const forceMinimal = isScrolled || isDashboard;
 
     useEffect(() => {
         const currentTab = tabs.find(tab => tab.path === location.pathname);
@@ -53,17 +55,16 @@ export default function RevampHeader() {
             initial={false}
             animate={{ 
                 height: isMobile 
-                    ? (isScrolled ? 56 : 98) 
-                    : (isScrolled ? 100 : 184) 
+                    ? (forceMinimal ? 56 : 98) 
+                    : (forceMinimal ? 100 : 184) 
             }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="sticky top-0 z-50 w-full bg-[#C6DDF0]/75 flex flex-col items-center relative border-b border-gray-100 backdrop-blur-md overflow-hidden"
         >
             
-
             <motion.div 
                 initial={false}
-                animate={{ marginTop: isScrolled ? "20px" : "24px" }}
+                animate={{ marginTop: forceMinimal ? "20px" : "24px" }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="hidden md:flex relative w-full max-w-[1320px] h-[60px] px-[60px] justify-between items-center z-10"
             >
@@ -76,7 +77,7 @@ export default function RevampHeader() {
                 </div>
 
                 <AnimatePresence>
-                    {!isScrolled && (
+                    {!forceMinimal && (
                         <motion.div 
                             initial={{ opacity: 0, y: -20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -124,7 +125,7 @@ export default function RevampHeader() {
             <motion.div 
                 initial={false}
                 animate={{ 
-                    top: isScrolled ? 24 : 108,
+                    top: forceMinimal ? 24 : 108,
                     left: "50%",
                     x: "-50%" 
                 }}
@@ -148,12 +149,11 @@ export default function RevampHeader() {
                 </svg>
             </motion.div>
 
-
             
             <div className="flex md:hidden w-full flex-col px-[12px] pt-[8px]">
                 
                 <AnimatePresence>
-                    {!isScrolled && (
+                    {!forceMinimal && (
                         <motion.div
                             initial={{ opacity: 0, height: 0, y: -10, marginBottom: 0 }}
                             animate={{ opacity: 1, height: '22px', y: 0, marginBottom: '12px' }}
