@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Plus, Edit, Trash2, Star, Users, Clock, FileText, Globe, GlobeLock, Pencil, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { getTestGroupById, getAllTestSeriesOfTestGroupForCounselor, publishUnpublishTestGroup, deleteTestSeries } from "@/api/testGroup";
 import type { TestGroup, TestSeries } from "@/types/testGroup";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DeleteConfirmationModal } from "@/components/modals/DeleteConfirmationModal";
 
 interface Review {
@@ -29,53 +30,38 @@ interface AssociatedCourse {
 export function TestGroupDetails() {
   const navigate = useNavigate();
   const { testGroupId } = useParams();
-  const [testGroup, setTestGroup] = useState<TestGroup | null>(null);
-  const [testSeriesList, setTestSeriesList] = useState<TestSeries[]>([]);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [associatedCourse, setAssociatedCourse] = useState<AssociatedCourse | null>(null);
-  const [loading, setLoading] = useState(true);
   const counsellorId = localStorage.getItem("phone") || "";
+  const queryClient = useQueryClient();
+  
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string; name: string }>({
     isOpen: false,
     id: "",
     name: "",
   });
 
-  useEffect(() => {
-    if (testGroupId) {
-      fetchData();
-    }
-  }, [testGroupId]);
+  const {
+    data: groupResponse,
+    isLoading: isLoadingGroup,
+  } = useQuery({
+    queryKey: ['testGroup', counsellorId, testGroupId],
+    queryFn: () => getTestGroupById(counsellorId, testGroupId!),
+    enabled: !!counsellorId && !!testGroupId,
+  });
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      // Fetch test group details
-      const groupResponse = await getTestGroupById(counsellorId, testGroupId!);
-      if (groupResponse.status && groupResponse.data?.testGroup) {
-        setTestGroup(groupResponse.data.testGroup);
-        // Store reviews from API response
-        if (groupResponse.data.reviews) {
-          setReviews(groupResponse.data.reviews);
-        }
-        // Store associated course if available
-        if (groupResponse.data.associatedCourse) {
-          setAssociatedCourse(groupResponse.data.associatedCourse);
-        }
-      }
+  const {
+    data: seriesResponse,
+    isLoading: isLoadingSeries,
+  } = useQuery({
+    queryKey: ['testSeriesList', counsellorId, testGroupId],
+    queryFn: () => getAllTestSeriesOfTestGroupForCounselor(counsellorId, testGroupId!),
+    enabled: !!counsellorId && !!testGroupId,
+  });
 
-      // Fetch test series list
-      const seriesResponse = await getAllTestSeriesOfTestGroupForCounselor(counsellorId, testGroupId!);
-      if (seriesResponse.status && seriesResponse.data) {
-        setTestSeriesList(seriesResponse.data);
-      }
-    } catch (error) {
-      toast.error("Failed to fetch data");
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = isLoadingGroup || isLoadingSeries;
+  const testGroup: TestGroup | null = groupResponse?.data?.testGroup || null;
+  const reviews: Review[] = groupResponse?.data?.reviews || [];
+  const associatedCourse: AssociatedCourse | null = groupResponse?.data?.associatedCourse || null;
+  const testSeriesList: TestSeries[] = seriesResponse?.data || [];
 
   const handlePublishToggle = async () => {
     if (!testGroup) return;
@@ -87,7 +73,7 @@ export function TestGroupDetails() {
       );
       if (response.status) {
         toast.success(testGroup.published ? "Test group unpublished" : "Test group published");
-        fetchData();
+        queryClient.invalidateQueries({ queryKey: ['testGroup', counsellorId, testGroupId] });
       }
     } catch (error) {
       toast.error("Failed to update publish status");
@@ -99,7 +85,8 @@ export function TestGroupDetails() {
     try {
       await deleteTestSeries(counsellorId, deleteModal.id);
       toast.success("Test series deleted successfully");
-      fetchData();
+      queryClient.invalidateQueries({ queryKey: ['testSeriesList', counsellorId, testGroupId] });
+      setDeleteModal({ isOpen: false, id: "", name: "" });
     } catch (error) {
       toast.error("Failed to delete test series");
       console.error(error);
