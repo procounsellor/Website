@@ -1,92 +1,23 @@
 import { useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuthStore } from "@/store/AuthStore";
+import { getUserAppointments } from "@/api/appointment";
+import { getUserReviews } from "@/api/review";
+import { getBoughtCourses, getBookmarkedCourses } from "@/api/course";
+import { getSubscribedCounsellors, getFavouriteCounsellors } from "@/api/counsellor";
+import { getUserBoughtTestGroups, getUserBookmarkedTestGroups } from "@/api/testGroup";
 import FancyCard from "@/components/Revamp/admissions/counsellor/counsellorCard";
 import CourseCard from "@/components/Revamp/courses/CourseCard";
 import TestGroupCard from "@/components/Revamp/courses/TestGroupCard";
+import ReviewCard from "@/components/Revamp/user-profile/ReviewCard";
+import OldTransactionsTab from "@/components/student-dashboard/TransactionsTab";
 import type { CourseType } from "@/types/course";
+import type { Transaction } from "@/types/user";
+import { Loader2 } from "lucide-react";
 
-const counsellorCards = [
-  {
-    counsellorId: "cslr-1",
-    name: "Rohan Sharma",
-    imageUrl: "/counsellor.png",
-    rating: 4.8,
-    experience: "6+ Years",
-    city: "Lucknow",
-    proCoins: 120,
-  },
-  {
-    counsellorId: "cslr-2",
-    name: "Priya Verma",
-    imageUrl: "/counsellor.png",
-    rating: 4.7,
-    experience: "5+ Years",
-    city: "Pune",
-    proCoins: 95,
-  },
-  {
-    counsellorId: "cslr-3",
-    name: "Kunal Mehta",
-    imageUrl: "/counsellor.png",
-    rating: 4.6,
-    experience: "4+ Years",
-    city: "Mumbai",
-    proCoins: 80,
-  },
-];
-
-const courseCards: CourseType[] = [
-  {
-    id: "course-1",
-    image: "/discover-courses.jpg",
-    name: "JEE Advanced Crash Course",
-    subject: "Engineering",
-    price: "₹2,999",
-    courseTimeHours: 12,
-    courseTimeMinutes: 0,
-  },
-  {
-    id: "course-2",
-    image: "/discover-courses.jpg",
-    name: "NEET Foundation Program",
-    subject: "Medical",
-    price: "₹3,499",
-    courseTimeHours: 15,
-    courseTimeMinutes: 30,
-  },
-  {
-    id: "course-3",
-    image: "/discover-courses.jpg",
-    name: "Boards + Entrance Strategy",
-    subject: "General",
-    price: "₹1,999",
-    courseTimeHours: 8,
-    courseTimeMinutes: 45,
-  },
-];
-
-const testCards = [
-  {
-    image: "/discover-exam.jpg",
-    rating: "4.8",
-    title: "JEE Mock Test Series",
-    totalTests: 25,
-    totalStudents: 1420,
-  },
-  {
-    image: "/discover-exam.jpg",
-    rating: "4.7",
-    title: "NEET Full Syllabus Tests",
-    totalTests: 20,
-    totalStudents: 1180,
-  },
-  {
-    image: "/discover-exam.jpg",
-    rating: "4.6",
-    title: "MHT-CET Practice Bundle",
-    totalTests: 18,
-    totalStudents: 940,
-  },
-];
+// Helper to format currency
+const formatCurrency = (amount: number) =>
+  new Intl.NumberFormat('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 
 const tabs = [
   { title: "My Info", id: 1 },
@@ -130,6 +61,11 @@ export default function UserTabs() {
 }
 
 function MyInfoTab() {
+  const { user } = useAuthStore();
+  const walletAmount = user?.walletAmount || 0;
+  const totalCredit = (user?.transactions || []).filter((t: Transaction) => t.type === 'credit').reduce((sum: number, t: Transaction) => sum + (t.amount || 0), 0);
+  const totalDebit = (user?.transactions || []).filter((t: Transaction) => t.type === 'debit').reduce((sum: number, t: Transaction) => sum + (t.amount || 0), 0);
+
   return (
     <div className="flex  flex-col items-start justify-center gap-6">
       <h1 className="text-(--text-main) text-[1rem] font-medium">
@@ -155,8 +91,7 @@ function MyInfoTab() {
       >
         <div className="flex items-start">
           <p className="flex items-start justify-start flex-col gap-1 text-(--text-muted) font-medium text-[1rem]">
-            Engineering
-            <span>Medical</span>
+            {user?.interestedCourse || 'Not specified'}
           </p>
         </div>
       </InfoCard>
@@ -188,8 +123,9 @@ function MyInfoTab() {
       >
         <div className="flex items-start">
           <p className="flex items-start justify-start flex-col gap-1 text-(--text-muted) font-medium text-[1rem]">
-            Uttar Pradesh
-            <span>Maharashtra</span>
+            {(user?.userInterestedStateOfCounsellors && user.userInterestedStateOfCounsellors.length > 0)
+              ? user.userInterestedStateOfCounsellors.map((state: string) => <span key={state}>{state}</span>)
+              : 'Not specified'}
           </p>
         </div>
       </InfoCard>
@@ -220,7 +156,7 @@ function MyInfoTab() {
         <div>
           <h1 className="flex text-[#28A745] text-[2.25rem] font-medium">
             {/* <img src="/coin.svg" alt="procoin_icon" className=""/> */}
-            {`₹2,345.00`}
+            {`₹${formatCurrency(walletAmount)}`}
           </h1>
           <div className="flex gap-15">
             <div className="flex items-center gap-3">
@@ -241,7 +177,7 @@ function MyInfoTab() {
                 />
               </svg>
               <p className="text-[#E30004] text-[1.25rem] font-medium">
-                -₹2100
+                -₹{formatCurrency(totalDebit)}
               </p>
             </div>
 
@@ -271,7 +207,7 @@ function MyInfoTab() {
                 />
               </svg>
               <p className="text-[#28A745] font-medium text-[1.25rem] font-montserrat">
-                +₹2300
+                +₹{formatCurrency(totalCredit)}
               </p>
             </div>
           </div>
@@ -310,6 +246,23 @@ const counsellor_tabs = [
 
 function CounsellorsTab() {
   const [active, setActive] = useState(1);
+  const { userId } = useAuthStore();
+  const token = localStorage.getItem('jwt');
+
+  const { data: subscribedCounsellors = [], isLoading: loadingSub } = useQuery({
+    queryKey: ['subscribedCounsellors', userId],
+    queryFn: () => getSubscribedCounsellors(userId!, token!),
+    enabled: !!userId && !!token,
+  });
+  const { data: favouriteCounsellors = [], isLoading: loadingFav } = useQuery({
+    queryKey: ['favouriteCounsellors', userId],
+    queryFn: () => getFavouriteCounsellors(userId!, token!),
+    enabled: !!userId && !!token,
+  });
+
+  const counsellorsToDisplay = active === 1 ? subscribedCounsellors : favouriteCounsellors;
+  const isLoading = active === 1 ? loadingSub : loadingFav;
+
   return (
     <div className="flex flex-col items-start">
       <div className="flex gap-1">
@@ -325,43 +278,36 @@ function CounsellorsTab() {
       </div>
 
       <div className="mt-6 flex flex-wrap gap-6">
-        {counsellorCards.map((card) => (
-          <FancyCard
-            key={card.counsellorId}
-            counsellorId={card.counsellorId}
-            name={card.name}
-            imageUrl={card.imageUrl}
-            rating={card.rating}
-            experience={card.experience}
-            city={card.city}
-            proCoins={card.proCoins}
-          />
-        ))}
+        {isLoading ? (
+          <div className="flex justify-center w-full py-10"><Loader2 className="w-8 h-8 animate-spin text-[#13097D]" /></div>
+        ) : counsellorsToDisplay.length > 0 ? (
+          counsellorsToDisplay.map((card: any) => (
+            <FancyCard
+              key={card.counsellorId}
+              counsellorId={card.counsellorId}
+              name={card.counsellorFullName || card.name || 'Counsellor'}
+              imageUrl={card.counsellorPhootoSmall || card.imageUrl || '/counsellor.png'}
+              rating={card.rating || 0}
+              experience={card.experience || ''}
+              city={card.city || ''}
+              proCoins={card.proCoins || 0}
+            />
+          ))
+        ) : (
+          <p className="text-(--text-muted)">No counsellors found.</p>
+        )}
       </div>
     </div>
   );
 }
 
-const transactions_tab = [
-  { title: "All", id: 1 },
-  { title: "Successful", id: 2 },
-  { title: "Failed", id: 3 },
-  { title: "Offline Payment", id: 4 },
-];
-
 function Transaction() {
-  const [active, setActive] = useState(1);
+  const { user } = useAuthStore();
   return (
-    <div className="flex gap-1">
-      {transactions_tab.map((tab) => (
-        <div
-          className={`hover:cursor-pointer px-4 flex  items-center py-2.5  rounded-3xl text-[1rem] ${active == tab.id ? "bg-[rgba(14,22,41,0.10)] text-(--text-main) font-normal" : "bg-none text-(--text-muted) font-normal "}`}
-          onClick={() => setActive(tab.id)}
-        >
-          {tab.title}
-        </div>
-      ))}
-    </div>
+    <OldTransactionsTab
+      transactions={user?.transactions || []}
+      offlineTransactions={user?.offlineTransactions || []}
+    />
   );
 }
 
@@ -372,6 +318,31 @@ const course_tabs = [
 
 function MyCourse() {
   const [active, setActive] = useState(1);
+  const { userId } = useAuthStore();
+
+  const { data: purchasedData, isLoading: loadingPurchased } = useQuery({
+    queryKey: ['boughtCourses', userId],
+    queryFn: () => getBoughtCourses(userId as string),
+    enabled: !!userId && active === 1,
+  });
+  const { data: bookmarkedData, isLoading: loadingBookmarked } = useQuery({
+    queryKey: ['bookmarkedCourses', userId],
+    queryFn: () => getBookmarkedCourses(userId as string),
+    enabled: !!userId && active === 2,
+  });
+
+  const currentData = active === 1 ? purchasedData : bookmarkedData;
+  const isLoading = active === 1 ? loadingPurchased : loadingBookmarked;
+  const courses: CourseType[] = (currentData?.data || []).map((c: any) => ({
+    id: c.courseId,
+    name: c.courseName,
+    subject: c.category,
+    price: `₹${c.coursePriceAfterDiscount}`,
+    image: c.courseThumbnailUrl,
+    courseTimeHours: c.courseTimeHours || 0,
+    courseTimeMinutes: c.courseTimeMinutes || 0,
+  }));
+
   return (
     <div className="flex flex-col items-start">
       <div className="flex gap-1">
@@ -387,26 +358,51 @@ function MyCourse() {
       </div>
 
       <div className="mt-6 flex flex-wrap gap-6">
-        {courseCards.map((course) => (
-          <CourseCard
-            key={course.id}
-            isBaught={active === 1}
-            isLoading={false}
-            course={course}
-          />
-        ))}
+        {isLoading ? (
+          <div className="flex justify-center w-full py-10"><Loader2 className="w-8 h-8 animate-spin text-[#13097D]" /></div>
+        ) : courses.length > 0 ? (
+          courses.map((course) => (
+            <CourseCard
+              key={course.id}
+              isBaught={active === 1}
+              isLoading={false}
+              course={course}
+            />
+          ))
+        ) : (
+          <p className="text-(--text-muted)">No courses found.</p>
+        )}
       </div>
     </div>
   );
 }
 
 function Reviews() {
+  const { userId } = useAuthStore();
+  const token = localStorage.getItem('jwt');
+
+  const { data: reviews = [], isLoading } = useQuery({
+    queryKey: ['userReviews', userId],
+    queryFn: () => getUserReviews(userId!, token!),
+    enabled: !!userId && !!token,
+  });
+
   return (
     <div>
       <h2 className="text-(--text-main) text-[1rem] font-medium mb-6">
         My Reviews
       </h2>
-      <p className="text-(--text-muted)">No reviews yet</p>
+      {isLoading ? (
+        <div className="flex justify-center py-10"><Loader2 className="w-8 h-8 animate-spin text-[#13097D]" /></div>
+      ) : reviews.length > 0 ? (
+        <div className="flex flex-col gap-4">
+          {reviews.map((review: any) => (
+            <ReviewCard key={review.reviewId} review={review} />
+          ))}
+        </div>
+      ) : (
+        <p className="text-(--text-muted)">No reviews yet</p>
+      )}
     </div>
   );
 }
@@ -418,7 +414,7 @@ const appointments_tabs = [
   { title: "Cancelled", id: 4 },
 ];
 
-type AppointmentStatus = "completed" | "cancelled" | "upcoming";
+type AppointmentStatus = "completed" | "cancelled" | "upcoming" | "booked" | "rescheduled";
 
 type AppointmentItem = {
   id: string;
@@ -427,60 +423,30 @@ type AppointmentItem = {
   dateLabel: string;
   timeLabel: string;
   status: AppointmentStatus;
+  photo?: string;
 };
 
-const appointmentCards: AppointmentItem[] = [
-  {
-    id: "appt-1",
-    doctorName: "Dr. Subhash Ghai",
-    sessionTitle: "Engineering Counselling Session",
-    dateLabel: "14 Jul, Monday",
-    timeLabel: "10:00-10:30 AM",
-    status: "upcoming",
-  },
-  {
-    id: "appt-2",
-    doctorName: "Dr. Meera Kapoor",
-    sessionTitle: "Medical Stream Guidance",
-    dateLabel: "08 Jul, Tuesday",
-    timeLabel: "02:30-03:00 PM",
-    status: "completed",
-  },
-  {
-    id: "appt-3",
-    doctorName: "Dr. Aditya Singh",
-    sessionTitle: "Career Planning Session",
-    dateLabel: "05 Jul, Saturday",
-    timeLabel: "12:00-12:30 PM",
-    status: "cancelled",
-  },
-  {
-    id: "appt-4",
-    doctorName: "Dr. Ritu Sharma",
-    sessionTitle: "College Preference Counselling",
-    dateLabel: "18 Jul, Friday",
-    timeLabel: "04:00-04:30 PM",
-    status: "upcoming",
-  },
-];
-
-const appointments_type = {
+const appointments_type: Record<string, string> = {
   completed: "Completed",
   cancelled: "Cancelled",
   upcoming: "Upcoming",
-} as const;
+  booked: "Upcoming",
+  rescheduled: "Rescheduled",
+};
 
 function AppointmentsCard({ appointment }: { appointment: AppointmentItem }) {
-  const statusStyles = {
+  const statusStyles: Record<string, string> = {
     completed: "bg-[#28A7451A] text-[#28A745]",
     cancelled: "bg-[#EE1C1F1A] text-[#EE1C1F]",
     upcoming: "bg-[#13097D1A] text-[#13097D]",
-  } as const;
+    booked: "bg-[#13097D1A] text-[#13097D]",
+    rescheduled: "bg-[#F2C94C1A] text-[#F2994A]",
+  };
 
   return <div className="flex gap-[2.48rem] items-center">
         <div className="flex gap-2">
           <img
-            src="/aditya.svg"
+            src={appointment.photo || "/aditya.svg"}
             alt=""
             className="w-[5.0625rem] h-[5.0625rem] rounded-[0.5rem]"
           />
@@ -520,10 +486,37 @@ function AppointmentsCard({ appointment }: { appointment: AppointmentItem }) {
 
 function Appointments() {
   const [active, setActive] = useState(1);
+  const { userId } = useAuthStore();
+  const token = localStorage.getItem('jwt');
 
-  const filteredAppointments = appointmentCards.filter((appointment) => {
+  const { data: appointments = [], isLoading } = useQuery({
+    queryKey: ['userAppointments', userId],
+    queryFn: () => getUserAppointments(userId!, token!),
+    enabled: !!userId && !!token,
+    staleTime: 30000,
+  });
+
+  // Map API data to AppointmentItem format used by your card design
+  const mappedAppointments: AppointmentItem[] = appointments.map((a: any) => {
+    const status = a.status === 'booked' ? 'upcoming' : a.status;
+    const dateObj = a.date ? new Date(a.date) : null;
+    const dateLabel = dateObj
+      ? dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', weekday: 'long' })
+      : '';
+    return {
+      id: a.appointmentId || a.id,
+      doctorName: a.counsellorFullName || a.counsellorId || '',
+      sessionTitle: `${a.mode || ''} Session`,
+      dateLabel,
+      timeLabel: `${a.startTime || ''} - ${a.endTime || ''}`,
+      status: status as AppointmentStatus,
+      photo: a.counsellorPhootoSmall || '',
+    };
+  });
+
+  const filteredAppointments = mappedAppointments.filter((appointment) => {
     if (active === 1) return true;
-    if (active === 2) return appointment.status === "upcoming";
+    if (active === 2) return appointment.status === "upcoming" || appointment.status === "booked" || appointment.status === "rescheduled";
     if (active === 3) return appointment.status === "completed";
     return appointment.status === "cancelled";
   });
@@ -543,7 +536,9 @@ function Appointments() {
       </div>
 
       <div className="mt-2 flex flex-col gap-4">
-        {filteredAppointments.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center py-10"><Loader2 className="w-8 h-8 animate-spin text-[#13097D]" /></div>
+        ) : filteredAppointments.length > 0 ? (
           filteredAppointments.map((appointment) => (
             <AppointmentsCard key={appointment.id} appointment={appointment} />
           ))
@@ -562,6 +557,23 @@ const tests_tabs = [
 
 function MyTests() {
   const [active, setActive] = useState(1);
+  const { userId } = useAuthStore();
+
+  const { data: purchasedData, isLoading: loadingPurchased } = useQuery({
+    queryKey: ['boughtTestGroups', userId],
+    queryFn: () => getUserBoughtTestGroups(userId!),
+    enabled: !!userId && active === 1,
+  });
+  const { data: bookmarkedData, isLoading: loadingBookmarked } = useQuery({
+    queryKey: ['bookmarkedTestGroups', userId],
+    queryFn: () => getUserBookmarkedTestGroups(userId!),
+    enabled: !!userId && active === 2,
+  });
+
+  const currentData = active === 1 ? purchasedData : bookmarkedData;
+  const isLoading = active === 1 ? loadingPurchased : loadingBookmarked;
+  const testGroups = currentData?.data || [];
+
   return (
     <div className="flex flex-col items-start">
       <div className="flex gap-1">
@@ -577,16 +589,22 @@ function MyTests() {
       </div>
 
       <div className="mt-6 flex flex-wrap gap-6">
-        {testCards.map((test, index) => (
-          <TestGroupCard
-            key={`${test.title}-${index}`}
-            image={test.image}
-            rating={test.rating}
-            title={test.title}
-            totalTests={test.totalTests}
-            totalStudents={test.totalStudents}
-          />
-        ))}
+        {isLoading ? (
+          <div className="flex justify-center w-full py-10"><Loader2 className="w-8 h-8 animate-spin text-[#13097D]" /></div>
+        ) : testGroups.length > 0 ? (
+          testGroups.map((test: any, index: number) => (
+            <TestGroupCard
+              key={test.testGroupId || `${test.testGroupName}-${index}`}
+              image={test.bannerImagUrl || '/discover-exam.jpg'}
+              rating={test.rating?.toFixed(1) || '0'}
+              title={test.testGroupName || ''}
+              totalTests={test.attachedTestIds?.length || 0}
+              totalStudents={test.soldCount || 0}
+            />
+          ))
+        ) : (
+          <p className="text-(--text-muted)">No test series found.</p>
+        )}
       </div>
     </div>
   );

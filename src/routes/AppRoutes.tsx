@@ -157,7 +157,7 @@ export default function AppRoutes() {
                         {/* Protected Routes */}
                         <Route element={<ProtectedRoute />}>
                             <Route path='/dashboard-student' element={<StudentDashboardPage />} />
-                            <Route path='/profile/:id' element={<UserProfile/>}/>
+                            <Route path='/profile' element={<UserProfile/>}/>
                             <Route path='/live-sessions' element={<LiveSessionsPage />} />
                             <Route path='/wallet' element={<RechargeWallet />} />
                         </Route>

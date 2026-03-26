@@ -1,7 +1,22 @@
 import UserDetails from "@/components/Revamp/user-profile/UserDetails";
 import UserTabs from "@/components/Revamp/user-profile/UserTabs";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function UserProfile(){
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 768) {
+                navigate('/dashboard-student');
+            }
+        };
+        handleResize(); // Check on mount
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [navigate]);
+
     return (
         <div
             className="min-h-screen"
