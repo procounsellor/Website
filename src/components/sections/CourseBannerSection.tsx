@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
-import { useAuthStore } from '@/store/AuthStore';
-import toast from 'react-hot-toast';
 
-const COURSE_EXPLORE_PATH = "/gurucool";
+const GRAND_MOCK_TEST_PATH = "/test-group/de8eedeb-3db0-4280-b872-9563b7f88d7f";
 const AADITYA_IMAGE_PATH = "./aaditya-banner.png";
 const SUBSCRIBER_AVATARS_PATH = "./subscribers.png";
 
@@ -46,13 +44,12 @@ const bannerSlides = [
 
 const CourseBannerSection: React.FC = () => {
     const navigate = useNavigate();
-    const { isAuthenticated, toggleLogin } = useAuthStore();
     const slidesWithClone = [...bannerSlides, bannerSlides[0]];
     
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(true);
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // Auto-rotation logic
     const startAutoRotate = useCallback(() => {
@@ -99,17 +96,11 @@ const CourseBannerSection: React.FC = () => {
 
     const handleExploreClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
-        navigate(COURSE_EXPLORE_PATH);
+        navigate(GRAND_MOCK_TEST_PATH);
     };
 
-    const handleLiveSessionClick = () => {
-        if (isAuthenticated) {
-            navigate('/live-sessions');
-        } else {
-            toast.error("Please log in to explore live sessions.", { duration: 3000 });
-            const onSuccess = () => navigate('/live-sessions');
-            toggleLogin(onSuccess);
-        }
+    const handleGrandMockTestClick = () => {
+        navigate(GRAND_MOCK_TEST_PATH);
     };
 
     const handleBannerButtonClick = (link: string) => {
@@ -124,10 +115,8 @@ const CourseBannerSection: React.FC = () => {
     const renderAadityaBanner = () => (
         <div className="z-10 relative">
             <h2 className="text-sm sm:text-xl md:text-2xl lg:text-3xl font-bold text-white mb-2 md:mb-4">
-                Explore Our Comprehensive Range of Courses By :
-                <br />
                 <span className="text-xl sm:text-3xl md:text-4xl font-extrabold text-white">
-                    Aaditya [COEP]
+                    Grand Mock Test By Aaditya Coep | 29th March
                 </span>
             </h2>
 
@@ -138,27 +127,27 @@ const CourseBannerSection: React.FC = () => {
                     className="h-7 sm:h-10 w-auto object-contain"
                 />
                 <p className="text-xs sm:text-lg font-semibold text-white">
-                    52.5K subscribers
+                    Register now and take the test directly from this page
                 </p>
             </div>
 
             <div className="flex flex-row gap-2 md:gap-4 items-center">
                 <a
-                    href={COURSE_EXPLORE_PATH}
+                    href={GRAND_MOCK_TEST_PATH}
                     onClick={handleExploreClick}
                     className="inline-flex items-center justify-center px-2 py-2 sm:px-6 sm:py-3 border border-transparent text-[10px] sm:text-base font-medium rounded-lg shadow-sm bg-white hover:bg-gray-50 transition duration-150 ease-in-out cursor-pointer whitespace-nowrap flex-1 sm:flex-none"
                     style={{ color: '#B68D9D' }}
                 >
-                    Explore Courses
+                    Register For Test
                     <ArrowUpRight className="ml-1 w-3 h-3 sm:w-5 sm:h-5" style={{ color: '#B68D9D' }} />
                 </a>
 
                 <button
-                    onClick={handleLiveSessionClick}
+                    onClick={handleGrandMockTestClick}
                     className="inline-flex items-center justify-center px-2 py-2 sm:px-6 sm:py-3 border border-transparent text-[10px] sm:text-base font-medium rounded-lg shadow-sm transition cursor-pointer duration-150 ease-in-out bg-white flex-1 sm:flex-none whitespace-nowrap"
                     style={{ color: '#B68D9D' }}
                 >
-                    Live Sessions
+                    Open Test Page
                     <ArrowUpRight className="ml-1 w-3 h-3 sm:w-5 sm:h-5" style={{ color: '#B68D9D' }} />
                 </button>
             </div>
