@@ -107,7 +107,7 @@ export function CounselorProfileCard({ counselor, subscription, isFavourite, onT
       toggleLogin(subscribeAction);
       return;
     }
-    if (!user?.firstName || !user?.email) {
+    if (!user?.firstName) {
       onProfileIncomplete(subscribeAction);
       return;
     }

@@ -117,7 +117,7 @@ export default function MainLayout() {
   const handleOnboardingComplete = () => {
     setNeedsOnboarding(false);
 
-    if (user && (!user.firstName || !user.email)) {
+    if (user && !user.firstName) {
       setNeedsProfileCompletion(true);
       return;
     }

@@ -282,7 +282,7 @@ export default function CounselorDetailsPage() {
     }
 
     // Check profile completion
-    if (!user?.firstName || !user?.email) {
+    if (!user?.firstName) {
       handleProfileIncomplete(toggleFavAction);
       return;
     }
