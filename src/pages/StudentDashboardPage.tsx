@@ -61,7 +61,7 @@ const StudentDashboardPage: React.FC = () => {
 
   useEffect(() => {
     if (user && !loading) {
-      if (!user.firstName || !user.email) {
+      if (!user.firstName) {
         setIsEditModalOpen(true);
       }
     }
