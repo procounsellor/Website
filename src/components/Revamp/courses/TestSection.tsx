@@ -4,22 +4,25 @@ import type { CourseType } from "@/types/course";
 import TestGroupCard from "./TestGroupCard";
 import { SeeAllButton } from "../components/LeftRightButton";
 
-type CourseTab = "my-courses" | "trending" | "all-courses";
+type TestTab = "my-tests" | "trending" | "all-tests";
 
-interface CourseWithMeta extends CourseType {
+interface TestWithMeta extends CourseType {
+  description: string;
   isPurchased: boolean;
   isTrending: boolean;
 }
 
-const courseImages = ["/course/2.png", "/course/3.png"];
+const testImages = ["/course/2.png", "/course/3.png"];
 
-const coursesData: CourseWithMeta[] = [
+const testsData: TestWithMeta[] = [
   {
-    id: "course-1",
-    image: courseImages[0],
+    id: "test-1",
+    image: testImages[0],
     rating: "4.8",
     name: "Foundations of Mental Wellness",
     subject: "Mental",
+    description:
+      "Build calm focus, emotional resilience, and practical coping skills with guided weekly practice sets.",
     price: "INR 4,999",
     courseTimeHours: 12,
     courseTimeMinutes: 0,
@@ -27,11 +30,13 @@ const coursesData: CourseWithMeta[] = [
     isTrending: true,
   },
   {
-    id: "course-2",
-    image: courseImages[1],
+    id: "test-2",
+    image: testImages[1],
     rating: "4.6",
     name: "Psychometric Test Mastery",
     subject: "Psychometric",
+    description:
+      "Master aptitude and personality sections through timed mocks, analysis reports, and smart improvement paths.",
     price: "INR 3,499",
     courseTimeHours: 9,
     courseTimeMinutes: 30,
@@ -39,11 +44,13 @@ const coursesData: CourseWithMeta[] = [
     isTrending: true,
   },
   {
-    id: "course-3",
-    image: courseImages[0],
+    id: "test-3",
+    image: testImages[0],
     rating: "4.7",
     name: "Admission Strategy Blueprint",
     subject: "Admission",
+    description:
+      "Plan your complete admission journey with deadline tracking, profile strength mapping, and interview drills.",
     price: "INR 5,299",
     courseTimeHours: 14,
     courseTimeMinutes: 15,
@@ -51,11 +58,13 @@ const coursesData: CourseWithMeta[] = [
     isTrending: false,
   },
   {
-    id: "course-4",
-    image: courseImages[1],
+    id: "test-4",
+    image: testImages[1],
     rating: "4.5",
     name: "Career Upskilling Essentials",
     subject: "Upskilling",
+    description:
+      "Strengthen core career skills with topic-wise assessments, revision tracks, and benchmark performance goals.",
     price: "INR 2,999",
     courseTimeHours: 8,
     courseTimeMinutes: 45,
@@ -63,11 +72,13 @@ const coursesData: CourseWithMeta[] = [
     isTrending: true,
   },
   {
-    id: "course-5",
-    image: courseImages[1],
+    id: "test-5",
+    image: testImages[1],
     rating: "4.9",
     name: "Personal Growth Lab",
     subject: "Mental",
+    description:
+      "Improve confidence, consistency, and mindset through structured reflection tests and actionable progress plans.",
     price: "INR 3,999",
     courseTimeHours: 10,
     courseTimeMinutes: 0,
@@ -75,11 +86,13 @@ const coursesData: CourseWithMeta[] = [
     isTrending: false,
   },
   {
-    id: "course-6",
-    image: courseImages[0],
+    id: "test-6",
+    image: testImages[0],
     rating: "4.4",
     name: "College Readiness Bootcamp",
     subject: "Admission",
+    description:
+      "Get college-ready with preparation tests covering academics, communication, and transition readiness milestones.",
     price: "INR 2,499",
     courseTimeHours: 7,
     courseTimeMinutes: 20,
@@ -87,11 +100,13 @@ const coursesData: CourseWithMeta[] = [
     isTrending: true,
   },
   {
-    id: "course-7",
-    image: courseImages[0],
+    id: "test-7",
+    image: testImages[0],
     rating: "4.8",
     name: "Student Success Mindset",
     subject: "Mental",
+    description:
+      "Develop high-performance study habits using weekly challenge tests, feedback loops, and clarity checkpoints.",
     price: "INR 3,799",
     courseTimeHours: 11,
     courseTimeMinutes: 10,
@@ -99,11 +114,13 @@ const coursesData: CourseWithMeta[] = [
     isTrending: false,
   },
   {
-    id: "course-8",
-    image: courseImages[1],
+    id: "test-8",
+    image: testImages[1],
     rating: "4.7",
     name: "Scholarship Interview Accelerator",
     subject: "Admission",
+    description:
+      "Prepare for scholarship rounds with scenario-based tests, response frameworks, and confidence-building practice.",
     price: "INR 3,299",
     courseTimeHours: 9,
     courseTimeMinutes: 50,
@@ -112,43 +129,43 @@ const coursesData: CourseWithMeta[] = [
   },
 ];
 
-const tabOptions: { id: CourseTab; label: string }[] = [
-  { id: "my-courses", label: "My Tests" },
+const tabOptions: { id: TestTab; label: string }[] = [
+  { id: "my-tests", label: "My Tests" },
   { id: "trending", label: "Trending" },
 ];
 
 export default function TestSection() {
   const isUserLoggedIn = true;
-  const isLoadingCourses = false;
+  const isLoadingTests = false;
 
-  const [activeTab, setActiveTab] = useState<CourseTab>("my-courses");
+  const [activeTab, setActiveTab] = useState<TestTab>("my-tests");
   const [startIndex, setStartIndex] = useState(0);
 
-  const filteredCourses = useMemo(() => {
-    if (!isUserLoggedIn) return coursesData;
+  const filteredTests = useMemo(() => {
+    if (!isUserLoggedIn) return testsData;
 
-    if (activeTab === "my-courses") {
-      return coursesData.filter((course) => course.isPurchased);
+    if (activeTab === "my-tests") {
+      return testsData.filter((test) => test.isPurchased);
     }
 
     if (activeTab === "trending") {
-      return coursesData.filter(
-        (course) => course.isTrending && !course.isPurchased,
+      return testsData.filter(
+        (test) => test.isTrending && !test.isPurchased,
       );
     }
 
-    return coursesData.filter((course) => !course.isPurchased);
+    return testsData.filter((test) => !test.isPurchased);
   }, [activeTab, isUserLoggedIn]);
 
   const visibleCount = 4;
-  const maxStartIndex = Math.max(filteredCourses.length - visibleCount, 0);
+  const maxStartIndex = Math.max(filteredTests.length - visibleCount, 0);
   const safeStartIndex = Math.min(startIndex, maxStartIndex);
-  const visibleCourses = filteredCourses.slice(
+  const visibleTests = filteredTests.slice(
     safeStartIndex,
     safeStartIndex + visibleCount,
   );
 
-  const handleTabChange = (tab: CourseTab) => {
+  const handleTabChange = (tab: TestTab) => {
     setActiveTab(tab);
     setStartIndex(0);
   };
@@ -210,7 +227,7 @@ export default function TestSection() {
           </div>
 
           <p className="font-[Poppins] font-medium  text-xs text-start text-[#0E1629] max-w-[682px] leading-normal">
-            Discover curated programs across mental wellness, assessments,
+            Discover curated tests across mental wellness, assessments,
             admissions, and upskilling led by experienced professionals, built
             around your needs.
           </p>
@@ -231,9 +248,18 @@ export default function TestSection() {
             <div
               className="flex gap-3 overflow-x-auto scrollbar-hide pb-2"
             >
-              {filteredCourses.map((course) => (
-                <div key={course.id} className="shrink-0">
-                  
+              {filteredTests.map((test, index) => (
+                <div key={test.id} className="shrink-0">
+                  <TestGroupCard
+                    image={test.image}
+                    rating={test.rating ?? "0.0"}
+                    title={test.name}
+                    description={test.description}
+                    totalTests={2 + (index % 4)}
+                    totalStudents={24 + index * 3}
+                    isBaught={activeTab === "trending" ? false : true}
+                    isMyTestsCard={activeTab === "my-tests"}
+                  />
                 </div>
               ))}
             </div>
@@ -260,7 +286,7 @@ export default function TestSection() {
             </div>
 
             <p className="font-[Poppins] font-medium text-[24px] text-[#0E1629] max-w-[682px] leading-normal">
-              Discover curated programs across mental wellness, assessments,
+              Discover curated tests across mental wellness, assessments,
               admissions, and upskilling led by experienced professionals, built
               around your needs.
             </p>
@@ -292,7 +318,7 @@ export default function TestSection() {
           )}
 
           <AnimatePresence mode="wait">
-            {isLoadingCourses ? (
+            {isLoadingTests ? (
               <motion.div
                 key="loading"
                 initial={{ opacity: 0 }}
@@ -316,7 +342,7 @@ export default function TestSection() {
                   />
                 ))}
               </motion.div>
-            ) : visibleCourses.length > 0 ? (
+            ) : visibleTests.length > 0 ? (
               <motion.div
                 key={activeTab}
                 variants={containerVariants}
@@ -325,15 +351,17 @@ export default function TestSection() {
                 exit="exit"
                 className="flex gap-[25px] justify-center mb-6 min-h-[451px] items-start"
               >
-                {visibleCourses.map((course, index) => (
-                  <motion.div key={course.id} variants={cardVariants}>
+                {visibleTests.map((test, index) => (
+                  <motion.div key={test.id} variants={cardVariants}>
                     <TestGroupCard
-                      image={course.image}
-                      rating={course.rating ?? "0.0"}
-                      title={course.name}
+                      image={test.image}
+                      rating={test.rating ?? "0.0"}
+                      title={test.name}
+                      description={test.description}
                       totalTests={2 + ((safeStartIndex + index) % 4)}
                       totalStudents={24 + (safeStartIndex + index) * 3}
                       isBaught={activeTab === "trending" ? false : true}
+                      isMyTestsCard={activeTab === "my-tests"}
                     />
                   </motion.div>
                 ))}
@@ -348,7 +376,7 @@ export default function TestSection() {
                 className="flex justify-center mb-6 min-h-[451px] items-center"
               >
                 <p className="font-[Poppins] text-[14px] text-[#6B7280] self-center">
-                  No courses found for this tab.
+                  No tests found for this tab.
                 </p>
               </motion.div>
             )}
