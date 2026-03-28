@@ -49,6 +49,8 @@ interface QuestionState {
 import { TestResult, type ResultData } from "./TestResult";
 
 export function TakeTest() {
+  type ActionLoadingType = "SAVE_NEXT" | "MARK_NEXT" | "SAVE" | "MARK" | "CLEAR" | null;
+
   const { testId } = useParams();
   const location = useLocation();
   const [testGroupId, setTestGroupId] = useState<string | undefined>(location.state?.testGroupId);
@@ -58,6 +60,9 @@ export function TakeTest() {
   const [showMobileSections, setShowMobileSections] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showStartModal, setShowStartModal] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actionLoading, setActionLoading] = useState<ActionLoadingType>(null);
+  const isProcessingAction = useRef(false);
 
   // Test data
   const [sections, setSections] = useState<SectionType[]>([]);
@@ -404,12 +409,15 @@ export function TakeTest() {
 
   // Clear/Reset answer (unattempt)
   const handleClearResponse = async () => {
+    if (isProcessingAction.current) return;
     if (!currentQuestion) return;
     if (selectedAnswers.length === 0) {
       toast.error("No answer to clear");
       return;
     }
 
+    isProcessingAction.current = true;
+    setActionLoading("CLEAR");
     try {
       await resetAnswer(
         userId,
@@ -438,71 +446,115 @@ export function TakeTest() {
     } catch (error) {
       toast.error("Failed to clear response");
       console.error(error);
+    } finally {
+      setActionLoading(null);
+      isProcessingAction.current = false;
     }
   };
 
   // Save and move to next question
   const handleSaveAndNext = async () => {
-    await handleSaveAnswer("MARKED_FOR_REVIEW");
+    if (isProcessingAction.current) return;
+    isProcessingAction.current = true;
+    setActionLoading("MARK_NEXT");
+    try {
+      await handleSaveAnswer("MARKED_FOR_REVIEW");
 
-    // Check if last question of last section - submit test
-    if (currentSectionIndex === sections.length - 1 &&
-      currentQuestionIndex >= currentSection.questions.length - 1) {
-      handleOpenSubmitModal();
-      return;
-    }
-
-    // Check if moving to next section
-    if (currentQuestionIndex >= currentSection.questions.length - 1 &&
-      currentSectionIndex < sections.length - 1) {
-      if (sectionSwitchingAllowed) {
-        // Section switching allowed - navigate directly without modal
-        setCurrentSectionIndex(currentSectionIndex + 1);
-        setCurrentQuestionIndex(0);
-      } else {
-        // Show warning modal
-        setPendingNavigationSection(currentSectionIndex + 1);
-        setShowSectionChangeModal(true);
+      // Check if last question of last section - submit test
+      if (currentSectionIndex === sections.length - 1 &&
+        currentQuestionIndex >= currentSection.questions.length - 1) {
+        handleOpenSubmitModal();
+        return;
       }
-      return;
-    }
 
-    // Move to next question within same section
-    if (currentQuestionIndex < currentSection.questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      // Check if moving to next section
+      if (currentQuestionIndex >= currentSection.questions.length - 1 &&
+        currentSectionIndex < sections.length - 1) {
+        if (sectionSwitchingAllowed) {
+          // Section switching allowed - navigate directly without modal
+          setCurrentSectionIndex(currentSectionIndex + 1);
+          setCurrentQuestionIndex(0);
+        } else {
+          // Show warning modal
+          setPendingNavigationSection(currentSectionIndex + 1);
+          setShowSectionChangeModal(true);
+        }
+        return;
+      }
+
+      // Move to next question within same section
+      if (currentQuestionIndex < currentSection.questions.length - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+      }
+    } finally {
+      setActionLoading(null);
+      isProcessingAction.current = false;
     }
   };
 
   // Navigate to next question
   const handleNext = async () => {
-    // Save current answer if any selected
-    if (selectedAnswers.length > 0) {
-      await handleSaveAnswer("ATTEMPTED");
-    }
-
-    // Check if moving to next section
-    if (currentQuestionIndex >= currentSection.questions.length - 1 &&
-      currentSectionIndex < sections.length - 1) {
-      if (sectionSwitchingAllowed) {
-        // Section switching allowed - navigate directly without modal
-        setCurrentSectionIndex(currentSectionIndex + 1);
-        setCurrentQuestionIndex(0);
-      } else {
-        // Show warning modal before moving to next section
-        setPendingNavigationSection(currentSectionIndex + 1);
-        setShowSectionChangeModal(true);
+    if (isProcessingAction.current) return;
+    isProcessingAction.current = true;
+    setActionLoading("SAVE_NEXT");
+    try {
+      // Save current answer if any selected
+      if (selectedAnswers.length > 0) {
+        await handleSaveAnswer("ATTEMPTED");
       }
-      return;
-    }
 
-    // Move to next question within same section
-    if (currentQuestionIndex < currentSection.questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      // Check if moving to next section
+      if (currentQuestionIndex >= currentSection.questions.length - 1 &&
+        currentSectionIndex < sections.length - 1) {
+        if (sectionSwitchingAllowed) {
+          // Section switching allowed - navigate directly without modal
+          setCurrentSectionIndex(currentSectionIndex + 1);
+          setCurrentQuestionIndex(0);
+        } else {
+          // Show warning modal before moving to next section
+          setPendingNavigationSection(currentSectionIndex + 1);
+          setShowSectionChangeModal(true);
+        }
+        return;
+      }
+
+      // Move to next question within same section
+      if (currentQuestionIndex < currentSection.questions.length - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+      }
+    } finally {
+      setActionLoading(null);
+      isProcessingAction.current = false;
+    }
+  };
+
+  const handleSaveOnly = async () => {
+    if (isProcessingAction.current) return;
+    isProcessingAction.current = true;
+    setActionLoading("SAVE");
+    try {
+      await handleSaveAnswer("ATTEMPTED");
+    } finally {
+      setActionLoading(null);
+      isProcessingAction.current = false;
+    }
+  };
+
+  const handleMarkOnly = async () => {
+    if (isProcessingAction.current) return;
+    isProcessingAction.current = true;
+    setActionLoading("MARK");
+    try {
+      await handleSaveAnswer("MARKED_FOR_REVIEW");
+    } finally {
+      setActionLoading(null);
+      isProcessingAction.current = false;
     }
   };
 
   // Navigate to previous question (within same section only)
   const handlePrevious = () => {
+    if (isProcessingAction.current) return;
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
@@ -693,6 +745,8 @@ export function TakeTest() {
 
   // Submit test
   const handleSubmitTest = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       // CRITICAL: Save current question's answer before submitting
       if (currentQuestion && selectedAnswers.length > 0) {
@@ -804,6 +858,8 @@ export function TakeTest() {
     } catch (error) {
       toast.error("Failed to submit test");
       console.error(error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -873,6 +929,18 @@ export function TakeTest() {
   const hours = Math.floor(timeTakenMs / (1000 * 60 * 60));
   const minutes = Math.floor((timeTakenMs % (1000 * 60 * 60)) / (1000 * 60));
   const timeTakenString = `${hours}h ${minutes}m`;
+  const isActionLoading = actionLoading !== null;
+  const renderLoadingButtonContent = (label: string, isLoading: boolean) => (
+    <span className="inline-flex items-center justify-center gap-1.5">
+      <span
+        className={`inline-block h-3 w-3 rounded-full border-2 border-current border-r-transparent ${
+          isLoading ? "animate-spin opacity-90" : "opacity-0"
+        }`}
+        aria-hidden="true"
+      />
+      <span>{label}</span>
+    </span>
+  );
 
   return (
     <>
@@ -1131,45 +1199,48 @@ export function TakeTest() {
                       <>
                         <button
                           onClick={handleSaveAndNext}
+                          disabled={isActionLoading}
                           className="flex-1 min-w-[120px] bg-[#F69E23] py-3 px-4 rounded-[10px] text-white font-medium h-[44px] flex items-center justify-center cursor-pointer"
                         >
-                          Mark & Next
+                          {renderLoadingButtonContent("Mark & Next", actionLoading === "MARK_NEXT")}
                         </button>
                         <button
                           onClick={handleClearResponse}
-                          disabled={selectedAnswers.length === 0}
+                          disabled={selectedAnswers.length === 0 || isActionLoading}
                           className="flex-1 min-w-[80px] bg-red-100 py-3 px-3 rounded-[10px] text-red-600 font-medium h-[44px] flex items-center justify-center cursor-pointer disabled:opacity-50"
                         >
-                          Clear
+                          {renderLoadingButtonContent("Clear", actionLoading === "CLEAR")}
                         </button>
                         <button
                           onClick={handleNext}
+                          disabled={isActionLoading}
                           className="flex-1 min-w-[120px] bg-(--btn-primary) py-3 px-4 rounded-[10px] text-white h-[44px] flex items-center justify-center cursor-pointer"
                         >
-                          Save & Next
+                          {renderLoadingButtonContent("Save & Next", actionLoading === "SAVE_NEXT")}
                         </button>
                       </>
                     ) : (
                       <>
                         <button
                           onClick={handleClearResponse}
-                          disabled={selectedAnswers.length === 0}
+                          disabled={selectedAnswers.length === 0 || isActionLoading}
                           className="flex-1 min-w-[80px] bg-red-100 py-3 px-3 rounded-[10px] text-red-600 font-medium h-[44px] flex items-center justify-center cursor-pointer disabled:opacity-50"
                         >
-                          Clear
+                          {renderLoadingButtonContent("Clear", actionLoading === "CLEAR")}
                         </button>
                         <button
-                          onClick={() => handleSaveAnswer("ATTEMPTED")}
-                          disabled={selectedAnswers.length === 0}
+                          onClick={handleSaveOnly}
+                          disabled={selectedAnswers.length === 0 || isActionLoading}
                           className="flex-1 min-w-[100px] bg-(--btn-primary) py-3 px-4 rounded-[10px] text-white font-medium h-[44px] flex items-center justify-center cursor-pointer disabled:opacity-50"
                         >
-                          Save
+                          {renderLoadingButtonContent("Save", actionLoading === "SAVE")}
                         </button>
                         <button
-                          onClick={() => handleSaveAnswer("MARKED_FOR_REVIEW")}
+                          onClick={handleMarkOnly}
+                          disabled={isActionLoading}
                           className="flex-1 min-w-[100px] bg-[#F69E23] py-3 px-4 rounded-[10px] text-white font-medium h-[44px] flex items-center justify-center cursor-pointer"
                         >
-                          Mark
+                          {renderLoadingButtonContent("Mark", actionLoading === "MARK")}
                         </button>
                       </>
                     )}
@@ -1210,50 +1281,54 @@ export function TakeTest() {
                       <>
                         <button
                           onClick={handleSaveAndNext}
+                          disabled={isActionLoading}
                           className="hidden xl:flex bg-[#F69E23] py-2.5 px-4 rounded-[10px] text-white font-medium text-sm h-[40px] items-center justify-center cursor-pointer whitespace-nowrap"
                         >
-                          Mark & Next
+                          {renderLoadingButtonContent("Mark & Next", actionLoading === "MARK_NEXT")}
                         </button>
                         <button
                           onClick={handleClearResponse}
-                          disabled={selectedAnswers.length === 0}
+                          disabled={selectedAnswers.length === 0 || isActionLoading}
                           className="hidden xl:flex bg-red-100 py-2.5 px-4 rounded-[10px] text-red-600 font-medium text-sm h-[40px] items-center justify-center cursor-pointer disabled:opacity-50 whitespace-nowrap"
                         >
-                          Clear
+                          {renderLoadingButtonContent("Clear", actionLoading === "CLEAR")}
                         </button>
                         <button
                           onClick={handleNext}
+                          disabled={isActionLoading}
                           className="hidden xl:flex bg-(--btn-primary) py-2.5 px-6 rounded-[10px] text-white font-medium text-sm h-[40px] items-center justify-center cursor-pointer whitespace-nowrap"
                         >
-                          Save & Next
+                          {renderLoadingButtonContent("Save & Next", actionLoading === "SAVE_NEXT")}
                         </button>
                       </>
                     ) : (
                       <>
                         <button
                           onClick={handleClearResponse}
-                          disabled={selectedAnswers.length === 0}
+                          disabled={selectedAnswers.length === 0 || isActionLoading}
                           className="hidden xl:flex bg-red-100 py-2.5 px-4 rounded-[10px] text-red-600 font-medium text-sm h-[40px] items-center justify-center cursor-pointer disabled:opacity-50 whitespace-nowrap"
                         >
-                          Clear
+                          {renderLoadingButtonContent("Clear", actionLoading === "CLEAR")}
                         </button>
                         <button
-                          onClick={() => handleSaveAnswer("ATTEMPTED")}
-                          disabled={selectedAnswers.length === 0}
+                          onClick={handleSaveOnly}
+                          disabled={selectedAnswers.length === 0 || isActionLoading}
                           className="hidden xl:flex bg-(--btn-primary) py-2.5 px-6 rounded-[10px] text-white font-medium text-sm h-[40px] items-center justify-center cursor-pointer disabled:opacity-50 whitespace-nowrap"
                         >
-                          Save
+                          {renderLoadingButtonContent("Save", actionLoading === "SAVE")}
                         </button>
                         <button
-                          onClick={() => handleSaveAnswer("MARKED_FOR_REVIEW")}
+                          onClick={handleMarkOnly}
+                          disabled={isActionLoading}
                           className="hidden xl:flex bg-[#F69E23] py-2.5 px-4 rounded-[10px] text-white font-medium text-sm h-[40px] items-center justify-center cursor-pointer whitespace-nowrap"
                         >
-                          Mark
+                          {renderLoadingButtonContent("Mark", actionLoading === "MARK")}
                         </button>
                       </>
                     )}
                     <button
                       onClick={handleOpenSubmitModal}
+                      disabled={isActionLoading}
                       className="bg-[#21C55D] py-3 px-9 rounded-[10px] text-white font-medium text-[1rem] h-[44px] flex items-center justify-center cursor-pointer"
                     >
                       Submit Test
