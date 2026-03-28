@@ -45,8 +45,8 @@ export function FreeCareerAssessmentCard({counselor, user, onProfileIncomplete}:
       return;
     }
 
-    // Check if profile is complete (firstName and email required)
-    if (!user?.firstName || !user?.email) {
+    // Check if profile is complete (first name required)
+    if (!user?.firstName) {
       console.log('Profile incomplete, showing profile completion modal');
       onProfileIncomplete(bookAction);
       return;

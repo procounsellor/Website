@@ -134,7 +134,7 @@ export const useAuthStore = create<AuthState>()(
       checkProfileCompletion: () => {
         const state = get();
         if (!state.user) return true;
-        return !!(state.user.firstName && state.user.email);
+        return !!state.user.firstName;
       },
 
       clearOnLoginSuccess: () => set({ onLoginSuccess: null }),
@@ -370,12 +370,10 @@ export const useAuthStore = create<AuthState>()(
               // New users will complete profile during onboarding
               // ✅ Skip profile completion check if this was triggered from promo page
               const needsCompletion =
-                userNeedsOnboarding && (!user.firstName || !user.email) && !skipPromo;
+                userNeedsOnboarding && !user.firstName && !skipPromo;
               console.log(
                 "🔍 Profile check - firstName:",
                 user.firstName,
-                "email:",
-                user.email,
                 "needsOnboarding:",
                 userNeedsOnboarding,
                 "skipPromo:",

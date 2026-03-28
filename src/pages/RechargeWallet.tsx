@@ -26,7 +26,7 @@ export default function RechargeWallet() {
   const [isPanelOpen, setPanelOpen] = useState(false);
 
   useEffect(() => {
-    if (user && (!user.firstName || !user.email)) {
+    if (user && !user.firstName) {
       setNeedsProfileCompletion(true);
       setReturnToPath(location.pathname);
       toggleProfileCompletion();

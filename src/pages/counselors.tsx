@@ -389,7 +389,7 @@ export default function CounselorListingPage() {
        toggleLogin(toggleFavAction);
        return;
      }
-     if (!user?.firstName || !user?.email) {
+     if (!user?.firstName) {
        handleProfileIncomplete(toggleFavAction);
        return;
      }
