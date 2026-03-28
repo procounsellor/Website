@@ -29,7 +29,8 @@ export function Timer({ time, initialSeconds, onSectionClick, onTimerEnd, onTick
     const lastReportedSecondsRef = useRef(initialSecondsValue);
     const hasEndedRef = useRef(false);
 
-    // Reset timer only when initialSeconds prop actually changes
+    // Reset timer only for real external jumps (e.g., section change/resume),
+    // not for per-second parent sync values that would introduce drift.
     useEffect(() => {
         if (!initializedRef.current) {
             initializedRef.current = true;
@@ -37,6 +38,13 @@ export function Timer({ time, initialSeconds, onSectionClick, onTimerEnd, onTick
         }
         
         const newSeconds = initialSeconds !== undefined ? initialSeconds : (time ? parseInt(time) * 60 : 0);
+
+        // Parent onTick updates can feed back into initialSeconds each second.
+        // Ignoring +/-1 second deltas prevents repeatedly extending endTime.
+        if (Math.abs(newSeconds - lastReportedSecondsRef.current) <= 1) {
+            return;
+        }
+
         setSeconds(newSeconds);
         endTimeRef.current = Date.now() + newSeconds * 1000;
         lastReportedSecondsRef.current = newSeconds;
