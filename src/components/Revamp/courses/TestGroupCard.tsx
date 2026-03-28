@@ -6,6 +6,7 @@ interface TestGroupCardProps {
   title: string;
   totalTests: number;
   totalStudents: number;
+  isBaught:Boolean
 }
 
 export default function TestGroupCard({
@@ -14,6 +15,8 @@ export default function TestGroupCard({
   title,
   totalTests,
   totalStudents,
+  isBaught=true
+
 }: TestGroupCardProps) {
   return (
     <div className="flex flex-col bg-white gap-2.5 p-3 rounded-2xl">
@@ -132,11 +135,26 @@ export default function TestGroupCard({
             <p>{`${totalStudents} Students`}</p>
           </div>
         </div>
-        <button
+        {!isBaught ? (
+          <div className="flex group items-center justify-between">
+            <div className="flex items-center gap-1 text-(--text-main) font-medium text-sm">
+              <img src="/coin.svg" alt="procoin_icon" className="w-5 h-5" />
+              <p>{`1000 ProCoins`}</p>
+            </div>
+            
+            <button className="py-2 px-2.5 border border-(--text-main) rounded-[12px] text-(--text-main) text-sm font-medium group-hover:cursor-pointer group-hover:text-white group-hover:bg-(--text-main)">
+              Explore Test Series
+            </button>
+
+          </div>
+        ):(
+          <button
           className="pt-3 font-medium text-[#0E1629] text-sm rounded-[0.75rem] border border-[#0E1629] w-[18rem] flex items-center justify-center py-2 px-2.5 cursor-pointer transition-colors duration-300 hover:bg-[#0E1629] hover:text-white"
         >
           Explore Test Series
         </button>
+        )
+        }
       </div>
     </div>
   );

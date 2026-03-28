@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const MOCK_BLOG = {
   title:
@@ -10,7 +10,6 @@ const MOCK_BLOG = {
 
 export default function BlogDetailPage() {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
 
   const blog = MOCK_BLOG;
 

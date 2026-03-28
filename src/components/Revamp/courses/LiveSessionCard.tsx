@@ -1,4 +1,5 @@
 import { avatar1, avatar2, avatar3, avatar4 } from "../../../assets/avatars";
+import RatingBadge from "./RatingBadge";
 
 interface LiveSessionCardProps {
   isLoading?: boolean;
@@ -9,6 +10,7 @@ interface LiveSessionCardProps {
   duration?: string;
   participantCount?: number;
   participantAvatars?: string[];
+  rating?: string | number;
   ctaLabel?: string;
   onCtaClick?: () => void;
 }
@@ -21,6 +23,7 @@ export default function LiveSessionCard({
   info = "Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet",
   duration = "50 min",
   participantCount = 40,
+  rating = "4.8",
   participantAvatars = [
     avatar1,
     avatar2,
@@ -55,6 +58,7 @@ export default function LiveSessionCard({
   return (
     <article className="group w-78 bg-white p-3 rounded-2xl flex flex-col gap-2.5 border border-transparent transition-all duration-300 hover:border-[#0E16291F] hover:shadow-[0_20px_36px_-24px_rgba(14,22,41,0.45)]">
       <div className="w-full h-65 rounded-xl bg-gray-300 relative">
+        <RatingBadge rating={rating} />
         <img
           src={coverImage}
           alt={title}

@@ -83,7 +83,7 @@ export default function AppRoutes() {
                     {/* All pages under RevampLayout */}
                     <Route element={<RevampLayout />}>
                         {/* Core Revamp Pages */}
-                        <Route path="/" element={<Home />} />
+                        <Route path="/" element={<Admissions />} />
                         <Route path='/admissions' element={<Admissions />} />
                         <Route path='/admissions/blogs' element={<BlogsPage />} />
                         <Route path='/admissions/blogs/:id' element={<BlogDetailPage />} />
