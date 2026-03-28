@@ -58,6 +58,8 @@ export function TakeTest() {
   const [showMobileSections, setShowMobileSections] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showStartModal, setShowStartModal] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isProcessingAction = useRef(false);
 
   // Test data
   const [sections, setSections] = useState<SectionType[]>([]);
@@ -404,12 +406,14 @@ export function TakeTest() {
 
   // Clear/Reset answer (unattempt)
   const handleClearResponse = async () => {
+    if (isProcessingAction.current) return;
     if (!currentQuestion) return;
     if (selectedAnswers.length === 0) {
       toast.error("No answer to clear");
       return;
     }
 
+    isProcessingAction.current = true;
     try {
       await resetAnswer(
         userId,
@@ -438,71 +442,86 @@ export function TakeTest() {
     } catch (error) {
       toast.error("Failed to clear response");
       console.error(error);
+    } finally {
+      isProcessingAction.current = false;
     }
   };
 
   // Save and move to next question
   const handleSaveAndNext = async () => {
-    await handleSaveAnswer("MARKED_FOR_REVIEW");
+    if (isProcessingAction.current) return;
+    isProcessingAction.current = true;
+    try {
+      await handleSaveAnswer("MARKED_FOR_REVIEW");
 
-    // Check if last question of last section - submit test
-    if (currentSectionIndex === sections.length - 1 &&
-      currentQuestionIndex >= currentSection.questions.length - 1) {
-      handleOpenSubmitModal();
-      return;
-    }
-
-    // Check if moving to next section
-    if (currentQuestionIndex >= currentSection.questions.length - 1 &&
-      currentSectionIndex < sections.length - 1) {
-      if (sectionSwitchingAllowed) {
-        // Section switching allowed - navigate directly without modal
-        setCurrentSectionIndex(currentSectionIndex + 1);
-        setCurrentQuestionIndex(0);
-      } else {
-        // Show warning modal
-        setPendingNavigationSection(currentSectionIndex + 1);
-        setShowSectionChangeModal(true);
+      // Check if last question of last section - submit test
+      if (currentSectionIndex === sections.length - 1 &&
+        currentQuestionIndex >= currentSection.questions.length - 1) {
+        handleOpenSubmitModal();
+        return;
       }
-      return;
-    }
 
-    // Move to next question within same section
-    if (currentQuestionIndex < currentSection.questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      // Check if moving to next section
+      if (currentQuestionIndex >= currentSection.questions.length - 1 &&
+        currentSectionIndex < sections.length - 1) {
+        if (sectionSwitchingAllowed) {
+          // Section switching allowed - navigate directly without modal
+          setCurrentSectionIndex(currentSectionIndex + 1);
+          setCurrentQuestionIndex(0);
+        } else {
+          // Show warning modal
+          setPendingNavigationSection(currentSectionIndex + 1);
+          setShowSectionChangeModal(true);
+        }
+        return;
+      }
+
+      // Move to next question within same section
+      if (currentQuestionIndex < currentSection.questions.length - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+      }
+    } finally {
+      isProcessingAction.current = false;
     }
   };
 
   // Navigate to next question
   const handleNext = async () => {
-    // Save current answer if any selected
-    if (selectedAnswers.length > 0) {
-      await handleSaveAnswer("ATTEMPTED");
-    }
-
-    // Check if moving to next section
-    if (currentQuestionIndex >= currentSection.questions.length - 1 &&
-      currentSectionIndex < sections.length - 1) {
-      if (sectionSwitchingAllowed) {
-        // Section switching allowed - navigate directly without modal
-        setCurrentSectionIndex(currentSectionIndex + 1);
-        setCurrentQuestionIndex(0);
-      } else {
-        // Show warning modal before moving to next section
-        setPendingNavigationSection(currentSectionIndex + 1);
-        setShowSectionChangeModal(true);
+    if (isProcessingAction.current) return;
+    isProcessingAction.current = true;
+    try {
+      // Save current answer if any selected
+      if (selectedAnswers.length > 0) {
+        await handleSaveAnswer("ATTEMPTED");
       }
-      return;
-    }
 
-    // Move to next question within same section
-    if (currentQuestionIndex < currentSection.questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      // Check if moving to next section
+      if (currentQuestionIndex >= currentSection.questions.length - 1 &&
+        currentSectionIndex < sections.length - 1) {
+        if (sectionSwitchingAllowed) {
+          // Section switching allowed - navigate directly without modal
+          setCurrentSectionIndex(currentSectionIndex + 1);
+          setCurrentQuestionIndex(0);
+        } else {
+          // Show warning modal before moving to next section
+          setPendingNavigationSection(currentSectionIndex + 1);
+          setShowSectionChangeModal(true);
+        }
+        return;
+      }
+
+      // Move to next question within same section
+      if (currentQuestionIndex < currentSection.questions.length - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+      }
+    } finally {
+      isProcessingAction.current = false;
     }
   };
 
   // Navigate to previous question (within same section only)
   const handlePrevious = () => {
+    if (isProcessingAction.current) return;
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
@@ -693,6 +712,8 @@ export function TakeTest() {
 
   // Submit test
   const handleSubmitTest = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       // CRITICAL: Save current question's answer before submitting
       if (currentQuestion && selectedAnswers.length > 0) {
@@ -804,6 +825,8 @@ export function TakeTest() {
     } catch (error) {
       toast.error("Failed to submit test");
       console.error(error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
