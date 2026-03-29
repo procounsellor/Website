@@ -45,6 +45,7 @@ import MHTCETCollegePredictor from '@/pages/MHTCETCollegePredictor';
 import KurukshetraTestSeries from '@/pages/KurukshetraTestSeries';
 import GrandMockTest from '@/pages/GrandMockTest';
 import CounsellorRoute from '@/components/auth/CounsellorRoute';
+import AllResultPage from '@/pages/AllResult';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
@@ -112,6 +113,7 @@ export default function AppRoutes() {
                         <Route path='/testSeries/pcsat' element={<TestSeriesPromo />} />
                         <Route path='/testSeries/kurukshetra' element={<KurukshetraTestSeries />} />
                         <Route path='/testSeries/grand-mock-test' element={<GrandMockTest />} />
+                        <Route path='/pcsat-results' element={<AllResultPage />} />
                         <Route path="/notifications" element={<NotificationsPage />} />
                         <Route element={<RoleBasedRoute allowedRoles={['counselor']} />}>
                             <Route path='/create-test' element={<CreateTest />} />
