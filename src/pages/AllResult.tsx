@@ -14,10 +14,25 @@ interface PcsatResultResponse {
 const PCSATS_RESULTS_URL =
   "https://procounsellor-backend-1000407154647.asia-south1.run.app/api/shared/getTestSeriesResults?testSeriesId=DGf0cRpuUQw4ljtemUPC&testGroupId=de8eedeb-3db0-4280-b872-9563b7f88d7f";
 
+const SkeletonRow = () => (
+  <tr className="border-b border-[#E4E8EC]">
+    <td className="px-4 md:px-6 py-3">
+      <div className="h-4 w-12 bg-gray-200 rounded animate-pulse" />
+    </td>
+    <td className="px-4 md:px-6 py-3">
+      <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+    </td>
+    <td className="px-4 md:px-6 py-3">
+      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse ml-auto" />
+    </td>
+  </tr>
+);
+
 export default function AllResultPage() {
   const [results, setResults] = useState<PcsatResultRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(10);
 
   useEffect(() => {
     const loadResults = async () => {
@@ -54,75 +69,112 @@ export default function AllResultPage() {
     loadResults();
   }, []);
 
-  const topScorer = useMemo(() => {
-    if (!results.length) return null;
-    return results.reduce((best, current) => (current.marks > best.marks ? current : best), results[0]);
-  }, [results]);
+  const topThree = useMemo(() => results.slice(0, 3), [results]);
+  const displayedResults = useMemo(() => results.slice(0, visibleCount), [results, visibleCount]);
+
+  const handleLoadMore = () => {
+    setVisibleCount((prev) => prev + 10);
+  };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-10">
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 md:p-6 mb-5">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">PCSAT Results</h1>
-        <p className="text-sm md:text-base text-gray-600 mt-2">
-          Live rank-wise scoreboard for the selected PCSAT test series.
-        </p>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
-          <div className="rounded-xl bg-gray-50 p-3 border border-gray-100">
-            <p className="text-xs text-gray-500">Total Participants</p>
-            <p className="text-xl font-semibold text-gray-900">{results.length}</p>
+    <div className="pt-14 md:pt-24 w-full mx-auto max-w-7xl h-full flex flex-col items-center gap-4 px-3 pb-6">
+      <div className="w-full max-w-[800px] lg:max-w-[1200px]">
+        <div className="rounded-2xl bg-white border border-[#E4E8EC] overflow-hidden">
+          <div className="px-4 md:px-6 py-5 border-b border-[#E4E8EC]">
+            <h1 className="text-(--text-app-primary) font-semibold text-xl md:text-2xl">
+              PCSAT Results
+            </h1>
+            <p className="text-(--text-muted) text-sm md:text-base mt-1">
+              Rank-wise results for the selected test series.
+            </p>
           </div>
-          <div className="rounded-xl bg-gray-50 p-3 border border-gray-100">
-            <p className="text-xs text-gray-500">Top Score</p>
-            <p className="text-xl font-semibold text-gray-900">{topScorer ? topScorer.marks : "-"}</p>
-          </div>
-          <div className="rounded-xl bg-gray-50 p-3 border border-gray-100">
-            <p className="text-xs text-gray-500">Top Rank User</p>
-            <p className="text-xl font-semibold text-gray-900">{results[0]?.userId || "-"}</p>
-          </div>
-          <div className="rounded-xl bg-gray-50 p-3 border border-gray-100">
-            <p className="text-xs text-gray-500">Updated</p>
-            <p className="text-sm md:text-base font-semibold text-gray-900">{new Date().toLocaleString()}</p>
-          </div>
-        </div>
-      </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        {loading && <p className="p-5 text-gray-600">Loading results...</p>}
-
-        {!loading && error && (
-          <div className="p-5">
-            <p className="text-red-600 font-medium">Could not load results.</p>
-            <p className="text-sm text-gray-600 mt-1">{error}</p>
-          </div>
-        )}
-
-        {!loading && !error && results.length === 0 && (
-          <p className="p-5 text-gray-600">No results available yet.</p>
-        )}
-
-        {!loading && !error && results.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left px-4 py-3 text-xs font-semibold tracking-wide text-gray-600">Rank</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold tracking-wide text-gray-600">User ID</th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold tracking-wide text-gray-600">Marks</th>
-                </tr>
-              </thead>
-              <tbody>
-                {results.map((row) => (
-                  <tr key={`${row.rank}-${row.userId}`} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/70">
-                    <td className="px-4 py-3 font-semibold text-gray-900">#{row.rank}</td>
-                    <td className="px-4 py-3 text-gray-700">{row.userId}</td>
-                    <td className="px-4 py-3 text-right text-gray-900 font-semibold">{row.marks}</td>
-                  </tr>
+          {!loading && !error && topThree.length > 0 && (
+            <div className="px-4 md:px-6 py-4 border-b border-[#E4E8EC] bg-white">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {topThree.map((player, index) => (
+                  <div key={`${player.rank}-${player.userId}`} className="rounded-xl border border-[#E4E8EC] p-3">
+                    <p className="text-xs text-(--text-muted)">
+                      {index === 0 ? "Winner" : index === 1 ? "Runner Up" : "Third Place"}
+                    </p>
+                    <p className="text-base font-semibold text-(--text-app-primary) mt-1">{player.userId}</p>
+                    <p className="text-sm text-(--text-muted)">Rank #{player.rank}</p>
+                    <p className="text-sm font-semibold text-(--text-app-primary)">{player.marks} marks</p>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              </div>
+            </div>
+          )}
+
+          {loading && (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[560px]">
+                <thead className="bg-[#F8F9FA] border-y border-[#E4E8EC]">
+                  <tr>
+                    <th className="text-left px-4 md:px-6 py-3 text-xs font-medium text-(--text-muted)">Rank</th>
+                    <th className="text-left px-4 md:px-6 py-3 text-xs font-medium text-(--text-muted)">User ID</th>
+                    <th className="text-right px-4 md:px-6 py-3 text-xs font-medium text-(--text-muted)">Marks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: 10 }).map((_, idx) => (
+                    <SkeletonRow key={idx} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {!loading && error && (
+            <div className="px-4 md:px-6 py-5">
+              <p className="text-red-600 font-medium">Could not load results.</p>
+              <p className="text-sm text-(--text-muted) mt-1">{error}</p>
+            </div>
+          )}
+
+          {!loading && !error && results.length === 0 && (
+            <p className="px-4 md:px-6 py-5 text-(--text-muted)">No results available yet.</p>
+          )}
+
+          {!loading && !error && results.length > 0 && (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[560px]">
+                  <thead className="bg-[#F8F9FA] border-y border-[#E4E8EC]">
+                    <tr>
+                      <th className="text-left px-4 md:px-6 py-3 text-xs font-medium text-(--text-muted)">Rank</th>
+                      <th className="text-left px-4 md:px-6 py-3 text-xs font-medium text-(--text-muted)">User ID</th>
+                      <th className="text-right px-4 md:px-6 py-3 text-xs font-medium text-(--text-muted)">Marks</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {displayedResults.map((row) => (
+                      <tr
+                        key={`${row.rank}-${row.userId}`}
+                        className="border-b border-[#E4E8EC] hover:bg-[#F8F9FA] transition-colors"
+                      >
+                        <td className="px-4 md:px-6 py-3 text-sm font-semibold text-(--text-app-primary)">
+                          #{row.rank}
+                        </td>
+                        <td className="px-4 md:px-6 py-3 text-sm text-(--text-app-primary)">{row.userId}</td>
+                        <td className="px-4 md:px-6 py-3 text-sm text-right font-semibold text-(--text-app-primary)">{row.marks}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-4 md:px-6 py-2 border-t border-[#E4E8EC] flex justify-center">
+                <button
+                  onClick={handleLoadMore}
+                  disabled={visibleCount >= results.length}
+                  className="text-(--text-app-primary) text-sm hover:underline cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {visibleCount >= results.length ? "All Results Loaded" : "Load More"}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
