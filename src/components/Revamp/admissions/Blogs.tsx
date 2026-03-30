@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { SeeAllButton } from "../components/LeftRightButton";
 import BlogCard from "./BlogCard";
 import BlogsPageCard from "./BlogsPageCard";
+import { useBlogsList } from "@/hooks/useBlogs";
 
 type BlogsVariant = "section" | "full";
 
@@ -10,38 +11,37 @@ interface BlogsProps {
   variant?: BlogsVariant;
 }
 
-const baseBlog = {
-  title:
-    "Product Management Masterclass, you will learn with head of product Customer Plateform",
-  author: "Sarah Jhonson",
-  readTime: "10 mins read",
-  tag: "Design",
-  publishedOn: "Published on: 26 Feb 26",
-  imageUrl: "/blogCard.jpg",
-};
-
 export default function Blogs({ variant = "section" }: BlogsProps) {
   const navigate = useNavigate();
+  const { data: blogItems = [], isLoading, isError, error, refetch } =
+    useBlogsList();
 
-  const categories = ["All", "Lorem", "Lorem ipsum", "Dolor", "Sit amet"];
-  const [activeCategory, setActiveCategory] = useState<string>(categories[0]);
+  const categories = useMemo(() => {
+    const unique = Array.from(
+      new Set(blogItems.map((b) => b.category).filter(Boolean))
+    ).sort();
+    return ["All", ...unique];
+  }, [blogItems]);
 
-  const blogs = useMemo(
-    () =>
-      Array.from({ length: variant === "full" ? 8 : 2 }).map((_, index) => ({
-        ...baseBlog,
-        id: index,
-      })),
-    [variant]
-  );
+  const [activeCategory, setActiveCategory] = useState("All");
+  const safeCategory =
+    categories.includes(activeCategory) ? activeCategory : "All";
+
+  const filteredBlogs = useMemo(() => {
+    const list = blogItems;
+    if (safeCategory === "All") return list;
+    return list.filter((b) => b.category === safeCategory);
+  }, [blogItems, safeCategory]);
+
+  const sectionBlogs = useMemo(() => blogItems.slice(0, 2), [blogItems]);
 
   if (variant === "full") {
     return (
       <div className="bg-[#F3F7FF] w-full">
-        <div className="max-w-[1440px] mx-auto px-[60px] py-10">
-          <div className="flex gap-[40px] justify-evenly mb-8 overflow-x-auto">
+        <div className="max-w-[1440px] mx-auto px-5 md:px-[60px] py-6 sm:py-10">
+          <div className="flex gap-3 sm:gap-6 md:gap-[40px] justify-start sm:justify-evenly mb-6 sm:mb-8 overflow-x-auto pb-1">
             {categories.map((category) => {
-              const isActive = activeCategory === category;
+              const isActive = safeCategory === category;
               return (
                 <button
                   key={category}
@@ -58,18 +58,44 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
             })}
           </div>
 
+          {isLoading && (
+            <p className="text-center text-(--text-muted) py-12 text-[0.875rem]">
+              Loading blogs…
+            </p>
+          )}
+          {isError && (
+            <div className="text-center py-12 space-y-3">
+              <p className="text-red-600 text-[0.875rem]">
+                {(error as Error)?.message ?? "Could not load blogs."}
+              </p>
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="text-[0.875rem] font-medium text-[#0E1629] underline cursor-pointer"
+              >
+                Try again
+              </button>
+            </div>
+          )}
+          {!isLoading && !isError && filteredBlogs.length === 0 && (
+            <p className="text-center text-(--text-muted) py-12 text-[0.875rem]">
+              No blogs in this category yet.
+            </p>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-            {blogs.map((blog) => (
-              <BlogsPageCard
-                key={blog.id}
-                id={blog.id}
-                title={blog.title}
-                author={blog.author}
-                publishedOn={blog.publishedOn}
-                tag={blog.tag}
-                imageUrl={blog.imageUrl}
-              />
-            ))}
+            {!isLoading &&
+              !isError &&
+              filteredBlogs.map((blog) => (
+                <BlogsPageCard
+                  key={blog.id}
+                  id={blog.id}
+                  title={blog.title}
+                  author={blog.author}
+                  publishedOn={blog.publishedOn}
+                  tag={blog.tag}
+                  imageUrl={blog.imageUrl}
+                />
+              ))}
           </div>
         </div>
       </div>
@@ -96,16 +122,33 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
 
         <div className="flex flex-col gap-10.5">
           <div className="flex flex-wrap gap-9">
-            {blogs.slice(0, 2).map((blog) => (
-              <BlogCard
-                key={blog.id}
-                id={blog.id}
-                title={blog.title}
-                author={blog.author}
-                readTime={blog.readTime}
-                imageUrl={blog.imageUrl}
-              />
-            ))}
+            {isLoading && (
+              <p className="text-(--text-muted) text-[0.875rem] w-full">
+                Loading blogs…
+              </p>
+            )}
+            {isError && (
+              <p className="text-red-600 text-[0.875rem] w-full">
+                {(error as Error)?.message ?? "Could not load blogs."}
+              </p>
+            )}
+            {!isLoading &&
+              !isError &&
+              sectionBlogs.map((blog) => (
+                <BlogCard
+                  key={blog.id}
+                  id={blog.id}
+                  title={blog.title}
+                  author={blog.author}
+                  readTime={blog.readTime}
+                  imageUrl={blog.imageUrl}
+                />
+              ))}
+            {!isLoading && !isError && sectionBlogs.length === 0 && (
+              <p className="text-(--text-muted) text-[0.875rem]">
+                No blogs yet.
+              </p>
+            )}
           </div>
 
           <div className="flex items-center justify-end">
