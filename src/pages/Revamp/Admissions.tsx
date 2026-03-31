@@ -36,7 +36,7 @@ export default function Admissions() {
 
   return (
     <div className="min-h-screen">
-      <section className="relative w-full h-[600px] flex items-center justify-center overflow-hidden">
+      <section className="hidden md:flex relative w-full h-[600px] flex items-center justify-center overflow-hidden">
         {/* Splash Screen */}
         <AnimatePresence>
           {splashPhase < 3 && (
@@ -257,7 +257,9 @@ export default function Admissions() {
           </div>
         </div>
       </section>
-      <Timeline />
+      <div className="hidden md:block">
+        <Timeline />
+      </div>
       <CounsellorSection />
       <RevampBannerSection />
       <College />

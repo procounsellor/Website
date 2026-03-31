@@ -55,7 +55,7 @@ async function authFetcher<T>(endpoint: string, token: string): Promise<T> {
 
 export const academicApi = {
   getColleges: () => fetcher<CollegeApiResponse[]>(API_CONFIG.endpoints.getColleges),
-  getCollegeById: (id: string) => fetcher<CollegeDetails>(`/api/colleges/getCollegeById?collegeId=${id}`),
+  getCollegeById: (id: string) => fetcher<CollegeDetails>(`/api/featured_colleges/getCollegeById?collegeId=${id}`),
   getExams: () => fetcher<ExamApiResponse[]>(API_CONFIG.endpoints.getExams),
   getExamById: (id: string) => fetcher<any>(`/api/exams/getExamById?examId=${id}`),
   getCourses: () => fetcher<CourseApiResponse[]>(API_CONFIG.endpoints.getCourses),

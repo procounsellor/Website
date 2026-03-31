@@ -104,46 +104,53 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
 
   return (
     <div className="bg-[#C6DDF040] w-full h-full">
-      <div className="grid grid-cols-1 lg:grid-cols-2 max-w-[1440px] mx-auto px-[60px] py-10 gap-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 max-w-[1440px] mx-auto px-4 md:px-[60px] py-6 md:py-10 gap-y-6 md:gap-y-8">
         <div>
-          <div className="w-fit flex items-center justify-center rounded-[6px] gap-2 bg-white py-1 px-3">
-            <div className="bg-[#0E1629] h-4 w-4" />
-
-            <p className="text-(--text-main) font-semibold text-[0.875rem]">
-              Blogs
+          <div className="flex items-center justify-start gap-[8px] md:gap-2 bg-white px-[12px] md:px-3 py-[4px] md:py-1 rounded-[4px] md:rounded-[6px] w-[125px] md:w-fit shrink-0">
+            <div className="w-[16px] h-[16px] min-w-[16px] min-h-[16px] md:w-4 md:h-4 bg-[#0E1629] shrink-0" />
+            <p className="font-[Poppins] font-semibold text-[12px] md:text-[0.875rem] text-[#0E1629] md:text-(--text-main) uppercase md:capitalize tracking-[0.07em] md:tracking-normal leading-none md:leading-normal">
+              BLOGS
             </p>
           </div>
 
-          <h2 className="mt-5 max-w-[554px] text-(--text-muted) font-medium text-[1.25rem]">
+          <h2 className="mt-3 md:mt-5 max-w-[350px] md:max-w-[554px] font-[Poppins] font-medium text-[12px] md:text-[1.25rem] text-[#0E1629] md:text-(--text-muted) leading-[1.4] md:leading-normal">
             Lorem ipsum dolor sit amet consectetur. Senectus arcu cras at risus
             a tortor ut quam in.
           </h2>
         </div>
 
-        <div className="flex flex-col gap-10.5">
-          <div className="flex flex-wrap gap-9">
+        <div className="flex flex-col gap-6 md:gap-10.5">
+          <div className="flex gap-[12px] md:gap-9 overflow-x-auto md:flex-wrap md:overflow-visible [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-2 md:pb-0">
+            
+            {/* API States (From Current) */}
             {isLoading && (
               <p className="text-(--text-muted) text-[0.875rem] w-full">
                 Loading blogs…
               </p>
             )}
+            
             {isError && (
               <p className="text-red-600 text-[0.875rem] w-full">
                 {(error as Error)?.message ?? "Could not load blogs."}
               </p>
             )}
+
+            {/* Dynamic Map (From Current) + Layout Wrapper (From Incoming) */}
             {!isLoading &&
               !isError &&
               sectionBlogs.map((blog) => (
-                <BlogCard
-                  key={blog.id}
-                  id={blog.id}
-                  title={blog.title}
-                  author={blog.author}
-                  readTime={blog.readTime}
-                  imageUrl={blog.imageUrl}
-                />
+                <div key={blog.id} className="shrink-0">
+                  <BlogCard
+                    id={blog.id}
+                    title={blog.title}
+                    author={blog.author}
+                    readTime={blog.readTime}
+                    imageUrl={blog.imageUrl}
+                  />
+                </div>
               ))}
+
+            {/* Empty State (From Current) */}
             {!isLoading && !isError && sectionBlogs.length === 0 && (
               <p className="text-(--text-muted) text-[0.875rem]">
                 No blogs yet.
@@ -151,12 +158,14 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
             )}
           </div>
 
-          <div className="flex items-center justify-end">
-            <SeeAllButton onClick={() => navigate("/admissions/blogs")} />
+          {/* See All Button Section */}
+          <div className="flex items-center justify-end mt-2 md:mt-0 w-full">
+            <div className="scale-[0.85] md:scale-100 origin-center md:origin-right">
+              <SeeAllButton onClick={() => navigate("/admissions/blogs")} />
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 }
-
