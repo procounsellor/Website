@@ -10,6 +10,7 @@ const MOCK_BLOG = {
 
 export default function BlogDetailPage() {
   const navigate = useNavigate();
+  // const { id } = useParams<{ id: string }>();
 
   const blog = MOCK_BLOG;
 
