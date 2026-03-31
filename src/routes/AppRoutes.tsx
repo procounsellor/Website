@@ -45,9 +45,10 @@ import Courses from '@/pages/Revamp/Courses';
 import BlogsPage from '@/pages/Revamp/BlogsPage';
 import BlogDetailPage from '@/pages/Revamp/BlogDetailPage';
 import ProBuddiesRegistration from '@/pages/Revamp/ProBuddiesRegistration';
-import CounsellorListingRevamp from '@/pages/Revamp/counsellorListing';
-import CounsellorListingCards from '@/pages/Revamp/counsellorListingCards';
+// import CounsellorListingRevamp from '@/pages/Revamp/counsellorListing';
+// import CounsellorListingCards from '@/pages/Revamp/counsellorListingCards';
 import ProBuddiesDashboard from '@/pages/Revamp/ProBuddiesDashboard';
+import CounsellorsPage from '@/pages/Revamp/CounsellorsPage';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
@@ -92,8 +93,9 @@ export default function AppRoutes() {
                         <Route path='/revamp-courses' element={<Courses />} />
                         <Route path='/revamp-about' element={<RevampAbout />} />
                         <Route path='/pro-buddies/registration' element={<ProBuddiesRegistration />} />
-                        <Route path='/counsellor-listing' element={<CounsellorListingRevamp />} />
-                        <Route path='/counsellor-listing-cards' element={<CounsellorListingCards />} />
+                        {/* <Route path='/counsellor-listing' element={<CounsellorListingRevamp />} /> */}
+                        {/* <Route path='/counsellor-listing-cards' element={<CounsellorListingCards />} /> */}
+                        <Route path='/counsellor-listing' element={<CounsellorsPage />} />
 
                         {/* Community */}
                         <Route path="/community" element={<CommunityPage />} />

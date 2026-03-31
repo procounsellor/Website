@@ -31,7 +31,7 @@ export default function FancyCard({
 
   return (
     <div
-      className="relative w-[244px] h-[367px] cursor-pointer group"
+      className="relative w-[200px] md:w-[244px] h-[275px] md:h-[367px] cursor-pointer group shrink-0"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
@@ -40,6 +40,7 @@ export default function FancyCard({
         className="absolute inset-0 w-full h-full"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 244 367"
+        preserveAspectRatio="none"
         fill="none"
       >
         <path
@@ -52,7 +53,7 @@ export default function FancyCard({
         {/* Rating Badge */}
         <div className="absolute top-[20px] left-[20px] flex items-center gap-1 z-10">
           <Star size={16} fill="#0E1629" className="text-[#0E1629]" />
-          <p className="font-[Poppins] font-medium text-[14px] text-[#0E1629] tracking-[0.28px]">
+          <p className="font-[Poppins] font-medium text-[12px] md:text-[14px] text-[#0E1629] tracking-[0.28px]">
             {rating?.toFixed(1) || "N/A"}
           </p>
         </div>
@@ -61,27 +62,27 @@ export default function FancyCard({
         <img
           src={imageUrl}
           alt={name}
-          className="w-[220px] h-[208px] rounded-[10px] object-cover"
+          className="w-full md:w-[220px] h-[135px] md:h-[208px] rounded-[10px] object-cover shrink-0"
         />
 
         {/* Counsellor Name */}
         <div className="mt-2">
-          <p className="font-[Poppins] font-medium text-[18px] text-[#0E1629] leading-normal truncate">
+          <p className="font-[Poppins] font-medium text-[16px] md:text-[18px] text-[#0E1629] leading-normal truncate">
             {name}
           </p>
         </div>
 
         {/* Details */}
-        <div className="flex flex-col gap-1 mt-3">
+        <div className="flex flex-col gap-1 mt-1.5 md:mt-3">
           <div className="flex items-center gap-1">
-            <Briefcase size={20} className="text-[#6B7280] shrink-0" strokeWidth={1.5} />
-            <p className="font-[Poppins] font-normal text-[14px] text-[#6B7280] truncate">
+            <Briefcase size={16} className="md:w-[20px] md:h-[20px] text-[#6B7280] shrink-0" strokeWidth={1.5} />
+            <p className="font-[Poppins] font-normal text-[12px] md:text-[14px] text-[#6B7280] truncate">
               {experience || "Entry Level"}
             </p>
           </div>
           <div className="flex items-center gap-1">
-            <MapPin size={20} className="text-[#6B7280] shrink-0" strokeWidth={1.5} />
-            <p className="font-[Poppins] font-normal text-[14px] text-[#6B7280] truncate">
+            <MapPin size={16} className="md:w-[20px] md:h-[20px] text-[#6B7280] shrink-0" strokeWidth={1.5} />
+            <p className="font-[Poppins] font-normal text-[12px] md:text-[14px] text-[#6B7280] truncate">
               {city || "Not specified"}
             </p>
           </div>
@@ -89,11 +90,11 @@ export default function FancyCard({
 
         {/* ProCoins */}
         {proCoins != null && proCoins > 0 && (
-          <div className="flex items-center gap-1 mt-3">
-            <div className="w-[32px] h-[32px] flex items-center justify-center">
+          <div className="flex items-center gap-1 mt-1.5 md:mt-3">
+            <div className="w-[24px] h-[24px] md:w-[32px] md:h-[32px] flex items-center justify-center">
               <img src="/coin.svg" alt="procoin_icon" className="w-full h-full" />
             </div>
-            <p className="font-[Poppins] font-medium text-[16px] text-[#0E1629]">
+            <p className="font-[Poppins] font-medium text-[14px] md:text-[16px] text-[#0E1629]">
               {proCoins} ProCoins
             </p>
           </div>
@@ -101,14 +102,13 @@ export default function FancyCard({
       </div>
 
       {/* Arrow Button */}
-      <div className="absolute right-[-1px] bottom-[1.5px] overflow-hidden">
+      <div className="absolute right-[-1px] bottom-[1.5px] overflow-hidden w-[48px] md:w-auto h-[41px] md:h-auto">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="53"
-          height="50"
           viewBox="0 0 52 50"
+          preserveAspectRatio="none"
           fill="none"
-          className="transition-all duration-300"
+          className="w-[48px] md:w-[53px] h-[41px] md:h-[50px] transition-all duration-300"
         >
           <path
             d="M4.1 7.05536C4.57855 3.03083 7.99114 0 12.044 0H43.9934C48.4117 0 51.9934 3.58172 51.9934 8V42C51.9934 46.4183 48.4117 50 43.9934 50H8.00107C3.20833 50 -0.508886 45.8146 0.0570345 41.0554L4.1 7.05536Z"
@@ -116,7 +116,7 @@ export default function FancyCard({
             className="transition-colors duration-300"
           />
         </svg>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[20px] h-[20px]">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[16px] md:w-[20px] h-[16px] md:h-[20px]">
           <img
             src="/arrow.svg"
             alt="arrow"

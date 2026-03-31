@@ -80,7 +80,7 @@ const CollegeDetailsPageNew = () => {
 
   return (
     <div className="min-h-screen bg-[#FFFFFF] pb-20">
-      <div className="max-w-7xl mx-auto mt-14 md:mt-14 px-4 md:px-8 pt-4 md:pt-10">
+      <div className="max-w-7xl mx-auto md:mt-14 px-4 md:px-8 md:pt-10">
         <div className="mb-6 md:mb-8">
           
           <p 
