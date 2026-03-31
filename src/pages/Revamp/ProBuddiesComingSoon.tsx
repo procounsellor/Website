@@ -29,7 +29,7 @@ export default function ProBuddiesComingSoon() {
                 Back to Home
               </button>
               <button
-                onClick={() => navigate("/revamp-courses")}
+                onClick={() => navigate("/courses")}
                 className="rounded-lg border border-[#0E1629] px-5 py-2.5 text-sm font-semibold text-[#0E1629] transition-colors hover:bg-[#0E1629] hover:text-white"
               >
                 Explore Courses

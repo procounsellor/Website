@@ -22,20 +22,36 @@ export default function RevampBreadcrumbs() {
     crumbs.push({ label: 'Home', path: '/admissions' });
 
     // Revamp course listing pages
-    if (path === '/revamp-courses/course-listing') {
-      crumbs.push({ label: 'Courses', path: '/revamp-courses' });
+    if (path === '/courses/course-listing' || path === '/revamp-courses/course-listing') {
+      crumbs.push({ label: 'Courses', path: '/courses' });
       crumbs.push({ label: 'Course Listing' });
     }
-    else if (path === '/revamp-courses/test-listing') {
-      crumbs.push({ label: 'Courses', path: '/revamp-courses' });
+    else if (path === '/courses/test-listing' || path === '/revamp-courses/test-listing') {
+      crumbs.push({ label: 'Courses', path: '/courses' });
       crumbs.push({ label: 'Test Listing' });
     }
-    else if (path === '/revamp-courses/session-listing') {
-      crumbs.push({ label: 'Courses', path: '/revamp-courses' });
+    else if (path === '/courses/session-listing' || path === '/revamp-courses/session-listing') {
+      crumbs.push({ label: 'Courses', path: '/courses' });
       crumbs.push({ label: 'Session Listing' });
     }
+    // Course detail page (/courses/detail/:courseId/:role and legacy /detail/:courseId/:role)
+    else if (path.includes('/courses/detail/') || path.includes('/detail/')) {
+      crumbs.push({ label: 'Courses', path: '/courses' });
+      crumbs.push({ label: 'Course Details' });
+    }
+    // Test group detail pages (new and legacy)
+    else if (
+      path.includes('/courses/test-group/') ||
+      path.includes('/courses/test-groups/') ||
+      path.includes('/test-group/') ||
+      path.includes('/test-groups/')
+    ) {
+      crumbs.push({ label: 'Courses', path: '/courses' });
+      crumbs.push({ label: 'Tests', path: '/courses/test-listing' });
+      crumbs.push({ label: 'Test Details' });
+    }
     // Courses routes
-    else if (path.includes('/revamp-courses')) {
+    else if (path.includes('/courses') || path.includes('/revamp-courses')) {
       crumbs.push({ label: 'Courses' });
     }
     // Community routes
@@ -75,22 +91,6 @@ export default function RevampBreadcrumbs() {
     else if (path.includes('/exams/')) {
       crumbs.push({ label: 'Exams', path: '/exams' });
       crumbs.push({ label: 'Details' });
-    }
-    // Courses details
-    else if (path.includes('/courses/')) {
-      crumbs.push({ label: 'Courses', path: '/revamp-courses' });
-      crumbs.push({ label: 'Details' });
-    }
-    // Course detail page (/detail/:courseId/:role)
-    else if (path.includes('/detail/')) {
-      crumbs.push({ label: 'Courses', path: '/revamp-courses' });
-      crumbs.push({ label: 'Course Details' });
-    }
-    // Revamp test group detail pages
-    else if (path.includes('/test-group/') || path.includes('/test-groups/')) {
-      crumbs.push({ label: 'Courses', path: '/revamp-courses' });
-      crumbs.push({ label: 'Tests', path: '/revamp-courses/test-listing' });
-      crumbs.push({ label: 'Test Details' });
     }
     // Counselor test group detail page
     else if (path.includes('/counselor/test-groups/')) {

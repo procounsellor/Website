@@ -258,7 +258,7 @@ export default function CourseTab(props: CourseTabProps) {
               <div
                 key={course.courseId}
                 className='cursor-pointer'
-                onClick={() => navigate(`/detail/${course.courseId}/${role}`, { state: { from: 'courses' } })}
+                onClick={() => navigate(`/courses/detail/${course.courseId}/${role}`, { state: { from: 'courses' } })}
               >
                 <CourseCard
                   course={{

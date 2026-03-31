@@ -115,7 +115,7 @@ export default function CourseSection() {
       handleTabChange("trending");
       return;
     }
-    navigate("/revamp-courses");
+    navigate("/courses");
   };
 
   const containerVariants = {
@@ -361,7 +361,7 @@ export default function CourseSection() {
 
             <SeeAllButton
               text="See all"
-              onClick={() => navigate("/revamp-courses/course-listing")}
+              onClick={() => navigate("/courses/course-listing")}
             />
           </div>
         </div>

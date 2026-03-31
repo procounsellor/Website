@@ -55,8 +55,8 @@ export function SubscriptionPage(){
         </div>
     }
 
-    return <div className="w-full min-h-screen bg-[#F5F7FA] mt-16 md:mt-20 px-4 md:px-10 lg:px-40">
-         <div className="flex flex-col items-center gap-6 justify-center py-6 md:py-10">
+        return <div className="w-full min-h-screen bg-[#F5F7FA] pt-20 md:pt-24 px-4 md:px-8 lg:px-16">
+            <div className="mx-auto w-full max-w-7xl flex flex-col items-center gap-6 justify-center py-6 md:py-8">
             <h1 className="flex flex-wrap justify-center text-center text-2xl md:text-[28px] font-semibold text-[#13097D] max-w-[523px]">Choose the best plan for your <span className="text-[#ff660a]">career guidance</span></h1>
             <PlansCard 
                 plan={plans} 

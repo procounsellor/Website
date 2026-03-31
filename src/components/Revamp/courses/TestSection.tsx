@@ -439,7 +439,7 @@ export default function TestSection() {
                         Explore Trending
                       </button>
                       <button
-                        onClick={() => navigate("/revamp-courses")}
+                        onClick={() => navigate("/courses")}
                         className="px-4 py-2 rounded-lg border border-[#0E1629] text-[#0E1629] text-sm font-medium hover:bg-[#0E1629] hover:text-white"
                       >
                         Browse Test Series
@@ -466,7 +466,7 @@ export default function TestSection() {
 
             <SeeAllButton
               text="See all"
-              onClick={() => navigate("/revamp-courses/test-listing")}
+              onClick={() => navigate("/courses/test-listing")}
             />
           </div>
         </div>

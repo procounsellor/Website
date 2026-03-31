@@ -4,11 +4,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { buttonHoverScale, buttonTapScale, buttonTransition } from "@/components/common/PageTransition";
 import { useAuthStore } from "@/store/AuthStore";
+import { useSearchStore } from "@/store/SearchStore";
+import { SearchResults } from "@/components/layout/SearchResults";
 import toast from "react-hot-toast";
 
 const tabs = [
     { id: 1, name: 'Admission', iconPath: '/Admissions.png', path: '/admissions' },
-    { id: 2, name: 'Courses', iconPath: '/Courses.svg', path: '/revamp-courses' },
+    { id: 2, name: 'Courses', iconPath: '/Courses.svg', path: '/courses' },
     { id: 3, name: 'Community', iconPath: '/Community.png', path: '/community' },
     { id: 4, name: 'ProBuddies', iconPath: '/ProBuddy.png', path: '/pro-buddies' },
     //{ id: 5, name: 'About us', iconPath: '/Admissions.png', path: '/revamp-about' }
@@ -22,9 +24,14 @@ export default function RevampHeader() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isDesktopSearchOpen, setIsDesktopSearchOpen] = useState(false);
+    const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const buttonRef = useRef<HTMLButtonElement>(null);
+    const desktopSearchRef = useRef<HTMLDivElement>(null);
+    const mobileSearchRef = useRef<HTMLDivElement>(null);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
+    const { query, setQuery, performSearch, clearResults, setSearchOpen } = useSearchStore();
 
     useEffect(() => {
         const currentTab = tabs.find(tab => {
@@ -82,7 +89,65 @@ export default function RevampHeader() {
     // Close dropdown on route change
     useEffect(() => {
         setIsDropdownOpen(false);
-    }, [location.pathname]);
+        setIsDesktopSearchOpen(false);
+        setIsMobileSearchOpen(false);
+        setSearchOpen(false);
+        clearResults();
+    }, [location.pathname, clearResults, setSearchOpen]);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            if (query.trim()) {
+                performSearch(query);
+            } else {
+                clearResults();
+            }
+        }, 350);
+
+        return () => clearTimeout(handler);
+    }, [query, performSearch, clearResults]);
+
+    useEffect(() => {
+        const handleOutsideSearchClick = (event: MouseEvent) => {
+            const target = event.target as Node;
+            if (
+                desktopSearchRef.current &&
+                !desktopSearchRef.current.contains(target) &&
+                mobileSearchRef.current &&
+                !mobileSearchRef.current.contains(target)
+            ) {
+                setIsDesktopSearchOpen(false);
+                setIsMobileSearchOpen(false);
+                setSearchOpen(false);
+            }
+        };
+
+        if (isDesktopSearchOpen || isMobileSearchOpen) {
+            document.addEventListener("mousedown", handleOutsideSearchClick);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleOutsideSearchClick);
+        };
+    }, [isDesktopSearchOpen, isMobileSearchOpen, setSearchOpen]);
+
+    const handleDesktopSearchFocus = () => {
+        setIsDesktopSearchOpen(true);
+        setIsMobileSearchOpen(false);
+        setSearchOpen(true);
+    };
+
+    const handleMobileSearchFocus = () => {
+        setIsDesktopSearchOpen(false);
+        setIsMobileSearchOpen(true);
+        setSearchOpen(true);
+    };
+
+    const handleSearchResultClick = () => {
+        setIsDesktopSearchOpen(false);
+        setIsMobileSearchOpen(false);
+        setSearchOpen(false);
+    };
 
     const handleLogout = () => {
         logout();
@@ -125,7 +190,7 @@ export default function RevampHeader() {
             }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="sticky top-0 z-50 w-full bg-[#C6DDF0]/40 flex flex-col items-center relative border-b border-gray-100 backdrop-blur-md"
-            style={{ clipPath: 'inset(0 0 0 0)' }}
+            style={{ overflow: "visible" }}
         >
             
 
@@ -301,10 +366,14 @@ export default function RevampHeader() {
                 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="hidden md:flex absolute w-[456px] h-[52px] bg-[#FFFFFF] rounded-[12px] items-center pl-[12px] pr-[12px] shadow-sm border border-gray-50 z-20"
+                ref={desktopSearchRef}
             >
                 <input 
                     type="text" 
-                    placeholder="Search for colleges" 
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onFocus={handleDesktopSearchFocus}
+                    placeholder="Search courses, tests, exams, counsellors" 
                     className="w-full h-full bg-transparent outline-none font-poppins font-medium text-[16px] leading-[100%] text-[#232323] placeholder:text-[#6B7280]"
                 />
                 <svg 
@@ -317,6 +386,12 @@ export default function RevampHeader() {
                 >
                     <path d="M21 21L15.0001 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
+
+                {isDesktopSearchOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-96 overflow-hidden">
+                        <SearchResults onResultClick={handleSearchResultClick} />
+                    </div>
+                )}
             </motion.div>
 
 
@@ -358,29 +433,39 @@ export default function RevampHeader() {
                 </AnimatePresence>
 
                 <div className="flex w-full items-center gap-[12px]">
-                    <div className="flex-1 h-[40px] bg-[#FFFFFF] rounded-[12px] border border-gray-50 flex items-center px-[12px] shadow-sm">
-                        
-                        <img 
-                            src="/logo.svg" 
-                            alt="procounsel_logo" 
-                            className="w-[12.5px] h-[15px] object-contain mr-[8px] shrink-0" 
-                        />
+                    <div className="flex-1 relative" ref={mobileSearchRef}>
+                        <div className="h-[40px] bg-[#FFFFFF] rounded-[12px] border border-gray-50 flex items-center px-[12px] shadow-sm">
+                            <img 
+                                src="/logo.svg" 
+                                alt="procounsel_logo" 
+                                className="w-[12.5px] h-[15px] object-contain mr-[8px] shrink-0" 
+                            />
 
-                        <input 
-                            type="text" 
-                            placeholder="Search states" 
-                            className="w-full h-full bg-transparent outline-none font-poppins font-medium text-[12px] leading-[100%] text-[#232323] placeholder:text-[#232323]"
-                        />
-                        <svg 
-                            width="20" 
-                            height="20" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="text-[#6B7280] flex-shrink-0 ml-2"
-                        >
-                            <path d="M21 21L15.0001 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                            <input 
+                                type="text"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                onFocus={handleMobileSearchFocus}
+                                placeholder="Search courses, tests, exams" 
+                                className="w-full h-full bg-transparent outline-none font-poppins font-medium text-[12px] leading-[100%] text-[#232323] placeholder:text-[#232323]"
+                            />
+                            <svg 
+                                width="20" 
+                                height="20" 
+                                viewBox="0 0 24 24" 
+                                fill="none" 
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="text-[#6B7280] flex-shrink-0 ml-2"
+                            >
+                                <path d="M21 21L15.0001 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                        </div>
+
+                        {isMobileSearchOpen && (
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-96 overflow-hidden">
+                                <SearchResults onResultClick={handleSearchResultClick} />
+                            </div>
+                        )}
                     </div>
 
                     {/* Mobile: Auth-aware right section */}

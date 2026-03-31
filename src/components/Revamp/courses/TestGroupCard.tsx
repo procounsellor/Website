@@ -43,7 +43,7 @@ export default function TestGroupCard({
 
   const handleNavigate = () => {
     if (!testGroupId) return;
-    navigate(`/test-group/${testGroupId}`);
+    navigate(`/courses/test-group/${testGroupId}`);
   };
 
   const handleCardKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {

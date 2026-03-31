@@ -8,9 +8,9 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { key: "home", label: "Home", path: "/revamp-courses" },
-  { key: "courses", label: "Courses", path: "/revamp-courses/course-listing" },
-  { key: "tests", label: "Tests", path: "/revamp-courses/test-listing" },
+  { key: "home", label: "Home", path: "/courses" },
+  { key: "courses", label: "Courses", path: "/courses/course-listing" },
+  { key: "tests", label: "Tests", path: "/courses/test-listing" },
   { key: "sessions", label: "Sessions", path: "/live-sessions" },
 ];
 

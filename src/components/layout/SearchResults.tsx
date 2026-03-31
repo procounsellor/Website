@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useSearchStore } from "@/store/SearchStore";
 import type { SearchResult } from "@/store/SearchStore";
-import { Book,Users, Loader2 } from "lucide-react";
+import { BookOpen, ClipboardList, Loader2, Users } from "lucide-react";
 import { encodeCounselorId } from "@/lib/utils";
 
 interface SearchResultsProps {
@@ -9,17 +9,17 @@ interface SearchResultsProps {
 }
 
 const typeIcons = {
-  exam: Book,
-  // college: Building2,
-  // course: GraduationCap,
+  exam: ClipboardList,
+  course: BookOpen,
+  test: ClipboardList,
   counsellor: Users,
 };
 
 const typeColors = {
   exam: "text-blue-600 bg-blue-50",
-  // college: "text-green-600 bg-green-50", 
-  // course: "text-purple-600 bg-purple-50",
-  counselor: "text-orange-600 bg-orange-50",
+  course: "text-purple-600 bg-purple-50",
+  test: "text-indigo-600 bg-indigo-50",
+  counsellor: "text-orange-600 bg-orange-50",
 };
 
 export function SearchResults({ onResultClick }: SearchResultsProps) {
@@ -36,6 +36,14 @@ export function SearchResults({ onResultClick }: SearchResultsProps) {
         navigate(`/exams/${result.id}`);
         break;
       }
+      case 'course': {
+        navigate(`/courses/detail/${result.id}/user`);
+        break;
+      }
+      case 'test': {
+        navigate(`/courses/test-group/${result.id}`);
+        break;
+      }
       default: {
         const baseRoute = result.type === 'counsellor' ? '/counselors' : `/${result.type}s`;
         navigate(baseRoute);
@@ -49,9 +57,9 @@ export function SearchResults({ onResultClick }: SearchResultsProps) {
     return (
       <div className="p-6 text-center text-gray-500">
         <div className="mb-4">
-          <Book className="w-12 h-12 mx-auto text-gray-300" />
+          <BookOpen className="w-12 h-12 mx-auto text-gray-300" />
         </div>
-        <p className="text-sm">Start typing to search for exams or counsellors...</p>
+        <p className="text-sm">Start typing to search for courses, tests, exams, or counsellors...</p>
       </div>
     );
   }
@@ -69,7 +77,7 @@ export function SearchResults({ onResultClick }: SearchResultsProps) {
     return (
       <div className="p-6 text-center text-gray-500">
         <div className="mb-4">
-          <Book className="w-12 h-12 mx-auto text-gray-300" />
+          <BookOpen className="w-12 h-12 mx-auto text-gray-300" />
         </div>
         <p className="text-sm">No results found for "{query}"</p>
         <p className="text-xs text-gray-400 mt-1">Try different keywords or check the spelling</p>

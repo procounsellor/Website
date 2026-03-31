@@ -43,8 +43,7 @@ import Courses from '@/pages/Revamp/Courses';
 import BlogsPage from '@/pages/Revamp/BlogsPage';
 import BlogDetailPage from '@/pages/Revamp/BlogDetailPage';
 import ProBuddiesRegistration from '@/pages/Revamp/ProBuddiesRegistration';
-import CounsellorListingRevamp from '@/pages/Revamp/counsellorListing';
-import CounsellorListingCards from '@/pages/Revamp/counsellorListingCards';
+import CounsellorsPage from '@/pages/Revamp/CounsellorsPage';
 import ProBuddiesDashboard from '@/pages/Revamp/ProBuddiesDashboard';
 import UserProfile from '@/pages/Revamp/UserProfile';
 import CourseListing from '@/pages/Revamp/CourseListing';
@@ -91,14 +90,18 @@ export default function AppRoutes() {
                         <Route path='/pro-buddies' element={<ProBuddiesComingSoon />} />
                         <Route path='/pro-buddies/dashboard' element={<ProBuddiesDashboard />} />
                         <Route path="/probuddy/profile/:id" element={<ProBuddyProfilePage />} />
+                        <Route path='/courses' element={<Courses />} />
+                        <Route path='/courses/course-listing' element={<CourseListing />} />
+                        <Route path='/courses/test-listing' element={<TestListing />} />
+                        <Route path='/courses/session-listing' element={<SessionListing />} />
                         <Route path='/revamp-courses' element={<Courses />} />
                         <Route path='/revamp-courses/course-listing' element={<CourseListing />} />
                         <Route path='/revamp-courses/test-listing' element={<TestListing />} />
                         <Route path='/revamp-courses/session-listing' element={<SessionListing />} />
                         <Route path='/revamp-about' element={<RevampAbout />} />
                         <Route path='/pro-buddies/registration' element={<ProBuddiesRegistration />} />
-                        <Route path='/counsellor-listing' element={<CounsellorListingRevamp />} />
-                        <Route path='/counsellor-listing-cards' element={<CounsellorListingCards />} />
+                        <Route path='/counsellor-listing' element={<CounsellorsPage />} />
+                        <Route path='/counsellor-listing-cards' element={<CounsellorsPage />} />
 
                         {/* Community */}
                         <Route path="/community" element={<CommunityPage />} />
@@ -115,6 +118,7 @@ export default function AppRoutes() {
                         {/* <Route path="/courses/:id" element={<CourseDetailsPage />} /> */}
                         <Route path="/colleges/:id" element={<CollegeDetailsPage />} />
                         <Route path="/college-details/:id" element={<CollegeDetailsPageNew />} />
+                        <Route path='/courses/detail/:courseId/:role' element={<CoursePage />} />
                         <Route path='/detail/:courseId/:role' element={<CoursePage />} />
 
                         {/* Exams */}
@@ -156,6 +160,8 @@ export default function AppRoutes() {
                         <Route path='/counselor/test-groups/edit/:testGroupId' element={<CreateEditTestGroup />} />
                         <Route path='/counselor/test-groups/:testGroupId' element={<TestGroupDetails />} />
                         <Route path='/counselor/test-groups/:testGroupId/create-test' element={<CreateTest />} />
+                        <Route path='/courses/test-group/:testGroupId' element={<TestGroupCardDetails />} />
+                        <Route path='/courses/test-groups/:testGroupId' element={<TestGroupCardDetails />} />
                         <Route path='/test-group/:testGroupId' element={<TestGroupCardDetails />} />
                         <Route path='/test-groups/:testGroupId' element={<TestGroupCardDetails />} />
 

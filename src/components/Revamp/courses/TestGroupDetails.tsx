@@ -68,7 +68,7 @@ const formatPriceLabel = (priceType: string, price: number) => {
   if (String(priceType).toUpperCase() === "FREE") {
     return "Free";
   }
-  return `₹${Number(price || 0).toLocaleString("en-IN")}`;
+  return Number(price || 0).toLocaleString("en-IN");
 };
 
 const normalizeTestGroupDetails = (responseData: any): TestGroupDetailView | null => {
@@ -474,7 +474,7 @@ export default function TestGroupCardDetails() {
                 transition={{ duration: 0.6, ease: "easeOut" }}
               >
                 <ButtonCard
-                  priceLabel={testGroupDetails?.priceLabel || "₹0"}
+                  priceLabel={testGroupDetails?.priceLabel || "0"}
                   isFree={String(testGroupDetails?.priceType || "").toUpperCase() === "FREE"}
                   isPurchased={effectiveBought}
                   isBuying={buyLoading}
@@ -628,7 +628,7 @@ export default function TestGroupCardDetails() {
                 transition={{ duration: 0.6, ease: "easeOut" }}
               >
                 <ButtonCard
-                  priceLabel={testGroupDetails?.priceLabel || "₹0"}
+                  priceLabel={testGroupDetails?.priceLabel || "0"}
                   isFree={String(testGroupDetails?.priceType || "").toUpperCase() === "FREE"}
                   isPurchased={effectiveBought}
                   isBuying={buyLoading}
@@ -912,6 +912,7 @@ function ButtonCard({
     <div className="bg-white shadow-sm rounded-[8px] md:rounded-[16px] p-[12px] w-[350px] mx-auto md:w-full xl:w-[580px] h-[161px] md:h-auto font-['Poppins']">
 
       <div className="mt-[4px] md:mt-3 flex items-center gap-[8px] md:gap-3">
+        {!isFree && <img src="/coin.svg" alt="coin" className="w-4 h-4 md:w-5 md:h-5" />}
         <p className="font-semibold text-[#0e1629] text-[16px] md:text-lg">
           {priceLabel}
         </p>
@@ -925,7 +926,7 @@ function ButtonCard({
       <button
         onClick={onBuy}
         disabled={isPurchased || isBuying}
-        className="mt-[12px] md:mt-3 w-full bg-[#0e1629] h-[44px] md:h-auto rounded-[12px] px-4 py-2.5 font-medium text-[16px] text-white disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-[12px] md:mt-3 w-full bg-(--text-main) h-[44px] md:h-auto rounded-[12px] px-4 py-2.5 font-medium text-[16px] text-white disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isPurchased ? "Purchased" : isBuying ? "Processing..." : isFree ? "Enroll Now" : "Buy Now"}
       </button>

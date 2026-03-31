@@ -83,7 +83,7 @@ export default function MyCoursesTab() {
               key={course.courseId} 
               className='cursor-pointer' 
               onClick={(e) => {e.preventDefault()
-                 navigate(`/detail/${course.courseId}/${role || 'user'}`, { state: { from: 'my-courses' } })
+                 navigate(`/courses/detail/${course.courseId}/${role || 'user'}`, { state: { from: 'my-courses' } })
 
               }}
             >

@@ -391,7 +391,7 @@ export function TestGroupDetails() {
           <div className="bg-white rounded-xl shadow-sm p-4 mt-4">
             <h2 className="text-lg font-bold text-(--text-app-primary) mb-3">Associated Course</h2>
             <div
-              onClick={() => navigate(`/detail/${associatedCourse.courseId}/counselor`, {
+              onClick={() => navigate(`/courses/detail/${associatedCourse.courseId}/counselor`, {
                 state: { from: 'test-group' }
               })}
               className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"

@@ -25,7 +25,7 @@ export default function CourseCard(params: CourseCardParam) {
 
   const handleNavigate = () => {
     if (!courseId) return;
-    navigate(`/detail/${courseId}/${role}`);
+    navigate(`/courses/detail/${courseId}/${role}`);
   };
 
   if (params.isLoading) {
