@@ -1,9 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import type { CourseType } from "@/types/course";
 import CourseCard from "./CourseCard";
 import { SeeAllButton } from "../components/LeftRightButton";
-import { getBoughtCourses } from "@/api/course";
+import {
+  getAllCounsellorCoursesForGuest,
+  getAllCounsellorCoursesForUser,
+  getBoughtCourses,
+} from "@/api/course";
 import { useNavigate } from "react-router-dom";
 
 type CourseTab = "my-courses" | "trending" | "all-courses";
@@ -12,107 +17,6 @@ interface CourseWithMeta extends CourseType {
   isPurchased: boolean;
   isTrending: boolean;
 }
-
-const courseImages = ["/course/2.png", "/course/3.png"];
-
-const coursesData: CourseWithMeta[] = [
-  {
-    id: "course-1",
-    image: courseImages[0],
-    rating: "4.8",
-    name: "Foundations of Mental Wellness",
-    subject: "Mental",
-    price: "₹149",
-    courseTimeHours: 12,
-    courseTimeMinutes: 0,
-    isPurchased: true,
-    isTrending: true,
-  },
-  {
-    id: "course-2",
-    image: courseImages[1],
-    rating: "4.6",
-    name: "Psychometric Test Mastery",
-    subject: "Psychometric",
-    price: "₹299",
-    courseTimeHours: 9,
-    courseTimeMinutes: 30,
-    isPurchased: false,
-    isTrending: true,
-  },
-  {
-    id: "course-3",
-    image: courseImages[0],
-    rating: "4.7",
-    name: "Admission Strategy Blueprint",
-    subject: "Admission",
-    price: "₹499",
-    courseTimeHours: 14,
-    courseTimeMinutes: 15,
-    isPurchased: true,
-    isTrending: false,
-  },
-  {
-    id: "course-4",
-    image: courseImages[1],
-    rating: "4.5",
-    name: "Career Upskilling Essentials",
-    subject: "Upskilling",
-    price: "₹699",
-    courseTimeHours: 8,
-    courseTimeMinutes: 45,
-    isPurchased: false,
-    isTrending: true,
-  },
-  {
-    id: "course-5",
-    image: courseImages[1],
-    rating: "4.9",
-    name: "Personal Growth Lab",
-    subject: "Mental",
-    price: "₹799",
-    courseTimeHours: 10,
-    courseTimeMinutes: 0,
-    isPurchased: true,
-    isTrending: false,
-  },
-  {
-    id: "course-6",
-    image: courseImages[0],
-    rating: "4.4",
-    name: "College Readiness Bootcamp",
-    subject: "Admission",
-    price: "₹899",
-    courseTimeHours: 7,
-    courseTimeMinutes: 20,
-    isPurchased: false,
-    isTrending: true,
-  },
-  {
-    id: "course-7",
-    image: courseImages[0],
-    rating: "4.8",
-    name: "Student Success Mindset",
-    subject: "Mental",
-    price: "₹599",
-    courseTimeHours: 11,
-    courseTimeMinutes: 10,
-    isPurchased: true,
-    isTrending: false,
-  },
-  {
-    id: "course-8",
-    image: courseImages[1],
-    rating: "4.7",
-    name: "Scholarship Interview Accelerator",
-    subject: "Admission",
-    price: "₹949",
-    courseTimeHours: 9,
-    courseTimeMinutes: 50,
-    isPurchased: false,
-    isTrending: true,
-  },
-];
 
 const tabOptions: { id: CourseTab; label: string }[] = [
   { id: "my-courses", label: "My Course" },
@@ -124,66 +28,80 @@ const formatRatingToOneDecimal = (rating: unknown) => {
   return Number.isFinite(numeric) ? numeric.toFixed(1) : "0.0";
 };
 
+const normalizeCourses = (response: any, isPurchasedFallback = false): CourseWithMeta[] => {
+  const list = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+
+  return list.map((course: any) => {
+    const soldCount = Number(course?.soldCount ?? 0);
+    return {
+      id: String(course?.courseId ?? ""),
+      image: String(course?.courseThumbnailUrl ?? "/course/2.png"),
+      rating: formatRatingToOneDecimal(course?.rating),
+      name: String(course?.courseName ?? "Course"),
+      subject: String(course?.category ?? "General"),
+      price: `₹${Number(course?.coursePriceAfterDiscount ?? course?.coursePrice ?? 0).toLocaleString("en-IN")}`,
+      courseTimeHours: Number(course?.courseTimeHours ?? 0),
+      courseTimeMinutes: Number(course?.courseTimeMinutes ?? 0),
+      isPurchased: Boolean(course?.purchasedByMe ?? isPurchasedFallback),
+      isTrending: Boolean(course?.isTrending ?? soldCount > 25),
+    };
+  });
+};
+
 export default function CourseSection() {
   const navigate = useNavigate();
   const userId = localStorage.getItem("phone") || "";
   const token = localStorage.getItem("jwt") || "";
   const isUserLoggedIn = Boolean(userId && token);
-  const [isLoadingCourses, setIsLoadingCourses] = useState(false);
-  const [myCoursesData, setMyCoursesData] = useState<CourseWithMeta[]>([]);
 
   const [activeTab, setActiveTab] = useState<CourseTab>("my-courses");
 
-  useEffect(() => {
-    const loadMyCourses = async () => {
-      if (!isUserLoggedIn) {
-        setMyCoursesData([]);
-        return;
-      }
+  const { data: allCoursesResponse, isLoading: isLoadingAllCourses } = useQuery({
+    queryKey: ["revamp-all-courses", isUserLoggedIn ? userId : "guest"],
+    queryFn: () =>
+      isUserLoggedIn
+        ? getAllCounsellorCoursesForUser(userId)
+        : getAllCounsellorCoursesForGuest(),
+    enabled: !isUserLoggedIn || Boolean(userId),
+  });
 
-      try {
-        setIsLoadingCourses(true);
-        const response = await getBoughtCourses(userId);
-        const list = Array.isArray(response?.data) ? response.data : [];
-        const normalized: CourseWithMeta[] = list.map((course: any) => ({
-          id: String(course?.courseId || ""),
-          image: String(course?.courseThumbnailUrl || "/course/2.png"),
-          rating: formatRatingToOneDecimal(course?.rating),
-          name: String(course?.courseName || "Course"),
-          subject: String(course?.category || "General"),
-          price: `₹${Number(course?.coursePriceAfterDiscount ?? course?.coursePrice ?? 0).toLocaleString("en-IN")}`,
-          courseTimeHours: 0,
-          courseTimeMinutes: 0,
-          isPurchased: true,
-          isTrending: false,
-        }));
-        setMyCoursesData(normalized);
-      } catch (error) {
-        console.error("Failed to load bought courses:", error);
-        setMyCoursesData([]);
-      } finally {
-        setIsLoadingCourses(false);
-      }
-    };
+  const { data: myCoursesResponse, isLoading: isLoadingMyCourses } = useQuery({
+    queryKey: ["revamp-my-courses", userId],
+    queryFn: () => getBoughtCourses(userId),
+    enabled: isUserLoggedIn && Boolean(userId),
+  });
 
-    loadMyCourses();
-  }, [isUserLoggedIn, userId]);
+  const allCoursesData = useMemo(
+    () => normalizeCourses(allCoursesResponse, false),
+    [allCoursesResponse]
+  );
+
+  const myCoursesData = useMemo(
+    () => normalizeCourses(myCoursesResponse, true),
+    [myCoursesResponse]
+  );
+
+  const isLoadingCourses = isUserLoggedIn
+    ? activeTab === "my-courses"
+      ? isLoadingMyCourses
+      : isLoadingAllCourses
+    : isLoadingAllCourses;
 
   const filteredCourses = useMemo(() => {
-    if (!isUserLoggedIn) return coursesData;
+    if (!isUserLoggedIn) return allCoursesData;
 
     if (activeTab === "my-courses") {
       return myCoursesData;
     }
 
     if (activeTab === "trending") {
-      return coursesData.filter(
+      return allCoursesData.filter(
         (course) => course.isTrending && !course.isPurchased,
       );
     }
 
-    return coursesData.filter((course) => !course.isPurchased);
-  }, [activeTab, isUserLoggedIn, myCoursesData]);
+    return allCoursesData.filter((course) => !course.isPurchased);
+  }, [activeTab, allCoursesData, isUserLoggedIn, myCoursesData]);
 
   const handleTabChange = (tab: CourseTab) => {
     setActiveTab(tab);
@@ -260,17 +178,19 @@ export default function CourseSection() {
             around your needs.
           </p>
 
-          <div className="flex gap-2.5 pt-2">
-            {tabOptions.map((tab) => (
-              <div
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`border border-(--text-main) py-1.5 px-3 rounded-[5px] text-xs font-medium cursor-pointer ${activeTab === tab.id ? "bg-(--text-main) text-white" : "text-(--text-main) bg-none"}`}
-              >
-                {tab.label}
-              </div>
-            ))}
-          </div>
+          {isUserLoggedIn && (
+            <div className="flex gap-2.5 pt-2">
+              {tabOptions.map((tab) => (
+                <div
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`border border-(--text-main) py-1.5 px-3 rounded-[5px] text-xs font-medium cursor-pointer ${activeTab === tab.id ? "bg-(--text-main) text-white" : "text-(--text-main) bg-none"}`}
+                >
+                  {tab.label}
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="w-full">
             <div
@@ -441,7 +361,7 @@ export default function CourseSection() {
 
             <SeeAllButton
               text="See all"
-              onClick={() => console.log("see all")}
+              onClick={() => navigate("/revamp-courses/course-listing")}
             />
           </div>
         </div>

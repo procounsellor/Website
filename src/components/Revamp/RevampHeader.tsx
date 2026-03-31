@@ -124,7 +124,7 @@ export default function RevampHeader() {
                     : (isScrolled ? 100 : 184) 
             }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="sticky top-0 z-50 w-full bg-[#C6DDF0]/75 flex flex-col items-center relative border-b border-gray-100 backdrop-blur-md"
+            className="sticky top-0 z-50 w-full bg-[#C6DDF0]/40 flex flex-col items-center relative border-b border-gray-100 backdrop-blur-md"
             style={{ clipPath: 'inset(0 0 0 0)' }}
         >
             

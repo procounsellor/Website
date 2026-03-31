@@ -169,12 +169,14 @@ export default function CourseCard(params: CourseCardParam) {
         </div>
 
         <div className="flex flex-col gap-2">
-          <h1 className="flex flex-col gap-1 text-(--text-main) font-semibold text-[1rem] ">
-            {params.course?.name}
+          <div className="flex flex-col gap-1">
+            <h1 className="text-(--text-main) font-semibold text-[1rem] truncate whitespace-nowrap overflow-hidden">
+              {params.course?.name}
+            </h1>
             <span className="text-(--text-muted) text-xs font-normal">
               Aditya Ram
             </span>
-          </h1>
+          </div>
 
           <div className="flex flex-col gap-1 text-(--text-main) text-[0.875rem] font-semibold">
             <p>

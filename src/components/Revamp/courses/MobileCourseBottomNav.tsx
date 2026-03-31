@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/store/AuthStore";
 
 type NavItem = {
   key: string;
@@ -10,7 +11,7 @@ const navItems: NavItem[] = [
   { key: "home", label: "Home", path: "/revamp-courses" },
   { key: "courses", label: "Courses", path: "/revamp-courses/course-listing" },
   { key: "tests", label: "Tests", path: "/revamp-courses/test-listing" },
-  { key: "sessions", label: "Sessions", path: "/revamp-courses/session-listing" },
+  { key: "sessions", label: "Sessions", path: "/live-sessions" },
 ];
 
 function HomeIcon({ className }: { className?: string }) {
@@ -34,7 +35,7 @@ function HomeIcon({ className }: { className?: string }) {
 
 function CourseIcon({ className }: { className?: string }) {
   return (
-   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
   <g clip-path="url(#clip0_299_2067)">
     <path d="M15.8327 3.33325V16.6666H5.83268C5.39065 16.6666 4.96673 16.491 4.65417 16.1784C4.34161 15.8659 4.16602 15.4419 4.16602 14.9999V4.99992C4.16602 4.55789 4.34161 4.13397 4.65417 3.82141C4.96673 3.50885 5.39065 3.33325 5.83268 3.33325H15.8327Z" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="M15.8327 13.3333H5.83268C5.39065 13.3333 4.96673 13.5088 4.65417 13.8214C4.34161 14.134 4.16602 14.5579 4.16602 14.9999" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -51,7 +52,7 @@ function CourseIcon({ className }: { className?: string }) {
 
 function TestIcon({ className }: { className?: string }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
   <g clip-path="url(#clip0_299_2074)">
     <path d="M5.83398 4.7225C5.83398 4.13306 6.06814 3.56775 6.48494 3.15096C6.90174 2.73416 7.46704 2.5 8.05648 2.5H15.2782C15.57 2.5 15.859 2.55749 16.1287 2.66918C16.3983 2.78087 16.6433 2.94458 16.8497 3.15096C17.0561 3.35733 17.2198 3.60234 17.3315 3.87199C17.4432 4.14163 17.5007 4.43064 17.5007 4.7225V11.9442C17.5007 12.236 17.4432 12.525 17.3315 12.7947C17.2198 13.0643 17.0561 13.3093 16.8497 13.5157C16.6433 13.7221 16.3983 13.8858 16.1287 13.9975C15.859 14.1092 15.57 14.1667 15.2782 14.1667H8.05648C7.46704 14.1667 6.90174 13.9325 6.48494 13.5157C6.06814 13.0989 5.83398 12.5336 5.83398 11.9442V4.7225Z" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="M3.34333 6.05005C3.08779 6.19573 2.87523 6.4063 2.72715 6.66047C2.57906 6.91464 2.50071 7.20339 2.5 7.49755V15.8309C2.5 16.7475 3.25 17.4975 4.16667 17.4975H12.5C13.125 17.4975 13.465 17.1767 13.75 16.6642" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -69,7 +70,7 @@ function TestIcon({ className }: { className?: string }) {
 
 function SessionIcon({ className }: { className?: string }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
   <g clip-path="url(#clip0_299_2082)">
     <path d="M12.5 8.33343L16.2942 6.43677C16.4212 6.37329 16.5623 6.34333 16.7042 6.34972C16.846 6.35611 16.9839 6.39864 17.1047 6.47327C17.2255 6.5479 17.3252 6.65216 17.3944 6.77616C17.4636 6.90015 17.4999 7.03977 17.5 7.18177V12.8184C17.4999 12.9604 17.4636 13.1 17.3944 13.224C17.3252 13.348 17.2255 13.4523 17.1047 13.5269C16.9839 13.6016 16.846 13.6441 16.7042 13.6505C16.5623 13.6569 16.4212 13.6269 16.2942 13.5634L12.5 11.6668V8.33343Z" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="M2.5 6.66667C2.5 6.22464 2.67559 5.80072 2.98816 5.48816C3.30072 5.17559 3.72464 5 4.16667 5H10.8333C11.2754 5 11.6993 5.17559 12.0118 5.48816C12.3244 5.80072 12.5 6.22464 12.5 6.66667V13.3333C12.5 13.7754 12.3244 14.1993 12.0118 14.5118C11.6993 14.8244 11.2754 15 10.8333 15H4.16667C3.72464 15 3.30072 14.8244 2.98816 14.5118C2.67559 14.1993 2.5 13.7754 2.5 13.3333V6.66667Z" stroke="#0E1629" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -93,6 +94,23 @@ function getIcon(key: string, className?: string) {
 export default function MobileCourseBottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated, isLoginToggle, toggleLogin } = useAuthStore();
+
+  const handleNavClick = (item: NavItem) => {
+    if (item.key !== "sessions") {
+      navigate(item.path);
+      return;
+    }
+
+    if (isAuthenticated) {
+      navigate(item.path);
+      return;
+    }
+
+    if (!isLoginToggle) {
+      toggleLogin(() => navigate(item.path));
+    }
+  };
 
   return (
     <div className="fixed bottom-4 left-0 right-0 z-40 px-2 md:hidden">
@@ -111,11 +129,16 @@ export default function MobileCourseBottomNav() {
               <button
                 key={item.key}
                 type="button"
-                onClick={() => navigate(item.path)}
+                onClick={() => handleNavClick(item)}
                 className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 ${toneClass}`}
                 aria-label={item.label}
               >
-                {getIcon(item.key, "h-5 w-5")}
+                <div className="relative flex items-center justify-center">
+                  {getIcon(item.key, "h-5 w-5")}
+                  {item.key === "sessions" && (
+                    <span className="absolute -top-1 -left-1 inline-flex h-2.5 w-2.5 rounded-full bg-[#ff3b30] ring-1 ring-white shadow-sm animate-[pulse_2.4s_ease-in-out_infinite]" />
+                  )}
+                </div>
                 <span className="text-[12px] leading-[1.1]">{item.label}</span>
               </button>
             );

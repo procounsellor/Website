@@ -36,7 +36,7 @@ import { TestGroupDetails } from '@/pages/test/counsellor/TestGroupDetails';
 import CollegeDetailsPageNew from '@/pages/CollegeDetailsPage';
 import RevampLayout from '@/layouts/RevampLayout';
 import TestGroupCardDetails from '@/components/Revamp/courses/TestGroupDetails';
-import ProBuddies from '@/pages/Revamp/ProBuddies';
+import ProBuddiesComingSoon from '@/pages/Revamp/ProBuddiesComingSoon';
 import RevampAbout from '@/components/Revamp/about/RevampAbout';
 import Admissions from '@/pages/Revamp/Admissions';
 import Courses from '@/pages/Revamp/Courses';
@@ -88,7 +88,7 @@ export default function AppRoutes() {
                         <Route path='/admissions' element={<Admissions />} />
                         <Route path='/admissions/blogs' element={<BlogsPage />} />
                         <Route path='/admissions/blogs/:id' element={<BlogDetailPage />} />
-                        <Route path='/pro-buddies' element={<ProBuddies />} />
+                        <Route path='/pro-buddies' element={<ProBuddiesComingSoon />} />
                         <Route path='/pro-buddies/dashboard' element={<ProBuddiesDashboard />} />
                         <Route path="/probuddy/profile/:id" element={<ProBuddyProfilePage />} />
                         <Route path='/revamp-courses' element={<Courses />} />

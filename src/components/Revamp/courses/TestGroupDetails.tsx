@@ -362,10 +362,157 @@ export default function TestGroupCardDetails() {
   return (
     <div className="bg-[#F5F5F7] min-h-screen">
       {/* phone view */}
-      <div></div>
+      <div className="block md:hidden">
+          <div className="flex flex-col gap-6 p-3">
+            {/* test  details and listing */}
+            <div className="flex flex-col gap-6 bg-white w-full shadow-sm h-full rounded-2xl p-3">
+              {detailsLoading && !testGroupDetails ? (
+                <div className="h-[220px] rounded-xl bg-[#F3F4F6] animate-pulse" />
+              ) : (
+                <>
+                  <div className="flex gap-2">
+                    <img
+                      src={testGroupDetails?.bannerImage || "/course/1.jpg"}
+                      alt={testGroupDetails?.name || "Test group"}
+                      className="w-[4.5rem] h-[4.5rem] rounded-[8px] object-cover"
+                    />
+                    <div className="flex flex-col gap-2">
+                      <h1 className="text-(--text-main) font-semibold text-sm">
+                        {testGroupDetails?.name || "Test Group"}
+                      </h1>
+                      <p className="text-(--text-muted) font-normal text-xs">
+                        {testGroupDetails?.description || "No description available."}
+                      </p>
+
+                      <div className="flex items-center gap-4 text-xs font-medium text-(--text-muted)">
+                          <div className="flex items-center gap-1">
+                          <Star size={16} className="text-[#FACC14] fill-[#FACC14]" />
+                          <p>
+                            {ratingValue} <span className="font-normal">({reviewCount})</span>
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Users size={18} />
+                          <p>{testGroupDetails?.soldCount || 0}+ students</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <h1 className="text-(--text-main) font-semibold text-[1rem]">
+                      Test Series ({testGroupDetails?.attachedTests?.length || 0} tests)
+                    </h1>
+
+                    {attachedTests.length ? (
+                      <>
+                      {visibleAttachedTests.map((test, index) => (
+                        <motion.div
+                          key={test.id}
+                          initial={{ opacity: 0, y: 14 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{
+                            duration: 0.55,
+                            delay: index * 0.06,
+                            ease: "easeOut",
+                          }}
+                          className="flex items-center justify-between w-full rounded-2xl border border-[#E5E7EB] bg-white p-[0.62rem]"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 rounded-lg bg-[#2F43F20D] flex items-center justify-center">
+                              <img src="/course/book.svg" alt="" />
+                            </div>
+
+                            <div className="flex flex-col gap-1 text-(--text-muted) font-normal text-xs">
+                              <h3 className="text-(--text-main) font-semibold text-[1rem]">{test.name}</h3>
+                              <div className="flex items-center gap-2.5">
+                                <div className="flex items-center gap-1">
+                                  <Clock3 size={14} />
+                                  <p>{test.durationInMinutes > 0 ? `${test.durationInMinutes} min` : "Duration N/A"}</p>
+                                </div>
+
+                                <div className="flex items-center gap-1">
+                                  <BookOpen size={14} />
+                                  <p>{test.totalQuestions > 0 ? `${test.totalQuestions} Questions` : "Questions N/A"}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {!effectiveBought && <Lock size={20} className="text-[#2F43F2]" />}
+                        </motion.div>
+                      ))}
+                      {hasMoreAttachedTests && (
+                        <button
+                          onClick={() =>
+                            setVisibleAttachedTestsCount((prev) =>
+                              Math.min(prev + 5, attachedTests.length)
+                            )
+                          }
+                          className="self-start text-sm font-semibold text-[#0E1629] hover:underline"
+                        >
+                          See more
+                        </button>
+                      )}
+                      </>
+                    ) : (
+                      <div className="rounded-xl border border-dashed border-[#D1D5DB] p-4 text-sm text-[#6B7280]">
+                        No tests attached yet.
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-10">
+              {/* features of  test */}
+
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+              >
+                <ButtonCard
+                  priceLabel={testGroupDetails?.priceLabel || "₹0"}
+                  isFree={String(testGroupDetails?.priceType || "").toUpperCase() === "FREE"}
+                  isPurchased={effectiveBought}
+                  isBuying={buyLoading}
+                  onBuy={handleBuyTestGroup}
+                />
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, ease: "easeOut" }}
+              >
+                <FeatureCard
+                  totalTests={testGroupDetails?.attachedTests?.length || 0}
+                  totalStudents={testGroupDetails?.soldCount || 0}
+                />
+              </motion.div>
+
+            </div>
+          </div>
+          <RecomemdedSection
+            tests={recommendedTests}
+            isLoadingTests={recommendedLoading}
+          />
+
+         <div className="p-3">
+           <TestGroupReviewsCard
+            testGroupId={testGroupId || ""}
+            isPurchased={effectiveBought}
+            role={role}
+            reviews={reviewsData.reviews}
+            rating={reviewsData.rating}
+            onReviewSubmitted={fetchTestGroupDetails}
+          />
+         </div>
+        </div>
 
       {/* desktop and laptops */}
-      <div className="w-full mx-auto max-w-[90rem] px-[3.75rem] py-10">
+      <div className="hidden md:block w-full mx-auto max-w-[90rem] px-[3.75rem] py-10">
         <div>
           <div className="flex gap-6">
             {/* test  details and listing */}
@@ -768,11 +915,11 @@ function ButtonCard({
         <p className="font-semibold text-[#0e1629] text-[16px] md:text-lg">
           {priceLabel}
         </p>
-        {!isFree && !isPurchased && (
+        {/* {!isFree && !isPurchased && (
           <p className="font-normal text-[#6b7280] text-[12px] md:text-sm line-through [text-decoration-skip-ink:none]">
             Original Price
           </p>
-        )}
+        )} */}
       </div>
 
       <button
@@ -798,8 +945,8 @@ function FeatureCard({
   totalStudents: number;
 }) {
   return (
-    <div className="bg-white w-[36.25rem] rounded-2xl shadow-sm p-3">
-      <h1 className="text-(--text-main) font-semibold text-[1.125rem]">This test group includes:</h1>
+    <div className="bg-white w-full  md:w-[36.25rem] rounded-2xl shadow-sm p-3">
+      <h1 className="text-(--text-main) font-semibold text-[1rem] md:text-[1.125rem]">This test group includes:</h1>
       <div className="flex flex-col gap-3 pt-5">
         {[
           "Full Lifetime Access",
@@ -818,7 +965,7 @@ function FeatureCard({
               </defs>
             </svg>
             <p
-              className="text-(--text-main) font-medium text-[1rem]"
+              className="text-(--text-main) font-medium text-sm md:text-[1rem]"
             >{text}</p>
           </div>
         ))}

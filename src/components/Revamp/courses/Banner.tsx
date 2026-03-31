@@ -1,19 +1,33 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import CoursePageBanner from "./CoursePageBanner";
 import CourseSection from "./CourseSection";
-import LiveSection from "./LiveSessions";
 import TestSection from "./TestSection";
 import { listenToLiveSessionsStatus } from "@/lib/firebase";
+import { useAuthStore } from "@/store/AuthStore";
 
 export default function Banner() {
-  const [liveSessionsCount, setLiveSessionsCount] = useState(0);
+  const navigate = useNavigate();
+  const { isAuthenticated, isLoginToggle, toggleLogin } = useAuthStore();
+  const [liveSessionsCount, setLiveSessionsCount] = useState(10);
+
+  const handleLiveSessionsAccess = () => {
+    if (isAuthenticated) {
+      navigate("/live-sessions");
+      return;
+    }
+
+    if (!isLoginToggle) {
+      toggleLogin(() => navigate("/live-sessions"));
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = listenToLiveSessionsStatus((allLives) => {
       const count = Object.values(allLives || {}).filter(
         (session: any) => Boolean(session?.isLive)
       ).length;
-      setLiveSessionsCount(count);
+      setLiveSessionsCount(Math.max(count, 10));
     });
 
     return () => unsubscribe();
@@ -45,8 +59,13 @@ export default function Banner() {
 
                 <div className="h-7 w-px bg-white/30" />
 
-                <div className="flex items-center gap-1.5">
-                  <img src="/twoo.svg" alt="live sessions" className="w-5 h-5" />
+              <div
+                className="flex items-center gap-1.5 cursor-pointer"
+                onClick={handleLiveSessionsAccess}
+              >
+                  <div className="relative">
+                    <img src="/twoo.svg" alt="live sessions" className="w-5 h-5" />
+                  </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-semibold">{liveSessionsCount} Live</span>
                     <span className="text-[10px] text-white/75">Sessions now</span>
@@ -99,10 +118,13 @@ export default function Banner() {
               </p>
             </div>
 
-            <div className="flex w-[200px] h-[58px] gap-2  border-r border-(--text-muted) justify-start items-center">
-              <img src="/twoo.svg" alt="firstone" />
+            <div className="flex w-[200px] h-[58px] gap-2  border-r border-(--text-muted) justify-start items-center relative" onClick={handleLiveSessionsAccess} style={{ cursor: "pointer" }}>
+              <div className="relative">
+                <img src="/twoo.svg" alt="firstone" />
+                <div className="absolute w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" style={{ top: "-4px", right: "-4px" }} />
+              </div>
               <p className="flex flex-col text-[#DC3545] leading-8 font-medium text-[1.5rem]">
-                200+
+                {liveSessionsCount}
                 <span className="leading-[22px] text-[1rem]">
                   Live Sessions
                 </span>
@@ -124,7 +146,23 @@ export default function Banner() {
         <CourseSection />
         <CoursePageBanner />
         <TestSection />
-        <LiveSection />
+        
+        {/* Live Sessions Section */}
+        <div className="w-full pt-16 pb-16">
+          <div className="max-w-[1440px] h-full mx-auto px-[60px]">
+            <div className="flex flex-col items-center justify-center text-center gap-6 min-h-[220px]">
+              <p className="font-[Poppins] font-medium text-[24px] text-[#0E1629] max-w-[760px] leading-normal">
+                Join ongoing live sessions with expert professionals and learn in real time.
+              </p>
+              <button
+                onClick={handleLiveSessionsAccess}
+                className="px-10 py-4 bg-[#0E1629] text-white rounded-xl font-[Poppins] font-semibold text-lg hover:opacity-90 transition-all duration-300"
+              >
+                Explore Live Sessions
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     </div>

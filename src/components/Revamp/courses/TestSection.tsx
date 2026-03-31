@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import type { EmblaCarouselType } from "embla-carousel";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
@@ -127,41 +128,39 @@ export default function TestSection() {
   const token = localStorage.getItem("jwt") || "";
   const isUserLoggedIn = Boolean(userId && token);
 
-  const [testsData, setTestsData] = useState<TestWithMeta[]>([]);
-  const [myTestsData, setMyTestsData] = useState<TestWithMeta[]>([]);
-  const [isLoadingTests, setIsLoadingTests] = useState(false);
-
   const [activeTab, setActiveTab] = useState<TestTab>("my-tests");
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  useEffect(() => {
-    const loadTests = async () => {
-      try {
-        setIsLoadingTests(true);
-        if (isUserLoggedIn) {
-          const [allResponse, myResponse] = await Promise.all([
-            getAllTestGroupsForLoggedInUser(userId),
-            getUserBoughtTestGroups(userId),
-          ]);
-          setTestsData(normalizeTestGroups(allResponse));
-          setMyTestsData(normalizeTestGroups(myResponse));
-          return;
-        }
+  const { data: allTestsResponse, isLoading: isLoadingAllTests } = useQuery({
+    queryKey: ["revamp-all-tests", isUserLoggedIn ? userId : "guest"],
+    queryFn: () =>
+      isUserLoggedIn
+        ? getAllTestGroupsForLoggedInUser(userId)
+        : getAllTestGroupsForGuest(),
+    enabled: !isUserLoggedIn || Boolean(userId),
+  });
 
-        const response = await getAllTestGroupsForGuest();
-        setTestsData(normalizeTestGroups(response));
-        setMyTestsData([]);
-      } catch (error) {
-        console.error("Failed to load test groups:", error);
-        setTestsData([]);
-        setMyTestsData([]);
-      } finally {
-        setIsLoadingTests(false);
-      }
-    };
+  const { data: myTestsResponse, isLoading: isLoadingMyTests } = useQuery({
+    queryKey: ["revamp-my-tests", userId],
+    queryFn: () => getUserBoughtTestGroups(userId),
+    enabled: isUserLoggedIn && Boolean(userId),
+  });
 
-    loadTests();
-  }, [isUserLoggedIn, userId]);
+  const testsData = useMemo(
+    () => normalizeTestGroups(allTestsResponse),
+    [allTestsResponse]
+  );
+
+  const myTestsData = useMemo(
+    () => normalizeTestGroups(myTestsResponse),
+    [myTestsResponse]
+  );
+
+  const isLoadingTests = isUserLoggedIn
+    ? activeTab === "my-tests"
+      ? isLoadingMyTests
+      : isLoadingAllTests
+    : isLoadingAllTests;
 
   const filteredTests = useMemo(() => {
     if (!isUserLoggedIn) return testsData;
@@ -467,7 +466,7 @@ export default function TestSection() {
 
             <SeeAllButton
               text="See all"
-              onClick={() => console.log("see all")}
+              onClick={() => navigate("/revamp-courses/test-listing")}
             />
           </div>
         </div>

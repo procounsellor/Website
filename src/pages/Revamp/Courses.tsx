@@ -3,7 +3,7 @@ import MobileCourseBottomNav from "@/components/Revamp/courses/MobileCourseBotto
 
 export default function Courses() {
   return (
-    <div className="min-h-screen relative pb-24">
+    <div className="min-h-screen relative ">
         <Banner />
         <MobileCourseBottomNav />
     </div>

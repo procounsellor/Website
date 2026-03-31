@@ -635,6 +635,47 @@ export async function getBoughtCourses(
   return response.json();
 }
 
+export async function getAllCounsellorCoursesForGuest(): Promise<GetCoursesResponse> {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/shared/getAllCounsellorCourses`,
+    {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch courses');
+  }
+
+  return response.json();
+}
+
+export async function getAllCounsellorCoursesForUser(
+  userId: string
+): Promise<GetCoursesResponse> {
+  const token = localStorage.getItem('jwt');
+
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/counsellorCourses/getAllCounsellorCourses?userId=${userId}`,
+    {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch courses');
+  }
+
+  return response.json();
+}
+
 export async function getBookmarkedCourses(
   userId: string
 ): Promise<GetCoursesResponse> {

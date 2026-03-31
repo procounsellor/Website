@@ -304,11 +304,10 @@ export const getAllTestGroupsForGuest = async () => {
   const response = await fetch(
     `${API_CONFIG.baseUrl}/api/shared/getAllTestGroups`,
     {
-      method: "POST",
+      method: "GET",
       headers: {
         Accept: "application/json",
       },
-      body: "",
     }
   );
   return response.json();
