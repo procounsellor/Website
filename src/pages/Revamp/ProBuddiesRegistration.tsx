@@ -3,7 +3,7 @@ import type { DragEvent, ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/AuthStore";
-import { registerProBuddy, uploadProBuddyPhoto } from "@/api/proBuddy";
+import { registerProBuddy, uploadProBuddyPhoto, uploadProBuddyIdCardPhoto } from "@/api/proBuddy";
 
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -15,6 +15,10 @@ export default function ProBuddiesRegistration() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [idCardPreviewUrl, setIdCardPreviewUrl] = useState<string | null>(null);
+  const [selectedIdCard, setSelectedIdCard] = useState<File | null>(null);
+  const idCardInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     firstName: user?.firstName || "",
@@ -90,11 +94,48 @@ export default function ProBuddiesRegistration() {
     }
   };
 
+  const handleIdCardFile = (file: File) => {
+    if (file && (file.type === "image/jpeg" || file.type === "image/png")) {
+      const url = URL.createObjectURL(file);
+      setIdCardPreviewUrl(url);
+      setSelectedIdCard(file);
+    } else {
+      toast.error("Please upload a valid PNG or JPEG image for your ID Card.");
+    }
+  };
+
+  const onIdCardChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handleIdCardFile(e.target.files[0]);
+    }
+  };
+
+  const onIdCardDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleIdCardFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const removeIdCard = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIdCardPreviewUrl(null);
+    setSelectedIdCard(null);
+    if (idCardInputRef.current) {
+      idCardInputRef.current.value = "";
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
     if (!formData.firstName || !formData.lastName || !formData.location) {
       toast.error("Please fill in all required fields.");
+      return;
+    }
+
+    if (!selectedIdCard) {
+      toast.error("Please upload your ID Card.");
       return;
     }
 
@@ -136,6 +177,10 @@ export default function ProBuddiesRegistration() {
       
       if (selectedImage && newBuddyId) {
         await uploadProBuddyPhoto(String(newBuddyId), selectedImage);
+      }
+
+      if (selectedIdCard && newBuddyId) {
+        await uploadProBuddyIdCardPhoto(String(newBuddyId), selectedIdCard);
       }
 
       toast.success("Registration completed successfully!");
@@ -207,7 +252,6 @@ export default function ProBuddiesRegistration() {
           </div>
         </div>
 
-        {/* Missing Email & Phone Added Here Using Original Styling */}
         <div className="flex gap-[120px] mb-[12px]">
           <div className="flex flex-col gap-[14px] w-[510px] h-[68px]">
             <label 
@@ -250,60 +294,121 @@ export default function ProBuddiesRegistration() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-[12px] w-full h-[152px] mb-[12px]">
-          <label 
-            className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
-            style={{ fontFamily: 'Poppins' }}
-          >
-            Profile Photo
-          </label>
+        <div className="flex gap-[120px] mb-[12px]">
           
-          <div 
-            className="relative w-full h-[120px] rounded-[4px] border-[1px] border-dashed border-[#EBEBEB] bg-[#6B72800A] flex flex-col items-center justify-center gap-[8px] cursor-pointer hover:bg-[#6b728013] transition-colors overflow-hidden"
-            onClick={() => fileInputRef.current?.click()}
-            onDragOver={onDragOver}
-            onDrop={onDrop}
-          >
-            <input 
-              type="file" 
-              ref={fileInputRef}
-              className="hidden"
-              accept="image/png, image/jpeg"
-              onChange={onFileChange}
-            />
+          {/* Profile Photo Column */}
+          <div className="flex flex-col gap-[12px] w-[510px] h-[152px]">
+            <label 
+              className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
+              style={{ fontFamily: 'Poppins' }}
+            >
+              Profile Photo
+            </label>
+            
+            <div 
+              className="relative w-full h-[120px] rounded-[4px] border-[1px] border-dashed border-[#EBEBEB] bg-[#6B72800A] flex flex-col items-center justify-center gap-[8px] cursor-pointer hover:bg-[#6b728013] transition-colors overflow-hidden"
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={onDragOver}
+              onDrop={onDrop}
+            >
+              <input 
+                type="file" 
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/png, image/jpeg"
+                onChange={onFileChange}
+              />
 
-            {previewUrl ? (
-              <>
-                <img 
-                  src={previewUrl} 
-                  alt="Profile Preview" 
-                  className="w-full h-full object-contain bg-white" 
-                />
-                <button
-                  type="button"
-                  onClick={removeImage}
-                  className="absolute top-[8px] right-[8px] w-[24px] h-[24px] bg-red-500 cursor-pointer rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-md"
-                  aria-label="Remove image"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
+              {previewUrl ? (
+                <>
+                  <img 
+                    src={previewUrl} 
+                    alt="Profile Preview" 
+                    className="w-full h-full object-contain bg-white" 
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute top-[8px] right-[8px] w-[24px] h-[24px] bg-red-500 cursor-pointer rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-md"
+                    aria-label="Remove image"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 5V19M5 12H19" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                </button>
-              </>
-            ) : (
-              <>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 5V19M5 12H19" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <span 
-                  className="text-[#6B7280] text-[12px] leading-[125%]"
-                  style={{ fontFamily: 'Poppins' }}
-                >
-                  Click to upload or drag and drop
-                </span>
-              </>
-            )}
+                  <span 
+                    className="text-[#6B7280] text-[12px] leading-[125%]"
+                    style={{ fontFamily: 'Poppins' }}
+                  >
+                    Click to upload or drag and drop
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-[12px] w-[510px] h-[152px]">
+            <label 
+              className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
+              style={{ fontFamily: 'Poppins' }}
+            >
+              Upload ID Card*
+            </label>
+            
+            <div 
+              className="relative w-full h-[120px] rounded-[4px] border-[1px] border-dashed border-[#EBEBEB] bg-[#6B72800A] flex flex-col items-center justify-center gap-[8px] cursor-pointer hover:bg-[#6b728013] transition-colors overflow-hidden"
+              onClick={() => idCardInputRef.current?.click()}
+              onDragOver={onIdCardDrop}
+              onDrop={onIdCardDrop}
+            >
+              <input 
+                type="file" 
+                ref={idCardInputRef}
+                className="hidden"
+                accept="image/png, image/jpeg"
+                onChange={onIdCardChange}
+              />
+
+              {idCardPreviewUrl ? (
+                <>
+                  <img 
+                    src={idCardPreviewUrl} 
+                    alt="ID Card Preview" 
+                    className="w-full h-full object-contain bg-white" 
+                  />
+                  <button
+                    type="button"
+                    onClick={removeIdCard}
+                    className="absolute top-[8px] right-[8px] w-[24px] h-[24px] bg-red-500 cursor-pointer rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-md"
+                    aria-label="Remove ID Card"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 5V19M5 12H19" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span 
+                    className="text-[#6B7280] text-[12px] leading-[125%]"
+                    style={{ fontFamily: 'Poppins' }}
+                  >
+                    Click to upload or drag and drop
+                  </span>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -470,7 +575,6 @@ export default function ProBuddiesRegistration() {
           />
         </div>
 
-        {/* Missing Sub-Heading Added Here Using Original Styling */}
         <div className="flex flex-col gap-[14px] w-full">
           <label 
             htmlFor="subHeading" 
@@ -528,7 +632,6 @@ export default function ProBuddiesRegistration() {
 
       </div>
 
-      {/* REPLACED SECTION 4 WITH MISSING AVAILABILITY/LANGUAGES FIELDS */}
       <div className="w-[1200px] h-auto bg-white rounded-[8px] p-[24px] box-border flex flex-col gap-[24px]">
         
         <div className="flex items-center gap-[10px]">
