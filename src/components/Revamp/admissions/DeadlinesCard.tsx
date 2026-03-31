@@ -12,17 +12,16 @@ export default function DeadlinesCard({ examName, deadline, details, isWhite = f
 
   return (
     <div 
-      className="relative cursor-pointer"
-      style={{ width: "312px", height: "322px" }}
+      className="relative cursor-pointer w-[200px] h-[220px] md:w-[312px] md:h-[322px] shrink-0 group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Background Shape */}
       <svg
-        className="absolute inset-0 transition-all duration-300"
+        className="absolute inset-0 transition-all duration-300 w-full h-full"
         xmlns="http://www.w3.org/2000/svg"
-        width="312"
-        height="322"
         viewBox="0 0 312 322"
+        preserveAspectRatio="none"
         fill="none"
       >
         <path
@@ -32,33 +31,33 @@ export default function DeadlinesCard({ examName, deadline, details, isWhite = f
         />
       </svg>
 
-      <div className="absolute inset-0 p-[0.75rem] flex flex-col gap-[1.5rem]">
-        <div className="flex justify-between items-center">
-             <div className={`w-fit flex items-center justify-center rounded-[6px] gap-2 ${isWhite ? "bg-[#EDEDED]": "bg-white"} py-1 px-3`}>
-            <div className="bg-[#0E1629] h-4 w-4"></div>
-
-            <p className={`text-(--text-main) font-semibold text-[0.875rem]`}>
+      <div className="absolute inset-0 p-[12px] md:p-[0.75rem] flex flex-col gap-[12px] md:gap-[1.5rem]">
+        <div className="flex justify-between items-start md:items-center">
+             
+          <div className={`w-fit flex items-center justify-center rounded-[4px] md:rounded-[6px] gap-1.5 md:gap-2 ${isWhite ? "bg-[#EDEDED]": "bg-white"} py-1 px-2 md:px-3`}>
+            <div className="bg-[#0E1629] h-3 w-3 md:h-4 md:w-4 shrink-0"></div>
+            <p className={`text-[#0E1629] md:text-(--text-main) font-[Poppins] font-semibold text-[10px] md:text-[0.875rem] whitespace-nowrap`}>
               {examName}
             </p>
           </div>
 
-          <p className={`text-right font-normal text-[0.875rem] ${isWhite ? "text-(--text-muted)" : "text-(--text-main)"}`}>{deadline}</p>
+          <p className={`text-right font-[Poppins] font-normal text-[12px] md:text-[0.875rem] leading-none md:leading-normal w-[86px] md:w-auto mt-[2px] md:mt-0 ${isWhite ? "text-[#6B7280] md:text-(--text-muted)" : "text-[#6B7280] md:text-(--text-main)"}`}>
+            {deadline}
+          </p>
         </div>
 
-
-        <p
-        className={`text-left ${isWhite ? "text-(--text-main)": "text-white"} text-[1.125rem]`}
-        >{details}</p>
+        <p className={`text-left font-[Poppins] ${isWhite ? "text-[#0E1629] md:text-(--text-main)": "text-white"} text-[14px] md:text-[1.125rem] leading-[1.4] md:leading-normal line-clamp-6 md:line-clamp-none`}>
+          {details}
+        </p>
       </div>
 
-      <div className="absolute right-[1.5px] bottom-[1.5px] overflow-hidden">
+      <div className="absolute right-[-4px] md:right-[1.5px] bottom-[1.5px] overflow-hidden w-[48px] h-[41px] md:w-[63px] md:h-[57px]">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="63"
-          height="57"
           viewBox="0 0 63 57"
+          preserveAspectRatio="none"
           fill="none"
-          className="transition-all duration-300"
+          className="transition-all duration-300 w-full h-full"
         >
           <path
             d="M5.22808 7.00026C5.73192 3.00014 9.13365 0 13.1654 0H54.9303C59.3486 0 62.9303 3.58172 62.9303 8V49C62.9303 53.4183 59.3486 57 54.9303 57H8.00116C3.18615 57 -0.537853 52.7775 0.0638728 48.0002L5.22808 7.00026Z"
@@ -66,7 +65,7 @@ export default function DeadlinesCard({ examName, deadline, details, isWhite = f
             className="transition-colors duration-300"
           />
         </svg>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[20px] h-[20px]">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[16px] h-[16px] md:w-[20px] md:h-[20px]">
           {/* Arrow going out to right */}
           <img 
             src="/arrow.svg" 
@@ -94,4 +93,3 @@ export default function DeadlinesCard({ examName, deadline, details, isWhite = f
     </div>
   );
 }
-

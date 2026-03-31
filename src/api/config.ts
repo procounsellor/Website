@@ -9,7 +9,7 @@ export const API_CONFIG = {
     bookAppointment: '/api/user/book',
     getExams: '/api/exams/all',
     getCourses: '/api/courses/all',
-    getColleges: '/api/colleges/all',
+    getColleges: '/api/featured_colleges/all',
     getQuestionsList: '/api/community/dashboard/getQuestionsList',
     getCommunityDashboard: '/api/community/dashboard/getCommunityDashboard',
     getAllAnswersForQuestion: '/api/community/dashboard/getAllAnswersForSpecificQuestion',
