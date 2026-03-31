@@ -595,9 +595,11 @@ function MyTests() {
           testGroups.map((test: any, index: number) => (
             <TestGroupCard
               key={test.testGroupId || `${test.testGroupName}-${index}`}
+              testGroupId={test.testGroupId}
               image={test.bannerImagUrl || '/discover-exam.jpg'}
               rating={test.rating?.toFixed(1) || '0'}
               title={test.testGroupName || ''}
+              description={test.testGroupDescription || ''}
               totalTests={test.attachedTestIds?.length || 0}
               totalStudents={test.soldCount || 0}
             />

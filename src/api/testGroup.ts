@@ -300,6 +300,31 @@ export const getAllTestGroupsOfCounsellorForUser = async (userId: string, counse
   return response.json();
 };
 
+export const getAllTestGroupsForGuest = async () => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/shared/getAllTestGroups`,
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+      },
+      body: "",
+    }
+  );
+  return response.json();
+};
+
+export const getAllTestGroupsForLoggedInUser = async (userId: string) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/userTestSeries/getAllTestGroups?userId=${userId}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    }
+  );
+  return response.json();
+};
+
 export const getTestGroupByIdForUser = async (userId: string, testGroupId: string) => {
   const response = await fetch(
     `${API_CONFIG.baseUrl}/api/counsellorTestGroup/getTestGroupByIdForUser?userId=${userId}&testGroupId=${testGroupId}`,

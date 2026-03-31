@@ -1,17 +1,70 @@
+import { useEffect, useState } from "react";
 import CoursePageBanner from "./CoursePageBanner";
 import CourseSection from "./CourseSection";
 import LiveSection from "./LiveSessions";
 import TestSection from "./TestSection";
+import { listenToLiveSessionsStatus } from "@/lib/firebase";
 
 export default function Banner() {
+  const [liveSessionsCount, setLiveSessionsCount] = useState(0);
+
+  useEffect(() => {
+    const unsubscribe = listenToLiveSessionsStatus((allLives) => {
+      const count = Object.values(allLives || {}).filter(
+        (session: any) => Boolean(session?.isLive)
+      ).length;
+      setLiveSessionsCount(count);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <div>
 
       {/* phone design */}
       <div className="block relative md:hidden">
 
-        <div className="bg-[#2F43F2] h-[191px] w-full">
+        <div className="w-full h-[210px] bg-[url('/probuddiesbg.jpg')] bg-cover bg-center">
+          <div className="w-full h-full bg-[#0E1629A6]/95 px-5 pt-6 text-white">
+            <div className="flex flex-col gap-3">
+              <h1 className="text-[1.625rem] font-bold leading-tight">Courses</h1>
+              <p className="text-xs text-white/85 leading-relaxed max-w-[330px]">
+                Learn from curated courses, discover practical test series, and join
+                live sessions in one place to stay consistent with your goals.
+              </p>
 
+              <div className="flex items-center gap-3 pt-1">
+                <div className="flex items-center gap-1.5">
+                  <img src="/onne.svg" alt="courses" className="w-5 h-5" />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold">100+</span>
+                    <span className="text-[10px] text-white/75">Courses</span>
+                  </div>
+                </div>
+
+                <div className="h-7 w-px bg-white/30" />
+
+                <div className="flex items-center gap-1.5">
+                  <img src="/twoo.svg" alt="live sessions" className="w-5 h-5" />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold">{liveSessionsCount} Live</span>
+                    <span className="text-[10px] text-white/75">Sessions now</span>
+                  </div>
+                </div>
+
+                <div className="h-7 w-px bg-white/30" />
+
+                <div className="flex items-center gap-1.5">
+                  <img src="/threee.svg" alt="students" className="w-5 h-5" />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold">1260+</span>
+                    <span className="text-[10px] text-white/75">Students</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div>
@@ -67,7 +120,7 @@ export default function Banner() {
         </div>
       </div>
 
-      <div className=" bg-[#C6DDF040] flex flex-col pb-20">
+      <div className="bg-[#F5F5F7] flex flex-col pb-20">
         <CourseSection />
         <CoursePageBanner />
         <TestSection />

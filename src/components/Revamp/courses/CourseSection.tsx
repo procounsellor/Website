@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { CourseType } from "@/types/course";
 import CourseCard from "./CourseCard";
 import { SeeAllButton } from "../components/LeftRightButton";
+import { getBoughtCourses } from "@/api/course";
+import { useNavigate } from "react-router-dom";
 
 type CourseTab = "my-courses" | "trending" | "all-courses";
 
@@ -117,21 +119,61 @@ const tabOptions: { id: CourseTab; label: string }[] = [
   { id: "trending", label: "Trending" },
 ];
 
+const formatRatingToOneDecimal = (rating: unknown) => {
+  const numeric = Number(rating);
+  return Number.isFinite(numeric) ? numeric.toFixed(1) : "0.0";
+};
+
 export default function CourseSection() {
-  // Hardcoded toggles for now; later this can come from auth/session and API loading state.
-  const isUserLoggedIn = true;
-  const isLoadingCourses = false;
+  const navigate = useNavigate();
+  const userId = localStorage.getItem("phone") || "";
+  const token = localStorage.getItem("jwt") || "";
+  const isUserLoggedIn = Boolean(userId && token);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(false);
+  const [myCoursesData, setMyCoursesData] = useState<CourseWithMeta[]>([]);
 
   const [activeTab, setActiveTab] = useState<CourseTab>("my-courses");
-  const [startIndex, setStartIndex] = useState(0);
-  const mobileScrollRef = useRef<HTMLDivElement | null>(null);
-  const [mobileProgress, setMobileProgress] = useState(0);
+
+  useEffect(() => {
+    const loadMyCourses = async () => {
+      if (!isUserLoggedIn) {
+        setMyCoursesData([]);
+        return;
+      }
+
+      try {
+        setIsLoadingCourses(true);
+        const response = await getBoughtCourses(userId);
+        const list = Array.isArray(response?.data) ? response.data : [];
+        const normalized: CourseWithMeta[] = list.map((course: any) => ({
+          id: String(course?.courseId || ""),
+          image: String(course?.courseThumbnailUrl || "/course/2.png"),
+          rating: formatRatingToOneDecimal(course?.rating),
+          name: String(course?.courseName || "Course"),
+          subject: String(course?.category || "General"),
+          price: `₹${Number(course?.coursePriceAfterDiscount ?? course?.coursePrice ?? 0).toLocaleString("en-IN")}`,
+          courseTimeHours: 0,
+          courseTimeMinutes: 0,
+          isPurchased: true,
+          isTrending: false,
+        }));
+        setMyCoursesData(normalized);
+      } catch (error) {
+        console.error("Failed to load bought courses:", error);
+        setMyCoursesData([]);
+      } finally {
+        setIsLoadingCourses(false);
+      }
+    };
+
+    loadMyCourses();
+  }, [isUserLoggedIn, userId]);
 
   const filteredCourses = useMemo(() => {
     if (!isUserLoggedIn) return coursesData;
 
     if (activeTab === "my-courses") {
-      return coursesData.filter((course) => course.isPurchased);
+      return myCoursesData;
     }
 
     if (activeTab === "trending") {
@@ -141,42 +183,22 @@ export default function CourseSection() {
     }
 
     return coursesData.filter((course) => !course.isPurchased);
-  }, [activeTab, isUserLoggedIn]);
-
-  const visibleCount = 4;
-  const maxStartIndex = Math.max(filteredCourses.length - visibleCount, 0);
-  const safeStartIndex = Math.min(startIndex, maxStartIndex);
-  const visibleCourses = filteredCourses.slice(
-    safeStartIndex,
-    safeStartIndex + visibleCount,
-  );
+  }, [activeTab, isUserLoggedIn, myCoursesData]);
 
   const handleTabChange = (tab: CourseTab) => {
     setActiveTab(tab);
-    setStartIndex(0);
   };
 
-  const updateMobileProgress = () => {
-    const container = mobileScrollRef.current;
-    if (!container) return;
+  const shouldShowInlineCourseUpsell =
+    isUserLoggedIn && activeTab === "my-courses" && filteredCourses.length <= 1 && !isLoadingCourses;
 
-    const { scrollLeft, scrollWidth, clientWidth } = container;
-    if (scrollWidth <= clientWidth) {
-      setMobileProgress(100);
+  const handleSingleCardCta = () => {
+    if (isUserLoggedIn && activeTab === "my-courses") {
+      handleTabChange("trending");
       return;
     }
-
-    const viewed = ((scrollLeft + clientWidth) / scrollWidth) * 100;
-    setMobileProgress(Math.max(0, Math.min(100, viewed)));
+    navigate("/revamp-courses");
   };
-
-  useEffect(() => {
-    const container = mobileScrollRef.current;
-    if (!container) return;
-
-    container.scrollLeft = 0;
-    updateMobileProgress();
-  }, [activeTab, filteredCourses.length]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -223,7 +245,7 @@ export default function CourseSection() {
 
   return (
     <div>
-      <div className="block py-[15px] pl-5  bg-[#C6DDF040] md:hidden">
+      <div className="block py-[15px] pl-5 bg-[#F5F5F7] md:hidden">
         <div className="flex flex-col  justify-start items-start gap-3 pr-0">
           <div className="flex items-center gap-2 bg-white px-3 py-1 ">
             <div className="w-4 h-4 bg-[#0E1629]" />
@@ -252,12 +274,10 @@ export default function CourseSection() {
 
           <div className="w-full">
             <div
-              ref={mobileScrollRef}
-              onScroll={updateMobileProgress}
-              className="flex gap-3 overflow-x-auto scrollbar-hide pb-2"
+              className="flex justify-start gap-3 overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory scroll-smooth [touch-action:pan-x]"
             >
               {filteredCourses.map((course) => (
-                <div key={course.id} className="shrink-0">
+                <div key={course.id} className="shrink-0 snap-start">
                   <CourseCard
                     course={course}
                     isBaught={course.isPurchased}
@@ -265,32 +285,32 @@ export default function CourseSection() {
                   />
                 </div>
               ))}
-            </div>
 
-            <div className="mt-2 h-1 w-20 bg-[#EDEDED] rounded-[48px] overflow-hidden">
-              <div
-                className="h-full bg-[#0E1629] rounded-[48px] transition-all duration-200"
-                style={{ width: `${mobileProgress}%` }}
-              />
+              {shouldShowInlineCourseUpsell && (
+                <div className="self-center shrink-0 snap-start w-[250px] h-[150px] rounded-2xl p-3 flex items-center justify-center text-center">
+                  <div className="w-full flex flex-col items-center gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-[#0E1629]">Keep the momentum going</p>
+                      <p className="mt-2 text-xs text-[#6B7280]">
+                        Add more courses to build consistency and better outcomes.
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleSingleCardCta}
+                      className="w-full rounded-lg bg-[#0E1629] px-3 py-2 text-xs font-semibold text-white hover:opacity-90"
+                    >
+                      Explore Trending
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        </div>
-
-        <div className="py-8 pr-5  flex justify-center w-full">
-          <svg
-            width="350"
-            height="160"
-            viewBox="0 0 350 160"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <rect width="350" height="160" rx="24" fill="white" />
-          </svg>
         </div>
       </div>
 
       <div className="hidden md:block w-full py-10">
-        <div className="max-w-[1440px] h-full mx-auto px-[60px]">
+        <div className="max-w-[90rem] h-full mx-auto px-[3.75rem]">
           <div className="flex justify-between items-start mb-10">
             <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-md">
               <div className="w-4 h-4 bg-[#0E1629]" />
@@ -357,25 +377,49 @@ export default function CourseSection() {
                   </motion.div>
                 ))}
               </motion.div>
-            ) : visibleCourses.length > 0 ? (
-              <motion.div
-                key={activeTab}
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="flex gap-[25px] justify-center mb-6 min-h-[451px] items-start"
-              >
-                {visibleCourses.map((course) => (
-                  <motion.div key={course.id} variants={cardVariants}>
-                    <CourseCard
-                      course={course}
-                      isBaught={course.isPurchased}
-                      isLoading={false}
-                    />
-                  </motion.div>
-                ))}
-              </motion.div>
+            ) : filteredCourses.length > 0 || shouldShowInlineCourseUpsell ? (
+              <>
+                <motion.div
+                  key={activeTab}
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="flex justify-start gap-[25px] mb-6 min-h-[451px] items-start overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth [touch-action:pan-x]"
+                >
+                  {filteredCourses.map((course) => (
+                    <motion.div key={course.id} variants={cardVariants} className="shrink-0 snap-start">
+                      <CourseCard
+                        course={course}
+                        isBaught={course.isPurchased}
+                        isLoading={false}
+                      />
+                    </motion.div>
+                  ))}
+
+                  {shouldShowInlineCourseUpsell && (
+                    <motion.div
+                      className="self-center shrink-0 snap-start w-[24rem] h-[12.5rem] rounded-2xl p-5 flex items-center justify-center text-center"
+                      variants={cardVariants}
+                    >
+                      <div className="w-full flex flex-col items-center gap-4">
+                        <div>
+                          <p className="text-lg font-semibold text-[#0E1629]">Keep your streak active</p>
+                          <p className="mt-2 text-sm text-[#6B7280] leading-relaxed max-w-[20rem] mx-auto">
+                            You are off to a great start. Add more courses to unlock better outcomes.
+                          </p>
+                        </div>
+                        <button
+                          onClick={handleSingleCardCta}
+                          className="rounded-xl bg-[#0E1629] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                        >
+                          Explore Trending
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </motion.div>
+              </>
             ) : (
               <motion.div
                 key="empty"
@@ -393,14 +437,7 @@ export default function CourseSection() {
           </AnimatePresence>
 
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <div className="w-[262px] h-1 bg-[#EDEDED] rounded-[48px] overflow-hidden">
-                <div
-                  className="h-full bg-[#0E1629] rounded-[48px] transition-all duration-300"
-                  style={{ width: `${40}%` }}
-                />
-              </div>
-            </div>
+            <div />
 
             <SeeAllButton
               text="See all"

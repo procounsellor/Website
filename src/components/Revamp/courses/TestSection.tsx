@@ -1,151 +1,173 @@
-import { useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import type { CourseType } from "@/types/course";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import type { EmblaCarouselType } from "embla-carousel";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
+import { useNavigate } from "react-router-dom";
 import TestGroupCard from "./TestGroupCard";
 import { SeeAllButton } from "../components/LeftRightButton";
+import {
+  getAllTestGroupsForGuest,
+  getAllTestGroupsForLoggedInUser,
+  getUserBoughtTestGroups,
+} from "@/api/testGroup";
 
 type TestTab = "my-tests" | "trending" | "all-tests";
 
-interface TestWithMeta extends CourseType {
+interface TestWithMeta {
+  id: string;
+  image: string;
+  rating?: string;
+  price: string;
+  name: string;
+  subject?: string;
   description: string;
   isPurchased: boolean;
   isTrending: boolean;
+  totalTests: number;
+  totalStudents: number;
 }
-
-const testImages = ["/course/2.png", "/course/3.png"];
-
-const testsData: TestWithMeta[] = [
-  {
-    id: "test-1",
-    image: testImages[0],
-    rating: "4.8",
-    name: "Foundations of Mental Wellness",
-    subject: "Mental",
-    description:
-      "Build calm focus, emotional resilience, and practical coping skills with guided weekly practice sets.",
-    price: "INR 4,999",
-    courseTimeHours: 12,
-    courseTimeMinutes: 0,
-    isPurchased: true,
-    isTrending: true,
-  },
-  {
-    id: "test-2",
-    image: testImages[1],
-    rating: "4.6",
-    name: "Psychometric Test Mastery",
-    subject: "Psychometric",
-    description:
-      "Master aptitude and personality sections through timed mocks, analysis reports, and smart improvement paths.",
-    price: "INR 3,499",
-    courseTimeHours: 9,
-    courseTimeMinutes: 30,
-    isPurchased: false,
-    isTrending: true,
-  },
-  {
-    id: "test-3",
-    image: testImages[0],
-    rating: "4.7",
-    name: "Admission Strategy Blueprint",
-    subject: "Admission",
-    description:
-      "Plan your complete admission journey with deadline tracking, profile strength mapping, and interview drills.",
-    price: "INR 5,299",
-    courseTimeHours: 14,
-    courseTimeMinutes: 15,
-    isPurchased: true,
-    isTrending: false,
-  },
-  {
-    id: "test-4",
-    image: testImages[1],
-    rating: "4.5",
-    name: "Career Upskilling Essentials",
-    subject: "Upskilling",
-    description:
-      "Strengthen core career skills with topic-wise assessments, revision tracks, and benchmark performance goals.",
-    price: "INR 2,999",
-    courseTimeHours: 8,
-    courseTimeMinutes: 45,
-    isPurchased: false,
-    isTrending: true,
-  },
-  {
-    id: "test-5",
-    image: testImages[1],
-    rating: "4.9",
-    name: "Personal Growth Lab",
-    subject: "Mental",
-    description:
-      "Improve confidence, consistency, and mindset through structured reflection tests and actionable progress plans.",
-    price: "INR 3,999",
-    courseTimeHours: 10,
-    courseTimeMinutes: 0,
-    isPurchased: true,
-    isTrending: false,
-  },
-  {
-    id: "test-6",
-    image: testImages[0],
-    rating: "4.4",
-    name: "College Readiness Bootcamp",
-    subject: "Admission",
-    description:
-      "Get college-ready with preparation tests covering academics, communication, and transition readiness milestones.",
-    price: "INR 2,499",
-    courseTimeHours: 7,
-    courseTimeMinutes: 20,
-    isPurchased: false,
-    isTrending: true,
-  },
-  {
-    id: "test-7",
-    image: testImages[0],
-    rating: "4.8",
-    name: "Student Success Mindset",
-    subject: "Mental",
-    description:
-      "Develop high-performance study habits using weekly challenge tests, feedback loops, and clarity checkpoints.",
-    price: "INR 3,799",
-    courseTimeHours: 11,
-    courseTimeMinutes: 10,
-    isPurchased: true,
-    isTrending: false,
-  },
-  {
-    id: "test-8",
-    image: testImages[1],
-    rating: "4.7",
-    name: "Scholarship Interview Accelerator",
-    subject: "Admission",
-    description:
-      "Prepare for scholarship rounds with scenario-based tests, response frameworks, and confidence-building practice.",
-    price: "INR 3,299",
-    courseTimeHours: 9,
-    courseTimeMinutes: 50,
-    isPurchased: false,
-    isTrending: true,
-  },
-];
 
 const tabOptions: { id: TestTab; label: string }[] = [
   { id: "my-tests", label: "My Tests" },
   { id: "trending", label: "Trending" },
 ];
 
+const addTrackpadScrolling = (emblaApi: EmblaCarouselType) => {
+  const SCROLL_COOLDOWN_MS = 300;
+  let isThrottled = false;
+
+  const wheelListener = (event: WheelEvent) => {
+    if (isThrottled) return;
+
+    if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
+      event.preventDefault();
+      isThrottled = true;
+
+      if (event.deltaX > 0) {
+        emblaApi.scrollNext();
+      } else {
+        emblaApi.scrollPrev();
+      }
+
+      setTimeout(() => {
+        isThrottled = false;
+      }, SCROLL_COOLDOWN_MS);
+    }
+  };
+
+  const containerNode = emblaApi.containerNode();
+  containerNode.addEventListener("wheel", wheelListener);
+
+  return () => containerNode.removeEventListener("wheel", wheelListener);
+};
+
+const normalizeTestGroups = (response: any): TestWithMeta[] => {
+  const rawList = Array.isArray(response)
+    ? response
+    : Array.isArray(response?.data)
+      ? response.data
+      : Array.isArray(response?.testGroups)
+        ? response.testGroups
+        : [];
+
+  return rawList.map((item: any, index: number) => {
+    const tg = item?.testGroup ?? item;
+    const soldCount = Number(tg?.soldCount ?? item?.soldCount ?? 0);
+    const totalTests = Number(
+      item?.attachedTests?.length ??
+      tg?.attachedTests?.length ??
+      item?.totalTests ??
+      item?.testSeriesCount ??
+      0
+    );
+
+    return {
+      id: String(tg?.testGroupId ?? item?.testGroupId ?? item?.id ?? `test-${index}`),
+      image: String(
+        tg?.bannerImagUrl ??
+        tg?.bannerImageUrl ??
+        item?.bannerImagUrl ??
+        item?.bannerImageUrl ??
+        "/course/2.png"
+      ),
+      rating: String(
+        tg?.rating ??
+        item?.rating ??
+        "0.0"
+      ),
+      price:
+        String(tg?.priceType ?? item?.priceType ?? "").toUpperCase() === "FREE"
+          ? "Free"
+          : `${Number(tg?.price ?? item?.price ?? 0).toLocaleString("en-IN")}`,
+      name: String(
+        tg?.testGroupName ??
+        item?.testGroupName ??
+        item?.name ??
+        "Test Group"
+      ),
+      description: String(
+        tg?.testGroupDescription ??
+        item?.testGroupDescription ??
+        item?.description ??
+        ""
+      ),
+      subject: String(item?.subject ?? "Test"),
+      isPurchased: Boolean(item?.bought ?? item?.purchasedByMe ?? item?.isPurchased ?? false),
+      isTrending: Boolean(item?.isTrending ?? soldCount > 25),
+      totalTests: totalTests > 0 ? totalTests : 1,
+      totalStudents: soldCount,
+    };
+  });
+};
+
 export default function TestSection() {
-  const isUserLoggedIn = true;
-  const isLoadingTests = false;
+  const navigate = useNavigate();
+  const userId = localStorage.getItem("phone") || "";
+  const token = localStorage.getItem("jwt") || "";
+  const isUserLoggedIn = Boolean(userId && token);
+
+  const [testsData, setTestsData] = useState<TestWithMeta[]>([]);
+  const [myTestsData, setMyTestsData] = useState<TestWithMeta[]>([]);
+  const [isLoadingTests, setIsLoadingTests] = useState(false);
 
   const [activeTab, setActiveTab] = useState<TestTab>("my-tests");
-  const [startIndex, setStartIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  useEffect(() => {
+    const loadTests = async () => {
+      try {
+        setIsLoadingTests(true);
+        if (isUserLoggedIn) {
+          const [allResponse, myResponse] = await Promise.all([
+            getAllTestGroupsForLoggedInUser(userId),
+            getUserBoughtTestGroups(userId),
+          ]);
+          setTestsData(normalizeTestGroups(allResponse));
+          setMyTestsData(normalizeTestGroups(myResponse));
+          return;
+        }
+
+        const response = await getAllTestGroupsForGuest();
+        setTestsData(normalizeTestGroups(response));
+        setMyTestsData([]);
+      } catch (error) {
+        console.error("Failed to load test groups:", error);
+        setTestsData([]);
+        setMyTestsData([]);
+      } finally {
+        setIsLoadingTests(false);
+      }
+    };
+
+    loadTests();
+  }, [isUserLoggedIn, userId]);
 
   const filteredTests = useMemo(() => {
     if (!isUserLoggedIn) return testsData;
 
     if (activeTab === "my-tests") {
-      return testsData.filter((test) => test.isPurchased);
+      return myTestsData;
     }
 
     if (activeTab === "trending") {
@@ -154,70 +176,60 @@ export default function TestSection() {
       );
     }
 
-    return testsData.filter((test) => !test.isPurchased);
-  }, [activeTab, isUserLoggedIn]);
+    return testsData;
+  }, [activeTab, isUserLoggedIn, testsData, myTestsData]);
 
-  const visibleCount = 4;
-  const maxStartIndex = Math.max(filteredTests.length - visibleCount, 0);
-  const safeStartIndex = Math.min(startIndex, maxStartIndex);
-  const visibleTests = filteredTests.slice(
-    safeStartIndex,
-    safeStartIndex + visibleCount,
+  const autoplay = useRef(
+    Autoplay({
+      delay: 4200,
+      stopOnInteraction: false,
+      stopOnMouseEnter: true,
+      stopOnLastSnap: false,
+    })
   );
+
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    {
+      loop: filteredTests.length > 1,
+      align: "start",
+      slidesToScroll: 1,
+    },
+    [autoplay.current]
+  );
+
+  const updateSelectedIndex = useCallback((api: EmblaCarouselType) => {
+    setSelectedIndex(api.selectedScrollSnap());
+  }, []);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    updateSelectedIndex(emblaApi);
+    emblaApi.on("select", updateSelectedIndex);
+    const removeTrackpadScrolling = addTrackpadScrolling(emblaApi);
+    return () => {
+      emblaApi.off("select", updateSelectedIndex);
+      removeTrackpadScrolling();
+    };
+  }, [emblaApi, updateSelectedIndex]);
+
+  useEffect(() => {
+    emblaApi?.scrollTo(0);
+  }, [activeTab, emblaApi]);
+
+  const snapCount = emblaApi?.scrollSnapList().length ?? Math.max(filteredTests.length, 1);
 
   const handleTabChange = (tab: TestTab) => {
     setActiveTab(tab);
-    setStartIndex(0);
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.12,
-        delayChildren: 0.08,
-        duration: 0.6,
-      },
-    },
-    exit: {
-      opacity: 0,
-      transition: {
-        staggerChildren: 0.05,
-        staggerDirection: -1,
-      },
-    },
-  };
-
-  const cardVariants = {
-    hidden: {
-      opacity: 0,
-      y: 60,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring" as const,
-        stiffness: 80,
-        damping: 12,
-        mass: 1,
-      },
-    },
-    exit: {
-      opacity: 0,
-      y: -30,
-      transition: {
-        duration: 0.3,
-      },
-    },
-  };
+  const shouldShowInlineTestUpsell =
+    isUserLoggedIn && activeTab === "my-tests" && filteredTests.length <= 1 && !isLoadingTests;
 
   return (
     <div>
       {/* phone view */}
 
-      <div className="block py-[15px] pl-5  bg-[#C6DDF040] md:hidden">
+      <div className="block py-[15px] pl-5 bg-[#F5F5F7] md:hidden">
         <div className="flex flex-col  justify-start items-start gap-3 pr-0">
           <div className="flex items-center gap-2 bg-white px-3 py-1 ">
             <div className="w-4 h-4 bg-[#0E1629]" />
@@ -232,36 +244,59 @@ export default function TestSection() {
             around your needs.
           </p>
 
-          <div className="flex gap-2.5 pt-2">
-            {tabOptions.map((tab) => (
-              <div
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`border border-(--text-main) py-1.5 px-3 rounded-[5px] text-xs font-medium cursor-pointer ${activeTab === tab.id ? "bg-(--text-main) text-white" : "text-(--text-main) bg-none"}`}
-              >
-                {tab.label}
-              </div>
-            ))}
-          </div>
+          {isUserLoggedIn && (
+            <div className="flex gap-2.5 pt-2">
+              {tabOptions.map((tab) => (
+                <div
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`border border-(--text-main) py-1.5 px-3 rounded-[5px] text-xs font-medium cursor-pointer ${activeTab === tab.id ? "bg-(--text-main) text-white" : "text-(--text-main) bg-none"}`}
+                >
+                  {tab.label}
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="w-full">
             <div
               className="flex gap-3 overflow-x-auto scrollbar-hide pb-2"
             >
-              {filteredTests.map((test, index) => (
+              {filteredTests.map((test) => (
                 <div key={test.id} className="shrink-0">
                   <TestGroupCard
+                    testGroupId={test.id}
                     image={test.image}
                     rating={test.rating ?? "0.0"}
+                    price={test.price}
                     title={test.name}
                     description={test.description}
-                    totalTests={2 + (index % 4)}
-                    totalStudents={24 + index * 3}
-                    isBaught={activeTab === "trending" ? false : true}
-                    isMyTestsCard={activeTab === "my-tests"}
+                    totalTests={test.totalTests || 1}
+                    totalStudents={test.totalStudents || 0}
+                    isBaught={isUserLoggedIn ? (activeTab === "trending" ? false : true) : true}
+                    isMyTestsCard={isUserLoggedIn ? activeTab === "my-tests" : false}
                   />
                 </div>
               ))}
+
+              {shouldShowInlineTestUpsell && (
+                <div className="self-center shrink-0 w-[250px] h-[150px] rounded-2xl p-3 flex items-center justify-center text-center">
+                  <div className="w-full flex flex-col items-center gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-[#0E1629]">Grow your test library</p>
+                      <p className="mt-2 text-xs text-[#6B7280] leading-relaxed">
+                        Add more test series to practice consistently and track better progress.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleTabChange("trending")}
+                      className="w-full rounded-lg bg-[#0E1629] px-3 py-2 text-xs font-semibold text-white hover:opacity-90"
+                    >
+                      Explore Trending
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="mt-2 h-1 w-20 bg-[#EDEDED] rounded-[48px] overflow-hidden">
@@ -317,8 +352,7 @@ export default function TestSection() {
             </div>
           )}
 
-          <AnimatePresence mode="wait">
-            {isLoadingTests ? (
+          {isLoadingTests ? (
               <motion.div
                 key="loading"
                 initial={{ opacity: 0 }}
@@ -342,52 +376,91 @@ export default function TestSection() {
                   />
                 ))}
               </motion.div>
-            ) : visibleTests.length > 0 ? (
-              <motion.div
-                key={activeTab}
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="flex gap-[25px] justify-center mb-6 min-h-[451px] items-start"
-              >
-                {visibleTests.map((test, index) => (
-                  <motion.div key={test.id} variants={cardVariants}>
+            ) : filteredTests.length > 0 || shouldShowInlineTestUpsell ? (
+              <div className="relative mt-2 lg:mt-8">
+                <div className="overflow-x-hidden px-0.5 py-4" ref={emblaRef}>
+                  <div className="flex gap-[25px] px-3 lg:px-6">
+                    {filteredTests.map((test) => (
+                      <div key={test.id} className="shrink-0">
                     <TestGroupCard
+                      testGroupId={test.id}
                       image={test.image}
                       rating={test.rating ?? "0.0"}
+                      price={test.price}
                       title={test.name}
                       description={test.description}
-                      totalTests={2 + ((safeStartIndex + index) % 4)}
-                      totalStudents={24 + (safeStartIndex + index) * 3}
-                      isBaught={activeTab === "trending" ? false : true}
-                      isMyTestsCard={activeTab === "my-tests"}
+                      totalTests={test.totalTests || 1}
+                      totalStudents={test.totalStudents || 0}
+                      isBaught={isUserLoggedIn ? (activeTab === "trending" ? false : true) : true}
+                      isMyTestsCard={isUserLoggedIn ? activeTab === "my-tests" : false}
                     />
-                  </motion.div>
-                ))}
-              </motion.div>
+                      </div>
+                    ))}
+
+                    {shouldShowInlineTestUpsell && (
+                      <div className="self-center shrink-0 w-[24rem] h-[12.5rem] rounded-2xl p-5 flex items-center justify-center text-center">
+                        <div className="w-full flex flex-col items-center gap-4">
+                          <div>
+                            <p className="text-lg font-semibold text-[#0E1629]">Build stronger preparation</p>
+                            <p className="mt-2 text-sm text-[#6B7280] leading-relaxed max-w-[20rem] mx-auto">
+                              Add more test groups to practice across topics and improve your outcomes.
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleTabChange("trending")}
+                            className="rounded-xl bg-[#0E1629] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                          >
+                            Explore Trending
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+              </div>
             ) : (
               <motion.div
                 key="empty"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
                 transition={{ type: "spring" as const, damping: 20 }}
                 className="flex justify-center mb-6 min-h-[451px] items-center"
               >
-                <p className="font-[Poppins] text-[14px] text-[#6B7280] self-center">
-                  No tests found for this tab.
-                </p>
+                {isUserLoggedIn && activeTab === "my-tests" && !shouldShowInlineTestUpsell ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <p className="font-[Poppins] text-[14px] text-[#6B7280] self-center text-center">
+                      No tests in My Tests yet. Explore Trending and buy a test group to get started.
+                    </p>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => handleTabChange("trending")}
+                        className="px-4 py-2 rounded-lg bg-[#0E1629] text-white text-sm font-medium hover:opacity-90"
+                      >
+                        Explore Trending
+                      </button>
+                      <button
+                        onClick={() => navigate("/revamp-courses")}
+                        className="px-4 py-2 rounded-lg border border-[#0E1629] text-[#0E1629] text-sm font-medium hover:bg-[#0E1629] hover:text-white"
+                      >
+                        Browse Test Series
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="font-[Poppins] text-[14px] text-[#6B7280] self-center">No tests found.</p>
+                )}
               </motion.div>
             )}
-          </AnimatePresence>
 
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               <div className="w-[262px] h-1 bg-[#EDEDED] rounded-[48px] overflow-hidden">
                 <div
                   className="h-full bg-[#0E1629] rounded-[48px] transition-all duration-300"
-                  style={{ width: `${40}%` }}
+                  style={{
+                    width: snapCount > 1 ? `${((selectedIndex + 1) / snapCount) * 100}%` : "100%",
+                  }}
                 />
               </div>
             </div>

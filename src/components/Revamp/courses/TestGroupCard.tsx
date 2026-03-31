@@ -1,11 +1,14 @@
-import { useId } from "react";
+import { useId, type KeyboardEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { Star } from "lucide-react";
 
 interface TestGroupCardProps {
+  testGroupId?: string;
   image: string;
   rating: string;
+  price?: string;
   title: string;
-  description: string;
+  description?: string;
   totalTests: number;
   totalStudents: number;
   isBaught: Boolean;
@@ -13,25 +16,54 @@ interface TestGroupCardProps {
 }
 
 export default function TestGroupCard({
+  testGroupId,
   image,
   rating,
+  price,
   title,
   description,
   totalTests,
   totalStudents,
-  isBaught=true,
+  isBaught = true,
   isMyTestsCard = false,
-
 }: TestGroupCardProps) {
+  const navigate = useNavigate();
   const mobileArrowLeftClipId = useId();
   const mobileArrowRightClipId = useId();
   const mobileTestIconClipId = useId();
   const mobileStudentIconClipId = useId();
+  const canNavigate = Boolean(testGroupId);
+  const numericRating = Number(rating);
+  const formattedRating = Number.isFinite(numericRating)
+    ? numericRating.toFixed(1)
+    : "0.0";
+  const displayPrice = price
+    ? String(price).trim().replace(/₹/g, "")
+    : "Paid";
+
+  const handleNavigate = () => {
+    if (!testGroupId) return;
+    navigate(`/test-group/${testGroupId}`);
+  };
+
+  const handleCardKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!canNavigate) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleNavigate();
+    }
+  };
 
   return (
     <div>
       {/* Desktop view */}
-      <div className="hidden md:flex flex-col bg-white gap-2.5 p-3 rounded-2xl">
+      <div
+        className={`hidden md:flex flex-col bg-white gap-2.5 p-3 rounded-2xl ${canNavigate ? "cursor-pointer" : ""}`}
+        onClick={handleNavigate}
+        onKeyDown={handleCardKeyDown}
+        role={canNavigate ? "button" : undefined}
+        tabIndex={canNavigate ? 0 : -1}
+      >
         <div className="relative w-[18rem] h-65 rounded-xl">
           <img
             src={image}
@@ -40,7 +72,7 @@ export default function TestGroupCard({
           />
           <div className="absolute top-2 left-2 bg-white/90 rounded-full px-2 py-1 flex items-center gap-1">
             <Star className="w-3.5 h-3.5 text-[#F59E0B] fill-[#F59E0B]" />
-            <p className="text-[12px] font-medium text-[#0E1629]">{rating}</p>
+            <p className="text-[12px] font-medium text-[#0E1629]">{formattedRating}</p>
           </div>
         </div>
 
@@ -151,28 +183,28 @@ export default function TestGroupCard({
             <div className="flex group items-center justify-between">
               <div className="flex items-center gap-1 text-(--text-main) font-medium text-sm">
                 <img src="/coin.svg" alt="procoin_icon" className="w-5 h-5" />
-                <p>{`1000 ProCoins`}</p>
+                <p>{displayPrice}</p>
               </div>
 
               <button className="py-2 px-2.5 border border-(--text-main) rounded-[12px] text-(--text-main) text-sm font-medium group-hover:cursor-pointer group-hover:text-white group-hover:bg-(--text-main)">
                 Explore Test Series
               </button>
-
             </div>
-          ):(
-            <button
-            className="pt-3 font-medium text-[#0E1629] text-sm rounded-[0.75rem] border border-[#0E1629] w-[18rem] flex items-center justify-center py-2 px-2.5 cursor-pointer transition-colors duration-300 hover:bg-[#0E1629] hover:text-white"
-          >
-            Explore Test Series
-          </button>
-          )
-          }
+          ) : (
+            <button className="pt-3 font-medium text-[#0E1629] text-sm rounded-[0.75rem] border border-[#0E1629] w-[18rem] flex items-center justify-center py-2 px-2.5 cursor-pointer transition-colors duration-300 hover:bg-[#0E1629] hover:text-white">
+              Explore Test Series
+            </button>
+          )}
         </div>
       </div>
 
       {/* Mobile view */}
       <div
-        className={`relative w-[200px] ${isMyTestsCard ? "h-[306px]" : "h-[329px]"} md:hidden`}
+        className={`relative w-[200px] ${isMyTestsCard ? "h-[306px]" : "h-[329px]"} md:hidden ${canNavigate ? "cursor-pointer" : ""}`}
+        onClick={handleNavigate}
+        onKeyDown={handleCardKeyDown}
+        role={canNavigate ? "button" : undefined}
+        tabIndex={canNavigate ? 0 : -1}
       >
         <svg
           className="absolute inset-0 w-full h-full"
@@ -204,7 +236,7 @@ export default function TestGroupCard({
             />
             <div className="absolute top-2 left-2 bg-white/90 rounded-full px-2 py-1 flex items-center gap-1">
               <Star className="w-3 h-3 text-[#F59E0B] fill-[#F59E0B]" />
-              <p className="text-[10px] font-medium text-[#0E1629]">{rating}</p>
+              <p className="text-[10px] font-medium text-[#0E1629]">{formattedRating}</p>
             </div>
           </div>
 
@@ -317,7 +349,7 @@ export default function TestGroupCard({
               {!isMyTestsCard && (
                 <div className="flex items-center gap-1 text-(--text-main) font-medium text-xs">
                   <img src="/coin.svg" alt="procoin_icon" className="w-4 h-4" />
-                  <p>{`1000 ProCoins`}</p>
+                  <p>{displayPrice}</p>
                 </div>
               )}
             </div>

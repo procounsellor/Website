@@ -5,9 +5,12 @@ import { Outlet } from "react-router-dom";
 import { LoginCard } from "@/components/cards/LoginCard";
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "@/store/AuthStore";
+import { useChatStore } from "@/store/ChatStore";
+import Chatbot from "@/components/chatbot/Chatbot";
 
 export default function RevampLayout() {
     const { isLoginToggle } = useAuthStore();
+    const { isChatbotOpen, toggleChatbot } = useChatStore();
 
     return <div className="flex flex-col min-h-screen relative">
         <RevampHeader />
@@ -28,5 +31,19 @@ export default function RevampLayout() {
                 },
             }}
         />
+
+        <button
+            onClick={toggleChatbot}
+            className="fixed right-3 md:right-6 bottom-3 md:bottom-6 z-50 flex h-16 w-16 cursor-pointer items-center justify-center transition-transform duration-300 hover:scale-110"
+            aria-label="Toggle Chatbot"
+        >
+            <img
+                src="/course-bottom-right.svg"
+                alt="Chatbot"
+                className="h-16 w-16"
+            />
+        </button>
+
+        {isChatbotOpen && <Chatbot />}
     </div>
 }

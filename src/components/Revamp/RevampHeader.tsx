@@ -27,7 +27,14 @@ export default function RevampHeader() {
     const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
 
     useEffect(() => {
-        const currentTab = tabs.find(tab => tab.path === location.pathname);
+        const currentTab = tabs.find(tab => {
+            if (tab.path === "/admissions") {
+                return location.pathname === "/" || location.pathname === tab.path;
+            }
+
+            return location.pathname === tab.path || location.pathname.startsWith(`${tab.path}/`);
+        });
+
         if (currentTab) {
             setActiveTab(currentTab.id);
         }
@@ -126,7 +133,7 @@ export default function RevampHeader() {
                 initial={false}
                 animate={{ marginTop: isScrolled ? "20px" : "24px" }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="hidden md:flex relative w-full max-w-[1320px] h-[60px] px-[60px] justify-between items-center z-10"
+                className="hidden md:flex relative w-full  h-[60px] px-[60px] justify-between items-center z-10"
             >
                 <div 
                     className="flex items-center gap-2 cursor-pointer w-[170px] h-[43px]" 

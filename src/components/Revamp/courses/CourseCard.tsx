@@ -1,4 +1,5 @@
 import type { CourseType } from "@/types/course";
+import { useNavigate } from "react-router-dom";
 import RatingBadge from "./RatingBadge";
 
 interface CourseCardParam {
@@ -7,8 +8,25 @@ interface CourseCardParam {
   isLoading: boolean;
 }
 
+const formatDisplayPrice = (price?: string) => {
+  if (!price) return "0";
+  const trimmed = String(price).trim();
+  if (trimmed.toLowerCase() === "free") return "Free";
+  return trimmed.replace(/₹/g, "").trim();
+};
+
 export default function CourseCard(params: CourseCardParam) {
+  const navigate = useNavigate();
+  const role = localStorage.getItem("role") || "user";
   const duration = "3 Week";
+  const displayPrice = formatDisplayPrice(params.course?.price);
+  const courseId = params.course?.id;
+  const canNavigate = Boolean(courseId);
+
+  const handleNavigate = () => {
+    if (!courseId) return;
+    navigate(`/detail/${courseId}/${role}`);
+  };
 
   if (params.isLoading) {
     return (
@@ -32,7 +50,12 @@ export default function CourseCard(params: CourseCardParam) {
 
   return (
     <div>
-      <div className="relative w-[200px] h-[275px] md:hidden">
+      <div
+        className={`relative w-[200px] h-[275px] md:hidden ${canNavigate ? "cursor-pointer" : ""}`}
+        onClick={handleNavigate}
+        role={canNavigate ? "button" : undefined}
+        tabIndex={canNavigate ? 0 : -1}
+      >
         <svg
           className="absolute inset-0 w-full h-full"
           width="200"
@@ -70,22 +93,9 @@ export default function CourseCard(params: CourseCardParam) {
               <span className="font-normal text-(--text-muted)">3 Weeks</span>
             </div>
 
-            <div className="flex items-center gap-1.5">
-              <div className="flex items-center gap-1 text-sm leading-none">
-                <p className="font-medium text-(--text-main)">Price:</p>
-                <span className="font-normal text-(--text-main)">{params.course?.price}</span>
-              </div>
-
-              <div className="relative inline-flex items-center">
-                <p className="text-(--text-muted) font-normal text-[0.625rem] leading-none">
-                  {params.course?.price}
-                </p>
-                <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 border-t border-(--text-muted)"></div>
-              </div>
-
-              <p className="text-[#25A777] font-normal text-[0.5rem] leading-none">
-                40% off
-              </p>
+            <div className="flex items-center gap-1 text-(--text-main) font-medium text-sm">
+              <img src="/coin.svg" alt="procoin_icon" className="w-4 h-4" />
+              <p>{displayPrice}</p>
             </div>
           </div>
         </div>
@@ -143,7 +153,12 @@ export default function CourseCard(params: CourseCardParam) {
         </div>
       </div>
 
-      <div className="w-78 h-[28.188rem] bg-white p-3 rounded-2xl hidden  md:flex flex-col gap-2.5">
+      <div
+        className={`w-78 h-[28.188rem] bg-white p-3 rounded-2xl hidden md:flex flex-col gap-2.5 ${canNavigate ? "cursor-pointer" : ""}`}
+        onClick={handleNavigate}
+        role={canNavigate ? "button" : undefined}
+        tabIndex={canNavigate ? 0 : -1}
+      >
         <div className="w-full h-65 rounded-xl bg-gray-300 relative">
           <RatingBadge rating={params.course?.rating ?? "4.8"} />
           <img
@@ -168,22 +183,9 @@ export default function CourseCard(params: CourseCardParam) {
                 {duration}
               </span>
             </p>
-            <div className="flex gap-1">
-              <div className="flex gap-1">
-                <p>Price: {params.course?.price}</p>
-                <div className="relative inline-flex items-center">
-                  <p className="text-(--text-muted) font-normal text-[0.875rem] leading-none pr-0.5">
-                    {params.course?.price}
-                  </p>
-                  <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 border-t border-(--text-muted)"></div>
-                </div>
-              </div>
-
-              <div className="bg-[#E6EFEC] rounded-2xl py-0.5 px-3">
-                <p className="text-[#25A777] font-normal text-[0.625rem]">
-                  40% off
-                </p>
-              </div>
+            <div className="flex items-center gap-1 text-(--text-main) font-medium text-sm">
+              <img src="/coin.svg" alt="procoin_icon" className="w-5 h-5" />
+              <p>{displayPrice}</p>
             </div>
           </div>
 

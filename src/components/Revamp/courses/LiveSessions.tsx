@@ -110,8 +110,7 @@ const coursesData: CourseWithMeta[] = [
 export default function LiveSection() {
     const isLoadingCourses = false;
 
-    const visibleCount = 4;
-    const visibleCourses = coursesData.slice(0, visibleCount);
+    const visibleCourses = coursesData;
 
     return (
         <div className="w-full pt-10">
@@ -129,22 +128,25 @@ export default function LiveSection() {
                     </p>
                 </div>
 
-                <div className="flex gap-[25px] justify-center mb-6 min-h-[451px] items-start">
+                <div className="flex gap-[25px] mb-6 min-h-[451px] items-start overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth [touch-action:pan-x]">
                     {isLoadingCourses ? (
                         Array.from({ length: 4 }).map((_, idx) => (
-                            <LiveSessionCard key={`skeleton-${idx}`} isLoading={true} />
+                            <div key={`skeleton-${idx}`} className="shrink-0 snap-start">
+                                <LiveSessionCard isLoading={true} />
+                            </div>
                         ))
                     ) : visibleCourses.length > 0 ? (
                         visibleCourses.map((course) => (
-                            <LiveSessionCard
-                                key={course.id}
-                                title={course.name}
-                                coverImage={course.image}
-                                sessionDate="26 Mar, 2026"
-                                duration={`${course.courseTimeMinutes}m`}
-                                ctaLabel="Join Session"
-                                isLoading={false}
-                            />
+                            <div key={course.id} className="shrink-0 snap-start">
+                                <LiveSessionCard
+                                    title={course.name}
+                                    coverImage={course.image}
+                                    sessionDate="26 Mar, 2026"
+                                    duration={`${course.courseTimeMinutes}m`}
+                                    ctaLabel="Join Session"
+                                    isLoading={false}
+                                />
+                            </div>
                         ))
                     ) : (
                         <p className="font-[Poppins] text-[14px] text-[#6B7280] self-center">
