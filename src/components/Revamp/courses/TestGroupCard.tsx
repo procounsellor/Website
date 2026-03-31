@@ -11,7 +11,7 @@ interface TestGroupCardProps {
   description?: string;
   totalTests: number;
   totalStudents: number;
-  isBaught: Boolean;
+  isBaught?: boolean;
   isMyTestsCard?: boolean;
 }
 
@@ -24,7 +24,7 @@ export default function TestGroupCard({
   description,
   totalTests,
   totalStudents,
-  isBaught = true,
+  isBaught = false,
   isMyTestsCard = false,
 }: TestGroupCardProps) {
   const navigate = useNavigate();
