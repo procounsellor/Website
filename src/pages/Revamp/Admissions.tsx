@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import Stories from "@/components/Revamp/probuddies/Stories";
 import Faq from "@/components/Revamp/admissions/Faq";
 import Blogs from "@/components/Revamp/admissions/Blogs";
@@ -10,6 +11,7 @@ import Timeline from "@/components/Revamp/admissions/Timeline";
 import RevampBannerSection from "@/components/Revamp/banners/RevampBannerSection";
 
 export default function Admissions() {
+  const navigate = useNavigate();
   const hasSeenSplash = sessionStorage.getItem('admissions-splash-seen') === 'true';
   const admissionsStories = [
     {
@@ -73,7 +75,7 @@ export default function Admissions() {
               <div className="relative flex items-center justify-center">
                 {/* Logo - starts centered, then shifts left */}
                 <motion.img
-                  src="https://www.figma.com/api/mcp/asset/4a796561-f87a-428a-ae09-a0ef94eeca93"
+                  src="/logo.svg"
                   alt="ProCounsel Logo"
                   className="w-[118px] h-[120px] relative z-10"
                   initial={{ scale: 0, opacity: 0, x: 0 }}
@@ -144,6 +146,7 @@ export default function Admissions() {
 
             {/* CTA Button */}
             <motion.button
+              onClick={() => navigate("/counsellors")}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={animationPhase >= 3 ? { opacity: 1, scale: 1 } : {}}
               transition={{ duration: 0.5, ease: "easeOut" }}
