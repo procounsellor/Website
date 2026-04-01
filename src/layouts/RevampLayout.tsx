@@ -1,7 +1,8 @@
+import { useEffect } from "react";
 import Footer from "@/components/layout/Footer";
 import RevampHeader from "@/components/Revamp/RevampHeader";
 import RevampBreadcrumbs from "@/components/Revamp/RevampBreadcrumbs";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { LoginCard } from "@/components/cards/LoginCard";
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "@/store/AuthStore";
@@ -9,8 +10,18 @@ import { useChatStore } from "@/store/ChatStore";
 import Chatbot from "@/components/chatbot/Chatbot";
 
 export default function RevampLayout() {
-    const { isLoginToggle } = useAuthStore();
+    const { isLoginToggle, role, user, isAuthenticated } = useAuthStore();
     const { isChatbotOpen, toggleChatbot } = useChatStore();
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        if (isAuthenticated && role === 'proBuddy' && user && !user.verified) {
+            if (location.pathname !== '/pro-buddies/dashboard') {
+                navigate('/pro-buddies/dashboard', { replace: true });
+            }
+        }
+    }, [isAuthenticated, role, user, location.pathname, navigate]);
 
     return <div className="flex flex-col min-h-screen relative">
         <RevampHeader />

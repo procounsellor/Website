@@ -150,7 +150,7 @@ export default function Admissions() {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={animationPhase >= 3 ? { opacity: 1, scale: 1 } : {}}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="absolute left-1/2 -translate-x-1/2 top-[186px] bg-[#2f43f2] hover:bg-[#2437d1] transition-colors text-white px-8 py-3 rounded-[48px] text-[16px] font-medium font-['Poppins']"
+              className="absolute z-50 left-1/2 hover:cursor-pointer -translate-x-1/2 top-[186px] bg-[#2f43f2] hover:bg-[#2437d1] transition-colors text-white px-8 py-3 rounded-[48px] text-[16px] font-medium font-['Poppins']"
             >
               Book Admission Counselling
             </motion.button>
