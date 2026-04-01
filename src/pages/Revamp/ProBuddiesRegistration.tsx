@@ -183,6 +183,13 @@ export default function ProBuddiesRegistration() {
         await uploadProBuddyIdCardPhoto(String(newBuddyId), selectedIdCard);
       }
 
+      if (regResponse.jwtToken) {
+        localStorage.setItem("jwt", regResponse.jwtToken);
+      }
+      localStorage.setItem("role", "proBuddy");
+      useAuthStore.setState({ role: "proBuddy" });
+      await useAuthStore.getState().refreshUser(true);
+
       toast.success("Registration completed successfully!");
       navigate("/pro-buddies/dashboard");
     } catch (error: any) {

@@ -13,6 +13,7 @@ export const registerProBuddy = async (payload: any) => {
     headers: {
       ...getAuthHeaders(),
       "Content-Type": "application/json",
+      "Accept": "application/json",
     },
     body: JSON.stringify(payload),
   });
