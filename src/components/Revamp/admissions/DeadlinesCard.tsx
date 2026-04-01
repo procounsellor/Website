@@ -10,6 +10,11 @@ interface DeadlinesCardProps {
 export default function DeadlinesCard({ examName, deadline, details, isWhite = false }: DeadlinesCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
+  // Extract the first two words for the short display
+  const words = examName.split(" ");
+  const shortExamName = words.slice(0, 2).join(" ");
+  const hasMoreWords = words.length > 2;
+
   return (
     <div 
       className="relative cursor-pointer w-[200px] h-[220px] md:w-[312px] md:h-[322px] shrink-0 group"
@@ -34,11 +39,23 @@ export default function DeadlinesCard({ examName, deadline, details, isWhite = f
       <div className="absolute inset-0 p-[12px] md:p-[0.75rem] flex flex-col gap-[12px] md:gap-[1.5rem]">
         <div className="flex justify-between items-start md:items-center">
              
-          <div className={`w-fit flex items-center justify-center rounded-[4px] md:rounded-[6px] gap-1.5 md:gap-2 ${isWhite ? "bg-[#EDEDED]": "bg-white"} py-1 px-2 md:px-3`}>
-            <div className="bg-[#0E1629] h-3 w-3 md:h-4 md:w-4 shrink-0"></div>
-            <p className={`text-[#0E1629] md:text-(--text-main) font-[Poppins] font-semibold text-[10px] md:text-[0.875rem] whitespace-nowrap`}>
-              {examName}
-            </p>
+          {/* Wrapper for the custom hover tooltip */}
+          <div className="relative flex items-center group/tooltip">
+            <div className={`w-fit flex items-center justify-center rounded-[4px] md:rounded-[6px] gap-1.5 md:gap-2 ${isWhite ? "bg-[#EDEDED]": "bg-white"} py-1 px-2 md:px-3`}>
+              <div className="bg-[#0E1629] h-3 w-3 md:h-4 md:w-4 shrink-0"></div>
+              <p className={`text-[#0E1629] md:text-(--text-main) font-[Poppins] font-semibold text-[10px] md:text-[0.875rem] whitespace-nowrap`}>
+                {shortExamName}{hasMoreWords ? "..." : ""}
+              </p>
+            </div>
+
+            {/* Tooltip shown above on hover */}
+            {hasMoreWords && (
+              <div className="absolute bottom-[115%] left-0 hidden group-hover/tooltip:block z-50 bg-[#0E1629] text-white text-[10px] md:text-[12px] p-2 md:p-3 rounded-md shadow-xl w-max max-w-[220px] whitespace-normal pointer-events-none transition-opacity">
+                {examName}
+                {/* Little triangle pointing down */}
+                <div className="absolute top-full left-4 border-[6px] border-transparent border-t-[#0E1629]"></div>
+              </div>
+            )}
           </div>
 
           <p className={`text-right font-[Poppins] font-normal text-[12px] md:text-[0.875rem] leading-none md:leading-normal w-[86px] md:w-auto mt-[2px] md:mt-0 ${isWhite ? "text-[#6B7280] md:text-(--text-muted)" : "text-[#6B7280] md:text-(--text-main)"}`}>
@@ -46,7 +63,8 @@ export default function DeadlinesCard({ examName, deadline, details, isWhite = f
           </p>
         </div>
 
-        <p className={`text-left font-[Poppins] ${isWhite ? "text-[#0E1629] md:text-(--text-main)": "text-white"} text-[14px] md:text-[1.125rem] leading-[1.4] md:leading-normal line-clamp-6 md:line-clamp-none`}>
+        {/* Removed md:line-clamp-none so it stays clamped to 6 lines everywhere */}
+        <p className={`text-left font-[Poppins] ${isWhite ? "text-[#0E1629] md:text-(--text-main)": "text-white"} text-[14px] md:text-[1.125rem] leading-[1.4] md:leading-normal line-clamp-6`}>
           {details}
         </p>
       </div>
@@ -66,7 +84,6 @@ export default function DeadlinesCard({ examName, deadline, details, isWhite = f
           />
         </svg>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[16px] h-[16px] md:w-[20px] md:h-[20px]">
-          {/* Arrow going out to right */}
           <img 
             src="/arrow.svg" 
             alt="arrow" 
@@ -77,7 +94,6 @@ export default function DeadlinesCard({ examName, deadline, details, isWhite = f
             }`}
             style={{ filter: isHovered ? 'brightness(0)' : 'brightness(0) invert(1)' }}
           />
-          {/* Arrow coming in from left */}
           <img 
             src="/arrow.svg" 
             alt="arrow" 

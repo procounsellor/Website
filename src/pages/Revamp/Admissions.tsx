@@ -139,7 +139,7 @@ export default function Admissions() {
                 className="absolute left-16 top-0 w-[243px] h-[245px] bg-[#ffc8af] rounded-[28px] overflow-hidden"
               >
                 <img
-                  src="https://www.figma.com/api/mcp/asset/ac2e860d-8957-4a4d-9eb2-a8dd1ba74368"
+                  src="/public/admissions/admission.svg"
                   alt="Student"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
@@ -157,11 +157,11 @@ export default function Admissions() {
                 initial={{ opacity: 0, y: 120 }}
                 animate={animationPhase >= 4 ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
-                className="absolute left-16 top-[269px] w-[243px] h-[141px] bg-white rounded-[28px]"
+                className="absolute left-16 top-[269px] w-[243px] h-[141px] bg-[#343C6A] rounded-[28px]"
               >
                 <div className="flex flex-col items-center justify-center h-full px-6">
-                  <p className="text-[#0e1629] text-[24px] font-semibold font-['Poppins'] mb-2">About Us</p>
-                  <p className="text-[#6b7280] text-[14px] font-['Poppins'] text-center">
+                  <p className="text-[#FFFFFF] text-[24px] font-semibold font-['Poppins'] mb-2">About Us</p>
+                  <p className="text-[#FFFFFF] text-[14px] font-['Poppins'] text-center">
                     <span className="font-semibold">15+ Years</span> of Excellence | Trusted by <span className="font-semibold">50,000+ Families</span>
                   </p>
                 </div>
@@ -251,8 +251,25 @@ export default function Admissions() {
                 initial={{ opacity: 0, y: 120 }}
                 animate={animationPhase >= 4 ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.7, delay: 0.55, ease: "easeOut" }}
-                className="absolute right-16 top-[269px] w-[243px] h-[141px] bg-white rounded-[28px]"
-              />
+                className="absolute right-16 top-[269px] w-[243px] h-[141px] rounded-[28px] overflow-hidden bg-gray-700"
+              >
+                <img
+                  src="/public/admissions/deadline.svg"
+                  alt="Deadlines"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                
+                <div className="absolute inset-0 bg-[#0E1629]/40" />
+
+                <div className="relative z-10 flex flex-col items-center justify-center h-full px-4">
+                  <p className="text-[#FFFFFF] text-[24px] font-semibold font-['Poppins'] mb-1">
+                    Deadlines
+                  </p>
+                  <p className="text-[#FFFFFF] text-[13px] leading-[1.3] font-['Poppins'] text-center">
+                    Discover their expertise and find the right guidance for your future
+                  </p>
+                </div>
+              </motion.div>
             </div>
           </div>
         </div>
