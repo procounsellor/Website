@@ -181,17 +181,28 @@ export default function RevampHeader() {
     }, [isDropdownOpen]);
 
     return (
-        <motion.header 
-            initial={false}
-            animate={{ 
-                height: isMobile 
-                    ? (isScrolled ? 56 : 98) 
-                    : (isScrolled ? 100 : 184) 
-            }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="sticky top-0 z-50 w-full bg-[#C6DDF0]/40 flex flex-col items-center relative border-b border-gray-100 backdrop-blur-md"
-            style={{ overflow: "visible" }}
-        >
+        <>
+            {/* Invisible placeholder matching the un-scrolled header height to prevent page layout shift jitter */}
+            <div 
+                className="w-full hidden md:block" 
+                style={{ height: 184 }}
+            />
+            <div 
+                className="w-full md:hidden" 
+                style={{ height: 98 }}
+            />
+            
+            <motion.header 
+                initial={false}
+                animate={{ 
+                    height: isMobile 
+                        ? (isScrolled ? 56 : 98) 
+                        : (isScrolled ? 100 : 184) 
+                }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="fixed top-0 left-0 right-0 z-50 bg-[#C6DDF0]/40 flex flex-col items-center border-b border-gray-100 backdrop-blur-md"
+                style={{ overflow: "visible" }}
+            >
             
 
             <motion.div 
@@ -584,5 +595,6 @@ export default function RevampHeader() {
             </div>
 
         </motion.header>
+        </>
     );
 }
