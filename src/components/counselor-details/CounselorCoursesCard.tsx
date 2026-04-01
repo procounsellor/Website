@@ -8,7 +8,7 @@ import { useAuthStore } from '@/store/AuthStore';
 
 type CounselorCoursesCardProps = {
   counsellorId: string;
-  userRole?: "user" | "student" | "counselor";
+  userRole?: "user" | "student" | "counselor" | "proBuddy";
 };
 
 export default function CounselorCoursesCard({ counsellorId, userRole = "user" }: CounselorCoursesCardProps) {

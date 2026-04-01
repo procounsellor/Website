@@ -32,7 +32,7 @@ export default function ListingShell({
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] pb-24 md:pb-12">
+    <div className="min-h-screen bg-[#F5F5F7] pb-20 md:pb-8">
       <div className="mx-auto max-w-[1440px] px-4 pt-6 md:px-[60px] md:pt-8">
         <div className="md:hidden">
           <div className="flex items-center gap-2 rounded-lg border border-[#D6DCE5] bg-white p-2">

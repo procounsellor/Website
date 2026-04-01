@@ -59,9 +59,11 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
           </div>
 
           {isLoading && (
-            <p className="text-center text-(--text-muted) py-12 text-[0.875rem]">
-              Loading blogs…
-            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 animate-pulse">
+              {Array.from({ length: 8 }).map((_, idx) => (
+                <div key={`blog-full-skeleton-${idx}`} className="h-[260px] rounded-2xl bg-white/80" />
+              ))}
+            </div>
           )}
           {isError && (
             <div className="text-center py-12 space-y-3">
@@ -124,9 +126,11 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
             
             {/* API States (From Current) */}
             {isLoading && (
-              <p className="text-(--text-muted) text-[0.875rem] w-full">
-                Loading blogs…
-              </p>
+              <div className="flex gap-[12px] md:gap-9 w-full animate-pulse">
+                {Array.from({ length: 2 }).map((_, idx) => (
+                  <div key={`blog-section-skeleton-${idx}`} className="shrink-0 w-[250px] md:w-[300px] h-[180px] rounded-2xl bg-white/80" />
+                ))}
+              </div>
             )}
             
             {isError && (

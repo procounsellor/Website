@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import MobileCourseBottomNav from "@/components/Revamp/courses/MobileCourseBottomNav";
 import CourseCard from "@/components/Revamp/courses/CourseCard";
@@ -40,6 +40,8 @@ const sortOptions = [
   { value: "price-high", label: "Price: High to Low" },
 ];
 
+const PAGE_SIZE = 6;
+
 export default function CourseListing() {
   const userId = localStorage.getItem("phone") || "";
   const token = localStorage.getItem("jwt") || "";
@@ -50,6 +52,7 @@ export default function CourseListing() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
   const [minRating, setMinRating] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const { data, isLoading } = useQuery({
     queryKey: ["course-listing", isUserLoggedIn ? userId : "guest"],
@@ -101,6 +104,16 @@ export default function CourseListing() {
 
     return items;
   }, [courses, minRating, priceRange, search, selectedCategories, sortBy]);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [search, sortBy, selectedCategories, priceRange, minRating]);
+
+  const visibleCourses = useMemo(
+    () => filteredCourses.slice(0, visibleCount),
+    [filteredCourses, visibleCount]
+  );
+  const hasMoreCourses = visibleCount < filteredCourses.length;
 
   const toggleCategory = (value: string) => {
     setSelectedCategories((prev) =>
@@ -156,6 +169,25 @@ export default function CourseListing() {
             className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-2 text-sm"
           />
         </div>
+
+        <div className="mt-3 space-y-2">
+          <input
+            type="range"
+            min={0}
+            max={100000}
+            step={500}
+            value={priceRange[1]}
+            onChange={(e) => {
+              const nextMax = Number(e.target.value);
+              setPriceRange([priceRange[0], Math.max(nextMax, priceRange[0])]);
+            }}
+            className="w-full accent-(--text-main)"
+          />
+          <div className="flex items-center justify-between text-[11px] text-[#6B7280]">
+            <span>Min: ₹{priceRange[0].toLocaleString("en-IN")}</span>
+            <span>Max: ₹{priceRange[1].toLocaleString("en-IN")}</span>
+          </div>
+        </div>
       </div>
 
       <div className="rounded-lg border border-[#D6DCE5] bg-white p-3">
@@ -175,9 +207,15 @@ export default function CourseListing() {
   );
 
   const content = isLoading ? (
-    <div className="flex flex-wrap gap-4">
+    <div className="flex flex-col md:flex-row md:flex-wrap gap-4">
       {Array.from({ length: 6 }).map((_, idx) => (
-        <CourseCard key={`course-skeleton-${idx}`} isBaught={false} isLoading={true} />
+        <div key={`course-skeleton-${idx}`} className="w-full md:w-auto">
+          <CourseCard
+            isBaught={false}
+            isLoading={true}
+            useListingMobileCard={true}
+          />
+        </div>
       ))}
     </div>
   ) : (
@@ -188,15 +226,28 @@ export default function CourseListing() {
           No courses match the selected filters.
         </div>
       ) : (
-        <div className="flex flex-wrap gap-4">
-          {filteredCourses.map((item) => (
-            <CourseCard
-              key={item.course.id}
-              course={item.course}
-              isBaught={item.purchased}
-              isLoading={false}
-            />
+        <div className="flex flex-col md:flex-row md:flex-wrap gap-4">
+          {visibleCourses.map((item) => (
+            <div key={item.course.id} className="w-full md:w-auto">
+              <CourseCard
+                course={item.course}
+                isBaught={item.purchased}
+                isLoading={false}
+                useListingMobileCard={true}
+              />
+            </div>
           ))}
+        </div>
+      )}
+      {filteredCourses.length > 0 && hasMoreCourses && (
+        <div className="mt-4 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
+            className="text-(--text-main) text-sm font-medium hover:underline"
+          >
+            See more
+          </button>
         </div>
       )}
     </>

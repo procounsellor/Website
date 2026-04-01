@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import MobileCourseBottomNav from "@/components/Revamp/courses/MobileCourseBottomNav";
 import ListingShell from "@/components/Revamp/listing/ListingShell";
@@ -72,6 +72,8 @@ const sortOptions = [
   { value: "tests", label: "Most Tests" },
 ];
 
+const PAGE_SIZE = 6;
+
 export default function TestListing() {
   const userId = localStorage.getItem("phone") || "";
   const token = localStorage.getItem("jwt") || "";
@@ -80,8 +82,10 @@ export default function TestListing() {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("recommended");
   const [selectedPriceType, setSelectedPriceType] = useState("all");
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
   const [minRating, setMinRating] = useState(0);
   const [minStudents, setMinStudents] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const { data, isLoading } = useQuery({
     queryKey: ["test-listing", isUserLoggedIn ? userId : "guest"],
@@ -96,13 +100,17 @@ export default function TestListing() {
     let items = tests.filter((test) => {
       const matchesSearch = test.title.toLowerCase().includes(search.toLowerCase());
       const isFree = test.price.toLowerCase() === "free";
+      const numericPrice = isFree
+        ? 0
+        : Number(String(test.price).replace(/[^0-9.]/g, "") || 0);
       const matchesPrice =
         selectedPriceType === "all" ||
         (selectedPriceType === "free" && isFree) ||
         (selectedPriceType === "paid" && !isFree);
+      const matchesPriceRange = numericPrice >= priceRange[0] && numericPrice <= priceRange[1];
       const matchesRating = Number(test.rating) >= minRating;
       const matchesStudents = test.totalStudents >= minStudents;
-      return matchesSearch && matchesPrice && matchesRating && matchesStudents;
+      return matchesSearch && matchesPrice && matchesPriceRange && matchesRating && matchesStudents;
     });
 
     if (sortBy === "rating") {
@@ -116,7 +124,17 @@ export default function TestListing() {
     }
 
     return items;
-  }, [minRating, minStudents, search, selectedPriceType, sortBy, tests]);
+  }, [minRating, minStudents, priceRange, search, selectedPriceType, sortBy, tests]);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [search, sortBy, selectedPriceType, priceRange, minRating, minStudents]);
+
+  const visibleTests = useMemo(
+    () => filteredTests.slice(0, visibleCount),
+    [filteredTests, visibleCount]
+  );
+  const hasMoreTests = visibleCount < filteredTests.length;
 
   const sidebar = (
     <div className="space-y-3">
@@ -125,6 +143,7 @@ export default function TestListing() {
         <button
           onClick={() => {
             setSelectedPriceType("all");
+            setPriceRange([0, 100000]);
             setMinRating(0);
             setMinStudents(0);
           }}
@@ -145,6 +164,43 @@ export default function TestListing() {
           <option value="free">Free</option>
           <option value="paid">Paid</option>
         </select>
+      </div>
+
+      <div className="rounded-lg border border-[#D6DCE5] bg-white p-3">
+        <h3 className="mb-2 text-sm font-semibold text-(--text-main)">Price Range</h3>
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            type="number"
+            value={priceRange[0]}
+            onChange={(e) => setPriceRange([Number(e.target.value || 0), priceRange[1]])}
+            className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-2 text-sm"
+          />
+          <input
+            type="number"
+            value={priceRange[1]}
+            onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value || 0)])}
+            className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-2 text-sm"
+          />
+        </div>
+
+        <div className="mt-3 space-y-2">
+          <input
+            type="range"
+            min={0}
+            max={100000}
+            step={500}
+            value={priceRange[1]}
+            onChange={(e) => {
+              const nextMax = Number(e.target.value);
+              setPriceRange([priceRange[0], Math.max(nextMax, priceRange[0])]);
+            }}
+            className="w-full accent-(--text-main)"
+          />
+          <div className="flex items-center justify-between text-[11px] text-[#6B7280]">
+            <span>Min: ₹{priceRange[0].toLocaleString("en-IN")}</span>
+            <span>Max: ₹{priceRange[1].toLocaleString("en-IN")}</span>
+          </div>
+        </div>
       </div>
 
       <div className="rounded-lg border border-[#D6DCE5] bg-white p-3">
@@ -174,9 +230,12 @@ export default function TestListing() {
   );
 
   const content = isLoading ? (
-    <div className="flex flex-wrap gap-4">
+    <div className="flex flex-col md:flex-row md:flex-wrap gap-4">
       {Array.from({ length: 6 }).map((_, idx) => (
-        <div key={`test-skeleton-${idx}`} className="h-112 w-[18rem] animate-pulse rounded-2xl bg-[#E5E7EB]" />
+        <div key={`test-skeleton-${idx}`} className="w-full md:w-auto">
+          <div className="md:hidden h-[329px] w-full animate-pulse rounded-2xl bg-[#E5E7EB]" />
+          <div className="hidden md:block h-112 w-[18rem] animate-pulse rounded-2xl bg-[#E5E7EB]" />
+        </div>
       ))}
     </div>
   ) : (
@@ -187,22 +246,35 @@ export default function TestListing() {
           No tests match the selected filters.
         </div>
       ) : (
-        <div className="flex flex-wrap gap-4">
-          {filteredTests.map((test) => (
-            <TestGroupCard
-              key={test.id}
-              testGroupId={test.id}
-              image={test.image}
-              rating={test.rating}
-              price={test.price}
-              title={test.title}
-              description={test.description}
-              totalTests={test.totalTests}
-              totalStudents={test.totalStudents}
-              isBaught={test.isPurchased}
-              isMyTestsCard={false}
-            />
+        <div className="flex flex-col md:flex-row md:flex-wrap gap-4">
+          {visibleTests.map((test) => (
+            <div key={test.id} className="w-full md:w-auto">
+              <TestGroupCard
+                testGroupId={test.id}
+                image={test.image}
+                rating={test.rating}
+                price={test.price}
+                title={test.title}
+                description={test.description}
+                totalTests={test.totalTests}
+                totalStudents={test.totalStudents}
+                isBaught={test.isPurchased}
+                isMyTestsCard={false}
+                useListingMobileCard={true}
+              />
+            </div>
           ))}
+        </div>
+      )}
+      {filteredTests.length > 0 && hasMoreTests && (
+        <div className="mt-4 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
+            className="text-(--text-main) text-sm font-medium hover:underline"
+          >
+            See more
+          </button>
         </div>
       )}
     </>

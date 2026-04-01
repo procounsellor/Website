@@ -87,9 +87,6 @@ export default function AppRoutes() {
                         <Route path='/admissions' element={<Admissions />} />
                         <Route path='/admissions/blogs' element={<BlogsPage />} />
                         <Route path='/admissions/blogs/:id' element={<BlogDetailPage />} />
-                        <Route path='/pro-buddies' element={<ProBuddiesComingSoon />} />
-                        <Route path='/pro-buddies/dashboard' element={<ProBuddiesDashboard />} />
-                        <Route path="/probuddy/profile/:id" element={<ProBuddyProfilePage />} />
                         <Route path='/courses' element={<Courses />} />
                         <Route path='/courses/course-listing' element={<CourseListing />} />
                         <Route path='/courses/test-listing' element={<TestListing />} />
@@ -99,9 +96,16 @@ export default function AppRoutes() {
                         <Route path='/revamp-courses/test-listing' element={<TestListing />} />
                         <Route path='/revamp-courses/session-listing' element={<SessionListing />} />
                         <Route path='/revamp-about' element={<RevampAbout />} />
-                        <Route path='/pro-buddies/registration' element={<ProBuddiesRegistration />} />
+                      
                         <Route path='/counsellor-listing' element={<CounsellorsPage />} />
                         <Route path='/counsellor-listing-cards' element={<CounsellorsPage />} />
+
+                        {/* probuddies pages  */}
+                        <Route path='/pro-buddies/register' element={<ProBuddiesRegistration />} />
+                        <Route path='/pro-buddies' element={<ProBuddiesComingSoon />} />
+                        <Route path='/pro-buddies/dashboard' element={<ProBuddiesDashboard />} />
+                        <Route path="/pro-buddies/profile/:id" element={<ProBuddyProfilePage />} />
+
 
                         {/* Community */}
                         <Route path="/community" element={<CommunityPage />} />

@@ -37,6 +37,7 @@ export default function RevampBreadcrumbs() {
     // Course detail page (/courses/detail/:courseId/:role and legacy /detail/:courseId/:role)
     else if (path.includes('/courses/detail/') || path.includes('/detail/')) {
       crumbs.push({ label: 'Courses', path: '/courses' });
+      crumbs.push({ label: 'Course Listing', path: '/courses/course-listing' });
       crumbs.push({ label: 'Course Details' });
     }
     // Test group detail pages (new and legacy)

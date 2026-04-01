@@ -31,7 +31,7 @@ const mapCounselorToUser = (counselorData: CounselorProfileData): User => {
 type AuthState = {
   user: User | null;
   userId: string | null;
-  role: "student" | "counselor" | "user" | null;
+  role: "student" | "counselor" | "user" | "proBuddy" | null;
   isAuthenticated: boolean;
   isLoginToggle: boolean;
   userExist: boolean;
@@ -223,6 +223,20 @@ export const useAuthStore = create<AuthState>()(
         }
 
         try {
+          if (role === "proBuddy") {
+            const mapped = {
+              userName: uid,
+              firstName: "Pro",
+              lastName: "Buddy",
+              phoneNumber: uid,
+              email: "",
+              role: "proBuddy",
+              verified: false,
+            } as unknown as User;
+            set({ user: mapped, role: "proBuddy" });
+            return mapped;
+          }
+
           if (role === "counselor") {
             const counselorData = await getCounselorProfileById(uid, token);
             if (counselorData) {
@@ -255,7 +269,7 @@ export const useAuthStore = create<AuthState>()(
         const data = await apiVerifyOtp(phone, otp);
 
         const isUser = data?.isUser === true || data?.isUser === "true";
-        const role = isUser ? "student" : "counselor";
+        const role = data?.role === "proBuddy" ? "proBuddy" : (isUser ? "student" : "counselor");
 
         set({ userId: phone, isAuthenticated: true, role });
         localStorage.setItem("role", role);
@@ -334,7 +348,39 @@ export const useAuthStore = create<AuthState>()(
         }
 
         try {
-          if (!isUser) {
+          if (role === "proBuddy") {
+             const mapped = {
+                userName: phone,
+                firstName: "Pro",
+                lastName: "Buddy",
+                phoneNumber: phone,
+                email: "",
+                role: "proBuddy",
+                verified: false,
+             } as unknown as User;
+
+             set({
+               user: mapped,
+               role: "proBuddy",
+               isAuthenticated: true,
+               loading: false,
+               needsProfileCompletion: false,
+             });
+
+             const { onLoginSuccess } = get();
+             if (onLoginSuccess) {
+               onLoginSuccess();
+               set({ onLoginSuccess: null });
+             }
+             set({ isCounselorSignupFlow: false });
+
+             if (data?.jwtToken) {
+               localStorage.setItem("jwt", data.jwtToken);
+             }
+             if (phone) {
+               localStorage.setItem("phone", phone);
+             }
+          } else if (!isUser) {
             const counselorData = await getCounselorProfileById(
               phone,
               data.jwtToken

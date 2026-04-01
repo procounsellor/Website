@@ -5,7 +5,6 @@ import FancyCard from "./counsellorCard";
 import { SeeAllButton } from "../../components/LeftRightButton";
 import { academicApi } from "@/api/academic";
 import type { AllCounselor } from "@/types/academic";
-import { Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 export default function CounsellorSection() {
@@ -114,12 +113,11 @@ export default function CounsellorSection() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="flex gap-[12px] md:gap-[25px] justify-center mb-6 min-h-[275px] md:min-h-[367px] items-center"
+                            className="flex gap-[12px] md:gap-[25px] justify-start md:justify-center mb-6 min-h-[275px] md:min-h-[367px] items-start overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-2"
                         >
-                            <div className="flex flex-col items-center gap-3">
-                                <Loader2 className="animate-spin h-8 w-8 text-[#0E1629]" />
-                                <p className="font-[Poppins] text-[14px] text-[#6B7280]">Loading counsellors...</p>
-                            </div>
+                            {Array.from({ length: 5 }).map((_, idx) => (
+                                <div key={`counsellor-skeleton-${idx}`} className="shrink-0 w-[220px] md:w-[236px] h-[275px] md:h-[367px] rounded-[15px] bg-white/80 animate-pulse" />
+                            ))}
                         </motion.div>
                     ) : isError ? (
                         <motion.div

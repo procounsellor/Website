@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, ChevronDown, Star, ArrowRight, Loader2 } from 'lucide-react';
+import { Search, ChevronDown, Star, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { encodeCounselorId } from "@/lib/utils"; // Added missing import
 
@@ -54,8 +54,10 @@ const CounsellorListingCards: React.FC<CardProps> = ({
 
             {/* Loading State / Empty State */}
             {isLoading ? (
-                <div className="flex justify-center py-20 w-full">
-                    <Loader2 className="animate-spin h-10 w-10 text-[#0E1629]" />
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[24px] pb-[40px] w-full animate-pulse">
+                    {Array.from({ length: 6 }).map((_, idx) => (
+                        <div key={`c-listing-skeleton-${idx}`} className="w-full max-w-[308px] h-[367px] rounded-xl bg-white" />
+                    ))}
                 </div>
             ) : counsellors.length === 0 ? (
                 <div className="flex justify-center py-20 w-full text-gray-500 font-[Poppins] text-[18px]">
@@ -145,8 +147,10 @@ const CounsellorListingCards: React.FC<CardProps> = ({
 
                     {/* Loading Spinner for Infinite Scroll */}
                     {isFetchingMore && (
-                        <div className="flex justify-center py-6 w-full pb-20">
-                            <Loader2 className="animate-spin h-6 w-6 text-[#0E1629]" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[24px] py-6 w-full pb-20 animate-pulse">
+                            {Array.from({ length: 3 }).map((_, idx) => (
+                                <div key={`c-listing-more-skeleton-${idx}`} className="w-full max-w-[308px] h-[367px] rounded-xl bg-white" />
+                            ))}
                         </div>
                     )}
                     

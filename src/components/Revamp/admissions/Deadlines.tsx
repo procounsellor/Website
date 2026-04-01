@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
 import FancyCard from "./DeadlinesCard";
 import { SeeAllButton } from "../components/LeftRightButton";
 import { getDeadlines, type EventItem } from "@/api/deadlines"; // Adjust path as needed
@@ -64,9 +63,10 @@ export default function CollegeSection() {
 
         {/* Loading, Error, and Empty States */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center min-h-[300px] gap-3">
-            <Loader2 className="animate-spin h-8 w-8 text-[#0E1629]" />
-            <p className="font-[Poppins] text-[14px] text-[#6B7280]">Loading deadlines...</p>
+          <div className="flex gap-[12px] md:gap-6 mb-6 md:mb-8 overflow-x-auto flex-nowrap md:flex-wrap md:overflow-visible justify-start md:justify-center [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-2 animate-pulse">
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <div key={`deadline-skeleton-${idx}`} className="shrink-0 w-[250px] md:w-[300px] h-[210px] rounded-[20px] bg-white/80" />
+            ))}
           </div>
         ) : isError ? (
           <div className="flex justify-center min-h-[300px] items-center">

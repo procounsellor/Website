@@ -143,15 +143,25 @@ export default function Footer() {
                 {/* <li>
                   <a href="/counsellor-dashboard" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Add College</a>
                 </li> */}
-                {role !== "counselor" && (
-                <li>
-                  <button
-                    onClick={handleBecomeCounselor}
-                    className="block cursor-pointer font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors text-left w-full"
-                  >
-                    Become a Counsellor?
-                  </button>
-                </li>
+                {role !== "counselor" && role !== "proBuddy" && (
+                  <>
+                    <li>
+                      <button
+                        onClick={handleBecomeCounselor}
+                        className="block cursor-pointer font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors text-left w-full"
+                      >
+                        Become a Counsellor?
+                      </button>
+                    </li>
+                    <li>
+                      <Link
+                        to="/pro-buddies/register"
+                        className="block cursor-pointer font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors text-left w-full"
+                      >
+                        Become a Pro Buddy?
+                      </Link>
+                    </li>
+                  </>
                 )}
               </ul>
             </div>
