@@ -6,9 +6,11 @@ import { useLiveStreamStore } from '@/store/LiveStreamStore';
 import { listenToLiveSessionsStatus } from '@/lib/firebase';
 import { getBoughtCourses } from '@/api/course';
 import { useAuthStore } from '@/store/AuthStore';
+import { useNavigate } from 'react-router-dom';
 import EditProfileModal from '@/components/student-dashboard/EditProfileModal';
 import { updateUserProfile } from '@/api/user';
 import toast from 'react-hot-toast';
+import MobileCourseBottomNav from '@/components/Revamp/courses/MobileCourseBottomNav';
 
 const getAvatarUrl = (photoUrl: string | null, fullName: string) => {
     if (photoUrl && photoUrl.trim() !== "") return photoUrl;
@@ -69,27 +71,12 @@ function OngoingSessionAvatar({ session, onClick }: OngoingSessionAvatarProps) {
 
 export default function LiveSessionsPage() {
     const { startStream } = useLiveStreamStore.getState();
-    const { userId, isAuthenticated, loading, toggleLogin, user, refreshUser } = useAuthStore();
-
-    useEffect(() => {
-        if (!loading && !isAuthenticated) {
-            const onSuccess = () => window.location.reload(); 
-            toggleLogin(onSuccess);
-        }
-    }, [loading, isAuthenticated, toggleLogin]);
-    
-    if (loading || !isAuthenticated) {
-        return (
-            <div className="flex items-center justify-center w-full h-screen text-gray-500">
-                {loading ? 'Loading user state...' : 'Redirecting for login...'}
-            </div>
-        );
-    }
+    const navigate = useNavigate();
+    const { userId, isAuthenticated, isLoginToggle, loading, toggleLogin, user, refreshUser } = useAuthStore();
+    const [hasRequestedLogin, setHasRequestedLogin] = useState(false);
 
     const [ongoingSessions, setOngoingSessions] = useState<LiveSession[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    
-    // UPDATED: Added liveSince to selectedSession state
     const [selectedSession, setSelectedSession] = useState<{ 
         id: string, 
         counsellorId: string, 
@@ -97,17 +84,36 @@ export default function LiveSessionsPage() {
         playbackId: string, 
         title: string, 
         description: string,
-        liveSince: string // Added this
+        liveSince: string
     } | null>(null);
-    
     const [loadingSessions, setLoadingSessions] = useState(true);
     const [error] = useState<string | null>(null);
     const [boughtCourseIds, setBoughtCourseIds] = useState<Set<string>>(new Set());
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const [pendingStreamAction, setPendingStreamAction] = useState<(() => void) | null>(null);
     const [isJoining, setIsJoining] = useState(false);
+
+    useEffect(() => {
+        if (loading || isAuthenticated) {
+            return;
+        }
+
+        if (!hasRequestedLogin) {
+            setHasRequestedLogin(true);
+            toggleLogin();
+            return;
+        }
+
+        if (!isLoginToggle) {
+            navigate('/');
+        }
+    }, [hasRequestedLogin, isAuthenticated, isLoginToggle, loading, navigate, toggleLogin]);
     
     useEffect(() => {
+        if (!isAuthenticated) {
+            return;
+        }
+
         const fetchBoughtCourses = async () => {
             if (!userId) return;
             try {
@@ -125,6 +131,10 @@ export default function LiveSessionsPage() {
     }, [userId]);
 
     useEffect(() => {
+        if (!isAuthenticated) {
+            return;
+        }
+
         unlockScroll();
         
         const unsubscribe = listenToLiveSessionsStatus((allLives) => {
@@ -181,7 +191,7 @@ export default function LiveSessionsPage() {
         return () => {
             unsubscribe();
         };
-    }, [boughtCourseIds]);
+    }, [boughtCourseIds, isAuthenticated]);
 
     const handleAvatarClick = (counsellorId: string, liveSessionId: string, counsellorName: string) => {
         const session = ongoingSessions.find(s => s.liveSessionId === liveSessionId);
@@ -289,8 +299,16 @@ export default function LiveSessionsPage() {
         );
     };
 
+    if (loading || !isAuthenticated) {
+        return (
+            <div className="flex items-center justify-center w-full h-screen text-gray-500">
+                {loading ? 'Loading user state...' : 'Redirecting for login...'}
+            </div>
+        );
+    }
+
     return (
-        <div className="bg-gray-50 pt-20 md:pt-28 pb-8 px-4 min-h-screen">
+        <div className="bg-gray-50 pt-20 md:pt-28 pb-24 md:pb-8 px-4 min-h-screen">
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h1 
                     className="text-2xl font-medium mb-6"
@@ -333,6 +351,8 @@ export default function LiveSessionsPage() {
                     requireNameOnly={true}
                 />
             )}
+
+            <MobileCourseBottomNav />
         </div>
     );
 }

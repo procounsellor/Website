@@ -238,7 +238,7 @@ export function TestInfo() {
         <button
           onClick={() => {
             if (testGroupId) {
-              navigate(`/test-group/${testGroupId}`);
+              navigate(`/courses/test-group/${testGroupId}`);
             } else {
               navigate(-1);
             }

@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
 import CollegeCard from "./CollegeCard";
 import { academicApi } from "@/api/academic";
 import type { CollegeApiResponse } from "@/types/academic";
@@ -30,10 +29,11 @@ export default function College() {
         </p>
 
         {isLoading ? (
-            <div className="flex flex-col items-center justify-center min-h-[300px] gap-3">
-                <Loader2 className="animate-spin h-8 w-8 text-[#0E1629]" />
-                <p className="font-[Poppins] text-[14px] text-[#6B7280]">Loading colleges...</p>
-            </div>
+          <div className="flex flex-col gap-4 md:gap-6 w-full animate-pulse">
+            {Array.from({ length: 4 }).map((_, idx) => (
+            <div key={`college-skeleton-${idx}`} className="w-full h-[120px] md:h-[144px] rounded-2xl bg-white/80" />
+            ))}
+          </div>
         ) : isError ? (
             <div className="flex justify-center min-h-[300px] items-center">
                 <p className="font-[Poppins] text-[14px] text-red-500">Failed to load colleges</p>

@@ -1,5 +1,4 @@
 import { Suspense, lazy } from 'react';
-import Home from "@/pages/Home";
 import { Routes, Route } from "react-router-dom";
 import AboutPage from "@/pages/About";
 import ContactPage from "@/pages/Contact";
@@ -17,7 +16,6 @@ import { SubscriptionPage } from '@/pages/SubscriptionPage';
 import RechargeWallet from '@/pages/RechargeWallet';
 import CounselorDashboard from '@/pages/CounselorDashboard';
 import CollegeDetailsPage from '@/pages/CollegeDetails';
-import CourseDetailsPage from '@/pages/CourseDetails';
 import CommunityPage from '@/pages/CommunityPage';
 import AnswerPage from '@/pages/AnswerPage';
 import QuestionDetailPage from '@/pages/QuestionDetailPage';
@@ -35,20 +33,22 @@ import { TestResult } from '@/pages/test/user/TestResult';
 import { TestAnalysisPage } from '@/pages/test/user/TestAnalysisPage';
 import { CreateEditTestGroup } from '@/pages/test/counsellor/CreateEditTestGroup';
 import { TestGroupDetails } from '@/pages/test/counsellor/TestGroupDetails';
-import TestGroupDetailsPage from '@/pages/test/user/TestGroupDetailsPage';
 import CollegeDetailsPageNew from '@/pages/CollegeDetailsPage';
 import RevampLayout from '@/layouts/RevampLayout';
-import ProBuddies from '@/pages/Revamp/ProBuddies';
+import TestGroupCardDetails from '@/components/Revamp/courses/TestGroupDetails';
+import ProBuddiesComingSoon from '@/pages/Revamp/ProBuddiesComingSoon';
 import RevampAbout from '@/components/Revamp/about/RevampAbout';
 import Admissions from '@/pages/Revamp/Admissions';
 import Courses from '@/pages/Revamp/Courses';
 import BlogsPage from '@/pages/Revamp/BlogsPage';
 import BlogDetailPage from '@/pages/Revamp/BlogDetailPage';
 import ProBuddiesRegistration from '@/pages/Revamp/ProBuddiesRegistration';
-// import CounsellorListingRevamp from '@/pages/Revamp/counsellorListing';
-// import CounsellorListingCards from '@/pages/Revamp/counsellorListingCards';
-import ProBuddiesDashboard from '@/pages/Revamp/ProBuddiesDashboard';
 import CounsellorsPage from '@/pages/Revamp/CounsellorsPage';
+import ProBuddiesDashboard from '@/pages/Revamp/ProBuddiesDashboard';
+import UserProfile from '@/pages/Revamp/UserProfile';
+import CourseListing from '@/pages/Revamp/CourseListing';
+import TestListing from '@/pages/Revamp/TestListing';
+import SessionListing from '@/pages/Revamp/SessionListing';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
@@ -57,7 +57,7 @@ const ExamDetailsPage = lazy(() => import('@/pages/ExamDetailsPage'));
 const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
 const LiveSessionsPage = lazy(() => import('@/pages/LiveSessionsPage'));
 const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
-const ProBuddyProfilePage = lazy(() => import('@/pages/ProBuddyProfilePage'));
+const ProBuddyProfilePage = lazy(() => import('@/pages/Revamp/ProBuddyProfilePage'));
 
 export default function AppRoutes() {
     return (
@@ -83,19 +83,29 @@ export default function AppRoutes() {
                     {/* All pages under RevampLayout */}
                     <Route element={<RevampLayout />}>
                         {/* Core Revamp Pages */}
-                        <Route path="/" element={<Home />} />
+                        <Route path="/" element={<Admissions />} />
                         <Route path='/admissions' element={<Admissions />} />
                         <Route path='/admissions/blogs' element={<BlogsPage />} />
                         <Route path='/admissions/blogs/:id' element={<BlogDetailPage />} />
-                        <Route path='/pro-buddies' element={<ProBuddies />} />
-                        <Route path='/pro-buddies/dashboard' element={<ProBuddiesDashboard />} />
-                        <Route path="/probuddy/profile/:id" element={<ProBuddyProfilePage />} />
+                        <Route path='/courses' element={<Courses />} />
+                        <Route path='/courses/course-listing' element={<CourseListing />} />
+                        <Route path='/courses/test-listing' element={<TestListing />} />
+                        <Route path='/courses/session-listing' element={<SessionListing />} />
                         <Route path='/revamp-courses' element={<Courses />} />
+                        <Route path='/revamp-courses/course-listing' element={<CourseListing />} />
+                        <Route path='/revamp-courses/test-listing' element={<TestListing />} />
+                        <Route path='/revamp-courses/session-listing' element={<SessionListing />} />
                         <Route path='/revamp-about' element={<RevampAbout />} />
-                        <Route path='/pro-buddies/registration' element={<ProBuddiesRegistration />} />
-                        {/* <Route path='/counsellor-listing' element={<CounsellorListingRevamp />} /> */}
-                        {/* <Route path='/counsellor-listing-cards' element={<CounsellorListingCards />} /> */}
+                      
                         <Route path='/counsellor-listing' element={<CounsellorsPage />} />
+                        <Route path='/counsellor-listing-cards' element={<CounsellorsPage />} />
+
+                        {/* probuddies pages  */}
+                        <Route path='/pro-buddies/register' element={<ProBuddiesRegistration />} />
+                        <Route path='/pro-buddies' element={<ProBuddiesComingSoon />} />
+                        <Route path='/pro-buddies/dashboard' element={<ProBuddiesDashboard />} />
+                        <Route path="/pro-buddies/profile/:id" element={<ProBuddyProfilePage />} />
+
 
                         {/* Community */}
                         <Route path="/community" element={<CommunityPage />} />
@@ -109,9 +119,10 @@ export default function AppRoutes() {
                         <Route path="/counsellor-profile" element={<CounselorDetailsPage />} />
 
                         {/* Courses & Colleges */}
-                        <Route path="/courses/:id" element={<CourseDetailsPage />} />
+                        {/* <Route path="/courses/:id" element={<CourseDetailsPage />} /> */}
                         <Route path="/colleges/:id" element={<CollegeDetailsPage />} />
                         <Route path="/college-details/:id" element={<CollegeDetailsPageNew />} />
+                        <Route path='/courses/detail/:courseId/:role' element={<CoursePage />} />
                         <Route path='/detail/:courseId/:role' element={<CoursePage />} />
 
                         {/* Exams */}
@@ -153,11 +164,15 @@ export default function AppRoutes() {
                         <Route path='/counselor/test-groups/edit/:testGroupId' element={<CreateEditTestGroup />} />
                         <Route path='/counselor/test-groups/:testGroupId' element={<TestGroupDetails />} />
                         <Route path='/counselor/test-groups/:testGroupId/create-test' element={<CreateTest />} />
-                        <Route path='/test-group/:testGroupId' element={<TestGroupDetailsPage />} />
+                        <Route path='/courses/test-group/:testGroupId' element={<TestGroupCardDetails />} />
+                        <Route path='/courses/test-groups/:testGroupId' element={<TestGroupCardDetails />} />
+                        <Route path='/test-group/:testGroupId' element={<TestGroupCardDetails />} />
+                        <Route path='/test-groups/:testGroupId' element={<TestGroupCardDetails />} />
 
                         {/* Protected Routes */}
                         <Route element={<ProtectedRoute />}>
                             <Route path='/dashboard-student' element={<StudentDashboardPage />} />
+                            <Route path='/profile' element={<UserProfile/>}/>
                             <Route path='/live-sessions' element={<LiveSessionsPage />} />
                             <Route path='/wallet' element={<RechargeWallet />} />
                         </Route>

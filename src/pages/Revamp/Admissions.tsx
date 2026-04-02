@@ -11,6 +11,29 @@ import RevampBannerSection from "@/components/Revamp/banners/RevampBannerSection
 
 export default function Admissions() {
   const hasSeenSplash = sessionStorage.getItem('admissions-splash-seen') === 'true';
+  const admissionsStories = [
+    {
+      name: "Ashutosh",
+      role: "Student",
+      rating: 4,
+      text: "The course planning was clear and easy to follow. Weekly targets and mock tests kept me focused and helped me prepare with confidence.",
+      image: "/review1.jpeg",
+    },
+    {
+      name: "Ananya",
+      role: "Student",
+      rating: 5,
+      text: "Topic-wise lessons and regular doubt sessions made preparation smooth. The structure helped me stay disciplined and improve consistently.",
+      image: "/review2.jpeg",
+    },
+    {
+      name: "Shubham",
+      role: "Student",
+      rating: 4.5,
+      text: "Math and Chemistry sessions were practical and exam-focused. Shortcuts plus regular practice improved my speed, accuracy, and confidence.",
+      image: "/review3.jpeg",
+    },
+  ];
 
   const [splashPhase, setSplashPhase] = useState(hasSeenSplash ? 3 : 0);
   const [animationPhase, setAnimationPhase] = useState(hasSeenSplash ? 4 : 0);
@@ -139,11 +162,17 @@ export default function Admissions() {
                 className="absolute left-16 top-0 w-[243px] h-[245px] bg-[#ffc8af] rounded-[28px] overflow-hidden"
               >
                 <img
-                  src="/public/admissions/admission.svg"
+                  src="/admissions/admission.svg"
                   alt="Student"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[rgba(14,22,41,0.7)]" />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(179.04deg, rgba(14, 22, 41, 0) 24.07%, rgba(14, 22, 41, 0.7) 69.84%)",
+                  }}
+                />
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center text-white w-[195px]">
                   <p className="text-[24px] font-semibold font-['Poppins'] mb-2">Admissions</p>
                   <p className="text-[14px] font-['Poppins']">
@@ -175,11 +204,17 @@ export default function Admissions() {
                 className="absolute left-[331px] top-[80px] w-[243px] h-[330px] rounded-[28px] overflow-hidden bg-gray-700"
               >
                 <img
-                  src="https://www.figma.com/api/mcp/asset/d48e6154-5b62-4bb7-9861-ed29f4b1034a"
+                  src="/admissions/course.jpg"
                   alt="Courses"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[rgba(14,22,41,0.7)]" />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(179.04deg, rgba(14, 22, 41, 0) 24.07%, rgba(14, 22, 41, 0.7) 69.84%)",
+                  }}
+                />
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center text-white w-[195px]">
                   <p className="text-[24px] font-semibold font-['Poppins'] mb-2">Courses</p>
                   <p className="text-[14px] font-['Poppins']">
@@ -212,11 +247,17 @@ export default function Admissions() {
                 className="absolute left-[865px] top-[80px] w-[243px] h-[330px] rounded-[28px] overflow-hidden bg-gray-700"
               >
                 <img
-                  src="https://www.figma.com/api/mcp/asset/5444efa2-6311-4862-be75-6146c9cb7754"
+                  src="/admissions/pro.jpg"
                   alt="ProBuddies"
                   className="absolute inset-0 w-full h-full object-fit"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[rgba(14,22,41,0.7)]" />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(179.04deg, rgba(14, 22, 41, 0) 24.07%, rgba(14, 22, 41, 0.7) 69.84%)",
+                  }}
+                />
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center text-white w-[195px]">
                   <p className="text-[24px] font-semibold font-['Poppins'] mb-2">ProBuddies</p>
                   <p className="text-[14px] font-['Poppins']">
@@ -233,11 +274,17 @@ export default function Admissions() {
                 className="absolute right-16 top-[8px] w-[243px] h-[245px] bg-[#68aab8] rounded-[28px] overflow-hidden"
               >
                 <img
-                  src="https://www.figma.com/api/mcp/asset/4acbf56a-e5d4-416a-8c98-ccc41915373b"
+                  src="/admissions/sch.png"
                   alt="Scholarships"
                   className="absolute inset-0 w-full h-full object-fit"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[rgba(14,22,41,0.1)] to-[rgba(14,22,41,0.2)]" />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(179.04deg, rgba(14, 22, 41, 0) 24.07%, rgba(14, 22, 41, 0.7) 69.84%)",
+                  }}
+                />
                 <div className="absolute top-6 left-1/2 -translate-x-1/2 text-center text-white w-[195px]">
                   <p className="text-[24px] font-semibold font-['Poppins'] mb-2">Scholarships</p>
                   <p className="text-[14px] font-['Poppins']">
@@ -258,8 +305,13 @@ export default function Admissions() {
                   alt="Deadlines"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
-                
-                <div className="absolute inset-0 bg-[#0E1629]/40" />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(179.04deg, rgba(14, 22, 41, 0) 24.07%, rgba(14, 22, 41, 0.7) 69.84%)",
+                  }}
+                />
 
                 <div className="relative z-10 flex flex-col items-center justify-center h-full px-4">
                   <p className="text-[#FFFFFF] text-[24px] font-semibold font-['Poppins'] mb-1">
@@ -281,7 +333,7 @@ export default function Admissions() {
       <RevampBannerSection />
       <College />
       <Deadlines />
-      <Stories />
+      <Stories stories={admissionsStories} />
       <Blogs />
       <Faq />
     </div>

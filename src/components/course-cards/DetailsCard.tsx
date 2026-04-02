@@ -122,11 +122,11 @@ export default function ({
               {role === "counselor" && courseDetails && (
                   <span className="bg-[#FDEFE2] rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 font-medium text-[#EF7F21] text-[0.5rem] md:text-sm whitespace-nowrap">
                     <img
-                      src="/orangeRuppe.svg"
+                      src="/coin.svg"
                       alt=""
                       className="w-3.5 md:w-5 md:h-5 h-3.5"
                     />
-                    ₹{moneyEarned}
+                    {moneyEarned}
                   </span>
               )}
 
@@ -181,7 +181,7 @@ export default function ({
             <div className="flex gap-1.5 md:gap-2 items-center">
               <img src="/coin.svg" alt="" className="w-4 h-4 md:w-5 md:h-5" />
               <h3 className="text-[#07B02E] text-xl md:text-[1.5rem] font-bold">
-                ₹{courseDetails?.coursePriceAfterDiscount || course.price}
+                {courseDetails?.coursePriceAfterDiscount || course.price}
               </h3>
             </div>
             {courseDetails?.coursePrice &&

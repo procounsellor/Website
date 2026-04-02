@@ -629,7 +629,7 @@ export default function TestGroupDetailsPage() {
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-5 mt-6">
                 <h2 className="text-base md:text-lg font-bold text-[#242645] mb-3">Associated Course</h2>
                 <div
-                  onClick={() => navigate(`/detail/${data.associatedCourse!.courseId}/user`, {
+                  onClick={() => navigate(`/courses/detail/${data.associatedCourse!.courseId}/user`, {
                     state: { from: 'test-group' }
                   })}
                   className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
@@ -694,7 +694,7 @@ export default function TestGroupDetailsPage() {
                   {!bought ? (
                     <button
                       onClick={handleBuy}
-                      className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:opacity-90 transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full py-3.5 bg-(--text-main) text-white rounded-xl font-semibold hover:opacity-90 transition-all shadow-lg shadow-black/10 flex items-center justify-center gap-2 cursor-pointer"
                     >
                       {testGroup.priceType === "FREE" ? (
                         <>
@@ -770,7 +770,7 @@ export default function TestGroupDetailsPage() {
               {!bought ? (
                 <button
                   onClick={handleBuy}
-                  className="px-8 py-3 bg-[--btn-primary] text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-500/25 flex items-center gap-2"
+                  className="px-8 py-3 bg-(--text-main) text-white rounded-xl font-bold text-sm shadow-lg shadow-black/10 flex items-center gap-2"
                 >
                   {testGroup.priceType === "FREE" ? "Enroll Free" : "Buy Now"}
                 </button>
@@ -825,7 +825,7 @@ export default function TestGroupDetailsPage() {
               <div className="flex flex-col gap-3">
                 <button
                   onClick={handleSubmitReview}
-                  className="w-full py-3 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
+                  className="w-full py-3 bg-(--text-main) text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-colors cursor-pointer"
                 >
                   {userReview ? "Update Review" : "Submit Review"}
                 </button>

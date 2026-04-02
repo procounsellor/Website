@@ -44,6 +44,17 @@ const StudentDashboardPage: React.FC = () => {
   const [prefsEditMode, setPrefsEditMode] = useState<'course' | 'states' | null>(null);
   const [isAddFundsOpen, setIsAddFundsOpen] = useState(false);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        navigate('/profile');
+      }
+    };
+    handleResize(); // Check on mount
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [navigate]);
+
   const {
     data: user,
     isLoading: loading,

@@ -108,7 +108,7 @@ export function CounselorTestGroupsCard({ counsellorId, userId, userRole }: Coun
   };
 
   const handleCardClick = (testGroupId: string) => {
-    navigate(`/test-group/${testGroupId}`);
+    navigate(`/courses/test-group/${testGroupId}`);
   };
 
   if (userRole === "counselor") {

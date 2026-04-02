@@ -1,11 +1,19 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { academicApi } from "@/api/academic";
+import {
+  getAllCounsellorCoursesForGuest,
+  getAllCounsellorCoursesForUser,
+} from "@/api/course";
+import {
+  getAllTestGroupsForGuest,
+  getAllTestGroupsForLoggedInUser,
+} from "@/api/testGroup";
 
 export interface SearchResult {
   id: string;
   name: string;
-  type: 'exam' | 'counsellor';
+  type: 'exam' | 'counsellor' | 'course' | 'test';
   subtitle?: string; 
   imageUrl?: string;
   description?: string;
@@ -44,7 +52,11 @@ export const useSearchStore = create<SearchState>()(
 
         try {
 
-          const [examsResponse, counselorsResponse] = await Promise.all([
+          const userId = localStorage.getItem("phone") || "";
+          const token = localStorage.getItem("jwt") || "";
+          const isAuthenticated = Boolean(userId && token);
+
+          const [examsResponse, counselorsResponse, coursesResponse, testsResponse] = await Promise.all([
             academicApi.searchExams({search: query}).catch((err) => {
                 console.error("Exam search failed", err);
                 return { exams: [] };
@@ -52,7 +64,21 @@ export const useSearchStore = create<SearchState>()(
             academicApi.searchAllLoggedOutCounsellors({ search: query }).catch((err) => {
                 console.error("Counselor search failed", err);
                 return { counsellors: [] };
-            })
+            }),
+            (isAuthenticated
+              ? getAllCounsellorCoursesForUser(userId)
+              : getAllCounsellorCoursesForGuest()
+            ).catch((err) => {
+              console.error("Course search failed", err);
+              return { data: [] };
+            }),
+            (isAuthenticated
+              ? getAllTestGroupsForLoggedInUser(userId)
+              : getAllTestGroupsForGuest()
+            ).catch((err) => {
+              console.error("Test search failed", err);
+              return { testGroups: [] };
+            }),
           ]);
 
           const results: SearchResult[] = [];
@@ -84,8 +110,64 @@ export const useSearchStore = create<SearchState>()(
             });
           }
 
+          const coursesList = Array.isArray(coursesResponse?.data)
+            ? coursesResponse.data
+            : Array.isArray(coursesResponse)
+              ? coursesResponse
+              : [];
+
+          coursesList.forEach((course: any) => {
+            const courseName = String(course?.courseName ?? "");
+            if (!courseName) return;
+
+            const subtitleParts = [course?.category, course?.counsellorName].filter(Boolean);
+            results.push({
+              id: String(course?.courseId ?? ""),
+              name: courseName,
+              type: "course",
+              subtitle: subtitleParts.join(" • "),
+              imageUrl: course?.courseThumbnailUrl || undefined,
+              url: `/courses/detail/${course?.courseId}/user`,
+            });
+          });
+
+          const testsList = Array.isArray(testsResponse)
+            ? testsResponse
+            : Array.isArray(testsResponse?.data)
+              ? testsResponse.data
+              : Array.isArray(testsResponse?.testGroups)
+                ? testsResponse.testGroups
+                : [];
+
+          testsList.forEach((item: any) => {
+            const tg = item?.testGroup ?? item;
+            const testGroupId = String(tg?.testGroupId ?? item?.testGroupId ?? "");
+            const testName = String(tg?.testGroupName ?? item?.testGroupName ?? "");
+            if (!testGroupId || !testName) return;
+
+            results.push({
+              id: testGroupId,
+              name: testName,
+              type: "test",
+              subtitle: String(tg?.priceType ?? item?.priceType ?? "").toUpperCase() === "FREE"
+                ? "Free"
+                : `₹${Number(tg?.price ?? item?.price ?? 0).toLocaleString("en-IN")}`,
+              imageUrl: tg?.bannerImagUrl || tg?.bannerImageUrl || item?.bannerImagUrl || item?.bannerImageUrl || undefined,
+              url: `/courses/test-group/${testGroupId}`,
+            });
+          });
+
           const searchLower = query.toLowerCase();
-          results.sort((a, b) => {
+          const dedupedResults = results.filter((result, index, array) => {
+            return array.findIndex((candidate) => candidate.type === result.type && candidate.id === result.id) === index;
+          }).filter((result) => {
+            return (
+              result.name.toLowerCase().includes(searchLower) ||
+              (result.subtitle || "").toLowerCase().includes(searchLower)
+            );
+          });
+
+          dedupedResults.sort((a, b) => {
              const aExact = a.name.toLowerCase() === searchLower ? 1 : 0;
              const bExact = b.name.toLowerCase() === searchLower ? 1 : 0;
              if (aExact !== bExact) return bExact - aExact;
@@ -95,7 +177,7 @@ export const useSearchStore = create<SearchState>()(
              return bStarts - aStarts;
           });
 
-          set({ results, isSearching: false });
+          set({ results: dedupedResults, isSearching: false });
 
         } catch (error) {
           console.error('Search error:', error);
