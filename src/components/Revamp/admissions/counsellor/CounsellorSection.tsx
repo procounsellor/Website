@@ -168,7 +168,7 @@ export default function CounsellorSection() {
                     <div className="scale-[0.85] md:scale-100 origin-center md:origin-right">
                         <SeeAllButton
                             text="See all"
-                            onClick={() => navigate('/counsellors')}
+                            onClick={() => navigate('/counsellor-listing')}
                         />
                     </div>
                 </div>
