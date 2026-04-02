@@ -76,12 +76,12 @@ export default function RevampBreadcrumbs() {
       crumbs.push({ label: 'About Us' });
     }
     // Counsellor listing
-    else if (path === '/counsellors') {
+    else if (path === '/counsellor-listing') {
       crumbs.push({ label: 'Counsellors' });
     }
     // Counsellor detail
     else if (path.includes('/counsellor/')) {
-      crumbs.push({ label: 'Counsellors', path: '/counsellors' });
+      crumbs.push({ label: 'Counsellors', path: '/counsellor-listing' });
       crumbs.push({ label: 'Profile' });
     }
     // Exams listing
