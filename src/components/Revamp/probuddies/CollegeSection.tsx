@@ -5,13 +5,13 @@ import styles from "./CollegeSection.module.css";
 
 export default function CollegeSection() {
   return (
-    <div className="flex flex-col gap-7  w-full h-[596px] py-10 ">
-      <div className="flex justify-between mx-auto" style={{ width: 'calc(420px * 3 + 30px * 2)' }}>
+    <div className="flex flex-col gap-7  w-full h-[596px] py-10 px-5">
+      <div className="flex flex-col md:flex-row justify-between mx-auto" style={{ width: 'calc(420px * 3 + 30px * 2)' }}>
         <div className="flex items-start">
           <img src="/college.svg" alt="icon_avg" className="items-start" />
         </div>
 
-        <h1 className="text-(--text-main) text-2xl font-medium max-w-[682px] max-h-[108px]">
+        <h1 className="text-(--text-main) text-xs md:text-2xl font-medium max-w-[811px] max-h-[108px]">
           Browse colleges with a ProBuddy on campus — get a real student's
           view of the place you're planning to call home.
         </h1>

@@ -143,30 +143,6 @@ export default function ProBuddyProfilePageFigma() {
             }}
         >
             <div className="max-w-[1440px] mx-auto">
-                {/* Breadcrumb */}
-                <div className="bg-white border-b border-[#f5f5f5] h-10 flex items-center px-5 md:px-20">
-                    {/* Mobile: back arrow + ProBuddy label */}
-                    <div className="flex md:hidden items-center gap-2 font-['Poppins']">
-                        <Link to="/probuddy" className="flex items-center gap-2">
-                            <ChevronLeft className="w-6 h-6 text-[#343C6A] shrink-0" />
-                            <span className="font-semibold text-[16px] leading-6 text-[#0E1629]">
-                                ProBuddy
-                            </span>
-                        </Link>
-                    </div>
-                    {/* Desktop: full breadcrumb trail */}
-                    <div className="hidden md:flex items-center gap-2 font-['Poppins'] text-base whitespace-nowrap">
-                        <Link to="/probuddy" className="text-[#6b7280] font-normal hover:text-[#2f43f2]">
-                            ProBuddy
-                        </Link>
-                        <ChevronRight className="w-4 h-4 text-[#6b7280] shrink-0" />
-                        <Link to="/probuddy/list" className="text-[#6b7280] font-medium hover:text-[#2f43f2]">
-                            List of ProBuddy
-                        </Link>
-                        <ChevronRight className="w-4 h-4 text-[#6b7280] shrink-0" />
-                        <span className="text-[#0e1629] font-medium">Aditya Kumar Sharma</span>
-                    </div>
-                </div>
 
                 {/* Profile + Booking */}
                 <div className="px-4 md:px-16 pt-6 md:pt-10 pb-6 md:pb-10">
