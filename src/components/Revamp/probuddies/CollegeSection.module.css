@@ -1,5 +1,5 @@
 .progressBar {
-    width: 262px;
+    width: 180px;
     height: 4px;
     background-color: #EDEDED;
     border-radius: 48px;
@@ -51,9 +51,8 @@
 }
 
 .controlsContainer {
-    display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    width: calc(308px * 4 + 24px * 3);
-    margin: 0 auto;
+    width: 100%;
+    margin: 14px auto 0;
 }

@@ -7,7 +7,7 @@ type SortOption = {
 };
 
 type ListingShellProps = {
-  title: string;
+  title?: string;
   searchValue: string;
   onSearchChange: (value: string) => void;
   searchPlaceholder: string;
@@ -33,7 +33,7 @@ export default function ListingShell({
 
   return (
     <div className="min-h-screen bg-[#F5F5F7] pb-20 md:pb-8">
-      <div className="mx-auto max-w-[1440px] px-4 pt-6 md:px-[60px] md:pt-8">
+      <div className="mx-auto max-w-360 px-4 pt-6 md:px-15 md:pt-8">
         <div className="md:hidden">
           <div className="flex items-center gap-2 rounded-lg border border-[#D6DCE5] bg-white p-2">
             <div className="flex h-9 flex-1 items-center gap-2 rounded-md border border-[#D6DCE5] bg-white px-3">
@@ -55,21 +55,21 @@ export default function ListingShell({
             </button>
           </div>
 
-          <h1 className="mt-2 text-sm font-semibold text-(--text-main)">{title}</h1>
+          {title ? <h1 className="mt-2 text-sm font-semibold text-(--text-main)">{title}</h1> : null}
         </div>
 
         <div className="mt-4 flex flex-col gap-4 md:mt-6 md:flex-row md:items-start md:gap-6">
-          <aside className="hidden p-0 md:sticky md:top-24 md:block md:w-[300px]">
+          <aside className="hidden p-0 md:sticky md:top-24 md:block md:w-75">
             {sidebar}
           </aside>
 
           <section className="min-w-0 flex-1 p-0 md:p-1">
             <div className="mb-4 hidden rounded-lg border border-[#D6DCE5] bg-white p-2 md:block">
-              <div className="flex items-center justify-between gap-4">
-                <h1 className="text-base font-semibold text-(--text-main)">{title}</h1>
+              <div className={`flex items-center gap-4 ${title ? "justify-between" : "justify-end"}`}>
+                {title ? <h1 className="text-base font-semibold text-(--text-main)">{title}</h1> : null}
 
                 <div className="flex items-center gap-6">
-                  <div className="flex h-10 w-[300px] items-center gap-2 rounded-md border border-[#D6DCE5] bg-white px-3">
+                  <div className="flex h-10 w-75 items-center gap-2 rounded-md border border-[#D6DCE5] bg-white px-3">
                     <Search className="h-4 w-4 text-[#6B7280]" />
                     <input
                       type="text"

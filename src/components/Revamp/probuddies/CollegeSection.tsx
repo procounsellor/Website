@@ -1,46 +1,101 @@
+import { motion } from "framer-motion";
+import { useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { SeeAllButton } from "../components/LeftRightButton";
-import FancyCard from "./CollegeCard";
-import styles from "./CollegeSection.module.css";
+import CollegeCard from "@/components/Revamp/probuddies/CollegeCard";
 
+const mockColleges = [
+  { id: 1, name: "College 1", city: "Hyderabad" },
+  { id: 2, name: "College 2", city: "Bengaluru" },
+  { id: 3, name: "College 3", city: "Mumbai" },
+  { id: 4, name: "College 4", city: "Delhi" },
+  { id: 5, name: "College 5", city: "Pune" },
+];
 
 export default function CollegeSection() {
+  const navigate = useNavigate();
+  const hasAnimated = useRef(false);
+  const displayColleges = mockColleges.slice(0, 5);
+
+  const shouldAnimate = !hasAnimated.current;
+  if (displayColleges.length > 0 && !hasAnimated.current) {
+    hasAnimated.current = true;
+  }
+
+  const containerVariants = shouldAnimate
+    ? {
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: { staggerChildren: 0.1, delayChildren: 0.05 },
+        },
+      }
+    : {
+        hidden: { opacity: 1 },
+        visible: { opacity: 1 },
+      };
+
+  const cardVariants = shouldAnimate
+    ? {
+        hidden: { opacity: 0, y: 24, scale: 0.97 },
+        visible: { opacity: 1, y: 0, scale: 1 },
+      }
+    : {
+        hidden: { opacity: 1, y: 0, scale: 1 },
+        visible: { opacity: 1, y: 0, scale: 1 },
+      };
+
   return (
-    <div className="flex flex-col gap-7  w-full h-[596px] py-10 px-5">
-      <div className="flex flex-col md:flex-row justify-between mx-auto" style={{ width: 'calc(420px * 3 + 30px * 2)' }}>
-        <div className="flex items-start">
-          <img src="/college.svg" alt="icon_avg" className="items-start" />
+    <div className="w-full py-6 md:py-10">
+      <div className="max-w-360 mx-auto pl-4 pr-0 md:px-15">
+        <div className="flex flex-col md:flex-row justify-between items-start mb-6 md:mb-10 gap-3 md:gap-0">
+          <div className="flex items-center justify-center gap-2 bg-white px-3 py-1 rounded-md h-7 shrink-0">
+            <div className="bg-(--text-main) h-4 w-4 md:h-5 md:w-5"></div>
+            <p className="font-[Poppins] font-semibold text-[12px] md:text-[14px] text-[#0E1629] uppercase tracking-[0.07em] md:tracking-wider leading-none md:leading-normal">
+              COLLEGES
+            </p>
+          </div>
+
+          <h1 className="text-(--text-main) text-xs md:text-2xl font-medium max-w-202.75 leading-snug md:leading-normal">
+            Browse colleges with a ProBuddy on campus — get a real student's
+            view of the place you're planning to call home.
+          </h1>
         </div>
 
-        <h1 className="text-(--text-main) text-xs md:text-2xl font-medium max-w-[811px] max-h-[108px]">
-          Browse colleges with a ProBuddy on campus — get a real student's
-          view of the place you're planning to call home.
-        </h1>
-      </div>
+        {displayColleges.length > 0 ? (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="flex gap-3 md:gap-6 justify-start md:justify-center overflow-x-auto md:overflow-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-2"
+          >
+            {displayColleges.map((college, index) => (
+              <motion.div
+                key={college.id}
+                variants={cardVariants}
+                className={`shrink-0 ${index === 0 ? "" : "md:hidden"}`}
+              >
+                <CollegeCard />
+              </motion.div>
+            ))}
+          </motion.div>
+        ) : (
+          <div className="flex justify-center min-h-45 md:min-h-70 items-center">
+            <p className="font-[Poppins] text-[14px] text-[#6B7280]">No colleges available right now</p>
+          </div>
+        )}
 
-
-      <div className="flex gap-6 justify-center">
-        <FancyCard />
-        <FancyCard />
-        <FancyCard />
-        <FancyCard />
-      </div>
-
-
-
-      <div className={styles.controlsContainer}>
-        <div className={styles.progressBar}>
-          <div className={styles.progressFill} style={{ width: '25%' }}></div>
+        <div className="flex justify-end mt-4 pr-4 pb-2 md:hidden w-full">
+          <div className="scale-[0.9] origin-right">
+            <SeeAllButton onClick={() => navigate("/pro-buddies/college-listing")} />
+          </div>
         </div>
 
-        {/* <div className={styles.navButtons}>
-          <button className={styles.navButton}>
-            <img src="/arrow.svg" alt="Previous" className={styles.leftArrow} />
-          </button>
-          <button className={styles.navButton}>
-            <img src="/arrow.svg" alt="Next" className={styles.rightArrow} />
-          </button>
-        </div> */}
-        <SeeAllButton/>
+        <div className="hidden md:flex justify-end mt-2 pr-0 w-full">
+          <div className="scale-100 origin-right">
+            <SeeAllButton onClick={() => navigate("/pro-buddies/college-listing")} />
+          </div>
+        </div>
       </div>
     </div>
   );

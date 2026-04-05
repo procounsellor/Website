@@ -67,6 +67,14 @@ export default function RevampBreadcrumbs() {
         crumbs.push({ label: 'My Activity' });
       }
     }
+    else if (path === '/pro-buddies/listing') {
+      crumbs.push({ label: 'ProBuddies', path: '/pro-buddies' });
+      crumbs.push({ label: 'Listing' });
+    }
+    else if (path === '/pro-buddies/college-listing') {
+      crumbs.push({ label: 'ProBuddies', path: '/pro-buddies' });
+      crumbs.push({ label: 'College Listing' });
+    }
     // ProBuddies routes
     else if (path.includes('/pro-buddies')) {
       crumbs.push({ label: 'ProBuddies' });
@@ -133,7 +141,7 @@ export default function RevampBreadcrumbs() {
 
   return (
     <div className="w-full bg-white border-b border-[#E5E7EB]">
-      <div className="max-w-[1440px] mx-auto px-[60px] py-3">
+      <div className="max-w-360 mx-auto px-15 py-3">
         <div className="flex items-center gap-2 text-xs md:text-sm font-[Poppins]">
           {breadcrumbs.map((crumb, index) => {
             const isLast = index === breadcrumbs.length - 1;
