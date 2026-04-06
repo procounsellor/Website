@@ -1,6 +1,7 @@
 import ContentCard from "@/components/course-cards/ContentCard";
 import CourseReviewsCard from "@/components/course-cards/CourseReviewsCard";
 import DetailsCard from "@/components/course-cards/DetailsCard";
+import RecommendedCoursesSection from "@/components/course-cards/RecommendedCoursesSection";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -236,7 +237,7 @@ export default function CoursePage() {
         </div>
         <button
           onClick={() => navigate(-1)}
-          className="px-4 py-2 bg-[#13097D] text-white rounded-lg"
+          className="px-4 py-2 bg-[#13097D] text-white rounded-lg cursor-pointer"
         >
           Go Back
         </button>
@@ -271,7 +272,7 @@ export default function CoursePage() {
   };
 
   return (
-    <div className="bg-[#F5F5F7] pt-4 p-6">
+    <div className="min-h-screen bg-[#F8F9FA] px-4 py-6 pb-36 md:px-6 lg:pb-6">
       {/* Published/Draft Badge - Show for counselor */}
       {isCourseOwner && courseDetails && (
         <div className="max-w-7xl mx-auto mb-4 flex items-center justify-end">
@@ -284,19 +285,37 @@ export default function CoursePage() {
         </div>
       )}
 
-      <DetailsCard
-        role={role as string}
-        courseId={courseId as string}
-        course={course}
-        courseDetails={courseDetails}
-        isPurchased={isPurchased}
-        isBookmarked={isBookmarked}
-        onBookmark={handleBookmark}
-        onBuyCourse={handleBuyCourse}
-        isBookmarking={bookmarkMutation.isPending}
-        isBuying={buyCourseMutation.isPending}
-        isUserOrStudent={isUserOrStudent && !!user && !!userId}
-      />
+      <div
+        className={`max-w-7xl mx-auto grid gap-6 ${
+          isCourseOwner ? "grid-cols-1" : "lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"
+        }`}
+      >
+        <DetailsCard
+          role={role as string}
+          courseId={courseId as string}
+          course={course}
+          courseDetails={courseDetails}
+          description={courseDetails.description}
+          isPurchased={isPurchased}
+          isBookmarked={isBookmarked}
+          onBookmark={handleBookmark}
+          onBuyCourse={handleBuyCourse}
+          isBookmarking={bookmarkMutation.isPending}
+          isBuying={buyCourseMutation.isPending}
+          isCourseOwner={isCourseOwner}
+        >
+          <div id="course-content">
+            <ContentCard
+              embedded
+              courseContents={courseDetails.courseContents}
+              currentPath={currentPath}
+              setCurrentPath={setCurrentPath}
+              isPurchased={isPurchased || isCounselor}
+              userRole={role as string}
+            />
+          </div>
+        </DetailsCard>
+      </div>
 
       {/* Course Owner Controls */}
       {isCourseOwner && (
@@ -348,24 +367,7 @@ export default function CoursePage() {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 mt-6 py-4 mb-4">
-        <h1 className="text-[0.875rem] md:text-[1.25rem] text-[#343C6A] font-semibold mb-4">Course Description</h1>
-        <p className="text-xs md:text-[1rem] font-normal text-[#8C8CA1]">
-          {courseDetails.description}
-        </p>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 md:px-6 mb-6">
-        <ContentCard
-          courseContents={courseDetails.courseContents}
-          currentPath={currentPath}
-          setCurrentPath={setCurrentPath}
-          isPurchased={isPurchased || isCounselor}
-          userRole={role as string}
-        />
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 md:px-6">
+      <div className="max-w-7xl mx-auto mt-10">
         <CourseReviewsCard
           courseId={courseId as string}
           isPurchased={isPurchased || isCounselor}
@@ -376,6 +378,13 @@ export default function CoursePage() {
             queryClient.invalidateQueries({ queryKey: ['courseDetails', courseId, userId, role] });
           }}
         />
+
+        {!isCourseOwner && courseId && (
+          <RecommendedCoursesSection
+            currentCourseId={courseId}
+            category={courseDetails.category}
+          />
+        )}
       </div>
 
       <div className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] transition-opacity duration-300 ${addFundsOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
