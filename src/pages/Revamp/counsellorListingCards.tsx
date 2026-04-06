@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
-import { Search, ChevronDown, Star } from 'lucide-react';
+import { Search, Star, Bookmark, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { encodeCounselorId } from "@/lib/utils"; 
+import {
+    Select,
+    SelectTrigger,
+    SelectValue,
+    SelectContent,
+    SelectItem,
+    SelectGroup,
+} from "@/components/ui/select";
+import { CounselorCardSkeleton } from '@/components/skeletons/CounselorSkeletons';
 
 interface CardProps {
     counsellors: any[];
@@ -11,23 +20,37 @@ interface CardProps {
     hasMore: boolean;
     searchInput: string;
     setSearchInput: React.Dispatch<React.SetStateAction<string>>;
+    onToggleFavourite?: (counsellorId: string) => void;
+    selectedSort: string;
+    setSelectedSort: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const CounselorCardItem = ({ counsellor, isLast, lastElementRef }: { counsellor: any, isLast: boolean, lastElementRef: any }) => {
+const CounselorCardItem = ({ counsellor, isLast, lastElementRef, onToggleFavourite }: { counsellor: any, isLast: boolean, lastElementRef: any, onToggleFavourite?: (id: string) => void }) => {
     const [isHovered, setIsHovered] = useState(false);
     const navigate = useNavigate();
 
+    const handleBookmarkClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (onToggleFavourite) {
+            onToggleFavourite(counsellor.id);
+        } else {
+            console.warn("onToggleFavourite is not passed to the card component.");
+        }
+    };
+
     return (
-        <div 
-            ref={isLast ? lastElementRef : null}
-            onClick={() => navigate(`/counsellor/${encodeCounselorId(counsellor.id)}`)}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            className="w-full h-[250px] sm:h-[420px] relative cursor-pointer group shrink-0 transition-transform duration-300 hover:-translate-y-1"
-            style={{ filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.12))' }}
-        >
+    <div 
+        ref={isLast ? lastElementRef : null}
+        onClick={() => navigate(`/counsellor/${encodeCounselorId(counsellor.id)}`)}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className="w-full h-[250px] sm:w-full sm:max-w-[340px] sm:h-[387px] mx-auto relative cursor-pointer group shrink-0 transition-transform duration-300 hover:-translate-y-1"
+        style={{ filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.12))' }}
+    >
+            {/* Main Background SVG */}
             <svg
-                className="absolute inset-0 w-full h-full"
+                className="absolute inset-0 w-full h-full z-0"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 244 367"
                 preserveAspectRatio="none"
@@ -40,23 +63,42 @@ const CounselorCardItem = ({ counsellor, isLast, lastElementRef }: { counsellor:
             </svg>
 
             {/* Content Overlay */}
-            <div className="absolute inset-0 p-2 sm:p-[12px] flex flex-col z-10">
-                <div className="relative w-full h-[125px] sm:h-[220px] bg-[#F5F5F7] rounded-[8px] overflow-hidden shrink-0">
+            <div className="absolute inset-0 p-2 sm:p-[12px] flex flex-col z-10 box-border">
+                
+                {/* Image Container */}
+                <div className="relative w-full h-[125px] sm:h-[200px] bg-[#F5F5F7] rounded-[8px] overflow-hidden shrink-0">
                     {counsellor.imageUrl && (
                         <img src={counsellor.imageUrl} alt={counsellor.name} className="w-full h-full object-cover" />
                     )}
-                    <div className="absolute left-1.5 sm:left-[10px] top-1.5 sm:top-[10px] flex flex-row items-center px-1.5 py-0.5 sm:py-1 gap-[2px] min-w-[36px] sm:min-w-[48px] h-[20px] sm:h-[24px] rounded-full bg-white/20 backdrop-blur-md shadow-sm">
-                        <Star className="w-3 h-3 sm:w-[15px] sm:h-[14px] text-white fill-[#0E1629] shrink-0" />
-                        <span className="font-['Poppins'] font-medium text-[11px] sm:text-[14px] text-[#0E1629] whitespace-nowrap">{counsellor.rating}</span>
+                    
+                    {/* Rating Badge */}
+                    <div className="absolute left-1.5 sm:left-[8px] top-1.5 sm:top-[8px] flex flex-row items-center justify-center p-1 sm:p-[4px] gap-[2px] sm:gap-[8px] min-w-[36px] sm:w-[48px] h-[20px] sm:h-[24px] rounded-[100px] bg-[#FFFFFF4D] backdrop-blur-[15px] shadow-sm pointer-events-none">
+                        <Star className="w-3 h-3 sm:w-[16px] sm:h-[16px] text-white fill-white shrink-0" />
+                        <span className="font-['Poppins'] font-medium text-[11px] sm:text-[14px] text-white whitespace-nowrap leading-none">{counsellor.rating}</span>
                     </div>
+
+                    {/* Bookmark Badge */}
+                    <button
+                        type="button"
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={handleBookmarkClick}
+                        aria-label="Save counselor"
+                        className="absolute right-1.5 sm:right-[8px] top-1.5 sm:top-[8px] flex items-center justify-center px-1 sm:px-[8px] py-1 sm:py-[4px] min-w-[24px] sm:w-[32px] h-[20px] sm:h-[24px] rounded-[100px] bg-[#FFFFFF4D] backdrop-blur-[15px] transition-colors hover:bg-white/40 cursor-pointer shadow-sm z-50 pointer-events-auto"
+                    >
+                        <Bookmark className={`w-3 h-3 sm:w-[16px] sm:h-[16px] text-white pointer-events-none transition-colors ${counsellor.isFavourite ? 'fill-current' : ''}`} />
+                    </button>
                 </div>
 
                 {/* Info Section */}
                 <div className="flex flex-col items-start w-full mt-1.5 sm:mt-[12px]">
                     {counsellor.verified && (
-                        <div className="flex flex-row items-center gap-1 mb-0.5 sm:mb-1">
-                            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="w-3 h-3 sm:w-4 sm:h-4"><circle cx="8" cy="8" r="8" fill="#3AAF3C"/><path d="M5 8L7 10L11 5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                            <span className="font-['Poppins'] font-medium text-[9px] sm:text-[10px] leading-[12px] sm:leading-[15px] capitalize text-[#3AAF3C]">Verified</span>
+                        <div className="flex flex-row items-center gap-1 sm:gap-[4px] mb-0.5 sm:mb-[4px]">
+                            <img 
+                                src="/verified.svg" 
+                                alt="Verified" 
+                                className="w-3 h-3 sm:w-[16px] sm:h-[16px] shrink-0" 
+                            />
+                            <span className="font-['Poppins'] font-medium text-[9px] sm:text-[10px] leading-[12px] sm:leading-none capitalize text-[#3AAF3C]">Verified</span>
                         </div>
                     )}
                     <h3 className="font-['Poppins'] font-medium text-[13px] sm:text-[18px] leading-[18px] sm:leading-[27px] text-[#0E1629] m-0 w-full whitespace-nowrap overflow-hidden text-ellipsis">
@@ -65,39 +107,40 @@ const CounselorCardItem = ({ counsellor, isLast, lastElementRef }: { counsellor:
                 </div>
 
                 {/* Details Line */}
-                <div className="flex flex-col items-start gap-0.5 sm:gap-1 w-full mt-0.5 sm:mt-[6px]">
-                    <div className="flex flex-row items-center w-full">
-                        <span className="font-['Poppins'] font-normal text-[10px] sm:text-[14px] leading-[14px] sm:leading-[21px] capitalize text-[#6B7280] truncate">
+                <div className="flex flex-col items-start gap-0.5 sm:gap-[8px] w-full mt-0.5 sm:mt-[8px]">
+                    <div className="flex flex-row items-center gap-[4px] sm:gap-[8px] w-full">
+                        <img src="/stream.svg" alt="stream" className="w-3 h-3 sm:w-[16px] sm:h-[16px] shrink-0" />
+                        <span className="font-['Poppins'] font-normal text-[10px] sm:text-[14px] leading-[14px] sm:leading-none capitalize text-[#6B7280] truncate">
                             {counsellor.course} | {counsellor.experience}
                         </span>
                     </div>
-                    <div className="flex flex-row items-center w-full">
-                        <span className="font-['Poppins'] font-normal text-[10px] sm:text-[14px] leading-[14px] sm:leading-[21px] text-[#6B7280] truncate">
+                    <div className="flex flex-row items-center gap-[4px] sm:gap-[8px] w-full mt-0">
+                        <MapPin className="w-3 h-3 sm:w-[16px] sm:h-[16px] text-[#6B7280] shrink-0" />
+                        <span className="font-['Poppins'] font-normal text-[10px] sm:text-[14px] leading-[14px] sm:leading-none text-[#6B7280] truncate">
                             {counsellor.location}
                         </span>
                     </div>
                 </div>
 
-                {/* Bottom Action Area */}
-                <div className="flex flex-row items-center justify-between w-full mt-auto pt-1.5 sm:pt-2">
-                    <div className="flex flex-row items-center gap-1 sm:gap-2 flex-1 pr-[25%]">
-                        <div className="box-border flex flex-col justify-center items-center py-0.5 flex-1 max-w-[72px] h-[32px] sm:h-[44px] bg-[linear-gradient(266.79deg,rgba(222,237,255,0.4)_0.46%,rgba(126,136,211,0.4)_130.49%)] rounded-md sm:rounded-xl">
-                            <span className="font-['Poppins'] font-normal text-[9px] sm:text-[12px] text-[#1447E7]">Plus</span>
-                            <span className="font-['Poppins'] font-medium text-[9px] sm:text-[12px] text-[#1447E7]">₹{counsellor.plans.plus}</span>
-                        </div>
-                        <div className="box-border flex flex-col justify-center items-center py-0.5 flex-1 max-w-[72px] h-[32px] sm:h-[44px] bg-[linear-gradient(257.67deg,rgba(244,232,255,0.4)_1.56%,rgba(250,244,255,0.4)_100%)] rounded-md sm:rounded-xl">
-                            <span className="font-['Poppins'] font-normal text-[9px] sm:text-[12px] text-[#8200DA]">Pro</span>
-                            <span className="font-['Poppins'] font-medium text-[9px] sm:text-[12px] text-[#8200DA]">₹{counsellor.plans.pro}</span>
-                        </div>
-                        <div className="box-border flex flex-col justify-center items-center py-0.5 flex-1 max-w-[72px] h-[32px] sm:h-[44px] bg-[linear-gradient(257.67deg,rgba(255,245,206,0.4)_1.56%,rgba(255,250,230,0.4)_100%)] rounded-md sm:rounded-xl">
-                            <span className="font-['Poppins'] font-normal text-[9px] sm:text-[12px] text-[#B94C00]">Elite</span>
-                            <span className="font-['Poppins'] font-medium text-[9px] sm:text-[12px] text-[#B94C00]">₹{counsellor.plans.elite}</span>
-                        </div>
+                {/* Bottom Action Area / Badges */}
+                <div className="flex flex-row items-center gap-1 sm:gap-[6px] w-full mt-auto pt-1.5 sm:pt-[12px] pb-[2px] pr-[25%] sm:pr-[65px]">
+                    <div className="box-border flex flex-col justify-center items-center py-0.5 sm:py-[2px] px-0.5 sm:px-[2px] flex-1 min-w-0 sm:min-w-[57px] max-w-[72px] h-[32px] sm:h-[40px] bg-[linear-gradient(266.79deg,rgba(222,237,255,0.4)_0.46%,rgba(126,136,211,0.4)_130.49%)] border border-[rgba(113,142,191,0.4)] rounded-md sm:rounded-[12px]">
+                        <span className="font-['Poppins'] font-normal text-[8px] sm:text-[11px] text-[#1447E7] leading-tight truncate w-full text-center">Plus</span>
+                        <span className="font-['Poppins'] font-medium text-[8px] sm:text-[11px] text-[#1447E7] leading-tight truncate w-full text-center">₹{counsellor.plans?.plus || 0}</span>
+                    </div>
+                    <div className="box-border flex flex-col justify-center items-center py-0.5 sm:py-[2px] px-0.5 sm:px-[2px] flex-1 min-w-0 sm:min-w-[64px] max-w-[72px] h-[32px] sm:h-[40px] bg-[linear-gradient(257.67deg,rgba(244,232,255,0.4)_1.56%,rgba(250,244,255,0.4)_100%)] border border-[rgba(232,212,255,0.4)] rounded-md sm:rounded-[12px]">
+                        <span className="font-['Poppins'] font-normal text-[8px] sm:text-[11px] text-[#8200DA] leading-tight truncate w-full text-center">Pro</span>
+                        <span className="font-['Poppins'] font-medium text-[8px] sm:text-[11px] text-[#8200DA] leading-tight truncate w-full text-center">₹{counsellor.plans?.pro || 0}</span>
+                    </div>
+                    <div className="box-border flex flex-col justify-center items-center py-0.5 sm:py-[2px] px-0.5 sm:px-[2px] flex-1 min-w-0 sm:min-w-[64px] max-w-[72px] h-[32px] sm:h-[40px] bg-[linear-gradient(257.67deg,rgba(255,245,206,0.4)_1.56%,rgba(255,250,230,0.4)_100%)] border border-[rgba(234,197,145,0.4)] rounded-md sm:rounded-[12px]">
+                        <span className="font-['Poppins'] font-normal text-[8px] sm:text-[11px] text-[#B94C00] leading-tight truncate w-full text-center">Elite</span>
+                        <span className="font-['Poppins'] font-medium text-[8px] sm:text-[11px] text-[#B94C00] leading-tight truncate w-full text-center">₹{counsellor.plans?.elite || 0}</span>
                     </div>
                 </div>
             </div>
 
-            <div className="absolute right-[-1px] bottom-[-1px] overflow-hidden w-[24%] h-[16.5%] z-20">
+            {/* Bottom Right Arrow SVG Block */}
+            <div className="absolute right-[0px] bottom-[0px] overflow-hidden w-[24%] sm:w-[53px] h-[16.5%] sm:h-[50px] z-20 rounded-br-[8px] rounded-tl-[8px]">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 52 50"
@@ -111,7 +154,8 @@ const CounselorCardItem = ({ counsellor, isLast, lastElementRef }: { counsellor:
                         className="transition-colors duration-300"
                     />
                 </svg>
-                <div className="absolute top-1/2 left-[55%] -translate-x-1/2 -translate-y-1/2 w-[14px] sm:w-[24px] h-[14px] sm:h-[24px]">
+                {/* 14x14 mobile, 32x32 desktop */}
+                <div className="absolute top-1/2 left-[55%] -translate-x-1/2 -translate-y-1/2 w-[14px] sm:w-[32px] h-[14px] sm:h-[32px]">
                     <img
                         src="/arrow.svg"
                         alt="arrow"
@@ -131,8 +175,13 @@ const CounselorCardItem = ({ counsellor, isLast, lastElementRef }: { counsellor:
 };
 
 const CounsellorListingCards: React.FC<CardProps> = ({ 
-    counsellors, isLoading, isFetchingMore, lastElementRef, hasMore, searchInput, setSearchInput 
+    counsellors, isLoading, isFetchingMore, lastElementRef, hasMore, searchInput, setSearchInput, onToggleFavourite, selectedSort, setSelectedSort
 }) => {
+    const sortTypes = [
+        { label: "Popularity", value: "popularity" },
+        { label: "Price: Low-High", value: "price-low" },
+        { label: "Price: High-Low", value: "price-high" },
+    ];
     return (
         <div className="w-full">
             {/* Top Actions Box */}
@@ -156,12 +205,23 @@ const CounsellorListingCards: React.FC<CardProps> = ({
                             />
                         </div>
 
+                        {/* DESKTOP SORT UI */}
                         <div className="flex flex-row justify-between sm:justify-center items-center gap-[12px]">
                             <span className="font-['Poppins'] font-medium text-[14px] text-[#525055]">Sort by:</span>
-                            <div className="box-border flex flex-row justify-between items-center px-2 py-3 gap-[24px] h-[48px] bg-white rounded-lg border border-transparent hover:border-gray-200 cursor-pointer transition-colors">
-                                <span className="font-['Poppins'] font-medium text-[14px] md:text-[16px] text-[#525055]">Recommended</span>
-                                <ChevronDown className="w-4 h-4 text-[#242645]" strokeWidth={1.5} />
-                            </div>
+                            <Select value={selectedSort} onValueChange={setSelectedSort}>
+                                <SelectTrigger className="w-[160px] h-[48px] bg-white rounded-lg border border-transparent hover:border-gray-200 outline-none focus:ring-0 font-['Poppins'] font-medium text-[14px] md:text-[16px] text-[#525055] shadow-none">
+                                    <SelectValue placeholder="Popularity" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        {sortTypes.map((type) => (
+                                            <SelectItem key={type.value} value={type.value} className="font-['Poppins']">
+                                                {type.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                 </div>
@@ -177,21 +237,35 @@ const CounsellorListingCards: React.FC<CardProps> = ({
                             className="w-full bg-transparent outline-none font-['Poppins'] font-medium text-[14px] text-[#6B7280] placeholder-[#6B7280]" 
                         />
                     </div>
+                    
+                    {/* MOBILE SORT UI */}
                     <div className="flex flex-row justify-between items-center gap-[12px]">
                         <span className="font-['Poppins'] font-medium text-[13px] text-[#525055]">Sort by:</span>
-                        <div className="box-border flex flex-row justify-between items-center px-2 py-2 gap-[8px] h-[36px] bg-white rounded-lg border border-gray-200 cursor-pointer">
-                            <span className="font-['Poppins'] font-medium text-[13px] text-[#525055]">Recommended</span>
-                            <ChevronDown className="w-4 h-4 text-[#242645]" strokeWidth={1.5} />
-                        </div>
+                        <Select value={selectedSort} onValueChange={setSelectedSort}>
+                            <SelectTrigger className="w-[150px] h-[36px] bg-white rounded-lg border border-gray-200 outline-none focus:ring-0 font-['Poppins'] font-medium text-[13px] text-[#525055] shadow-none">
+                                <SelectValue placeholder="Popularity" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    {sortTypes.map((type) => (
+                                        <SelectItem key={type.value} value={type.value} className="font-['Poppins'] text-[13px]">
+                                            {type.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
             </div>
 
             {/* Loading State / Empty State */}
             {isLoading ? (
-                <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-[24px] pb-[40px] w-full animate-pulse">
+                <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-[24px] pb-[40px] w-full">
                     {Array.from({ length: 6 }).map((_, idx) => (
-                        <div key={`c-listing-skeleton-${idx}`} className="w-full h-[235px] sm:h-[420px] rounded-xl bg-white shadow-sm" />
+                        <div key={`c-listing-skeleton-${idx}`} className="w-full flex justify-center">
+                            <CounselorCardSkeleton />
+                        </div>
                     ))}
                 </div>
             ) : counsellors.length === 0 ? (
@@ -208,15 +282,18 @@ const CounsellorListingCards: React.FC<CardProps> = ({
                                 counsellor={counsellor}
                                 isLast={index === counsellors.length - 1}
                                 lastElementRef={lastElementRef}
+                                onToggleFavourite={onToggleFavourite}
                             />
                         ))}
                     </div>
 
                     {/* Loading Spinner for Infinite Scroll */}
                     {isFetchingMore && (
-                        <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-[24px] py-6 w-full pb-20 animate-pulse">
+                        <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-[24px] py-6 w-full pb-20">
                             {Array.from({ length: 3 }).map((_, idx) => (
-                                <div key={`c-listing-more-skeleton-${idx}`} className="w-full h-[235px] sm:h-[420px] rounded-xl bg-white shadow-sm" />
+                                <div key={`c-listing-more-skeleton-${idx}`} className="w-full flex justify-center">
+                                    <CounselorCardSkeleton />
+                                </div>
                             ))}
                         </div>
                     )}

@@ -102,7 +102,7 @@ const CounsellorListing: React.FC<FilterProps> = ({
                 <div className="box-border flex flex-row items-center px-[20px] py-[20px] w-full border-b border-[#E6E6E6] rounded-t-[8px]">
                     <span className="font-[Poppins] font-medium text-[16px] lg:text-[18px] text-[#242645]">Language</span>
                 </div>
-                <div className="flex flex-col gap-[10px] w-full px-5 max-h-[250px] overflow-y-auto custom-scrollbar">
+                <div className="flex flex-col gap-[10px] w-full px-5 max-h-[250px] overflow-y-auto scrollbar-hide">
                     {languages.map(lang => (
                         <div key={lang} className="flex flex-row items-center gap-[12px] cursor-pointer" onClick={() => toggleFilter(selectedLanguages, setSelectedLanguages, lang)}>
                             <div className={`box-border w-[18px] h-[18px] flex justify-center items-center ${selectedLanguages.includes(lang) ? 'bg-[#0E1629]' : 'bg-white border border-[#CED1D9]'}`}>
@@ -127,7 +127,7 @@ const CounsellorListing: React.FC<FilterProps> = ({
                         </svg>
                         <input type="text" placeholder="Search Cities" value={citySearch} onChange={(e) => setCitySearch(e.target.value)} className="ml-[8px] w-full h-full bg-transparent outline-none font-medium font-[Poppins] text-[14px] text-[#232323] placeholder:text-[#232323]" />
                     </div>
-                    <div className="flex flex-col gap-[10px] max-h-[200px] overflow-y-auto custom-scrollbar">
+                    <div className="flex flex-col gap-[10px] max-h-[200px] overflow-y-auto scrollbar-hide">
                         {filteredCities.map(city => (
                             <div key={city} className="flex flex-row items-center gap-[12px] cursor-pointer" onClick={() => toggleFilter(selectedCities, setSelectedCities, city)}>
                                 <div className={`box-border w-[18px] h-[18px] flex justify-center items-center ${selectedCities.includes(city) ? 'bg-[#0E1629]' : 'bg-white border border-[#CED1D9]'}`}>

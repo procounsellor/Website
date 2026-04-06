@@ -73,7 +73,7 @@ export default function Admissions() {
               <div className="relative flex items-center justify-center">
                 {/* Logo - starts centered, then shifts left */}
                 <motion.img
-                  src="https://www.figma.com/api/mcp/asset/4a796561-f87a-428a-ae09-a0ef94eeca93"
+                  src="/logo.svg"
                   alt="ProCounsel Logo"
                   className="w-[118px] h-[120px] relative z-10"
                   initial={{ scale: 0, opacity: 0, x: 0 }}
