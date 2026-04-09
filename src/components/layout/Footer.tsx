@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/AuthStore";
 import toast from "react-hot-toast";
 import {
@@ -12,7 +12,18 @@ import {
 } from "@/assets/icons";
 
 export default function Footer() {
-  const { toggleCounselorSignup, role, user } = useAuthStore();
+  const { toggleCounselorSignup, role, user, isAuthenticated, toggleLogin } = useAuthStore();
+  const navigate = useNavigate();
+
+  const handleBecomeProBuddy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      toast.error("Please log in as a student to register as a Pro Buddy.");
+      toggleLogin(() => navigate("/pro-buddies/register"));
+    } else {
+      navigate("/pro-buddies/register");
+    }
+  };
 
   const handleBecomeCounselor = () => {
     if (role === "counselor" && user?.verified) {
@@ -154,12 +165,12 @@ export default function Footer() {
                       </button>
                     </li>
                     <li>
-                      <Link
-                        to="/pro-buddies/register"
+                      <button
+                        onClick={handleBecomeProBuddy}
                         className="block cursor-pointer font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors text-left w-full"
                       >
                         Become a Pro Buddy?
-                      </Link>
+                      </button>
                     </li>
                   </>
                 )}

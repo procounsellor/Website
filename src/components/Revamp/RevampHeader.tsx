@@ -159,6 +159,8 @@ export default function RevampHeader() {
     const handleProfileNavigation = () => {
         if (role === "counselor") {
             navigate("/counsellor-dashboard");
+        } else if (role === "proBuddy") {
+            navigate("/pro-buddies/dashboard");
         } else {
             if (isMobile) {
                 navigate("/dashboard-student");
@@ -312,29 +314,33 @@ export default function RevampHeader() {
                                     Notifications
                                 </button>
 
-                                <button
-                                    onClick={() => { navigate("/live-sessions"); setIsDropdownOpen(false); }}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-poppins text-[#232323] hover:bg-gray-50 cursor-pointer transition-colors"
-                                >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <rect x="2" y="3" width="20" height="14" rx="2" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                        <path d="M10 9L14 11.5L10 14V9Z" fill="#232323"/>
-                                        <path d="M8 21H16" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                        <path d="M12 17V21" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                    </svg>
-                                    Live Sessions
-                                </button>
+                                {role !== 'counselor' && (
+                                    <>
+                                        <button
+                                            onClick={() => { navigate("/live-sessions"); setIsDropdownOpen(false); }}
+                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-poppins text-[#232323] hover:bg-gray-50 cursor-pointer transition-colors"
+                                        >
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <rect x="2" y="3" width="20" height="14" rx="2" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                <path d="M10 9L14 11.5L10 14V9Z" fill="#232323"/>
+                                                <path d="M8 21H16" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                <path d="M12 17V21" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                            </svg>
+                                            Live Sessions
+                                        </button>
 
-                                <button
-                                    onClick={() => { navigate("/dashboard-student?activeTab=My Courses"); setIsDropdownOpen(false); }}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-poppins text-[#232323] hover:bg-gray-50 cursor-pointer transition-colors"
-                                >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M4 19.5C4 18.837 4.26339 18.2011 4.73223 17.7322C5.20107 17.2634 5.83696 17 6.5 17H20" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                        <path d="M6.5 2H20V22H6.5C5.83696 22 5.20107 21.7366 4.73223 21.2678C4.26339 20.7989 4 20.163 4 19.5V4.5C4 3.83696 4.26339 3.20107 4.73223 2.73223C5.20107 2.26339 5.83696 2 6.5 2Z" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                    </svg>
-                                    My Courses
-                                </button>
+                                        <button
+                                            onClick={() => { navigate("/dashboard-student?activeTab=My Courses"); setIsDropdownOpen(false); }}
+                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-poppins text-[#232323] hover:bg-gray-50 cursor-pointer transition-colors"
+                                        >
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M4 19.5C4 18.837 4.26339 18.2011 4.73223 17.7322C5.20107 17.2634 5.83696 17 6.5 17H20" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                <path d="M6.5 2H20V22H6.5C5.83696 22 5.20107 21.7366 4.73223 21.2678C4.26339 20.7989 4 20.163 4 19.5V4.5C4 3.83696 4.26339 3.20107 4.73223 2.73223C5.20107 2.26339 5.83696 2 6.5 2Z" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                            </svg>
+                                            My Courses
+                                        </button>
+                                    </>
+                                )}
 
                                 <div className="border-t border-gray-100 mt-1 pt-1">
                                     <button
@@ -536,29 +542,33 @@ export default function RevampHeader() {
                                         Notifications
                                     </button>
 
-                                    <button
-                                        onClick={() => { navigate("/live-sessions"); setIsDropdownOpen(false); }}
-                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-poppins text-[#232323] hover:bg-gray-50 cursor-pointer transition-colors"
-                                    >
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <rect x="2" y="3" width="20" height="14" rx="2" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                            <path d="M10 9L14 11.5L10 14V9Z" fill="#232323"/>
-                                            <path d="M8 21H16" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                            <path d="M12 17V21" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                        </svg>
-                                        Live Sessions
-                                    </button>
+                                    {role !== 'counselor' && (
+                                        <>
+                                            <button
+                                                onClick={() => { navigate("/live-sessions"); setIsDropdownOpen(false); }}
+                                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-poppins text-[#232323] hover:bg-gray-50 cursor-pointer transition-colors"
+                                            >
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <rect x="2" y="3" width="20" height="14" rx="2" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                    <path d="M10 9L14 11.5L10 14V9Z" fill="#232323"/>
+                                                    <path d="M8 21H16" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                    <path d="M12 17V21" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                </svg>
+                                                Live Sessions
+                                            </button>
 
-                                    <button
-                                        onClick={() => { navigate("/dashboard-student?activeTab=My Courses"); setIsDropdownOpen(false); }}
-                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-poppins text-[#232323] hover:bg-gray-50 cursor-pointer transition-colors"
-                                    >
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M4 19.5C4 18.837 4.26339 18.2011 4.73223 17.7322C5.20107 17.2634 5.83696 17 6.5 17H20" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                            <path d="M6.5 2H20V22H6.5C5.83696 22 5.20107 21.7366 4.73223 21.2678C4.26339 20.7989 4 20.163 4 19.5V4.5C4 3.83696 4.26339 3.20107 4.73223 2.73223C5.20107 2.26339 5.83696 2 6.5 2Z" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                        </svg>
-                                        My Courses
-                                    </button>
+                                            <button
+                                                onClick={() => { navigate("/dashboard-student?activeTab=My Courses"); setIsDropdownOpen(false); }}
+                                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-poppins text-[#232323] hover:bg-gray-50 cursor-pointer transition-colors"
+                                            >
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M4 19.5C4 18.837 4.26339 18.2011 4.73223 17.7322C5.20107 17.2634 5.83696 17 6.5 17H20" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                    <path d="M6.5 2H20V22H6.5C5.83696 22 5.20107 21.7366 4.73223 21.2678C4.26339 20.7989 4 20.163 4 19.5V4.5C4 3.83696 4.26339 3.20107 4.73223 2.73223C5.20107 2.26339 5.83696 2 6.5 2Z" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                </svg>
+                                                My Courses
+                                            </button>
+                                        </>
+                                    )}
 
                                     <div className="border-t border-gray-100 mt-1 pt-1">
                                         <button

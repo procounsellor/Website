@@ -35,7 +35,7 @@ export default function StoriesCard({ active, story }: { active: boolean; story:
   return (
     <div
       className={`relative shrink-0 w-[290px] h-[181px] md:w-auto md:h-auto ${active ? "md:min-h-[362px]" : "md:min-h-[317px]"} ${active ? "md:max-w-[498px]" : "md:max-w-[370px]"}
-    ${active ? "bg-[#0E1629] md:bg-(--text-main)" : "bg-white"} shadow-[0_0px_25px_0px_rgba(0,0,0,0.07)] rounded-[15px]
+    ${active ? "bg-[#0E1629] md:bg-(--text-main)" : "bg-white"} rounded-[15px]
     md:py-9 md:px-4 flex flex-col md:gap-[30px]
     `}
     >

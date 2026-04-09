@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import Stories from "@/components/Revamp/probuddies/Stories";
 import Faq from "@/components/Revamp/admissions/Faq";
 import Blogs from "@/components/Revamp/admissions/Blogs";
@@ -10,6 +11,7 @@ import Timeline from "@/components/Revamp/admissions/Timeline";
 import RevampBannerSection from "@/components/Revamp/banners/RevampBannerSection";
 
 export default function Admissions() {
+  const navigate = useNavigate();
   const hasSeenSplash = sessionStorage.getItem('admissions-splash-seen') === 'true';
   const admissionsStories = [
     {
@@ -144,10 +146,11 @@ export default function Admissions() {
 
             {/* CTA Button */}
             <motion.button
+              onClick={() => navigate("/counsellors")}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={animationPhase >= 3 ? { opacity: 1, scale: 1 } : {}}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="absolute left-1/2 -translate-x-1/2 top-[186px] bg-[#2f43f2] hover:bg-[#2437d1] transition-colors text-white px-8 py-3 rounded-[48px] text-[16px] font-medium font-['Poppins']"
+              className="absolute z-50 left-1/2 hover:cursor-pointer -translate-x-1/2 top-[186px] bg-[#2f43f2] hover:bg-[#2437d1] transition-colors text-white px-8 py-3 rounded-[48px] text-[16px] font-medium font-['Poppins']"
             >
               Book Admission Counselling
             </motion.button>

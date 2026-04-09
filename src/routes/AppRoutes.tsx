@@ -36,7 +36,6 @@ import { TestGroupDetails } from '@/pages/test/counsellor/TestGroupDetails';
 import CollegeDetailsPageNew from '@/pages/CollegeDetailsPage';
 import RevampLayout from '@/layouts/RevampLayout';
 import TestGroupCardDetails from '@/components/Revamp/courses/TestGroupDetails';
-import ProBuddiesComingSoon from '@/pages/Revamp/ProBuddiesComingSoon';
 import RevampAbout from '@/components/Revamp/about/RevampAbout';
 import Admissions from '@/pages/Revamp/Admissions';
 import Courses from '@/pages/Revamp/Courses';
@@ -49,6 +48,9 @@ import UserProfile from '@/pages/Revamp/UserProfile';
 import CourseListing from '@/pages/Revamp/CourseListing';
 import TestListing from '@/pages/Revamp/TestListing';
 import SessionListing from '@/pages/Revamp/SessionListing';
+import ProBuddies from '@/pages/Revamp/ProBuddies';
+import ProBuddyListing from '@/pages/Revamp/ProBuddyListing';
+import CollegeListing from '@/pages/Revamp/CollegeListing';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
@@ -102,7 +104,9 @@ export default function AppRoutes() {
 
                         {/* probuddies pages  */}
                         <Route path='/pro-buddies/register' element={<ProBuddiesRegistration />} />
-                        <Route path='/pro-buddies' element={<ProBuddiesComingSoon />} />
+                        <Route path='/pro-buddies' element={<ProBuddies />} />
+                        <Route path='/pro-buddies/listing' element={<ProBuddyListing />} />
+                        <Route path='/pro-buddies/college-listing' element={<CollegeListing />} />
                         <Route path='/pro-buddies/dashboard' element={<ProBuddiesDashboard />} />
                         <Route path="/pro-buddies/profile/:id" element={<ProBuddyProfilePage />} />
 

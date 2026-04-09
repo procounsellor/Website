@@ -3,7 +3,7 @@ import type { DragEvent, ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/AuthStore";
-import { registerProBuddy, uploadProBuddyPhoto, uploadProBuddyIdCardPhoto } from "@/api/proBuddy";
+import { registerProBuddy, uploadProBuddyPhoto, uploadProBuddyIdCardPhoto } from "@/api/pro-buddies";
 
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -182,6 +182,13 @@ export default function ProBuddiesRegistration() {
       if (selectedIdCard && newBuddyId) {
         await uploadProBuddyIdCardPhoto(String(newBuddyId), selectedIdCard);
       }
+
+      if (regResponse.jwtToken) {
+        localStorage.setItem("jwt", regResponse.jwtToken);
+      }
+      localStorage.setItem("role", "proBuddy");
+      useAuthStore.setState({ role: "proBuddy" });
+      await useAuthStore.getState().refreshUser(true);
 
       toast.success("Registration completed successfully!");
       navigate("/pro-buddies/dashboard");

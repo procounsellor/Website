@@ -219,7 +219,7 @@ export default function TestGroupCardDetails() {
   const [recommendedTests, setRecommendedTests] = useState<TestWithMeta[]>([]);
   const [recommendedLoading, setRecommendedLoading] = useState(false);
   const [testGroupDetails, setTestGroupDetails] = useState<TestGroupDetailView | null>(null);
-  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [detailsLoading, setDetailsLoading] = useState(true);
   const [buyLoading, setBuyLoading] = useState(false);
   const [visibleAttachedTestsCount, setVisibleAttachedTestsCount] = useState(2);
 
@@ -245,6 +245,8 @@ export default function TestGroupCardDetails() {
   const fetchTestGroupDetails = async () => {
     if (!testGroupId) return;
 
+    setDetailsLoading(true);
+
     if (!isUserLoggedIn) {
       const fallback = recommendedTests.find((item) => item.id === testGroupId);
       if (fallback) {
@@ -269,6 +271,8 @@ export default function TestGroupCardDetails() {
           })),
         });
       }
+
+      setDetailsLoading(false);
       return;
     }
 
@@ -366,8 +370,27 @@ export default function TestGroupCardDetails() {
           <div className="flex flex-col gap-6 p-3">
             {/* test  details and listing */}
             <div className="flex flex-col gap-6 bg-white w-full shadow-sm h-full rounded-2xl p-3">
-              {detailsLoading && !testGroupDetails ? (
-                <div className="h-[220px] rounded-xl bg-[#F3F4F6] animate-pulse" />
+              {detailsLoading || !testGroupDetails ? (
+                <div className="flex flex-col gap-4 animate-pulse">
+                  <div className="flex gap-2">
+                    <div className="w-18 h-18 rounded-xl bg-[#F3F4F6]" />
+                    <div className="flex-1 flex flex-col gap-3 pt-1">
+                      <div className="h-4 w-2/3 rounded bg-[#F3F4F6]" />
+                      <div className="h-3 w-full rounded bg-[#F3F4F6]" />
+                      <div className="h-3 w-5/6 rounded bg-[#F3F4F6]" />
+                      <div className="flex gap-3">
+                        <div className="h-3 w-16 rounded bg-[#F3F4F6]" />
+                        <div className="h-3 w-20 rounded bg-[#F3F4F6]" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-3 pt-2">
+                    <div className="h-4 w-32 rounded bg-[#F3F4F6]" />
+                    <div className="h-16 rounded-2xl bg-[#F3F4F6]" />
+                    <div className="h-16 rounded-2xl bg-[#F3F4F6]" />
+                  </div>
+                </div>
               ) : (
                 <>
                   <div className="flex gap-2">
@@ -517,8 +540,29 @@ export default function TestGroupCardDetails() {
           <div className="flex gap-6">
             {/* test  details and listing */}
             <div className="flex flex-col gap-6 bg-white w-[44.75rem] shadow-sm h-full rounded-2xl p-3">
-              {detailsLoading && !testGroupDetails ? (
-                <div className="h-[220px] rounded-xl bg-[#F3F4F6] animate-pulse" />
+              {detailsLoading || !testGroupDetails ? (
+                <div className="flex flex-col gap-5 animate-pulse">
+                  <div className="flex gap-3">
+                    <div className="w-34 h-30 rounded-xl bg-[#F3F4F6]" />
+                    <div className="flex-1 flex flex-col gap-4 pt-1">
+                      <div className="h-6 w-1/2 rounded bg-[#F3F4F6]" />
+                      <div className="h-4 w-full rounded bg-[#F3F4F6]" />
+                      <div className="h-4 w-5/6 rounded bg-[#F3F4F6]" />
+                      <div className="flex gap-4">
+                        <div className="h-4 w-24 rounded bg-[#F3F4F6]" />
+                        <div className="h-4 w-28 rounded bg-[#F3F4F6]" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-[#F3F4F6]" />
+
+                  <div className="flex flex-col gap-3">
+                    <div className="h-5 w-44 rounded bg-[#F3F4F6]" />
+                    <div className="h-16 rounded-2xl bg-[#F3F4F6]" />
+                    <div className="h-16 rounded-2xl bg-[#F3F4F6]" />
+                  </div>
+                </div>
               ) : (
                 <>
                   <div className="flex gap-3">

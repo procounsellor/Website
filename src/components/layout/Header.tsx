@@ -175,6 +175,8 @@ export default function Header() {
   const handleProfileNavigation = () => {
     if (role === "counselor") {
       navigate("/counsellor-dashboard");
+    } else if (role === "proBuddy") {
+      navigate("/pro-buddies/dashboard");
     } else {
       navigate("/dashboard-student");
     }
