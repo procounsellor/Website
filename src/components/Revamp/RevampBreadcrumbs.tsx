@@ -1,5 +1,5 @@
 import { useLocation, Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface BreadcrumbItem {
   label: string;
@@ -8,6 +8,8 @@ interface BreadcrumbItem {
 
 export default function RevampBreadcrumbs() {
   const location = useLocation();
+  const isCourseDetailPath =
+    location.pathname.includes('/courses/detail/') || location.pathname.includes('/detail/');
 
   const getBreadcrumbs = (): BreadcrumbItem[] => {
     const path = location.pathname;
@@ -142,6 +144,47 @@ export default function RevampBreadcrumbs() {
   const breadcrumbs = getBreadcrumbs();
 
   if (breadcrumbs.length === 0) return null;
+
+  if (isCourseDetailPath) {
+    return (
+      <div className="w-full bg-white border-b border-[#E5E7EB]">
+        <div className="max-w-[1440px] mx-auto px-4 md:px-[60px] py-3">
+          <Link
+            to="/courses/course-listing"
+            className="inline-flex md:hidden items-center gap-2 text-[#0E1629] font-semibold text-xs font-[Poppins] hover:opacity-80 transition"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Course Detail</span>
+          </Link>
+
+          <div className="hidden md:flex items-center gap-2 text-sm font-[Poppins]">
+            {breadcrumbs.map((crumb, index) => {
+              const isLast = index === breadcrumbs.length - 1;
+              return (
+                <span key={index} className="flex items-center gap-2">
+                  {index > 0 && (
+                    <ChevronRight className="w-4 h-4 text-[#9CA3AF]" />
+                  )}
+                  {crumb.path && !isLast ? (
+                    <Link
+                      to={crumb.path}
+                      className="text-[#6B7280] hover:text-[#0E1629] transition-colors"
+                    >
+                      {crumb.label}
+                    </Link>
+                  ) : (
+                    <span className={`${isLast && breadcrumbs.length > 1 ? 'text-[#0E1629] font-semibold' : 'text-[#6B7280]'}`}>
+                      {crumb.label}
+                    </span>
+                  )}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-white border-b border-[#E5E7EB]">

@@ -5,6 +5,10 @@ import type { AllCounselor } from "@/types/academic";
 import CounsellorListing from "./counsellorListing";
 import CounsellorListingCards from "./counsellorListingCards";
 import { X, SlidersHorizontal } from "lucide-react";
+import toast from "react-hot-toast";
+import { addFav } from "@/api/counsellor";
+import EditProfileModal from "@/components/student-dashboard/EditProfileModal";
+import { updateUserProfile } from "@/api/user";
 
 function adaptApiDataToCardData(apiCounselor: AllCounselor) {
     const firstName = apiCounselor.firstName || "Unknown";
@@ -37,7 +41,7 @@ function adaptApiDataToCardData(apiCounselor: AllCounselor) {
 }
 
 const CounsellorsPage: React.FC = () => {
-    const { userId } = useAuthStore();
+    const { user, userId, refreshUser } = useAuthStore();
 
     // --- Filter States ---
     const [selectedExperience, setSelectedExperience] = useState<string[]>([]);
@@ -46,6 +50,7 @@ const CounsellorsPage: React.FC = () => {
     const [selectedDays, setSelectedDays] = useState<string[]>([]);
     const [minPriceInput, setMinPriceInput] = useState<number | "">(100);
     const [maxPriceInput, setMaxPriceInput] = useState<number | "">(10000);
+    const [selectedSort, setSelectedSort] = useState("popularity");
     
     // --- Mobile Drawer State ---
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -68,10 +73,20 @@ const CounsellorsPage: React.FC = () => {
 
     const observer = useRef<IntersectionObserver | null>(null);
 
+    // --- FAVOURITES & PROFILE STATES ---
+    const [favouriteIds, setFavouriteIds] = useState<Set<string>>(new Set());
+    const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+    const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+
     // Filter count calculation
     const isPriceChanged = minPriceInput !== 100 || maxPriceInput !== 10000;
     const activeFilterCount = selectedExperience.length + selectedLanguages.length + selectedCities.length + selectedDays.length + (isPriceChanged ? 1 : 0);
 
+    useEffect(() => {
+        if (user?.favouriteCounsellorIds) {
+            setFavouriteIds(new Set(user.favouriteCounsellorIds));
+        }
+    }, [user]);
 
     // Debounce inputs (Price & Search)
     useEffect(() => {
@@ -92,7 +107,7 @@ const CounsellorsPage: React.FC = () => {
     useEffect(() => {
         setPage(0);
         setHasMore(true);
-    }, [selectedExperience, selectedLanguages, selectedCities, selectedDays, minPrice, maxPrice, searchTerm]);
+    }, [selectedExperience, selectedLanguages, selectedCities, selectedDays, minPrice, maxPrice, searchTerm, selectedSort]);
 
     // Handle Clear Filters
     const handleClearFilters = useCallback(() => {
@@ -130,6 +145,7 @@ const CounsellorsPage: React.FC = () => {
                 minPrice: minPrice,
                 maxPrice: maxPrice,
                 search: searchTerm,
+                sortBy: selectedSort,
             };
 
             let response;
@@ -185,22 +201,68 @@ const CounsellorsPage: React.FC = () => {
         if (node) observer.current.observe(node);
     }, [loading, fetchingMore, hasMore]);
 
-    const cardData = useMemo(() => counselors.map(adaptApiDataToCardData), [counselors]);
+
+    const handleToggleFavourite = async (counsellorId: string) => {
+        const { isAuthenticated, toggleLogin } = useAuthStore.getState();
+        
+        const toggleFavAction = async () => {
+            const freshUserId = localStorage.getItem('phone');
+            if (!freshUserId || !counsellorId) return;
+
+            const newFavouriteIds = new Set(favouriteIds);
+            if (newFavouriteIds.has(counsellorId)) newFavouriteIds.delete(counsellorId);
+            else newFavouriteIds.add(counsellorId);
+            setFavouriteIds(newFavouriteIds);
+
+            try {
+                await addFav(freshUserId, counsellorId);
+                await refreshUser(true);
+                toast.success("Favourite status updated!", { duration: 2000 });
+            } catch (err) {
+                toast.error("Could not update favourite status.", { duration: 2000 });
+                setFavouriteIds(new Set(user?.favouriteCounsellorIds || []));
+            }
+        };
+
+        if (!isAuthenticated) {
+            toggleLogin(toggleFavAction);
+            return;
+        }
+        if (!user?.firstName || !user?.email) {
+            handleProfileIncomplete(toggleFavAction);
+            return;
+        }
+        await toggleFavAction();
+    };
+
+    const handleProfileIncomplete = (action: () => void) => {
+        setPendingAction(() => action);
+        setIsEditProfileModalOpen(true);
+    };
+
+    const handleUpdateProfile = async (updatedData: { firstName: string; lastName: string; email: string }) => {
+        if (!userId) throw new Error("User not authenticated");
+        const token = localStorage.getItem('jwt');
+        if (token) await updateUserProfile(userId, updatedData, token);
+        await refreshUser(true);
+        if (pendingAction) {
+            pendingAction();
+            setPendingAction(null);
+        }
+    };
+
+    const handleCloseModal = () => {
+        setIsEditProfileModalOpen(false);
+        setPendingAction(null);
+    };
+
+    const cardData = useMemo(() => counselors.map((c) => ({
+        ...adaptApiDataToCardData(c),
+        isFavourite: favouriteIds.has(c.counsellorId)
+    })), [counselors, favouriteIds]);
 
     return (
         <div className="max-w-[1440px] mx-auto pt-8 px-4 sm:px-8 lg:px-[60px]">
-            {/* Breadcrumbs */}
-            <div className="flex flex-row items-center p-0 gap-[8px] mb-[16px] lg:mb-[24px]">
-                <span className="font-[Poppins] font-normal text-[14px] lg:text-[16px] leading-[21px] text-[#6B7280] cursor-pointer hover:text-[#0E1629]">
-                    Counsellor
-                </span>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 12L10 8L6 4" stroke="#6B7280" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <span className="font-[Poppins] font-medium text-[14px] lg:text-[16px] leading-[21px] text-[#0E1629]">
-                    List of Counsellors
-                </span>
-            </div>
 
             <div className="lg:hidden flex flex-row items-center justify-between mb-4 bg-white p-3 rounded-lg shadow-[0px_2px_8px_rgba(0,0,0,0.15)] cursor-pointer" onClick={() => setIsMobileFilterOpen(true)}>
                 <div className="flex items-center gap-2 text-[#0E1629] font-medium font-[Poppins] text-[15px]">
@@ -223,7 +285,7 @@ const CounsellorsPage: React.FC = () => {
                         </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-4 pb-28">
+                    <div className="flex-1 overflow-y-auto scrollbar-hide p-4 pb-28">
                         <CounsellorListing
                             selectedExperience={selectedExperience} setSelectedExperience={setSelectedExperience}
                             selectedLanguages={selectedLanguages} setSelectedLanguages={setSelectedLanguages}
@@ -256,7 +318,7 @@ const CounsellorsPage: React.FC = () => {
             {/* Layout Container */}
             <div className="flex flex-col lg:flex-row items-start gap-6 lg:gap-[64px] relative">
                 
-                <div className="hidden lg:block w-[312px] flex-shrink-0 sticky top-6 max-h-[calc(100vh-48px)] overflow-y-auto overflow-x-hidden custom-scrollbar pb-4">
+                <div className="hidden lg:block w-[312px] flex-shrink-0 sticky top-6 max-h-[calc(100vh-48px)] overflow-y-auto overflow-x-hidden scrollbar-hide pb-4">
                     <CounsellorListing
                         selectedExperience={selectedExperience} setSelectedExperience={setSelectedExperience}
                         selectedLanguages={selectedLanguages} setSelectedLanguages={setSelectedLanguages}
@@ -278,9 +340,22 @@ const CounsellorsPage: React.FC = () => {
                         hasMore={hasMore}
                         searchInput={searchInput}
                         setSearchInput={setSearchInput}
+                        onToggleFavourite={handleToggleFavourite}
+                        selectedSort={selectedSort}
+                        setSelectedSort={setSelectedSort}
                     />
                 </div>
             </div>
+
+            {user && (
+                <EditProfileModal
+                    isOpen={isEditProfileModalOpen}
+                    onClose={handleCloseModal}
+                    user={user}
+                    onUpdate={handleUpdateProfile}
+                    onUploadComplete={() => { }}
+                />
+            )}
         </div>
     );
 };
