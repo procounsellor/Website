@@ -70,6 +70,7 @@ export default function ProBuddiesSection({ probuddyList }: param) {
             {displayBuddies.map((buddy) => (
               <motion.div key={buddy.proBuddyId} variants={cardVariants} className="shrink-0">
                 <ProBuddyCard
+                  id={buddy.proBuddyId as string}
                   name={`${buddy.firstName ?? ""} ${buddy.lastName ?? ""}`.trim()}
                   imageUrl={buddy.photoUrl ?? ""}
                   rating={Number(buddy.rating) ?? 0.0}

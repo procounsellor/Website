@@ -19,12 +19,57 @@ export default function ProBuddyListing() {
   const { userId } = useAuthStore();
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("recommended");
-  const [selectedCities, setSelectedCities] = useState<string[]>([]);
+  const [stateFilter, setStateFilter] = useState("");
+  const [cityFilter, setCityFilter] = useState("");
+  const [courseFilter, setCourseFilter] = useState("");
+  const [languageFilter, setLanguageFilter] = useState("");
+  const [workingDayFilter, setWorkingDayFilter] = useState("");
+  const [minRating, setMinRating] = useState(0);
+  const [maxRating, setMaxRating] = useState(5);
   const [coinsRange, setCoinsRange] = useState<[number, number]>([0, 500]);
 
+  const sortMapping = useMemo(() => {
+    if (sortBy === "coins-low") {
+      return { sortBy: "ratePerMinute", sortOrder: "asc" as const };
+    }
+    if (sortBy === "coins-high") {
+      return { sortBy: "ratePerMinute", sortOrder: "desc" as const };
+    }
+    return { sortBy: "rating", sortOrder: "desc" as const };
+  }, [sortBy]);
+
   const { data: probuddies = [], isLoading } = useQuery({
-    queryKey: ["pro-buddies-listing", userId],
-    queryFn: () => probuddiesApi.listing((userId as string) ?? ""),
+    queryKey: [
+      "pro-buddies-listing",
+      userId ?? "guest",
+      stateFilter,
+      cityFilter,
+      courseFilter,
+      languageFilter,
+      workingDayFilter,
+      minRating,
+      maxRating,
+      coinsRange[0],
+      coinsRange[1],
+      sortMapping.sortBy,
+      sortMapping.sortOrder,
+    ],
+    queryFn: () =>
+      probuddiesApi.listing(userId ?? null, {
+        state: stateFilter,
+        city: cityFilter,
+        course: courseFilter,
+        languagesKnow: languageFilter,
+        workingDays: workingDayFilter,
+        minRatePerMinute: coinsRange[0],
+        maxRatePerMinute: coinsRange[1],
+        minRating,
+        maxRating,
+        sortBy: sortMapping.sortBy,
+        sortOrder: sortMapping.sortOrder,
+        page: 0,
+        pageSize: 10,
+      }),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
@@ -47,10 +92,9 @@ export default function ProBuddyListing() {
         (item.course ?? "").toLowerCase().includes(searchText) ||
         city.includes(searchText);
 
-      const matchesCity = selectedCities.length === 0 || selectedCities.includes(item.city ?? "Not specified");
       const matchesCoins = coins >= coinsRange[0] && coins <= coinsRange[1];
 
-      return matchesSearch && matchesCity && matchesCoins;
+      return matchesSearch && matchesCoins;
     });
 
     if (sortBy === "rating") {
@@ -62,13 +106,7 @@ export default function ProBuddyListing() {
     }
 
     return items;
-  }, [coinsRange, probuddies, search, selectedCities, sortBy]);
-
-  const toggleCity = (city: string) => {
-    setSelectedCities((prev) =>
-      prev.includes(city) ? prev.filter((item) => item !== city) : [...prev, city]
-    );
-  };
+  }, [coinsRange, probuddies, search, sortBy]);
 
   const sidebar = (
     <div className="space-y-3">
@@ -76,7 +114,13 @@ export default function ProBuddyListing() {
         <h2 className="text-sm font-semibold text-(--text-main)">Filters</h2>
         <button
           onClick={() => {
-            setSelectedCities([]);
+            setStateFilter("");
+            setCityFilter("");
+            setCourseFilter("");
+            setLanguageFilter("");
+            setWorkingDayFilter("");
+            setMinRating(0);
+            setMaxRating(5);
             setCoinsRange([0, 500]);
           }}
           className="text-xs font-medium text-[#2F43F2]"
@@ -85,20 +129,60 @@ export default function ProBuddyListing() {
         </button>
       </div>
 
-      <div className="rounded-lg border border-[#D6DCE5] bg-white p-3">
-        <h3 className="mb-2 text-sm font-semibold text-(--text-main)">City</h3>
-        <div className="space-y-2">
+      <div className="rounded-lg border border-[#D6DCE5] bg-white p-3 space-y-2">
+        <h3 className="text-sm font-semibold text-(--text-main)">Location & Profile</h3>
+        <input
+          type="text"
+          value={stateFilter}
+          onChange={(e) => setStateFilter(e.target.value)}
+          placeholder="State (e.g. Maharashtra)"
+          className="h-9 w-full rounded-lg border border-[#E5E7EB] bg-white px-2 text-sm"
+        />
+        <input
+          type="text"
+          value={cityFilter}
+          onChange={(e) => setCityFilter(e.target.value)}
+          placeholder="City (e.g. Mumbai)"
+          list="probuddy-city-options"
+          className="h-9 w-full rounded-lg border border-[#E5E7EB] bg-white px-2 text-sm"
+        />
+        <datalist id="probuddy-city-options">
           {cityOptions.map((city) => (
-            <label key={city} className="flex items-center gap-2 text-sm text-(--text-main)">
-              <input
-                type="checkbox"
-                checked={selectedCities.includes(city)}
-                onChange={() => toggleCity(city)}
-              />
-              <span>{city}</span>
-            </label>
+            <option key={city} value={city} />
           ))}
-        </div>
+        </datalist>
+        <input
+          type="text"
+          value={courseFilter}
+          onChange={(e) => setCourseFilter(e.target.value)}
+          placeholder="Course (e.g. B.Tech)"
+          className="h-9 w-full rounded-lg border border-[#E5E7EB] bg-white px-2 text-sm"
+        />
+      </div>
+
+      <div className="rounded-lg border border-[#D6DCE5] bg-white p-3 space-y-2">
+        <h3 className="text-sm font-semibold text-(--text-main)">Language & Day</h3>
+        <input
+          type="text"
+          value={languageFilter}
+          onChange={(e) => setLanguageFilter(e.target.value)}
+          placeholder="Language (e.g. English)"
+          className="h-9 w-full rounded-lg border border-[#E5E7EB] bg-white px-2 text-sm"
+        />
+        <select
+          value={workingDayFilter}
+          onChange={(e) => setWorkingDayFilter(e.target.value)}
+          className="h-9 w-full rounded-lg border border-[#E5E7EB] bg-white px-2 text-sm"
+        >
+          <option value="">Any day</option>
+          <option value="Monday">Monday</option>
+          <option value="Tuesday">Tuesday</option>
+          <option value="Wednesday">Wednesday</option>
+          <option value="Thursday">Thursday</option>
+          <option value="Friday">Friday</option>
+          <option value="Saturday">Saturday</option>
+          <option value="Sunday">Sunday</option>
+        </select>
       </div>
 
       <div className="rounded-lg border border-[#D6DCE5] bg-white p-3">
@@ -116,6 +200,37 @@ export default function ProBuddyListing() {
             onChange={(e) => setCoinsRange([coinsRange[0], Number(e.target.value || 0)])}
             className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-2 text-sm"
           />
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-[#D6DCE5] bg-white p-3">
+        <h3 className="mb-2 text-sm font-semibold text-(--text-main)">Rating Range</h3>
+        <div className="grid grid-cols-2 gap-2">
+          <select
+            value={minRating}
+            onChange={(e) => setMinRating(Number(e.target.value))}
+            className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-2 text-sm"
+          >
+            <option value={0}>Min 0</option>
+            <option value={1}>Min 1</option>
+            <option value={2}>Min 2</option>
+            <option value={3}>Min 3</option>
+            <option value={4}>Min 4</option>
+            <option value={5}>Min 5</option>
+          </select>
+
+          <select
+            value={maxRating}
+            onChange={(e) => setMaxRating(Number(e.target.value))}
+            className="h-9 rounded-lg border border-[#E5E7EB] bg-white px-2 text-sm"
+          >
+            <option value={0}>Max 0</option>
+            <option value={1}>Max 1</option>
+            <option value={2}>Max 2</option>
+            <option value={3}>Max 3</option>
+            <option value={4}>Max 4</option>
+            <option value={5}>Max 5</option>
+          </select>
         </div>
       </div>
     </div>

@@ -57,6 +57,21 @@ export interface ProBuddyUserSide {
   voipToken: string | null;
 
   verified: boolean;
+
+  // Appended in frontend by profile API wrapper for profile page consumption.
+  reviewsReceivedForUser?: ProBuddyReviewForUser[];
+  reviewsCountForUser?: number;
+}
+
+export interface ProBuddyReviewForUser {
+  reviewId?: string;
+  userId?: string;
+  userName?: string | null;
+  reviewText?: string | null;
+  rating?: number | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  [key: string]: unknown;
 }
 
 export interface AboutMe {

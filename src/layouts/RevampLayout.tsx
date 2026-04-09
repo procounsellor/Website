@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Footer from "@/components/layout/Footer";
 import RevampHeader from "@/components/Revamp/RevampHeader";
 import RevampBreadcrumbs from "@/components/Revamp/RevampBreadcrumbs";
@@ -8,12 +8,35 @@ import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "@/store/AuthStore";
 import { useChatStore } from "@/store/ChatStore";
 import Chatbot from "@/components/chatbot/Chatbot";
+import Lottie from "lottie-react";
 
 export default function RevampLayout() {
     const { isLoginToggle, role, user, isAuthenticated } = useAuthStore();
     const { isChatbotOpen, toggleChatbot } = useChatStore();
     const navigate = useNavigate();
     const location = useLocation();
+    const [chatbotAnimation, setChatbotAnimation] = useState<object | null>(null);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        fetch("/chatbot.json")
+            .then((response) => response.json())
+            .then((data) => {
+                if (isMounted) {
+                    setChatbotAnimation(data);
+                }
+            })
+            .catch(() => {
+                if (isMounted) {
+                    setChatbotAnimation(null);
+                }
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     useEffect(() => {
         if (isAuthenticated && role === 'proBuddy' && user && !user.verified) {
@@ -45,14 +68,14 @@ export default function RevampLayout() {
 
         <button
             onClick={toggleChatbot}
-            className="fixed right-3 md:right-6 bottom-3 md:bottom-6 z-50 flex h-16 w-16 cursor-pointer items-center justify-center transition-transform duration-300 hover:scale-110"
+            className="fixed right-3 md:right-6 bottom-3 md:bottom-6 z-50 flex h-32 w-32~ cursor-pointer items-center justify-center transition-transform duration-300 hover:scale-110"
             aria-label="Toggle Chatbot"
         >
-            <img
-                src="/course-bottom-right.svg"
-                alt="Chatbot"
-                className="h-16 w-16"
-            />
+            {chatbotAnimation ? (
+                <Lottie animationData={chatbotAnimation} loop autoplay className="h-full w-full" />
+            ) : (
+                <div className="h-16 w-16 rounded-full bg-[#0E1629]" />
+            )}
         </button>
 
         {isChatbotOpen && <Chatbot />}

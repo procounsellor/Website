@@ -75,6 +75,10 @@ export default function RevampBreadcrumbs() {
       crumbs.push({ label: 'ProBuddies', path: '/pro-buddies' });
       crumbs.push({ label: 'College Listing' });
     }
+    else if (path.includes('/pro-buddies/profile/')) {
+      crumbs.push({ label: 'ProBuddies', path: '/pro-buddies' });
+      crumbs.push({ label: 'Profile' });
+    }
     // ProBuddies routes
     else if (path.includes('/pro-buddies')) {
       crumbs.push({ label: 'ProBuddies' });

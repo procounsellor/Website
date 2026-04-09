@@ -1,7 +1,10 @@
+import { encodeCounselorId } from "@/lib/utils";
 import { Star, GraduationCap, MapPin } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 interface ProBuddyCardProps {
+  id:string
   name: string;
   imageUrl: string;
   rating: number;
@@ -11,6 +14,7 @@ interface ProBuddyCardProps {
 }
 
 export default function ProBuddyCard({
+  id,
   name,
   imageUrl,
   rating,
@@ -24,8 +28,9 @@ export default function ProBuddyCard({
     `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "ProBuddy")}&background=6B7280&color=ffffff&size=400`;
 
   return (
-    <div
-      className="relative cursor-pointer shrink-0"
+    <Link
+      to={`/pro-buddies/profile/${encodeCounselorId(id)}`}
+      className="relative cursor-pointer shrink-0 block"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -214,7 +219,7 @@ export default function ProBuddyCard({
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -223,6 +228,7 @@ export default function ProBuddyCard({
 
 export function ProbuddyPhoneListinCard(
   {
+    id,
     name,
     imageUrl,
     rating,
@@ -236,10 +242,11 @@ export function ProbuddyPhoneListinCard(
     imageUrl ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "ProBuddy")}&background=6B7280&color=ffffff&size=400`;
 
-  return <div
+  return <Link
+    to={`/pro-buddies/profile/${id}`}
     onMouseEnter={() => setIsHovered(true)}
     onMouseLeave={() => setIsHovered(false)}
-    className="md:hidden relative w-42.25 h-66.5 cursor-pointer shrink-0">
+    className="md:hidden relative w-42.25 h-66.5 cursor-pointer shrink-0 block">
    <svg className="absolute inset-0 w-full h-full" width="169" height="266" viewBox="0 0 169 266" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M162.5 0C166.09 3.65054e-06 169 4.22813 169 9.44379V209C169 215.627 163.627 221 157 221H137.838C132.117 221 127.192 225.038 126.071 230.647L120.929 256.353C119.808 261.962 114.883 266 109.162 266H6.5C2.91015 266 4.58041e-08 261.772 0 256.556V9.44379C1.15165e-06 4.22813 2.91015 1.90132e-07 6.5 0H162.5Z" fill="white"/>
 </svg>
@@ -323,6 +330,6 @@ export function ProbuddyPhoneListinCard(
         />
       </div>
     </div>
-  </div>
+  </Link>
 }
 
