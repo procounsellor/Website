@@ -258,6 +258,7 @@ export default function ProBuddyListing() {
               <div key={`${buddy.proBuddyId ?? "probuddy"}-${idx}`} className="w-full">
                 <div className="md:hidden">
                   <ProbuddyPhoneListinCard
+                    id={buddy.proBuddyId ?? String(idx)}
                     name={name}
                     imageUrl={buddy.photoUrl ?? ""}
                     rating={Number(buddy.rating ?? 0)}
@@ -268,6 +269,7 @@ export default function ProBuddyListing() {
                 </div>
                 <div className="hidden md:block">
                   <ProBuddyCard
+                    id={buddy.proBuddyId ?? String(idx)}
                     name={name}
                     imageUrl={buddy.photoUrl ?? ""}
                     rating={Number(buddy.rating ?? 0)}
