@@ -42,7 +42,7 @@ const CounselorCardItem = ({ counsellor, isLast, lastElementRef, onToggleFavouri
     return (
     <div 
         ref={isLast ? lastElementRef : null}
-        onClick={() => navigate(`/counsellor/${encodeCounselorId(counsellor.id)}`)}
+        onClick={() => navigate(`/counsellor-details/${encodeCounselorId(counsellor.id)}`)}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className="w-full h-[250px] sm:w-full sm:max-w-[340px] sm:h-[387px] mx-auto relative cursor-pointer group shrink-0 transition-transform duration-300 hover:-translate-y-1"
@@ -73,8 +73,8 @@ const CounselorCardItem = ({ counsellor, isLast, lastElementRef, onToggleFavouri
                     
                     {/* Rating Badge */}
                     <div className="absolute left-1.5 sm:left-[8px] top-1.5 sm:top-[8px] flex flex-row items-center justify-center p-1 sm:p-[4px] gap-[2px] sm:gap-[8px] min-w-[36px] sm:w-[48px] h-[20px] sm:h-[24px] rounded-[100px] bg-[#FFFFFF4D] backdrop-blur-[15px] shadow-sm pointer-events-none">
-                        <Star className="w-3 h-3 sm:w-[16px] sm:h-[16px] text-white fill-white shrink-0" />
-                        <span className="font-['Poppins'] font-medium text-[11px] sm:text-[14px] text-white whitespace-nowrap leading-none">{counsellor.rating}</span>
+                        <Star className="w-3 h-3 sm:w-[16px] sm:h-[16px] text-[#0E1629] fill-[#0E1629] shrink-0" />
+                        <span className="font-['Poppins'] font-medium text-[11px] sm:text-[14px] text-[#0E1629] whitespace-nowrap leading-none">{counsellor.rating}</span>
                     </div>
 
                     {/* Bookmark Badge */}
@@ -85,7 +85,7 @@ const CounselorCardItem = ({ counsellor, isLast, lastElementRef, onToggleFavouri
                         aria-label="Save counselor"
                         className="absolute right-1.5 sm:right-[8px] top-1.5 sm:top-[8px] flex items-center justify-center px-1 sm:px-[8px] py-1 sm:py-[4px] min-w-[24px] sm:w-[32px] h-[20px] sm:h-[24px] rounded-[100px] bg-[#FFFFFF4D] backdrop-blur-[15px] transition-colors hover:bg-white/40 cursor-pointer shadow-sm z-50 pointer-events-auto"
                     >
-                        <Bookmark className={`w-3 h-3 sm:w-[16px] sm:h-[16px] text-white pointer-events-none transition-colors ${counsellor.isFavourite ? 'fill-current' : ''}`} />
+                        <Bookmark className={`w-3 h-3 sm:w-[16px] sm:h-[16px] text-[#0E1629] pointer-events-none transition-colors ${counsellor.isFavourite ? 'fill-current' : ''}`} />
                     </button>
                 </div>
 

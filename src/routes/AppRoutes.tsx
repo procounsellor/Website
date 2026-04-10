@@ -55,6 +55,7 @@ import CollegeListing from '@/pages/Revamp/CollegeListing';
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
 const CounselorDetailsPage = lazy(() => import('@/pages/CounselorDetailsPage'));
+const RevampCounselorDetailsPage = lazy(() => import('@/pages/Revamp/RevampCounselorDetailsPage'));
 const ExamDetailsPage = lazy(() => import('@/pages/ExamDetailsPage'));
 const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
 const LiveSessionsPage = lazy(() => import('@/pages/LiveSessionsPage'));
@@ -101,6 +102,7 @@ export default function AppRoutes() {
                       
                         <Route path='/counsellor-listing' element={<CounsellorsPage />} />
                         <Route path='/counsellor-listing-cards' element={<CounsellorsPage />} />
+                        <Route path="/counsellor-details/:id" element={<RevampCounselorDetailsPage />} />
 
                         {/* probuddies pages  */}
                         <Route path='/pro-buddies/register' element={<ProBuddiesRegistration />} />
