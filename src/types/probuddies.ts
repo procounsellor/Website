@@ -64,13 +64,23 @@ export interface ProBuddyUserSide {
 }
 
 export interface ProBuddyReviewForUser {
-  reviewId?: string;
-  userId?: string;
-  userName?: string | null;
-  reviewText?: string | null;
-  rating?: number | null;
-  createdAt?: string | null;
-  updatedAt?: string | null;
+  reviewId: string;
+  userId: string;
+  userFullName: string | null;
+  imageUrl: string | null;
+  proBuddyId: string;
+  proBuddyFullName: string | null;
+  proBuddyImageUrl: string | null;
+  reviewText: string | null;
+  rating: number | null;
+  timestamp: {
+    seconds: number;
+    nanos: number;
+  } | null;
+  timestampUpdated: {
+    seconds: number;
+    nanos: number;
+  } | null;
   [key: string]: unknown;
 }
 
