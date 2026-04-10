@@ -26,7 +26,7 @@ export default function FancyCard({
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`/counsellor/${encodeCounselorId(counsellorId)}`);
+    navigate(`/counsellor-details/${encodeCounselorId(counsellorId)}`);
   };
 
   return (
