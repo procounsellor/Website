@@ -8,10 +8,12 @@ type SubmittedResultBase = {
   chemistry: number;
   mathematics: number;
   total: number;
+  rank?: number;
 };
 
 type SubmittedResult = SubmittedResultBase & {
-  rank: number;
+  normalizedName: string;
+  normalizedPhone: string;
 };
 
 type StartedNotSubmitted = {
@@ -60,9 +62,18 @@ const SUBMITTED_RESULTS_RAW: SubmittedResultBase[] = [
   { serialNo: 37, fullName: "Sameer Adhau", emailId: "+919309177893@examin8.com", physics: -3.75, chemistry: 4.0, mathematics: 7.5, total: 7.75 },
   { serialNo: 38, fullName: "Shardul Gavali", emailId: "+917385415778@mycbseguide.com", physics: -0.25, chemistry: 0.0, mathematics: 0.0, total: -0.25 },
   { serialNo: 39, fullName: "Gayatri Patil", emailId: "+917058072173@examin8.com", physics: 0.0, chemistry: -1.25, mathematics: -10.0, total: -11.25 },
+  { serialNo: 40, fullName: "Yash Dole", emailId: "+917240140209@examin8.com", physics: 37.5, chemistry: 43.75, mathematics: 92.5, total: 173.75 },
+  { serialNo: 41, fullName: "Jidnya Patil", emailId: "+918530523907@examin8.com", physics: 42.5, chemistry: 37.5, mathematics: 90.0, total: 170.0 },
+  { serialNo: 42, fullName: "Manthan Bhosale", emailId: "+918591500598@examin8.com", physics: 27.5, chemistry: 37.25, mathematics: 69.0, total: 133.75 },
+  { serialNo: 43, fullName: "Chinmay Ghag", emailId: "+918369586272@examin8.com", physics: 22.5, chemistry: 33.75, mathematics: 35.0, total: 91.25 },
+  { serialNo: 44, fullName: "Shreyash Yadav", emailId: "+919766287401@examin8.com", physics: 22.5, chemistry: 18.75, mathematics: 40.0, total: 81.25 },
+  { serialNo: 45, fullName: "Aditya Itkar", emailId: "+919923235739@examin8.com", physics: 22.5, chemistry: 17.5, mathematics: 40.0, total: 80.0 },
+  { serialNo: 46, fullName: "Srushti Somwanshi", emailId: "+918805734052@examin8.com", physics: 22.5, chemistry: 27.5, mathematics: 12.5, total: 62.5 },
+  { serialNo: 47, fullName: "Samiksha Misal", emailId: "+919610702092@examin8.com", physics: 3.25, chemistry: 17.75, mathematics: 19.5, total: 40.5 },
+  { serialNo: 48, fullName: "Nayenshi Singh", emailId: "+917718070884@examin8.com", physics: 2.5, chemistry: 0.0, mathematics: 0.0, total: 2.5 },
 ];
 
-const MANUAL_RANK_BY_SERIAL: Record<number, number> = {
+const LEGACY_RANK_BY_SERIAL: Record<number, number> = {
   1: 68,
   2: 142,
   3: 251,
@@ -102,62 +113,152 @@ const MANUAL_RANK_BY_SERIAL: Record<number, number> = {
   37: 5960,
   38: 5988,
   39: 6000,
+  40: 820,
+  41: 910,
+  42: 1840,
+  43: 3160,
+  44: 3725,
+  45: 3880,
+  46: 4710,
+  47: 5535,
+  48: 5920,
 };
 
-const SUBMITTED_RESULTS: SubmittedResult[] = SUBMITTED_RESULTS_RAW.map((item) => ({
+const ALL_SUBMITTED_RESULTS: SubmittedResult[] = SUBMITTED_RESULTS_RAW.map((item) => ({
   ...item,
-  rank: MANUAL_RANK_BY_SERIAL[item.serialNo] ?? 6000,
+  rank: item.rank ?? LEGACY_RANK_BY_SERIAL[item.serialNo] ?? 6000,
+  normalizedName: normalizeName(item.fullName),
+  normalizedPhone: extractPhoneFromEmailLikeId(item.emailId),
 }));
+
+const UNIQUE_SUBMITTED_RESULTS = Array.from(
+  ALL_SUBMITTED_RESULTS.reduce((accumulator, item) => {
+    const key = getRecordKey(item.fullName, item.emailId);
+    const current = accumulator.get(key);
+
+    if (!current || item.total > current.total) {
+      accumulator.set(key, item);
+    }
+
+    return accumulator;
+  }, new Map<string, SubmittedResult>()).values()
+).sort((left, right) => right.total - left.total || left.fullName.localeCompare(right.fullName));
+
+const UNIQUE_SUBMITTED_KEYS = new Set(
+  UNIQUE_SUBMITTED_RESULTS.map((item) => getRecordKey(item.fullName, item.emailId))
+);
 
 const STARTED_NOT_SUBMITTED: StartedNotSubmitted[] = [
   { serialNo: 1, fullName: "Aswini Verma", emailId: "+917004789484@examin8.com" },
   { serialNo: 2, fullName: "Gaurav Sagare", emailId: "+918149203925@examin8.com" },
   { serialNo: 3, fullName: "Srushti Somwanshi", emailId: "+918805734052@examin8.com" },
+  { serialNo: 4, fullName: "Adinath Pacharne", emailId: "+919307764027@examin8.com" },
+  { serialNo: 5, fullName: "Aswini Verma", emailId: "+917004789484@examin8.com" },
+  { serialNo: 6, fullName: "Bhavika Mhaske", emailId: "bhavikamhaske08@gmail.com" },
+  { serialNo: 7, fullName: "Janhavi Ingole", emailId: "+919146626693@examin8.com" },
+  { serialNo: 8, fullName: "Pratik Bonage", emailId: "+917066773423@examin8.com" },
+  { serialNo: 9, fullName: "Rushikesh Pote", emailId: "+918956488650@examin8.com" },
+  { serialNo: 10, fullName: "Sonakshi Parshivnikar", emailId: "+919376105201@examin8.com" },
+  { serialNo: 11, fullName: "Supriya Darade", emailId: "+917709761448@examin8.com" },
+  { serialNo: 12, fullName: "Sushant Zunje", emailId: "+919730158043@examin8.com" },
+  { serialNo: 13, fullName: "Tanushri Sarda", emailId: "+919699789200@examin8.com" },
+  { serialNo: 14, fullName: "Vikas Chaudhari", emailId: "+918080671935@examin8.com" },
+  { serialNo: 15, fullName: "Viraj Lahoti", emailId: "+917666499062@mycbseguide.com" },
 ];
 
-const normalizePhoneInput = (value: string) => {
+const UNIQUE_PENDING_RESULTS = Array.from(
+  STARTED_NOT_SUBMITTED.reduce((accumulator, item) => {
+    const key = getRecordKey(item.fullName, item.emailId);
+
+    if (!UNIQUE_SUBMITTED_KEYS.has(key) && !accumulator.has(key)) {
+      accumulator.set(key, {
+        ...item,
+        normalizedName: normalizeName(item.fullName),
+        normalizedPhone: extractPhoneFromEmailLikeId(item.emailId),
+      });
+    }
+
+    return accumulator;
+  }, new Map<string, StartedNotSubmitted & { normalizedName: string; normalizedPhone: string }>()).values()
+);
+
+const findBestMatch = <T extends { fullName: string; emailId: string; normalizedName: string; normalizedPhone: string; total?: number }>(
+  records: T[],
+  query: string
+) => {
+  const trimmedQuery = query.trim();
+  if (!trimmedQuery) return null;
+
+  const normalizedNameQuery = normalizeName(trimmedQuery);
+  const normalizedPhoneQuery = normalizePhoneInput(trimmedQuery);
+  const lowerCaseQuery = trimmedQuery.toLowerCase();
+  const hasPhoneDigits = /\d/.test(trimmedQuery);
+
+  const matches = records.filter((item) => {
+    const exactEmailMatch = item.emailId.toLowerCase() === lowerCaseQuery;
+    const emailContainsMatch = lowerCaseQuery.length > 0 && item.emailId.toLowerCase().includes(lowerCaseQuery);
+    const exactNameMatch = normalizedNameQuery.length > 0 && item.normalizedName === normalizedNameQuery;
+    const partialNameMatch = normalizedNameQuery.length > 0 && item.normalizedName.includes(normalizedNameQuery);
+    const phoneMatch = hasPhoneDigits && normalizedPhoneQuery.length >= 10 && item.normalizedPhone === normalizedPhoneQuery;
+
+    return exactEmailMatch || emailContainsMatch || exactNameMatch || partialNameMatch || phoneMatch;
+  });
+
+  if (!matches.length) return null;
+
+  matches.sort((left, right) => {
+    const leftExactName = left.normalizedName === normalizedNameQuery ? 1 : 0;
+    const rightExactName = right.normalizedName === normalizedNameQuery ? 1 : 0;
+    const leftPhone = hasPhoneDigits && normalizedPhoneQuery.length >= 10 && left.normalizedPhone === normalizedPhoneQuery ? 1 : 0;
+    const rightPhone = hasPhoneDigits && normalizedPhoneQuery.length >= 10 && right.normalizedPhone === normalizedPhoneQuery ? 1 : 0;
+    const leftScore = left.total ?? -Infinity;
+    const rightScore = right.total ?? -Infinity;
+
+    return rightExactName - leftExactName || rightPhone - leftPhone || rightScore - leftScore || left.fullName.localeCompare(right.fullName);
+  });
+
+  return matches[0];
+};
+
+function normalizePhoneInput(value: string) {
   const digits = value.replace(/\D/g, "");
   if (!digits) return "";
   return digits.length > 10 ? digits.slice(-10) : digits;
-};
+}
 
-const extractPhoneFromEmailLikeId = (value: string) => {
+function extractPhoneFromEmailLikeId(value: string) {
   const match = value.match(/\+?\d{10,13}/);
   if (!match) return "";
   return normalizePhoneInput(match[0]);
-};
+}
 
-const formatMarks = (value: number) => value.toFixed(2);
+function normalizeName(value: string) {
+  return value.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function getRecordKey(fullName: string, emailId: string) {
+  const normalizedFullName = normalizeName(fullName);
+  const phone = extractPhoneFromEmailLikeId(emailId);
+
+  if (phone) return `${normalizedFullName}|${phone}`;
+  return `${normalizedFullName}|${emailId.trim().toLowerCase()}`;
+}
+
+function formatMarks(value: number) {
+  return value.toFixed(2);
+}
 
 export default function PCSATResultsPage() {
   const [phoneInput, setPhoneInput] = useState("");
   const [searchedPhone, setSearchedPhone] = useState("");
 
-  const normalizedInput = useMemo(() => normalizePhoneInput(phoneInput), [phoneInput]);
+  const submittedRecord = useMemo(() => findBestMatch(UNIQUE_SUBMITTED_RESULTS, phoneInput), [phoneInput]);
 
-  const submittedRecord = useMemo(
-    () =>
-      SUBMITTED_RESULTS.find((item) => {
-        const itemPhone = extractPhoneFromEmailLikeId(item.emailId);
-        const emailMatches = item.emailId.toLowerCase() === phoneInput.trim().toLowerCase();
-        return emailMatches || (normalizedInput.length >= 10 && itemPhone === normalizedInput);
-      }),
-    [normalizedInput, phoneInput]
-  );
-
-  const pendingRecord = useMemo(
-    () =>
-      STARTED_NOT_SUBMITTED.find((item) => {
-        const itemPhone = extractPhoneFromEmailLikeId(item.emailId);
-        const emailMatches = item.emailId.toLowerCase() === phoneInput.trim().toLowerCase();
-        return emailMatches || (normalizedInput.length >= 10 && itemPhone === normalizedInput);
-      }),
-    [normalizedInput, phoneInput]
-  );
+  const pendingRecord = useMemo(() => findBestMatch(UNIQUE_PENDING_RESULTS, phoneInput), [phoneInput]);
 
   const resultRank = useMemo(() => {
     if (!submittedRecord) return "-";
-    return submittedRecord.rank.toLocaleString();
+    return submittedRecord.rank?.toLocaleString() ?? "-";
   }, [submittedRecord]);
 
   const hasSearched = searchedPhone.length > 0;
@@ -180,7 +281,7 @@ export default function PCSATResultsPage() {
             Check Your PCSAT Result
           </h1>
           <p className="mt-2 text-sm md:text-base text-(--text-muted)">
-            Enter your phone number to view your marks and rank.
+            Enter your phone number, email, or candidate name to view marks and rank.
           </p>
 
           <div className="mt-6 rounded-2xl border border-[#DCE5FF] bg-white p-3 md:p-4">
@@ -191,7 +292,7 @@ export default function PCSATResultsPage() {
                 onKeyDown={(event) => {
                   if (event.key === "Enter") handleSearch();
                 }}
-                placeholder="Enter mobile number (example: 9730158043)"
+                placeholder="Enter mobile number, email, or candidate name"
                 className="h-11 flex-1 rounded-lg border border-[#CAD8FF] bg-[#F9FBFF] px-4 text-sm text-(--text-app-primary) outline-none focus:ring-2 focus:ring-[#5A7DFF]"
               />
               <button
@@ -248,14 +349,14 @@ export default function PCSATResultsPage() {
 
           {notFound && (
             <div className="rounded-2xl border border-[#FFD4D4] bg-[#FFF4F4] p-5">
-              <p className="text-red-700 font-semibold">No result found for this phone number.</p>
-              <p className="text-sm text-[#9E5151] mt-1">Try with your registered 10-digit phone number.</p>
+              <p className="text-red-700 font-semibold">No result found for that name or phone number.</p>
+              <p className="text-sm text-[#9E5151] mt-1">Try the registered 10-digit phone number, email address, or exact candidate name.</p>
             </div>
           )}
 
           {!hasSearched && (
             <div className="rounded-2xl border border-[#E5EAF2] bg-white p-5">
-              <p className="text-(--text-muted)">Search your phone number to see your detailed result.</p>
+              <p className="text-(--text-muted)">Search by phone number, email, or candidate name to see your detailed result.</p>
             </div>
           )}
 
