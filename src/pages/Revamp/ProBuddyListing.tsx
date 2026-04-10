@@ -254,10 +254,13 @@ export default function ProBuddyListing() {
         <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6">
           {filteredBuddies.map((buddy, idx) => {
             const name = `${buddy.firstName ?? ""} ${buddy.lastName ?? ""}`.trim();
+            // Fallback to userName if proBuddyId is missing
+            const identifier = buddy.proBuddyId || ""; 
             return (
-              <div key={`${buddy.proBuddyId ?? "probuddy"}-${idx}`} className="w-full">
+              <div key={`${identifier}-${idx}`} className="w-full">
                 <div className="md:hidden">
                   <ProbuddyPhoneListinCard
+                    id={identifier}
                     name={name}
                     imageUrl={buddy.photoUrl ?? ""}
                     rating={Number(buddy.rating ?? 0)}
@@ -268,6 +271,7 @@ export default function ProBuddyListing() {
                 </div>
                 <div className="hidden md:block">
                   <ProBuddyCard
+                    id={identifier}
                     name={name}
                     imageUrl={buddy.photoUrl ?? ""}
                     rating={Number(buddy.rating ?? 0)}
