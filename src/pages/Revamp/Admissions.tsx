@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Stories from "@/components/Revamp/probuddies/Stories";
 import Faq from "@/components/Revamp/admissions/Faq";
 import Blogs from "@/components/Revamp/admissions/Blogs";
@@ -12,7 +12,36 @@ import RevampBannerSection from "@/components/Revamp/banners/RevampBannerSection
 
 export default function Admissions() {
   const navigate = useNavigate();
+  const location = useLocation();
   const hasSeenSplash = sessionStorage.getItem('admissions-splash-seen') === 'true';
+  const tabPaths = ['/admissions', '/courses', '/community', '/pro-buddies', '/revamp-about'];
+
+  const navigateWithTabTransition = (path: string) => {
+    if (location.pathname === path) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    const currentIndex = tabPaths.indexOf(location.pathname);
+    const nextIndex = tabPaths.indexOf(path);
+    const direction =
+      currentIndex >= 0 && nextIndex >= 0 && nextIndex < currentIndex
+        ? 'right-to-left'
+        : 'left-to-right';
+
+    sessionStorage.setItem('revamp-tab-direction', direction);
+
+    const viewTransitionDoc = document as Document & {
+      startViewTransition?: (callback: () => void) => void;
+    };
+
+    if (viewTransitionDoc.startViewTransition) {
+      viewTransitionDoc.startViewTransition(() => navigate(path));
+      return;
+    }
+
+    navigate(path);
+  };
   const admissionsStories = [
     {
       name: "Ashutosh",
@@ -146,7 +175,7 @@ export default function Admissions() {
 
             {/* CTA Button */}
             <motion.button
-              onClick={() => navigate("/counsellors")}
+              onClick={() => navigateWithTabTransition("/counsellor-listing")}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={animationPhase >= 3 ? { opacity: 1, scale: 1 } : {}}
               transition={{ duration: 0.5, ease: "easeOut" }}
@@ -159,10 +188,11 @@ export default function Admissions() {
             <div className="absolute inset-0 top-[174px] px-16">
               {/* Admissions Card */}
               <motion.div
+                onClick={() => navigateWithTabTransition('/admissions')}
                 initial={{ opacity: 0, y: 120 }}
                 animate={animationPhase >= 4 ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.7, delay: 0, ease: "easeOut" }}
-                className="absolute left-16 top-0 w-[243px] h-[245px] bg-[#ffc8af] rounded-[28px] overflow-hidden"
+                className="absolute left-16 top-0 w-[243px] h-[245px] bg-[#ffc8af] rounded-[28px] overflow-hidden cursor-pointer"
               >
                 <img
                   src="/admissions/admission.svg"
@@ -186,10 +216,11 @@ export default function Admissions() {
 
               {/* About Us Card */}
               <motion.div
+                onClick={() => navigateWithTabTransition('/revamp-about')}
                 initial={{ opacity: 0, y: 120 }}
                 animate={animationPhase >= 4 ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
-                className="absolute left-16 top-[269px] w-[243px] h-[141px] bg-[#343C6A] rounded-[28px]"
+                className="absolute left-16 top-[269px] w-[243px] h-[141px] bg-[#343C6A] rounded-[28px] cursor-pointer"
               >
                 <div className="flex flex-col items-center justify-center h-full px-6">
                   <p className="text-[#FFFFFF] text-[24px] font-semibold font-['Poppins'] mb-2">About Us</p>
@@ -201,10 +232,11 @@ export default function Admissions() {
 
               {/* Courses Card */}
               <motion.div
+                onClick={() => navigateWithTabTransition('/courses')}
                 initial={{ opacity: 0, y: 120 }}
                 animate={animationPhase >= 4 ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.7, delay: 0.15, ease: "easeOut" }}
-                className="absolute left-[331px] top-[80px] w-[243px] h-[330px] rounded-[28px] overflow-hidden bg-gray-700"
+                className="absolute left-[331px] top-[80px] w-[243px] h-[330px] rounded-[28px] overflow-hidden bg-gray-700 cursor-pointer"
               >
                 <img
                   src="/admissions/course.jpg"
@@ -228,10 +260,11 @@ export default function Admissions() {
 
               {/* Community Card */}
               <motion.div
+                onClick={() => navigateWithTabTransition('/community')}
                 initial={{ opacity: 0, y: 120 }}
                 animate={animationPhase >= 4 ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.7, delay: 0.25, ease: "easeOut" }}
-                className="absolute left-[598px] top-[146px] w-[243px] h-[264px] bg-[#10335e] rounded-[28px]"
+                className="absolute left-[598px] top-[146px] w-[243px] h-[264px] bg-[#10335e] rounded-[28px] cursor-pointer"
               >
                 <div className="flex flex-col items-center justify-center h-full px-6">
                   <p className="text-white text-[24px] font-semibold font-['Poppins'] mb-2">Community</p>
@@ -244,10 +277,11 @@ export default function Admissions() {
 
               {/* ProBuddies Card */}
               <motion.div
+                onClick={() => navigateWithTabTransition('/pro-buddies')}
                 initial={{ opacity: 0, y: 120 }}
                 animate={animationPhase >= 4 ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.7, delay: 0.35, ease: "easeOut" }}
-                className="absolute left-[865px] top-[80px] w-[243px] h-[330px] rounded-[28px] overflow-hidden bg-gray-700"
+                className="absolute left-[865px] top-[80px] w-[243px] h-[330px] rounded-[28px] overflow-hidden bg-gray-700 cursor-pointer"
               >
                 <img
                   src="/admissions/pro.jpg"

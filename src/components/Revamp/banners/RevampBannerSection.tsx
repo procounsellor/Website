@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import AdityaBanner from './AdityaBanner';
 import GyanDhanBanner from './GyanDhanBanner';
+import PredictorBanner from './PredictorBanner';
+
+const TOTAL_SLIDES = 3;
 
 const RevampBannerSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -10,12 +12,12 @@ const RevampBannerSection = () => {
     const timer = setInterval(() => {
       setIsTransitioning(true);
       setActiveIndex((prev) => prev + 1);
-    }, 4500); 
+    }, 4500);
     return () => clearInterval(timer);
   }, []);
 
   const handleTransitionEnd = () => {
-    if (activeIndex === 2) {
+    if (activeIndex === TOTAL_SLIDES) {
       setIsTransitioning(false);
       setActiveIndex(0);
     }
@@ -33,34 +35,89 @@ const RevampBannerSection = () => {
             </span>
           </div>
 
-          {/* Desktop View */}
-          <div className="hidden md:flex w-full flex-wrap justify-center gap-6">
-            <GyanDhanBanner />
-            <AdityaBanner />
-          </div>
-
-          {/* Mobile View */}
-          <div className="md:hidden relative w-full max-w-[335px] mx-auto overflow-hidden rounded-[12px] hover:cursor-pointer">
-            <div 
-              className={`flex w-[300%] ${isTransitioning ? 'transition-transform duration-700 ease-in-out' : ''}`}
-              style={{ transform: `translateX(-${activeIndex * (100 / 3)}%)` }}
-              onTransitionEnd={handleTransitionEnd}
-            >
-              <div className="w-1/3 flex justify-center">
-                <GyanDhanBanner />
-              </div>
-              <div className="w-1/3 flex justify-center">
-                <AdityaBanner />
-              </div>
-              <div className="w-1/3 flex justify-center">
-                <GyanDhanBanner />
+          <div className="hidden md:block w-full">
+            <div className="relative w-full max-w-[1320px] mx-auto overflow-hidden rounded-2xl hover:cursor-pointer">
+              <div
+                className={`flex w-[400%] ${isTransitioning ? 'transition-transform duration-700 ease-in-out' : ''}`}
+                style={{ transform: `translateX(-${activeIndex * 25}%)` }}
+                onTransitionEnd={handleTransitionEnd}
+              >
+                <div className="w-1/4 flex justify-center gap-6">
+                  <div className="w-full max-w-[648px] shrink-0">
+                    <GyanDhanBanner />
+                  </div>
+                  <div className="w-full max-w-[648px] shrink-0">
+                    <PredictorBanner variant="rank" />
+                  </div>
+                </div>
+                <div className="w-1/4 flex justify-center gap-6">
+                  <div className="w-full max-w-[648px] shrink-0">
+                    <PredictorBanner variant="rank" />
+                  </div>
+                  <div className="w-full max-w-[648px] shrink-0">
+                    <PredictorBanner variant="match" />
+                  </div>
+                </div>
+                <div className="w-1/4 flex justify-center gap-6">
+                  <div className="w-full max-w-[648px] shrink-0">
+                    <PredictorBanner variant="match" />
+                  </div>
+                  <div className="w-full max-w-[648px] shrink-0">
+                    <GyanDhanBanner />
+                  </div>
+                </div>
+                <div className="w-1/4 flex justify-center gap-6">
+                  <div className="w-full max-w-[648px] shrink-0">
+                    <GyanDhanBanner />
+                  </div>
+                  <div className="w-full max-w-[648px] shrink-0">
+                    <PredictorBanner variant="rank" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="md:hidden flex gap-2 mx-auto mt-2">
-            <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${activeIndex === 0 || activeIndex === 2 ? 'bg-[#0E1629]' : 'bg-gray-300'}`} />
-            <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${activeIndex === 1 ? 'bg-[#0E1629]' : 'bg-gray-300'}`} />
+          <div className="md:hidden w-full flex items-center justify-center">
+            <div className="relative w-full max-w-[335px] mx-auto overflow-hidden rounded-[12px] hover:cursor-pointer">
+              <div
+                className={`flex w-[400%] ${isTransitioning ? 'transition-transform duration-700 ease-in-out' : ''}`}
+                style={{ transform: `translateX(-${activeIndex * 25}%)` }}
+                onTransitionEnd={handleTransitionEnd}
+              >
+                <div className="w-1/4 flex justify-center">
+                  <GyanDhanBanner />
+                </div>
+                <div className="w-1/4 flex justify-center">
+                  <PredictorBanner variant="rank" />
+                </div>
+                <div className="w-1/4 flex justify-center">
+                  <PredictorBanner variant="match" />
+                </div>
+                <div className="w-1/4 flex justify-center">
+                  <GyanDhanBanner />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full flex justify-start mt-2">
+            <div className="flex gap-2">
+            {[0, 1, 2].map((index) => {
+              const current = activeIndex === TOTAL_SLIDES ? 0 : activeIndex;
+              return (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setIsTransitioning(true);
+                    setActiveIndex(index);
+                  }}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${current === index ? 'w-10 bg-[#0E1629]' : 'w-5 bg-[#0E16294D]'}`}
+                  aria-label={`Go to banner slide ${index + 1}`}
+                />
+              );
+            })}
+            </div>
           </div>
 
         </div>
