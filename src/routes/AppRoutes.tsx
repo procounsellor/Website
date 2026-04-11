@@ -59,6 +59,9 @@ const ExamDetailsPage = lazy(() => import('@/pages/ExamDetailsPage'));
 const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
 const LiveSessionsPage = lazy(() => import('@/pages/LiveSessionsPage'));
 const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
+const JEERankPredictorPage = lazy(() => import('@/pages/JEERankPredictor'));
+const JEECollegePredictorPage = lazy(() => import('@/pages/JEECollegePredictor'));
+const MHTCETCollegePredictorPage = lazy(() => import('@/pages/MHTCETCollegePredictor'));
 
 export default function AppRoutes() {
     return (
@@ -128,6 +131,9 @@ export default function AppRoutes() {
                         <Route path="/college-details/:id" element={<CollegeDetailsPageNew />} />
                         <Route path='/courses/detail/:courseId/:role' element={<CoursePage />} />
                         <Route path='/detail/:courseId/:role' element={<CoursePage />} />
+                        <Route path='/jee-rank-predictor' element={<JEERankPredictorPage />} />
+                        <Route path='/jee-college-predictor' element={<JEECollegePredictorPage />} />
+                        <Route path='/mhtcet-college-predictor' element={<MHTCETCollegePredictorPage />} />
 
                         {/* Exams */}
                         <Route path="/exams" element={<ExamsListingPage />} />
