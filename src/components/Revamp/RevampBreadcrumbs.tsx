@@ -94,6 +94,11 @@ export default function RevampBreadcrumbs() {
       crumbs.push({ label: 'Counsellors' });
     }
     // Counsellor detail
+    else if (path.includes('/counsellor-details/')) {
+      crumbs.push({ label: 'Counsellors', path: '/counsellor-listing' });
+      crumbs.push({ label: 'Counsellor Details' });
+    }
+    // Counsellor detail (legacy)
     else if (path.includes('/counsellor/')) {
       crumbs.push({ label: 'Counsellors', path: '/counsellor-listing' });
       crumbs.push({ label: 'Profile' });

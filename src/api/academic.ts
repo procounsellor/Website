@@ -219,4 +219,41 @@ export const academicApi = {
     if (!res.ok) throw new Error("Failed to search exams");
     return res.json();
   },
+
+  getTopCounsellorsAuth: async (userId: string, limit: number = 8) => {
+    const token = localStorage.getItem('jwt');
+    if (!token) throw new Error('Authentication token not found');
+
+    const res = await fetch(`${API_CONFIG.baseUrl}/api/user/topCounsellors?userId=${userId}&limit=${limit}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!res.ok) throw new Error("Failed to fetch top counselors");
+    return res.json();
+  },
+
+  getTopCounsellorsPublic: async (limit: number = 8) => {
+    const res = await fetch(`${API_CONFIG.baseUrl}/api/shared/topCounsellors?limit=${limit}`, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!res.ok) throw new Error("Failed to fetch top counselors");
+    return res.json();
+  },
+
+  getTopExams: async (limit: number = 8) => {
+    const res = await fetch(`${API_CONFIG.baseUrl}/api/exams/topExams?limit=${limit}`, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!res.ok) throw new Error("Failed to fetch top exams");
+    return res.json();
+  },
 };

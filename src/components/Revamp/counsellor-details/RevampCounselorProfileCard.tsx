@@ -64,40 +64,46 @@ export function RevampCounselorProfileCard({
   const upgradePlan = getUpgradePlan();
 
   return (
-    <div className="w-full max-w-[716px] bg-white rounded-[16px] p-6 shadow-sm font-poppins relative">
-      <div className="flex gap-4 relative">
-        <img
-          src={imageUrl}
-          alt={fullName}
-          className="w-[119px] h-[119px] rounded-[8px] border border-[#EFEFEF] object-cover"
-        />
+    <div className="w-full max-w-[716px] bg-white rounded-[16px] p-3 sm:p-6 shadow-sm font-poppins relative">
+      <div className="flex flex-row items-start gap-3 sm:gap-4 relative">
+        <div className="relative shrink-0">
+          <img
+            src={imageUrl}
+            alt={fullName}
+            className="w-[96px] h-[96px] sm:w-[119px] sm:h-[119px] rounded-[8px] border border-[#EFEFEF] object-cover"
+          />
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-white border border-[#EFEFEF] rounded-full px-2 py-0.5 flex items-center gap-1 shadow-sm">
+            <Star className="w-3 h-3 fill-current text-[#F59E0B]" />
+            <span className="text-[10px] font-semibold text-[#0E1629] leading-none">{rating.toFixed(1)}</span>
+          </div>
+        </div>
 
-        <div className="flex flex-col gap-2 mt-2 flex-1 min-w-0">
+        <div className="flex flex-col gap-2 mt-1 sm:mt-2 flex-1 min-w-0">
           <div className="flex justify-between items-start">
-            <h1 className="text-[24px] font-semibold text-[#0E1629] leading-[125%] truncate">
+            <h1 className="text-[20px] sm:text-[24px] font-semibold text-[#0E1629] leading-[125%] truncate">
               {fullName}
             </h1>
             {/* Action Buttons: Share, Bookmark */}
-            <div className="flex items-center gap-[16px] shrink-0 ml-2">
+            <div className="flex items-center gap-3 sm:gap-[16px] shrink-0 ml-2">
               <button onClick={handleCopyLink} className="text-gray-400 hover:text-[#2F43F2] cursor-pointer transition-colors">
-                {copied ? <Check className="w-6 h-6 text-green-600" /> : <Share2 className="w-6 h-6" />}
+                {copied ? <Check className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" /> : <Share2 className="w-5 h-5 sm:w-6 sm:h-6" />}
               </button>
               <button
                 onClick={onToggleFavourite}
                 disabled={isTogglingFavourite}
                 className="text-gray-400 hover:text-[#2F43F2] cursor-pointer transition-colors disabled:cursor-not-allowed"
               >
-                <Bookmark className={`w-6 h-6 ${isFavourite ? 'fill-[#2F43F2] text-[#2F43F2]' : ''}`} />
+                <Bookmark className={`w-5 h-5 sm:w-6 sm:h-6 ${isFavourite ? 'fill-[#2F43F2] text-[#2F43F2]' : ''}`} />
               </button>
             </div>
           </div>
 
-          <p className="text-[16px] font-semibold text-[#2F43F2] leading-[125%]">
+          <p className="text-[14px] sm:text-[16px] font-semibold text-[#2F43F2] leading-[125%]">
             {counselor.fullOfficeAddress?.city || 'Location'} • {counselor.experience || '0'}+ Years of experience
           </p>
 
           {/* Languages & Rating Row */}
-          <div className="flex items-center justify-between mt-1 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-1 gap-2 sm:gap-4">
             <div 
               className="flex gap-2 overflow-x-auto whitespace-nowrap items-center pb-1 flex-1 min-w-0"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
@@ -127,10 +133,8 @@ export function RevampCounselorProfileCard({
               )}
             </div>
 
-            {/* Rating */}
-            <div className="flex items-center gap-1 text-yellow-500 shrink-0">
-              <Star className="w-[18px] h-[18px] fill-current" />
-              <span className="font-semibold text-[16px] text-[#0E1629]">{rating.toFixed(1)}</span>
+            <div className="text-[11px] sm:text-[12px] text-[#6B7280] font-medium">
+              {counselor.experience || '0'}+ years exp.
             </div>
           </div>
         </div>
@@ -140,42 +144,42 @@ export function RevampCounselorProfileCard({
       {!subscription && (
         <>
           <hr className="border-[#F3F7F6] my-[24px]" />
-          <div className="flex items-center gap-6">
-            <h2 className="text-[18px] font-medium text-[#232323] w-[85px] leading-[125%]">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+            <h2 className="text-[18px] font-medium text-[#232323] sm:w-[85px] leading-[125%]">
               Available Plans
             </h2>
-            <div className="flex gap-[24px] flex-1 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 flex-1">
               
               {/* Plus Plan */}
               <div 
-                className="min-w-[164px] h-[55px] rounded-[8px] p-[2px]"
+                className="min-w-0 h-[50px] sm:h-[55px] rounded-[8px] p-[2px]"
                 style={{ background: 'linear-gradient(265.56deg, rgba(113, 142, 191, 0.4) -99.75%, rgba(192, 215, 253, 0.4) 91.52%)' }}
               >
                 <div className="w-full h-full rounded-[7px] flex flex-col items-center justify-center bg-gradient-to-r from-[rgba(222,237,255,0.4)] to-[rgba(126,136,211,0.4)]">
-                  <span className="text-[14px] text-[#1447E7] font-normal leading-[125%]">Plus</span>
-                  <span className="text-[16px] text-[#1447E7] font-semibold leading-[125%]">{formatAmount(counselor.plusAmount)}</span>
+                  <span className="text-[11px] sm:text-[13px] text-[#1447E7] font-normal leading-[125%]">Plus</span>
+                  <span className="text-[11px] sm:text-[14px] text-[#1447E7] font-semibold leading-[125%] truncate px-1">{formatAmount(counselor.plusAmount)}</span>
                 </div>
               </div>
 
               {/* Pro Plan */}
               <div 
-                className="min-w-[164px] h-[55px] rounded-[8px] p-[2px]"
+                className="min-w-0 h-[50px] sm:h-[55px] rounded-[8px] p-[2px]"
                 style={{ background: 'linear-gradient(265.56deg, rgba(232, 212, 255, 0.4) -99.75%, rgba(192, 215, 253, 0.4) 91.52%)' }}
               >
                 <div className="w-full h-full rounded-[7px] flex flex-col items-center justify-center bg-gradient-to-r from-[rgba(244,232,255,0.4)] to-[rgba(250,244,255,0.4)]">
-                  <span className="text-[14px] text-[#8200DA] font-normal leading-[125%]">Pro</span>
-                  <span className="text-[16px] text-[#8200DA] font-medium leading-[125%]">{formatAmount(counselor.proAmount)}</span>
+                  <span className="text-[11px] sm:text-[13px] text-[#8200DA] font-normal leading-[125%]">Pro</span>
+                  <span className="text-[11px] sm:text-[14px] text-[#8200DA] font-medium leading-[125%] truncate px-1">{formatAmount(counselor.proAmount)}</span>
                 </div>
               </div>
 
               {/* Elite Plan */}
               <div 
-                className="min-w-[164px] h-[55px] rounded-[8px] p-[2px]"
+                className="min-w-0 h-[50px] sm:h-[55px] rounded-[8px] p-[2px]"
                 style={{ background: 'linear-gradient(265.56deg, rgba(255, 251, 237, 0.4) -99.75%, rgba(234, 197, 145, 0.4) 91.52%)' }}
               >
                 <div className="w-full h-full rounded-[7px] flex flex-col items-center justify-center bg-gradient-to-r from-[rgba(255,245,206,0.4)] to-[rgba(255,250,230,0.4)]">
-                  <span className="text-[14px] text-[#B94C00] font-normal leading-[125%]">Elite</span>
-                  <span className="text-[16px] text-[#B94C00] font-medium leading-[125%]">{formatAmount(counselor.eliteAmount)}</span>
+                  <span className="text-[11px] sm:text-[13px] text-[#B94C00] font-normal leading-[125%]">Elite</span>
+                  <span className="text-[11px] sm:text-[14px] text-[#B94C00] font-medium leading-[125%] truncate px-1">{formatAmount(counselor.eliteAmount)}</span>
                 </div>
               </div>
             </div>
@@ -186,54 +190,54 @@ export function RevampCounselorProfileCard({
       <hr className="border-[#F3F7F6] my-[24px]" />
 
       <div className="flex flex-col gap-3">
-        <div className="flex gap-[16px]">
-          <button 
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-[16px]">
+          <button
             disabled={!subscription}
-            className={`w-[147px] h-[44px] rounded-[12px] border flex items-center justify-center gap-2 text-[16px] font-semibold transition-colors ${subscription ? 'bg-white border-[#2F43F2] text-[#2F43F2] hover:bg-blue-50 cursor-pointer' : 'bg-[#F9FAFC] border-[#F5F5F5] text-[#B2B9C5] cursor-not-allowed'}`}
+            className={`h-[42px] sm:h-[44px] rounded-[12px] border flex items-center justify-center gap-1.5 sm:gap-2 text-[14px] sm:text-[16px] font-semibold transition-colors ${subscription ? 'bg-white border-[#2F43F2] text-[#2F43F2] hover:bg-blue-50 cursor-pointer' : 'bg-[#F9FAFC] border-[#F5F5F5] text-[#B2B9C5] cursor-not-allowed'}`}
           >
-            {!subscription && <Lock className="w-4 h-4" />} Chat
+            {!subscription && <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />} Chat
           </button>
-          <button 
+          <button
             disabled={!subscription}
-            className={`w-[147px] h-[44px] rounded-[12px] border flex items-center justify-center gap-2 text-[16px] font-semibold transition-colors ${subscription ? 'bg-white border-[#2F43F2] text-[#2F43F2] hover:bg-blue-50 cursor-pointer' : 'bg-[#F9FAFC] border-[#F5F5F5] text-[#B2B9C5] cursor-not-allowed'}`}
+            className={`h-[42px] sm:h-[44px] rounded-[12px] border flex items-center justify-center gap-1.5 sm:gap-2 text-[14px] sm:text-[16px] font-semibold transition-colors ${subscription ? 'bg-white border-[#2F43F2] text-[#2F43F2] hover:bg-blue-50 cursor-pointer' : 'bg-[#F9FAFC] border-[#F5F5F5] text-[#B2B9C5] cursor-not-allowed'}`}
           >
-            {!subscription && <Lock className="w-4 h-4" />} Call
+            {!subscription && <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />} Call
           </button>
-          
-          {subscription ? (
-            upgradePlan ? (
-              <button
-                onClick={() => onSubscribeClick(true)}
-                disabled={isCurrentUserCounselor}
-                className="flex-1 h-[44px] rounded-[12px] flex items-center justify-center text-[16px] font-semibold text-white bg-[#2F43F2] hover:bg-blue-700 cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-              >
-                Upgrade to {upgradePlan.charAt(0).toUpperCase() + upgradePlan.slice(1)}
-              </button>
-            ) : (
-              <button
-                disabled
-                className="flex-1 h-[44px] rounded-[12px] flex items-center justify-center text-[16px] font-semibold text-[#B94C00] bg-[#fffbed] border border-[#f3dcb1] cursor-default"
-              >
-                You are already an Elite member
-              </button>
-            )
+        </div>
+
+        {subscription ? (
+          upgradePlan ? (
+            <button
+              onClick={() => onSubscribeClick(true)}
+              disabled={isCurrentUserCounselor}
+              className="w-full h-[44px] rounded-[12px] flex items-center justify-center text-[14px] sm:text-[16px] font-semibold text-white bg-[#2F43F2] hover:bg-blue-700 cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            >
+              Upgrade to {upgradePlan.charAt(0).toUpperCase() + upgradePlan.slice(1)}
+            </button>
           ) : (
             <button
-              onClick={() => onSubscribeClick(false)}
-              disabled={pendingApproval || isCurrentUserCounselor}
-              className={`flex-1 h-[44px] rounded-[12px] flex items-center justify-center text-[16px] font-semibold text-white transition-colors ${
-                pendingApproval || isCurrentUserCounselor 
-                  ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-[#2F43F2] hover:bg-blue-700 cursor-pointer'
-              }`}
+              disabled
+              className="w-full h-[44px] rounded-[12px] flex items-center justify-center text-[14px] sm:text-[16px] font-semibold text-[#B94C00] bg-[#fffbed] border border-[#f3dcb1] cursor-default"
             >
-              {pendingApproval ? 'Request Pending' : isCurrentUserCounselor ? 'Cannot Subscribe' : 'Subscribe Now'}
+              You are already an Elite member
             </button>
-          )}
-        </div>
+          )
+        ) : (
+          <button
+            onClick={() => onSubscribeClick(false)}
+            disabled={pendingApproval || isCurrentUserCounselor}
+            className={`w-full h-[44px] rounded-[12px] flex items-center justify-center text-[14px] sm:text-[16px] font-semibold text-white transition-colors ${
+              pendingApproval || isCurrentUserCounselor
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-[#2F43F2] hover:bg-blue-700 cursor-pointer'
+            }`}
+          >
+            {pendingApproval ? 'Request Pending' : isCurrentUserCounselor ? 'Cannot Subscribe' : 'Subscribe Now'}
+          </button>
+        )}
         
         {!subscription && (
-          <p className="text-[12px] text-[#232323] flex items-center gap-1 mt-1 ml-[4px]">
+          <p className="text-[12px] text-[#232323] flex items-center gap-1 mt-1 ml-[2px] sm:ml-[4px]">
             <span className="w-[20px] h-[20px] bg-[#0E1629] rounded-full flex items-center justify-center shrink-0">
               <Lock className="w-[13.5px] h-[13.5px] text-white" />
             </span>

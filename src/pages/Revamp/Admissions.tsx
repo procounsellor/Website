@@ -304,7 +304,7 @@ export default function Admissions() {
                 className="absolute right-16 top-[269px] w-[243px] h-[141px] rounded-[28px] overflow-hidden bg-gray-700"
               >
                 <img
-                  src="/public/admissions/deadline.svg"
+                  src="/admissions/deadline.svg"
                   alt="Deadlines"
                   className="absolute inset-0 w-full h-full object-cover"
                 />

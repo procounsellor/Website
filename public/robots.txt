@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+Disallow: /dashboard-student
+Disallow: /wallet
+Disallow: /profile
+Disallow: /counsellor-dashboard
+Disallow: /counselor-dashboard/client-profile
+Disallow: /take-test/
+Disallow: /t/
+Disallow: /test-result/
+
+Sitemap: https://procounsel.co.in/sitemap.xml

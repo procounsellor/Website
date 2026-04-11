@@ -124,3 +124,54 @@ export const resetAnswer = async (
   );
   return response.json();
 };
+
+export const registerGrandMockTestShared = async (payload: {
+  name: string;
+  city: string;
+  mobile: string;
+  email: string;
+}) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/userTestSeries/registerGrandMockTestShared`,
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+  return response.json();
+};
+
+export const registerGrandMockTestAuth = async (
+  userId: string,
+  payload: {
+    name: string;
+    city: string;
+    mobile: string;
+    email: string;
+  }
+) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/userTestSeries/registerGrandMockTestAuth`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ userId, ...payload }),
+    }
+  );
+  return response.json();
+};
+
+export const checkGrandMockTestRegistration = async (userId: string) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/userTestSeries/checkGrandMockTestRegistration?userId=${userId}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    }
+  );
+  return response.json();
+};

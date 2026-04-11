@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {  useParams } from 'react-router-dom';
 import {  MapPin, Users, } from 'lucide-react';
 import { Radar, RadarChart, PolarAngleAxis, PolarGrid, ResponsiveContainer, Tooltip } from 'recharts';
@@ -16,7 +16,7 @@ import toast from 'react-hot-toast';
 
 function BookingCard({price, onRequestCall}:{price:string; onRequestCall: () => void}) {
     return (
-        <div className="bg-white rounded-[8px] md:rounded-[16px] p-[12px] w-[350px] mx-auto md:w-full xl:w-[580px] h-[161px] md:h-auto font-['Poppins']">
+        <div className="bg-white rounded-[8px] md:rounded-[16px] p-[12px] w-[350px] mx-auto md:w-full xl:w-[580px] h-full md:h-auto font-['Poppins']">
 
             <div className="mt-[4px] md:mt-3 flex items-center gap-[8px] md:gap-3">
                 <p className="font-semibold text-[#0e1629] text-[16px] md:text-lg">
@@ -77,38 +77,56 @@ export default function ProBuddyProfilePage() {
     probuddy?.photoUrl||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(probuddy?.firstName! + probuddy?.lastName|| "ProBuddy")}&background=6B7280&color=ffffff&size=400`;
 
+    const formatReviewDate = (timestamp: { seconds: number; nanos: number } | null | undefined) => {
+        if (!timestamp?.seconds) {
+            return 'Recently';
+        }
+
+        const date = new Date(timestamp.seconds * 1000 + Math.floor((timestamp.nanos ?? 0) / 1_000_000));
+        if (Number.isNaN(date.getTime())) {
+            return 'Recently';
+        }
+
+        return date.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
+    };
+
+    const buildAvatarUrl = (fullName: string | null | undefined) => {
+        const fallbackName = fullName?.trim() || 'Student';
+        return `https://ui-avatars.com/api/?name=${encodeURIComponent(fallbackName)}&background=6B7280&color=ffffff&size=400`;
+    };
+
     const callbackInfo = {
         name: `${probuddy?.firstName ?? ''} ${probuddy?.lastName ?? ''}`.trim() || 'ProBuddy',
         city: `${probuddy?.city ?? ''}${probuddy?.state ? `, ${probuddy.state}` : ''}`,
         imageUrl: displayImage,
         proBuddyId: probuddy?.proBuddyId || String(id ?? ''),
         rating: Number(probuddy?.rating ?? 0),
-        reviewsCount: Number(probuddy?.reviewsCountForUser ?? probuddy?.noOfRatingsReceived ?? 0),
+        reviewsCount: Number(probuddy?.noOfRatingsReceived ?? 0),
     };
 
     const displayRating = Number(probuddy?.rating ?? 0);
-    const displayReviewsCount = Number(probuddy?.reviewsCountForUser ?? probuddy?.noOfRatingsReceived ?? 0);
+    const displayReviewsCount = Number(probuddy?.noOfRatingsReceived ?? 0);
     const ratingLabel = displayRating > 0 ? displayRating.toFixed(1) : 'NA';
     const reviewCountLabel = displayReviewsCount > 0 ? String(displayReviewsCount) : 'NA';
     const aboutMeText = String(probuddy?.aboutMe?.aboutMe ?? '');
     const shouldShowReadMore = aboutMeText.length > 60;
 
-    const mappedReviews = useMemo(() => {
-        return (probuddy?.reviewsReceivedForUser ?? []).map((review, index) => {
-            const createdAt = typeof review.createdAt === 'string' ? review.createdAt : '';
-            const parsedDate = createdAt ? new Date(createdAt) : null;
+    const mappedReviews = (probuddy?.reviewsReceivedForUser ?? []).map((review, index) => {
+        const fullName = review.userFullName ?? `Student ${index + 1}`;
+        const imageUrl = review.imageUrl ?? buildAvatarUrl(fullName);
 
-            return {
-                name: String(review.userName ?? `Student ${index + 1}`),
-                date: parsedDate && !Number.isNaN(parsedDate.getTime())
-                    ? parsedDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-                    : 'Recently',
-                rating: Math.min(5, Math.max(1, Number(review.rating ?? 1))),
-                text: String(review.reviewText ?? 'No review text provided.'),
-                image: '/review1.jpeg',
-            };
-        });
-    }, [probuddy?.reviewsReceivedForUser]);
+        return {
+            name: String(fullName),
+            date: formatReviewDate(review.timestamp),
+            rating: Math.min(5, Math.max(1, Number(review.rating ?? 1))),
+            text: String(review.reviewText ?? 'No review text provided.'),
+            image: imageUrl,
+        };
+    });
 
     const withLoginGuard = (action: () => void) => {
         if (!isAuthenticated || !userId) {
@@ -186,7 +204,7 @@ export default function ProBuddyProfilePage() {
                 {/* Profile + Booking */}
                 <div className="px-4 md:px-16 pt-6 md:pt-10 pb-6 md:pb-10">
                     <div className="flex flex-col xl:flex-row gap-6 items-start">
-                        <div className="bg-white rounded-[8px] md:rounded-[16px] p-[12px] w-[350px] mx-auto md:w-full xl:max-w-[716px] min-h-[438px] relative font-['Poppins']">
+                        <div className="bg-white rounded-[8px] md:rounded-[16px] p-[12px] w-[350px] mx-auto md:w-full xl:max-w-[716px] h-auto relative font-['Poppins']">
                             {/* Mobile Header Layout (Absolute/Positioned style based on CSS) */}
                             <div className="relative h-[438px] md:h-auto overflow-hidden md:overflow-visible">
                                 {/* Profile Header Part */}
@@ -334,7 +352,7 @@ export default function ProBuddyProfilePage() {
                                 <p className="absolute left-0 top-[306px] md:relative md:left-auto md:top-auto md:mt-[20px] font-semibold text-[#0e1629] text-[16px] md:text-[20px] leading-normal">
                                     Who Should Connect With Me?
                                 </p>
-                                <p className="absolute left-0 top-[342px] md:relative md:left-auto md:top-auto md:mt-[12px] font-medium text-[#6b7280] text-[12px] md:text-[16px] leading-[18px] md:leading-normal w-full max-w-[326px] md:max-w-none">
+                                <p className="absolute left-0 top-[342px] md:relative md:left-auto md:top-auto md:mt-[12px] font-medium text-[#6b7280] text-[12px] md:text-[16px] leading-[18px] md:leading-normal w-full max-w-[326px] md:max-w-none overflow-hidden text-ellipsis line-clamp-3 break-words">
                                     {probuddy.whoShouldConnect}
                                 </p>
                             </div>

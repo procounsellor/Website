@@ -241,11 +241,13 @@ export default function RevampHeader() {
                                         activeTab === tab.id ? 'border-b-[1px] border-[#000000]' : 'border-b-[1px] border-transparent'
                                     }`}
                                 >
-                                    <img
-                                        src={tab.iconPath}
-                                        alt={tab.name}
-                                        className="w-[44px] h-[44px] object-contain"
-                                    />
+                                    {tab.iconPath && (
+                                        <img
+                                            src={tab.iconPath}
+                                            alt={tab.name}
+                                            className="w-[44px] h-[44px] object-contain"
+                                        />
+                                    )}
                                     <span className="font-poppins font-medium text-[18px] text-[#232323]">
                                         {tab.name}
                                     </span>
@@ -435,11 +437,13 @@ export default function RevampHeader() {
                                         activeTab === tab.id ? 'border-b-[1.5px] border-[#000000]' : 'border-b-[1.5px] border-transparent'
                                     }`}
                                 >
-                                    <img
-                                        src={tab.iconPath}
-                                        alt={tab.name}
-                                        className="w-[16px] h-[16px] object-contain shrink-0"
-                                    />
+                                    {tab.iconPath && (
+                                        <img
+                                            src={tab.iconPath}
+                                            alt={tab.name}
+                                            className="w-[16px] h-[16px] object-contain shrink-0"
+                                        />
+                                    )}
                                     <span className="font-poppins font-medium text-[11px] sm:text-[12px] leading-[100%] text-[#232323] whitespace-nowrap">
                                         {tab.name}
                                     </span>

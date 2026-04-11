@@ -1,6 +1,15 @@
 import type { ListingProBudddy, PostReview, ProBuddyReviewForUser, ProBuddyUserSide } from "@/types/probuddies";
 import { API_CONFIG } from "./config";
 
+export type FeaturedCollegeInIndia = {
+  country: string;
+  domains: string[];
+  "state-province": string;
+  name: string;
+  alpha_two_code: string;
+  web_pages: string[];
+};
+
 export type ProBuddyListingFilters = {
   state?: string;
   city?: string;
@@ -74,6 +83,26 @@ const normalizeProBuddyReviewsResponse = (data: any): ProBuddyReviewForUser[] =>
   return [];
 };
 
+const normalizeFeaturedCollegesResponse = (data: any): FeaturedCollegeInIndia[] => {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data?.data)) {
+    return data.data;
+  }
+
+  if (Array.isArray(data?.colleges)) {
+    return data.colleges;
+  }
+
+  if (Array.isArray(data?.result)) {
+    return data.result;
+  }
+
+  return [];
+};
+
 export const registerProBuddy = async (payload: any) => {
   const response = await fetch(`${API_CONFIG.baseUrl}/api/auth/proBuddySignup`, {
     method: "POST",
@@ -125,6 +154,23 @@ export const uploadProBuddyIdCardPhoto = async (proBuddyId: string, photo: File)
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || data.error || "Failed to upload ID Card");
   return data;
+};
+
+export const getAllCollegesListInIndia = async (): Promise<FeaturedCollegeInIndia[]> => {
+  const response = await fetch(`${API_CONFIG.baseUrl}/api/featured_colleges/getAllCollegesListInIndia`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+    redirect: "follow",
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || data.error || "Failed to get colleges list");
+  }
+
+  return normalizeFeaturedCollegesResponse(data);
 };
 
 

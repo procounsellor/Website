@@ -9,6 +9,7 @@ import CancellationRefundPage from "@/pages/CancellationRefund";
 import ShippingExchangePage from "@/pages/ShippingExchange";
 import AddCollegePage from "@/pages/AddCollege";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import RoleBasedRoute from "@/components/auth/RoleBasedRoute";
 import ExternalPrivacyPage from "@/pages/external/Privacy";
 import ExternalTermsPage from "@/pages/external/Terms";
 import { Toaster } from 'react-hot-toast';
@@ -41,16 +42,14 @@ import Admissions from '@/pages/Revamp/Admissions';
 import Courses from '@/pages/Revamp/Courses';
 import BlogsPage from '@/pages/Revamp/BlogsPage';
 import BlogDetailPage from '@/pages/Revamp/BlogDetailPage';
-import ProBuddiesRegistration from '@/pages/Revamp/ProBuddiesRegistration';
 import CounsellorsPage from '@/pages/Revamp/CounsellorsPage';
-import ProBuddiesDashboard from '@/pages/Revamp/ProBuddiesDashboard';
 import UserProfile from '@/pages/Revamp/UserProfile';
 import CourseListing from '@/pages/Revamp/CourseListing';
 import TestListing from '@/pages/Revamp/TestListing';
 import SessionListing from '@/pages/Revamp/SessionListing';
-import ProBuddies from '@/pages/Revamp/ProBuddies';
-import ProBuddyListing from '@/pages/Revamp/ProBuddyListing';
-import CollegeListing from '@/pages/Revamp/CollegeListing';
+import ProBuddiesComingSoon from '@/pages/Revamp/ProBuddiesComingSoon';
+import ProBuddiesRegistration from '@/pages/Revamp/ProBuddiesRegistration';
+import ProBuddiesDashboard from '@/pages/Revamp/ProBuddiesDashboard';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
@@ -60,7 +59,6 @@ const ExamDetailsPage = lazy(() => import('@/pages/ExamDetailsPage'));
 const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
 const LiveSessionsPage = lazy(() => import('@/pages/LiveSessionsPage'));
 const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
-const ProBuddyProfilePage = lazy(() => import('@/pages/Revamp/ProBuddyProfilePage'));
 
 export default function AppRoutes() {
     return (
@@ -106,11 +104,11 @@ export default function AppRoutes() {
 
                         {/* probuddies pages  */}
                         <Route path='/pro-buddies/register' element={<ProBuddiesRegistration />} />
-                        <Route path='/pro-buddies' element={<ProBuddies />} />
-                        <Route path='/pro-buddies/listing' element={<ProBuddyListing />} />
-                        <Route path='/pro-buddies/college-listing' element={<CollegeListing />} />
+                        <Route path='/pro-buddies' element={<ProBuddiesComingSoon />} />
+                        <Route path='/pro-buddies/listing' element={<ProBuddiesComingSoon />} />
+                        <Route path='/pro-buddies/college-listing' element={<ProBuddiesComingSoon />} />
                         <Route path='/pro-buddies/dashboard' element={<ProBuddiesDashboard />} />
-                        <Route path="/pro-buddies/profile/:id" element={<ProBuddyProfilePage />} />
+                        <Route path="/pro-buddies/profile/:id" element={<ProBuddiesComingSoon />} />
 
 
                         {/* Community */}
@@ -159,17 +157,19 @@ export default function AppRoutes() {
                         <Route path='/counselor-dashboard/client-profile' element={<ClientProfilePage />} />
 
                         {/* Test Routes */}
-                        <Route path='/create-test' element={<CreateTest />} />
-                        <Route path='/add-question/:testId' element={<AddQuestion />} />
+                        <Route element={<RoleBasedRoute allowedRoles={['counselor']} />}>
+                          <Route path='/create-test' element={<CreateTest />} />
+                          <Route path='/add-question/:testId' element={<AddQuestion />} />
+                          <Route path='/counselor/test-groups/create' element={<CreateEditTestGroup />} />
+                          <Route path='/counselor/test-groups/edit/:testGroupId' element={<CreateEditTestGroup />} />
+                          <Route path='/counselor/test-groups/:testGroupId' element={<TestGroupDetails />} />
+                          <Route path='/counselor/test-groups/:testGroupId/create-test' element={<CreateTest />} />
+                        </Route>
+
+                        {/* User Test Routes */}
                         <Route path='/test-info/:testId' element={<TestInfo />} />
                         <Route path='/test-result/:testId' element={<TestResult />} />
                         <Route path='/t/result/:testId' element={<TestResult />} />
-
-                        {/* Test Group Routes */}
-                        <Route path='/counselor/test-groups/create' element={<CreateEditTestGroup />} />
-                        <Route path='/counselor/test-groups/edit/:testGroupId' element={<CreateEditTestGroup />} />
-                        <Route path='/counselor/test-groups/:testGroupId' element={<TestGroupDetails />} />
-                        <Route path='/counselor/test-groups/:testGroupId/create-test' element={<CreateTest />} />
                         <Route path='/courses/test-group/:testGroupId' element={<TestGroupCardDetails />} />
                         <Route path='/courses/test-groups/:testGroupId' element={<TestGroupCardDetails />} />
                         <Route path='/test-group/:testGroupId' element={<TestGroupCardDetails />} />

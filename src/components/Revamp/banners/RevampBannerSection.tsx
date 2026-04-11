@@ -40,7 +40,7 @@ const RevampBannerSection = () => {
           </div>
 
           {/* Mobile View */}
-          <div className="md:hidden relative w-full max-w-[335px] mx-auto overflow-hidden rounded-[12px]">
+          <div className="md:hidden relative w-full max-w-[335px] mx-auto overflow-hidden rounded-[12px] hover:cursor-pointer">
             <div 
               className={`flex w-[300%] ${isTransitioning ? 'transition-transform duration-700 ease-in-out' : ''}`}
               style={{ transform: `translateX(-${activeIndex * (100 / 3)}%)` }}
