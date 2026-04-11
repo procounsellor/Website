@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Loader2 } from "lucide-react";
 import { useCreateBlogMutation } from "@/hooks/useBlogs";
-import { useAuthStore } from "@/store/AuthStore";
 
 function startOfTodayMillis(): number {
   const d = new Date();
@@ -19,22 +18,10 @@ function parseDateInputToMillis(value: string): number {
 
 export default function BlogCreatePage() {
   const navigate = useNavigate();
-  const user = useAuthStore((s) => s.user);
-  const defaultAuthor = useMemo(() => {
-    if (!user) return "";
-    const parts = [user.firstName, user.lastName].filter(Boolean);
-    return parts.join(" ").trim();
-  }, [user]);
 
   const [category, setCategory] = useState("");
   const [title, setTitle] = useState("");
   const [publisherName, setPublisherName] = useState("");
-
-  useEffect(() => {
-    if (defaultAuthor) {
-      setPublisherName((prev) => (prev.trim() === "" ? defaultAuthor : prev));
-    }
-  }, [defaultAuthor]);
   const [description, setDescription] = useState("");
   const [publishedOn, setPublishedOn] = useState(() => {
     const d = new Date();

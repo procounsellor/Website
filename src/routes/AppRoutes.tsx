@@ -43,6 +43,7 @@ import Courses from '@/pages/Revamp/Courses';
 import BlogsPage from '@/pages/Revamp/BlogsPage';
 import BlogDetailPage from '@/pages/Revamp/BlogDetailPage';
 import BlogCreatePage from '@/pages/Revamp/BlogCreatePage';
+import BlogEditPage from '@/pages/Revamp/BlogEditPage';
 import CounsellorsPage from '@/pages/Revamp/CounsellorsPage';
 import UserProfile from '@/pages/Revamp/UserProfile';
 import CourseListing from '@/pages/Revamp/CourseListing';
@@ -88,9 +89,8 @@ export default function AppRoutes() {
                         <Route path="/" element={<Admissions />} />
                         <Route path='/admissions' element={<Admissions />} />
                         <Route path='/admissions/blogs' element={<BlogsPage />} />
-                        <Route element={<RoleBasedRoute allowedRoles={['counselor']} />}>
-                          <Route path='/admissions/blogs/new' element={<BlogCreatePage />} />
-                        </Route>
+                        <Route path='/admissions/blogs/new' element={<BlogCreatePage />} />
+                        <Route path='/admissions/blogs/:id/edit' element={<BlogEditPage />} />
                         <Route path='/admissions/blogs/:id' element={<BlogDetailPage />} />
                         <Route path='/courses' element={<Courses />} />
                         <Route path='/courses/course-listing' element={<CourseListing />} />
