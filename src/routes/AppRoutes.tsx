@@ -157,17 +157,19 @@ export default function AppRoutes() {
                         <Route path='/counselor-dashboard/client-profile' element={<ClientProfilePage />} />
 
                         {/* Test Routes */}
-                        <Route path='/create-test' element={<CreateTest />} />
-                        <Route path='/add-question/:testId' element={<AddQuestion />} />
+                        <Route element={<RoleBasedRoute allowedRoles={['counselor']} />}>
+                          <Route path='/create-test' element={<CreateTest />} />
+                          <Route path='/add-question/:testId' element={<AddQuestion />} />
+                          <Route path='/counselor/test-groups/create' element={<CreateEditTestGroup />} />
+                          <Route path='/counselor/test-groups/edit/:testGroupId' element={<CreateEditTestGroup />} />
+                          <Route path='/counselor/test-groups/:testGroupId' element={<TestGroupDetails />} />
+                          <Route path='/counselor/test-groups/:testGroupId/create-test' element={<CreateTest />} />
+                        </Route>
+
+                        {/* User Test Routes */}
                         <Route path='/test-info/:testId' element={<TestInfo />} />
                         <Route path='/test-result/:testId' element={<TestResult />} />
                         <Route path='/t/result/:testId' element={<TestResult />} />
-
-                        {/* Test Group Routes */}
-                        <Route path='/counselor/test-groups/create' element={<CreateEditTestGroup />} />
-                        <Route path='/counselor/test-groups/edit/:testGroupId' element={<CreateEditTestGroup />} />
-                        <Route path='/counselor/test-groups/:testGroupId' element={<TestGroupDetails />} />
-                        <Route path='/counselor/test-groups/:testGroupId/create-test' element={<CreateTest />} />
                         <Route path='/courses/test-group/:testGroupId' element={<TestGroupCardDetails />} />
                         <Route path='/courses/test-groups/:testGroupId' element={<TestGroupCardDetails />} />
                         <Route path='/test-group/:testGroupId' element={<TestGroupCardDetails />} />

@@ -66,7 +66,17 @@ export default function RevampCounselorDetailsPage() {
     if (!computedId) return;
     try {
       const publicReviews = await getReviewsForCounselor(computedId, token || '');
-      setReviews(publicReviews);
+      // Transform ApiReviewReceived to CounselorReview
+      const transformedReviews: CounselorReview[] = publicReviews.map(review => ({
+        reviewId: review.reviewId,
+        userFullName: review.userFullName,
+        userPhotoUrl: review.userPhotoUrl || '',
+        reviewText: review.reviewText,
+        rating: review.rating,
+        timestamp: review.timestamp,
+        userName: review.userName,
+      }));
+      setReviews(transformedReviews);
       setUserReview(null);
     } catch (err) {
       console.error('Failed to fetch public reviews:', err);

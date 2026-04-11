@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import CoursePageBanner from "./CoursePageBanner";
 import CourseSection from "./CourseSection";
 import TestSection from "./TestSection";
 import { listenToLiveSessionsStatus } from "@/lib/firebase";
@@ -105,8 +104,7 @@ export default function Banner() {
           <div className="flex flex-col gap-6 items-center justify-center">
             <h1 className="text-white font-bold text-[3.75rem]">Courses</h1>
             <p className="bg-gradient-to-r text-transparent bg-clip-text from-[#6B7280] to-[#ffffff]/50 font-medium text-[1.5rem] text-center max-w-[753px]">
-              Lorem ipsum dolor sit amet consectetur. Senectus arcu cras at
-              risus a tortor ut quam in. Lorem ipsum dolor.
+              Master in-demand skills with our expert-led courses. Learn at your own pace, practice with real-world projects, and advance your career with confidence.
             </p>
           </div>
 
@@ -144,7 +142,6 @@ export default function Banner() {
 
       <div className="bg-[#F5F5F7] flex flex-col pb-20">
         <CourseSection />
-        <CoursePageBanner />
         <TestSection />
         
         {/* Live Sessions Section */}

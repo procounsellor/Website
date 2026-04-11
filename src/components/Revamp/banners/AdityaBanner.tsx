@@ -1,9 +1,12 @@
 import { ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const AdityaBanner = () => {
+  const navigate = useNavigate();
+
   return (
     <div 
-      className="relative w-[335px] md:w-full max-w-[648px] h-[320px] md:h-[265px] rounded-[12px] md:rounded-2xl overflow-hidden shrink-0"
+      className="relative w-[335px] md:w-full max-w-[648px] h-[320px] md:h-[265px] rounded-[12px] md:rounded-2xl overflow-hidden shrink-0 cursor-pointer"
       style={{
         background: 'linear-gradient(90deg, #DA9BC0 -25.31%, #FFFFFF 119.95%)'
       }}
@@ -45,25 +48,31 @@ const AdityaBanner = () => {
 
         <div className="mt-3 md:mt-4 flex flex-col md:flex-row items-start md:items-center gap-2.5 md:gap-0 z-20 relative">
           <div className="flex flex-row items-center gap-4">
-            <a 
-              href="#" 
+            <button
+              onClick={() => navigate('/live-sessions')}
+              type="button"
               className="font-poppins font-semibold text-[14px] leading-none text-[#021028] underline decoration-solid decoration-auto underline-offset-auto"
             >
               Live Sessions
-            </a>
-            <button className="flex items-center justify-center w-8 md:w-10 h-[28px] md:h-[35.6px] rounded-[5px] bg-[#021028] hover:bg-[#1a2b4d] transition-colors shrink-0">
+            </button>
+            <button
+              onClick={() => navigate('/live-sessions')}
+              type="button"
+              className="flex items-center justify-center w-8 md:w-10 h-[28px] md:h-[35.6px] rounded-[5px] bg-[#021028] hover:bg-[#1a2b4d] transition-colors shrink-0"
+            >
               <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-white" />
             </button>
           </div>
 
-          <a 
-             href="#"
+          <button
+             onClick={() => navigate('/gurucool')}
+             type="button"
              className="ml-0 md:ml-[17px] flex items-center justify-center w-[136px] h-[35px] bg-[#634657] rounded-xl hover:bg-[#523848] transition-colors shrink-0"
           >
              <span className="font-poppins font-semibold text-[12px] md:text-[14px] leading-none text-white underline decoration-solid decoration-auto underline-offset-auto">
                 Explore courses
              </span>
-          </a>
+          </button>
 
         </div>
       </div>

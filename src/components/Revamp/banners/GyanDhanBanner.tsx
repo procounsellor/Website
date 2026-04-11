@@ -1,10 +1,15 @@
 import { ArrowRight } from 'lucide-react';
 
+const GYANDHAN_LINK = 'https://www.gyandhan.com/loaneligs?campaign_partner=Catalystai+Technology+Private+Limited';
 
 const GyanDhanBanner = () => {
+  const handleOpenLoanEligibility = () => {
+    window.open(GYANDHAN_LINK, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div 
-      className="relative w-[335px] md:w-full max-w-[648px] h-[320px] md:h-[265px] rounded-[12px] md:rounded-2xl overflow-hidden shrink-0"
+      className="relative w-[335px] md:w-full max-w-[648px] h-[320px] md:h-[265px] rounded-[12px] md:rounded-2xl overflow-hidden shrink-0 cursor-pointer"
       style={{
         background: 'linear-gradient(90deg, #81C041 -84.26%, #FFFFFF 99.51%)'
       }}
@@ -46,14 +51,19 @@ const GyanDhanBanner = () => {
         </div>
 
         <div className="mt-3 md:mt-[15px] flex flex-row items-center gap-4">
-          <a 
-            href="#" 
+          <button
+            onClick={handleOpenLoanEligibility}
+            type="button"
             className="font-poppins font-semibold text-[14px] leading-none text-[#48387C] underline decoration-solid decoration-auto underline-offset-auto"
           >
             Check your Loan Eligibility
-          </a>
+          </button>
           
-          <button className="flex items-center justify-center w-8 md:w-10 h-[28px] md:h-[35.6px] rounded-[5px] bg-[#48387C] hover:bg-[#3b2d66] transition-colors shrink-0">
+          <button
+            onClick={handleOpenLoanEligibility}
+            type="button"
+            className="flex items-center justify-center w-8 md:w-10 h-[28px] md:h-[35.6px] rounded-[5px] bg-[#48387C] hover:bg-[#3b2d66] transition-colors shrink-0"
+          >
             <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-white" />
           </button>
         </div>
