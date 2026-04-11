@@ -20,6 +20,12 @@ export default function Footer() {
     if (!isAuthenticated) {
       toast.error("Please log in as a student to register as a Pro Buddy.");
       toggleLogin(() => navigate("/pro-buddies/register"));
+      return;
+    }
+
+    if (role === "counselor") {
+      toast.error("Please use a student account to register as a Pro Buddy.");
+      return;
     } else {
       navigate("/pro-buddies/register");
     }
@@ -161,7 +167,7 @@ export default function Footer() {
                         onClick={handleBecomeCounselor}
                         className="block cursor-pointer font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors text-left w-full"
                       >
-                        Become a Counsellor?
+                        Register as Counsellor
                       </button>
                     </li>
                     <li>
@@ -169,7 +175,7 @@ export default function Footer() {
                         onClick={handleBecomeProBuddy}
                         className="block cursor-pointer font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors text-left w-full"
                       >
-                        Become a Pro Buddy?
+                        Register as ProBuddy
                       </button>
                     </li>
                   </>
