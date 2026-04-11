@@ -165,37 +165,37 @@ export function RevampCounselorReviews({ reviews, isSubscribed, onSubmitReview, 
   return (
     <>
       {/* Full Width Figma Layout */}
-      <div className="w-full bg-white py-[40px]">
+      <div className="w-full bg-white py-8 md:py-[40px]">
         <div className="max-w-[1440px] mx-auto relative font-poppins">
           
-          <h2 className="text-[24px] font-bold text-[#0E1629] text-center mb-[32px]">
+          <h2 className="text-[20px] md:text-[24px] font-bold text-[#0E1629] text-center mb-6 md:mb-[32px]">
             Reviews
           </h2>
 
           {/* Horizontally Scrollable Cards Container */}
-          <div className="flex gap-[32px] overflow-x-auto px-4 md:px-[60px] pb-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div className="flex gap-4 md:gap-[32px] overflow-x-auto px-3 md:px-[60px] pb-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {top3Reviews.length > 0 ? top3Reviews.map((review) => (
               
-              <div key={review.reviewId} className="w-[85vw] md:w-[597px] h-[128px] border border-[#EFEFEF] rounded-[12px] p-[12px] flex flex-col shrink-0 bg-white">
-                <div className="flex justify-between items-start">
+              <div key={review.reviewId} className="w-[90vw] sm:w-[85vw] md:w-[597px] min-h-[128px] border border-[#EFEFEF] rounded-[12px] p-[10px] md:p-[12px] flex flex-col shrink-0 bg-white">
+                <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-start">
                   <div className="flex gap-[12px]">
                     <img 
                       src={review.userPhotoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.userFullName || 'User')}&background=13097D&color=fff&size=128`} 
                       alt="User" 
-                      className="w-[50px] h-[50px] rounded-full object-cover shrink-0"
+                      className="w-[42px] h-[42px] md:w-[50px] md:h-[50px] rounded-full object-cover shrink-0"
                     />
                     <div className="flex flex-col mt-[1px]">
-                      <h4 className="text-[16px] font-medium text-[#0E1629] leading-[150%] lowercase capitalize">{review.userFullName || 'User'}</h4>
-                      <p className="text-[14px] font-normal text-[#6B7280] leading-[150%] lowercase">{formatTimeAgo(review.timestamp)}</p>
+                      <h4 className="text-[14px] md:text-[16px] font-medium text-[#0E1629] leading-[150%] capitalize">{review.userFullName || 'User'}</h4>
+                      <p className="text-[12px] md:text-[14px] font-normal text-[#6B7280] leading-[150%] lowercase">{formatTimeAgo(review.timestamp)}</p>
                     </div>
                   </div>
-                  <div className="flex gap-[8px]">
+                  <div className="flex gap-[6px] md:gap-[8px]">
                     {[1, 2, 3, 4, 5].map((starIndex) => (
-                      <Star key={starIndex} className={`w-[24px] h-[24px] ${starIndex <= review.rating ? 'text-yellow-400 fill-current' : 'text-[#EFEFEF]'}`} />
+                      <Star key={starIndex} className={`w-[16px] h-[16px] md:w-[24px] md:h-[24px] ${starIndex <= review.rating ? 'text-yellow-400 fill-current' : 'text-[#EFEFEF]'}`} />
                     ))}
                   </div>
                 </div>
-                <p className="mt-[12px] text-[14px] font-normal text-[#6B7280] leading-none line-clamp-2 lowercase">
+                <p className="mt-[10px] md:mt-[12px] text-[13px] md:text-[14px] font-normal text-[#6B7280] leading-[130%] line-clamp-3 md:line-clamp-2 lowercase">
                   {review.reviewText}
                 </p>
               </div>
@@ -207,7 +207,7 @@ export function RevampCounselorReviews({ reviews, isSubscribed, onSubmitReview, 
 
           {/* See All Button using the provided custom component */}
           {reviews.length > 0 && (
-            <div className="flex justify-end px-4 md:px-[60px] mt-2">
+            <div className="flex justify-end px-3 md:px-[60px] mt-2">
               <SeeAllButton onClick={() => setShowAllReviewsModal(true)} />
             </div>
           )}

@@ -2,7 +2,14 @@ import { useState, useEffect } from 'react';
 import { useParams, useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { useCounselorById } from '@/hooks/useCounselors';
 import { useAuthStore } from '@/store/AuthStore';
-import { getSubscribedCounsellors, addFav, isManualSubscriptionRequest, postReview, getReviewsByCounselorId } from '@/api/counsellor';
+import {
+  getSubscribedCounsellors,
+  addFav,
+  isManualSubscriptionRequest,
+  postReview,
+  getReviewsByCounselorId,
+  getReviewsForCounselor,
+} from '@/api/counsellor';
 import { updateUserProfile } from '@/api/user';
 import { updateUserReview } from '@/api/review';
 import { unlockScroll } from '@/lib/scrollLock';
@@ -15,7 +22,7 @@ import EditProfileModal from '@/components/student-dashboard/EditProfileModal';
 import { RevampCounselorProfileCard } from '@/components/Revamp/counsellor-details/RevampCounselorProfileCard';
 import { RevampFreeCareerAssessmentCard } from '@/components/Revamp/counsellor-details/FreeCareerAssessmentCard';
 import RevampCounselorCoursesCard from '@/components/Revamp/counsellor-details/CounselorCoursesCard';
-import { RevampSocialMediaCard } from '@/components/Revamp/counsellor-details/SocialMediaCard';
+import RevampCounselorTestsCard from '@/components/Revamp/counsellor-details/CounselorTestsCard';
 import { RevampCounselorReviews } from '@/components/Revamp/counsellor-details/CounselorReviews';
 
 type ApiSubscribedCounselor = {
@@ -55,6 +62,19 @@ export default function RevampCounselorDetailsPage() {
 
   const isCurrentUserCounselor = (role as string) === 'counselor';
 
+  const fetchPublicReviews = async () => {
+    if (!computedId) return;
+    try {
+      const publicReviews = await getReviewsForCounselor(computedId, token || '');
+      setReviews(publicReviews);
+      setUserReview(null);
+    } catch (err) {
+      console.error('Failed to fetch public reviews:', err);
+      setReviews([]);
+      setUserReview(null);
+    }
+  };
+
   useEffect(() => {
     unlockScroll();
   }, []);
@@ -86,7 +106,7 @@ export default function RevampCounselorDetailsPage() {
   };
 
   useEffect(() => {
-    if (!computedId || !userId || !token) {
+    if (!computedId) {
       setLoadingData(false);
       return;
     }
@@ -94,9 +114,16 @@ export default function RevampCounselorDetailsPage() {
     const fetchData = async () => {
       try {
         setLoadingData(true);
+
+        if (!userId || !token) {
+          setSubscriptionDetails(null);
+          await fetchPublicReviews();
+          return;
+        }
+
         if (isCurrentUserCounselor) {
           setSubscriptionDetails(null);
-          setReviews([]);
+          await fetchPublicReviews();
           return;
         }
 
@@ -287,8 +314,8 @@ export default function RevampCounselorDetailsPage() {
   return (
     <div style={{ backgroundColor: '#C6DDF040' }} className="min-h-screen flex flex-col">
       
-      <div className="py-10 px-4 sm:px-10 flex flex-col items-center flex-1">
-        <div className="w-full max-w-[1330px] flex flex-col xl:flex-row gap-[32px]">
+      <div className="py-6 md:py-10 px-3 sm:px-6 lg:px-10 flex flex-col items-center flex-1">
+        <div className="w-full max-w-[1330px] flex flex-col xl:flex-row gap-6 md:gap-8">
           
           {/* Left Column (Profile & About) */}
           <div className="flex-1 flex flex-col gap-8 items-center xl:items-end">
@@ -303,14 +330,10 @@ export default function RevampCounselorDetailsPage() {
               pendingApproval={pendingApproval}
               isCurrentUserCounselor={isCurrentUserCounselor}
             />
-
-            <div className="w-full max-w-[719px] mt-[8px]">
-              <RevampSocialMediaCard />
-            </div>
           </div>
 
           {/* Right Column (Assessments, Courses, etc.) */}
-          <div className="w-full xl:w-[580px] shrink-0 flex flex-col gap-8 items-center xl:items-start">
+          <div className="w-full xl:w-[580px] shrink-0 flex flex-col gap-6 md:gap-8 items-center xl:items-start">
             <RevampFreeCareerAssessmentCard 
               counselor={counselor}
               user={user}
@@ -320,6 +343,11 @@ export default function RevampCounselorDetailsPage() {
             <RevampCounselorCoursesCard 
               counsellorId={computedId} 
               userRole={(role as "counselor" | "user" | "student" | "proBuddy") || "user"} 
+            />
+
+            <RevampCounselorTestsCard
+              counsellorId={computedId}
+              userRole={(role as "counselor" | "user" | "student" | "proBuddy") || "user"}
             />
           </div>
           

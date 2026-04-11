@@ -68,7 +68,7 @@ export default function RevampLayout() {
 
         <button
             onClick={toggleChatbot}
-            className="fixed right-3 md:right-6 bottom-3 md:bottom-6 z-50 flex h-32 w-32~ cursor-pointer items-center justify-center transition-transform duration-300 hover:scale-110"
+            className="fixed right-0 md:right-6 bottom-1 md:bottom-6 z-50 flex h-32 w-32 cursor-pointer items-center justify-center transition-transform duration-300 hover:scale-110"
             aria-label="Toggle Chatbot"
         >
             {chatbotAnimation ? (
