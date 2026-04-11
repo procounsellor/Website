@@ -8,7 +8,7 @@ import { BookOpen, Clock3, Lock, Star, Users } from "lucide-react";
 import TestGroupCard from "./TestGroupCard";
 import { SeeAllButton } from "../components/LeftRightButton";
 import TestGroupReviewsCard from "./TestGroupReviewsCard";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   buyTestGroup,
@@ -206,6 +206,7 @@ const addTrackpadScrolling = (emblaApi: EmblaCarouselType) => {
 
 export default function TestGroupCardDetails() {
   const { testGroupId } = useParams();
+  const navigate = useNavigate();
   const userId = localStorage.getItem("phone") || "";
   const token = localStorage.getItem("jwt") || "";
   const role = (localStorage.getItem("role") || "user") as "user" | "student" | "counselor";
@@ -363,6 +364,15 @@ export default function TestGroupCardDetails() {
   const visibleAttachedTests = attachedTests.slice(0, visibleAttachedTestsCount);
   const hasMoreAttachedTests = visibleAttachedTestsCount < attachedTests.length;
 
+  const handleOpenTestInfo = (testId: string) => {
+    if (!testId || testId.includes("placeholder")) {
+      toast.error("Test details are not available yet.");
+      return;
+    }
+
+    navigate(`/test-info/${testId}`, { state: { testGroupId } });
+  };
+
   return (
     <div className="bg-[#F5F5F7] min-h-screen">
       {/* phone view */}
@@ -439,7 +449,8 @@ export default function TestGroupCardDetails() {
                             delay: index * 0.06,
                             ease: "easeOut",
                           }}
-                          className="flex items-center justify-between w-full rounded-2xl border border-[#E5E7EB] bg-white p-[0.62rem]"
+                          className="flex items-center justify-between w-full rounded-2xl border border-[#E5E7EB] bg-white p-[0.62rem] cursor-pointer hover:border-[#2F43F2]/45 transition-colors"
+                          onClick={() => handleOpenTestInfo(test.id)}
                         >
                           <div className="flex items-center gap-4">
                             <div className="h-12 w-12 rounded-lg bg-[#2F43F20D] flex items-center justify-center">
@@ -614,7 +625,8 @@ export default function TestGroupCardDetails() {
                             delay: index * 0.06,
                             ease: "easeOut",
                           }}
-                          className="flex items-center justify-between w-full rounded-2xl border border-[#E5E7EB] bg-white p-[0.62rem]"
+                          className="flex items-center justify-between w-full rounded-2xl border border-[#E5E7EB] bg-white p-[0.62rem] cursor-pointer hover:border-[#2F43F2]/45 transition-colors"
+                          onClick={() => handleOpenTestInfo(test.id)}
                         >
                           <div className="flex items-center gap-4">
                             <div className="h-12 w-12 rounded-lg bg-[#2F43F20D] flex items-center justify-center">
