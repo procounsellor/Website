@@ -2,8 +2,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { getDeadlines, type EventItem } from "@/api/deadlines";
 import DeadlinePageCard from "@/components/Revamp/deadlinePage/DeadlinePageCard";
+import { useNavigate } from "react-router-dom";
 
 export default function DeadlinesPage() {
+    const navigate = useNavigate();
   const { data: allEvents = [], isLoading, isError, error, refetch } = useQuery({
     queryKey: ['revamp-deadlines'],
     queryFn: () => getDeadlines(),
@@ -33,7 +35,14 @@ export default function DeadlinesPage() {
       <div className="w-full border-b border-[#E3E8F4] bg-white">
         <div className="max-w-[1440px] mx-auto px-5 md:px-[60px] pt-3 pb-3">
           <p className="text-[0.875rem] text-(--text-muted) font-medium">
-            Admission <span className="mx-1">{">"}</span>{" "}
+            <button
+              type="button"
+              onClick={() => navigate("/admissions")}
+              className="hover:underline cursor-pointer"
+            >
+              Admission
+            </button>
+            <span className="mx-1">{">"}</span>{" "}
             <span className="text-(--text-main)">Deadlines</span>
           </p>
         </div>
