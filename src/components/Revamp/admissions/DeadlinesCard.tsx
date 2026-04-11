@@ -1,14 +1,17 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface DeadlinesCardProps {
+  id: string | number;
   examName: string;
   deadline: string;
   details: string;
   isWhite?: boolean;
 }
 
-export default function DeadlinesCard({ examName, deadline, details, isWhite = false }: DeadlinesCardProps) {
+export default function DeadlinesCard({ id, examName, deadline, details, isWhite = false }: DeadlinesCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
 
   // Extract the first two words for the short display
   const words = examName.split(" ");
@@ -17,6 +20,9 @@ export default function DeadlinesCard({ examName, deadline, details, isWhite = f
 
   return (
     <div 
+      onClick={() => navigate(`/admissions/deadlines/${id}`)}
+      role="button"
+      tabIndex={0}
       className="relative cursor-pointer w-[200px] h-[220px] md:w-[312px] md:h-[322px] shrink-0 group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

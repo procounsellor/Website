@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import FancyCard from "./DeadlinesCard";
 import { SeeAllButton } from "../components/LeftRightButton";
-import { getDeadlines, type EventItem } from "@/api/deadlines"; // Adjust path as needed
+import { getDeadlines, type EventItem } from "@/api/deadlines";
+import { useNavigate } from "react-router-dom";
 
 export default function CollegeSection() {
-  // Fetch deadlines using TanStack Query
+  const navigate = useNavigate();
   const { data: allEvents = [], isLoading, isError } = useQuery({
     queryKey: ['revamp-deadlines'],
     queryFn: () => getDeadlines(),
@@ -12,18 +13,15 @@ export default function CollegeSection() {
     gcTime: 10 * 60 * 1000,
   });
 
-  // Filter out any items marked as deleted
   const activeEvents = allEvents.filter((event: EventItem) => !event.isDeleted);
   
-  // ONLY GRAB THE FIRST 4 EVENTS
   const displayEvents = activeEvents.slice(0, 4);
 
-  // Helper function to format "YYYY-MM-DD" into "Month DD, YYYY"
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
     const options: Intl.DateTimeFormatOptions = { 
       year: 'numeric', 
-      month: 'short', // Changed to short to save space based on your screenshot
+      month: 'short',
       day: 'numeric' 
     };
     return new Date(dateString).toLocaleDateString('en-US', options);
@@ -82,8 +80,9 @@ export default function CollegeSection() {
             {displayEvents.map((event: EventItem, index: number) => (
               <div key={event.id} className="shrink-0">
                 <FancyCard
+                  id={event.id}
                   examName={event.title}
-                  deadline={formatDate(event.endDate)} // Using endDate as the deadline display
+                  deadline={formatDate(event.endDate)}
                   details={event.description}
                   isWhite={index % 2 === 0}
                 />
@@ -97,7 +96,7 @@ export default function CollegeSection() {
           <div className="scale-[0.85] md:scale-100 origin-center md:origin-right">
             <SeeAllButton
               text="See all"
-              onClick={() => console.log('see all')}
+              onClick={() => navigate('/admissions/deadlines')}
             />
           </div>
         </div>

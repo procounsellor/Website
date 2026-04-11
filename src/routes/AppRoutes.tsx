@@ -50,6 +50,8 @@ import SessionListing from '@/pages/Revamp/SessionListing';
 import ProBuddiesComingSoon from '@/pages/Revamp/ProBuddiesComingSoon';
 import ProBuddiesRegistration from '@/pages/Revamp/ProBuddiesRegistration';
 import ProBuddiesDashboard from '@/pages/Revamp/ProBuddiesDashboard';
+import DeadlinesPage from '@/pages/Revamp/DeadlinesPage';
+import DeadlineDetailPage from '@/pages/Revamp/DeadlineDetailPage';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
@@ -104,6 +106,9 @@ export default function AppRoutes() {
                         <Route path='/counsellor-listing' element={<CounsellorsPage />} />
                         <Route path='/counsellor-listing-cards' element={<CounsellorsPage />} />
                         <Route path="/counsellor-details/:id" element={<RevampCounselorDetailsPage />} />
+
+                        <Route path='/admissions/deadlines' element={<DeadlinesPage />} />
+                        <Route path='/admissions/deadlines/:id' element={<DeadlineDetailPage />} />
 
                         {/* probuddies pages  */}
                         <Route path='/pro-buddies/register' element={<ProBuddiesRegistration />} />

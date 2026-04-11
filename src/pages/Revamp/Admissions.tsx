@@ -305,10 +305,11 @@ export default function Admissions() {
 
               {/* Scholarships Card */}
               <motion.div
+                onClick={() => navigate('/admissions/deadlines')}
                 initial={{ opacity: 0, y: 120 }}
                 animate={animationPhase >= 4 ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.7, delay: 0.45, ease: "easeOut" }}
-                className="absolute right-16 top-[8px] w-[243px] h-[245px] bg-[#68aab8] rounded-[28px] overflow-hidden"
+                className="absolute right-16 top-[8px] w-[243px] h-[245px] bg-[#68aab8] rounded-[28px] overflow-hidden cursor-pointer"
               >
                 <img
                   src="/admissions/sch.png"
@@ -332,10 +333,11 @@ export default function Admissions() {
 
               {/* Bottom Right White Card */}
               <motion.div
+                onClick={() => navigate('/admissions/deadlines')}
                 initial={{ opacity: 0, y: 120 }}
                 animate={animationPhase >= 4 ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.7, delay: 0.55, ease: "easeOut" }}
-                className="absolute right-16 top-[269px] w-[243px] h-[141px] rounded-[28px] overflow-hidden bg-gray-700"
+                className="absolute right-16 top-[269px] w-[243px] h-[141px] rounded-[28px] overflow-hidden bg-gray-700 cursor-pointer"
               >
                 <img
                   src="/admissions/deadline.svg"
