@@ -9,6 +9,7 @@ import CancellationRefundPage from "@/pages/CancellationRefund";
 import ShippingExchangePage from "@/pages/ShippingExchange";
 import AddCollegePage from "@/pages/AddCollege";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import RoleBasedRoute from "@/components/auth/RoleBasedRoute";
 import ExternalPrivacyPage from "@/pages/external/Privacy";
 import ExternalTermsPage from "@/pages/external/Terms";
 import { Toaster } from 'react-hot-toast';
