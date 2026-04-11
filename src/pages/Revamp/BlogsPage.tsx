@@ -1,6 +1,11 @@
+import { Link } from "react-router-dom";
 import Blogs from "@/components/Revamp/admissions/Blogs";
+import { useAuthStore } from "@/store/AuthStore";
 
 export default function BlogsPage() {
+  const role = useAuthStore((s) => s.role);
+  const isCounselor = role === "counselor";
+
   return (
     <div
       className="min-h-screen"
@@ -11,11 +16,19 @@ export default function BlogsPage() {
     >
       {/* Top breadcrumb and heading section */}
       <div className="w-full border-b border-[#E3E8F4] bg-white">
-        <div className="max-w-[1440px] mx-auto px-5 md:px-[60px] pt-3 pb-3">
+        <div className="max-w-[1440px] mx-auto px-5 md:px-[60px] pt-3 pb-3 flex flex-wrap items-center justify-between gap-3">
           <p className="text-[0.875rem] text-(--text-muted) font-medium">
             Admission <span className="mx-1">{">"}</span>{" "}
             <span className="text-(--text-main)">Blogs</span>
           </p>
+          {isCounselor && (
+            <Link
+              to="/admissions/blogs/new"
+              className="shrink-0 rounded-[8px] bg-[#0E1629] px-4 py-2 text-[0.875rem] font-medium text-white hover:opacity-95 cursor-pointer"
+            >
+              New blog
+            </Link>
+          )}
         </div>
       </div>
 

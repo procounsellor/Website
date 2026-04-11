@@ -150,6 +150,14 @@ export function normalizeBlog(raw: BlogRaw, fallbackId?: string): BlogListItem |
   };
 }
 
+function authHeadersForBlogWrite(): HeadersInit {
+  const token =
+    typeof localStorage !== "undefined" ? localStorage.getItem("jwt") : null;
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
+
 function ensureMutationSuccess(data: BlogMutationResponse, fallbackMessage: string) {
   const success = data.success;
   const status = data.status;
@@ -175,6 +183,7 @@ export async function createBlog(
 
   const res = await fetch(`${baseUrl}/api/blogs`, {
     method: "POST",
+    headers: authHeadersForBlogWrite(),
     body: formData,
   });
 
@@ -196,6 +205,7 @@ export async function updateBlog(
 
   const res = await fetch(`${baseUrl}/api/blogs/${encodeURIComponent(blogId)}`, {
     method: "PUT",
+    headers: authHeadersForBlogWrite(),
     body: formData,
   });
 
@@ -209,10 +219,19 @@ export async function updateBlog(
 export async function deleteBlog(blogId: string): Promise<BlogMutationResponse> {
   const res = await fetch(`${baseUrl}/api/blogs/${encodeURIComponent(blogId)}`, {
     method: "DELETE",
+    headers: authHeadersForBlogWrite(),
   });
+
+  if (res.status === 204) {
+    return { success: true };
+  }
 
   const json: BlogMutationResponse = await res.json().catch(() => ({} as BlogMutationResponse));
   if (!res.ok) throw new Error(json.message || `Failed to delete blog (${res.status})`);
+
+  if (Object.keys(json).length === 0) {
+    return { success: true };
+  }
 
   ensureMutationSuccess(json, "Failed to delete blog");
   return json;
