@@ -23,9 +23,6 @@ interface YTPlayer {
   unMute: () => void;
   isMuted: () => boolean;
   getPlayerState: () => number;
-  getCurrentTime: () => number;
-  getDuration: () => number;
-  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
 }
 
 interface YTPlayerEvent {
@@ -109,9 +106,6 @@ export default function LiveStreamView() {
   const [showLiveEndedPopup, setShowLiveEndedPopup] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
   const [showTopBar, setShowTopBar] = useState(true);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [isLiveEdge, setIsLiveEdge] = useState(true);
   
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
@@ -476,26 +470,6 @@ export default function LiveStreamView() {
     };
   }, [counsellorId, closeStream]);
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (!ytLoading) {
-      interval = setInterval(() => {
-        if (playerRef.current && playerRef.current.getPlayerState() === 1) { // 1 = PLAYING
-          const current = playerRef.current.getCurrentTime() || 0;
-          const total = playerRef.current.getDuration() || 0;
-          setCurrentTime(current);
-          setDuration(total);
-          
-          // If within 10 seconds of the latest chunk, we consider it "Live"
-          setIsLiveEdge(total > 0 && (total - current) < 10);
-        }
-      }, 1000);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [ytLoading]);
-
   // Auto-scroll chat to bottom
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -714,57 +688,6 @@ export default function LiveStreamView() {
                 style={{ pointerEvents: 'auto' }} 
               />
             </div>
-
-            {!ytLoading && (
-                <div 
-                  className="absolute bottom-0 left-0 right-0 p-3 lg:p-4 z-20 bg-gradient-to-t from-black/80 to-transparent flex items-center gap-3"
-                  onClick={(e) => e.stopPropagation()} // Prevents triggering the invisible overlay
-                  onPointerDown={(e) => e.stopPropagation()} // For mobile touches
-                >
-                  {/* Timeline Slider */}
-                  <input
-                    type="range"
-                    min="0"
-                    max={duration || 100}
-                    value={currentTime}
-                    onChange={(e) => {
-                      const time = parseFloat(e.target.value);
-                      setCurrentTime(time);
-                      if (playerRef.current) {
-                        playerRef.current.seekTo(time, true);
-                        setIsLiveEdge(false);
-                      }
-                    }}
-                    className="flex-1 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-[#FA660F] hover:bg-white/50 transition-colors"
-                  />
-
-                  {/* Go To Live Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (playerRef.current) {
-                        const total = playerRef.current.getDuration();
-                        playerRef.current.seekTo(total, true); // Seek to the very end
-                        setIsLiveEdge(true);
-                        
-                        // If it happens to be paused, ensure it plays when jumping to live
-                        if (playerRef.current.getPlayerState() !== 1) {
-                          playerRef.current.playVideo();
-                        }
-                      }
-                    }}
-                    className={cn(
-                      "flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold tracking-wide transition-colors shrink-0 cursor-pointer",
-                      isLiveEdge 
-                        ? "text-red-500" 
-                        : "text-white bg-white/20 hover:bg-white/30"
-                    )}
-                  >
-                    <div className={cn("w-2 h-2 rounded-full", isLiveEdge ? "bg-red-500 animate-pulse" : "bg-white/50")} />
-                    LIVE
-                  </button>
-                </div>
-              )}
           </div>
 
           {/* Video Info Section - hidden in landscape mode */}

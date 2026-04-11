@@ -144,15 +144,15 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
       </div>
 
       {/*desktop view*/}
-      <div className="hidden sm:flex items-center gap-4 w-full py-6">
-        <div className="flex items-center gap-4 w-[40%] shrink-0">
+      <div className="hidden sm:flex items-center gap-4 w-full py-3.5">
+        <div className="flex items-center gap-3 w-[40%] shrink-0">
           {icon}
           <div className="grow overflow-hidden">
-            <h4 className="font-semibold text-lg text-[#242645]">
+            <h4 className="font-semibold text-base text-[#242645]">
               {desktopTitle}
             </h4>
             <p
-              className="text-base font-medium text-[#8C8CA1] truncate"
+              className="text-sm font-medium text-[#8C8CA1] truncate"
               title={desktopDescription || ""}
             >
               {desktopDescription || "No description"}

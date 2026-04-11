@@ -3,15 +3,16 @@ import QuestionFilterBar from "@/components/community/QuestionFilterBar";
 import QuestionList from "@/components/community/QuestionList";
 import CategorySidebar from "@/components/community/CategorySidebar";
 // import RightSideAds from "@/components/community/RightSideAds";
-import CommunityBreadcrumbs from "@/components/community/CommunityBreadcrumbs";
+// import CommunityBreadcrumbs from "@/components/community/CommunityBreadcrumbs";
 
 export default function AnswerPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
+  {/*}
   const breadcrumbPaths = [
     { name: "Community Dashboard", link: "/community" },
     { name: "Questions List" }
   ];
+  */}
 
   return (
     <div className="bg-gray-50 min-h-screen p-4 md:p-8">
@@ -25,7 +26,7 @@ export default function AnswerPage() {
         </div>
 
         <div className="flex flex-col w-full md:mt-0 md:w-[800px] shrink-0">
-          <CommunityBreadcrumbs paths={breadcrumbPaths} showMobileBack={true} />
+          {/*<CommunityBreadcrumbs paths={breadcrumbPaths} showMobileBack={true} /> */}
           <div className="w-full">
             <QuestionFilterBar />
           </div>

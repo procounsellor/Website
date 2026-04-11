@@ -5,8 +5,7 @@ import Autoplay from "embla-carousel-autoplay";
 import { useNavigate } from "react-router-dom";
 import { AcademicCard } from "../homecards/AcademicCard";
 import { Button } from "@/components/ui/button";
-// import { useExams } from "../../hooks/useExams";
-import { useHomeExams } from "@/hooks/useHomeData";
+import { useExams } from "../../hooks/useExams";
 
 const addTrackpadScrolling = (emblaApi: EmblaCarouselType) => {
   const SCROLL_COOLDOWN_MS = 300; 
@@ -38,15 +37,7 @@ const addTrackpadScrolling = (emblaApi: EmblaCarouselType) => {
 };
 
 export function ExamSection() {
-  const { 
-  data: exams, 
-  isLoading: loading, 
-  isError, 
-  error: queryError 
-} = useHomeExams(8);
-
-const error = isError ? (queryError as Error)?.message : null; 
-
+  const { exams, loading, error } = useExams(8); 
   const navigate = useNavigate();
   
   const autoplay = React.useRef(
@@ -138,7 +129,7 @@ const error = isError ? (queryError as Error)?.message : null;
         <div className="relative mt-2 lg:mt-8">
           <div className="overflow-x-hidden px-0.5 py-4" ref={emblaRef}>
             <div className="flex gap-3 px-3 lg:px-6 lg:gap-6">
-              {exams?.map((exam: { id: string; name: string; level: string; bannerUrl: string; iconUrl: string })=>(
+              {exams?.map((exam)=>(
                 <div key={exam.id}
                 className="shrink-0 w-[170px] lg:w-[282px] cursor-pointer"
                 onClick={()=> handleExamClick(exam.id)}

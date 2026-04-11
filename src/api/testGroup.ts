@@ -300,6 +300,30 @@ export const getAllTestGroupsOfCounsellorForUser = async (userId: string, counse
   return response.json();
 };
 
+export const getAllTestGroupsForGuest = async () => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/shared/getAllTestGroups`,
+    {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    }
+  );
+  return response.json();
+};
+
+export const getAllTestGroupsForLoggedInUser = async (userId: string) => {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/userTestSeries/getAllTestGroups?userId=${userId}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    }
+  );
+  return response.json();
+};
+
 export const getTestGroupByIdForUser = async (userId: string, testGroupId: string) => {
   const response = await fetch(
     `${API_CONFIG.baseUrl}/api/counsellorTestGroup/getTestGroupByIdForUser?userId=${userId}&testGroupId=${testGroupId}`,
@@ -403,33 +427,6 @@ export const getUserBookmarkedTestGroups = async (userId: string) => {
     {
       method: "GET",
       headers: getAuthHeaders(),
-    }
-  );
-  return response.json();
-};
-
-// Public APIs - No authentication required
-export const getPublicTestGroupsByCounsellor = async (counsellorId: string) => {
-  const response = await fetch(
-    `${API_CONFIG.baseUrl}/api/shared/getAllTestGroupsOfACounsellor?counsellorId=${counsellorId}`,
-    {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
-    }
-  );
-  return response.json();
-};
-
-export const getPublicTestGroupById = async (testGroupId: string) => {
-  const response = await fetch(
-    `${API_CONFIG.baseUrl}/api/shared/getTestGroupById?testGroupId=${testGroupId}`,
-    {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
     }
   );
   return response.json();

@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Plus, Edit, Trash2, Star, Users, Clock, FileText, Globe, GlobeLock, Pencil, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { getTestGroupById, getAllTestSeriesOfTestGroupForCounselor, publishUnpublishTestGroup, deleteTestSeries } from "@/api/testGroup";
 import type { TestGroup, TestSeries } from "@/types/testGroup";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DeleteConfirmationModal } from "@/components/modals/DeleteConfirmationModal";
 
 interface Review {
@@ -30,38 +29,53 @@ interface AssociatedCourse {
 export function TestGroupDetails() {
   const navigate = useNavigate();
   const { testGroupId } = useParams();
+  const [testGroup, setTestGroup] = useState<TestGroup | null>(null);
+  const [testSeriesList, setTestSeriesList] = useState<TestSeries[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [associatedCourse, setAssociatedCourse] = useState<AssociatedCourse | null>(null);
+  const [loading, setLoading] = useState(true);
   const counsellorId = localStorage.getItem("phone") || "";
-  const queryClient = useQueryClient();
-  
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string; name: string }>({
     isOpen: false,
     id: "",
     name: "",
   });
 
-  const {
-    data: groupResponse,
-    isLoading: isLoadingGroup,
-  } = useQuery({
-    queryKey: ['testGroup', counsellorId, testGroupId],
-    queryFn: () => getTestGroupById(counsellorId, testGroupId!),
-    enabled: !!counsellorId && !!testGroupId,
-  });
+  useEffect(() => {
+    if (testGroupId) {
+      fetchData();
+    }
+  }, [testGroupId]);
 
-  const {
-    data: seriesResponse,
-    isLoading: isLoadingSeries,
-  } = useQuery({
-    queryKey: ['testSeriesList', counsellorId, testGroupId],
-    queryFn: () => getAllTestSeriesOfTestGroupForCounselor(counsellorId, testGroupId!),
-    enabled: !!counsellorId && !!testGroupId,
-  });
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      // Fetch test group details
+      const groupResponse = await getTestGroupById(counsellorId, testGroupId!);
+      if (groupResponse.status && groupResponse.data?.testGroup) {
+        setTestGroup(groupResponse.data.testGroup);
+        // Store reviews from API response
+        if (groupResponse.data.reviews) {
+          setReviews(groupResponse.data.reviews);
+        }
+        // Store associated course if available
+        if (groupResponse.data.associatedCourse) {
+          setAssociatedCourse(groupResponse.data.associatedCourse);
+        }
+      }
 
-  const loading = isLoadingGroup || isLoadingSeries;
-  const testGroup: TestGroup | null = groupResponse?.data?.testGroup || null;
-  const reviews: Review[] = groupResponse?.data?.reviews || [];
-  const associatedCourse: AssociatedCourse | null = groupResponse?.data?.associatedCourse || null;
-  const testSeriesList: TestSeries[] = seriesResponse?.data || [];
+      // Fetch test series list
+      const seriesResponse = await getAllTestSeriesOfTestGroupForCounselor(counsellorId, testGroupId!);
+      if (seriesResponse.status && seriesResponse.data) {
+        setTestSeriesList(seriesResponse.data);
+      }
+    } catch (error) {
+      toast.error("Failed to fetch data");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlePublishToggle = async () => {
     if (!testGroup) return;
@@ -73,7 +87,7 @@ export function TestGroupDetails() {
       );
       if (response.status) {
         toast.success(testGroup.published ? "Test group unpublished" : "Test group published");
-        queryClient.invalidateQueries({ queryKey: ['testGroup', counsellorId, testGroupId] });
+        fetchData();
       }
     } catch (error) {
       toast.error("Failed to update publish status");
@@ -85,8 +99,7 @@ export function TestGroupDetails() {
     try {
       await deleteTestSeries(counsellorId, deleteModal.id);
       toast.success("Test series deleted successfully");
-      queryClient.invalidateQueries({ queryKey: ['testSeriesList', counsellorId, testGroupId] });
-      setDeleteModal({ isOpen: false, id: "", name: "" });
+      fetchData();
     } catch (error) {
       toast.error("Failed to delete test series");
       console.error(error);
@@ -132,7 +145,7 @@ export function TestGroupDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] pt-20 md:pt-24 pb-6 px-4 md:px-6">
+    <div className="min-h-screen bg-[#F9FAFB] pt-4 pb-6 px-4 md:px-6">
       <div className="max-w-7xl mx-auto">
         {/* Back Button */}
         <button
@@ -378,7 +391,7 @@ export function TestGroupDetails() {
           <div className="bg-white rounded-xl shadow-sm p-4 mt-4">
             <h2 className="text-lg font-bold text-(--text-app-primary) mb-3">Associated Course</h2>
             <div
-              onClick={() => navigate(`/detail/${associatedCourse.courseId}/counselor`, {
+              onClick={() => navigate(`/courses/detail/${associatedCourse.courseId}/counselor`, {
                 state: { from: 'test-group' }
               })}
               className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"

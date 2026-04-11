@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
+import { useAuthStore } from '@/store/AuthStore';
+import toast from 'react-hot-toast';
 
-const GRAND_MOCK_TEST_PATH = "/gmt-results";
+const COURSE_EXPLORE_PATH = "/gurucool";
 const AADITYA_IMAGE_PATH = "./aaditya-banner.png";
 const SUBSCRIBER_AVATARS_PATH = "./subscribers.png";
 
@@ -44,41 +46,20 @@ const bannerSlides = [
 
 const CourseBannerSection: React.FC = () => {
     const navigate = useNavigate();
-    const slidesWithClone = [...bannerSlides, bannerSlides[0]];
-    
+    const { isAuthenticated, toggleLogin } = useAuthStore();
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
-    const [isTransitioning, setIsTransitioning] = useState(true);
-    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // Auto-rotation logic
     const startAutoRotate = useCallback(() => {
         if (intervalRef.current) clearInterval(intervalRef.current);
         intervalRef.current = setInterval(() => {
             if (!isPaused) {
-                setIsTransitioning(true);
-                setCurrentSlide((prev) => prev + 1);
+                setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
             }
         }, 5000);
     }, [isPaused]);
-
-    useEffect(() => {
-        if (currentSlide === slidesWithClone.length - 1) {
-            const timer = setTimeout(() => {
-                setIsTransitioning(false);
-                setCurrentSlide(0);
-            }, 700);
-
-            return () => clearTimeout(timer);
-        }
-    }, [currentSlide, slidesWithClone.length]);
-
-    useEffect(() => {
-        if (!isTransitioning && currentSlide === 0) {
-            const timer = setTimeout(() => setIsTransitioning(true), 50);
-            return () => clearTimeout(timer);
-        }
-    }, [isTransitioning, currentSlide]);
 
     useEffect(() => {
         startAutoRotate();
@@ -89,18 +70,23 @@ const CourseBannerSection: React.FC = () => {
 
     // Handle dot click
     const goToSlide = (index: number) => {
-        setIsTransitioning(true);
         setCurrentSlide(index);
         startAutoRotate();
     };
 
     const handleExploreClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
-        navigate(GRAND_MOCK_TEST_PATH);
+        navigate(COURSE_EXPLORE_PATH);
     };
 
-    const handleGrandMockTestClick = () => {
-        navigate(GRAND_MOCK_TEST_PATH);
+    const handleLiveSessionClick = () => {
+        if (isAuthenticated) {
+            navigate('/live-sessions');
+        } else {
+            toast.error("Please log in to explore live sessions.", { duration: 3000 });
+            const onSuccess = () => navigate('/live-sessions');
+            toggleLogin(onSuccess);
+        }
     };
 
     const handleBannerButtonClick = (link: string) => {
@@ -111,44 +97,48 @@ const CourseBannerSection: React.FC = () => {
         }
     };
 
+    const currentBanner = bannerSlides[currentSlide];
+
     // Render Aaditya banner (original)
     const renderAadityaBanner = () => (
         <div className="z-10 relative">
-            <h2 className="text-sm sm:text-xl md:text-2xl lg:text-3xl font-bold text-white mb-2 md:mb-4">
-                <span className="text-xl sm:text-3xl md:text-4xl font-extrabold text-white">
-                    Grand Mock Test By Aaditya Coep | 29th March
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white mb-2 md:mb-4">
+                Explore Our Comprehensive Range of Courses By :
+                <br />
+                <span className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white">
+                    Aaditya [COEP]
                 </span>
             </h2>
 
-            <div className="flex items-center space-x-2 sm:space-x-3 mb-4 md:mb-8">
+            <div className="flex items-center space-x-3 mb-4 md:mb-8">
                 <img
                     src={SUBSCRIBER_AVATARS_PATH}
                     alt="52.5K subscribers"
-                    className="h-7 sm:h-10 w-auto object-contain"
+                    className="h-9 sm:h-10 w-auto object-contain"
                 />
-                <p className="text-xs sm:text-lg font-semibold text-white">
-                    Register now and take the test directly from this page
+                <p className="text-base sm:text-lg font-semibold text-white">
+                    52.5K subscribers
                 </p>
             </div>
 
-            <div className="flex flex-row gap-2 md:gap-4 items-center">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                 <a
-                    href={GRAND_MOCK_TEST_PATH}
+                    href={COURSE_EXPLORE_PATH}
                     onClick={handleExploreClick}
-                    className="inline-flex items-center justify-center px-2 py-2 sm:px-6 sm:py-3 border border-transparent text-[10px] sm:text-base font-medium rounded-lg shadow-sm bg-white hover:bg-gray-50 transition duration-150 ease-in-out cursor-pointer whitespace-nowrap flex-1 sm:flex-none"
+                    className="inline-flex items-center justify-center px-4 py-2 sm:px-6 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-lg shadow-sm bg-white hover:bg-gray-50 transition duration-150 ease-in-out cursor-pointer"
                     style={{ color: '#B68D9D' }}
                 >
-                    Check GMT Result
-                    <ArrowUpRight className="ml-1 w-3 h-3 sm:w-5 sm:h-5" style={{ color: '#B68D9D' }} />
+                    Explore Courses Now
+                    <ArrowUpRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" style={{ color: '#B68D9D' }} />
                 </a>
 
                 <button
-                    onClick={handleGrandMockTestClick}
-                    className="inline-flex items-center justify-center px-2 py-2 sm:px-6 sm:py-3 border border-transparent text-[10px] sm:text-base font-medium rounded-lg shadow-sm transition cursor-pointer duration-150 ease-in-out bg-white flex-1 sm:flex-none whitespace-nowrap"
-                    style={{ color: '#B68D9D' }}
+                    onClick={handleLiveSessionClick}
+                    className="inline-flex items-center justify-center px-4 py-2 sm:px-6 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-lg shadow-sm transition cursor-pointer duration-150 ease-in-out"
+                    style={{ background: 'white', color: '#B68D9D' }}
                 >
-                    Open Test Page
-                    <ArrowUpRight className="ml-1 w-3 h-3 sm:w-5 sm:h-5" style={{ color: '#B68D9D' }} />
+                    Explore Live Sessions
+                    <ArrowUpRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" style={{ color: '#B68D9D' }} />
                 </button>
             </div>
         </div>
@@ -204,77 +194,62 @@ const CourseBannerSection: React.FC = () => {
         <section className="bg-white py-8 md:py-16">
             <div className="container mx-auto px-4 md:px-38">
                 <div
-                    className="relative overflow-hidden rounded-xl"
+                    className="relative overflow-hidden rounded-xl p-6 md:p-12 lg:p-16 transition-all duration-700 ease-in-out"
+                    style={{ background: currentBanner.gradient }}
                     onMouseEnter={() => setIsPaused(true)}
                     onMouseLeave={() => setIsPaused(false)}
                 >
-                    {/* Sliding Track */}
-                    <div 
-                        className="flex"
-                        style={{ 
-                            transform: `translateX(-${currentSlide * 100}%)`,
-                            transition: isTransitioning ? 'transform 700ms ease-in-out' : 'none'
-                        }}
-                    >
-                        {slidesWithClone.map((slide, index) => (
-                            <div
-                                key={`${slide.id}-${index}`}
-                                className="min-w-full p-6 md:p-12 lg:p-16 relative"
-                                style={{ background: slide.gradient }}
-                            >
-                                {/* Content */}
-                                <div className="transition-opacity duration-500">
-                                    {slide.id === 'aaditya'
-                                        ? renderAadityaBanner()
-                                        : renderPromoBanner(slide as typeof bannerSlides[1])
-                                    }
-                                </div>
-
-                                {/* Decorative elements for Aaditya banner */}
-                                {slide.id === 'aaditya' && (
-                                    <div className="absolute top-0 right-0 h-full w-1/4 hidden md:block z-0">
-                                        <div
-                                            className="absolute rounded-full z-[-1]"
-                                            style={{
-                                                top: '-20%',
-                                                right: '-80%',
-                                                width: '200%',
-                                                height: '140%',
-                                                backgroundColor: '#DCC1CA',
-                                                opacity: 0.15,
-                                            }}
-                                        />
-                                        <div
-                                            className="absolute rounded-full z-[-1]"
-                                            style={{
-                                                top: '10%',
-                                                right: '-30%',
-                                                width: '100%',
-                                                height: '100%',
-                                                backgroundColor: '#DCC1CA',
-                                                opacity: 0.25,
-                                            }}
-                                        />
-                                        <img
-                                            src={AADITYA_IMAGE_PATH}
-                                            alt="Aaditya [COEP] Counselor"
-                                            className="absolute bottom-0 right-0 h-full object-cover z-10"
-                                        />
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+                    {/* Content */}
+                    <div className="transition-opacity duration-500">
+                        {currentBanner.id === 'aaditya'
+                            ? renderAadityaBanner()
+                            : renderPromoBanner(currentBanner as typeof bannerSlides[1])
+                        }
                     </div>
+
+                    {/* Decorative elements for Aaditya banner */}
+                    {currentBanner.id === 'aaditya' && (
+                        <div className="absolute top-0 right-0 h-full w-1/4 hidden md:block z-0">
+                            <div
+                                className="absolute rounded-full z-[-1]"
+                                style={{
+                                    top: '-20%',
+                                    right: '-80%',
+                                    width: '200%',
+                                    height: '140%',
+                                    backgroundColor: '#DCC1CA',
+                                    opacity: 0.15,
+                                }}
+                            />
+                            <div
+                                className="absolute rounded-full z-[-1]"
+                                style={{
+                                    top: '10%',
+                                    right: '-30%',
+                                    width: '100%',
+                                    height: '100%',
+                                    backgroundColor: '#DCC1CA',
+                                    opacity: 0.25,
+                                }}
+                            />
+                            <img
+                                src={AADITYA_IMAGE_PATH}
+                                alt="Aaditya [COEP] Counselor"
+                                className="absolute bottom-0 right-0 h-full object-cover z-10"
+                            />
+                        </div>
+                    )}
+
+
                 </div>
 
-                {/* Navigation Dots - Use modulo to map back to original indices */}
+                {/* Navigation Dots - Outside the card */}
                 <div className="flex justify-center mt-6 gap-2">
                     {bannerSlides.map((slide, index) => (
                         <button
                             key={slide.id}
                             onClick={() => goToSlide(index)}
-                            className={`h-2 rounded-full transition-all duration-300 hover:cursor-pointer ${
-                                (currentSlide % bannerSlides.length) === index
+                            className={`h-2 rounded-full transition-all duration-300 hover:cursor-pointer ${index === currentSlide
                                 ? 'w-6 bg-[#13097D]'
                                 : 'w-2 bg-gray-400'
                                 }`}

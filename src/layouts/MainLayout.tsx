@@ -17,7 +17,6 @@ import { useEffect } from "react";
 import { updateUserProfile } from "@/api/user";
 import { useLiveStreamStore } from "@/store/LiveStreamStore";
 import LiveStreamView from "@/components/live/userView";
-import { MessageSquare } from "lucide-react";
 
 export default function MainLayout() {
   const {
@@ -44,7 +43,7 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const PROMO_ROUTES = ['/promo', '/testSeries/pcsat', '/testSeries/kurukshetra', '/testSeries/grand-mock-test']; 
+  const PROMO_ROUTES = ['/promo', '/testSeries/pcsat']; 
   const isPromoPage = PROMO_ROUTES.includes(location.pathname);
   const isCollegeDetailsPage = location.pathname.includes('/college-details');
   const shouldHideBanner = location.pathname.includes('/test-info') || location.pathname.includes('/test-result') || location.pathname.includes('/t/');
@@ -117,7 +116,7 @@ export default function MainLayout() {
   const handleOnboardingComplete = () => {
     setNeedsOnboarding(false);
 
-    if (user && !user.firstName) {
+    if (user && (!user.firstName || !user.email)) {
       setNeedsProfileCompletion(true);
       return;
     }
@@ -189,11 +188,15 @@ export default function MainLayout() {
       {!isStreamActive && !isPromoPage &&  (authUser?.role.trim().toLowerCase() == 'counsellor' ? authUser?.verified: true) && (
         <button
           onClick={toggleChatbot}
-          className={`fixed right-6 cursor-pointer bg-[#FA660F] text-white w-16 h-16 flex items-center justify-center rounded-full shadow-lg z-50 hover:bg-orange-600 transition-all duration-300 transform hover:scale-110 
-            ${isCollegeDetailsPage ? 'bottom-20 md:bottom-6' : 'bottom-6'}`}
+          className={`fixed right-3 md:right-6 cursor-pointer w-16 h-16 flex items-center justify-center z-50 transition-transform duration-300 transform hover:scale-110 
+            ${isCollegeDetailsPage ? 'bottom-20 md:bottom-6' : 'bottom-3 md:bottom-6'}`}
           aria-label="Toggle Chatbot"
         >
-          <MessageSquare size={32} />
+          <img
+            src="/course-bottom-right.svg"
+            alt="Chatbot"
+            className="h-16 w-16"
+          />
         </button>
       )}
       {isChatbotOpen && !isPromoPage && <Chatbot />}

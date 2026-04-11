@@ -50,6 +50,8 @@ type ContentCardProps = {
   setCurrentPath?: (path: string[]) => void;
   isPurchased?: boolean;
   userRole?: string;
+  /** When true, outer chrome matches an embedded block inside a parent card */
+  embedded?: boolean;
 };
 
 const getFileIcon = (type: string) => {
@@ -100,7 +102,8 @@ export default function ContentCard({
   currentPath = ['root'],
   setCurrentPath,
   isPurchased = false,
-  userRole
+  userRole,
+  embedded = false,
 }: ContentCardProps) {
   // const { role } = useAuthStore();
   const shouldBlurContent = !isPurchased && (userRole === 'user' || userRole === 'student');
@@ -674,10 +677,14 @@ export default function ContentCard({
     }
   };
 
+  const shellClass = embedded
+    ? "relative overflow-hidden"
+    : "bg-white rounded-2xl border p-4 relative overflow-hidden";
+
   return (
-    <div className="bg-white rounded-2xl border p-4 relative overflow-hidden">
-      <div className="flex items-center justify-between mb-3 gap-3">
-        <h1 className="text-[#343C6A] font-semibold text-sm md:text-[1.25rem] shrink-0">
+    <div className={shellClass}>
+      <div className={`flex items-center justify-between gap-3 ${embedded ? "mb-3" : "mb-3"}`}>
+        <h1 className="text-[14px] md:text-[20px] font-semibold text-[#0E1629] shrink-0">
           Content
         </h1>
         {currentPath.length > 1 && (
@@ -721,7 +728,12 @@ export default function ContentCard({
                   </p>
                 </div>
               </div>
-              <ChevronRight className="text-gray-400" />
+              <div className="flex shrink-0 items-center gap-2">
+                {shouldBlurContent && (
+                  <Lock className="h-4 w-4 text-[#226CBD]" aria-hidden />
+                )}
+                <ChevronRight className="text-gray-400" />
+              </div>
             </div>
           </div>
         )
@@ -748,7 +760,12 @@ export default function ContentCard({
                     </p>
                   </div>
                 </div>
-                {item.type === 'folder' && <ChevronRight className="text-gray-400" />}
+                <div className="flex shrink-0 items-center gap-2">
+                  {shouldBlurContent && (
+                    <Lock className="h-4 w-4 text-[#226CBD]" aria-hidden />
+                  )}
+                  {item.type === 'folder' && <ChevronRight className="text-gray-400" />}
+                </div>
               </div>
             ))}
           </div>
@@ -776,7 +793,12 @@ export default function ContentCard({
                     </p>
                   </div>
                 </div>
-                {item.type === 'folder' && <ChevronRight className="text-gray-400" />}
+                <div className="flex shrink-0 items-center gap-2">
+                  {shouldBlurContent && (
+                    <Lock className="h-4 w-4 text-[#226CBD]" aria-hidden />
+                  )}
+                  {item.type === 'folder' && <ChevronRight className="text-gray-400" />}
+                </div>
               </div>
             ))}
           </div>

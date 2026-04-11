@@ -38,16 +38,16 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, offline
   const hasFailedTransactions = activeFilter === 'Failed' && filteredTransactions.length > 0;
 
   return (
-    <div className="sm:bg-white sm:p-6 sm:rounded-2xl sm:border sm:border-[#EFEFEF]">
-      <div className="bg-white p-1 rounded-2xl flex items-center gap-2 mb-6 sm:bg-transparent sm:p-0 sm:gap-4">
+    <div>
+      <div className="flex items-center gap-1 mb-6">
         {TABS.map(tab => (
           <button
             key={tab}
             onClick={() => setActiveFilter(tab)}
-            className={`flex-1 text-center px-3 py-1.5 hover:cursor-pointer sm:flex-none sm:w-auto sm:px-4 sm:py-2 text-sm sm:text-base font-medium rounded-full transition-colors duration-200 ${
+            className={`hover:cursor-pointer px-4 py-2.5 text-[1rem] font-normal rounded-full transition-colors duration-200 ${
               activeFilter === tab 
-              ? 'bg-[#E8E7F2] text-[#13097D]' 
-              : 'bg-transparent text-[#13097D]'
+              ? 'bg-[rgba(14,22,41,0.10)] text-(--text-main)' 
+              : 'bg-transparent text-(--text-muted)'
             }`}
           >
             {tab}

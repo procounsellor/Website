@@ -88,7 +88,7 @@ export default function MyTestSeriesTab() {
                         <div
                             key={group.testGroupId}
                             className='bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group flex flex-col'
-                            onClick={() => navigate(`/test-group/${group.testGroupId}`, { state: { fromDashboard: true, activeTab: 'Test Series' } })}
+                            onClick={() => navigate(`/courses/test-group/${group.testGroupId}`, { state: { fromDashboard: true, activeTab: 'Test Series' } })}
                         >
                             {/* Image Banner */}
                             <div className="relative aspect-video bg-gradient-to-br from-blue-50 to-indigo-50">

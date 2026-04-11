@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import type { User } from '@/types/user';
 import { X, SquarePen, ChevronLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { uploadUserPhoto } from '@/api/user';
+import { sendEmailOtp, verifyEmailOtp } from '@/api/auth';
+import OtpVerificationModal from '@/components/counselor-signup/OtpVerificationModal';
 
 interface EditProfileModalProps {
   user: User;
@@ -14,10 +17,18 @@ interface EditProfileModalProps {
 }
 
 const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClose, onUpdate, requireNameOnly = false }) => {
+  const isMandatory = requireNameOnly
+  const location = useLocation();
+  const isGuruCoolPage = location.pathname === '/gurucool';
+
+  const skipEmailVerification = isGuruCoolPage;
+  
   const [firstName, setFirstName] = useState(user.firstName);
   const [lastName, setLastName] = useState(user.lastName);
   const [email, setEmail] = useState(user.email);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(!!user.email);
+  const [isOtpModalOpen, setOtpModalOpen] = useState(false);
   const token = localStorage.getItem('jwt');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -25,6 +36,31 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
 
 
   const handleClose = () => {
+    // If requireNameOnly mode (for live sessions/reviews), allow closing freely
+    // The action won't proceed without name, but users can close the modal
+    if (requireNameOnly) {
+      onClose();
+      return;
+    }
+    
+    // For other modes, validate before closing
+    if (isMandatory && !skipEmailVerification) {
+      // If mandatory, only allow closing if name and email are filled
+      if (!firstName.trim() || !email.trim()) {
+        toast.error('Please complete your profile with name and email before continuing.');
+        return;
+      }
+      if (email !== user.email && !isEmailVerified) {
+        toast.error('Please verify your email before continuing.');
+        return;
+      }
+    } else if (isMandatory || skipEmailVerification) {
+      // For gurucool page, require name and email but no verification
+      if (!firstName.trim() || !email.trim()) {
+        toast.error('Please enter your name and email before continuing.');
+        return;
+      }
+    }
     onClose();
   };
 
@@ -33,6 +69,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
       setFirstName(user.firstName);
       setLastName(user.lastName);
       setEmail(user.email);
+      setIsEmailVerified(!!user.email);
       setPhotoPreview(null);
       setSelectedFile(null);
     }
@@ -40,6 +77,53 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
+    // Reset verification status when email changes
+    if (e.target.value !== user.email) {
+      setIsEmailVerified(false);
+    } else {
+      setIsEmailVerified(!!user.email);
+    }
+  };
+
+  const handleVerifyEmail = async () => {
+    if (!email || !email.includes('@')) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    try {
+      console.log('📧 Sending OTP to email:', email);
+      await sendEmailOtp(email);
+      setOtpModalOpen(true);
+      toast.success('OTP sent to your email!');
+    } catch (error) {
+      console.error('❌ Failed to send email OTP:', error);
+      toast.error('Failed to send OTP. Please try again.');
+    }
+  };
+
+  const handleOtpVerification = async (otp: string): Promise<boolean> => {
+    try {
+      console.log('🔐 Verifying email OTP...');
+      await verifyEmailOtp(email, otp);
+      setIsEmailVerified(true);
+      toast.success('Email verified successfully!');
+      setOtpModalOpen(false);
+      return true;
+    } catch (error) {
+      console.error('❌ Email OTP verification failed:', error);
+      toast.error('Invalid OTP. Please try again.');
+      return false;
+    }
+  };
+
+  const handleResendOtp = async () => {
+    try {
+      await sendEmailOtp(email);
+      toast.success('OTP resent to your email!');
+    } catch (error) {
+      toast.error('Failed to resend OTP. Please try again.');
+    }
   };
 
   const handlePhotoEditClick = () => {
@@ -61,14 +145,30 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!firstName.trim()) {
-      toast.error('Please enter your first name.');
-      return;
-    }
+    // If requireNameOnly mode (for live sessions/reviews), only require name
+    if (requireNameOnly) {
+      if (!firstName.trim()) {
+        toast.error('Please enter your first name.');
+        return;
+      }
+    } else if (skipEmailVerification) {
+      // For gurucool page, require name and email but skip verification
+      if (!firstName.trim() || !email.trim()) {
+        toast.error('Please enter your name and email.');
+        return;
+      }
+    } else {
+      // For other pages, require both name and email
+      if (!firstName.trim() || !email.trim()) {
+        toast.error('Please fill in all required fields.');
+        return;
+      }
 
-    if (email.trim() && !email.includes('@')) {
-      toast.error('Please enter a valid email address or leave it empty.');
-      return;
+      // Check if email has changed and needs verification
+      if (email !== user.email && !isEmailVerified) {
+        toast.error('Please verify your email before saving.');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -80,7 +180,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
         console.log('✅ Photo uploaded successfully');
       }
       
-      await onUpdate({ firstName, lastName, email: email.trim() });
+      await onUpdate({ firstName, lastName, email: email || user.email || "" });
       console.log('✅ Profile updated successfully');
       
       // The parent component (MainLayout) will handle closing the modal
@@ -132,7 +232,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
             <ChevronLeft size={24} className="text-gray-700" />
           </button>
           <h2 className="text-lg font-semibold text-[#343C6A]">Edit Profile</h2>
-          {requireNameOnly && (
+          {isMandatory && (
             <span className="ml-auto text-xs text-orange-600 font-medium">Required</span>
           )}
         </header>
@@ -164,19 +264,30 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-[#2F303280] mb-1">
-                Email (Optional)
+                Email {(!requireNameOnly && (isMandatory || skipEmailVerification)) && <span className="text-red-500">*</span>}
               </label>
               <div className="relative h-11">
                 <input 
                   type="email"
                   value={email}
                   onChange={handleEmailChange}
-                  required={false}
+                  required={!requireNameOnly && (isMandatory || skipEmailVerification)}
                   className="h-full w-full px-4 pr-20 bg-white border border-[#EFEFEF] rounded-xl text-base text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter your email (optional)"
+                  placeholder={skipEmailVerification ? "Enter your email" : ""}
                 />
+                {!skipEmailVerification && (
+                  <button 
+                    type="button"
+                    onClick={handleVerifyEmail} 
+                    disabled={isEmailVerified || !email || isSubmitting}
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold ${
+                      isEmailVerified ? 'text-green-600 cursor-default' : 'text-blue-600 hover:text-blue-800 hover:cursor-pointer disabled:opacity-50'
+                    }`}
+                  >
+                    {isEmailVerified ? '✓ Verified' : 'Verify'}
+                  </button>
+                )}
               </div>
-              <p className="mt-1 text-[10px] text-[#2F303280]">Email is optional.</p>
             </div>
             <div className="pt-6">
                <button 
@@ -201,7 +312,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
         </button>
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-bold text-[#343C6A]">Edit Profile</h2>
-          {requireNameOnly && (
+          {isMandatory && (
             <span className="text-sm text-orange-600 font-medium">* Required fields</span>
           )}
         </div>
@@ -232,19 +343,30 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
               </div>
               <div className="md:col-span-2">
                 <label className="block text-xs font-semibold text-[#2F303280] mb-2">
-                  Email (Optional)
+                  Email {(!requireNameOnly && (isMandatory || skipEmailVerification)) && <span className="text-red-500">*</span>}
                 </label>
                 <div className="relative h-12">
                   <input 
                     type="email"
                     value={email}
                     onChange={handleEmailChange}
-                    required={false}
-                    placeholder="Enter your email (optional)"
+                    required={!requireNameOnly && (isMandatory || skipEmailVerification)}
+                    placeholder={skipEmailVerification ? "Enter your email" : "your@email.com"}
                     className="w-full h-full px-3 pr-20 bg-white border border-[#EFEFEF] rounded-xl text-base text-[#718EBF] placeholder-[#718EBF]"
                   />
+                  {!skipEmailVerification && (
+                    <button 
+                      type="button"
+                      onClick={handleVerifyEmail} 
+                      disabled={isEmailVerified || !email || isSubmitting}
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold ${
+                        isEmailVerified ? 'text-green-600 cursor-default' : 'text-blue-600 hover:text-blue-800 hover:cursor-pointer disabled:opacity-50'
+                      }`}
+                    >
+                      {isEmailVerified ? '✓ Verified' : 'Verify'}
+                    </button>
+                  )}
                 </div>
-                <p className="mt-2 text-xs text-[#2F303280]">Email is optional.</p>
               </div>
             </div>
             <div className="pt-4 text-center">
@@ -260,6 +382,16 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
         </div>
       </div>
 
+      <OtpVerificationModal
+        isOpen={isOtpModalOpen}
+        onClose={() => setOtpModalOpen(false)}
+        otpLength={6}
+        contactInfo={email}
+        onVerify={handleOtpVerification}
+        onResend={handleResendOtp}
+        title="Verify Email"
+        description="Enter the OTP sent to"
+      />
     </div>
   );
 };

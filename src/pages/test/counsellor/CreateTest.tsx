@@ -14,11 +14,10 @@ import {
 import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/AuthStore";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import { Loader2, ArrowLeft, Video } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { getAllTestGroups } from "@/api/testGroup";
-import VideoExplanationPlayer from "@/components/common/VideoExplanationPlayer";
 
 interface EventFormData {
   name: string;
@@ -113,12 +112,11 @@ export function CreateTest() {
     instructions: "",
   });
   const [sectionSwitchingAllowed, setSectionSwitchingAllowed] = useState<boolean>(false);
-  const [solutionVideoUrl, setSolutionVideoUrl] = useState<string>("");
 
+  // Test group selection state (for edit mode)
   const [allTestGroups, setAllTestGroups] = useState<{ testGroupId: string; testGroupName: string }[]>([]);
-  const [selectedTestGroupIds, setSelectedTestGroupIds] = useState<string[]>(testGroupId ? [testGroupId] : []);
+  const [selectedTestGroupId, setSelectedTestGroupId] = useState<string | null>(testGroupId);
   const [isLoadingTestGroups, setIsLoadingTestGroups] = useState<boolean>(false);
-  const [showTestGroupDropdown, setShowTestGroupDropdown] = useState<boolean>(false);
   const [removedSectionNames, setRemovedSectionNames] = useState<string[]>([]); // Track removed sections for update API
 
   // Section input validation errors
@@ -166,21 +164,9 @@ export function CreateTest() {
       if (existingTestData.bannerImagUrl) {
         setExistingBannerUrl(existingTestData.bannerImagUrl);
       }
+      // Set selected test group ID from existing data
       if (existingTestData.testGroupId) {
-        setSelectedTestGroupIds(prev => {
-          if (!prev.includes(existingTestData.testGroupId)) {
-            return [...prev, existingTestData.testGroupId];
-          }
-          return prev;
-        });
-      }
-      // Also handle testGroupIdList array if the API returns it
-      if (existingTestData.testGroupIdList && Array.isArray(existingTestData.testGroupIdList)) {
-        setSelectedTestGroupIds(existingTestData.testGroupIdList);
-      }
-      // Set solution video URL if exists
-      if (existingTestData.solutionVideoUrl) {
-        setSolutionVideoUrl(existingTestData.solutionVideoUrl);
+        setSelectedTestGroupId(existingTestData.testGroupId);
       }
     }
   }, [editMode, existingTestData]);
@@ -188,7 +174,7 @@ export function CreateTest() {
   // Fetch all test groups for edit mode dropdown
   useEffect(() => {
     const fetchTestGroups = async () => {
-      if (!user?.phoneNumber) return;
+      if (!editMode || !user?.phoneNumber) return;
 
       setIsLoadingTestGroups(true);
       try {
@@ -490,16 +476,10 @@ export function CreateTest() {
           requestData.testInstructuctions = formData.instructions;
         }
 
-        // Check if solutionVideoUrl changed
-        const currentVideoUrl = solutionVideoUrl.trim() || null;
-        const existingVideoUrl = existingTestData.solutionVideoUrl || null;
-        if (currentVideoUrl !== existingVideoUrl) {
-          requestData.solutionVideoUrl = currentVideoUrl || "";
-        }
-
-        // Send test group IDs as list
-        if (selectedTestGroupIds.length > 0) {
-          requestData.testGroupIdList = selectedTestGroupIds;
+        // Check if test group changed
+        const newTestGroupId = selectedTestGroupId || testGroupId;
+        if (newTestGroupId !== existingTestData.testGroupId) {
+          requestData.testGroupId = newTestGroupId;
         }
 
         // Include removed section names if any
@@ -558,8 +538,6 @@ export function CreateTest() {
         testInstructuctions: formData.instructions,
         sections: sections,
         testGroupId: testGroupId,
-        testGroupIdList: selectedTestGroupIds.length > 0 ? selectedTestGroupIds : (testGroupId ? [testGroupId] : []),
-        ...(solutionVideoUrl.trim() ? { solutionVideoUrl: solutionVideoUrl.trim() } : {}),
       };
     }
 
@@ -574,8 +552,6 @@ export function CreateTest() {
 
     myHeaders.append("Authorization", `Bearer ${token}`);
     myHeaders.append("Accept", "application/json");
-
-    console.log("Request Body:", JSON.stringify(requestData, null, 2));
 
     const formdata = new FormData();
     formdata.append("request", JSON.stringify(requestData));
@@ -647,7 +623,7 @@ export function CreateTest() {
     (editMode || file);
 
   return (
-    <div className="pt-28 pb-8 w-full mx-auto max-w-7xl  min-h-screen flex flex-col gap-4">
+    <div className="pt-4 pb-8 w-full mx-auto max-w-7xl  min-h-screen flex flex-col gap-4">
       {/* Delete Section Confirmation Modal */}
       {deleteConfirmModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -764,97 +740,35 @@ export function CreateTest() {
             </Select>
           </div>
 
-          {(
+          {/* Test Group Selection - Only in Edit Mode */}
+          {editMode && (
             <div className="flex gap-2 flex-col">
-              <label className="text-[1rem] font-normal">
-                Test Groups
+              <label htmlFor={"testGroup"} className="text-[1rem] font-normal cursor-pointer">
+                Test Group
               </label>
-
-              {/* Selected chips */}
-              {selectedTestGroupIds.length > 0 && allTestGroups.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-1">
-                  {selectedTestGroupIds.map(id => {
-                    const group = allTestGroups.find(g => g.testGroupId === id);
-                    if (!group) return null;
-                    return (
-                      <span
-                        key={id}
-                        className="inline-flex items-center gap-1.5 bg-[#13097D]/10 text-[#13097D] text-sm font-medium px-3 py-1.5 rounded-full"
-                      >
-                        {group.testGroupName}
-                        <button
-                          type="button"
-                          onClick={() => setSelectedTestGroupIds(prev => prev.filter(gId => gId !== id))}
-                          className="hover:bg-[#13097D]/20 rounded-full p-0.5 transition-colors cursor-pointer"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                          </svg>
-                        </button>
-                      </span>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Warning if none selected */}
-              {selectedTestGroupIds.length === 0 && (
-                <p className="text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
-                  ⚠️ No test groups selected. Select at least one or consider deleting this test series.
-                </p>
-              )}
-
-              {/* Dropdown toggle */}
-              <button
-                type="button"
-                onClick={() => setShowTestGroupDropdown(!showTestGroupDropdown)}
+              <Select
+                value={selectedTestGroupId || ""}
+                onValueChange={(value) => setSelectedTestGroupId(value)}
                 disabled={isLoadingTestGroups}
-                className="border border-[#13097D66] py-3 px-4 rounded-[12px] w-full text-left text-[1rem] font-normal flex items-center justify-between cursor-pointer hover:border-[#13097D] transition-colors"
               >
-                <span className="text-(--text-muted)">
-                  {isLoadingTestGroups ? 'Loading test groups...' : `Select test groups (${selectedTestGroupIds.length} selected)`}
-                </span>
-                <svg xmlns="http://www.w3.org/2000/svg" className={`w-4 h-4 text-gray-500 transition-transform ${showTestGroupDropdown ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </button>
-
-              {/* Dropdown list */}
-              {showTestGroupDropdown && (
-                <div className="border border-gray-200 rounded-xl max-h-60 overflow-y-auto bg-white shadow-lg">
-                  {allTestGroups.length === 0 ? (
-                    <p className="p-4 text-sm text-gray-400 text-center">No test groups found</p>
-                  ) : (
-                    allTestGroups.map((group) => {
-                      const isSelected = selectedTestGroupIds.includes(group.testGroupId);
-                      return (
-                        <label
-                          key={group.testGroupId}
-                          className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${isSelected ? 'bg-[#13097D]/5' : ''
-                            }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => {
-                              setSelectedTestGroupIds(prev =>
-                                isSelected
-                                  ? prev.filter(id => id !== group.testGroupId)
-                                  : [...prev, group.testGroupId]
-                              );
-                            }}
-                            className="w-4 h-4 accent-[#13097D] cursor-pointer"
-                          />
-                          <span className={`text-sm font-medium ${isSelected ? 'text-[#13097D]' : 'text-[#242645]'}`}>
-                            {group.testGroupName}
-                          </span>
-                        </label>
-                      );
-                    })
-                  )}
-                </div>
-              )}
+                <SelectTrigger className="border border-[#13097D66] !py-3 !px-4 rounded-[12px] w-full text-[1rem] font-normal !h-auto cursor-pointer">
+                  <SelectValue
+                    placeholder={isLoadingTestGroups ? "Loading test groups..." : "Select test group"}
+                    className="placeholder:font-medium"
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {allTestGroups.map((group) => (
+                    <SelectItem
+                      key={group.testGroupId}
+                      value={group.testGroupId}
+                      className="text-[1rem] font-medium cursor-pointer"
+                    >
+                      {group.testGroupName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
         </div>
@@ -993,28 +907,6 @@ export function CreateTest() {
               placeholder="Add sections to calculate duration"
             />
           </div>
-        </div>
-      </Dropdown>
-
-      <Dropdown label="Solution Video (Optional)">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <label className="text-[1rem] font-normal flex items-center gap-2">
-              <Video className="w-5 h-5 text-purple-600" />
-              YouTube Video URL
-            </label>
-            <input
-              type="url"
-              value={solutionVideoUrl}
-              onChange={(e) => setSolutionVideoUrl(e.target.value)}
-              placeholder="Paste YouTube video URL here (e.g. https://youtube.com/watch?v=...)"
-              className="border border-[#13097D66] py-3 px-4 rounded-[12px] w-full placeholder:text-(--text-muted) placeholder:font-medium outline-none focus:border-[#13097D] transition-colors"
-            />
-            <p className="text-sm text-(--text-muted)">This video will be shown to users who have completed at least one attempt of this test.</p>
-          </div>
-          {solutionVideoUrl && (
-            <VideoExplanationPlayer videoUrl={solutionVideoUrl} title="Video Preview" />
-          )}
         </div>
       </Dropdown>
 

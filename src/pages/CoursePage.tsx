@@ -1,7 +1,8 @@
 import ContentCard from "@/components/course-cards/ContentCard";
 import CourseReviewsCard from "@/components/course-cards/CourseReviewsCard";
 import DetailsCard from "@/components/course-cards/DetailsCard";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import RecommendedCoursesSection from "@/components/course-cards/RecommendedCoursesSection";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getCounsellorCourseByCourseId,
@@ -13,7 +14,7 @@ import {
   deleteCourse
 } from "@/api/course";
 import { useAuthStore } from "@/store/AuthStore";
-import { Loader2, ArrowLeft, Edit, Plus, X, Globe, Trash2 } from "lucide-react";
+import { Loader2, Edit, Plus, X, Globe, Trash2 } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import EditCourseModal from "@/components/course-cards/EditCourseModal";
@@ -32,7 +33,6 @@ export default function CoursePage() {
   const { courseId, role: roleParam } = useParams();
   const { userId, user, role: userRole, toggleLogin } = useAuthStore();
   const navigate = useNavigate();
-  const location = useLocation();
   const queryClient = useQueryClient();
   const [currentPath, setCurrentPath] = useState<string[]>(['root']);
   const [addFundsOpen, setAddFundsOpen] = useState(false);
@@ -153,16 +153,7 @@ export default function CoursePage() {
     buyCourseMutation.mutate();
   };
 
-  const handleBack = () => {
-    const from = (location.state as any)?.from;
-    if (from === 'courses') {
-      navigate('/counsellor-dashboard', { state: { activeTab: 'courses' } });
-    } else if (from === 'my-courses') {
-      navigate('/dashboard-student', { state: { activeTab: 'My Courses' } });
-    } else {
-      navigate(-1);
-    }
-  };
+
 
   const handlePublishCourse = async () => {
     if (!courseDetails) return;
@@ -246,7 +237,7 @@ export default function CoursePage() {
         </div>
         <button
           onClick={() => navigate(-1)}
-          className="px-4 py-2 bg-[#13097D] text-white rounded-lg"
+          className="px-4 py-2 bg-[#13097D] text-white rounded-lg cursor-pointer"
         >
           Go Back
         </button>
@@ -281,40 +272,50 @@ export default function CoursePage() {
   };
 
   return (
-    <div className="bg-[#F5F5F7] mt-20 p-6 md:mt-20">
-      <div className="max-w-7xl mx-auto mb-4 flex items-center justify-between">
-        <button
-          onClick={handleBack}
-          className="flex items-center gap-2 text-[#13097D] hover:text-[#0d0659] font-medium transition-colors hover:cursor-pointer"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back
-        </button>
-
-        {/* Published/Draft Badge - Show for counselor */}
-        {isCourseOwner && courseDetails && (
+    <div className="min-h-screen bg-[#F8F9FA] px-4 py-6 pb-36 md:px-6 lg:pb-6">
+      {/* Published/Draft Badge - Show for counselor */}
+      {isCourseOwner && courseDetails && (
+        <div className="max-w-7xl mx-auto mb-4 flex items-center justify-end">
           <span className={`text-sm px-4 py-1.5 rounded-full font-semibold ${courseDetails.isPublished
             ? 'bg-green-500 text-white'
             : 'bg-amber-500 text-white'
             }`}>
             {courseDetails.isPublished ? 'Published' : 'Draft'}
           </span>
-        )}
-      </div>
+        </div>
+      )}
 
-      <DetailsCard
-        role={role as string}
-        courseId={courseId as string}
-        course={course}
-        courseDetails={courseDetails}
-        isPurchased={isPurchased}
-        isBookmarked={isBookmarked}
-        onBookmark={handleBookmark}
-        onBuyCourse={handleBuyCourse}
-        isBookmarking={bookmarkMutation.isPending}
-        isBuying={buyCourseMutation.isPending}
-        isUserOrStudent={isUserOrStudent && !!user && !!userId}
-      />
+      <div
+        className={`max-w-7xl mx-auto grid gap-6 ${
+          isCourseOwner ? "grid-cols-1" : "lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"
+        }`}
+      >
+        <DetailsCard
+          role={role as string}
+          courseId={courseId as string}
+          course={course}
+          courseDetails={courseDetails}
+          description={courseDetails.description}
+          isPurchased={isPurchased}
+          isBookmarked={isBookmarked}
+          onBookmark={handleBookmark}
+          onBuyCourse={handleBuyCourse}
+          isBookmarking={bookmarkMutation.isPending}
+          isBuying={buyCourseMutation.isPending}
+          isCourseOwner={isCourseOwner}
+        >
+          <div id="course-content">
+            <ContentCard
+              embedded
+              courseContents={courseDetails.courseContents}
+              currentPath={currentPath}
+              setCurrentPath={setCurrentPath}
+              isPurchased={isPurchased || isCounselor}
+              userRole={role as string}
+            />
+          </div>
+        </DetailsCard>
+      </div>
 
       {/* Course Owner Controls */}
       {isCourseOwner && (
@@ -366,90 +367,7 @@ export default function CoursePage() {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 mt-6 py-4 mb-4">
-        <h1 className="text-[0.875rem] md:text-[1.25rem] text-[#343C6A] font-semibold mb-4">Course Description</h1>
-        <p className="text-xs md:text-[1rem] font-normal text-[#8C8CA1]">
-          {courseDetails.description}
-        </p>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 md:px-6 mb-6">
-        <ContentCard
-          courseContents={courseDetails.courseContents}
-          currentPath={currentPath}
-          setCurrentPath={setCurrentPath}
-          isPurchased={isPurchased || isCounselor}
-          userRole={role as string}
-        />
-      </div>
-
-      {/* Associated Test Groups Section */}
-      {courseDetails.associatedTestGroupList && courseDetails.associatedTestGroupList.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 md:px-6 mb-6">
-          <h2 className="text-[0.875rem] md:text-[1.25rem] text-[#343C6A] font-semibold mb-4">
-            Associated Test Series
-          </h2>
-          <div className="flex flex-col gap-3">
-            {courseDetails.associatedTestGroupList.map((group) => (
-              <div
-                key={group.testGroupId}
-                onClick={() => navigate(
-                  isCounselor
-                    ? `/counselor/test-groups/${group.testGroupId}`
-                    : `/test-group/${group.testGroupId}`
-                )}
-                className="group flex items-center gap-4 bg-white rounded-2xl border border-gray-100 p-3 md:p-4 hover:shadow-md hover:border-[#13097D]/20 transition-all duration-300 cursor-pointer"
-              >
-                {/* Thumbnail */}
-                <div className="relative w-20 h-20 md:w-28 md:h-20 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#13097D] to-[#4A3AFF]">
-                  {group.testGroupBannerUrl ? (
-                    <img
-                      src={group.testGroupBannerUrl}
-                      alt={group.testGroupName}
-                      className="w-full h-full object-cover transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
-                        <rect x="9" y="3" width="6" height="4" rx="1" />
-                        <path d="m9 14 2 2 4-4" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm md:text-base font-semibold text-[#242645] group-hover:text-[#13097D] transition-colors truncate">
-                    {group.testGroupName}
-                  </h3>
-                  <p className="text-xs text-gray-400 mt-1">Test Series</p>
-                </div>
-
-                {/* Price + Arrow */}
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  {group.price != null && (
-                    <span className={`text-xs md:text-sm font-bold px-3 py-1 rounded-full ${!group.price
-                      ? 'bg-green-50 text-green-600'
-                      : 'bg-[#13097D]/5 text-[#13097D]'
-                      }`}>
-                      {!group.price ? 'Free' : `₹${group.price}`}
-                    </span>
-                  )}
-                  <div className="w-8 h-8 rounded-full bg-gray-50 group-hover:bg-[#13097D] flex items-center justify-center transition-colors duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="max-w-7xl mx-auto px-4 md:px-6">
+      <div className="max-w-7xl mx-auto mt-10">
         <CourseReviewsCard
           courseId={courseId as string}
           isPurchased={isPurchased || isCounselor}
@@ -460,6 +378,13 @@ export default function CoursePage() {
             queryClient.invalidateQueries({ queryKey: ['courseDetails', courseId, userId, role] });
           }}
         />
+
+        {!isCourseOwner && courseId && (
+          <RecommendedCoursesSection
+            currentCourseId={courseId}
+            category={courseDetails.category}
+          />
+        )}
       </div>
 
       <div className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] transition-opacity duration-300 ${addFundsOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>

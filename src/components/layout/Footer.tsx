@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/AuthStore";
 import toast from "react-hot-toast";
 import {
@@ -12,7 +12,18 @@ import {
 } from "@/assets/icons";
 
 export default function Footer() {
-  const { toggleCounselorSignup, role, user } = useAuthStore();
+  const { toggleCounselorSignup, role, user, isAuthenticated, toggleLogin } = useAuthStore();
+  const navigate = useNavigate();
+
+  const handleBecomeProBuddy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      toast.error("Please log in as a student to register as a Pro Buddy.");
+      toggleLogin(() => navigate("/pro-buddies/register"));
+    } else {
+      navigate("/pro-buddies/register");
+    }
+  };
 
   const handleBecomeCounselor = () => {
     if (role === "counselor" && user?.verified) {
@@ -33,7 +44,7 @@ export default function Footer() {
   }
 
   return (
-    <footer className="bg-linear-to-b from-[#ECEBF5] from-0% to-[#13097D4D] to-100% text-slate-700">
+    <footer className="bg-[#0E1629] text-white">
       <div className="mx-auto max-w-[1440px] px-4 sm:px-8 md:px-16 lg:px-[125px] py-6 sm:py-10">
         <div className="grid grid-cols-1 gap-8 sm:gap-10 md:gap-[50px] md:grid-cols-12">
           <div className="md:col-span-4 space-y-4 sm:space-y-5">
@@ -44,14 +55,14 @@ export default function Footer() {
                 className="h-8 sm:h-10 lg:h-12 object-contain rounded-md shrink-0"
               />
               <div className="flex flex-col leading-tight">
-                <h1 className="text-xl sm:text-2xl font-bold text-orange-600">
+                <h1 className="text-xl sm:text-2xl font-bold text-white">
                   ProCounsel
                 </h1>
-                <span className="text-xs text-gray-500">By CatalystAI</span>
+                <span className="text-xs text-gray-300">By CatalystAI</span>
               </div>
             </div>
 
-            <p className="text-sm sm:text-md leading-tight text-[#232323] max-w-full sm:max-w-[338px]">
+            <p className="text-sm sm:text-md leading-tight text-white max-w-full sm:max-w-[338px]">
               Discover the best colleges and courses in India. Your gateway to
               quality education and bright career prospects.
             </p>
@@ -63,7 +74,7 @@ export default function Footer() {
                   alt="Location"
                   className="h-5 w-5 sm:h-6 sm:w-6 shrink-0 mt-0.5"
                 />
-                <p className="font-montserrat font-normal text-sm sm:text-base leading-tight text-[#180033] max-w-full sm:max-w-[280px]">
+                <p className="font-montserrat font-normal text-sm sm:text-base leading-tight text-white max-w-full sm:max-w-[280px]">
                   The Address Commercia, Office No. 427, Near Hinjewadi Bridge,
                   Wakad-411057
                 </p>
@@ -74,7 +85,7 @@ export default function Footer() {
                   alt="Phone"
                   className="h-5 w-5 sm:h-6 sm:w-6 shrink-0"
                 />
-                <p className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033]">
+                <p className="font-montserrat font-normal text-sm sm:text-base leading-none text-white">
                   7004794849, 9470988669
                 </p>
               </div>
@@ -86,7 +97,7 @@ export default function Footer() {
                 />
                 <a
                   href="mailto:support@procounsel.co.in"
-                  className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:underline break-all sm:break-normal"
+                  className="font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:underline break-all sm:break-normal"
                 >
                   support@procounsel.co.in
                 </a>
@@ -96,7 +107,7 @@ export default function Footer() {
 
           <div className="md:col-span-2">
             <div className="md:min-h-[270px] flex flex-col">
-              <h4 className="mb-4 sm:mb-6 font-montserrat font-medium text-lg sm:text-xl leading-none text-[#180033]">
+              <h4 className="mb-4 sm:mb-6 font-montserrat font-medium text-lg sm:text-xl leading-none text-white">
                 Useful Links
               </h4>
               <ul className="space-y-3 sm:space-y-6 flex-1">
@@ -109,7 +120,7 @@ export default function Footer() {
                 <li>
                   <a
                     href="/exams"
-                    className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors"
+                    className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
                   >
                     Exams
                   </a>
@@ -118,7 +129,7 @@ export default function Footer() {
                   <li>
                     <a
                       href="/counsellors"
-                      className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors"
+                      className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
                     >
                       Counsellors
                     </a>
@@ -127,7 +138,7 @@ export default function Footer() {
                 <li>
                   <a
                     href="/about"
-                    className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors"
+                    className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
                   >
                     About Us
                   </a>
@@ -135,7 +146,7 @@ export default function Footer() {
                 <li>
                   <a
                     href="/contact"
-                    className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors"
+                    className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
                   >
                     Contact
                   </a>
@@ -143,15 +154,25 @@ export default function Footer() {
                 {/* <li>
                   <a href="/counsellor-dashboard" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Add College</a>
                 </li> */}
-                {role !== "counselor" && (
-                <li>
-                  <button
-                    onClick={handleBecomeCounselor}
-                    className="block cursor-pointer font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors text-left w-full"
-                  >
-                    Become a Counsellor?
-                  </button>
-                </li>
+                {role !== "counselor" && role !== "proBuddy" && (
+                  <>
+                    <li>
+                      <button
+                        onClick={handleBecomeCounselor}
+                        className="block cursor-pointer font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors text-left w-full"
+                      >
+                        Become a Counsellor?
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        onClick={handleBecomeProBuddy}
+                        className="block cursor-pointer font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors text-left w-full"
+                      >
+                        Become a Pro Buddy?
+                      </button>
+                    </li>
+                  </>
                 )}
               </ul>
             </div>
@@ -159,26 +180,26 @@ export default function Footer() {
 
           <div className="md:col-span-3">
             <div className="md:min-h-[270px] flex flex-col">
-              <h4 className="mb-4 sm:mb-6 font-montserrat font-medium text-lg sm:text-xl leading-none text-[#180033]">
+              <h4 className="mb-4 sm:mb-6 font-montserrat font-medium text-lg sm:text-xl leading-none text-white">
                 Popular Categories
               </h4>
               <ul className="space-y-3 sm:space-y-6 flex-1">
-                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033]">
+                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-white">
                   Engineering
                 </li>
-                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033]">
+                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-white">
                   Medical
                 </li>
-                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033]">
+                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-white">
                   Management
                 </li>
-                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033]">
+                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-white">
                   Design
                 </li>
-                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033]">
+                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-white">
                   Science
                 </li>
-                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033]">
+                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-white">
                   Arts
                 </li>
               </ul>
@@ -187,7 +208,7 @@ export default function Footer() {
 
           <div className="md:col-span-3">
             <div className="md:w-[198px] md:min-h-[270px] flex flex-col">
-              <h4 className="mb-4 sm:mb-6 font-montserrat font-medium text-lg sm:text-xl leading-none text-[#180033]">
+              <h4 className="mb-4 sm:mb-6 font-montserrat font-medium text-lg sm:text-xl leading-none text-white">
                 Follow Us on
               </h4>
               <ul className="space-y-3 sm:space-y-6 flex-1">
@@ -201,7 +222,7 @@ export default function Footer() {
                     href="https://www.linkedin.com/company/procounsel-by-catalystai/posts/?feedView=all"
                     target="_blank"
                     aria-label="LinkedIn"
-                    className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors"
+                    className="font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
                   >
                     LinkedIn
                   </a>
@@ -217,7 +238,7 @@ export default function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Facebook"
-                    className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors"
+                    className="font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
                   >
                     Facebook
                   </a>
@@ -233,7 +254,7 @@ export default function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Instagram"
-                    className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors"
+                    className="font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
                   >
                     Instagram
                   </a>
@@ -249,7 +270,7 @@ export default function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Twitter"
-                    className="font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors"
+                    className="font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
                   >
                     Twitter
                   </a>
@@ -261,38 +282,38 @@ export default function Footer() {
 
         <div className="mt-4 sm:mt-6 border-t border-[#6C696933] pt-4 sm:pt-6 flex flex-col gap-3 sm:gap-4 md:flex-row md:items-start md:justify-between">
           <div className="flex flex-col gap-2 text-center md:text-left">
-            <p className="font-montserrat font-medium text-xs sm:text-sm leading-none text-[#180033]">
-              © 2025 CATALYSTAI TECHNOLOGY PRIVATE LIMITED. All rights reserved.
+            <p className="font-montserrat font-medium text-xs sm:text-sm leading-none text-white">
+              © 2026 CATALYSTAI TECHNOLOGY PRIVATE LIMITED. All rights reserved.
             </p>
-            <p className="font-montserrat font-normal text-xs leading-none text-[#180033]">
+            <p className="font-montserrat font-normal text-xs leading-none text-white">
               ProCounsel™ is a trademark of CATALYSTAI TECHNOLOGY PRIVATE
               LIMITED.
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 sm:gap-4 md:mt-0">
             <Link
-              className="font-montserrat font-medium text-xs sm:text-sm leading-none text-[#180033] hover:text-[#FA660F] transition-colors"
+              className="font-montserrat font-medium text-xs sm:text-sm leading-none text-white hover:text-[#FA660F] transition-colors"
               to="/privacy-policy"
             >
               Privacy Policy
             </Link>
             <span className="text-slate-300 hidden sm:inline">|</span>
             <Link
-              className="font-montserrat font-medium text-xs sm:text-sm leading-none text-[#180033] hover:text-[#FA660F] transition-colors"
+              className="font-montserrat font-medium text-xs sm:text-sm leading-none text-white hover:text-[#FA660F] transition-colors"
               to="/terms"
             >
               Terms of Service
             </Link>
             <span className="text-slate-300 hidden sm:inline">|</span>
             <Link
-              className="font-montserrat font-medium text-xs sm:text-sm leading-none text-[#180033] hover:text-[#FA660F] transition-colors"
+              className="font-montserrat font-medium text-xs sm:text-sm leading-none text-white hover:text-[#FA660F] transition-colors"
               to="/cancellation-refund"
             >
               Cancellation & Refund
             </Link>
             <span className="text-slate-300 hidden sm:inline">|</span>
             <Link
-              className="font-montserrat font-medium text-xs sm:text-sm leading-none text-[#180033] hover:text-[#FA660F] transition-colors"
+              className="font-montserrat font-medium text-xs sm:text-sm leading-none text-white hover:text-[#FA660F] transition-colors"
               to="/shipping-exchange"
             >
               Shipping & Exchange

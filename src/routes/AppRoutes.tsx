@@ -1,6 +1,4 @@
 import { Suspense, lazy } from 'react';
-import MainLayout from "@/layouts/MainLayout";
-import Home from "@/pages/Home";
 import { Routes, Route } from "react-router-dom";
 import AboutPage from "@/pages/About";
 import ContactPage from "@/pages/Contact";
@@ -19,7 +17,6 @@ import { SubscriptionPage } from '@/pages/SubscriptionPage';
 import RechargeWallet from '@/pages/RechargeWallet';
 import CounselorDashboard from '@/pages/CounselorDashboard';
 import CollegeDetailsPage from '@/pages/CollegeDetails';
-import CourseDetailsPage from '@/pages/CourseDetails';
 import CommunityPage from '@/pages/CommunityPage';
 import AnswerPage from '@/pages/AnswerPage';
 import QuestionDetailPage from '@/pages/QuestionDetailPage';
@@ -37,21 +34,27 @@ import { TestResult } from '@/pages/test/user/TestResult';
 import { TestAnalysisPage } from '@/pages/test/user/TestAnalysisPage';
 import { CreateEditTestGroup } from '@/pages/test/counsellor/CreateEditTestGroup';
 import { TestGroupDetails } from '@/pages/test/counsellor/TestGroupDetails';
-import TestGroupDetailsPage from '@/pages/test/user/TestGroupDetailsPage';
 import CollegeDetailsPageNew from '@/pages/CollegeDetailsPage';
-import JEERankPredictor from '@/pages/JEERankPredictor';
-import JEECollegePredictor from '@/pages/JEECollegePredictor';
-import MHTCETCollegePredictor from '@/pages/MHTCETCollegePredictor';
-import KurukshetraTestSeries from '@/pages/KurukshetraTestSeries';
-import GrandMockTest from '@/pages/GrandMockTest';
-import CounsellorRoute from '@/components/auth/CounsellorRoute';
-import AllResultPage from '@/pages/AllResult';
-import GMTResultPage from '@/pages/GMTResult';
-import PCSATResultsPage from '@/pages/PCSATResults';
+import RevampLayout from '@/layouts/RevampLayout';
+import TestGroupCardDetails from '@/components/Revamp/courses/TestGroupDetails';
+import RevampAbout from '@/components/Revamp/about/RevampAbout';
+import Admissions from '@/pages/Revamp/Admissions';
+import Courses from '@/pages/Revamp/Courses';
+import BlogsPage from '@/pages/Revamp/BlogsPage';
+import BlogDetailPage from '@/pages/Revamp/BlogDetailPage';
+import CounsellorsPage from '@/pages/Revamp/CounsellorsPage';
+import UserProfile from '@/pages/Revamp/UserProfile';
+import CourseListing from '@/pages/Revamp/CourseListing';
+import TestListing from '@/pages/Revamp/TestListing';
+import SessionListing from '@/pages/Revamp/SessionListing';
+import ProBuddiesComingSoon from '@/pages/Revamp/ProBuddiesComingSoon';
+import ProBuddiesRegistration from '@/pages/Revamp/ProBuddiesRegistration';
+import ProBuddiesDashboard from '@/pages/Revamp/ProBuddiesDashboard';
 
 const CounselorListingPage = lazy(() => import('@/pages/counselors'));
 const ExamsListingPage = lazy(() => import('@/pages/exams'));
 const CounselorDetailsPage = lazy(() => import('@/pages/CounselorDetailsPage'));
+const RevampCounselorDetailsPage = lazy(() => import('@/pages/Revamp/RevampCounselorDetailsPage'));
 const ExamDetailsPage = lazy(() => import('@/pages/ExamDetailsPage'));
 const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
 const LiveSessionsPage = lazy(() => import('@/pages/LiveSessionsPage'));
@@ -72,23 +75,65 @@ export default function AppRoutes() {
             />
             <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
                 <Routes>
+                    {/* Standalone pages (no layout) */}
                     <Route path="/privacy1" element={<ExternalPrivacyPage />} />
                     <Route path="/term1" element={<ExternalTermsPage />} />
-
                     <Route path='/take-test/:testId' element={<TakeTest />} />
                     <Route path='/t/analysis/:testId/:attemptId' element={<TestAnalysisPage />} />
 
+                    {/* All pages under RevampLayout */}
+                    <Route element={<RevampLayout />}>
+                        {/* Core Revamp Pages */}
+                        <Route path="/" element={<Admissions />} />
+                        <Route path='/admissions' element={<Admissions />} />
+                        <Route path='/admissions/blogs' element={<BlogsPage />} />
+                        <Route path='/admissions/blogs/:id' element={<BlogDetailPage />} />
+                        <Route path='/courses' element={<Courses />} />
+                        <Route path='/courses/course-listing' element={<CourseListing />} />
+                        <Route path='/courses/test-listing' element={<TestListing />} />
+                        <Route path='/courses/session-listing' element={<SessionListing />} />
+                        <Route path='/revamp-courses' element={<Courses />} />
+                        <Route path='/revamp-courses/course-listing' element={<CourseListing />} />
+                        <Route path='/revamp-courses/test-listing' element={<TestListing />} />
+                        <Route path='/revamp-courses/session-listing' element={<SessionListing />} />
+                        <Route path='/revamp-about' element={<RevampAbout />} />
+                      
+                        <Route path='/counsellor-listing' element={<CounsellorsPage />} />
+                        <Route path='/counsellor-listing-cards' element={<CounsellorsPage />} />
+                        <Route path="/counsellor-details/:id" element={<RevampCounselorDetailsPage />} />
 
-                    <Route element={<MainLayout />}>
-                        <Route path="/" element={<Home />} />
-                        <Route path='/gurucool' element={<LandingPage />} />
+                        {/* probuddies pages  */}
+                        <Route path='/pro-buddies/register' element={<ProBuddiesRegistration />} />
+                        <Route path='/pro-buddies' element={<ProBuddiesComingSoon />} />
+                        <Route path='/pro-buddies/listing' element={<ProBuddiesComingSoon />} />
+                        <Route path='/pro-buddies/college-listing' element={<ProBuddiesComingSoon />} />
+                        <Route path='/pro-buddies/dashboard' element={<ProBuddiesDashboard />} />
+                        <Route path="/pro-buddies/profile/:id" element={<ProBuddiesComingSoon />} />
+
+
+                        {/* Community */}
+                        <Route path="/community" element={<CommunityPage />} />
+                        <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
+                        <Route path="/community/answer" element={<AnswerPage />} />
+                        <Route path="/community/my-activity" element={<MyActivityPage />} />
+
+                        {/* Counsellor */}
                         <Route path="/counsellors" element={<CounselorListingPage />} />
                         <Route path="/counsellor/:id" element={<CounselorDetailsPage />} />
                         <Route path="/counsellor-profile" element={<CounselorDetailsPage />} />
-                        <Route path="/courses/:id" element={<CourseDetailsPage />} />
+
+                        {/* Courses & Colleges */}
+                        {/* <Route path="/courses/:id" element={<CourseDetailsPage />} /> */}
                         <Route path="/colleges/:id" element={<CollegeDetailsPage />} />
                         <Route path="/college-details/:id" element={<CollegeDetailsPageNew />} />
+                        <Route path='/courses/detail/:courseId/:role' element={<CoursePage />} />
+                        <Route path='/detail/:courseId/:role' element={<CoursePage />} />
+
+                        {/* Exams */}
                         <Route path="/exams" element={<ExamsListingPage />} />
+                        <Route path="/exams/:id" element={<ExamDetailsPage />} />
+
+                        {/* Info / Static Pages */}
                         <Route path="/about" element={<AboutPage />} />
                         <Route path="/contact" element={<ContactPage />} />
                         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
@@ -96,56 +141,44 @@ export default function AppRoutes() {
                         <Route path="/cancellation-refund" element={<CancellationRefundPage />} />
                         <Route path="/shipping-exchange" element={<ShippingExchangePage />} />
                         <Route path="/sitemap" element={<SitemapPage />} />
-                        <Route path='/detail/:courseId/:role' element={<CoursePage />} />
                         <Route path="/add-college" element={<AddCollegePage />} />
-                        <Route path="/exams/:id" element={<ExamDetailsPage />} />
-                        <Route path="/jee-rank-predictor" element={<JEERankPredictor />} />
-                        <Route path="/jee-college-predictor" element={<JEECollegePredictor />} />
-                        <Route path="/mhtcet-college-predictor" element={<MHTCETCollegePredictor />} />
-                        <Route element={<RoleBasedRoute allowedRoles={['counselor']} />}>
-                            <Route path='/subscribe' element={<SubscriptionPage />} />
-                            <Route path='/counsellor-dashboard' element={<CounselorDashboard />} />
-                            <Route path='/counselor-dashboard/client-profile' element={<ClientProfilePage />} />
-                        </Route>
-                        <Route path="/community" element={<CommunityPage />} />
-                        <Route path="/community/question/:questionId" element={<QuestionDetailPage />} />
-                        <Route path="/community/answer" element={<AnswerPage />} />
-                        <Route path="/community/my-activity" element={<MyActivityPage />} />
+
+                        {/* Landing / Promo */}
+                        <Route path='/gurucool' element={<LandingPage />} />
                         <Route path='/promo' element={<PromoPage />} />
                         <Route path='/testSeries/pcsat' element={<TestSeriesPromo />} />
-                        <Route path='/testSeries/kurukshetra' element={<KurukshetraTestSeries />} />
-                        <Route path='/testSeries/grand-mock-test' element={<GrandMockTest />} />
-                        <Route path='/gmt-results' element={<AllResultPage />} />
-                        <Route path='/gmt-result' element={<GMTResultPage />} />
-                        <Route path='/pcsat-results' element={<PCSATResultsPage />} />
+
+                        {/* Subscription / Notifications */}
+                        <Route path='/subscribe' element={<SubscriptionPage />} />
                         <Route path="/notifications" element={<NotificationsPage />} />
+
+                        {/* Counselor Dashboard */}
+                        <Route path='/counsellor-dashboard' element={<CounselorDashboard />} />
+                        <Route path='/counselor-dashboard/client-profile' element={<ClientProfilePage />} />
+
+                        {/* Test Routes */}
                         <Route element={<RoleBasedRoute allowedRoles={['counselor']} />}>
-                            <Route path='/create-test' element={<CreateTest />} />
-                            <Route path='/add-question/:testId' element={<AddQuestion />} />
+                          <Route path='/create-test' element={<CreateTest />} />
+                          <Route path='/add-question/:testId' element={<AddQuestion />} />
+                          <Route path='/counselor/test-groups/create' element={<CreateEditTestGroup />} />
+                          <Route path='/counselor/test-groups/edit/:testGroupId' element={<CreateEditTestGroup />} />
+                          <Route path='/counselor/test-groups/:testGroupId' element={<TestGroupDetails />} />
+                          <Route path='/counselor/test-groups/:testGroupId/create-test' element={<CreateTest />} />
                         </Route>
+
+                        {/* User Test Routes */}
                         <Route path='/test-info/:testId' element={<TestInfo />} />
                         <Route path='/test-result/:testId' element={<TestResult />} />
                         <Route path='/t/result/:testId' element={<TestResult />} />
-                        {/* TestAnalysisPage moved outside MainLayout */}
+                        <Route path='/courses/test-group/:testGroupId' element={<TestGroupCardDetails />} />
+                        <Route path='/courses/test-groups/:testGroupId' element={<TestGroupCardDetails />} />
+                        <Route path='/test-group/:testGroupId' element={<TestGroupCardDetails />} />
+                        <Route path='/test-groups/:testGroupId' element={<TestGroupCardDetails />} />
 
-                        {/* Counsellor-only Routes — requires login + counselor role */}
-                        <Route element={<CounsellorRoute />}>
-                            <Route path='/counsellor-dashboard' element={<CounselorDashboard />} />
-                            <Route path='/counselor-dashboard/client-profile' element={<ClientProfilePage />} />
-                            <Route path='/create-test' element={<CreateTest />} />
-                            <Route path='/add-question/:testId' element={<AddQuestion />} />
-                            {/* Test Group Routes */}
-                            <Route path='/counselor/test-groups/create' element={<CreateEditTestGroup />} />
-                            <Route path='/counselor/test-groups/edit/:testGroupId' element={<CreateEditTestGroup />} />
-                            <Route path='/counselor/test-groups/:testGroupId' element={<TestGroupDetails />} />
-                            <Route path='/counselor/test-groups/:testGroupId/create-test' element={<CreateTest />} />
-                        </Route>
-
-                        {/* User Test Group Routes */}
-                        <Route path='/test-group/:testGroupId' element={<TestGroupDetailsPage />} />
-
+                        {/* Protected Routes */}
                         <Route element={<ProtectedRoute />}>
                             <Route path='/dashboard-student' element={<StudentDashboardPage />} />
+                            <Route path='/profile' element={<UserProfile/>}/>
                             <Route path='/live-sessions' element={<LiveSessionsPage />} />
                             <Route path='/wallet' element={<RechargeWallet />} />
                         </Route>

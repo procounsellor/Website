@@ -8,7 +8,7 @@ import { useAuthStore } from '@/store/AuthStore';
 
 type CounselorCoursesCardProps = {
   counsellorId: string;
-  userRole?: "user" | "student" | "counselor";
+  userRole?: "user" | "student" | "counselor" | "proBuddy";
 };
 
 export default function CounselorCoursesCard({ counsellorId, userRole = "user" }: CounselorCoursesCardProps) {
@@ -73,7 +73,7 @@ export default function CounselorCoursesCard({ counsellorId, userRole = "user" }
             <div
               key={course.courseId}
               className='cursor-pointer'
-              onClick={() => navigate(`/detail/${course.courseId}/${userRole}`)}
+              onClick={() => navigate(`/courses/detail/${course.courseId}/${userRole}`)}
             >
               <CourseCard
                 course={{

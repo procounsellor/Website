@@ -6,11 +6,9 @@ import { useNavigate, Link } from "react-router-dom";
 
 import { CounselorCard } from "../homecards/CounselorCard";
 import { Button } from "@/components/ui/button";
-// import { useAllCounselors } from "../../hooks/useCounselors";
+import { useAllCounselors } from "../../hooks/useCounselors";
 import { AllCounselorCardSkeleton } from "../skeletons/CounselorSkeletons";
 import { encodeCounselorId } from "@/lib/utils";
-import { useHomeCounselors } from "@/hooks/useHomeData";
-import type { AllCounselor } from "@/types";
 
 const addTrackpadScrolling = (emblaApi: EmblaCarouselType) => {
   const SCROLL_COOLDOWN_MS = 300; 
@@ -42,7 +40,7 @@ const addTrackpadScrolling = (emblaApi: EmblaCarouselType) => {
 };
 
 export function CounselorSection() {
-  const { data: counselors = [], isLoading: loading } = useHomeCounselors(8);
+  const { data: counselors = [], loading } = useAllCounselors(8);
   const navigate = useNavigate();
 
   const autoplay = React.useRef(
@@ -123,7 +121,7 @@ export function CounselorSection() {
               <AllCounselorCardSkeleton/>
             </div>
           )):
-          counselors?.map((counselor: AllCounselor) => (
+          counselors?.map((counselor) => (
               <div key={counselor.counsellorId}
             className="shrink-0 w-[170px] lg:w-[282px] ">
               <Link to={`/counsellor/${encodeCounselorId(counselor.counsellorId)}`} className="block">

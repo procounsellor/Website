@@ -1,18 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { academicApi } from '@/api/academic';
 import type { Counselor, AllCounselor, CounsellorApiResponse } from '@/types/academic';
-import { useAuthStore } from '@/store/AuthStore'; 
+import { useAuthStore } from '@/store/AuthStore';
 
 
 function transformCounselorData(apiData: CounsellorApiResponse): Counselor {
   const fullName = `${apiData.firstName} ${apiData.lastName}`;
   const specialization = apiData.languagesKnow.slice(0, 2).join(', ');
-  const experience = apiData.experience ? 
-    (apiData.experience.includes('year') ? apiData.experience : `${apiData.experience} Yrs`) : 
+  const experience = apiData.experience ?
+    (apiData.experience.includes('year') ? apiData.experience : `${apiData.experience} Yrs`) :
     'N/A';
-  
+
   const imageUrl = apiData.photoUrlSmall || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=6B7280&color=ffffff&size=400`;
-  
+
   return {
     id: apiData.counsellorId,
     name: fullName,
@@ -99,7 +99,7 @@ export function useAllCounselors(limit?: number) {
       if (currentIsAuthenticated && currentRole === 'user' && currentUserId && currentToken) {
         return academicApi.getLoggedInCounsellors(currentUserId, currentToken);
       }
-      
+
       return academicApi.getLoggedOutCounsellors();
     },
 
@@ -133,15 +133,16 @@ export function useCounselorById(counsellorId: string) {
   } = useQuery({
     queryKey: ["counselor", counsellorId],
     queryFn: () => academicApi.getCounselorById(counsellorId),
-
     enabled: !!counsellorId,
+    staleTime: 5 * 60 * 1000,  // 5 minutes — don't refetch on navigate back
+    gcTime: 10 * 60 * 1000,    // 10 minutes cache
   });
 
   const error = isError
     ? (queryError as Error)?.message || "Failed to load counselor data."
     : !counsellorId && !loading
-    ? "Counselor ID is not provided."
-    : null;
+      ? "Counselor ID is not provided."
+      : null;
 
   return { counselor, loading, error };
 }

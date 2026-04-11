@@ -13,6 +13,7 @@ import SmartImage from "@/components/ui/SmartImage";
 import { Button } from "../ui";
 import toast from "react-hot-toast";
 import ChatInput, { type ChatInputRef } from "./components/ChatInput";
+import { encodeCounselorId } from "@/lib/utils";
 import Sidear from "./components/Sidear";
 import ChatMessage from "./components/ChatMessage";
 import { ChatbotCounselorCard } from "./components/ChatbotCounselorCard";
@@ -103,20 +104,12 @@ export default function Chatbot() {
 
   // UI state
   const [input, setInput] = useState("");
-  // Lazy initialization to detect mobile BEFORE first render
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' && window.innerWidth < 768
-  );
-  const [isSidebarOpen, setIsSidebarOpen] = useState(() =>
-    typeof window !== 'undefined' && window.innerWidth >= 768
-  );
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [visibleCounselorsPerMessage, setVisibleCounselorsPerMessage] =
     useState<Record<number, number>>({});
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-  const [showTutorial, setShowTutorial] = useState(false);
-  const chatContainerRef = useRef<HTMLDivElement>(null); // Add this line
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<ChatInputRef>(null);
@@ -124,14 +117,8 @@ export default function Chatbot() {
   // Initialize sidebar state based on screen size
   useEffect(() => {
     const initializeSidebar = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-
-      // Show tutorial on mobile first visit
-      if (mobile && !localStorage.getItem('chatbot-sidebar-tutorial-seen')) {
-        setShowTutorial(true);
-      }
-      setIsSidebarOpen(!mobile);
+      const isMobile = window.innerWidth < 768;
+      setIsSidebarOpen(!isMobile);
     };
 
     initializeSidebar();
@@ -173,19 +160,9 @@ export default function Chatbot() {
   }, [isDropdownOpen]);
 
   // Auto scroll
-  // Auto scroll (Smart Scroll)
-useEffect(() => {
-  const container = chatContainerRef.current;
-  if (!container) return;
-
-  // Check if the user is currently near the bottom of the chat (within 150px)
-  const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
-
-  // Only auto-scroll if they are near the bottom
-  if (isNearBottom) {
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }
-}, [messages]); // Note: Removed 'loading' from the dependency array so it doesn't jump aggressively
+  }, [messages, loading]);
 
   const handleSend = async (textOverride?: string) => {
     const messageToSend = textOverride || input.trim();
@@ -208,20 +185,12 @@ useEffect(() => {
   };
 
   const handleNewChat = () => {
-    // Prevent creating new chat if current one is already empty
-    if (messages.length === 0) {
-      return;
-    }
     clearMessages();
     startNewChat();
   };
 
   const handleSelectChat = (sessionId: string) => {
     loadChatHistoryBySessionId(sessionId);
-    // Auto-close sidebar on mobile when selecting a chat
-    if (isMobile) {
-      setIsSidebarOpen(false);
-    }
   };
 
   const handleDeleteChat = (sessionId: string) => {
@@ -261,43 +230,10 @@ useEffect(() => {
   const chatbotZIndex =
     isLoginToggle && isLoginOpenFromChatbot ? "z-[40]" : "z-[100]";
 
-  const closeTutorial = () => {
-    setShowTutorial(false);
-    localStorage.setItem('chatbot-sidebar-tutorial-seen', 'true');
-  };
-
   return (
     <div
       className={`fixed inset-0 ${chatbotZIndex} flex flex-col bg-[#232323] font-sans`}
     >
-      {/* Tutorial for mobile users */}
-      {showTutorial && isMobile && (
-        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/70 p-6">
-          <div className="bg-[#2a2a2a] rounded-2xl p-6 max-w-sm border border-[#A0A0A099] shadow-2xl">
-            <div className="flex justify-end mb-2">
-              <button onClick={closeTutorial} className="text-white/60 hover:text-white cursor-pointer">
-                <Menu className="h-6 w-6" />
-              </button>
-            </div>
-            <div className="text-center">
-              <div className="inline-block p-4 bg-[#FF660F]/20 rounded-full mb-4">
-                <Menu className="h-10 w-10 text-[#FF660F]" />
-              </div>
-              <h3 className="text-white font-semibold text-lg mb-2">Access Your Menu</h3>
-              <p className="text-gray-400 text-sm mb-4">
-                Tap the menu icon in the top left to access your chat history and options.
-              </p>
-              <button
-                onClick={closeTutorial}
-                className="w-full bg-[#FF660F] text-white font-semibold py-3 px-6 rounded-lg hover:bg-[#e55a0a] transition-colors cursor-pointer"
-              >
-                Got it!
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Login Prompt Modal */}
       {showLoginPrompt && (
         <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/70 p-6">
@@ -437,18 +373,17 @@ useEffect(() => {
       {/* Content Area */}
       <div className="flex flex-1 overflow-hidden relative">
         {/* Overlay for mobile when sidebar is open */}
-        {isSidebarOpen && isMobile && (
+        {isSidebarOpen && (
           <div
-            className="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
+            className="md:hidden fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
             onClick={() => setIsSidebarOpen(false)}
           />
         )}
 
-        {/* Sidebar - always rendered, slides from left on mobile */}
+        {/* Sidebar - slides from left on mobile */}
         <div
           className={`
             fixed md:relative inset-y-0 left-0 z-50 md:z-auto
-            w-72 md:w-auto
             transform transition-transform duration-300 ease-out
             ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
             ${isSidebarOpen ? 'md:w-64' : 'md:w-0'}
@@ -467,9 +402,8 @@ useEffect(() => {
           />
         </div>
 
-
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col overflow-hidden w-full">
+        <div className="flex-1 flex flex-col overflow-hidden w-full md:w-auto">
           {messages.length === 0 && !loading ? (
             <div className="flex flex-col h-full items-center justify-center">
               <div className="w-full max-w-4xl mx-auto px-4">
@@ -495,44 +429,56 @@ useEffect(() => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-                  {/* Card 1: Rank Predictor (was Course Guidance) */}
-<div
-  onClick={() => handleSend("Rank Predictor")}
-  className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center cursor-pointer hover:bg-[#333333] hover:border-[#FF660F] transition-all duration-200"
->
-  <img src="/book.svg" alt="Rank Predictor" className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
-  <p className="text-[13px] md:text-[14px] font-medium text-white font-sans">
-    Rank Predictor
-  </p>
-</div>
+                  {/* Card 1: Course Guidance */}
+                  <div
+                    onClick={() => handleSend("Course Guidance")}
+                    className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center cursor-pointer hover:bg-[#333333] hover:border-[#FF660F] transition-all duration-200"
+                  >
+                    <img
+                      src="/book.svg"
+                      alt="Courses"
+                      className="w-5 h-5 md:w-6 md:h-6 shrink-0"
+                    />
+                    <p className="text-[13px] md:text-[14px] font-medium text-white font-sans">
+                      Course Guidance
+                    </p>
+                  </div>
 
-{/* Card 2: MHT CET Rank Predictor (was College Guidance) */}
-<div
-  onClick={() => handleSend("MHT CET Rank Predictor")}
-  className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center cursor-pointer hover:bg-[#333333] hover:border-[#FF660F] transition-all duration-200"
->
-  <img src="/cap.svg" alt="MHT CET" className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
-  <p className="text-[13px] md:text-[14px] font-medium text-white font-sans">
-    MHT CET Rank Predictor
-  </p>
-</div>
+                  {/* Card 2: College Guidance */}
+                  <div
+                    onClick={() => handleSend("College Guidance")}
+                    className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center cursor-pointer hover:bg-[#333333] hover:border-[#FF660F] transition-all duration-200"
+                  >
+                    <img
+                      src="/cap.svg"
+                      alt="Colleges"
+                      className="w-5 h-5 md:w-6 md:h-6 shrink-0"
+                    />
+                    <p className="text-[13px] md:text-[14px] font-medium text-white font-sans">
+                      College Guidance
+                    </p>
+                  </div>
 
-{/* Card 3: Mock Exam (was Expert Counselling) */}
-<div
-  onClick={() => handleSend("Mock Exam")}
-  className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center cursor-pointer hover:bg-[#333333] hover:border-[#FF660F] transition-all duration-200"
->
-  <img src="/person.svg" alt="Mock Exam" className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
-  <p className="text-[13px] md:text-[14px] font-medium text-white font-sans">
-    Mock Exam
-  </p>
-</div>
+                  {/* Card 3: Expert Counselling */}
+                  <div
+                    onClick={() => handleSend("Expert Counselling")}
+                    className="border border-[#7B7B7B] rounded-[12px] py-3 md:py-2.5 px-3 md:px-4 flex gap-3 md:gap-4 items-center cursor-pointer hover:bg-[#333333] hover:border-[#FF660F] transition-all duration-200"
+                  >
+                    <img
+                      src="/person.svg"
+                      alt="Counselors"
+                      className="w-5 h-5 md:w-6 md:h-6 shrink-0"
+                    />
+                    <p className="text-[13px] md:text-[14px] font-medium text-white font-sans">
+                      Expert Counselling
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           ) : (
             <>
-              <div ref={chatContainerRef} className="flex-1 overflow-y-auto bg-[#232323] mt-2 px-3 md:px-6 py-4 md:py-6 scrollbar-hide">
+              <div className="flex-1 overflow-y-auto bg-[#232323] mt-2 px-3 md:px-6 py-4 md:py-6 scrollbar-hide">
                 <div className="max-w-4xl mx-auto space-y-3 md:space-y-4">
                   {isLoadingHistory ? (
                     <div className="flex items-center justify-center py-12">
@@ -706,9 +652,7 @@ useEffect(() => {
                                         <div
                                           onClick={() => {
                                             toggleChatbot();
-                                            navigate("/counsellor-profile", {
-                                              state: { id: c.counsellorId },
-                                            });
+                                            navigate(`/counsellor/${encodeCounselorId(c.counsellorId)}`);
                                           }}
                                           className="w-full animate-in fade-in-50 slide-in-from-bottom-4 duration-500 cursor-pointer"
                                           style={{
@@ -761,9 +705,9 @@ useEffect(() => {
                     <div className="flex justify-center mb-2 md:mb-3">
                       <button
                         onClick={stopGenerating}
-                        className="flex items-center justify-center gap-2 px-3 md:px-4 py-2 text-xs md:text-sm font-medium text-gray-200 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-sm hover:bg-[#3b3b3b] transition-all font-sans cursor-pointer"
+                        className="flex items-center justify-center gap-2 px-3 md:px-4 py-2 text-xs md:text-sm font-medium text-gray-200 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-sm hover:bg-[#3b3b3b] transition-all font-sans"
                       >
-                        <Square className="h-3 w-3 md:h-4 md:w-4 " />
+                        <Square className="h-3 w-3 md:h-4 md:w-4" />
                         Stop generating
                       </button>
                     </div>

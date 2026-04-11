@@ -4,7 +4,6 @@ import { BookOpen, Clock, FileText, Star, ShoppingCart, Bookmark, Lock, Loader2,
 import toast from "react-hot-toast";
 import {
   getTestGroupByIdForUser,
-  getPublicTestGroupById,
   buyTestGroup,
   bookmarkTestGroup,
   addReviewToTestGroup,
@@ -90,15 +89,15 @@ export default function TestGroupDetailsPage() {
   const [addFundsOpen, setAddFundsOpen] = useState(false);
   const pendingPurchaseRef = useRef(false);
   const userId = localStorage.getItem("phone") || "";
-  const { user, refreshUser, isAuthenticated, toggleLogin, setPendingAction } = useAuthStore();
+  const { user, refreshUser } = useAuthStore();
   const [visibleTests, setVisibleTests] = useState(3);
   const TESTS_PER_PAGE = 3;
 
   useEffect(() => {
-    if (testGroupId) {
+    if (testGroupId && userId) {
       fetchTestGroupDetails();
     }
-  }, [testGroupId, isAuthenticated]);
+  }, [testGroupId, userId]);
 
   // Persist navigation context (fromDashboard, activeTab) to sessionStorage
   useEffect(() => {
@@ -117,7 +116,7 @@ export default function TestGroupDetailsPage() {
       const saved = sessionStorage.getItem(sessionKey);
       if (saved) {
         try {
-          JSON.parse(saved); // Validate it's parseable
+          // const context = JSON.parse(saved);
           // We don't update location.state directly, but we'll use this in handleBack
         } catch (e) {
           console.error("Failed to parse navigation context", e);
@@ -127,34 +126,23 @@ export default function TestGroupDetailsPage() {
   }, [testGroupId, location.state]);
 
   const fetchTestGroupDetails = async () => {
-    if (!testGroupId) return;
+    if (!userId || !testGroupId) return;
 
     try {
       setLoading(true);
-      let response;
-
-      if (isAuthenticated && userId) {
-        // Logged in - use authenticated endpoint
-        response = await getTestGroupByIdForUser(userId, testGroupId);
-      } else {
-        // Not logged in - use public endpoint
-        response = await getPublicTestGroupById(testGroupId);
-      }
-
+      const response = await getTestGroupByIdForUser(userId, testGroupId);
       if (response.status && response.data) {
         setData(response.data);
-        // Find user's own review (only for authenticated users)
-        if (isAuthenticated && userId) {
-          const myReview = response.data.reviews?.find((r: Review) => r.userId === userId);
-          if (myReview) {
-            setUserReview(myReview);
-            setReviewRating(myReview.rating);
-            setReviewText(myReview.reviewText);
-          } else {
-            setUserReview(null);
-            setReviewRating(5);
-            setReviewText("");
-          }
+        // Find user's own review
+        const myReview = response.data.reviews.find((r: Review) => r.userId === userId);
+        if (myReview) {
+          setUserReview(myReview);
+          setReviewRating(myReview.rating);
+          setReviewText(myReview.reviewText);
+        } else {
+          setUserReview(null);
+          setReviewRating(5);
+          setReviewText("");
         }
       }
     } catch (error) {
@@ -188,103 +176,87 @@ export default function TestGroupDetailsPage() {
   const handleBuy = async () => {
     if (!testGroupId || !data) return;
 
-    // Define the actual purchase/enrollment action
-    const executePurchase = async () => {
-      const currentUserId = localStorage.getItem("phone") || "";
+    if (!userId) {
+      toast.error("Please login to purchase");
+      navigate("/");
+      return;
+    }
 
-      if (!currentUserId) {
-        toast.error("Please login to continue");
-        return;
-      }
-
-      // For free test groups, just enroll
-      if (data.testGroup.priceType === "FREE" || data.testGroup.price === 0) {
-        try {
-          const counsellorId = data.attachedTests[0]?.counsellorId || '';
-
-          if (!counsellorId) {
-            toast.error("Unable to process enrollment");
-            return;
-          }
-
-          const response = await buyTestGroup(
-            currentUserId,
-            counsellorId,
-            testGroupId,
-            0,
-            null
-          );
-
-          if (response.status) {
-            toast.success("Successfully enrolled!");
-            fetchTestGroupDetails();
-          } else {
-            toast.error(response.message || "Failed to enroll");
-          }
-        } catch (error) {
-          console.error("Failed to enroll:", error);
-          toast.error("Failed to enroll in test group");
-        }
-        return;
-      }
-
-      // For paid test groups - check wallet balance first
-      const currentUser = useAuthStore.getState().user;
-      const walletBalance = currentUser?.walletAmount ?? 0;
-      const price = data.testGroup.price;
-
-      if (walletBalance < price) {
-        toast.error("Insufficient balance. Please add funds to your wallet.");
-        pendingPurchaseRef.current = true;
-        setAddFundsOpen(true);
-        return;
-      }
-
-      const counsellorId = data.attachedTests[0]?.counsellorId || '';
-
-      if (!counsellorId) {
-        toast.error("Unable to process purchase");
-        return;
-      }
-
+    // For free test groups, just enroll
+    if (data.testGroup.priceType === "FREE" || data.testGroup.price === 0) {
       try {
+        const counsellorId = data.attachedTests[0]?.counsellorId || '';
+
+        if (!counsellorId) {
+          toast.error("Unable to process enrollment");
+          return;
+        }
+
         const response = await buyTestGroup(
-          currentUserId,
+          userId,
           counsellorId,
           testGroupId,
-          data.testGroup.price,
+          0,
           null
         );
 
         if (response.status) {
-          toast.success("Test group purchased successfully!");
-          pendingPurchaseRef.current = false;
+          toast.success("Successfully enrolled!");
           fetchTestGroupDetails();
         } else {
-          if (response.message?.toLowerCase().includes("insufficient")) {
-            toast.error("Insufficient balance. Please add funds to your wallet.");
-            pendingPurchaseRef.current = true;
-            setAddFundsOpen(true);
-          } else {
-            toast.error(response.message || "Failed to purchase");
-          }
+          toast.error(response.message || "Failed to enroll");
         }
       } catch (error) {
-        console.error("Failed to buy:", error);
-        toast.error("Failed to purchase test group");
+        console.error("Failed to enroll:", error);
+        toast.error("Failed to enroll in test group");
       }
-    };
-
-    // Check authentication first
-    if (!isAuthenticated || !userId) {
-      console.log('User not authenticated, triggering login with callback');
-      setPendingAction(() => executePurchase);
-      toggleLogin();
       return;
     }
 
-    // User is authenticated, proceed with purchase
-    await executePurchase();
+    // For paid test groups - check wallet balance first
+    const walletBalance = user?.walletAmount ?? 0;
+    const price = data.testGroup.price;
+
+    if (walletBalance < price) {
+      toast.error("Insufficient balance. Please add funds to your wallet.");
+      pendingPurchaseRef.current = true;
+      setAddFundsOpen(true);
+      return;
+    }
+
+    const counsellorId = data.attachedTests[0]?.counsellorId || '';
+
+    if (!counsellorId) {
+      toast.error("Unable to process purchase");
+      return;
+    }
+
+    try {
+      const response = await buyTestGroup(
+        userId,
+        counsellorId,
+        testGroupId,
+        data.testGroup.price,
+        null
+      );
+
+      if (response.status) {
+        toast.success("Test group purchased successfully!");
+        pendingPurchaseRef.current = false;
+        fetchTestGroupDetails();
+      } else {
+        if (response.message?.toLowerCase().includes("insufficient")) {
+          toast.error("Insufficient balance. Please add funds to your wallet.");
+          pendingPurchaseRef.current = true;
+          setAddFundsOpen(true);
+        } else {
+          toast.error(response.message || "Failed to purchase");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to buy:", error);
+      toast.error("Failed to purchase test group");
+    }
   };
 
   const handleRecharge = async (amount: number) => {
@@ -336,14 +308,7 @@ export default function TestGroupDetailsPage() {
   };
 
   const handleBookmark = async () => {
-    if (!testGroupId) return;
-
-    // Check authentication first
-    if (!isAuthenticated || !userId) {
-      toast.error("Please login to bookmark");
-      toggleLogin();
-      return;
-    }
+    if (!userId || !testGroupId) return;
 
     const currentlyBookmarked = data?.bookmarked || false;
 
@@ -462,7 +427,7 @@ export default function TestGroupDetailsPage() {
   const { testGroup, attachedTests, reviews, bookmarked, bought } = data;
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] pt-20 md:pt-24 pb-28 md:pb-6 px-4 md:px-6">
+    <div className="min-h-screen bg-[#F9FAFB] pt-4 pb-28 md:pb-6 px-4 md:px-6">
       <div className="max-w-6xl mx-auto">
         {/* Back Button */}
         <button
@@ -664,7 +629,7 @@ export default function TestGroupDetailsPage() {
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-5 mt-6">
                 <h2 className="text-base md:text-lg font-bold text-[#242645] mb-3">Associated Course</h2>
                 <div
-                  onClick={() => navigate(`/detail/${data.associatedCourse!.courseId}/user`, {
+                  onClick={() => navigate(`/courses/detail/${data.associatedCourse!.courseId}/user`, {
                     state: { from: 'test-group' }
                   })}
                   className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
@@ -729,7 +694,7 @@ export default function TestGroupDetailsPage() {
                   {!bought ? (
                     <button
                       onClick={handleBuy}
-                      className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:opacity-90 transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full py-3.5 bg-(--text-main) text-white rounded-xl font-semibold hover:opacity-90 transition-all shadow-lg shadow-black/10 flex items-center justify-center gap-2 cursor-pointer"
                     >
                       {testGroup.priceType === "FREE" ? (
                         <>
@@ -805,7 +770,7 @@ export default function TestGroupDetailsPage() {
               {!bought ? (
                 <button
                   onClick={handleBuy}
-                  className="px-8 py-3 bg-[--btn-primary] text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-500/25 flex items-center gap-2"
+                  className="px-8 py-3 bg-(--text-main) text-white rounded-xl font-bold text-sm shadow-lg shadow-black/10 flex items-center gap-2"
                 >
                   {testGroup.priceType === "FREE" ? "Enroll Free" : "Buy Now"}
                 </button>
@@ -860,7 +825,7 @@ export default function TestGroupDetailsPage() {
               <div className="flex flex-col gap-3">
                 <button
                   onClick={handleSubmitReview}
-                  className="w-full py-3 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
+                  className="w-full py-3 bg-(--text-main) text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-colors cursor-pointer"
                 >
                   {userReview ? "Update Review" : "Submit Review"}
                 </button>

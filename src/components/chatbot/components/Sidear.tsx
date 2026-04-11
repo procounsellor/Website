@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { EllipsisVertical, Search, ArrowLeft, X, Lock, Loader2, Bookmark, AlertTriangle } from "lucide-react";
+import { EllipsisVertical, Search, ArrowLeft, X, Lock, Loader2, Bookmark, AlertTriangle, Menu } from "lucide-react";
 import ChatOptionsMenu from './ChatOptionsMenu';
 import { useChatStore } from "@/store/ChatStore";
 import { useAuthStore } from "@/store/AuthStore";
@@ -65,6 +65,8 @@ export default function Sidebar({
   const [chatToDelete, setChatToDelete] = useState<string | null>(null);
 
   const editInputRef = useRef<HTMLInputElement>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const searchPopupRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -132,6 +134,30 @@ export default function Sidebar({
     }
   };
 
+  // Check if mobile and show tutorial on first visit
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+
+      if (mobile) {
+        const hasSeenTutorial = localStorage.getItem('chatbot-sidebar-tutorial-seen');
+        if (!hasSeenTutorial) {
+          setShowTutorial(true);
+        }
+      }
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const closeTutorial = () => {
+    setShowTutorial(false);
+    localStorage.setItem('chatbot-sidebar-tutorial-seen', 'true');
+  };
+
   const filteredChats = (chatSessions || []).filter(chat =>
     chat?.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -185,9 +211,41 @@ export default function Sidebar({
       )}
       {/* ----------------------------------------------------------------- */}
 
+      {/* Tutorial for mobile users */}
+      {showTutorial && isMobile && (
+        <div className="fixed inset-0 bg-black/70 z-[200] flex items-center justify-center p-6">
+          <div className="bg-[#2a2a2a] rounded-2xl p-6 max-w-sm border border-[#A0A0A099] shadow-2xl">
+            <div className="flex justify-end mb-2">
+              <button onClick={closeTutorial} className="text-white/60 hover:text-white cursor-pointer">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="text-center">
+              <div className="inline-block p-4 bg-[#FF660F]/20 rounded-full mb-4">
+                <Menu className="h-10 w-10 text-[#FF660F]" />
+              </div>
+              <h3 className="text-white font-semibold text-lg mb-2">Access Your Menu</h3>
+              <p className="text-gray-400 text-sm mb-4">
+                Tap the menu icon in the top left to access your chat history and options.
+              </p>
+              <button
+                onClick={closeTutorial}
+                className="w-full bg-[#FF660F] text-white font-semibold py-3 px-6 rounded-lg hover:bg-[#e55a0a] transition-colors cursor-pointer"
+              >
+                Got it!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div
         ref={sidebarRef}
-        className="bg-[#232323] h-full border-r border-[#A0A0A099] transition-all duration-300 ease-out w-72 md:w-64"
+        className={`
+          bg-[#232323] h-full border-r border-[#A0A0A099]
+          transition-all duration-300 ease-out
+          ${isMobile ? 'w-72' : isSidebarOpen ? 'w-64' : 'w-16'}
+        `}
       >
         {isSidebarOpen ? (
           <div className="w-full h-full p-4 flex flex-col">
@@ -196,7 +254,7 @@ export default function Sidebar({
                 <button
                   onClick={() => {
                     handleNewChat();
-                    if (window.innerWidth < 768) {
+                    if (isMobile) {
                       setIsSidebarOpen(false);
                     }
                   }}

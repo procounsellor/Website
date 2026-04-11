@@ -19,7 +19,6 @@ import { BANNER_DISMISS_EVENT } from "@/components/shared/AppInstallBanner";
 import { useQuery } from "@tanstack/react-query";
 import { getBoughtCourses } from "@/api/course";
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
-import { checkGrandMockTestRegistration } from "@/api/userTestSeries";
 
 // TODO: Update with the actual course ID for the promo page
 const PROMO_COURSE_ID = "a997f3a9-4a36-4395-9f90-847b739fb225";
@@ -62,8 +61,7 @@ export default function Header() {
   const shouldShowNewHeader = !isAuthenticated || !isCounselor;
 
   const isHomePage = location.pathname === "/";
-  const isGrandMockTestPage = location.pathname.toLowerCase().includes("grandmocktest") || location.pathname.toLowerCase().includes("grand-mock-test");
-  const isPromoPage = ["/promo", "/testSeries/pcsat"].includes(location.pathname) || isGrandMockTestPage;
+  const isPromoPage = ["/promo", "/testSeries/pcsat"].includes(location.pathname);
 
   const currentPromoId = location.pathname === "/testSeries/pcsat" 
     ? TEST_SERIES_ID 
@@ -91,16 +89,10 @@ export default function Header() {
     staleTime: 5000,
   });
 
-  const { data: grandMockStatus } = useQuery({
-    queryKey: ["grandMockStatus", userId],
-    queryFn: () => checkGrandMockTestRegistration(userId as string),
-    enabled: isUserLoaded && !!userId && isAuthenticated && !isCounselor && isGrandMockTestPage,
-    staleTime: 5000,
-  });
-
-  const isCoursePurchased = isGrandMockTestPage 
-    ? (grandMockStatus?.data?.hasRegistered === true)
-    : (boughtCoursesData?.data?.some((course) => course.courseId === currentPromoId) ?? false);
+  const isCoursePurchased =
+    boughtCoursesData?.data?.some(
+      (course) => course.courseId === currentPromoId
+    ) ?? false;
 
   const shouldShowSimplifiedPromoHeader =
     isPromoPage && (!isAuthenticated || !isCoursePurchased);
@@ -183,6 +175,8 @@ export default function Header() {
   const handleProfileNavigation = () => {
     if (role === "counselor") {
       navigate("/counsellor-dashboard");
+    } else if (role === "proBuddy") {
+      navigate("/pro-buddies/dashboard");
     } else {
       navigate("/dashboard-student");
     }
@@ -251,7 +245,7 @@ export default function Header() {
               }}
               className="bg-[#FF660F] hover:bg-[#e15500] text-white px-4 sm:px-8 py-2 sm:py-6 text-xs sm:text-lg font-medium rounded-xl cursor-pointer whitespace-nowrap"
             >
-              {location.pathname === "/testSeries/pcsat" || isGrandMockTestPage ? "Register Now" : "Enroll Now"}
+              {location.pathname === "/testSeries/pcsat" ? "Register Now" : "Enroll Now"}
             </Button>
           </div>
         ) : shouldShowNewHeader ? (

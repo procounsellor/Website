@@ -6,11 +6,11 @@ import { academicApi } from "@/api/academic";
 
 function adaptApiDataToCardData(apiExam: any): ExamCardData {
   return {
-    id: apiExam.examId || apiExam.id, 
+    id: apiExam.examId || apiExam.id,
     name: apiExam.examName || apiExam.name,
-    imageUrl: apiExam.iconUrl, 
+    imageUrl: apiExam.iconUrl,
     level: apiExam.examLevel || apiExam.level,
-    description: "Official exam details, syllabus and important dates where available.", 
+    description: "Official exam details, syllabus and important dates where available.",
   };
 }
 
@@ -23,15 +23,15 @@ export default function ExamsListingPage() {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const observer = useRef<IntersectionObserver | null>(null);
-  
+
   const ITEMS_PER_PAGE = 9;
 
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [filterCount, setFilterCount] = useState(0);
   const [selectedSort, setSelectedSort] = useState("popularity");
-  
+
   const [examSearch, setExamSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState(""); 
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const [levelFilters, setLevelFilters] = useState<string[]>([]);
   const [typeFilters, setTypeFilters] = useState<string[]>([]);
@@ -42,16 +42,16 @@ export default function ExamsListingPage() {
 
   const levelOptions = ['National', 'State', 'University', 'Institute', 'International'];
   const typeOptions = [
-    'Undergraduate Entrance Exam', 
-    'Postgraduate Entrance Exam', 
+    'Undergraduate Entrance Exam',
+    'Postgraduate Entrance Exam',
     'Undergraduate and Postgraduate Entrance Exam',
     'Diploma Entrance Exam'
   ];
 
   const sortOptions = [
-    {label:'Most Popular', value:'popularity'},
-    {label:'Name: A to Z', value:'name-asc'},
-    {label:'Name: Z to A', value:'name-desc'},
+    { label: 'Most Popular', value: 'popularity' },
+    { label: 'Name: A to Z', value: 'name-asc' },
+    { label: 'Name: Z to A', value: 'name-desc' },
   ];
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export default function ExamsListingPage() {
   useEffect(() => {
     setPage(0);
     setHasMore(true);
-    setExams([]); 
+    setExams([]);
   }, [debouncedSearch, levelFilters, typeFilters, selectedSort]);
 
   // --- API FETCH ---
@@ -97,7 +97,7 @@ export default function ExamsListingPage() {
       };
 
       const response = await academicApi.searchExams(filters, page, ITEMS_PER_PAGE);
-      
+
       const newExams = response.exams || [];
       const totalItems = response.total || 0;
 
@@ -133,15 +133,15 @@ export default function ExamsListingPage() {
 
   const lastExamRef = useCallback((node: HTMLDivElement | null) => {
     if (loading || fetchingMore) return;
-    
+
     if (observer.current) observer.current.disconnect();
-    
+
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore) {
         setPage(prevPage => prevPage + 1);
       }
     });
-    
+
     if (node) observer.current.observe(node);
   }, [loading, fetchingMore, hasMore]);
 
@@ -151,13 +151,13 @@ export default function ExamsListingPage() {
   }, [levelFilters, typeFilters, debouncedSearch]);
 
   const toggleLevelFilter = (level: string) => {
-    setLevelFilters(prev => 
+    setLevelFilters(prev =>
       prev.includes(level) ? prev.filter(l => l !== level) : [...prev, level]
     )
   }
 
   const toggleTypeFilter = (type: string) => {
-    setTypeFilters(prev => 
+    setTypeFilters(prev =>
       prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
     )
   }
@@ -205,15 +205,15 @@ export default function ExamsListingPage() {
         </div>
 
         {fetchingMore && (
-           <div className="flex justify-center py-6 w-full">
-             <Loader2 className="animate-spin h-6 w-6 text-[#13097D]" />
-           </div>
+          <div className="flex justify-center py-6 w-full">
+            <Loader2 className="animate-spin h-6 w-6 text-[#13097D]" />
+          </div>
         )}
-        
+
         {!hasMore && exams.length > 0 && (
-            <div className="text-center py-8 text-gray-500 font-medium">
-              You have reached the end
-            </div>
+          <div className="text-center py-8 text-gray-500 font-medium">
+            You have reached the end
+          </div>
         )}
       </>
     );
@@ -232,9 +232,9 @@ export default function ExamsListingPage() {
         </div>
         {examToggle && (
           <div className="flex flex-col gap-4 text-[#232323]">
-            <hr className="h-px"/>
+            <hr className="h-px" />
             <div className="flex items-center gap-2 px-3 rounded-md w-full h-10 border border-[#efefef] bg-white">
-              <Search size={15} className="text-[#343C6A]"/>
+              <Search size={15} className="text-[#343C6A]" />
               <input
                 type="text"
                 placeholder="Search by name..."
@@ -254,15 +254,15 @@ export default function ExamsListingPage() {
             <p>Level</p>
             {levelFilters.length > 0 && <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>}
           </div>
-          {levelToggle ? <ChevronDown className="w-6 h-6"/> : <ChevronRight className="w-6 h-6"/>}
+          {levelToggle ? <ChevronDown className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
         </div>
         {levelToggle && (
           <div className="flex flex-col gap-4 text-[#232323]">
-            <hr className="h-px"/>
+            <hr className="h-px" />
             {levelOptions.map((level) => (
               <div key={level} className="flex gap-2 items-center cursor-pointer" onClick={() => toggleLevelFilter(level)}>
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={levelFilters.includes(level)}
                   readOnly
                   className="w-5 h-5 pointer-events-none"
@@ -281,15 +281,15 @@ export default function ExamsListingPage() {
             <p>Type</p>
             {typeFilters.length > 0 && <div className="w-2 h-2 bg-[#13097D] rounded-full"></div>}
           </div>
-          {typeToggle ? <ChevronDown className="w-6 h-6"/> : <ChevronRight className="w-6 h-6"/>}
+          {typeToggle ? <ChevronDown className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
         </div>
         {typeToggle && (
           <div className="flex flex-col gap-4 text-[#232323]">
-            <hr className="h-px"/>
+            <hr className="h-px" />
             {typeOptions.map((type) => (
               <div key={type} className="flex gap-2 items-center cursor-pointer" onClick={() => toggleTypeFilter(type)}>
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={typeFilters.includes(type)}
                   readOnly
                   className="w-5 h-5 pointer-events-none"
@@ -304,10 +304,10 @@ export default function ExamsListingPage() {
   );
 
   return (
-    <div className="bg-gray-50 pt-20 min-h-screen">
+    <div className="bg-gray-50 pt-4 min-h-screen">
       <main className="container mx-auto px-4 py-4">
         <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
-          
+
           {/* SIDEBAR (Desktop) */}
           <aside className="lg:w-[312px] lg:shrink-0 lg:sticky lg:top-24 lg:self-start hidden lg:block">
             <div className="flex flex-col gap-6 w-full max-h-[calc(100vh-7rem)] overflow-y-auto scrollbar-hide">
@@ -318,7 +318,7 @@ export default function ExamsListingPage() {
                 </h2>
                 <div className="bg-[#13097D] text-white w-7 h-7 flex items-center justify-center rounded-lg">{filterCount}</div>
               </div>
-              
+
               {renderFilters()}
 
               <button
@@ -373,7 +373,7 @@ export default function ExamsListingPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="flex flex-col gap-4">
                     {renderFilters()}
                   </div>
@@ -397,14 +397,14 @@ export default function ExamsListingPage() {
           <section className="flex-1 lg:min-w-0">
             <div className="flex justify-between">
               <h1 className="flex flex-col gap-2 mb-6 text-[16px] text-2xl font-bold">Explore entrance exams across India.
-                  <span className="text-[#8C8CA1] font-medium text-[14px] lg:text-[20px]">Compare levels, types and preparation resources to plan effectively.</span>
-                </h1>
+                <span className="text-[#8C8CA1] font-medium text-[14px] lg:text-[20px]">Compare levels, types and preparation resources to plan effectively.</span>
+              </h1>
 
               <div className="hidden sm:flex items-center gap-3">
                 <p className="font-medium text-[16px] text-[#525055]">Sort By:</p>
                 <Select value={selectedSort} onValueChange={setSelectedSort}>
                   <SelectTrigger className="w-[220px] h-11 border border-[#efefef] bg-white rounded-xl px-3 text-[16px] text-[#333] justify-between hover:cursor-pointer">
-                    <SelectValue placeholder="Popularity" className="text-[#525055] text-[16px]"/>
+                    <SelectValue placeholder="Popularity" className="text-[#525055] text-[16px]" />
                   </SelectTrigger>
                   <SelectContent className="w-[220px] bg-white border border-[#efefef] rounded-xl shadow-lg z-100 max-h-[200px] overflow-y-auto">
                     <SelectGroup className="hover:cursor-pointer">

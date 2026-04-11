@@ -6,7 +6,7 @@ import { useState } from "react";
 
 interface propsType {
   course: CourseType;
-  role: "user" | "student" | "counselor";
+  role: "user" | "student" | "counselor" | "proBuddy";
   userId?: string | null;
   showBookmark?: boolean;
   isPublished?: boolean;
@@ -133,7 +133,7 @@ export default function CourseCard({
             bg-gradient-to-r from-[#072EB1] to-[#03134B]
           "
         >
-          {Number(course.price) === 0 ? "Free" : `${course.price} Procoins`}
+          {course.price} Procoins
         </span>
       </div>
     </div>

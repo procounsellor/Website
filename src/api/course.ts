@@ -516,12 +516,6 @@ export type CourseDetails = {
   bookmarkedByMe?: boolean;
   purchasedByMe?: boolean;
   userWalletAmount?: number;
-  associatedTestGroupList?: {
-    testGroupId: string;
-    testGroupName: string;
-    testGroupBannerUrl: string | null;
-    price: number | null;
-  }[];
 };
 
 export async function getCounsellorCourseByCourseId(
@@ -636,6 +630,47 @@ export async function getBoughtCourses(
 
   if (!response.ok) {
     throw new Error('Failed to fetch purchased courses');
+  }
+
+  return response.json();
+}
+
+export async function getAllCounsellorCoursesForGuest(): Promise<GetCoursesResponse> {
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/shared/getAllCounsellorCourses`,
+    {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch courses');
+  }
+
+  return response.json();
+}
+
+export async function getAllCounsellorCoursesForUser(
+  userId: string
+): Promise<GetCoursesResponse> {
+  const token = localStorage.getItem('jwt');
+
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/counsellorCourses/getAllCounsellorCourses?userId=${userId}`,
+    {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch courses');
   }
 
   return response.json();

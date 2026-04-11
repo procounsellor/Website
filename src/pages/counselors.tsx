@@ -46,7 +46,7 @@ function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
   const availability = workingDays.map((day) => dayMapping[day] || day);
   const languages = apiCounselor.languagesKnow || ["English"];
   const experience = apiCounselor.experience || "0";
-  
+
   let experienceText: string;
   if (experience === "0" || !experience) {
     experienceText = "Entry Level";
@@ -83,30 +83,30 @@ function adaptApiDataToCardData(apiCounselor: AllCounselor): CounselorCardData {
 
 export default function CounselorListingPage() {
   const { user, userId, refreshUser } = useAuthStore();
-  
+
   // --- STATE MANAGEMENT ---
   const [counselors, setCounselors] = useState<AllCounselor[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetchingMore, setFetchingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Infinite Scroll State
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const observer = useRef<IntersectionObserver | null>(null);
-  
+
   // Ref to store all fetched data for logged out users to enable client-side pagination
   const allLoggedOutDataRef = useRef<AllCounselor[]>([]);
-  
+
   const ITEMS_PER_PAGE = 9;
 
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [filterCount, setFilterCount] = useState(0);
-  
+
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [selectedSort, setSelectedSort] = useState("popularity"); 
+  const [selectedSort, setSelectedSort] = useState("popularity");
   const [citySearch, setCitySearch] = useState("");
-  
+
   const [experienceFilters, setExperienceFilters] = useState<string[]>([]);
   const [languageFilters, setLanguageFilters] = useState<string[]>([]);
   const [cityFilters, setCityFilters] = useState<string[]>([]);
@@ -141,9 +141,9 @@ export default function CounselorListingPage() {
   ];
 
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  
+
   const languageOptions = ["Hindi", "English", "Marathi", "Kannada", "Telugu", "Tamil", "Malayalam", "Gujarati", "Bengali"];
-  
+
   const cityOptions = ["Pune", "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Noida"];
 
   const filteredCityOptions = useMemo(() => {
@@ -176,11 +176,11 @@ export default function CounselorListingPage() {
     setHasMore(true);
     allLoggedOutDataRef.current = [];
   }, [
-    experienceFilters, 
-    languageFilters, 
-    cityFilters, 
-    selectedDays, 
-    minPrice, 
+    experienceFilters,
+    languageFilters,
+    cityFilters,
+    selectedDays,
+    minPrice,
     maxPrice,
     selectedSort
   ]);
@@ -216,8 +216,8 @@ export default function CounselorListingPage() {
         languagesKnow: apiLanguages,
         workingDays: apiDays,
         experience: apiExperience,
-        minPrice: minPrice, 
-        maxPrice: maxPrice, 
+        minPrice: minPrice,
+        maxPrice: maxPrice,
       };
 
       let response;
@@ -227,7 +227,7 @@ export default function CounselorListingPage() {
         response = await academicApi.searchCounsellors(
           userId,
           commonFilters,
-          page, 
+          page,
           ITEMS_PER_PAGE
         );
       } else {
@@ -267,13 +267,13 @@ export default function CounselorListingPage() {
       setFetchingMore(false);
     }
   }, [
-    userId, 
+    userId,
     page,
-    selectedDays, 
-    experienceFilters, 
-    cityFilters, 
-    languageFilters, 
-    minPrice, 
+    selectedDays,
+    experienceFilters,
+    cityFilters,
+    languageFilters,
+    minPrice,
     maxPrice
   ]);
 
@@ -281,22 +281,22 @@ export default function CounselorListingPage() {
     const isLoadMore = page > 0;
     const timeoutId = setTimeout(() => {
       fetchCounselors(isLoadMore);
-    }, 300); 
+    }, 300);
 
     return () => clearTimeout(timeoutId);
   }, [fetchCounselors, page]);
 
   const lastCounselorRef = useCallback((node: HTMLDivElement | null) => {
     if (loading || fetchingMore) return;
-    
+
     if (observer.current) observer.current.disconnect();
-    
+
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore) {
         setPage(prevPage => prevPage + 1);
       }
     });
-    
+
     if (node) observer.current.observe(node);
   }, [loading, fetchingMore, hasMore]);
 
@@ -365,35 +365,35 @@ export default function CounselorListingPage() {
   }, [user]);
 
   const handleToggleFavourite = async (counsellorId: string) => {
-     const { isAuthenticated, toggleLogin } = useAuthStore.getState();
-     const toggleFavAction = async () => {
-       const freshUserId = localStorage.getItem('phone');
-       if (!freshUserId || !counsellorId) return;
- 
-       const newFavouriteIds = new Set(favouriteIds);
-       if (newFavouriteIds.has(counsellorId)) newFavouriteIds.delete(counsellorId);
-       else newFavouriteIds.add(counsellorId);
-       setFavouriteIds(newFavouriteIds);
- 
-       try {
-         await addFav(freshUserId, counsellorId);
-         await refreshUser(true);
-         toast.success("Favourite status updated!", { duration: 2000 });
-       } catch (err) {
-         toast.error("Could not update favourite status.", { duration: 2000 });
-         setFavouriteIds(new Set(user?.favouriteCounsellorIds || []));
-       }
-     };
- 
-     if (!isAuthenticated) {
-       toggleLogin(toggleFavAction);
-       return;
-     }
-     if (!user?.firstName) {
-       handleProfileIncomplete(toggleFavAction);
-       return;
-     }
-     await toggleFavAction();
+    const { isAuthenticated, toggleLogin } = useAuthStore.getState();
+    const toggleFavAction = async () => {
+      const freshUserId = localStorage.getItem('phone');
+      if (!freshUserId || !counsellorId) return;
+
+      const newFavouriteIds = new Set(favouriteIds);
+      if (newFavouriteIds.has(counsellorId)) newFavouriteIds.delete(counsellorId);
+      else newFavouriteIds.add(counsellorId);
+      setFavouriteIds(newFavouriteIds);
+
+      try {
+        await addFav(freshUserId, counsellorId);
+        await refreshUser(true);
+        toast.success("Favourite status updated!", { duration: 2000 });
+      } catch (err) {
+        toast.error("Could not update favourite status.", { duration: 2000 });
+        setFavouriteIds(new Set(user?.favouriteCounsellorIds || []));
+      }
+    };
+
+    if (!isAuthenticated) {
+      toggleLogin(toggleFavAction);
+      return;
+    }
+    if (!user?.firstName || !user?.email) {
+      handleProfileIncomplete(toggleFavAction);
+      return;
+    }
+    await toggleFavAction();
   };
 
   const handleProfileIncomplete = (action: () => void) => {
@@ -404,7 +404,7 @@ export default function CounselorListingPage() {
   const handleUpdateProfile = async (updatedData: { firstName: string; lastName: string; email: string }) => {
     if (!userId) throw new Error("User not authenticated");
     const token = localStorage.getItem('jwt');
-    if(token) await updateUserProfile(userId, updatedData, token);
+    if (token) await updateUserProfile(userId, updatedData, token);
     await refreshUser(true);
     if (pendingAction) {
       pendingAction();
@@ -521,7 +521,7 @@ export default function CounselorListingPage() {
                   <input
                     type="text"
                     placeholder="100"
-                    value={minPriceInput} 
+                    value={minPriceInput}
                     onChange={(e) => setMinPriceInput(e.target.value)}
                     className="w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold"
                   />
@@ -534,7 +534,7 @@ export default function CounselorListingPage() {
                   <input
                     type="text"
                     placeholder="10000"
-                    value={maxPriceInput} 
+                    value={maxPriceInput}
                     onChange={(e) => setMaxPriceInput(e.target.value)}
                     className="w-full h-full text-sm outline-none bg-transparent placeholder:text-[#718EBF]/80 placeholder:font-semibold"
                   />
@@ -545,8 +545,8 @@ export default function CounselorListingPage() {
         )}
       </div>
 
-       {/* Working Days */}
-       <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
+      {/* Working Days */}
+      <div className="flex flex-col gap-4 bg-white p-5 w-full max-w-[312px] rounded-xl border border-[#E6E6E6]">
         <div className="flex justify-between text-[#242645] cursor-pointer" onClick={() => setWorkingDaysToggle(!workingDaysToggle)}>
           <div className="flex items-center gap-2">
             <p>Working Days</p>
@@ -574,12 +574,12 @@ export default function CounselorListingPage() {
   );
 
   return (
-    <div className="bg-gray-50 pt-20 min-h-screen">
+    <div className="bg-gray-50 pt-4 min-h-screen">
       <main className="container mx-auto px-4 py-4">
         <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
-          
+
           <aside className="lg:w-[312px] lg:shrink-0 lg:sticky lg:top-24 lg:self-start">
-            
+
             <div className="flex justify-center gap-6 items-center px-4 h-14 w-full sm:hidden">
               <div className="text-[#13097D] text-[16px] flex items-center gap-2">
                 <img src="./filter.svg" alt="filter_icon" className="w-6 h-6" />
@@ -596,15 +596,15 @@ export default function CounselorListingPage() {
 
             {mobileFilterOpen && (
               <div className="fixed inset-0 z-50 bg-gray-50 sm:hidden">
-                 <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <div className="flex items-center justify-between p-4 border-b border-gray-200">
                   <h2 className="text-lg font-semibold text-[#232323]">Sort & Filters</h2>
                   <button onClick={() => setMobileFilterOpen(false)} className="p-2 rounded-full hover:bg-gray-100">
                     <X className="h-5 w-5" />
                   </button>
                 </div>
-                
+
                 <div className="flex-1 overflow-y-auto p-4 pb-20">
-                   <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl mb-3">
+                  <div className="flex flex-col gap-4 bg-white p-5 w-full rounded-xl mb-3">
                     <h3 className="text-[#242645] font-medium">Sort By</h3>
                     <Select value={selectedSort} onValueChange={setSelectedSort}>
                       <SelectTrigger className="w-full h-11 border border-[#efefef] bg-white rounded-xl px-3">
@@ -619,17 +619,17 @@ export default function CounselorListingPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="flex flex-col gap-3">
                     {filterContent}
                   </div>
-                   
-                   <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+
+                  <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
                     <div className="flex gap-3">
-                        <button onClick={clearAllFilters} className="flex-1 py-3 border border-gray-300 rounded-lg text-center font-medium">Clear All</button>
-                        <button onClick={() => setMobileFilterOpen(false)} className="flex-1 py-3 bg-[#13097D] text-white rounded-lg font-medium">Apply</button>
+                      <button onClick={clearAllFilters} className="flex-1 py-3 border border-gray-300 rounded-lg text-center font-medium">Clear All</button>
+                      <button onClick={() => setMobileFilterOpen(false)} className="flex-1 py-3 bg-[#13097D] text-white rounded-lg font-medium">Apply</button>
                     </div>
-                   </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -654,77 +654,87 @@ export default function CounselorListingPage() {
                   Filter by expertise, language, availability, and pricing.
                 </span>
               </h1>
-              
+
               <div className="hidden sm:flex items-center gap-3">
                 <p className="font-medium text-[16px] text-[#525055]">Sort By:</p>
                 <Select value={selectedSort} onValueChange={setSelectedSort}>
-                   <SelectTrigger className="w-[220px] h-11 border border-[#efefef] bg-white rounded-xl px-3 text-[16px] text-[#333]"><SelectValue placeholder="Popularity" /></SelectTrigger>
-                   <SelectContent>
-                      {sortTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-                   </SelectContent>
+                  <SelectTrigger className="w-[220px] h-11 border border-[#efefef] bg-white rounded-xl px-3 text-[16px] text-[#333]"><SelectValue placeholder="Popularity" /></SelectTrigger>
+                  <SelectContent>
+                    {sortTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                  </SelectContent>
                 </Select>
               </div>
             </div>
 
             {loading ? (
-               <div className="flex justify-center py-20"><div className="animate-spin h-8 w-8 border-4 border-[#13097D] border-t-transparent rounded-full"></div></div>
+              <div className="flex justify-center py-20"><div className="animate-spin h-8 w-8 border-4 border-[#13097D] border-t-transparent rounded-full"></div></div>
             ) : error ? (
-               <div className="text-center text-red-500 py-10">{error}</div>
+              <div className="text-center text-red-500 py-10">{error}</div>
             ) : counselors.length === 0 ? (
-               <div className="text-center text-gray-500 py-10">No counselors found matching your filters.</div>
+              <div className="text-center text-gray-500 py-10">No counselors found matching your filters.</div>
             ) : (
-               <>
+              <>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 pb-8">
                   {counselors.map((counselor, index) => {
                     const cardData = adaptApiDataToCardData(counselor);
                     const isFavourite = favouriteIds.has(cardData.id);
-                    // Attach the ref to the last element
+                    const animDelay = `${(index % ITEMS_PER_PAGE) * 0.08}s`;
                     if (index === counselors.length - 1) {
-                        return (
-                           <div key={counselor.counsellorId} ref={lastCounselorRef}>
-                              <CounselorCard
-                                counselor={cardData}
-                                isFavourite={isFavourite}
-                                onToggleFavourite={handleToggleFavourite}
-                              />
-                           </div>
-                        )
+                      return (
+                        <div
+                          key={counselor.counsellorId}
+                          ref={lastCounselorRef}
+                          className="animate-fadeSlideIn"
+                          style={{ animationDelay: animDelay }}
+                        >
+                          <CounselorCard
+                            counselor={cardData}
+                            isFavourite={isFavourite}
+                            onToggleFavourite={handleToggleFavourite}
+                          />
+                        </div>
+                      )
                     }
                     return (
-                      <CounselorCard
+                      <div
                         key={counselor.counsellorId}
-                        counselor={cardData}
-                        isFavourite={isFavourite}
-                        onToggleFavourite={handleToggleFavourite}
-                      />
+                        className="animate-fadeSlideIn"
+                        style={{ animationDelay: animDelay }}
+                      >
+                        <CounselorCard
+                          counselor={cardData}
+                          isFavourite={isFavourite}
+                          onToggleFavourite={handleToggleFavourite}
+                        />
+                      </div>
                     );
                   })}
                 </div>
-                
+
                 {fetchingMore && (
                   <div className="flex justify-center py-6 w-full">
                     <Loader2 className="animate-spin h-6 w-6 text-[#13097D]" />
                   </div>
                 )}
-                
+
                 {!hasMore && counselors.length > 0 && (
-                   <div className="text-center py-8 text-gray-500 font-medium">
-                      You have reached the end
-                   </div>
+                  <div className="text-center py-8 text-gray-500 font-medium">
+                    You have reached the end
+                  </div>
                 )}
-               </>
+              </>
             )}
           </section>
         </div>
       </main>
-      
+
       {user && (
         <EditProfileModal
           isOpen={isEditProfileModalOpen}
           onClose={handleCloseModal}
           user={user}
           onUpdate={handleUpdateProfile}
-          onUploadComplete={() => {}}
+          onUploadComplete={() => { }}
         />
       )}
     </div>
