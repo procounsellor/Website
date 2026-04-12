@@ -23,7 +23,8 @@ export default function DeadlinesCard({ id, examName, deadline, details, isWhite
       onClick={() => navigate(`/admissions/deadlines/${id}`)}
       role="button"
       tabIndex={0}
-      className="relative cursor-pointer w-[200px] h-[220px] md:w-[312px] md:h-[322px] shrink-0 group"
+      // UPDATED: Smooth responsive sizing for mobile, strict 312x322 for desktop
+      className="relative cursor-pointer w-[165px] h-[200px] min-[400px]:w-[185px] min-[400px]:h-[210px] sm:w-[200px] sm:h-[220px] md:w-[312px] md:h-[322px] shrink-0 group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -42,21 +43,22 @@ export default function DeadlinesCard({ id, examName, deadline, details, isWhite
         />
       </svg>
 
-      <div className="absolute inset-0 p-[12px] md:p-[0.75rem] flex flex-col gap-[12px] md:gap-[1.5rem]">
+      <div className="absolute inset-0 p-[10px] sm:p-[12px] md:p-[0.75rem] flex flex-col gap-[8px] sm:gap-[12px] md:gap-[1.5rem]">
         <div className="flex justify-between items-start md:items-center">
              
           {/* Wrapper for the custom hover tooltip */}
           <div className="relative flex items-center group/tooltip">
-            <div className={`w-fit flex items-center justify-center rounded-[4px] md:rounded-[6px] gap-1.5 md:gap-2 ${isWhite ? "bg-[#EDEDED]": "bg-white"} py-1 px-2 md:px-3`}>
-              <div className="bg-[#0E1629] h-3 w-3 md:h-4 md:w-4 shrink-0"></div>
-              <p className={`text-[#0E1629] md:text-(--text-main) font-[Poppins] font-semibold text-[10px] md:text-[0.875rem] whitespace-nowrap`}>
+            <div className={`w-fit flex items-center justify-center rounded-[4px] md:rounded-[6px] gap-1 md:gap-2 ${isWhite ? "bg-[#EDEDED]": "bg-white"} py-1 px-1.5 md:px-3`}>
+              <div className="bg-[#0E1629] h-2 w-2 sm:h-3 sm:w-3 md:h-4 md:w-4 shrink-0"></div>
+              {/* UPDATED: Scaled down mobile font slightly to prevent breaking */}
+              <p className={`text-[#0E1629] md:text-(--text-main) font-[Poppins] font-semibold text-[9px] sm:text-[10px] md:text-[0.875rem] whitespace-nowrap`}>
                 {shortExamName}{hasMoreWords ? "..." : ""}
               </p>
             </div>
 
             {/* Tooltip shown above on hover */}
             {hasMoreWords && (
-              <div className="absolute bottom-[115%] left-0 hidden group-hover/tooltip:block z-50 bg-[#0E1629] text-white text-[10px] md:text-[12px] p-2 md:p-3 rounded-md shadow-xl w-max max-w-[220px] whitespace-normal pointer-events-none transition-opacity">
+              <div className="absolute bottom-[115%] left-0 hidden group-hover/tooltip:block z-50 bg-[#0E1629] text-white text-[10px] md:text-[12px] p-2 md:p-3 rounded-md shadow-xl w-max max-w-[180px] md:max-w-[220px] whitespace-normal pointer-events-none transition-opacity">
                 {examName}
                 {/* Little triangle pointing down */}
                 <div className="absolute top-full left-4 border-[6px] border-transparent border-t-[#0E1629]"></div>
@@ -64,18 +66,18 @@ export default function DeadlinesCard({ id, examName, deadline, details, isWhite
             )}
           </div>
 
-          <p className={`text-right font-[Poppins] font-normal text-[12px] md:text-[0.875rem] leading-none md:leading-normal w-[86px] md:w-auto mt-[2px] md:mt-0 ${isWhite ? "text-[#6B7280] md:text-(--text-muted)" : "text-[#6B7280] md:text-(--text-main)"}`}>
+          <p className={`text-right font-[Poppins] font-normal text-[9px] sm:text-[11px] md:text-[0.875rem] leading-none md:leading-normal w-[70px] sm:w-[86px] md:w-auto mt-[2px] md:mt-0 ${isWhite ? "text-[#6B7280] md:text-(--text-muted)" : "text-[#6B7280] md:text-(--text-main)"}`}>
             {deadline}
           </p>
         </div>
 
-        {/* Removed md:line-clamp-none so it stays clamped to 6 lines everywhere */}
-        <p className={`text-left font-[Poppins] ${isWhite ? "text-[#0E1629] md:text-(--text-main)": "text-white"} text-[14px] md:text-[1.125rem] leading-[1.4] md:leading-normal line-clamp-6`}>
+        {/* UPDATED: Scaled down text size slightly for very small devices */}
+        <p className={`text-left font-[Poppins] ${isWhite ? "text-[#0E1629] md:text-(--text-main)": "text-white"} text-[12px] sm:text-[14px] md:text-[1.125rem] leading-[1.4] md:leading-normal line-clamp-6`}>
           {details}
         </p>
       </div>
 
-      <div className="absolute right-[-4px] md:right-[1.5px] bottom-[1.5px] overflow-hidden w-[48px] h-[41px] md:w-[63px] md:h-[57px]">
+      <div className="absolute right-[-4px] md:right-[1.5px] bottom-[1.5px] overflow-hidden w-[40px] h-[36px] sm:w-[48px] sm:h-[41px] md:w-[63px] md:h-[57px]">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 63 57"
@@ -89,7 +91,7 @@ export default function DeadlinesCard({ id, examName, deadline, details, isWhite
             className="transition-colors duration-300"
           />
         </svg>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[16px] h-[16px] md:w-[20px] md:h-[20px]">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[14px] h-[14px] sm:w-[16px] sm:h-[16px] md:w-[20px] md:h-[20px]">
           <img 
             src="/arrow.svg" 
             alt="arrow" 
