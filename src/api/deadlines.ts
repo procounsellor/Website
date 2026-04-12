@@ -38,3 +38,29 @@ export const getDeadlines = async (): Promise<EventItem[]> => {
 
   return data; 
 };
+
+export const getEventById = async (eventId: string, userId: string, role: string): Promise<EventItem> => {
+  const token = typeof window !== "undefined" ? localStorage.getItem("jwt") : null;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_CONFIG.baseUrl.replace(/\/$/, '')}/api/events/getById?eventId=${eventId}&id=${userId}&role=${role}`, {
+    method: "GET",
+    headers,
+  });
+
+  const data = await response.json();
+  
+  if (!response.ok) {
+    throw new Error(data.message || data.error || "Failed to fetch event details");
+  }
+
+  return data;
+};
