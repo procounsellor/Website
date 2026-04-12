@@ -47,7 +47,7 @@ export default function BlogCard({ id, title, author, readTime, imageUrl }: Blog
       </svg>
 
       <div className="absolute flex flex-col w-full h-full z-10 p-[12px] md:p-3">
-        {hasImage && (
+        {hasImage ? (
           <div className="relative w-full h-[120px] md:h-[167px] shrink-0">
             {isImageLoading && (
               <div className="absolute inset-0 rounded-[8px] bg-[#E5ECF7] animate-pulse" />
@@ -63,6 +63,10 @@ export default function BlogCard({ id, title, author, readTime, imageUrl }: Blog
                 isImageLoading ? "opacity-0" : "opacity-100"
               }`}
             />
+          </div>
+        ) : (
+          <div className="w-full h-[120px] md:h-[167px] shrink-0 rounded-[8px] border border-dashed border-[#C7D3E5] bg-[#EEF3FB] flex items-center justify-center">
+            <span className="text-[11px] md:text-[12px] text-[#5D6B82] font-medium">No image available</span>
           </div>
         )}
         <h1 className={`font-[Poppins] font-medium text-[14px] md:text-[1rem] text-[#0E1629] md:text-(--text-main) line-clamp-3 leading-[1.3] md:leading-normal ${hasImage ? "mt-2.5" : "mt-0"}`}>{title}</h1>

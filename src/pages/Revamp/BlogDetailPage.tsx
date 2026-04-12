@@ -53,6 +53,61 @@ function normalizeDescriptionToHtml(text: string): string {
   return paragraphs.join("");
 }
 
+function stripHtmlToText(html: string): string {
+  if (!html.trim()) return "";
+  if (typeof window === "undefined") return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  return (doc.body.textContent ?? "").replace(/\s+/g, " ").trim();
+}
+
+function truncateForMeta(text: string, maxLength = 155): string {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength - 1).trim()}…`;
+}
+
+function upsertMetaByName(name: string, content: string): void {
+  let el = document.head.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute("name", name);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", content);
+}
+
+function upsertMetaByProperty(property: string, content: string): void {
+  let el = document.head.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute("property", property);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", content);
+}
+
+function upsertCanonical(url: string): void {
+  let link = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (!link) {
+    link = document.createElement("link");
+    link.setAttribute("rel", "canonical");
+    document.head.appendChild(link);
+  }
+  link.setAttribute("href", url);
+}
+
+function upsertJsonLd(id: string, payload: Record<string, unknown>): void {
+  let script = document.head.querySelector<HTMLScriptElement>(`script#${id}`);
+  if (!script) {
+    script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.id = id;
+    document.head.appendChild(script);
+  }
+  script.textContent = JSON.stringify(payload);
+}
+
 export default function BlogDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -72,6 +127,69 @@ export default function BlogDetailPage() {
     () => (blog?.description ? normalizeDescriptionToHtml(blog.description) : ""),
     [blog?.description]
   );
+
+  useEffect(() => {
+    if (!blog) return;
+
+    const plainTextDescription = stripHtmlToText(blog.description ?? "");
+    const metaDescription = truncateForMeta(
+      plainTextDescription || `Read ${blog.title} on ProCounsel.`
+    );
+    const keywordSet = new Set<string>([
+      ...blog.keywords,
+      blog.category,
+      "college admissions",
+      "education counseling",
+    ]);
+    const keywords = Array.from(keywordSet)
+      .map((k) => k.trim())
+      .filter(Boolean)
+      .join(", ");
+
+    const canonicalUrl = typeof window !== "undefined" ? window.location.href : "";
+    document.title = `${blog.title} | ProCounsel Blog`;
+    upsertMetaByName("description", metaDescription);
+    if (keywords) upsertMetaByName("keywords", keywords);
+    if (canonicalUrl) upsertCanonical(canonicalUrl);
+
+    upsertMetaByProperty("og:type", "article");
+    upsertMetaByProperty("og:title", blog.title);
+    upsertMetaByProperty("og:description", metaDescription);
+    if (canonicalUrl) upsertMetaByProperty("og:url", canonicalUrl);
+    if (blog.imageUrl) upsertMetaByProperty("og:image", blog.imageUrl);
+
+    upsertMetaByName("twitter:card", blog.imageUrl ? "summary_large_image" : "summary");
+    upsertMetaByName("twitter:title", blog.title);
+    upsertMetaByName("twitter:description", metaDescription);
+    if (blog.imageUrl) upsertMetaByName("twitter:image", blog.imageUrl);
+
+    upsertJsonLd("blog-posting-jsonld", {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: blog.title,
+      author: {
+        "@type": "Person",
+        name: blog.author || "ProCounsel",
+      },
+      datePublished:
+        blog.publishedOnMillis != null
+          ? new Date(blog.publishedOnMillis).toISOString()
+          : undefined,
+      dateModified:
+        blog.publishedOnMillis != null
+          ? new Date(blog.publishedOnMillis).toISOString()
+          : undefined,
+      image: blog.imageUrl || undefined,
+      articleSection: blog.category,
+      keywords: blog.keywords,
+      description: metaDescription,
+      mainEntityOfPage: canonicalUrl || undefined,
+      publisher: {
+        "@type": "Organization",
+        name: "ProCounsel",
+      },
+    });
+  }, [blog]);
 
   const publishedLabel = blog
     ? blog.publishedOnMillis != null

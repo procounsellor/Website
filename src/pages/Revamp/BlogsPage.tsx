@@ -1,6 +1,9 @@
 import Blogs from "@/components/Revamp/admissions/Blogs";
+import { useNavigate } from "react-router-dom";
 
 export default function BlogsPage() {
+  const navigate = useNavigate();
+
   return (
     <div
       className="min-h-screen"
@@ -12,7 +15,14 @@ export default function BlogsPage() {
       <div className="w-full border-b border-[#E3E8F4] bg-white">
         <div className="max-w-[1440px] mx-auto px-5 md:px-[60px] pt-3 pb-3">
           <p className="text-[0.875rem] text-(--text-muted) font-medium">
-            Admission <span className="mx-1">{">"}</span>{" "}
+            <button
+              type="button"
+              onClick={() => navigate("/admissions")}
+              className="hover:underline cursor-pointer"
+            >
+              Admission
+            </button>
+            <span className="mx-1">{">"}</span>{" "}
             <span className="text-(--text-main)">Blogs</span>
           </p>
         </div>

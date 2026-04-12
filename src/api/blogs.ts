@@ -10,6 +10,9 @@ export type BlogRaw = {
   title?: string;
   publisherName?: string;
   description?: string;
+  keywords?: string | string[];
+  keyword?: string | string[];
+  tags?: string | string[];
   publishedOnMillis?:
     | number
     | string
@@ -50,6 +53,7 @@ export type BlogListItem = {
   readTime: string;
   description: string;
   category: string;
+  keywords: string[];
   publishedOnMillis?: number;
 };
 
@@ -188,6 +192,20 @@ function estimateReadTime(description?: string): string {
   return `${mins} min read`;
 }
 
+function parseKeywords(raw: BlogRaw): string[] {
+  const source = raw.keywords ?? raw.keyword ?? raw.tags;
+  const values = Array.isArray(source) ? source : typeof source === "string" ? source.split(",") : [];
+
+  const dedup = new Set<string>();
+  for (const entry of values) {
+    if (typeof entry !== "string") continue;
+    const value = entry.trim();
+    if (!value) continue;
+    dedup.add(value);
+  }
+  return Array.from(dedup);
+}
+
 function parseListPayload(json: unknown): BlogRaw[] {
   if (!json) return [];
   if (Array.isArray(json)) return json as BlogRaw[];
@@ -228,6 +246,7 @@ export function normalizeBlog(raw: BlogRaw, fallbackId?: string): BlogListItem |
     readTime: estimateReadTime(raw.description),
     description: raw.description?.trim() ?? "",
     category,
+    keywords: parseKeywords(raw),
     publishedOnMillis,
   };
 }

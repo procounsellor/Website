@@ -70,35 +70,36 @@ export default function BlogsPageCard({
   </svg>
 
   <div className="relative z-10 h-full w-full p-3 flex flex-row gap-2">
-    {hasImage && (
-      <div className="relative shrink-0 w-[42%] max-w-[140px]">
-        {isImageLoading && (
-          <div className="absolute inset-0 rounded-[10px] bg-[#E5ECF7] animate-pulse" />
-        )}
-        <img
-          ref={handleImageRef}
-          src={imageUrl}
-          alt={title}
-          onLoadStart={() => setIsImageLoading(true)}
-          onLoad={() => setIsImageLoading(false)}
-          onError={() => setIsImageLoading(false)}
-          className={`w-full h-[136px] rounded-[10px] object-cover transition-opacity duration-300 ${
-            isImageLoading ? "opacity-0" : "opacity-100"
-          }`}
-        />
-        <span className="absolute top-1 left-1 inline-flex items-center px-1.5 py-0.5 rounded-[999px] bg-[#A2AECA] text-[10px] font-normal text-[#0E1629] max-w-[calc(100%-8px)] truncate">
-          {tag}
-        </span>
-      </div>
-    )}
+    <div className="relative shrink-0 w-[42%] max-w-[140px]">
+      {hasImage ? (
+        <>
+          {isImageLoading && (
+            <div className="absolute inset-0 rounded-[10px] bg-[#E5ECF7] animate-pulse" />
+          )}
+          <img
+            ref={handleImageRef}
+            src={imageUrl}
+            alt={title}
+            onLoadStart={() => setIsImageLoading(true)}
+            onLoad={() => setIsImageLoading(false)}
+            onError={() => setIsImageLoading(false)}
+            className={`w-full h-[136px] rounded-[10px] object-cover transition-opacity duration-300 ${
+              isImageLoading ? "opacity-0" : "opacity-100"
+            }`}
+          />
+        </>
+      ) : (
+        <div className="w-full h-[136px] rounded-[10px] border border-dashed border-[#C7D3E5] bg-[#EEF3FB] flex items-center justify-center text-center px-2">
+          <span className="text-[10px] text-[#5D6B82] font-medium">No image available</span>
+        </div>
+      )}
+      <span className="absolute top-1 left-1 inline-flex items-center px-1.5 py-0.5 rounded-[999px] bg-[#A2AECA] text-[10px] font-normal text-[#0E1629] max-w-[calc(100%-8px)] truncate">
+        {tag}
+      </span>
+    </div>
 
     <div className=" flex min-w-0 flex-1 flex-col justify-between">
       <div className="flex flex-col min-w-0">
-        {!hasImage && (
-          <span className="inline-flex items-center self-start mb-2 px-2 py-0.5 rounded-[999px] bg-[#A2AECA] text-[10px] font-normal text-[#0E1629]">
-            {tag}
-          </span>
-        )}
         <h3 className="text-(--text-main) font-medium text-[16px] line-clamp-2">
           {title}
         </h3>
@@ -185,24 +186,30 @@ export default function BlogsPageCard({
         </svg>
 
         <div className="absolute flex flex-col w-full h-full z-10 p-3">
-          {hasImage && (
-            <div className="relative">
-              {isImageLoading && (
-                <div className="absolute inset-0 rounded-[8px] bg-[#E5ECF7] animate-pulse" />
-              )}
-              <img
-                ref={handleImageRef}
-                src={imageUrl}
-                alt={title}
-                onLoadStart={() => setIsImageLoading(true)}
-                onLoad={() => setIsImageLoading(false)}
-                onError={() => setIsImageLoading(false)}
-                className={`w-full h-[167px] rounded-[8px] object-cover transition-opacity duration-300 ${
-                  isImageLoading ? "opacity-0" : "opacity-100"
-                }`}
-              />
-            </div>
-          )}
+          <div className="relative">
+            {hasImage ? (
+              <>
+                {isImageLoading && (
+                  <div className="absolute inset-0 rounded-[8px] bg-[#E5ECF7] animate-pulse" />
+                )}
+                <img
+                  ref={handleImageRef}
+                  src={imageUrl}
+                  alt={title}
+                  onLoadStart={() => setIsImageLoading(true)}
+                  onLoad={() => setIsImageLoading(false)}
+                  onError={() => setIsImageLoading(false)}
+                  className={`w-full h-[167px] rounded-[8px] object-cover transition-opacity duration-300 ${
+                    isImageLoading ? "opacity-0" : "opacity-100"
+                  }`}
+                />
+              </>
+            ) : (
+              <div className="w-full h-[167px] rounded-[8px] border border-dashed border-[#C7D3E5] bg-[#EEF3FB] flex items-center justify-center">
+                <span className="text-[12px] text-[#5D6B82] font-medium">No image available</span>
+              </div>
+            )}
+          </div>
 
           <div className="hidden md:flex items-center justify-between mt-2 mb-0.5">
             <span className="inline-flex items-center px-2 py-1 rounded-[999px] bg-[#A2AECA] text-[11px] font-normal text-[#0E1629]">
