@@ -1,27 +1,99 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import GyanDhanBanner from './GyanDhanBanner';
 import PredictorBanner from './PredictorBanner';
 
-const TOTAL_SLIDES = 3;
-
 const RevampBannerSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const desktopTrackRef = useRef<HTMLDivElement | null>(null);
+  const mobileTrackRef = useRef<HTMLDivElement | null>(null);
+
+  const desktopSlides = useMemo(
+    () => [
+      {
+        id: 'desktop-1',
+        left: <GyanDhanBanner />,
+        right: <PredictorBanner variant="rank" />,
+      },
+      {
+        id: 'desktop-2',
+        left: <PredictorBanner variant="college" />,
+        right: <PredictorBanner variant="mhtcet" />,
+      },
+      {
+        id: 'desktop-3',
+        left: <PredictorBanner variant="rank" />,
+        right: <GyanDhanBanner />,
+      },
+    ],
+    []
+  );
+
+  const mobileSlides = useMemo(
+    () => [
+      { id: 'mobile-1', content: <GyanDhanBanner /> },
+      { id: 'mobile-2', content: <PredictorBanner variant="rank" /> },
+      { id: 'mobile-3', content: <PredictorBanner variant="college" /> },
+      { id: 'mobile-4', content: <PredictorBanner variant="mhtcet" /> },
+    ],
+    []
+  );
+
+  const totalSlides = isMobile ? mobileSlides.length : desktopSlides.length;
+
+  const syncViewportMode = () => {
+    if (typeof window === 'undefined') return;
+    setIsMobile(window.innerWidth < 768);
+  };
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setIsTransitioning(true);
-      setActiveIndex((prev) => prev + 1);
-    }, 4500);
-    return () => clearInterval(timer);
+    syncViewportMode();
+    window.addEventListener('resize', syncViewportMode);
+    return () => window.removeEventListener('resize', syncViewportMode);
   }, []);
 
-  const handleTransitionEnd = () => {
-    if (activeIndex === TOTAL_SLIDES) {
-      setIsTransitioning(false);
-      setActiveIndex(0);
-    }
+  const scrollToSlide = (index: number) => {
+    const track = isMobile ? mobileTrackRef.current : desktopTrackRef.current;
+    if (!track) return;
+    const boundedIndex = Math.max(0, Math.min(index, totalSlides - 1));
+    const left = boundedIndex * track.clientWidth;
+    track.scrollTo({ left, behavior: 'smooth' });
+    setActiveIndex(boundedIndex);
   };
+
+  useEffect(() => {
+    const track = isMobile ? mobileTrackRef.current : desktopTrackRef.current;
+    if (!track) return;
+
+    const onScroll = () => {
+      const width = track.clientWidth || 1;
+      const idx = Math.round(track.scrollLeft / width);
+      const bounded = Math.max(0, Math.min(idx, totalSlides - 1));
+      setActiveIndex(bounded);
+    };
+
+    track.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => track.removeEventListener('scroll', onScroll);
+  }, [isMobile, totalSlides]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (isPaused || totalSlides <= 1) return;
+      const nextIndex = (activeIndex + 1) % totalSlides;
+      scrollToSlide(nextIndex);
+    }, 4500);
+
+    return () => window.clearInterval(timer);
+  }, [activeIndex, isPaused, totalSlides, isMobile]);
+
+  useEffect(() => {
+    if (activeIndex >= totalSlides) {
+      setActiveIndex(0);
+      scrollToSlide(0);
+    }
+  }, [activeIndex, totalSlides, isMobile]);
 
   return (
     <section className="w-full bg-[#C6DDF040] overflow-hidden">
@@ -36,83 +108,52 @@ const RevampBannerSection = () => {
           </div>
 
           <div className="hidden md:block w-full">
-            <div className="relative w-full max-w-[1320px] mx-auto overflow-hidden rounded-2xl hover:cursor-pointer">
+            <div
+              className="relative w-full max-w-[1320px] mx-auto overflow-hidden rounded-2xl"
+              onMouseEnter={() => setIsPaused(true)}
+              onMouseLeave={() => setIsPaused(false)}
+            >
               <div
-                className={`flex w-[400%] ${isTransitioning ? 'transition-transform duration-700 ease-in-out' : ''}`}
-                style={{ transform: `translateX(-${activeIndex * 25}%)` }}
-                onTransitionEnd={handleTransitionEnd}
+                ref={desktopTrackRef}
+                className="flex w-full overflow-x-auto snap-x snap-mandatory scroll-smooth gap-0 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
               >
-                <div className="w-1/4 flex justify-center gap-6">
-                  <div className="w-full max-w-[648px] shrink-0">
-                    <GyanDhanBanner />
+                {desktopSlides.map((slide) => (
+                  <div key={slide.id} className="w-full shrink-0 snap-start flex justify-center gap-6">
+                    <div className="w-full max-w-[648px] shrink-0">{slide.left}</div>
+                    <div className="w-full max-w-[648px] shrink-0">{slide.right}</div>
                   </div>
-                  <div className="w-full max-w-[648px] shrink-0">
-                    <PredictorBanner variant="rank" />
-                  </div>
-                </div>
-                <div className="w-1/4 flex justify-center gap-6">
-                  <div className="w-full max-w-[648px] shrink-0">
-                    <PredictorBanner variant="rank" />
-                  </div>
-                  <div className="w-full max-w-[648px] shrink-0">
-                    <PredictorBanner variant="match" />
-                  </div>
-                </div>
-                <div className="w-1/4 flex justify-center gap-6">
-                  <div className="w-full max-w-[648px] shrink-0">
-                    <PredictorBanner variant="match" />
-                  </div>
-                  <div className="w-full max-w-[648px] shrink-0">
-                    <GyanDhanBanner />
-                  </div>
-                </div>
-                <div className="w-1/4 flex justify-center gap-6">
-                  <div className="w-full max-w-[648px] shrink-0">
-                    <GyanDhanBanner />
-                  </div>
-                  <div className="w-full max-w-[648px] shrink-0">
-                    <PredictorBanner variant="rank" />
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
 
           <div className="md:hidden w-full flex items-center justify-center">
-            <div className="relative w-full max-w-[335px] mx-auto overflow-hidden rounded-[12px] hover:cursor-pointer">
+            <div
+              className="relative w-full max-w-[335px] mx-auto overflow-hidden rounded-[12px]"
+              onMouseEnter={() => setIsPaused(true)}
+              onMouseLeave={() => setIsPaused(false)}
+            >
               <div
-                className={`flex w-[400%] ${isTransitioning ? 'transition-transform duration-700 ease-in-out' : ''}`}
-                style={{ transform: `translateX(-${activeIndex * 25}%)` }}
-                onTransitionEnd={handleTransitionEnd}
+                ref={mobileTrackRef}
+                className="flex w-full overflow-x-auto snap-x snap-mandatory scroll-smooth [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
               >
-                <div className="w-1/4 flex justify-center">
-                  <GyanDhanBanner />
-                </div>
-                <div className="w-1/4 flex justify-center">
-                  <PredictorBanner variant="rank" />
-                </div>
-                <div className="w-1/4 flex justify-center">
-                  <PredictorBanner variant="match" />
-                </div>
-                <div className="w-1/4 flex justify-center">
-                  <GyanDhanBanner />
-                </div>
+                {mobileSlides.map((slide) => (
+                  <div key={slide.id} className="w-full shrink-0 snap-start flex justify-center">
+                    {slide.content}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
           <div className="w-full flex justify-start mt-2">
             <div className="flex gap-2">
-            {[0, 1, 2].map((index) => {
-              const current = activeIndex === TOTAL_SLIDES ? 0 : activeIndex;
+            {Array.from({ length: totalSlides }, (_, index) => {
               return (
                 <button
                   key={index}
-                  onClick={() => {
-                    setIsTransitioning(true);
-                    setActiveIndex(index);
-                  }}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${current === index ? 'w-10 bg-[#0E1629]' : 'w-5 bg-[#0E16294D]'}`}
+                  onClick={() => scrollToSlide(index)}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${activeIndex === index ? 'w-10 bg-[#0E1629]' : 'w-5 bg-[#0E16294D]'}`}
                   aria-label={`Go to banner slide ${index + 1}`}
                 />
               );

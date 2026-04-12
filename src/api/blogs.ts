@@ -10,12 +10,37 @@ export type BlogRaw = {
   title?: string;
   publisherName?: string;
   description?: string;
-  publishedOnMillis?: number;
-  publishedOn?: string;
-  photoUrl?: string;
-  imageUrl?: string;
-  photo?: string;
-  thumbnailUrl?: string;
+  keywords?: string | string[];
+  keyword?: string | string[];
+  tags?: string | string[];
+  publishedOnMillis?:
+    | number
+    | string
+    | {
+        seconds?: number | string;
+        _seconds?: number | string;
+        sec?: number | string;
+        nanos?: number | string;
+        _nanoseconds?: number | string;
+      };
+  publishedOn?:
+    | string
+    | number
+    | {
+        seconds?: number | string;
+        _seconds?: number | string;
+        sec?: number | string;
+        nanos?: number | string;
+        _nanoseconds?: number | string;
+      };
+  photoUrl?: string | { url?: string; secure_url?: string; imageUrl?: string };
+  imageUrl?: string | { url?: string; secure_url?: string; imageUrl?: string };
+  photo?: string | { url?: string; secure_url?: string; imageUrl?: string };
+  thumbnailUrl?: string | { url?: string; secure_url?: string; imageUrl?: string };
+  bannerUrl?: string;
+  bannerImageUrl?: string;
+  blogImageUrl?: string;
+  coverImageUrl?: string;
 };
 
 export type BlogListItem = {
@@ -28,6 +53,7 @@ export type BlogListItem = {
   readTime: string;
   description: string;
   category: string;
+  keywords: string[];
   publishedOnMillis?: number;
 };
 
@@ -59,8 +85,7 @@ function getId(raw: BlogRaw): string {
 }
 
 export function resolveBlogImageUrl(url?: string | null): string {
-  const fallback = "/blogCard.jpg";
-  if (!url || !String(url).trim()) return fallback;
+  if (!url || !String(url).trim()) return "";
   const s = String(url).trim();
   if (s.startsWith("http://") || s.startsWith("https://")) return s;
   if (!baseUrl) return s.startsWith("/") ? s : `/${s}`;
@@ -70,6 +95,36 @@ export function resolveBlogImageUrl(url?: string | null): string {
   } catch {
     return `${baseUrl}${path}`;
   }
+}
+
+function pickString(...values: Array<unknown>): string | undefined {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return undefined;
+}
+
+function readMediaField(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    const v = value.trim();
+    return v || undefined;
+  }
+  if (!value || typeof value !== "object") return undefined;
+  const v = value as Record<string, unknown>;
+  return pickString(v.url, v.secure_url, v.imageUrl);
+}
+
+function resolveBlogRawImage(raw: BlogRaw): string | undefined {
+  return pickString(
+    readMediaField(raw.photoUrl),
+    readMediaField(raw.imageUrl),
+    readMediaField(raw.photo),
+    readMediaField(raw.thumbnailUrl),
+    raw.bannerImageUrl,
+    raw.blogImageUrl,
+    raw.coverImageUrl,
+    raw.bannerUrl
+  );
 }
 
 export function formatPublishedLine(millis?: number): string {
@@ -95,7 +150,39 @@ function formatPublishedLineFlexible(raw: BlogRaw): string {
     // Backend sometimes returns a raw date string; keep UI stable.
     return `Published on: ${s}`;
   }
-  return formatPublishedLine(raw.publishedOnMillis);
+  return formatPublishedLine(resolvePublishedOnMillis(raw));
+}
+
+function toEpochMillis(
+  value: BlogRaw["publishedOnMillis"] | BlogRaw["publishedOn"]
+): number | undefined {
+  if (value == null) return undefined;
+
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) return undefined;
+    // Heuristic: values below 1e12 are usually epoch seconds.
+    return value < 1_000_000_000_000 ? value * 1000 : value;
+  }
+
+  if (typeof value === "string") {
+    const n = Number(value);
+    if (Number.isFinite(n)) return n < 1_000_000_000_000 ? n * 1000 : n;
+    const fromDate = new Date(value).getTime();
+    return Number.isNaN(fromDate) ? undefined : fromDate;
+  }
+
+  if (typeof value === "object") {
+    const sec = Number(value.seconds ?? value._seconds ?? value.sec ?? 0);
+    const nanos = Number(value.nanos ?? value._nanoseconds ?? 0);
+    if (!Number.isFinite(sec) || !Number.isFinite(nanos)) return undefined;
+    return sec * 1000 + Math.floor(nanos / 1_000_000);
+  }
+
+  return undefined;
+}
+
+function resolvePublishedOnMillis(raw: BlogRaw): number | undefined {
+  return toEpochMillis(raw.publishedOnMillis) ?? toEpochMillis(raw.publishedOn);
 }
 
 function estimateReadTime(description?: string): string {
@@ -103,6 +190,20 @@ function estimateReadTime(description?: string): string {
   const words = description.trim().split(/\s+/).length;
   const mins = Math.max(1, Math.ceil(words / 200));
   return `${mins} min read`;
+}
+
+function parseKeywords(raw: BlogRaw): string[] {
+  const source = raw.keywords ?? raw.keyword ?? raw.tags;
+  const values = Array.isArray(source) ? source : typeof source === "string" ? source.split(",") : [];
+
+  const dedup = new Set<string>();
+  for (const entry of values) {
+    if (typeof entry !== "string") continue;
+    const value = entry.trim();
+    if (!value) continue;
+    dedup.add(value);
+  }
+  return Array.from(dedup);
 }
 
 function parseListPayload(json: unknown): BlogRaw[] {
@@ -134,28 +235,24 @@ export function normalizeBlog(raw: BlogRaw, fallbackId?: string): BlogListItem |
   const author = raw.publisherName?.trim() || "—";
   const category = raw.category?.trim() || "General";
   const tag = category.replace(/_/g, " ");
+  const publishedOnMillis = resolvePublishedOnMillis(raw);
   return {
     id,
     title,
     author,
     publishedOn: formatPublishedLineFlexible(raw),
     tag,
-    imageUrl: resolveBlogImageUrl(
-      raw.photoUrl ?? raw.imageUrl ?? raw.photo ?? raw.thumbnailUrl
-    ),
+    imageUrl: resolveBlogImageUrl(resolveBlogRawImage(raw)),
     readTime: estimateReadTime(raw.description),
     description: raw.description?.trim() ?? "",
     category,
-    publishedOnMillis: raw.publishedOnMillis,
+    keywords: parseKeywords(raw),
+    publishedOnMillis,
   };
 }
 
-function authHeadersForBlogWrite(): HeadersInit {
-  const token =
-    typeof localStorage !== "undefined" ? localStorage.getItem("jwt") : null;
-  const headers: Record<string, string> = { Accept: "application/json" };
-  if (token) headers.Authorization = `Bearer ${token}`;
-  return headers;
+function writeHeaders(): HeadersInit {
+  return { Accept: "application/json" };
 }
 
 function ensureMutationSuccess(data: BlogMutationResponse, fallbackMessage: string) {
@@ -183,7 +280,7 @@ export async function createBlog(
 
   const res = await fetch(`${baseUrl}/api/blogs`, {
     method: "POST",
-    headers: authHeadersForBlogWrite(),
+    headers: writeHeaders(),
     body: formData,
   });
 
@@ -205,7 +302,7 @@ export async function updateBlog(
 
   const res = await fetch(`${baseUrl}/api/blogs/${encodeURIComponent(blogId)}`, {
     method: "PUT",
-    headers: authHeadersForBlogWrite(),
+    headers: writeHeaders(),
     body: formData,
   });
 
@@ -219,7 +316,7 @@ export async function updateBlog(
 export async function deleteBlog(blogId: string): Promise<BlogMutationResponse> {
   const res = await fetch(`${baseUrl}/api/blogs/${encodeURIComponent(blogId)}`, {
     method: "DELETE",
-    headers: authHeadersForBlogWrite(),
+    headers: writeHeaders(),
   });
 
   if (res.status === 204) {

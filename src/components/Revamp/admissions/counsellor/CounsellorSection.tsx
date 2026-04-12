@@ -83,7 +83,7 @@ export default function CounsellorSection() {
                         </p>
                     </div>
                     <p className="font-[Poppins] font-medium text-[12px] md:text-[24px] text-[#0E1629] max-w-[350px] md:max-w-[682px] h-[54px] md:h-auto leading-none md:leading-normal">
-                        Discover curated programs across mental wellness, assessments, admissions, and upskilling led by experienced professionals, built around your needs.
+                        Speak with experienced admission counsellors for profile building, college shortlisting, application strategy, and interview guidance.
                     </p>
                 </div>
 

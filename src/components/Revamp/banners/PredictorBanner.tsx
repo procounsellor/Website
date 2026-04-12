@@ -1,7 +1,7 @@
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-type PredictorVariant = 'rank' | 'match';
+type PredictorVariant = 'rank' | 'college' | 'mhtcet';
 
 type PredictorCardConfig = {
   title: string;
@@ -30,8 +30,8 @@ const cardConfig: Record<PredictorVariant, PredictorCardConfig> = {
     icon: '/ranking-1.png',
     iconAlt: 'Rank Predictor Icon',
   },
-  match: {
-    title: 'JEE Match Predictor',
+  college: {
+    title: 'JEE College Predictor',
     description:
       'Find colleges that best match your expected rank so you can shortlist smarter and apply confidently.',
     cta: 'Predict Colleges',
@@ -42,6 +42,19 @@ const cardConfig: Record<PredictorVariant, PredictorCardConfig> = {
     buttonColor: '#2F4A13',
     icon: '/mortarboard-1.png',
     iconAlt: 'College Predictor Icon',
+  },
+  mhtcet: {
+    title: 'MHT-CET College Predictor',
+    description:
+      'Discover likely MHT-CET colleges from your marks, rank, or percentile and plan your choices with confidence.',
+    cta: 'Predict MHT-CET Colleges',
+    path: '/mhtcet-college-predictor',
+    gradient: 'linear-gradient(96deg, #C4E9EA -12%, #EFFAFA 65%, #FFFFFF 110%)',
+    titleColor: '#0E4B4D',
+    textColor: '#174447',
+    buttonColor: '#0E4B4D',
+    icon: '/mortarboard-1.png',
+    iconAlt: 'MHT-CET College Predictor Icon',
   },
 };
 

@@ -12,8 +12,10 @@ import { predictJEERank, type JEERankPredictionResponse } from "@/api/jee";
 import { Loader2, Lock } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/AuthStore";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function JEERankPredictor() {
+  const navigate = useNavigate();
   const [marks, setMarks] = useState<string>("");
   const [shiftLevel, setShiftLevel] = useState<string>("moderate");
   const [isLoading, setIsLoading] = useState(false);
@@ -92,8 +94,33 @@ export default function JEERankPredictor() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20 md:pt-28 pb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 pb-8">
+      <div className="sm:hidden w-full bg-white border-b border-[#E3E8F4]">
+        <div className="flex items-center gap-2 px-4 py-3">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="text-(--text-main) cursor-pointer text-[16px] font-semibold"
+            aria-label="Go back"
+          >
+            {"<"}
+          </button>
+          <span className="text-[16px] font-semibold text-(--text-main) truncate">
+            JEE Rank Predictor
+          </span>
+        </div>
+      </div>
+
+      <div className="hidden sm:block w-full border-b border-[#E3E8F4] bg-white">
+        <div className="max-w-[1440px] mx-auto px-5 md:px-[60px] pt-3 pb-3 text-[0.875rem] text-(--text-muted) font-medium">
+          <Link to="/" className="hover:underline cursor-pointer">Home</Link>
+          <span className="mx-1">{">"}</span>
+          <span className="text-(--text-main)">JEE Rank Predictor</span>
+        </div>
+      </div>
+
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-[60px] py-6 sm:py-8">
+
         {/* Header Section */}
         <div className="mb-6 md:mb-8 text-center">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface BlogCardProps {
@@ -12,6 +12,16 @@ interface BlogCardProps {
 export default function BlogCard({ id, title, author, readTime, imageUrl }: BlogCardProps) {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
+  const hasImage = Boolean(imageUrl?.trim());
+  const [isImageLoading, setIsImageLoading] = useState(hasImage);
+  const imageRef = useRef<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    setIsImageLoading(hasImage);
+    if (hasImage && imageRef.current?.complete) {
+      setIsImageLoading(false);
+    }
+  }, [imageUrl, hasImage]);
 
   return (
     <div
@@ -37,8 +47,29 @@ export default function BlogCard({ id, title, author, readTime, imageUrl }: Blog
       </svg>
 
       <div className="absolute flex flex-col w-full h-full z-10 p-[12px] md:p-3">
-        <img src={imageUrl} alt={title} className="w-full h-[120px] md:h-[167px] rounded-[8px] object-cover shrink-0" />
-        <h1 className="font-[Poppins] font-medium mt-2.5 text-[14px] md:text-[1rem] text-[#0E1629] md:text-(--text-main) line-clamp-3 leading-[1.3] md:leading-normal">{title}</h1>
+        {hasImage ? (
+          <div className="relative w-full h-[120px] md:h-[167px] shrink-0">
+            {isImageLoading && (
+              <div className="absolute inset-0 rounded-[8px] bg-[#E5ECF7] animate-pulse" />
+            )}
+            <img
+              ref={imageRef}
+              src={imageUrl}
+              alt={title}
+              onLoadStart={() => setIsImageLoading(true)}
+              onLoad={() => setIsImageLoading(false)}
+              onError={() => setIsImageLoading(false)}
+              className={`w-full h-[120px] md:h-[167px] rounded-[8px] object-cover transition-opacity duration-300 ${
+                isImageLoading ? "opacity-0" : "opacity-100"
+              }`}
+            />
+          </div>
+        ) : (
+          <div className="w-full h-[120px] md:h-[167px] shrink-0 rounded-[8px] border border-dashed border-[#C7D3E5] bg-[#EEF3FB] flex items-center justify-center">
+            <span className="text-[11px] md:text-[12px] text-[#5D6B82] font-medium">No image available</span>
+          </div>
+        )}
+        <h1 className={`font-[Poppins] font-medium text-[14px] md:text-[1rem] text-[#0E1629] md:text-(--text-main) line-clamp-3 leading-[1.3] md:leading-normal ${hasImage ? "mt-2.5" : "mt-0"}`}>{title}</h1>
         <div className="mt-auto mb-[6px] md:mb-[6px]">
           <p className="font-[Poppins] text-[#6B7280] md:text-(--text-muted) font-medium text-[12px] md:text-[0.875rem]">By {author}</p>
           <p className="font-[Poppins] text-[#6B7280] md:text-(--text-muted) font-medium text-[10px] md:text-[0.75rem]">{readTime}</p>

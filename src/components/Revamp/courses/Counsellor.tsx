@@ -42,7 +42,7 @@ export default function CounsellorSection() {
                         </p>
                     </div>
                     <p className="font-[Poppins] font-medium text-[24px] text-[#0E1629] max-w-[682px] leading-normal">
-                        Discover curated programs across mental wellness, assessments, admissions, and upskilling led by experienced professionals, built around your needs.
+                        Learn from expert counsellors who design structured study plans, clear doubts, and guide consistent progress across courses.
                     </p>
                 </div>
 
