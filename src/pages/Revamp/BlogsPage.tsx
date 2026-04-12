@@ -9,7 +9,6 @@ export default function BlogsPage() {
           "linear-gradient(0deg, rgba(198, 221, 240, 0.25), rgba(198, 221, 240, 0.25))",
       }}
     >
-      {/* Top breadcrumb and heading section */}
       <div className="w-full border-b border-[#E3E8F4] bg-white">
         <div className="max-w-[1440px] mx-auto px-5 md:px-[60px] pt-3 pb-3">
           <p className="text-[0.875rem] text-(--text-muted) font-medium">
@@ -19,9 +18,7 @@ export default function BlogsPage() {
         </div>
       </div>
 
-      {/* Full blogs grid section */}
       <Blogs variant="full" />
     </div>
   );
 }
-

@@ -41,7 +41,6 @@ export default function BlogDetailPage() {
           "linear-gradient(0deg, rgba(198, 221, 240, 0.25), rgba(198, 221, 240, 0.25))",
       }}
     >
-      {/* Mobile header */}
       <div className="sm:hidden w-full bg-white border-b border-[#E3E8F4]">
         <div className="flex items-center gap-2 px-4 py-3">
           <button
@@ -58,7 +57,6 @@ export default function BlogDetailPage() {
         </div>
       </div>
 
-      {/* Desktop breadcrumb */}
       <div className="hidden sm:block w-full border-b border-[#E3E8F4] bg-white">
         <div className="max-w-[1440px] mx-auto px-5 md:px-[60px] pt-3 pb-3 text-[0.875rem] text-(--text-muted) font-medium">
           <button
