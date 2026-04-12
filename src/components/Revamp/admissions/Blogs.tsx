@@ -6,6 +6,34 @@ import BlogsPageCard from "./BlogsPageCard";
 import { useBlogsList } from "@/hooks/useBlogs";
 
 type BlogsVariant = "section" | "full";
+type FixedBlogCategory = "All" | "Admissions" | "Scholarships" | "Exams" | "Others";
+
+const FIXED_CATEGORIES: FixedBlogCategory[] = [
+  "All",
+  "Admissions",
+  "Scholarships",
+  "Exams",
+  "Others",
+];
+
+function normalizeBlogCategory(rawCategory?: string): Exclude<FixedBlogCategory, "All"> {
+  const value = (rawCategory ?? "").trim().toLowerCase();
+
+  if (!value) return "Others";
+  if (value.includes("admission")) return "Admissions";
+  if (value.includes("scholar")) return "Scholarships";
+  if (
+    value.includes("exam") ||
+    value.includes("jee") ||
+    value.includes("neet") ||
+    value.includes("cet") ||
+    value.includes("test")
+  ) {
+    return "Exams";
+  }
+
+  return "Others";
+}
 
 interface BlogsProps {
   variant?: BlogsVariant;
@@ -16,21 +44,16 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
   const { data: blogItems = [], isLoading, isError, error, refetch } =
     useBlogsList();
 
-  const categories = useMemo(() => {
-    const unique = Array.from(
-      new Set(blogItems.map((b) => b.category).filter(Boolean))
-    ).sort();
-    return ["All", ...unique];
-  }, [blogItems]);
+  const categories = FIXED_CATEGORIES;
 
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeCategory, setActiveCategory] = useState<FixedBlogCategory>("All");
   const safeCategory =
     categories.includes(activeCategory) ? activeCategory : "All";
 
   const filteredBlogs = useMemo(() => {
     const list = blogItems;
     if (safeCategory === "All") return list;
-    return list.filter((b) => b.category === safeCategory);
+    return list.filter((b) => normalizeBlogCategory(b.category) === safeCategory);
   }, [blogItems, safeCategory]);
 
   const sectionBlogs = useMemo(() => blogItems.slice(0, 2), [blogItems]);
@@ -116,8 +139,8 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
           </div>
 
           <h2 className="mt-3 md:mt-5 max-w-[350px] md:max-w-[554px] font-[Poppins] font-medium text-[12px] md:text-[1.25rem] text-[#0E1629] md:text-(--text-muted) leading-[1.4] md:leading-normal">
-            Lorem ipsum dolor sit amet consectetur. Senectus arcu cras at risus
-            a tortor ut quam in.
+            Get practical guidance on admissions, exam strategy, and timelines
+            from our latest student-focused articles.
           </h2>
         </div>
 

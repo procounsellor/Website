@@ -40,9 +40,8 @@ export default function CollegeSection() {
             </p>
           </div>
           <p className="font-[Poppins] font-medium text-[12px] text-[#0E1629] max-w-[350px] h-[54px] leading-none">
-            Discover curated programs across mental wellness, assessments,
-            admissions, and upskilling led by experienced professionals, built
-            around your needs.
+            Track exam forms, counselling rounds, and scholarship application
+            deadlines so you never miss a critical date.
           </p>
         </div>
 
@@ -53,9 +52,8 @@ export default function CollegeSection() {
           </div>
 
           <h1 className="text-(--text-main) text-2xl font-medium max-w-[682px]">
-            Discover curated programs across mental wellness, assessments,
-            admissions, and upskilling led by experienced professionals, built
-            around your needs.
+            Stay updated with upcoming exam, counselling, and scholarship
+            timelines to plan applications confidently.
           </h1>
         </div>
 

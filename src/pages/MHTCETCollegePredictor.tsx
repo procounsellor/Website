@@ -19,11 +19,10 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
-  ChevronsRight,
   Lock,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/AuthStore";
 
 type PredictionMode = "marks" | "percentile" | "rank";
@@ -41,6 +40,7 @@ const BRANCH_OPTIONS = [
 ];
 
 export default function MHTCETCollegePredictor() {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<PredictionMode>("marks");
   const [marks, setMarks] = useState<string>("");
   const [percentile, setPercentile] = useState<string>("");
@@ -245,25 +245,32 @@ export default function MHTCETCollegePredictor() {
         : setRank;
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20 md:pt-28 pb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <nav className="flex items-center gap-2 text-xs mb-6 text-gray-500 uppercase tracking-wider">
-          <Link
-            to="/"
-            className="hover:text-[#2F43F2] transition-colors cursor-pointer"
+    <div className="min-h-screen bg-gray-50 pb-8">
+      <div className="sm:hidden w-full bg-white border-b border-[#E3E8F4]">
+        <div className="flex items-center gap-2 px-4 py-3">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="text-(--text-main) cursor-pointer text-[16px] font-semibold"
+            aria-label="Go back"
           >
-            Home
-          </Link>
-          <ChevronsRight size={12} className="text-gray-400" />
-          <Link
-            to="/mhtcet-college-predictor"
-            className="hover:text-[#2F43F2] transition-colors cursor-pointer"
-          >
-            MHT-CET
-          </Link>
-          <ChevronsRight size={12} className="text-gray-400" />
-          <span className="text-gray-800 font-bold">College Predictor</span>
-        </nav>
+            {"<"}
+          </button>
+          <span className="text-[16px] font-semibold text-(--text-main) truncate">
+            MHT-CET College Predictor
+          </span>
+        </div>
+      </div>
+
+      <div className="hidden sm:block w-full border-b border-[#E3E8F4] bg-white">
+        <div className="max-w-[1440px] mx-auto px-5 md:px-[60px] pt-3 pb-3 text-[0.875rem] text-(--text-muted) font-medium">
+          <Link to="/" className="hover:underline cursor-pointer">Home</Link>
+          <span className="mx-1">{">"}</span>
+          <span className="text-(--text-main)">MHT-CET College Predictor</span>
+        </div>
+      </div>
+
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-[60px] py-6 sm:py-8">
 
         {prediction ? (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

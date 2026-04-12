@@ -20,7 +20,7 @@ export default function LiveSessionCard({
   title = "Live Profile Building Workshop",
   coverImage = "/course/2.png",
   sessionDate = "Mar 15, 2026",
-  info = "Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet",
+  info = "Join expert-led sessions to build a strong application profile and improve your admission outcomes.",
   duration = "50 min",
   participantCount = 40,
   rating = "4.8",

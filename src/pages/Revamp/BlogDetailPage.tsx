@@ -1,27 +1,82 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useBlogDetail } from "@/hooks/useBlogs";
 import { formatPublishedHeading } from "@/api/blogs";
 
-function splitDescriptionToBlocks(text: string): string[] {
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function sanitizeHtml(html: string): string {
+  if (typeof window === "undefined") return html;
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+
+  doc.querySelectorAll("script, style, iframe, object, embed").forEach((node) => node.remove());
+
+  doc.querySelectorAll("*").forEach((el) => {
+    [...el.attributes].forEach((attr) => {
+      const name = attr.name.toLowerCase();
+      const value = attr.value;
+      if (name.startsWith("on")) {
+        el.removeAttribute(attr.name);
+        return;
+      }
+      if ((name === "href" || name === "src") && /^\s*javascript:/i.test(value)) {
+        el.removeAttribute(attr.name);
+      }
+    });
+  });
+
+  return doc.body.innerHTML;
+}
+
+function normalizeDescriptionToHtml(text: string): string {
   const trimmed = text.trim();
-  if (!trimmed) return [];
-  const parts = trimmed.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
-  return parts.length > 0 ? parts : [trimmed];
+  if (!trimmed) return "";
+
+  const hasHtml = /<\/?[a-z][\s\S]*>/i.test(trimmed);
+  if (hasHtml) return sanitizeHtml(trimmed);
+
+  const paragraphs = trimmed
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => `<p>${escapeHtml(p).replace(/\n/g, "<br />")}</p>`);
+
+  return paragraphs.join("");
 }
 
 export default function BlogDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { data: blog, isLoading, isError, error, refetch } = useBlogDetail(id);
+  const hasHeroImage = Boolean(blog?.imageUrl?.trim());
+  const [isHeroImageLoading, setIsHeroImageLoading] = useState(true);
+  const heroImageRef = useRef<HTMLImageElement | null>(null);
 
-  const bodyBlocks = useMemo(
-    () => (blog?.description ? splitDescriptionToBlocks(blog.description) : []),
+  useEffect(() => {
+    setIsHeroImageLoading(hasHeroImage);
+    if (hasHeroImage && heroImageRef.current?.complete) {
+      setIsHeroImageLoading(false);
+    }
+  }, [blog?.imageUrl, hasHeroImage]);
+
+  const descriptionHtml = useMemo(
+    () => (blog?.description ? normalizeDescriptionToHtml(blog.description) : ""),
     [blog?.description]
   );
 
   const publishedLabel = blog
-    ? formatPublishedHeading(blog.publishedOnMillis)
+    ? blog.publishedOnMillis != null
+      ? formatPublishedHeading(blog.publishedOnMillis)
+      : blog.publishedOn.replace(/^Published\s*on:\s*/i, "") || "—"
     : "";
   const breadcrumbTitle =
     blog && blog.title.length > 42
@@ -114,21 +169,29 @@ export default function BlogDetailPage() {
               Published On: {publishedLabel}
             </p>
 
-            <div className="mt-4 sm:mt-6 rounded-[16px] overflow-hidden bg-white">
-              <img
-                src={blog.imageUrl}
-                alt={blog.title}
-                className="w-full h-[180px] sm:h-[413px] object-cover"
-              />
-            </div>
+            {hasHeroImage && (
+              <div className="relative mt-4 sm:mt-6 rounded-[16px] overflow-hidden w-full h-[180px] sm:h-[413px]">
+                {isHeroImageLoading && (
+                  <div className="absolute inset-0 bg-[#E5ECF7] animate-pulse" />
+                )}
+                <img
+                  ref={heroImageRef}
+                  src={blog.imageUrl}
+                  alt={blog.title}
+                  onLoadStart={() => setIsHeroImageLoading(true)}
+                  onLoad={() => setIsHeroImageLoading(false)}
+                  onError={() => setIsHeroImageLoading(false)}
+                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
+                    isHeroImageLoading ? "opacity-0" : "opacity-100"
+                  }`}
+                />
+              </div>
+            )}
 
-            <div className="mt-4 sm:mt-6 space-y-4 sm:space-y-6 text-[12px] sm:text-[18px] font-medium leading-relaxed text-[#6B7280]">
-              {bodyBlocks.map((block, i) => (
-                <p key={i} className="font-medium whitespace-pre-line">
-                  {block}
-                </p>
-              ))}
-            </div>
+            <div
+              className="mt-4 sm:mt-6 text-[12px] sm:text-[18px] font-medium leading-relaxed text-[#6B7280] [&_p]:mb-4 sm:[&_p]:mb-6 [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-5 [&_ul]:pl-5 [&_li]:mb-1 [&_strong]:text-[#0E1629]"
+              dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+            />
           </>
         )}
       </div>

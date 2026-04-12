@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface BlogsPageCardProps {
@@ -20,7 +20,19 @@ export default function BlogsPageCard({
 }: BlogsPageCardProps) {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
+  const hasImage = Boolean(imageUrl?.trim());
+  const [isImageLoading, setIsImageLoading] = useState(hasImage);
   const canNavigate = Boolean(id);
+
+  useEffect(() => {
+    setIsImageLoading(hasImage);
+  }, [imageUrl, hasImage]);
+
+  const handleImageRef = (node: HTMLImageElement | null) => {
+    if (node?.complete) {
+      setIsImageLoading(false);
+    }
+  };
 
   const handleNavigate = () => {
     if (!canNavigate) return;
@@ -58,19 +70,35 @@ export default function BlogsPageCard({
   </svg>
 
   <div className="relative z-10 h-full w-full p-3 flex flex-row gap-2">
-    <div className="relative shrink-0 w-[42%] max-w-[140px]">
-      <img
-        src={imageUrl}
-        alt={title}
-        className="w-full h-[136px] rounded-[10px] object-cover"
-      />
-      <span className="absolute top-1 left-1 inline-flex items-center px-1.5 py-0.5 rounded-[999px] bg-[#A2AECA] text-[10px] font-normal text-[#0E1629] max-w-[calc(100%-8px)] truncate">
-        {tag}
-      </span>
-    </div>
+    {hasImage && (
+      <div className="relative shrink-0 w-[42%] max-w-[140px]">
+        {isImageLoading && (
+          <div className="absolute inset-0 rounded-[10px] bg-[#E5ECF7] animate-pulse" />
+        )}
+        <img
+          ref={handleImageRef}
+          src={imageUrl}
+          alt={title}
+          onLoadStart={() => setIsImageLoading(true)}
+          onLoad={() => setIsImageLoading(false)}
+          onError={() => setIsImageLoading(false)}
+          className={`w-full h-[136px] rounded-[10px] object-cover transition-opacity duration-300 ${
+            isImageLoading ? "opacity-0" : "opacity-100"
+          }`}
+        />
+        <span className="absolute top-1 left-1 inline-flex items-center px-1.5 py-0.5 rounded-[999px] bg-[#A2AECA] text-[10px] font-normal text-[#0E1629] max-w-[calc(100%-8px)] truncate">
+          {tag}
+        </span>
+      </div>
+    )}
 
     <div className=" flex min-w-0 flex-1 flex-col justify-between">
       <div className="flex flex-col min-w-0">
+        {!hasImage && (
+          <span className="inline-flex items-center self-start mb-2 px-2 py-0.5 rounded-[999px] bg-[#A2AECA] text-[10px] font-normal text-[#0E1629]">
+            {tag}
+          </span>
+        )}
         <h3 className="text-(--text-main) font-medium text-[16px] line-clamp-2">
           {title}
         </h3>
@@ -157,13 +185,24 @@ export default function BlogsPageCard({
         </svg>
 
         <div className="absolute flex flex-col w-full h-full z-10 p-3">
-          <div className="relative">
-            <img
-              src={imageUrl}
-              alt={title}
-              className="w-full h-[167px] rounded-[8px] object-cover"
-            />
-          </div>
+          {hasImage && (
+            <div className="relative">
+              {isImageLoading && (
+                <div className="absolute inset-0 rounded-[8px] bg-[#E5ECF7] animate-pulse" />
+              )}
+              <img
+                ref={handleImageRef}
+                src={imageUrl}
+                alt={title}
+                onLoadStart={() => setIsImageLoading(true)}
+                onLoad={() => setIsImageLoading(false)}
+                onError={() => setIsImageLoading(false)}
+                className={`w-full h-[167px] rounded-[8px] object-cover transition-opacity duration-300 ${
+                  isImageLoading ? "opacity-0" : "opacity-100"
+                }`}
+              />
+            </div>
+          )}
 
           <div className="hidden md:flex items-center justify-between mt-2 mb-0.5">
             <span className="inline-flex items-center px-2 py-1 rounded-[999px] bg-[#A2AECA] text-[11px] font-normal text-[#0E1629]">

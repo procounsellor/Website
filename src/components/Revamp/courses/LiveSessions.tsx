@@ -124,7 +124,7 @@ export default function LiveSection() {
                     </div>
 
                     <p className="font-[Poppins] font-medium text-[24px] text-[#0E1629] max-w-[682px] leading-normal">
-                        Discover curated programs across mental wellness, assessments, admissions, and upskilling led by experienced professionals, built around your needs.
+                        Join live, exam-focused sessions for JEE, MHT-CET, and other test series with strategy, practice, and real-time doubt solving.
                     </p>
                 </div>
 
