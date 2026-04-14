@@ -101,7 +101,7 @@ const PredictorBanner = ({ variant }: PredictorBannerProps) => {
               onClick={() => navigate(slide.path)}
               type="button"
               aria-label={slide.cta}
-              className="flex items-center justify-center w-8 md:w-10 h-[28px] md:h-[35.6px] rounded-[5px] transition-colors shrink-0"
+              className="flex items-center justify-center w-8 md:w-10 hover:cursor-pointer h-[28px] md:h-[35.6px] rounded-[5px] transition-colors shrink-0"
               style={{ backgroundColor: slide.buttonColor }}
             >
               <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-white" />

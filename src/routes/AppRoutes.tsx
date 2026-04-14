@@ -1,63 +1,78 @@
 import { Suspense, lazy } from 'react';
 import { Routes, Route } from "react-router-dom";
-import AboutPage from "@/pages/About";
-import ContactPage from "@/pages/Contact";
-import PrivacyPolicyPage from "@/pages/PrivacyPolicy";
-import TermsPage from "@/pages/Terms";
-import SitemapPage from "@/pages/Sitemap";
-import CancellationRefundPage from "@/pages/CancellationRefund";
-import ShippingExchangePage from "@/pages/ShippingExchange";
-import AddCollegePage from "@/pages/AddCollege";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import RoleBasedRoute from "@/components/auth/RoleBasedRoute";
-import ExternalPrivacyPage from "@/pages/external/Privacy";
-import ExternalTermsPage from "@/pages/external/Terms";
 import { Toaster } from 'react-hot-toast';
-import { SubscriptionPage } from '@/pages/SubscriptionPage';
-import RechargeWallet from '@/pages/RechargeWallet';
-import CounselorDashboard from '@/pages/CounselorDashboard';
-import CollegeDetailsPage from '@/pages/CollegeDetails';
-import CommunityPage from '@/pages/CommunityPage';
-import AnswerPage from '@/pages/AnswerPage';
-import QuestionDetailPage from '@/pages/QuestionDetailPage';
-import CoursePage from '@/pages/CoursePage';
-import MyActivityPage from '@/pages/MyActivityPage';
-import LandingPage from '@/pages/AdityaLandingPage';
-import PromoPage from '@/pages/PromoPage';
-import TestSeriesPromo from '@/pages/TestSeriesPromo';
-import ClientProfilePage from '@/pages/ClientProfilePage';
-import { CreateTest } from '@/pages/test/counsellor/CreateTest';
-import { AddQuestion } from '@/pages/test/counsellor/AddQuestion';
-import { TestInfo } from '@/pages/test/user/TestInfo';
-import { TakeTest } from '@/pages/test/user/TakeTest';
-import { TestResult } from '@/pages/test/user/TestResult';
-import { TestAnalysisPage } from '@/pages/test/user/TestAnalysisPage';
-import { CreateEditTestGroup } from '@/pages/test/counsellor/CreateEditTestGroup';
-import { TestGroupDetails } from '@/pages/test/counsellor/TestGroupDetails';
-import CollegeDetailsPageNew from '@/pages/CollegeDetailsPage';
 import RevampLayout from '@/layouts/RevampLayout';
-import TestGroupCardDetails from '@/components/Revamp/courses/TestGroupDetails';
-import RevampAbout from '@/components/Revamp/about/RevampAbout';
-import Admissions from '@/pages/Revamp/Admissions';
-import Courses from '@/pages/Revamp/Courses';
-import BlogsPage from '@/pages/Revamp/BlogsPage';
-import BlogDetailPage from '@/pages/Revamp/BlogDetailPage';
-import CounsellorsPage from '@/pages/Revamp/CounsellorsPage';
-import UserProfile from '@/pages/Revamp/UserProfile';
-import CourseListing from '@/pages/Revamp/CourseListing';
-import TestListing from '@/pages/Revamp/TestListing';
-import SessionListing from '@/pages/Revamp/SessionListing';
-import ProBuddiesComingSoon from '@/pages/Revamp/ProBuddiesComingSoon';
-import ProBuddiesRegistration from '@/pages/Revamp/ProBuddiesRegistration';
-import ProBuddiesDashboard from '@/pages/Revamp/ProBuddiesDashboard';
-import DeadlinesPage from '@/pages/Revamp/DeadlinesPage';
-import DeadlineDetailPage from '@/pages/Revamp/DeadlineDetailPage';
+const ContactPage = lazy(() => import("@/pages/Contact"));
+const PrivacyPolicyPage = lazy(() => import("@/pages/PrivacyPolicy"));
+const TermsPage = lazy(() => import("@/pages/Terms"));
+const SitemapPage = lazy(() => import("@/pages/Sitemap"));
+const CancellationRefundPage = lazy(() => import("@/pages/CancellationRefund"));
+const ShippingExchangePage = lazy(() => import("@/pages/ShippingExchange"));
+const AddCollegePage = lazy(() => import("@/pages/AddCollege"));
+const ExternalPrivacyPage = lazy(() => import("@/pages/external/Privacy"));
+const ExternalTermsPage = lazy(() => import("@/pages/external/Terms"));
 
-const CounselorListingPage = lazy(() => import('@/pages/counselors'));
-const ExamsListingPage = lazy(() => import('@/pages/exams'));
-const CounselorDetailsPage = lazy(() => import('@/pages/CounselorDetailsPage'));
+const SubscriptionPage = lazy(() =>
+    import("@/pages/SubscriptionPage").then((module) => ({ default: module.SubscriptionPage }))
+);
+const RechargeWallet = lazy(() => import('@/pages/RechargeWallet'));
+const CounselorDashboard = lazy(() => import('@/pages/CounselorDashboard'));
+const CommunityPage = lazy(() => import('@/pages/CommunityPage'));
+const AnswerPage = lazy(() => import('@/pages/AnswerPage'));
+const QuestionDetailPage = lazy(() => import('@/pages/QuestionDetailPage'));
+const CoursePage = lazy(() => import('@/pages/CoursePage'));
+const MyActivityPage = lazy(() => import('@/pages/MyActivityPage'));
+const LandingPage = lazy(() => import('@/pages/AdityaLandingPage'));
+const PromoPage = lazy(() => import('@/pages/PromoPage'));
+const TestSeriesPromo = lazy(() => import('@/pages/TestSeriesPromo'));
+const ClientProfilePage = lazy(() => import('@/pages/ClientProfilePage'));
+
+const CreateTest = lazy(() =>
+    import('@/pages/test/counsellor/CreateTest').then((module) => ({ default: module.CreateTest }))
+);
+const AddQuestion = lazy(() =>
+    import('@/pages/test/counsellor/AddQuestion').then((module) => ({ default: module.AddQuestion }))
+);
+const TestInfo = lazy(() =>
+    import('@/pages/test/user/TestInfo').then((module) => ({ default: module.TestInfo }))
+);
+const TakeTest = lazy(() =>
+    import('@/pages/test/user/TakeTest').then((module) => ({ default: module.TakeTest }))
+);
+const TestResult = lazy(() =>
+    import('@/pages/test/user/TestResult').then((module) => ({ default: module.TestResult }))
+);
+const TestAnalysisPage = lazy(() =>
+    import('@/pages/test/user/TestAnalysisPage').then((module) => ({ default: module.TestAnalysisPage }))
+);
+const CreateEditTestGroup = lazy(() =>
+    import('@/pages/test/counsellor/CreateEditTestGroup').then((module) => ({ default: module.CreateEditTestGroup }))
+);
+const TestGroupDetails = lazy(() =>
+    import('@/pages/test/counsellor/TestGroupDetails').then((module) => ({ default: module.TestGroupDetails }))
+);
+
+const CollegeDetailsPageNew = lazy(() => import('@/pages/CollegeDetailsPage'));
+const TestGroupCardDetails = lazy(() => import('@/components/Revamp/courses/TestGroupDetails'));
+const RevampAbout = lazy(() => import('@/components/Revamp/about/RevampAbout'));
+const Admissions = lazy(() => import('@/pages/Revamp/Admissions'));
+const Courses = lazy(() => import('@/pages/Revamp/Courses'));
+const BlogsPage = lazy(() => import('@/pages/Revamp/BlogsPage'));
+const BlogDetailPage = lazy(() => import('@/pages/Revamp/BlogDetailPage'));
+const CounsellorsPage = lazy(() => import('@/pages/Revamp/CounsellorsPage'));
+const UserProfile = lazy(() => import('@/pages/Revamp/UserProfile'));
+const CourseListing = lazy(() => import('@/pages/Revamp/CourseListing'));
+const TestListing = lazy(() => import('@/pages/Revamp/TestListing'));
+const SessionListing = lazy(() => import('@/pages/Revamp/SessionListing'));
+const ProBuddiesComingSoon = lazy(() => import('@/pages/Revamp/ProBuddiesComingSoon'));
+const ProBuddiesRegistration = lazy(() => import('@/pages/Revamp/ProBuddiesRegistration'));
+const ProBuddiesDashboard = lazy(() => import('@/pages/Revamp/ProBuddiesDashboard'));
+const DeadlinesPage = lazy(() => import('@/pages/Revamp/DeadlinesPage'));
+const DeadlineDetailPage = lazy(() => import('@/pages/Revamp/DeadlineDetailPage'));
+
 const RevampCounselorDetailsPage = lazy(() => import('@/pages/Revamp/RevampCounselorDetailsPage'));
-const ExamDetailsPage = lazy(() => import('@/pages/ExamDetailsPage'));
 const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
 const LiveSessionsPage = lazy(() => import('@/pages/LiveSessionsPage'));
 const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
@@ -106,6 +121,8 @@ export default function AppRoutes() {
                         <Route path='/counsellor-listing' element={<CounsellorsPage />} />
                         <Route path='/counsellor-listing-cards' element={<CounsellorsPage />} />
                         <Route path="/counsellor-details/:id" element={<RevampCounselorDetailsPage />} />
+                        <Route path="/counsellor/:id" element={<RevampCounselorDetailsPage />} />
+
 
                         <Route path='/admissions/deadlines' element={<DeadlinesPage />} />
                         <Route path='/admissions/deadlines/:id' element={<DeadlineDetailPage />} />
@@ -125,14 +142,8 @@ export default function AppRoutes() {
                         <Route path="/community/answer" element={<AnswerPage />} />
                         <Route path="/community/my-activity" element={<MyActivityPage />} />
 
-                        {/* Counsellor */}
-                        <Route path="/counsellors" element={<CounselorListingPage />} />
-                        <Route path="/counsellor/:id" element={<CounselorDetailsPage />} />
-                        <Route path="/counsellor-profile" element={<CounselorDetailsPage />} />
 
                         {/* Courses & Colleges */}
-                        {/* <Route path="/courses/:id" element={<CourseDetailsPage />} /> */}
-                        <Route path="/colleges/:id" element={<CollegeDetailsPage />} />
                         <Route path="/college-details/:id" element={<CollegeDetailsPageNew />} />
                         <Route path='/courses/detail/:courseId/:role' element={<CoursePage />} />
                         <Route path='/detail/:courseId/:role' element={<CoursePage />} />
@@ -140,12 +151,9 @@ export default function AppRoutes() {
                         <Route path='/jee-college-predictor' element={<JEECollegePredictorPage />} />
                         <Route path='/mhtcet-college-predictor' element={<MHTCETCollegePredictorPage />} />
 
-                        {/* Exams */}
-                        <Route path="/exams" element={<ExamsListingPage />} />
-                        <Route path="/exams/:id" element={<ExamDetailsPage />} />
 
                         {/* Info / Static Pages */}
-                        <Route path="/about" element={<AboutPage />} />
+                        <Route path="/about" element={<RevampAbout />} />
                         <Route path="/contact" element={<ContactPage />} />
                         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                         <Route path="/terms" element={<TermsPage />} />

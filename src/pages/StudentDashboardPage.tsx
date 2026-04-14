@@ -26,6 +26,7 @@ declare global {
 type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 
 const TABS = ['My Info', 'Appointments', 'Counsellors', 'My Courses', 'Test Series', 'Transactions', 'Reviews'];
+const ACTIVE_TAB_STORAGE_KEY = 'student-dashboard-active-tab';
 
 const StudentDashboardPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -35,9 +36,20 @@ const StudentDashboardPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
+  const getSavedTab = () => {
+    try {
+      const savedTab = sessionStorage.getItem(ACTIVE_TAB_STORAGE_KEY);
+      return savedTab && TABS.includes(savedTab) ? savedTab : 'My Info';
+    } catch {
+      return 'My Info';
+    }
+  };
+
   const urlTab = searchParams.get('activeTab');
   const initialTabFromState = (location.state as { activeTab?: string })?.activeTab;
-  const initialTab = (urlTab || initialTabFromState) ?? 'My Info';
+  const initialTab = (urlTab && TABS.includes(urlTab) ? urlTab : null)
+    || (initialTabFromState && TABS.includes(initialTabFromState) ? initialTabFromState : null)
+    || getSavedTab();
 
   const [activeTab, setActiveTab] = useState(initialTab);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -85,6 +97,12 @@ const StudentDashboardPage: React.FC = () => {
 
     if (determinedTab && TABS.includes(determinedTab)) {
       setActiveTab(determinedTab);
+
+      try {
+        sessionStorage.setItem(ACTIVE_TAB_STORAGE_KEY, determinedTab);
+      } catch {
+        // Ignore sessionStorage failures; the local tab state still works.
+      }
     }
 
     if (state?.openAddFunds) {
@@ -103,6 +121,14 @@ const StudentDashboardPage: React.FC = () => {
       }, { replace: true });
     }
   }, [location.state, searchParams, location.pathname, navigate]);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(ACTIVE_TAB_STORAGE_KEY, activeTab);
+    } catch {
+      // Ignore sessionStorage failures; the local tab state still works.
+    }
+  }, [activeTab]);
 
   const {
     mutateAsync: handleUpdateProfile,

@@ -48,7 +48,9 @@ const AdmissionCard = () => {
         </div>
 
         <button 
-          className="w-full bg-[#13097D] text-white rounded-xl cursor-pointer flex items-center justify-center hover:bg-[#0f0763] transition-colors py-3 mt-1 shadow-lg shadow-indigo-100"
+
+        disabled
+          className="w-full bg-[#13097D] text-white disabled:cursor-not-allowed rounded-xl cursor-pointer flex items-center justify-center hover:bg-[#0f0763] transition-colors py-3 mt-1 shadow-lg shadow-indigo-100"
         >
           <span 
             className="font-medium"

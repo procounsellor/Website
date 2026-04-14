@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { academicApi } from "@/api/academic";
 import { useAuthStore } from "@/store/AuthStore";
 import type { AllCounselor } from "@/types/academic";
@@ -64,11 +65,6 @@ const CounsellorsPage: React.FC = () => {
     const [maxPrice, setMaxPrice] = useState<string>("10000");
 
     // --- API & Pagination States ---
-    const [counselors, setCounselors] = useState<AllCounselor[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [fetchingMore, setFetchingMore] = useState(false);
-    const [page, setPage] = useState(0);
-    const [hasMore, setHasMore] = useState(true);
     const ITEMS_PER_PAGE = 9;
 
     const observer = useRef<IntersectionObserver | null>(null);
@@ -104,11 +100,6 @@ const CounsellorsPage: React.FC = () => {
         return () => clearTimeout(timer);
     }, [searchInput]);
 
-    useEffect(() => {
-        setPage(0);
-        setHasMore(true);
-    }, [selectedExperience, selectedLanguages, selectedCities, selectedDays, minPrice, maxPrice, searchTerm, selectedSort]);
-
     // Handle Clear Filters
     const handleClearFilters = useCallback(() => {
         setSelectedExperience([]);
@@ -121,85 +112,107 @@ const CounsellorsPage: React.FC = () => {
 
     const generateSeniorYears = () => Array.from({ length: 37 }, (_, i) => i + 4).join(",");
 
-    // Fetch Data Logic
-    const fetchCounselors = useCallback(async (isLoadMore: boolean) => {
-        if (isLoadMore) setFetchingMore(true);
-        else setLoading(true);
+    const dayMapping: Record<string, string> = { Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", Sat: "Saturday", Sun: "Sunday" };
+    const apiDays = selectedDays.map((d) => dayMapping[d] || d).join(",");
 
-        try {
-            const dayMapping: Record<string, string> = { Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", Sat: "Saturday", Sun: "Sunday" };
-            const apiDays = selectedDays.map(d => dayMapping[d] || d).join(",");
+    const apiExperience = useMemo(() => {
+        const selectedExp: string[] = [];
+        if (selectedExperience.includes("entry")) selectedExp.push("0,1");
+        if (selectedExperience.includes("junior")) selectedExp.push("1,2,3");
+        if (selectedExperience.includes("senior")) selectedExp.push(generateSeniorYears());
+        return selectedExp.join(",");
+    }, [selectedExperience]);
 
-            let apiExperience = "";
-            const selectedExp = [];
-            if (selectedExperience.includes("entry")) selectedExp.push("0,1");
-            if (selectedExperience.includes("junior")) selectedExp.push("1,2,3");
-            if (selectedExperience.includes("senior")) selectedExp.push(generateSeniorYears());
-            apiExperience = selectedExp.join(",");
+    const sortConfig = useMemo(
+        () =>
+            selectedSort === "price-low"
+                ? { sortBy: "price", sortOrder: "asc" as const }
+                : selectedSort === "price-high"
+                    ? { sortBy: "price", sortOrder: "desc" as const }
+                    : { sortBy: "priority", sortOrder: "desc" as const },
+        [selectedSort]
+    );
 
-            const commonFilters = {
-                city: selectedCities.join(","),
-                languagesKnow: selectedLanguages.join(","),
-                workingDays: apiDays,
-                experience: apiExperience,
-                minPrice: minPrice,
-                maxPrice: maxPrice,
-                search: searchTerm,
-                sortBy: selectedSort,
-            };
+    const commonFilters = useMemo(
+        () => ({
+            city: selectedCities.join(","),
+            languagesKnow: selectedLanguages.join(","),
+            workingDays: apiDays,
+            experience: apiExperience,
+            minPrice,
+            maxPrice,
+            search: searchTerm,
+            sortBy: sortConfig.sortBy,
+            sortOrder: sortConfig.sortOrder,
+        }),
+        [selectedCities, selectedLanguages, apiDays, apiExperience, minPrice, maxPrice, searchTerm, sortConfig]
+    );
 
-            let response;
+    const {
+        data,
+        isLoading,
+        isFetchingNextPage,
+        hasNextPage,
+        fetchNextPage,
+    } = useInfiniteQuery({
+        queryKey: [
+            "revamp-counsellors",
+            userId,
+            commonFilters.city,
+            commonFilters.languagesKnow,
+            commonFilters.workingDays,
+            commonFilters.experience,
+            commonFilters.minPrice,
+            commonFilters.maxPrice,
+            commonFilters.search,
+            commonFilters.sortBy,
+            commonFilters.sortOrder,
+        ],
+        queryFn: async ({ pageParam = 0 }) => {
             if (userId) {
-                response = await academicApi.searchCounsellors(userId, commonFilters, page, ITEMS_PER_PAGE);
-            } else {
-                response = await academicApi.searchAllLoggedOutCounsellors(commonFilters, page, ITEMS_PER_PAGE);
+                return academicApi.searchCounsellors(userId, commonFilters, pageParam, ITEMS_PER_PAGE);
             }
-
-            const newCounselors: AllCounselor[] = response.counsellors || [];
-            const totalItems = response.total || 0;
-
-            setCounselors(prev => {
-                if (isLoadMore) {
-                    const existingIds = new Set(prev.map(c => c.counsellorId));
-                    const uniqueNew = newCounselors.filter(c => !existingIds.has(c.counsellorId));
-                    return [...prev, ...uniqueNew];
-                }
-                return newCounselors;
-            });
-
-            if (newCounselors.length < ITEMS_PER_PAGE || (page + 1) * ITEMS_PER_PAGE >= totalItems) {
-                setHasMore(false);
-            } else {
-                setHasMore(true);
+            return academicApi.searchAllLoggedOutCounsellors(commonFilters, pageParam, ITEMS_PER_PAGE);
+        },
+        getNextPageParam: (lastPage, allPages) => {
+            const totalItems = lastPage.total || 0;
+            const loadedItems = allPages.reduce((acc, pageData) => acc + (pageData.counsellors?.length || 0), 0);
+            if ((lastPage.counsellors?.length || 0) < ITEMS_PER_PAGE || loadedItems >= totalItems) {
+                return undefined;
             }
-        } catch (err) {
-            console.error("Search Error:", err);
-        } finally {
-            setLoading(false);
-            setFetchingMore(false);
-        }
-    }, [userId, page, selectedDays, selectedExperience, selectedCities, selectedLanguages, minPrice, maxPrice, searchTerm]);
+            return allPages.length;
+        },
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        initialPageParam: 0,
+    });
 
-    // Trigger Fetch
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            fetchCounselors(page > 0);
-        }, 300);
-        return () => clearTimeout(timeoutId);
-    }, [fetchCounselors, page]);
+    const counselors = useMemo(() => {
+        const merged = (data?.pages ?? []).flatMap((pageData) => pageData.counsellors || []);
+        const byId = new Map<string, AllCounselor>();
+
+        merged.forEach((c) => {
+            if (c.counsellorId) {
+                byId.set(c.counsellorId, c);
+            }
+        });
+
+        return Array.from(byId.values());
+    }, [data]);
 
     const lastCounselorRef = useCallback((node: HTMLDivElement | null) => {
-        if (loading || fetchingMore) return;
+        if (isLoading || isFetchingNextPage) return;
         if (observer.current) observer.current.disconnect();
 
         observer.current = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting && hasMore) {
-                setPage(prevPage => prevPage + 1);
+            if (entries[0].isIntersecting && hasNextPage) {
+                fetchNextPage();
             }
         });
 
         if (node) observer.current.observe(node);
-    }, [loading, fetchingMore, hasMore]);
+    }, [isLoading, isFetchingNextPage, hasNextPage, fetchNextPage]);
 
 
     const handleToggleFavourite = async (counsellorId: string) => {
@@ -256,10 +269,29 @@ const CounsellorsPage: React.FC = () => {
         setPendingAction(null);
     };
 
-    const cardData = useMemo(() => counselors.map((c) => ({
+    const sortedCounselors = useMemo(() => {
+        const counselorsCopy = [...counselors];
+
+        const getMinPlanPrice = (c: AllCounselor) => {
+            const plans = [c.plusAmount || 0, c.proAmount || 0, c.eliteAmount || 0].filter((value) => value > 0);
+            return plans.length ? Math.min(...plans) : Number.MAX_SAFE_INTEGER;
+        };
+
+        if (selectedSort === "price-low") {
+            counselorsCopy.sort((a, b) => getMinPlanPrice(a) - getMinPlanPrice(b));
+        } else if (selectedSort === "price-high") {
+            counselorsCopy.sort((a, b) => getMinPlanPrice(b) - getMinPlanPrice(a));
+        } else {
+            counselorsCopy.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        }
+
+        return counselorsCopy;
+    }, [counselors, selectedSort]);
+
+    const cardData = useMemo(() => sortedCounselors.map((c) => ({
         ...adaptApiDataToCardData(c),
         isFavourite: favouriteIds.has(c.counsellorId)
-    })), [counselors, favouriteIds]);
+    })), [sortedCounselors, favouriteIds]);
 
     return (
         <div className="max-w-[1440px] mx-auto pt-8 px-4 sm:px-8 lg:px-[60px]">
@@ -301,13 +333,13 @@ const CounsellorsPage: React.FC = () => {
                         <button 
                             onClick={handleClearFilters} 
                             disabled={activeFilterCount === 0}
-                            className={`flex-1 py-3 rounded-lg font-[Poppins] font-medium transition-colors border ${activeFilterCount > 0 ? 'bg-white border-[#0E1629] text-[#0E1629]' : 'bg-[#F9F9F9] border-[#E6E6E6] text-[#A0A0A0]'}`}
+                            className={`flex-1 py-3 rounded-lg font-[Poppins] font-medium transition-colors border ${activeFilterCount > 0 ? 'bg-white border-[#0E1629] text-[#0E1629] cursor-pointer' : 'bg-[#F9F9F9] border-[#E6E6E6] text-[#A0A0A0] cursor-not-allowed'}`}
                         >
                             Clear All
                         </button>
                         <button 
                             onClick={() => setIsMobileFilterOpen(false)} 
-                            className="flex-1 py-3 bg-[#0E1629] text-white rounded-lg font-[Poppins] font-medium"
+                            className="flex-1 py-3 bg-[#0E1629] text-white rounded-lg font-[Poppins] font-medium cursor-pointer"
                         >
                             Apply Filters
                         </button>
@@ -334,10 +366,10 @@ const CounsellorsPage: React.FC = () => {
                 <div className="flex-grow w-full lg:min-w-0">
                     <CounsellorListingCards
                         counsellors={cardData}
-                        isLoading={loading}
-                        isFetchingMore={fetchingMore}
+                        isLoading={isLoading}
+                        isFetchingMore={isFetchingNextPage}
                         lastElementRef={lastCounselorRef}
-                        hasMore={hasMore}
+                        hasMore={Boolean(hasNextPage)}
                         searchInput={searchInput}
                         setSearchInput={setSearchInput}
                         onToggleFavourite={handleToggleFavourite}

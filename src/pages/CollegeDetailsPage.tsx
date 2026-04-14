@@ -18,7 +18,17 @@ import ImportantDatesTab from '@/components/college/tabs/ImportantDatesTab';
 
 const CollegeDetailsPageNew = () => {
   const { id } = useParams();
-  const [activeTab, setActiveTab] = useState("Info");
+  const collegeTabStorageKey = id ? `college-details-active-tab:${id}` : 'college-details-active-tab';
+
+  const [activeTab, setActiveTab] = useState(() => {
+    if (!id) return 'Info';
+
+    try {
+      return sessionStorage.getItem(collegeTabStorageKey) || 'Info';
+    } catch {
+      return 'Info';
+    }
+  });
   const [collegeData, setCollegeData] = useState<CollegeDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -38,6 +48,29 @@ const CollegeDetailsPageNew = () => {
 
     fetchCollegeDetails();
   }, [id]);
+
+  useEffect(() => {
+    if (!id) {
+      setActiveTab('Info');
+      return;
+    }
+
+    try {
+      setActiveTab(sessionStorage.getItem(collegeTabStorageKey) || 'Info');
+    } catch {
+      setActiveTab('Info');
+    }
+  }, [collegeTabStorageKey, id]);
+
+  useEffect(() => {
+    if (!id) return;
+
+    try {
+      sessionStorage.setItem(collegeTabStorageKey, activeTab);
+    } catch {
+      // Ignore sessionStorage failures and keep the in-memory tab state.
+    }
+  }, [activeTab, collegeTabStorageKey, id]);
 
   const renderTabContent = () => {
     if (!collegeData) return null;

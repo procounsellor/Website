@@ -2,7 +2,15 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getDeadlines, type EventItem } from "@/api/deadlines";
 import { useNavigate } from "react-router-dom";
-import { Search, ChevronDown, SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  SelectGroup,
+} from "@/components/ui/select";
 
 import DeadlinesCard from "@/components/Revamp/admissions/DeadlinesCard"; 
 import DeadlineFilters from "@/components/Revamp/deadlinePage/DeadlineFilters";
@@ -10,9 +18,9 @@ import DeadlineFilters from "@/components/Revamp/deadlinePage/DeadlineFilters";
 export default function DeadlinesPage() {
   const navigate = useNavigate();
 
-  // Filter & Search States (UI Only for now)
+  // Filter & Search States
   const [searchInput, setSearchInput] = useState("");
-  const [selectedSort, _setSelectedSort] = useState("Recommended");
+  const [selectedSort, setSelectedSort] = useState("priority");
   const [selectedTypes, setSelectedTypes] = useState<string[]>(["exam"]);
   const [feesRange, setFeesRange] = useState<number>(0);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -21,9 +29,38 @@ export default function DeadlinesPage() {
     queryKey: ['revamp-deadlines'],
     queryFn: () => getDeadlines(),
     staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const activeEvents = allEvents.filter((event: EventItem) => !event.isDeleted);
+
+  const getEventFees = (event: EventItem): number | null => {
+    const anyEvent = event as EventItem & {
+      fees?: number;
+      fee?: number;
+      amount?: number;
+      eventFees?: number;
+    };
+    const fee = anyEvent.fees ?? anyEvent.fee ?? anyEvent.amount ?? anyEvent.eventFees;
+    return typeof fee === "number" && Number.isFinite(fee) ? fee : null;
+  };
+
+  const filteredEvents = activeEvents
+    .filter((event) => {
+      const matchesSearch = event.title.toLowerCase().includes(searchInput.toLowerCase());
+      const typeKey = event.typeOfEvent?.toLowerCase();
+      const matchesType = selectedTypes.length === 0 || selectedTypes.includes(typeKey);
+      const feeValue = getEventFees(event);
+      const matchesFee = feeValue == null || feeValue <= feesRange;
+      return matchesSearch && matchesType && matchesFee;
+    })
+    .sort((a, b) => {
+      if (selectedSort === "date-asc") return new Date(a.endDate).getTime() - new Date(b.endDate).getTime();
+      if (selectedSort === "date-desc") return new Date(b.endDate).getTime() - new Date(a.endDate).getTime();
+      if (selectedSort === "title") return a.title.localeCompare(b.title);
+      return (b.priority ?? 0) - (a.priority ?? 0);
+    });
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
@@ -113,12 +150,21 @@ export default function DeadlinesPage() {
                    </div>
 
                    {/* Sort Dropdown */}
-                   <div className="hidden md:flex items-center gap-2 cursor-pointer">
-                      <span className="text-[14px] font-medium text-[#6B7280]">Sort by:</span>
-                      <div className="flex items-center gap-1">
-                         <span className="text-[14px] font-medium text-[#0E1629]">{selectedSort}</span>
-                         <ChevronDown className="w-4 h-4 text-[#0E1629]" />
-                      </div>
+                   <div className="hidden md:flex items-center gap-3">
+                      <span className="text-[14px] font-medium text-[#525055]">Sort by:</span>
+                      <Select value={selectedSort} onValueChange={setSelectedSort}>
+                        <SelectTrigger className="w-[170px] h-[48px] bg-white rounded-lg border border-transparent hover:border-gray-200 outline-none focus:ring-0 font-[Poppins] font-medium text-[14px] text-[#525055] shadow-none cursor-pointer">
+                          <SelectValue placeholder="Priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem value="priority" className="font-[Poppins] cursor-pointer">Priority</SelectItem>
+                            <SelectItem value="date-asc" className="font-[Poppins] cursor-pointer">Date: Earliest First</SelectItem>
+                            <SelectItem value="date-desc" className="font-[Poppins] cursor-pointer">Date: Latest First</SelectItem>
+                            <SelectItem value="title" className="font-[Poppins] cursor-pointer">Title: A to Z</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
                    </div>
                 </div>
              </div>
@@ -147,7 +193,7 @@ export default function DeadlinesPage() {
               </div>
             )}
             
-            {!isLoading && !isError && activeEvents.length === 0 && (
+            {!isLoading && !isError && filteredEvents.length === 0 && (
               <div className="text-center py-12 bg-white rounded-[8px] border border-[#E3E8F4]">
                  <p className="text-[#6B7280] text-[14px] font-medium">
                    No active deadlines found at the moment.
@@ -156,9 +202,9 @@ export default function DeadlinesPage() {
             )}
 
             {/* Grid of Cards (Exactly 3 columns on large screens, 2 on mobile) */}
-            {!isLoading && !isError && activeEvents.length > 0 && (
+            {!isLoading && !isError && filteredEvents.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6 w-full">
-                {activeEvents.map((event: EventItem, index: number) => (
+                {filteredEvents.map((event: EventItem, index: number) => (
                   <div key={event.id} className="w-full flex justify-center">
                      <DeadlinesCard
                         id={event.id}
@@ -199,13 +245,13 @@ export default function DeadlinesPage() {
                 <button 
                     onClick={handleClearFilters} 
                     disabled={selectedTypes.length === 0 && feesRange === 0}
-                    className={`flex-1 py-3 rounded-[8px] font-[Poppins] font-medium transition-colors border ${selectedTypes.length > 0 || feesRange > 0 ? 'bg-white border-[#0E1629] text-[#0E1629]' : 'bg-[#F9F9F9] border-[#E6E6E6] text-[#A0A0A0]'}`}
+                  className={`flex-1 py-3 rounded-[8px] font-[Poppins] font-medium transition-colors border ${selectedTypes.length > 0 || feesRange > 0 ? 'bg-white border-[#0E1629] text-[#0E1629] cursor-pointer' : 'bg-[#F9F9F9] border-[#E6E6E6] text-[#A0A0A0] cursor-not-allowed'}`}
                 >
                     Clear All
                 </button>
                 <button 
                     onClick={() => setIsMobileFilterOpen(false)} 
-                    className="flex-1 py-3 bg-[#0E1629] text-white rounded-[8px] font-[Poppins] font-medium"
+                  className="flex-1 py-3 bg-[#0E1629] text-white rounded-[8px] font-[Poppins] font-medium cursor-pointer"
                 >
                     Apply Filters
                 </button>

@@ -72,7 +72,7 @@ export default function CounsellorSection() {
     };
 
     return (
-        <div className="bg-[#C6DDF040] w-full py-6 md:py-10">
+        <div className="bg-[#C6DDF040] w-full py-6 md:py-8">
             <div className="max-w-[1440px] mx-auto px-4 md:px-[60px]">
                 {/* Heading Layout */}
                 <div className="flex flex-col md:flex-row justify-between items-start mb-6 md:mb-10 gap-[12px] md:gap-0">

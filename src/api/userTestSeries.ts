@@ -146,8 +146,9 @@ export const registerGrandMockTestShared = async (payload: {
 };
 
 export const registerGrandMockTestAuth = async (
-  userId: string,
+
   payload: {
+    userId: string,
     name: string;
     city: string;
     mobile: string;
@@ -159,7 +160,7 @@ export const registerGrandMockTestAuth = async (
     {
       method: "POST",
       headers: getAuthHeaders(),
-      body: JSON.stringify({ userId, ...payload }),
+      body: JSON.stringify({ ...payload }),
     }
   );
   return response.json();

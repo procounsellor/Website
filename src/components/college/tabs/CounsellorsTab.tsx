@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
-import { CollegeCounselorCard } from './CollegeCounselorCard';
 import { useAllCounselors } from '@/hooks/useCounselors';
 import { encodeCounselorId } from '@/lib/utils';
+import FancyCard from '@/components/Revamp/admissions/counsellor/counsellorCard';
 
 const CounsellorsTab = () => {
   const { data: counsellors, loading, error } = useAllCounselors(4);
@@ -35,8 +35,16 @@ const CounsellorsTab = () => {
       <div className="grid grid-cols-2 gap-3 gap-y-6 md:flex md:flex-wrap md:gap-8 md:justify-center lg:justify-start">
         {counsellors.map((counselor) => (
           <div key={counselor.counsellorId} className="shrink-0 flex justify-center">
-             <Link to={`/counsellor/${encodeCounselorId(counselor.counsellorId)}`} className="block hover:no-underline">
-                <CollegeCounselorCard counselor={counselor} />
+             <Link to={`/counsellor-details/${encodeCounselorId(counselor.counsellorId)}`} className="block hover:no-underline">
+               <FancyCard
+                counsellorId={counselor.counsellorId}
+                name={counselor.firstName + counselor.lastName} 
+                imageUrl={counselor.photoUrlSmall || ""} 
+                rating={Number(counselor.rating?.toFixed(1)) || 0} 
+                experience={counselor.experience ||  'NA'} 
+                city={counselor.city || 'NA'}
+                proCoins={counselor.plusAmount}
+               />
              </Link>
           </div>
         ))}
