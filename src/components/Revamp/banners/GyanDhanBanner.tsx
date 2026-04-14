@@ -54,7 +54,7 @@ const GyanDhanBanner = () => {
           <button
             onClick={handleOpenLoanEligibility}
             type="button"
-            className="font-poppins font-semibold text-[14px] leading-none text-[#48387C] underline decoration-solid decoration-auto underline-offset-auto"
+            className="font-poppins hover:cursor-pointer font-semibold text-[14px] leading-none text-[#48387C] underline decoration-solid decoration-auto underline-offset-auto"
           >
             Check your Loan Eligibility
           </button>
@@ -62,7 +62,7 @@ const GyanDhanBanner = () => {
           <button
             onClick={handleOpenLoanEligibility}
             type="button"
-            className="flex items-center justify-center w-8 md:w-10 h-[28px] md:h-[35.6px] rounded-[5px] bg-[#48387C] hover:bg-[#3b2d66] transition-colors shrink-0"
+            className="flex items-center hover:cursor-pointer justify-center w-8 md:w-10 h-[28px] md:h-[35.6px] rounded-[5px] bg-[#48387C] hover:bg-[#3b2d66] transition-colors shrink-0"
           >
             <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-white" />
           </button>

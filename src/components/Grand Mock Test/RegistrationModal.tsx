@@ -102,8 +102,8 @@ export default function RegistrationModal({ isOpen, onClose, onSuccess }: Regist
     try {
       const payload = {
         userId: isAuthenticated && userId ? userId : formData.mobile,
-        fullName: formData.name, 
-        phoneNumber: formData.mobile,
+        name: formData.name, 
+        mobile: formData.mobile,
         email: formData.email,
         city: formData.city
       };

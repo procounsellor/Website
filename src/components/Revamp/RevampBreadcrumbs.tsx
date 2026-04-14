@@ -119,7 +119,7 @@ export default function RevampBreadcrumbs() {
     }
     // College details
     else if (path.includes('/colleges/') || path.includes('/college-details/')) {
-      crumbs.push({ label: 'Colleges' });
+      // crumbs.push({ label: 'Colleges' });
       crumbs.push({ label: 'Details' });
     }
     // Other generic pages

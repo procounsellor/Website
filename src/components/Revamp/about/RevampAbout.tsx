@@ -1,12 +1,21 @@
-import { SeeAllButton } from "../components/LeftRightButton";
+import { type FormEvent } from "react";
+import toast from "react-hot-toast";
 export default function RevampAbout() {
-  const teamMembers = [
-    { id: 1, name: "Dr. Subhash Ghai", designation: "Designation", phone: "9973490800", email: "shubham@gmail.com", image: "/profile1.jpg" },
-    { id: 2, name: "Dr. Subhash Ghai", designation: "Designation", phone: "9973490800", email: "shubham@gmail.com", image: "/profile2.jpg" },
-    { id: 3, name: "Dr. Subhash Ghai", designation: "Designation", phone: "9973490800", email: "shubham@gmail.com", image: "/profile1.jpg" },
-    { id: 4, name: "Dr. Subhash Ghai", designation: "Designation", phone: "9973490800", email: "shubham@gmail.com", image: "/profile2.jpg" },
-    { id: 5, name: "Dr. Subhash Ghai", designation: "Designation", phone: "9973490800", email: "shubham@gmail.com", image: "/profile1.jpg" },
-  ];
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const name = String(formData.get("name") || "").trim();
+    const email = String(formData.get("email") || "").trim();
+
+    if (!name || !email) {
+      toast.error("Please fill in your name and email.");
+      return;
+    }
+
+    toast.success("We will contact you soon.");
+    event.currentTarget.reset();
+  };
+
   return (
     <div className="flex flex-col bg-[#C6DDF040]">
       {/* Hero Section */}
@@ -17,7 +26,7 @@ export default function RevampAbout() {
           
           <div className="flex flex-col items-center justify-center gap-2.5 w-full max-w-[805px] px-4">
             <h1 className="text-white font-poppins font-bold text-[60px] leading-20 text-center">
-              About ProCounsel
+              About Us
             </h1>
             <p className="max-w-[753px] font-poppins font-medium text-[24px] leading-tight text-center text-white/70">
               Bridging the gap between ambitious students and expert education counsellors
@@ -108,6 +117,7 @@ export default function RevampAbout() {
         </div>
       </section>
 
+      {/**
       <section className="w-full mx-auto bg-[#C6DDF040] px-[60px] py-16">
         <div className="w-full max-w-[1260px] mx-auto flex flex-col">
           <div className="w-full flex flex-col md:flex-row justify-between items-start gap-8">
@@ -165,6 +175,7 @@ export default function RevampAbout() {
             </div>
           </div>
         </section>
+      */}
       
       {/* Features */}
       <section className="w-full bg-[#C6DDF040] pb-20">
@@ -306,7 +317,7 @@ export default function RevampAbout() {
               Contact US
             </h3>
 
-            <form className="w-full flex flex-col gap-[20px] items-center">
+            <form onSubmit={handleSubmit} className="w-full flex flex-col gap-[20px] items-center">
               
               <div className="flex flex-col gap-[8px] w-full max-w-[673px]">
                 <label className="font-poppins font-medium text-[14px] leading-[100%] text-[#0E1629]">
@@ -316,6 +327,7 @@ export default function RevampAbout() {
                   <img src="/round-profile.svg" alt="Profile Icon" className="w-[20px] h-[20px]" />
                   <input 
                     type="text" 
+                    name="name"
                     placeholder="Enter Your Name"
                     className="w-full bg-transparent outline-none font-poppins font-medium text-[16px] text-[#0E1629] placeholder:text-[#6B7280]"
                   />
@@ -330,6 +342,7 @@ export default function RevampAbout() {
                   <img src="/round-email.svg" alt="Email Icon" className="w-[20px] h-[20px]" />
                   <input 
                     type="email" 
+                    name="email"
                     placeholder="Enter Your Email"
                     className="w-full bg-transparent outline-none font-poppins font-medium text-[16px] text-[#0E1629] placeholder:text-[#6B7280]"
                   />

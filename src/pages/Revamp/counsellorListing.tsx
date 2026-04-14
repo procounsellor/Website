@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { Search, Info, ChevronDown, ChevronRight } from "lucide-react";
 
 interface FilterProps {
     selectedExperience: string[];
@@ -26,6 +27,9 @@ const CounsellorListing: React.FC<FilterProps> = ({
     onClearFilters
 }) => {
     const [citySearch, setCitySearch] = useState("");
+    const [languageSearch, setLanguageSearch] = useState("");
+    const [showPriceTooltip, setShowPriceTooltip] = useState(false);
+    const [openSection, setOpenSection] = useState<"experience" | "language" | "city" | "price" | "days" | null>("experience");
 
     // --- Data Definitions ---
     const experienceLevels = [
@@ -42,9 +46,14 @@ const CounsellorListing: React.FC<FilterProps> = ({
         [citySearch]
     );
 
+    const filteredLanguages = useMemo(() =>
+        languages.filter(language => language.toLowerCase().includes(languageSearch.toLowerCase())),
+        [languages, languageSearch]
+    );
+
     const workingDays = [
-        { row: ["Mon", "Tue", "Wed", "Thu", "Fri"] },
-        { row: ["Sun", "Sat"] }
+        { row: ["Mon", "Tue", "Wed", "Thu"] },
+        { row: ["Fri", "Sat", "Sun"] }
     ];
 
     // --- Toggle Logic ---
@@ -56,9 +65,13 @@ const CounsellorListing: React.FC<FilterProps> = ({
     const isPriceChanged = minPrice !== 100 || maxPrice !== 10000;
     const activeFilterCount = selectedExperience.length + selectedLanguages.length + selectedCities.length + selectedDays.length + (isPriceChanged ? 1 : 0);
 
+    const toggleSection = (section: "experience" | "language" | "city" | "price" | "days") => {
+        setOpenSection((prev) => (prev === section ? null : section));
+    };
+
     return (
         <div className="w-full">
-            <div className="hidden lg:flex box-border flex-row justify-between items-center px-5 py-4 w-full h-[64px] bg-white border border-[#E6E6E6] rounded-[8px]">
+            <div className="hidden lg:flex sticky top-0 z-20 box-border flex-row justify-between items-center px-5 py-4 w-full h-[64px] bg-white border border-[#E6E6E6] rounded-[8px]">
                 <div className="flex flex-row justify-center items-center gap-[12px]">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0E1629" strokeWidth="1.5" strokeLinecap="round">
                         <line x1="3" y1="6" x2="21" y2="6" />
@@ -78,10 +91,12 @@ const CounsellorListing: React.FC<FilterProps> = ({
             </div>
 
             {/* Experience Section */}
-            <div className="box-border flex flex-col items-center pb-[16px] gap-[16px] mt-0 lg:mt-[12px] w-full bg-white border border-[#E6E6E6] rounded-[8px]">
-                <div className="box-border flex flex-row items-center px-5 py-5 w-full h-[67px] bg-white border-b border-[#E6E6E6] rounded-t-[8px]">
+            <div className={`box-border flex flex-col items-center mt-0 lg:mt-[12px] w-full bg-white border border-[#E6E6E6] rounded-[8px] ${openSection === "experience" ? "pb-[16px] gap-[16px]" : "pb-0 gap-0"}`}>
+                <button type="button" onClick={() => toggleSection("experience")} className="box-border flex flex-row justify-between items-center px-5 py-5 w-full h-[67px] bg-white border-b border-[#E6E6E6] rounded-t-[8px] cursor-pointer">
                     <span className="font-[Poppins] font-medium text-[16px] lg:text-[18px] text-[#242645]">Experience</span>
-                </div>
+                    {openSection === "experience" ? <ChevronDown className="w-5 h-5 text-[#242645]" /> : <ChevronRight className="w-5 h-5 text-[#242645]" />}
+                </button>
+                {openSection === "experience" && (
                 <div className="flex flex-col gap-[10px] w-full px-5">
                     {experienceLevels.map((lvl) => (
                         <div key={lvl.value} className="flex flex-row items-center gap-[12px] cursor-pointer" onClick={() => toggleFilter(selectedExperience, setSelectedExperience, lvl.value)}>
@@ -95,15 +110,23 @@ const CounsellorListing: React.FC<FilterProps> = ({
                         </div>
                     ))}
                 </div>
+                )}
             </div>
 
             {/* Language Section */}
-            <div className="flex flex-col items-center pb-[16px] gap-[16px] w-full bg-white border border-[#E6E6E6] rounded-[8px] mt-[12px]">
-                <div className="box-border flex flex-row items-center px-[20px] py-[20px] w-full border-b border-[#E6E6E6] rounded-t-[8px]">
+            <div className={`flex flex-col items-center w-full bg-white border border-[#E6E6E6] rounded-[8px] mt-[12px] ${openSection === "language" ? "pb-[16px] gap-[16px]" : "pb-0 gap-0"}`}>
+                <button type="button" onClick={() => toggleSection("language")} className="box-border flex flex-row justify-between items-center px-[20px] py-[20px] w-full border-b border-[#E6E6E6] rounded-t-[8px] cursor-pointer">
                     <span className="font-[Poppins] font-medium text-[16px] lg:text-[18px] text-[#242645]">Language</span>
-                </div>
-                <div className="flex flex-col gap-[10px] w-full px-5 max-h-[250px] overflow-y-auto scrollbar-hide">
-                    {languages.map(lang => (
+                    {openSection === "language" ? <ChevronDown className="w-5 h-5 text-[#242645]" /> : <ChevronRight className="w-5 h-5 text-[#242645]" />}
+                </button>
+                {openSection === "language" && (
+                <div className="w-full px-5 flex flex-col gap-[16px]">
+                    <div className="relative w-full h-[40px] bg-white border border-[#EFEFEF] rounded-[12px] flex items-center px-[12px]">
+                        <Search className="w-5 h-5 text-[#343C6A]" />
+                        <input type="text" placeholder="Search Languages" value={languageSearch} onChange={(e) => setLanguageSearch(e.target.value)} className="ml-[8px] w-full h-full bg-transparent outline-none font-medium font-[Poppins] text-[14px] text-[#232323] placeholder:text-[#232323]" />
+                    </div>
+                    <div className="flex flex-col gap-[10px] max-h-[220px] overflow-y-auto scrollbar-hide">
+                    {filteredLanguages.map(lang => (
                         <div key={lang} className="flex flex-row items-center gap-[12px] cursor-pointer" onClick={() => toggleFilter(selectedLanguages, setSelectedLanguages, lang)}>
                             <div className={`box-border w-[18px] h-[18px] flex justify-center items-center ${selectedLanguages.includes(lang) ? 'bg-[#0E1629]' : 'bg-white border border-[#CED1D9]'}`}>
                                 {selectedLanguages.includes(lang) && <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7L5.5 10L11.5 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
@@ -111,20 +134,21 @@ const CounsellorListing: React.FC<FilterProps> = ({
                             <span className={`font-[Poppins] text-[14px] leading-[21px] ${selectedLanguages.includes(lang) ? 'font-medium' : 'font-normal'} text-[#0E1629]`}>{lang}</span>
                         </div>
                     ))}
+                    </div>
                 </div>
+                )}
             </div>
 
             {/* City Section */}
-            <div className="box-border flex flex-col items-center pb-[16px] gap-[16px] w-full bg-white border border-[#E6E6E6] rounded-[8px] mt-[12px]">
-                <div className="box-border flex flex-row items-center px-[20px] py-[20px] w-full border-b border-[#E6E6E6] rounded-t-[8px]">
+            <div className={`box-border flex flex-col items-center w-full bg-white border border-[#E6E6E6] rounded-[8px] mt-[12px] ${openSection === "city" ? "pb-[16px] gap-[16px]" : "pb-0 gap-0"}`}>
+                <button type="button" onClick={() => toggleSection("city")} className="box-border flex flex-row justify-between items-center px-[20px] py-[20px] w-full border-b border-[#E6E6E6] rounded-t-[8px] cursor-pointer">
                     <span className="font-[Poppins] font-medium text-[16px] lg:text-[18px] text-[#242645]">City</span>
-                </div>
+                    {openSection === "city" ? <ChevronDown className="w-5 h-5 text-[#242645]" /> : <ChevronRight className="w-5 h-5 text-[#242645]" />}
+                </button>
+                {openSection === "city" && (
                 <div className="w-full px-5 flex flex-col gap-[16px]">
                     <div className="relative w-full h-[40px] bg-white border border-[#EFEFEF] rounded-[12px] flex items-center px-[12px]">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" stroke="#343C6A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M21 21L16.65 16.65" stroke="#343C6A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                        <Search className="w-5 h-5 text-[#343C6A]" />
                         <input type="text" placeholder="Search Cities" value={citySearch} onChange={(e) => setCitySearch(e.target.value)} className="ml-[8px] w-full h-full bg-transparent outline-none font-medium font-[Poppins] text-[14px] text-[#232323] placeholder:text-[#232323]" />
                     </div>
                     <div className="flex flex-col gap-[10px] max-h-[200px] overflow-y-auto scrollbar-hide">
@@ -138,36 +162,58 @@ const CounsellorListing: React.FC<FilterProps> = ({
                         ))}
                     </div>
                 </div>
+                )}
             </div>
             
             {/* Price Section */}
-            <div className="box-border flex flex-col items-center pb-[16px] gap-[16px] w-full bg-white border border-[#E6E6E6] rounded-[8px] mt-[12px]">
-                <div className="box-border flex flex-row items-center px-[20px] py-[20px] w-full border-b border-[#E6E6E6] rounded-t-[8px]">
-                    <span className="font-[Poppins] font-medium text-[16px] lg:text-[18px] text-[#242645]">Price</span>
-                </div>
+            <div className={`box-border flex flex-col items-center w-full bg-white border border-[#E6E6E6] rounded-[8px] mt-[12px] ${openSection === "price" ? "pb-[16px] gap-[16px]" : "pb-0 gap-0"}`}>
+                <button type="button" onClick={() => toggleSection("price")} className="box-border flex flex-row justify-between items-center px-[20px] py-[20px] w-full border-b border-[#E6E6E6] rounded-t-[8px] cursor-pointer">
+                    <span className="flex items-center gap-2 font-[Poppins] font-medium text-[16px] lg:text-[18px] text-[#242645]">
+                        Price
+                        <span className="relative group inline-flex">
+                            <Info
+                                className="w-4 h-4 text-[#9CA3AF] cursor-pointer"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setShowPriceTooltip((prev) => !prev);
+                                }}
+                            />
+                            <span className={`absolute left-1/2 -translate-x-1/2 top-full mt-1 ${showPriceTooltip ? "flex" : "hidden"} lg:group-hover:flex items-center justify-center min-w-[84px] gap-1.5 bg-[#0E1629] text-white text-[12px] leading-none rounded px-2.5 py-1.5 whitespace-nowrap z-20 shadow-[0_6px_18px_rgba(0,0,0,0.25)]`}>
+                                <img src="/coin.svg" alt="coin" className="w-3 h-3" />
+                                <span className="font-semibold">1 = ₹1</span>
+                            </span>
+                        </span>
+                    </span>
+                    {openSection === "price" ? <ChevronDown className="w-5 h-5 text-[#242645]" /> : <ChevronRight className="w-5 h-5 text-[#242645]" />}
+                </button>
+                {openSection === "price" && (
                 <div className="flex flex-row justify-between w-full px-5 gap-4">
                     <div className="flex flex-col gap-[5px] flex-1">
                         <span className="font-[Poppins] font-medium text-[12px] text-[#232323]">Min Price</span>
                         <div className="box-border w-full h-[36px] bg-white border border-[#EFEFEF] rounded-[12px] flex items-center px-[12px]">
-                            <span className="font-[Poppins] font-semibold text-[14px] text-[#6B7280]">₹</span>
+                            <img src="/coin.svg" alt="coin" className="w-3.5 h-3.5 shrink-0 opacity-70" />
                             <input type="number" value={minPrice} onChange={(e) => setMinPrice(e.target.value === "" ? "" : Number(e.target.value))} className="w-full h-full bg-transparent outline-none font-[Poppins] font-semibold text-[14px] text-[#6B7280] ml-1" />
                         </div>
                     </div>
                     <div className="flex flex-col gap-[5px] flex-1">
                         <span className="font-[Poppins] font-medium text-[12px] text-[#232323]">Max Price</span>
                         <div className="box-border w-full h-[36px] bg-white border border-[#EFEFEF] rounded-[12px] flex items-center px-[12px]">
-                            <span className="font-[Poppins] font-semibold text-[14px] text-[#6B7280]">₹</span>
+                            <img src="/coin.svg" alt="coin" className="w-3.5 h-3.5 shrink-0 opacity-70" />
                             <input type="number" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value === "" ? "" : Number(e.target.value))} className="w-full h-full bg-transparent outline-none font-[Poppins] font-semibold text-[14px] text-[#6B7280] ml-1" />
                         </div>
                     </div>
                 </div>
+                )}
             </div>
 
             {/* Working Days Section */}
-            <div className="box-border flex flex-col items-center pb-[16px] gap-[16px] w-full bg-white border border-[#E6E6E6] rounded-[8px] mt-[12px]">
-                <div className="box-border flex flex-row items-center px-[20px] py-[20px] w-full border-b border-[#E6E6E6] rounded-t-[8px]">
+            <div className={`box-border flex flex-col items-center w-full bg-white border border-[#E6E6E6] rounded-[8px] mt-[12px] ${openSection === "days" ? "pb-[16px] gap-[16px]" : "pb-0 gap-0"}`}>
+                <button type="button" onClick={() => toggleSection("days")} className="box-border flex flex-row justify-between items-center px-[20px] py-[20px] w-full border-b border-[#E6E6E6] rounded-t-[8px] cursor-pointer">
                     <span className="font-[Poppins] font-medium text-[16px] lg:text-[18px] text-[#242645]">Working Days</span>
-                </div>
+                    {openSection === "days" ? <ChevronDown className="w-5 h-5 text-[#242645]" /> : <ChevronRight className="w-5 h-5 text-[#242645]" />}
+                </button>
+                {openSection === "days" && (
                 <div className="flex flex-col gap-[10px] w-full px-5">
                     {workingDays.map((group, idx) => (
                         <div key={idx} className="flex flex-row gap-[8px] w-full">
@@ -183,6 +229,7 @@ const CounsellorListing: React.FC<FilterProps> = ({
                         </div>
                     ))}
                 </div>
+                )}
             </div>
 
             <div className="hidden lg:block w-full mt-4 mb-[70px]">
@@ -191,7 +238,7 @@ const CounsellorListing: React.FC<FilterProps> = ({
                     disabled={activeFilterCount === 0}
                     className={`w-full h-[48px] rounded-[8px] font-[Poppins] font-medium text-[16px] transition-all border outline-none ${
                         activeFilterCount > 0
-                            ? 'bg-white border-[#0E1629] text-[#0E1629] hover:bg-[#F8F9FA]'
+                            ? 'bg-white border-[#0E1629] text-[#0E1629] hover:bg-[#F8F9FA] cursor-pointer'
                             : 'bg-[#F9F9F9] border-[#E6E6E6] text-[#A0A0A0] cursor-not-allowed'
                     }`}
                 >

@@ -3,22 +3,16 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getEventById, getDeadlines, type EventItem } from "@/api/deadlines";
 import DeadlinesCard from "@/components/Revamp/admissions/DeadlinesCard";
-import { useAuthStore } from "@/store/AuthStore"; 
 import { SeeAllButton } from "@/components/Revamp/components/LeftRightButton";
 
 export default function DeadlineDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const userId = useAuthStore((state) => state.userId);
-  const role = useAuthStore((state) => state.role);
-
-  const currentUserId = userId || "9000000000";
-  const currentRole = role || "user";
 
   const { data: event, isLoading, isError } = useQuery({
-    queryKey: ['revamp-deadline-detail', id, currentUserId],
-    queryFn: () => getEventById(id as string, currentUserId, currentRole),
+    queryKey: ['revamp-deadline-detail', id],
+    queryFn: () => getEventById(id as string),
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   });

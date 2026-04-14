@@ -126,15 +126,24 @@ const CounselorCardItem = ({ counsellor, isLast, lastElementRef, onToggleFavouri
                 <div className="flex flex-row items-center gap-1 sm:gap-[6px] w-full mt-auto pt-1.5 sm:pt-[12px] pb-[2px] pr-[25%] sm:pr-[65px]">
                     <div className="box-border flex flex-col justify-center items-center py-0.5 sm:py-[2px] px-0.5 sm:px-[2px] flex-1 min-w-0 sm:min-w-[57px] max-w-[72px] h-[32px] sm:h-[40px] bg-[linear-gradient(266.79deg,rgba(222,237,255,0.4)_0.46%,rgba(126,136,211,0.4)_130.49%)] border border-[rgba(113,142,191,0.4)] rounded-md sm:rounded-[12px]">
                         <span className="font-['Poppins'] font-normal text-[8px] sm:text-[11px] text-[#1447E7] leading-tight truncate w-full text-center">Plus</span>
-                        <span className="font-['Poppins'] font-medium text-[8px] sm:text-[11px] text-[#1447E7] leading-tight truncate w-full text-center">₹{counsellor.plans?.plus || 0}</span>
+                        <span className="font-['Poppins'] font-medium text-[8px] sm:text-[10px] text-[#1447E7] leading-tight truncate w-full text-center inline-flex items-center justify-center gap-1">
+                            <img src="/coin.svg" alt="coin" className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                            {counsellor.plans?.plus || 0}
+                        </span>
                     </div>
                     <div className="box-border flex flex-col justify-center items-center py-0.5 sm:py-[2px] px-0.5 sm:px-[2px] flex-1 min-w-0 sm:min-w-[64px] max-w-[72px] h-[32px] sm:h-[40px] bg-[linear-gradient(257.67deg,rgba(244,232,255,0.4)_1.56%,rgba(250,244,255,0.4)_100%)] border border-[rgba(232,212,255,0.4)] rounded-md sm:rounded-[12px]">
                         <span className="font-['Poppins'] font-normal text-[8px] sm:text-[11px] text-[#8200DA] leading-tight truncate w-full text-center">Pro</span>
-                        <span className="font-['Poppins'] font-medium text-[8px] sm:text-[11px] text-[#8200DA] leading-tight truncate w-full text-center">₹{counsellor.plans?.pro || 0}</span>
+                        <span className="font-['Poppins'] font-medium text-[8px] sm:text-[10px] text-[#8200DA] leading-tight truncate w-full text-center inline-flex items-center justify-center gap-1">
+                            <img src="/coin.svg" alt="coin" className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                            {counsellor.plans?.pro || 0}
+                        </span>
                     </div>
                     <div className="box-border flex flex-col justify-center items-center py-0.5 sm:py-[2px] px-0.5 sm:px-[2px] flex-1 min-w-0 sm:min-w-[64px] max-w-[72px] h-[32px] sm:h-[40px] bg-[linear-gradient(257.67deg,rgba(255,245,206,0.4)_1.56%,rgba(255,250,230,0.4)_100%)] border border-[rgba(234,197,145,0.4)] rounded-md sm:rounded-[12px]">
                         <span className="font-['Poppins'] font-normal text-[8px] sm:text-[11px] text-[#B94C00] leading-tight truncate w-full text-center">Elite</span>
-                        <span className="font-['Poppins'] font-medium text-[8px] sm:text-[11px] text-[#B94C00] leading-tight truncate w-full text-center">₹{counsellor.plans?.elite || 0}</span>
+                        <span className="font-['Poppins'] font-medium text-[8px] sm:text-[10px] text-[#B94C00] leading-tight truncate w-full text-center inline-flex items-center justify-center gap-1">
+                            <img src="/coin.svg" alt="coin" className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                            {counsellor.plans?.elite || 0}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -193,7 +202,7 @@ const CounsellorListingCards: React.FC<CardProps> = ({
                         </h2>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-[24px] w-full md:w-auto mt-3 md:mt-0 px-1 md:px-0 hidden md:flex">
+                    <div className="hidden md:flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-[24px] w-full md:w-auto mt-3 md:mt-0 px-1 md:px-0">
                         <div className="box-border flex flex-row items-center px-3 py-1.5 gap-[10px] w-full md:w-[284px] h-[36px] border border-[rgba(107,114,128,0.4)] rounded-xl">
                             <Search className="w-5 h-5 text-[#6B7280]" strokeWidth={2} />
                             <input 

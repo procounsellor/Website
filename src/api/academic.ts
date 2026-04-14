@@ -112,6 +112,8 @@ export const academicApi = {
       minPrice?: string;
       maxPrice?: string;
       search?: string;
+      sortBy?: string;
+      sortOrder?: string;
     },
     page: number = 0,
     pageSize: number = 9
@@ -124,8 +126,8 @@ export const academicApi = {
     params.append("userName", userName);
     params.append("page", page.toString());
     params.append("pageSize", pageSize.toString());
-    params.append("sortBy", "priority");
-    params.append("sortOrder", "desc");
+    params.append("sortBy", filters.sortBy || "priority");
+    params.append("sortOrder", filters.sortOrder || "desc");
 
     if (filters.city) params.append("city", filters.city);
     if (filters.languagesKnow) params.append("languagesKnow", filters.languagesKnow);
@@ -157,6 +159,8 @@ export const academicApi = {
       minPrice?: string;
       maxPrice?: string;
       search?: string;
+      sortBy?: string;
+      sortOrder?: string;
     },
     page: number = 0,
     pageSize: number = 9
@@ -165,8 +169,8 @@ export const academicApi = {
     
     params.append("page", page.toString());
     params.append("pageSize", pageSize.toString());
-    params.append("sortBy", "priority");
-    params.append("sortOrder", "desc");
+    params.append("sortBy", filters.sortBy || "priority");
+    params.append("sortOrder", filters.sortOrder || "desc");
 
     if (filters.city) params.append("city", filters.city);
     if (filters.languagesKnow) params.append("languagesKnow", filters.languagesKnow);

@@ -97,7 +97,7 @@ const RevampBannerSection = () => {
 
   return (
     <section className="w-full bg-[#C6DDF040] overflow-hidden">
-      <div className="max-w-[1440px] mx-auto py-10 md:py-20 px-4 md:px-[60px] flex flex-col items-center">
+      <div className="max-w-[1440px] mx-auto py-10 md:py-20 px-40 md:px-[60px] flex flex-col items-center">
         <div className="flex flex-col items-start md:items-center gap-6 md:gap-8 w-full">
 
           <div className="self-start box-border flex items-center gap-2 bg-white border border-gray-100 rounded-[6px] px-3 py-1 shadow-sm md:ml-0">
@@ -127,9 +127,9 @@ const RevampBannerSection = () => {
             </div>
           </div>
 
-          <div className="md:hidden w-full flex items-center justify-center">
+          <div className="md:hidden w-full flex items-center justify-start">
             <div
-              className="relative w-full max-w-[335px] mx-auto overflow-hidden rounded-[12px]"
+              className="relative w-full max-w-[320px] overflow-hidden rounded-[12px]"
               onMouseEnter={() => setIsPaused(true)}
               onMouseLeave={() => setIsPaused(false)}
             >
@@ -153,7 +153,7 @@ const RevampBannerSection = () => {
                 <button
                   key={index}
                   onClick={() => scrollToSlide(index)}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${activeIndex === index ? 'w-10 bg-[#0E1629]' : 'w-5 bg-[#0E16294D]'}`}
+                  className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${activeIndex === index ? 'w-10 bg-[#0E1629]' : 'w-5 bg-[#0E16294D]'}`}
                   aria-label={`Go to banner slide ${index + 1}`}
                 />
               );

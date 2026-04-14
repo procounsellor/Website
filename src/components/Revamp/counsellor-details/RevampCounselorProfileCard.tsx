@@ -1,6 +1,6 @@
 import type { CounselorDetails } from '@/types/academic';
 import type { SubscribedCounsellor, User } from '@/types/user';
-import { Bookmark, Lock, Star, Share2, Check } from 'lucide-react';
+import { Bookmark, Lock, Star, Share2, Check, MessageCircle, Phone } from 'lucide-react';
 import { useState } from 'react';
 import { encodeCounselorId } from '@/lib/utils';
 import toast from 'react-hot-toast';
@@ -193,15 +193,17 @@ export function RevampCounselorProfileCard({
         <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-[16px]">
           <button
             disabled={!subscription}
-            className={`h-[42px] sm:h-[44px] rounded-[12px] border flex items-center justify-center gap-1.5 sm:gap-2 text-[14px] sm:text-[16px] font-semibold transition-colors ${subscription ? 'bg-white border-[#2F43F2] text-[#2F43F2] hover:bg-blue-50 cursor-pointer' : 'bg-[#F9FAFC] border-[#F5F5F5] text-[#B2B9C5] cursor-not-allowed'}`}
+            className={`w-full sm:flex-1 min-w-0 h-[44px] sm:h-[46px] rounded-[12px] border flex items-center justify-center gap-2 text-[14px] sm:text-[15px] font-semibold transition-colors ${subscription ? 'bg-white border-[#2F43F2] text-[#2F43F2] hover:bg-blue-50 cursor-pointer' : 'bg-[#F9FAFC] border-[#F5F5F5] text-[#B2B9C5] cursor-not-allowed'}`}
           >
-            {!subscription && <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />} Chat
+            {subscription ? <MessageCircle className="w-4 h-4 sm:w-[18px] sm:h-[18px]" /> : <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+            <span className="truncate">Chat</span>
           </button>
           <button
             disabled={!subscription}
-            className={`h-[42px] sm:h-[44px] rounded-[12px] border flex items-center justify-center gap-1.5 sm:gap-2 text-[14px] sm:text-[16px] font-semibold transition-colors ${subscription ? 'bg-white border-[#2F43F2] text-[#2F43F2] hover:bg-blue-50 cursor-pointer' : 'bg-[#F9FAFC] border-[#F5F5F5] text-[#B2B9C5] cursor-not-allowed'}`}
+            className={`w-full sm:flex-1 min-w-0 h-[44px] sm:h-[46px] rounded-[12px] border flex items-center justify-center gap-2 text-[14px] sm:text-[15px] font-semibold transition-colors ${subscription ? 'bg-white border-[#2F43F2] text-[#2F43F2] hover:bg-blue-50 cursor-pointer' : 'bg-[#F9FAFC] border-[#F5F5F5] text-[#B2B9C5] cursor-not-allowed'}`}
           >
-            {!subscription && <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />} Call
+            {subscription ? <Phone className="w-4 h-4 sm:w-[18px] sm:h-[18px]" /> : <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+            <span className="truncate">Call</span>
           </button>
         </div>
 

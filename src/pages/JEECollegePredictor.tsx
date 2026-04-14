@@ -400,7 +400,7 @@ export default function JEECollegePredictor() {
                       Shift Level
                     </label>
                     <Select value={shiftLevel} onValueChange={setShiftLevel}>
-                      <SelectTrigger className="w-full h-12 border border-[#13097D66] rounded-xl text-base text-gray-800 bg-white focus:ring-2 focus:ring-blue-100 focus:border-[#2F43F2]">
+                      <SelectTrigger className="w-full h-12 border border-[#13097D66] rounded-xl text-base text-gray-800 bg-white focus:ring-2 focus:ring-blue-100 focus:border-[#2F43F2] cursor-pointer">
                         <SelectValue placeholder="Select shift level" />
                       </SelectTrigger>
                       <SelectContent>
@@ -417,7 +417,7 @@ export default function JEECollegePredictor() {
                       Category
                     </label>
                     <Select value={category} onValueChange={setCategory}>
-                      <SelectTrigger className="w-full h-12 border border-[#13097D66] rounded-xl text-base text-gray-800 bg-white focus:ring-2 focus:ring-blue-100 focus:border-[#2F43F2]">
+                      <SelectTrigger className="w-full h-12 border border-[#13097D66] rounded-xl text-base text-gray-800 bg-white focus:ring-2 focus:ring-blue-100 focus:border-[#2F43F2] cursor-pointer">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
@@ -436,7 +436,7 @@ export default function JEECollegePredictor() {
                       Quota
                     </label>
                     <Select value={quota} onValueChange={setQuota}>
-                      <SelectTrigger className="w-full h-12 border border-[#13097D66] rounded-xl text-base text-gray-800 bg-white focus:ring-2 focus:ring-blue-100 focus:border-[#2F43F2]">
+                      <SelectTrigger className="w-full h-12 border border-[#13097D66] rounded-xl text-base text-gray-800 bg-white focus:ring-2 focus:ring-blue-100 focus:border-[#2F43F2] cursor-pointer">
                         <SelectValue placeholder="Select quota" />
                       </SelectTrigger>
                       <SelectContent>
@@ -452,7 +452,7 @@ export default function JEECollegePredictor() {
                       Pool
                     </label>
                     <Select value={pool} onValueChange={setPool}>
-                      <SelectTrigger className="w-full h-12 border border-[#13097D66] rounded-xl text-base text-gray-800 bg-white focus:ring-2 focus:ring-blue-100 focus:border-[#2F43F2]">
+                      <SelectTrigger className="w-full h-12 border border-[#13097D66] rounded-xl text-base text-gray-800 bg-white focus:ring-2 focus:ring-blue-100 focus:border-[#2F43F2] cursor-pointer">
                         <SelectValue placeholder="Select pool" />
                       </SelectTrigger>
                       <SelectContent>
@@ -844,7 +844,7 @@ export default function JEECollegePredictor() {
                     Shift Level
                   </label>
                   <Select value={shiftLevel} onValueChange={setShiftLevel}>
-                    <SelectTrigger className="w-full h-12 border border-[#13097D66] rounded-xl text-base text-gray-800 bg-white focus:ring-2 focus:ring-blue-100 focus:border-[#2F43F2]">
+                    <SelectTrigger className="w-full h-12 border border-[#13097D66] rounded-xl text-base text-gray-800 bg-white focus:ring-2 focus:ring-blue-100 focus:border-[#2F43F2] cursor-pointer">
                       <SelectValue placeholder="Select shift level" />
                     </SelectTrigger>
                     <SelectContent>
@@ -861,7 +861,7 @@ export default function JEECollegePredictor() {
                     Category
                   </label>
                   <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger className="w-full h-12 border border-[#13097D66] rounded-xl text-base text-gray-800 bg-white focus:ring-2 focus:ring-blue-100 focus:border-[#2F43F2]">
+                    <SelectTrigger className="w-full h-12 border border-[#13097D66] rounded-xl text-base text-gray-800 bg-white focus:ring-2 focus:ring-blue-100 focus:border-[#2F43F2] cursor-pointer">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -880,7 +880,7 @@ export default function JEECollegePredictor() {
                     Quota
                   </label>
                   <Select value={quota} onValueChange={setQuota}>
-                    <SelectTrigger className="w-full h-12 border border-[#13097D66] rounded-xl text-base text-gray-800 bg-white focus:ring-2 focus:ring-blue-100 focus:border-[#2F43F2]">
+                    <SelectTrigger className="w-full h-12 border border-[#13097D66] rounded-xl text-base text-gray-800 bg-white focus:ring-2 focus:ring-blue-100 focus:border-[#2F43F2] cursor-pointer">
                       <SelectValue placeholder="Select quota" />
                     </SelectTrigger>
                     <SelectContent>
@@ -896,7 +896,7 @@ export default function JEECollegePredictor() {
                     Pool
                   </label>
                   <Select value={pool} onValueChange={setPool}>
-                    <SelectTrigger className="w-full h-12 border border-[#13097D66] rounded-xl text-base text-gray-800 bg-white focus:ring-2 focus:ring-blue-100 focus:border-[#2F43F2]">
+                    <SelectTrigger className="w-full h-12 border border-[#13097D66] rounded-xl text-base text-gray-800 bg-white focus:ring-2 focus:ring-blue-100 focus:border-[#2F43F2] cursor-pointer">
                       <SelectValue placeholder="Select pool" />
                     </SelectTrigger>
                     <SelectContent>

@@ -1,5 +1,13 @@
 import { useState, type ReactNode } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  SelectGroup,
+} from "@/components/ui/select";
 
 type SortOption = {
   value: string;
@@ -80,19 +88,22 @@ export default function ListingShell({
                     />
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-(--text-main)">Sort by:</span>
-                    <select
-                      value={sortValue}
-                      onChange={(e) => onSortChange(e.target.value)}
-                      className="h-10 rounded-md border border-[#D6DCE5] bg-white px-3 text-sm font-medium text-(--text-main) outline-none"
-                    >
-                      {sortOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-[#525055]">Sort by:</span>
+                    <Select value={sortValue} onValueChange={onSortChange}>
+                      <SelectTrigger className="h-12 w-[170px] bg-white rounded-lg border border-transparent hover:border-gray-200 outline-none focus:ring-0 font-[Poppins] font-medium text-sm text-[#525055] shadow-none cursor-pointer">
+                        <SelectValue placeholder={sortOptions[0]?.label ?? "Sort"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {sortOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value} className="font-[Poppins] cursor-pointer">
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
@@ -123,17 +134,20 @@ export default function ListingShell({
 
               <div className="mb-4 rounded-lg border border-[#E5E7EB] bg-white p-3">
                 <label className="mb-2 block text-sm font-semibold text-(--text-main)">Sort by</label>
-                <select
-                  value={sortValue}
-                  onChange={(e) => onSortChange(e.target.value)}
-                  className="h-9 w-full rounded-md border border-[#D6DCE5] bg-white px-2 text-sm font-medium text-(--text-main) outline-none"
-                >
-                  {sortOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                <Select value={sortValue} onValueChange={onSortChange}>
+                  <SelectTrigger className="h-9 w-full rounded-md border border-[#D6DCE5] bg-white px-2 text-sm font-medium text-(--text-main) outline-none cursor-pointer">
+                    <SelectValue placeholder={sortOptions[0]?.label ?? "Sort"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {sortOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value} className="font-[Poppins] cursor-pointer">
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </div>
 
               {sidebar}

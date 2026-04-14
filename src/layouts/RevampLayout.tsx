@@ -9,6 +9,7 @@ import { useAuthStore } from "@/store/AuthStore";
 import { useChatStore } from "@/store/ChatStore";
 import Chatbot from "@/components/chatbot/Chatbot";
 import Lottie from "lottie-react";
+import EnquiryPopup from "@/components/Revamp/shared/EnquiryPopup";
 
 export default function RevampLayout() {
     const { isLoginToggle, role, user, isAuthenticated } = useAuthStore();
@@ -53,6 +54,7 @@ export default function RevampLayout() {
             <Outlet />
         </div>
         <Footer />
+        <EnquiryPopup />
         
         {isLoginToggle && <LoginCard />}
         <Toaster 

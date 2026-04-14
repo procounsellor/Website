@@ -13,22 +13,26 @@ import type {
 const { baseUrl } = API_CONFIG;
 
 export async function getQuestionsList(
-  loggedInUserId: string,
-  token: string,
+  loggedInUserId?: string,
+  token?: string,
   pageToken?: string | null
 ): Promise<GetQuestionsListResponse> {
   try {
-    let url = `${baseUrl}${API_CONFIG.endpoints.getQuestionsList}?loggedInUserId=${loggedInUserId}`;
+    let url = `${baseUrl}${API_CONFIG.endpoints.getQuestionsList}`;
+    const params = new URLSearchParams();
+    if (loggedInUserId) params.set('loggedInUserId', loggedInUserId);
     
-    if (pageToken) {
-      url += `&nextPageToken=${pageToken}`;
-    }
+    if (pageToken) params.set('nextPageToken', pageToken);
+    const query = params.toString();
+    if (query) url += `?${query}`;
+
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
 
     const response = await fetch(url, {
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
+      headers,
     });
 
     if (!response.ok) {
@@ -47,21 +51,25 @@ export async function getQuestionsList(
 }
 
 export async function getCommunityDashboard(
-  userId: string,
-  token: string,
+  userId?: string,
+  token?: string,
   pageToken?: string | null
 ): Promise<GetCommunityDashboardResponse> {
   try {
-    let url = `${baseUrl}${API_CONFIG.endpoints.getCommunityDashboard}?userId=${userId}`;
-    if (pageToken) {
-      url += `&nextPageToken=${pageToken}`;
-    }
+    let url = `${baseUrl}${API_CONFIG.endpoints.getCommunityDashboard}`;
+    const params = new URLSearchParams();
+    if (userId) params.set('userId', userId);
+    if (pageToken) params.set('nextPageToken', pageToken);
+    const query = params.toString();
+    if (query) url += `?${query}`;
+
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
 
     const response = await fetch(url, {
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
+      headers,
     });
 
     if (!response.ok) {
@@ -81,25 +89,29 @@ export async function getCommunityDashboard(
 
 export async function getAllAnswersForSpecificQuestion(
   questionId: string,
-  loggedInUserId: string,
-  token: string,
+  loggedInUserId?: string,
+  token?: string,
   role: string = 'user'
 ): Promise<GetAllAnswersResponse> {
   try {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const body: Record<string, string> = {
+      questionId,
+      role,
+    };
+    if (loggedInUserId) body.loggedInUserId = loggedInUserId;
+
     const response = await fetch(
       `${baseUrl}${API_CONFIG.endpoints.getAllAnswersForQuestion}`,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          questionId,
-          loggedInUserId,
-          role,
-        }),
+        headers,
+        body: JSON.stringify(body),
       }
     );
 
@@ -208,17 +220,22 @@ export async function postAnswer(
 
 export async function getCommentsForAnswer(
   answerId: string,
-  loggedInUserId: string,
-  token: string
+  loggedInUserId?: string,
+  token?: string
 ): Promise<GetCommentsResponse> {
   try {
+    const params = new URLSearchParams({ answerId });
+    if (loggedInUserId) params.set('loggedInUserId', loggedInUserId);
+
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     const response = await fetch(
-      `${baseUrl}${API_CONFIG.endpoints.getComments}?loggedInUserId=${loggedInUserId}&answerId=${answerId}`,
+      `${baseUrl}${API_CONFIG.endpoints.getComments}?${params.toString()}`,
       {
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+        headers,
       }
     );
     if (!response.ok) throw new Error('Failed to fetch comments');
@@ -231,17 +248,22 @@ export async function getCommentsForAnswer(
 
 export async function getRepliesForComment(
   commentId: string,
-  loggedInUserId: string,
-  token: string
+  loggedInUserId?: string,
+  token?: string
 ): Promise<GetRepliesResponse> {
   try {
+    const params = new URLSearchParams({ commentId });
+    if (loggedInUserId) params.set('loggedInUserId', loggedInUserId);
+
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     const response = await fetch(
-      `${baseUrl}${API_CONFIG.endpoints.getReplies}?loggedInUserId=${loggedInUserId}&commentId=${commentId}`,
+      `${baseUrl}${API_CONFIG.endpoints.getReplies}?${params.toString()}`,
       {
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+        headers,
       }
     );
     if (!response.ok) throw new Error('Failed to fetch replies');
@@ -678,17 +700,22 @@ export async function updateAnswer(
 
 export async function getAnswersByQuestionId(
   questionId: string,
-  loggedInUserId: string,
-  token: string
+  loggedInUserId?: string,
+  token?: string
 ): Promise<GetAllAnswersResponse> {
   try {
+    const params = new URLSearchParams({ questionId });
+    if (loggedInUserId) params.set('loggedInUserId', loggedInUserId);
+
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     const response = await fetch(
-      `${baseUrl}${API_CONFIG.endpoints.getAnswersByQuestionId}?questionId=${questionId}&loggedInUserId=${loggedInUserId}`,
+      `${baseUrl}${API_CONFIG.endpoints.getAnswersByQuestionId}?${params.toString()}`,
       {
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+        headers,
       }
     );
 
@@ -780,19 +807,23 @@ export async function updateQuestion(
 }
 
 export async function searchCommunityQuestions(
-  userId: string,
+  userId: string | undefined,
   searchTerm: string,
-  token: string
+  token?: string
 ): Promise<GetCommunityDashboardResponse> {
   try {
-    const url = `${baseUrl}${API_CONFIG.endpoints.getCommunityDashboard}/search?userId=${userId}&search=${encodeURIComponent(searchTerm)}`;
+    const params = new URLSearchParams({ search: searchTerm });
+    if (userId) params.set('userId', userId);
+    const url = `${baseUrl}${API_CONFIG.endpoints.getCommunityDashboard}/search?${params.toString()}`;
+
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
 
     const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
+      headers,
     });
 
     if (!response.ok) {
@@ -811,19 +842,23 @@ export async function searchCommunityQuestions(
 }
 
 export async function searchQuestionsList(
-  loggedInUserId: string,
+  loggedInUserId: string | undefined,
   searchTerm: string,
-  token: string
+  token?: string
 ): Promise<GetQuestionsListResponse> {
   try {
-    const url = `${baseUrl}${API_CONFIG.endpoints.getQuestionsList}/search?loggedInUserId=${loggedInUserId}&search=${encodeURIComponent(searchTerm)}`;
+    const params = new URLSearchParams({ search: searchTerm });
+    if (loggedInUserId) params.set('loggedInUserId', loggedInUserId);
+    const url = `${baseUrl}${API_CONFIG.endpoints.getQuestionsList}/search?${params.toString()}`;
+
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
 
     const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
+      headers,
     });
 
     if (!response.ok) {
