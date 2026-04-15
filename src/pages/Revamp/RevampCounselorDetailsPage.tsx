@@ -8,7 +8,6 @@ import {
   isManualSubscriptionRequest,
   postReview,
   getReviewsByCounselorId,
-  getReviewsForCounselor,
 } from '@/api/counsellor';
 import { updateUserProfile } from '@/api/user';
 import { updateUserReview } from '@/api/review';
@@ -62,29 +61,6 @@ export default function RevampCounselorDetailsPage() {
 
   const isCurrentUserCounselor = (role as string) === 'counselor';
 
-  const fetchPublicReviews = async () => {
-    if (!computedId) return;
-    try {
-      const publicReviews = await getReviewsForCounselor(computedId, token || '');
-      // Transform ApiReviewReceived to CounselorReview
-      const transformedReviews: CounselorReview[] = publicReviews.map(review => ({
-        reviewId: review.reviewId,
-        userFullName: review.userFullName,
-        userPhotoUrl: review.userPhotoUrl || '',
-        reviewText: review.reviewText,
-        rating: review.rating,
-        timestamp: review.timestamp,
-        userName: review.userName,
-      }));
-      setReviews(transformedReviews);
-      setUserReview(null);
-    } catch (err) {
-      console.error('Failed to fetch public reviews:', err);
-      setReviews([]);
-      setUserReview(null);
-    }
-  };
-
   useEffect(() => {
     unlockScroll();
   }, []);
@@ -97,9 +73,9 @@ export default function RevampCounselorDetailsPage() {
   }, [user, computedId]);
 
   const fetchReviews = async () => {
-    if (!userId || !computedId || !token) return;
+    if (!computedId) return;
     try {
-      const fetchedReviews = await getReviewsByCounselorId(userId, computedId, token);
+      const fetchedReviews = await getReviewsByCounselorId(computedId);
       setReviews(fetchedReviews);
       
       if (userId && !isCurrentUserCounselor) {
@@ -127,19 +103,23 @@ export default function RevampCounselorDetailsPage() {
 
         if (!userId || !token) {
           setSubscriptionDetails(null);
-          await fetchPublicReviews();
+          const fetchedReviews = await getReviewsByCounselorId(computedId);
+          setReviews(fetchedReviews);
+          setUserReview(null);
           return;
         }
 
         if (isCurrentUserCounselor) {
           setSubscriptionDetails(null);
-          await fetchPublicReviews();
+          const fetchedReviews = await getReviewsByCounselorId(computedId);
+          setReviews(fetchedReviews);
+          setUserReview(null);
           return;
         }
 
         const results = await Promise.allSettled([
           getSubscribedCounsellors(userId, token),
-          getReviewsByCounselorId(userId, computedId, token)
+          getReviewsByCounselorId(computedId)
         ]);
 
         // Handle Subscription

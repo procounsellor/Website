@@ -40,23 +40,31 @@ export async function getSubscribedCounsellors(userId: string, token: string): P
   }
 }
 
-export async function getReviewsByCounselorId(userId: string, counsellorId: string, token: string): Promise<CounselorReview[]> {
+export async function getReviewsByCounselorId(counsellorId: string): Promise<CounselorReview[]> {
   try {
-    const response = await fetch(`${baseUrl}/api/user/getAllReviewsReceivedByCounsellor?userId=${userId}&counsellorId=${counsellorId}`, {
+    const response = await fetch(`${baseUrl}/api/shared/getAllReviewsReceivedByCounsellor?counsellorId=${counsellorId}`, {
       headers: {
         'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`
       }
     });
     if (!response.ok) {
       throw new Error('Failed to fetch counselor reviews');
     }
     const result = await response.json();
-    if (result.status === 'success' && Array.isArray(result.data)) {
-      return result.data;
-    } else {
-      throw new Error(result.message || 'Invalid API response structure.');
+
+    // Backward/forward compatible parsing:
+    // 1) legacy array response
+    // 2) wrapped response { data: [...], status: 'success' }
+    // 3) wrapped response { data: [...], success: true, count: n }
+    if (Array.isArray(result)) {
+      return result;
     }
+
+    if (result && Array.isArray(result.data)) {
+      return result.data;
+    }
+
+    return [];
   } catch (error) {
     console.error("Get Reviews by Counselor ID Error:", error);
     throw error;

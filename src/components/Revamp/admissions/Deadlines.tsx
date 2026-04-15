@@ -29,7 +29,7 @@ export default function CollegeSection() {
 
   return (
     <div className="bg-[#C6DDF040] w-full py-6 md:py-[60px]">
-      <div className="max-w-[1440px] mx-auto px-4 md:px-[60px]">
+      <div className="max-w-7xl mx-auto px-4 md:px-8">
         
         {/* Mobile Header */}
         <div className="md:hidden flex flex-col items-start justify-start gap-[12px] mb-6">
@@ -59,9 +59,12 @@ export default function CollegeSection() {
 
         {/* Loading, Error, and Empty States */}
         {isLoading ? (
-          <div className="flex gap-[12px] md:gap-6 mb-6 md:mb-8 overflow-x-auto flex-nowrap md:flex-wrap md:overflow-visible justify-start md:justify-center [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-2 animate-pulse">
+          <div className="flex gap-3 md:gap-6 mb-6 md:mb-8 overflow-x-auto flex-nowrap justify-start [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-2 snap-x snap-mandatory animate-pulse">
             {Array.from({ length: 4 }).map((_, idx) => (
-              <div key={`deadline-skeleton-${idx}`} className="shrink-0 w-[250px] md:w-[300px] h-[210px] rounded-[20px] bg-white/80" />
+              <div
+                key={`deadline-skeleton-${idx}`}
+                className="shrink-0 snap-start w-[165px] min-[400px]:w-[185px] sm:w-[200px] md:w-[312px] h-[210px] md:h-[322px] rounded-[20px] bg-white/80"
+              />
             ))}
           </div>
         ) : isError ? (
@@ -74,9 +77,12 @@ export default function CollegeSection() {
           </div>
         ) : (
           /* Dynamic Data Render */
-          <div className="flex gap-[12px] md:gap-6 mb-6 md:mb-8 overflow-x-auto flex-nowrap md:flex-wrap md:overflow-visible justify-start md:justify-center [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-2">
+          <div className="flex gap-3 md:gap-6 mb-6 md:mb-8 overflow-x-auto flex-nowrap justify-start [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-2 snap-x snap-mandatory">
             {displayEvents.map((event: EventItem, index: number) => (
-              <div key={event.id} className="shrink-0">
+              <div
+                key={event.id}
+                className="shrink-0 snap-start w-[165px] min-[400px]:w-[185px] sm:w-[200px] md:w-[312px]"
+              >
                 <FancyCard
                   id={event.id}
                   examName={event.title}

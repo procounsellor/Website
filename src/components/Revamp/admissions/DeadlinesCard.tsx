@@ -23,7 +23,6 @@ export default function DeadlinesCard({ id, examName, deadline, details, isWhite
       onClick={() => navigate(`/admissions/deadlines/${id}`)}
       role="button"
       tabIndex={0}
-      // UPDATED: Smooth responsive sizing for mobile, strict 312x322 for desktop
       className="relative cursor-pointer w-[165px] h-[200px] min-[400px]:w-[185px] min-[400px]:h-[210px] sm:w-[200px] sm:h-[220px] md:w-[312px] md:h-[322px] shrink-0 group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

@@ -34,9 +34,9 @@ function RatingStars({ rating }: { rating: number }) {
 export default function StoriesCard({ active, story }: { active: boolean; story: StoryItem }) {
   return (
     <div
-      className={`relative shrink-0 w-[290px] h-[181px] md:w-auto md:h-auto ${active ? "md:min-h-[362px]" : "md:min-h-[317px]"} ${active ? "md:max-w-[498px]" : "md:max-w-[370px]"}
+      className={`relative shrink-0 w-[290px] h-[181px] md:w-auto md:h-auto ${active ? "md:min-h-[320px] xl:min-h-[362px]" : "md:min-h-[286px] xl:min-h-[317px]"} ${active ? "md:max-w-[420px] xl:max-w-[498px]" : "md:max-w-[320px] xl:max-w-[370px]"}
     ${active ? "bg-[#0E1629] md:bg-(--text-main)" : "bg-white"} rounded-[15px]
-    md:py-9 md:px-4 flex flex-col md:gap-[30px]
+    md:py-7 xl:py-9 md:px-4 flex flex-col md:gap-5 xl:gap-[30px]
     `}
     >
       {/* --- MOBILE VIEW --- */}
@@ -63,11 +63,11 @@ export default function StoriesCard({ active, story }: { active: boolean; story:
 
       <div className="hidden md:flex justify-between w-full">
         <div className="flex items-center gap-4">
-          <img src={story.image} alt={story.name} className={`${active ? "h-20 w-20" : "w-[75px] h-[75px]"} rounded-full object-cover`}/>
+          <img src={story.image} alt={story.name} className={`${active ? "h-[72px] w-[72px] xl:h-20 xl:w-20" : "w-[64px] h-[64px] xl:w-[75px] xl:h-[75px]"} rounded-full object-cover`}/>
 
           <div className="flex flex-col">
-            <h1 className={`${active ? "text-[30px] text-white": "text-[22.5px] text-(--text-main) " } font-semibold`}>{story.name}</h1>
-            <p className={`${active ? "text-white text-[22px]" : "text-(--text-muted) text-[15px]"} font-normal`}>{story.role}</p>
+            <h1 className={`${active ? "text-[24px] xl:text-[30px] text-white": "text-[20px] xl:text-[22.5px] text-(--text-main) " } font-semibold`}>{story.name}</h1>
+            <p className={`${active ? "text-white text-[17px] xl:text-[22px]" : "text-(--text-muted) text-[14px] xl:text-[15px]"} font-normal`}>{story.role}</p>
           </div>
         </div>
 
@@ -77,8 +77,8 @@ export default function StoriesCard({ active, story }: { active: boolean; story:
       </div>
 
       <div className="hidden md:flex flex-col gap-4 items-center w-full">
-        <h1 className={`${active ? "text-2xl text-white": "text-(--text-main) text-[22.5px]"} font-medium`}>It was a very good experience</h1>
-        <p className={`text-center ${active ? "text-white text-[1rem]" : "text-sm text-(--text-muted)"} font-normal`}>{story.text}</p>
+        <h1 className={`${active ? "text-[21px] xl:text-2xl text-white": "text-(--text-main) text-[19px] xl:text-[22.5px]"} font-medium`}>It was a very good experience</h1>
+        <p className={`text-center ${active ? "text-white text-[14px] xl:text-[1rem]" : "text-[13px] xl:text-sm text-(--text-muted)"} font-normal`}>{story.text}</p>
       </div>
     </div>
   );

@@ -73,7 +73,7 @@ export default function CounsellorSection() {
 
     return (
         <div className="bg-[#C6DDF040] w-full py-6 md:py-8">
-            <div className="max-w-[1440px] mx-auto px-4 md:px-[60px]">
+            <div className="max-w-7xl mx-auto px-4 md:px-8">
                 {/* Heading Layout */}
                 <div className="flex flex-col md:flex-row justify-between items-start mb-6 md:mb-10 gap-[12px] md:gap-0">
                     <div className="flex items-center justify-center gap-[8px] md:gap-2 bg-white px-[12px] md:px-3 py-[4px] md:py-1 rounded-[4px] md:rounded-md w-[125px] md:w-auto h-[26px] md:h-auto shrink-0">
@@ -113,10 +113,13 @@ export default function CounsellorSection() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="flex gap-[12px] md:gap-[25px] justify-start md:justify-center mb-6 min-h-[275px] md:min-h-[367px] items-start overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-2"
+                            className="flex gap-3 md:gap-[25px] justify-start mb-6 min-h-[275px] md:min-h-[367px] items-start overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-2 snap-x snap-mandatory"
                         >
                             {Array.from({ length: 5 }).map((_, idx) => (
-                                <div key={`counsellor-skeleton-${idx}`} className="shrink-0 w-[220px] md:w-[236px] h-[275px] md:h-[367px] rounded-[15px] bg-white/80 animate-pulse" />
+                                <div
+                                    key={`counsellor-skeleton-${idx}`}
+                                    className="shrink-0 snap-start w-[200px] md:w-[244px] h-[275px] md:h-[367px] rounded-[15px] bg-white/80 animate-pulse"
+                                />
                             ))}
                         </motion.div>
                     ) : isError ? (
@@ -145,10 +148,14 @@ export default function CounsellorSection() {
                             variants={containerVariants}
                             initial="hidden"
                             animate="visible"
-                            className="flex gap-[12px] md:gap-[25px] justify-start md:justify-center mb-6 min-h-[275px] md:min-h-[367px] items-start overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-2"
+                            className="flex gap-3 md:gap-[25px] justify-start mb-6 min-h-[275px] md:min-h-[367px] items-start overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-2 snap-x snap-mandatory"
                         >
                             {displayCounsellors.map((c: AllCounselor) => (
-                                <motion.div key={c.counsellorId} variants={cardVariants} className="shrink-0">
+                                <motion.div
+                                    key={c.counsellorId}
+                                    variants={cardVariants}
+                                    className="shrink-0 snap-start w-[200px] md:w-[244px]"
+                                >
                                     <FancyCard
                                         counsellorId={c.counsellorId}
                                         name={`${c.firstName} ${c.lastName}`}

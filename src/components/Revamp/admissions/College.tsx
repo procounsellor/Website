@@ -15,7 +15,7 @@ export default function College() {
 
   return (
     <div className="bg-[#C6DDF040] w-full py-6 md:py-[60px]">
-      <div className="max-w-[1440px] mx-auto px-4 md:px-[60px]">
+      <div className="max-w-7xl mx-auto px-4 md:px-8">
         
         {/* Header */}
         <div className="flex items-center justify-start gap-[8px] md:gap-2 bg-white px-[12px] md:px-3 py-[4px] md:py-1 rounded-[4px] md:rounded-md mb-6 w-[125px] md:w-fit shrink-0">
