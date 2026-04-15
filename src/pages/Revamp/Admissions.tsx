@@ -67,7 +67,7 @@ export default function Admissions() {
   ];
 
   const [splashPhase, setSplashPhase] = useState(hasSeenSplash ? 3 : 0);
-  const [animationPhase, setAnimationPhase] = useState(hasSeenSplash ? 4 : 0);
+  const animationPhase = 4;
 
   useEffect(() => {
     if (hasSeenSplash) return; // Skip animation if already seen this session
@@ -76,11 +76,7 @@ export default function Admissions() {
       setTimeout(() => setSplashPhase(1), 800),
       setTimeout(() => setSplashPhase(2), 1400),
       setTimeout(() => setSplashPhase(3), 3000),
-      setTimeout(() => setAnimationPhase(1), 3600),
-      setTimeout(() => setAnimationPhase(2), 4100),
-      setTimeout(() => setAnimationPhase(3), 4500),
       setTimeout(() => {
-        setAnimationPhase(4);
         sessionStorage.setItem('admissions-splash-seen', 'true');
       }, 4900),
     ];
@@ -88,9 +84,12 @@ export default function Admissions() {
     return () => timers.forEach(clearTimeout);
   }, [hasSeenSplash]);
 
+  const cardAnimate = animationPhase >= 4 ? { opacity: 1, y: 0, scale: 1 } : {};
+  const cardTransition = { duration: 0.55, ease: "easeOut" as const };
+
   return (
     <div className="min-h-screen">
-      <section className="hidden md:flex relative w-full h-[600px] flex items-center justify-center overflow-hidden">
+      <section className="hidden md:flex relative w-full h-[567px] flex items-center justify-center overflow-hidden">
         {/* Splash Screen */}
         <AnimatePresence>
           {splashPhase < 3 && (
@@ -150,13 +149,13 @@ export default function Admissions() {
 
         {/* Hero Section */}
         <div
-          className="text-center px-4 w-full h-[600px] bg-[#0e1629] flex items-center justify-center"
+          className="text-center xl-px-4 w-full h-[567px] bg-[#0e1629] flex items-center justify-center"
         >
-          <div className="max-w-[1440px] w-full h-full relative">
+          <div className="w-7xl h-full relative">
             {/* Header Text */}
-            <div className="absolute left-1/2 -translate-x-1/2 top-[42px] max-w-[818px] w-full px-4">
+            <div className="absolute left-1/2 -translate-x-1/2 top-[36px] max-w-[818px] w-full px-4">
               <motion.h1
-                initial={{ opacity: 0, y: 40 }}
+                initial={false}
                 animate={animationPhase >= 1 ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.7, ease: "easeOut" }}
                 className="text-white text-[40px] font-extrabold font-['Poppins'] mb-4 leading-tight"
@@ -164,7 +163,7 @@ export default function Admissions() {
                 Your personal Admission Expert
               </motion.h1>
               <motion.p
-                initial={{ opacity: 0, y: 30 }}
+                initial={false}
                 animate={animationPhase >= 2 ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.6, ease: "easeOut" }}
                 className="text-[#f5f5f5] text-[16px] font-medium font-['Poppins'] max-w-[753px] mx-auto"
@@ -176,23 +175,23 @@ export default function Admissions() {
             {/* CTA Button */}
             <motion.button
               onClick={() => navigateWithTabTransition("/counsellor-listing")}
-              initial={{ opacity: 0, scale: 0.8 }}
+              initial={false}
               animate={animationPhase >= 3 ? { opacity: 1, scale: 1 } : {}}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="absolute z-50 left-1/2 hover:cursor-pointer -translate-x-1/2 top-[186px] bg-[#2f43f2] hover:bg-[#2437d1] transition-colors text-white px-8 py-3 rounded-[48px] text-[16px] font-medium font-['Poppins']"
+              className="absolute z-50 left-1/2 hover:cursor-pointer -translate-x-1/2 top-[180px] bg-[#2f43f2] hover:bg-[#2437d1] transition-colors text-white px-8 py-3 rounded-[48px] text-[16px] font-medium font-['Poppins']"
             >
               Book Admission Counselling
             </motion.button>
 
             {/* Grid Cards */}
-            <div className="absolute inset-0 top-[174px] px-16">
+            <div className="absolute inset-0">
               {/* Admissions Card */}
               <motion.div
                 onClick={() => navigateWithTabTransition('/admissions')}
-                initial={{ opacity: 0, y: 120 }}
-                animate={animationPhase >= 4 ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.7, delay: 0, ease: "easeOut" }}
-                className="absolute left-16 top-0 w-[243px] h-[245px] bg-[#ffc8af] rounded-[28px] overflow-hidden cursor-pointer"
+                initial={false}
+                animate={cardAnimate}
+                transition={{ ...cardTransition, delay: 0 }}
+                className="absolute left-16 top-42.75 w-53 h-53.75 bg-[#ffc8af] rounded-[28px] overflow-hidden cursor-pointer"
               >
                 <img
                   src="/admissions/admission.svg"
@@ -217,10 +216,10 @@ export default function Admissions() {
               {/* About Us Card */}
               <motion.div
                 onClick={() => navigateWithTabTransition('/revamp-about')}
-                initial={{ opacity: 0, y: 120 }}
-                animate={animationPhase >= 4 ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
-                className="absolute left-16 top-[269px] w-[243px] h-[141px] bg-[#343C6A] rounded-[28px] cursor-pointer"
+                initial={false}
+                animate={cardAnimate}
+                transition={{ ...cardTransition, delay: 0.08 }}
+                className="absolute left-16 top-102.5 w-53 h-35.25 bg-[#343C6A] rounded-[28px] cursor-pointer"
               >
                 <div className="flex flex-col items-center justify-center h-full px-6">
                   <p className="text-[#FFFFFF] text-[24px] font-semibold font-['Poppins'] mb-2">About Us</p>
@@ -233,10 +232,10 @@ export default function Admissions() {
               {/* Courses Card */}
               <motion.div
                 onClick={() => navigateWithTabTransition('/courses')}
-                initial={{ opacity: 0, y: 120 }}
-                animate={animationPhase >= 4 ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.7, delay: 0.15, ease: "easeOut" }}
-                className="absolute left-[331px] top-[80px] w-[243px] h-[330px] rounded-[28px] overflow-hidden bg-gray-700 cursor-pointer"
+                initial={false}
+                animate={cardAnimate}
+                transition={{ ...cardTransition, delay: 0.14 }}
+                className="absolute left-74.5 top-66 w-53 h-71.75 rounded-[28px] overflow-hidden bg-gray-700 cursor-pointer"
               >
                 <img
                   src="/admissions/course.jpg"
@@ -261,10 +260,10 @@ export default function Admissions() {
               {/* Community Card */}
               <motion.div
                 onClick={() => navigateWithTabTransition('/community')}
-                initial={{ opacity: 0, y: 120 }}
-                animate={animationPhase >= 4 ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.7, delay: 0.25, ease: "easeOut" }}
-                className="absolute left-[598px] top-[146px] w-[243px] h-[264px] bg-[#10335e] rounded-[28px] cursor-pointer"
+                initial={false}
+                animate={cardAnimate}
+                transition={{ ...cardTransition, delay: 0.22 }}
+                className="absolute left-133.5 top-71.75 w-53 h-66 bg-[#10335e] rounded-[28px] cursor-pointer"
               >
                 <div className="flex flex-col items-center justify-center h-full px-6">
                   <p className="text-white text-[24px] font-semibold font-['Poppins'] mb-2">Community</p>
@@ -278,10 +277,10 @@ export default function Admissions() {
               {/* ProBuddies Card */}
               <motion.div
                 onClick={() => navigateWithTabTransition('/pro-buddies')}
-                initial={{ opacity: 0, y: 120 }}
-                animate={animationPhase >= 4 ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.7, delay: 0.35, ease: "easeOut" }}
-                className="absolute left-[865px] top-[80px] w-[243px] h-[330px] rounded-[28px] overflow-hidden bg-gray-700 cursor-pointer"
+                initial={false}
+                animate={cardAnimate}
+                transition={{ ...cardTransition, delay: 0.3 }}
+                className="absolute left-192.5 top-66 w-53 h-71.75 rounded-[28px] overflow-hidden bg-gray-700 cursor-pointer"
               >
                 <img
                   src="/admissions/pro.jpg"
@@ -306,10 +305,10 @@ export default function Admissions() {
               {/* Scholarships Card */}
               <motion.div
                 onClick={() => navigate('/admissions/deadlines')}
-                initial={{ opacity: 0, y: 120 }}
-                animate={animationPhase >= 4 ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.7, delay: 0.45, ease: "easeOut" }}
-                className="absolute right-16 top-[8px] w-[243px] h-[245px] bg-[#68aab8] rounded-[28px] overflow-hidden cursor-pointer"
+                initial={false}
+                animate={cardAnimate}
+                transition={{ ...cardTransition, delay: 0.38 }}
+                className="absolute lg:right-0 xl:right-16 top-42.75 w-53 h-53.75 bg-[#68aab8] rounded-[28px] overflow-hidden cursor-pointer"
               >
                 <img
                   src="/admissions/sch.png"
@@ -334,10 +333,10 @@ export default function Admissions() {
               {/* Bottom Right White Card */}
               <motion.div
                 onClick={() => navigate('/admissions/deadlines')}
-                initial={{ opacity: 0, y: 120 }}
-                animate={animationPhase >= 4 ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.7, delay: 0.55, ease: "easeOut" }}
-                className="absolute right-16 top-[269px] w-[243px] h-[141px] rounded-[28px] overflow-hidden bg-gray-700 cursor-pointer"
+                initial={false}
+                animate={cardAnimate}
+                transition={{ ...cardTransition, delay: 0.46 }}
+                className="absolute lg:right-0 xl:right-16 top-102.5 w-53 h-35.25 rounded-[28px] overflow-hidden bg-gray-700 cursor-pointer"
               >
                 <img
                   src="/admissions/deadline.svg"

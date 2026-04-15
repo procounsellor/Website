@@ -1,10 +1,16 @@
 import UserDetails from "@/components/Revamp/user-profile/UserDetails";
 import UserTabs from "@/components/Revamp/user-profile/UserTabs";
-import { useEffect } from "react";
+import EditProfileModal from "@/components/student-dashboard/EditProfileModal";
+import { updateUserProfile } from "@/api/user";
+import { useAuthStore } from "@/store/AuthStore";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function UserProfile(){
     const navigate = useNavigate();
+    const { user, userId, setUser, refreshUser } = useAuthStore();
+    const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
     useEffect(() => {
         const handleResize = () => {
@@ -16,6 +22,21 @@ export default function UserProfile(){
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, [navigate]);
+
+    const handleUpdateProfile = async (updatedData: { firstName: string; lastName: string; email: string }) => {
+        const token = localStorage.getItem("jwt");
+        if (!userId || !token) {
+            toast.error("Please log in again to update your profile.");
+            return;
+        }
+
+        await updateUserProfile(userId, updatedData, token);
+        const refreshedUser = await refreshUser(true);
+        if (refreshedUser) {
+            setUser(refreshedUser);
+        }
+        toast.success("Profile updated!");
+    };
 
     return (
         <div
@@ -42,10 +63,22 @@ export default function UserProfile(){
                 />
 
                 <div className="relative z-10 w-full mx-auto max-w-[1440px] px-4 md:px-30 flex flex-col md:flex-row justify-center items-center gap-6 text-center pb-12">
-                    <UserDetails/>
+                    <UserDetails onEditClick={() => setIsEditProfileOpen(true)} />
                     <UserTabs/>
                 </div>
             </section>
+
+            {user && (
+                <EditProfileModal
+                    user={user}
+                    isOpen={isEditProfileOpen}
+                    onClose={() => setIsEditProfileOpen(false)}
+                    onUpdate={handleUpdateProfile}
+                    onUploadComplete={() => {
+                        void refreshUser(true);
+                    }}
+                />
+            )}
         </div>
     );
 }

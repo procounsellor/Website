@@ -57,6 +57,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
   }, [blogItems, safeCategory]);
 
   const sectionBlogs = useMemo(() => blogItems.slice(0, 2), [blogItems]);
+  const showSectionSeeAll = sectionBlogs.length > 0;
 
   if (variant === "full") {
     return (
@@ -186,11 +187,13 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
           </div>
 
           {/* See All Button Section */}
-          <div className="flex items-center justify-end mt-2 md:mt-0 w-full">
-            <div className="scale-[0.85] md:scale-100 origin-center md:origin-right">
-              <SeeAllButton onClick={() => navigate("/admissions/blogs")} />
+          {showSectionSeeAll && (
+            <div className="flex items-center justify-end mt-2 md:mt-0 w-full">
+              <div className="scale-[0.85] md:scale-100 origin-center md:origin-right">
+                <SeeAllButton onClick={() => navigate("/admissions/blogs")} />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

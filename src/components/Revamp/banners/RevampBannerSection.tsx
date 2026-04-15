@@ -97,7 +97,7 @@ const RevampBannerSection = () => {
 
   return (
     <section className="w-full bg-[#C6DDF040] overflow-hidden">
-      <div className="max-w-[1440px] mx-auto py-10 md:py-20 px-40 md:px-[60px] flex flex-col items-center">
+      <div className="max-w-7xl mx-auto py-10 md:py-20 px-4 md:px-8 flex flex-col items-center">
         <div className="flex flex-col items-start md:items-center gap-6 md:gap-8 w-full">
 
           <div className="self-start box-border flex items-center gap-2 bg-white border border-gray-100 rounded-[6px] px-3 py-1 shadow-sm md:ml-0">
@@ -118,9 +118,9 @@ const RevampBannerSection = () => {
                 className="flex w-full overflow-x-auto snap-x snap-mandatory scroll-smooth gap-0 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
               >
                 {desktopSlides.map((slide) => (
-                  <div key={slide.id} className="w-full shrink-0 snap-start flex justify-center gap-6">
-                    <div className="w-full max-w-[648px] shrink-0">{slide.left}</div>
-                    <div className="w-full max-w-[648px] shrink-0">{slide.right}</div>
+                  <div key={slide.id} className="w-full shrink-0 snap-start grid grid-cols-2 gap-4 lg:gap-6">
+                    <div className="w-full min-w-0">{slide.left}</div>
+                    <div className="w-full min-w-0">{slide.right}</div>
                   </div>
                 ))}
               </div>

@@ -293,7 +293,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
                <button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full h-12 bg-[#FA660F] text-white font-semibold text-base rounded-xl hover:bg-orange-600 hover:cursor-pointer transition-colors disabled:bg-orange-300"
+                className="w-full h-12 bg-(--text-main) text-white font-semibold text-base rounded-xl hover:opacity-90 hover:cursor-pointer transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? 'Updating...' : 'Update Profile'}
                </button>
@@ -373,7 +373,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
                <button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-[50%] h-12 bg-[#FA660F] text-white font-semibold text-base rounded-xl hover:cursor-pointer hover:bg-orange-600 transition-colors"
+                className="w-[50%] h-12 bg-(--text-main) text-white font-semibold text-base rounded-xl hover:cursor-pointer hover:opacity-90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? 'Updating...' : 'Update Profile'}
                </button>
