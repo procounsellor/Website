@@ -26,6 +26,13 @@ export type ProBuddyListingFilters = {
   pageSize?: number;
 };
 
+export type CreateProBuddyCallRequestPayload = {
+  proBuddyId: string;
+  userId: string;
+  scheduledTime: string;
+  scheduledDate: string;
+};
+
 const getAuthToken = () => localStorage.getItem("jwt") || "";
 const getStoredUserId = () => localStorage.getItem("phone") || "";
 
@@ -366,6 +373,97 @@ export const postReview = async (params: PostReview) => {
   return data
 }
 
+export const getProBuddyByIdForProBuddy = async (proBuddyId: string) => {
+  if (!proBuddyId) {
+    throw new Error("proBuddyId is required");
+  }
+
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/proBuddy/getProBuddyByIdForProBuddy?proBuddyId=${encodeURIComponent(proBuddyId)}`,
+    {
+      method: "GET",
+      headers: {
+        ...getAuthHeaders(),
+        Accept: "application/json",
+      },
+    }
+  );
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || data.error || "Failed to get ProBuddy profile details");
+  }
+
+  return data;
+}
+
+export const getRequestsReceivedByProBuddy = async (proBuddyId: string) => {
+  if (!proBuddyId) {
+    throw new Error("proBuddyId is required");
+  }
+
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/proBuddy/getRequestsReceivedByProBuddy?proBuddyId=${encodeURIComponent(proBuddyId)}`,
+    {
+      method: "GET",
+      headers: {
+        ...getAuthHeaders(),
+        Accept: "application/json",
+      },
+    }
+  );
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || data.error || "Failed to get requests received by ProBuddy");
+  }
+
+  return data;
+};
+
+export const createProBuddyCallRequest = async (payload: CreateProBuddyCallRequestPayload) => {
+  const response = await fetch(`${API_CONFIG.baseUrl}/api/proBuddy/createProBuddyCallRequest`, {
+    method: "POST",
+    headers: {
+      ...getAuthHeaders(),
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || data.error || "Failed to create ProBuddy call request");
+  }
+
+  return data;
+};
+
+export const getAllReviewsReceivedByAProBuddyForProBuddy = async (proBuddyId: string) => {
+  if (!proBuddyId) {
+    throw new Error("proBuddyId is required");
+  }
+
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/proBuddy/getAllReviewsReceivedByAProBuddyForProBuddy?proBuddyId=${encodeURIComponent(proBuddyId)}`,
+    {
+      method: "GET",
+      headers: {
+        ...getAuthHeaders(),
+        Accept: "application/json",
+      },
+    }
+  );
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || data.error || "Failed to get ProBuddy reviews for ProBuddy");
+  }
+
+  return data;
+};
+
 
 
 
@@ -375,5 +473,9 @@ export const probuddiesApi = {
   listing: (userId: string | null, filters?: ProBuddyListingFilters) => getAllProBudddiesUser(userId, filters),
   profileUser: (userId: string | null, proBudddyId: string) => getProBuddyForUser(userId, proBudddyId),
   reviewsForUser: (proBuddyId: string) => getAllReviewsReceivedByAProBuddyForUser(proBuddyId),
-  postReview: (params: PostReview) => postReview(params)
+  postReview: (params: PostReview) => postReview(params),
+  profileForProBuddy: (proBuddyId: string) => getProBuddyByIdForProBuddy(proBuddyId),
+  requestsReceivedByProBuddy: (proBuddyId: string) => getRequestsReceivedByProBuddy(proBuddyId),
+  createCallRequest: (payload: CreateProBuddyCallRequestPayload) => createProBuddyCallRequest(payload),
+  reviewsForProBuddy: (proBuddyId: string) => getAllReviewsReceivedByAProBuddyForProBuddy(proBuddyId)
 }

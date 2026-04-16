@@ -49,11 +49,11 @@ const ProBuddyEarningsTab: React.FC = () => {
   };
 
   const EarningsSection = ({ heading }: { heading: string }) => (
-    <div className="flex flex-col mb-[24px] last:mb-0">
-      <h3 className="text-[20px] font-semibold text-[#0E1629] leading-none mb-[11px]">
+    <div className="flex flex-col mb-[20px] last:mb-0">
+      <h3 className="text-[18px] sm:text-[20px] font-semibold text-[#0E1629] leading-none mb-[11px]">
         {heading}
       </h3>
-      <div className="flex w-[404px] gap-[24px]">
+      <div className="flex flex-col sm:flex-row w-full sm:w-[404px] gap-3 sm:gap-[24px]">
         <EarningBlock title="Earnings" amount="230500" type="earnings" />
         <EarningBlock title="Payout" amount="154250" type="payout" />
       </div>
@@ -78,7 +78,7 @@ const ProBuddyEarningsTab: React.FC = () => {
   ];
 
   return (
-    <div className="pt-[24px] pl-[24px] font-poppins h-full">
+    <div className="pt-3 pl-3 pr-3 sm:pt-[24px] sm:pl-[24px] sm:pr-0 font-poppins h-full">
       
       <style>
         {`
@@ -92,14 +92,14 @@ const ProBuddyEarningsTab: React.FC = () => {
         `}
       </style>
 
-      <div className="flex gap-[12px] h-[30px] w-[235px] mb-[36px]">
+      <div className="flex gap-[12px] h-[30px] w-full sm:w-[235px] mb-[24px] sm:mb-[36px] overflow-hidden sm:overflow-visible">
         <button
           onClick={() => setActiveTab('Call Revenue')}
-          className={`flex items-center justify-center px-[16px] h-full rounded-[24px] cursor-pointer transition-colors text-nowrap ${
+          className={`flex items-center justify-center px-3 sm:px-[16px] h-full rounded-[24px] cursor-pointer transition-colors text-nowrap flex-1 sm:flex-none ${
             activeTab === 'Call Revenue' ? 'bg-[#E8E7F2]' : 'bg-transparent'
           }`}
         >
-          <span className={`text-[16px] font-medium leading-none ${
+          <span className={`text-[13px] sm:text-[16px] font-medium leading-none ${
             activeTab === 'Call Revenue' ? 'text-[#0E1629]' : 'text-[#6B7280]'
           }`}>
             Call Revenue
@@ -108,11 +108,11 @@ const ProBuddyEarningsTab: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('Payouts')}
-          className={`flex items-center justify-center px-[16px] h-full rounded-[24px] cursor-pointer transition-colors ${
+          className={`flex items-center justify-center px-3 sm:px-[16px] h-full rounded-[24px] cursor-pointer transition-colors flex-1 sm:flex-none ${
             activeTab === 'Payouts' ? 'bg-[#E8E7F2]' : 'bg-transparent'
           }`}
         >
-          <span className={`text-[16px] font-medium leading-none ${
+          <span className={`text-[13px] sm:text-[16px] font-medium leading-none ${
             activeTab === 'Payouts' ? 'text-[#0E1629]' : 'text-[#6B7280]'
           }`}>
             Payouts
@@ -123,29 +123,29 @@ const ProBuddyEarningsTab: React.FC = () => {
       <div key={activeTab} className="tab-transition w-full h-full">
         
         {activeTab === 'Call Revenue' ? (
-          <div className="flex gap-[40px]">
-            <div className="w-[404px] flex flex-col">
+          <div className="flex flex-col xl:flex-row gap-6 xl:gap-[40px]">
+            <div className="w-full xl:w-[404px] flex flex-col">
               <EarningsSection heading="Current Cycle Earnings" />
-              <hr className="w-[404px] border-[#E4E4E4] mb-[24px]" />
+              <hr className="w-full xl:w-[404px] border-[#E4E4E4] mb-[24px]" />
               <EarningsSection heading="This Year Earnings" />
-              <hr className="w-[404px] border-[#E4E4E4] mb-[24px]" />
+              <hr className="w-full xl:w-[404px] border-[#E4E4E4] mb-[24px]" />
               <EarningsSection heading="Lifetime Earnings" />
             </div>
 
             <div className="flex flex-col">
-              <h3 className="text-[20px] font-semibold text-[#0E1629] leading-none mb-[16px]">
+              <h3 className="text-[18px] sm:text-[20px] font-semibold text-[#0E1629] leading-none mb-[16px]">
                 Earnings Trend
               </h3>
               
-              <div className="w-[444px] h-[380px] rounded-[16px] border border-[#EFEFEF] bg-white relative">
-                <h4 className="absolute top-[18px] left-[18px] w-[103px] h-[24px] text-[18px] font-semibold text-[#0E1629] leading-none text-nowrap">
+              <div className="w-full xl:w-[444px] h-[320px] sm:h-[380px] rounded-[16px] border border-[#EFEFEF] bg-white relative overflow-hidden">
+                <h4 className="absolute top-[18px] left-[18px] w-[103px] h-[24px] text-[16px] sm:text-[18px] font-semibold text-[#0E1629] leading-none text-nowrap">
                   Current Slab
                 </h4>
 
-                <div className="absolute top-[56px] left-[18px] w-[412px] h-[52px] rounded-[12px] border border-[#EFEFEF] bg-[#F9FAFB] flex items-center justify-center gap-[12px]">
+                <div className="absolute top-[56px] left-[18px] right-[18px] h-[52px] rounded-[12px] border border-[#EFEFEF] bg-[#F9FAFB] flex items-center justify-center gap-[12px]">
                     <button
                       onClick={() => setSlabTab('Monthly')}
-                      className={`w-[180px] h-[41px] flex items-center justify-center cursor-pointer transition-colors ${
+                      className={`flex-1 h-[41px] flex items-center justify-center cursor-pointer transition-colors ${
                         slabTab === 'Monthly' 
                           ? 'bg-[#2F43F2] rounded-[8px] text-white font-semibold' 
                           : 'bg-transparent rounded-[10px] text-[#0E1629] font-medium'
@@ -156,7 +156,7 @@ const ProBuddyEarningsTab: React.FC = () => {
 
                     <button
                       onClick={() => setSlabTab('Yearly')}
-                      className={`w-[180px] h-[41px] flex items-center justify-center cursor-pointer transition-colors ${
+                      className={`flex-1 h-[41px] flex items-center justify-center cursor-pointer transition-colors ${
                         slabTab === 'Yearly' 
                           ? 'bg-[#2F43F2] rounded-[8px] text-white font-semibold' 
                           : 'bg-transparent rounded-[10px] text-[#0E1629] font-medium'
@@ -166,15 +166,15 @@ const ProBuddyEarningsTab: React.FC = () => {
                     </button>
                 </div>
 
-                <div className="absolute top-[140px] left-[18px] w-[412px] h-[220px] flex">
-                    <div className="w-[40px] h-[190px] flex flex-col justify-between items-end pr-[8px] text-[12px] text-[#B8B8B8] border-r border-dashed border-[#E5E5E5] relative z-10">
+                <div className="absolute top-[140px] left-[18px] right-[18px] h-[180px] sm:h-[220px] flex overflow-x-auto overflow-y-hidden pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    <div className="w-[40px] h-[190px] flex flex-col justify-between items-end pr-[8px] text-[12px] text-[#B8B8B8] border-r border-dashed border-[#E5E5E5] relative z-10 shrink-0">
                       <span>1500</span>
                       <span>1000</span>
                       <span>500</span>
                       <span>0</span>
                     </div>
 
-                    <div className="flex-grow h-[190px] relative flex items-end justify-between pl-[12px] pr-[8px] border-b border-dashed border-[#E5E5E5]">
+                    <div className="grow min-w-[412px] h-[190px] relative flex items-end justify-between pl-[12px] pr-[8px] border-b border-dashed border-[#E5E5E5]">
                       {mockChartData.map((data, index) => (
                         <div 
                           key={index} 
@@ -221,33 +221,33 @@ const ProBuddyEarningsTab: React.FC = () => {
             {mockPayouts.map((payout) => (
               <div 
                 key={payout.id} 
-                className="w-[639px] h-[75px] rounded-[16px] border border-[#EFEFEF] bg-white flex items-center px-[12px]"
+                className="w-full xl:w-[639px] h-auto xl:h-[75px] rounded-[16px] border border-[#EFEFEF] bg-white flex items-center px-[12px] py-3 xl:py-0"
               >
-                <div className="flex items-center justify-between w-full h-[40px] relative">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full h-auto sm:h-[40px] relative gap-3 sm:gap-0">
                   
-                  <div className="flex items-center gap-[8px]">
-                    <img src="/payouts.svg" alt="Payouts" className="w-[35px] h-[35px]" />
-                    <div className="w-[110px] flex flex-col justify-center">
+                  <div className="flex items-center gap-[8px] w-full sm:w-auto">
+                    <img src="/payouts.svg" alt="Payouts" className="w-[30px] h-[30px] sm:w-[35px] sm:h-[35px]" />
+                    <div className="flex-1 sm:w-[110px] flex flex-col justify-center min-w-0">
                       <span className="text-[12px] font-medium text-[#6B7280] leading-150% mb-[4px]">
                         Paid to
                       </span>
-                      <span className="text-[14px] font-semibold text-[#0E1629] leading-none">
+                      <span className="text-[13px] sm:text-[14px] font-semibold text-[#0E1629] leading-none truncate">
                         {payout.paidTo}
                       </span>
                     </div>
                   </div>
 
-                  <div className="absolute left-1/2 transform -translate-x-1/2 w-[110px] flex flex-col justify-center">
+                  <div className="w-full sm:absolute sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:w-[110px] flex flex-col justify-center">
                     <span className="text-[12px] font-medium text-[#6B7280] leading-150% mb-[4px]">
                       Transaction ID:
                     </span>
-                    <span className="text-[14px] font-semibold text-[#0E1629] leading-none">
+                    <span className="text-[13px] sm:text-[14px] font-semibold text-[#0E1629] leading-none truncate">
                       {payout.transactionId}
                     </span>
                   </div>
 
-                  <div className="flex flex-col items-end justify-center">
-                    <span className="text-[16px] font-medium text-[#28A745] leading-150% mb-[4px]">
+                  <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center w-full sm:w-auto">
+                    <span className="text-[15px] sm:text-[16px] font-medium text-[#28A745] leading-150% mb-0 sm:mb-[4px]">
                       {payout.amount}
                     </span>
                     <span className="text-[12px] font-medium text-[#6B7280] leading-none">

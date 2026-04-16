@@ -33,7 +33,7 @@ export default function Faq() {
 
     return (
         <div className="w-full bg-[#C6DDF040]">
-            <div className="max-w-[1440px] px-4 md:px-[60px] mx-auto py-6 md:py-10 flex flex-col gap-6 md:gap-8">
+            <div className="max-w-7xl px-4  mx-auto py-6 md:py-10 flex flex-col gap-6 md:gap-8">
                 
                 {/* Mobile Heading Layout (Matches other sections) */}
                 <div className="md:hidden flex items-center justify-start gap-[8px] bg-white px-[12px] py-[4px] rounded-[4px] w-fit shrink-0">

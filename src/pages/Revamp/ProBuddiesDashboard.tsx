@@ -50,15 +50,15 @@ const ProBuddiesDashboard: React.FC = () => {
         style={{ backgroundImage: "url('/imageClient.png')" }}
       />
 
-      <div className="max-w-[1440px] mx-auto relative px-[120px]">
+      <div className="max-w-7xl mx-auto relative px-4 sm:px-6 lg:px-10 xl:px-12">
 
-        <div className="flex flex-col md:flex-row gap-[24px] -mt-[120px]">
+        <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 xl:gap-[24px] -mt-20 sm:-mt-24 xl:-mt-[120px]">
 
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <ProBuddySidebar />
           </div>
 
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <ProBuddyMainContent />
           </div>
 
