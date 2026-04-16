@@ -39,13 +39,13 @@ export default function RevampLayout() {
         };
     }, []);
 
-    useEffect(() => {
-        if (isAuthenticated && role === 'proBuddy' && user && !user.verified) {
-            if (location.pathname !== '/pro-buddies/dashboard') {
-                navigate('/pro-buddies/dashboard', { replace: true });
-            }
-        }
-    }, [isAuthenticated, role, user, location.pathname, navigate]);
+    // useEffect(() => {
+    //     if (isAuthenticated && role === 'proBuddy' && user && !user.verified) {
+    //         if (location.pathname == '/pro-buddies/dashboard') {
+    //             navigate('/pro-buddies/dashboard', { replace: true });
+    //         }
+    //     }
+    // }, [isAuthenticated, role, user, location.pathname, navigate]);
 
     return <div className="flex flex-col min-h-screen relative">
         <RevampHeader />

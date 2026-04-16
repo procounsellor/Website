@@ -62,8 +62,8 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
   if (variant === "full") {
     return (
       <div className="bg-[#F3F7FF] w-full">
-        <div className="max-w-[1440px] mx-auto px-5 md:px-[60px] py-6 sm:py-10">
-          <div className="flex gap-3 sm:gap-6 md:gap-[40px] justify-start sm:justify-evenly mb-6 sm:mb-8 overflow-x-auto pb-1">
+        <div className="max-w-7xl mx-auto px-5  py-6 sm:py-10">
+          <div className="flex gap-3 sm:gap-6 md:gap-6 justify-start sm:justify-evenly mb-6 sm:mb-8 overflow-x-auto pb-1">
             {categories.map((category) => {
               const isActive = safeCategory === category;
               return (
@@ -83,9 +83,12 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
           </div>
 
           {isLoading && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 animate-pulse">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(308px,1fr))] justify-items-center gap-5 animate-pulse">
               {Array.from({ length: 8 }).map((_, idx) => (
-                <div key={`blog-full-skeleton-${idx}`} className="h-[260px] rounded-2xl bg-white/80" />
+                <div
+                  key={`blog-full-skeleton-${idx}`}
+                  className="w-full max-w-[308px] h-[260px] rounded-2xl bg-white/80"
+                />
               ))}
             </div>
           )}
@@ -108,7 +111,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
               No blogs in this category yet.
             </p>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(308px,1fr))] justify-items-center gap-5">
             {!isLoading &&
               !isError &&
               filteredBlogs.map((blog) => (
@@ -130,7 +133,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
 
   return (
     <div className="bg-[#C6DDF040] w-full h-full">
-      <div className="grid grid-cols-1 lg:grid-cols-2 max-w-[1440px] mx-auto px-4 md:px-[60px] py-6 md:py-10 gap-y-6 md:gap-y-8">
+      <div className="max-w-7xl grid grid-cols-1 lg:grid-cols-[45%_auto] md:gap-6 mx-auto px-4 md:px-6 py-6 md:py-10 gap-y-6 md:gap-y-8">
         <div>
           <div className="flex items-center justify-start gap-[8px] md:gap-2 bg-white px-[12px] md:px-3 py-[4px] md:py-1 rounded-[4px] md:rounded-[6px] w-[125px] md:w-fit shrink-0">
             <div className="w-[16px] h-[16px] min-w-[16px] min-h-[16px] md:w-4 md:h-4 bg-[#0E1629] shrink-0" />
@@ -146,7 +149,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
         </div>
 
         <div className="flex flex-col gap-6 md:gap-10.5">
-          <div className="flex gap-[12px] md:gap-9 overflow-x-auto md:flex-wrap md:overflow-visible [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-2 md:pb-0">
+          <div className="flex gap-[12px] md:gap-6 overflow-x-auto  md:overflow-visible [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-2 md:pb-0">
             
             {/* API States (From Current) */}
             {isLoading && (
