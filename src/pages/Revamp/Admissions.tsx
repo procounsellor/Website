@@ -364,10 +364,11 @@ export default function Admissions() {
           </div>
         </div>
       </section>
+      
+      <CounsellorSection />
       <div className="hidden md:block">
         <Timeline />
       </div>
-      <CounsellorSection />
       <RevampBannerSection />
       <College />
       <Deadlines />

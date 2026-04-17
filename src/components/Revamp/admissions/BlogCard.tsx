@@ -33,6 +33,11 @@ export default function BlogCard({ id, slug, title, author, readTime, imageUrl }
     }
   }, [imageUrl, hasImage]);
 
+  const handleAuthorNavigate = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    navigate(`/admissions/blog-authors/${encodeURIComponent(authorProfile.slug)}`);
+  };
+
   return (
     <div
       className="relative w-[200px] h-[260px] md:w-[308px] md:h-[331px] cursor-pointer shrink-0"
@@ -83,9 +88,13 @@ export default function BlogCard({ id, slug, title, author, readTime, imageUrl }
             <span className="text-[11px] md:text-[12px] text-[#5D6B82] font-medium">No image available</span>
           </div>
         )}
-        <h1 className={`font-[Poppins] font-medium text-[14px] md:text-[1rem] text-[#0E1629] md:text-(--text-main) line-clamp-3 leading-[1.3] md:leading-normal ${hasImage ? "mt-2.5" : "mt-0"}`}>{title}</h1>
+        <h1 className={`font-[Poppins] font-medium text-[14px] md:text-[1rem] text-[#0E1629] md:text-(--text-main) line-clamp-2 leading-[1.3] md:leading-normal ${hasImage ? "mt-2.5" : "mt-0"}`}>{title}</h1>
         <div className="mt-auto mb-[6px] md:mb-[6px]">
-          <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleAuthorNavigate}
+            className="inline-flex items-center gap-2 text-left cursor-pointer"
+          >
             <img
               src={authorImage}
               alt={authorProfile.name}
@@ -95,7 +104,7 @@ export default function BlogCard({ id, slug, title, author, readTime, imageUrl }
             <p className="font-[Poppins] text-[#6B7280] md:text-(--text-muted) font-medium text-[12px] md:text-[0.875rem] truncate">
               {authorProfile.name}
             </p>
-          </div>
+          </button>
           <p className="font-[Poppins] text-[#6B7280] md:text-(--text-muted) font-medium text-[10px] md:text-[0.75rem]">{readTime}</p>
         </div>
       </div>

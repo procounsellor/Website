@@ -128,7 +128,7 @@ export default function BlogsPageCard({
       <button
         type="button"
         onClick={handleAuthorNavigate}
-        className="flex items-center gap-1.5 text-left cursor-pointer"
+        className="inline-flex w-fit items-center gap-1.5 text-left cursor-pointer"
       >
         <img
           src={authorImage}
@@ -254,14 +254,14 @@ export default function BlogsPageCard({
             </span>
           </div>
 
-          <h2 className="mt-1.5 text-[16px] font-medium text-[#0E1629] leading-snug line-clamp-3">
+          <h2 className="mt-1.5 text-[16px] font-medium text-[#0E1629] leading-snug line-clamp-2">
             {title}
           </h2>
 
           <button
             type="button"
             onClick={handleAuthorNavigate}
-            className="mt-auto mb-[6px] flex items-center gap-2 text-left cursor-pointer"
+            className="mt-auto mb-[6px] inline-flex w-fit items-center gap-2 text-left cursor-pointer"
           >
             <img
               src={authorImage}

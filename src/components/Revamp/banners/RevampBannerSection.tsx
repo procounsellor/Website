@@ -97,7 +97,7 @@ const RevampBannerSection = () => {
 
   return (
     <section className="w-full bg-[#C6DDF040] overflow-hidden">
-      <div className="max-w-7xl mx-auto py-10 md:py-20 px-4 md:px-8 flex flex-col items-center">
+      <div className="max-w-7xl mx-auto py-10 md:py-8 px-4 md:px-8 flex flex-col items-center">
         <div className="flex flex-col items-start md:items-center gap-6 md:gap-8 w-full">
 
           <div className="self-start box-border flex items-center gap-2 bg-white border border-gray-100 rounded-[6px] px-3 py-1 shadow-sm md:ml-0">

@@ -106,7 +106,7 @@ export default function BlogAuthorProfilePage() {
         ) : authorBlogs.length === 0 ? (
           <p className="text-[#6B7280] text-[14px]">No articles published yet.</p>
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(308px,1fr))] justify-items-center gap-5">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(308px,308px))] justify-center gap-5">
             {authorBlogs.map((blog) => (
               <BlogsPageCard
                 key={blog.id}

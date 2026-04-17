@@ -51,16 +51,16 @@ export default function EnquiryPopup() {
       <button
         type="button"
         onClick={() => setIsVisible(true)}
-        className="hidden md:flex fixed right-0 top-1/2 -translate-y-1/2 z-40 h-12 px-4 rounded-l-xl bg-[#0E1629] text-white font-poppins text-[13px] font-semibold cursor-pointer shadow-[0_10px_25px_rgba(14,22,41,0.3)] hover:bg-[#1a2645]"
+        className="hidden md:flex fixed right-0 top-1/2 -translate-y-1/2 z-40 h-40 w-12 items-center justify-center rounded-l-2xl bg-[#0E1629] text-white font-poppins text-[13px] font-semibold tracking-[0.08em] cursor-pointer shadow-[-10px_10px_25px_rgba(14,22,41,0.3)] transition-colors hover:bg-[#1a2645]"
       >
-        Enquiry
+        <span className="rotate-270 whitespace-nowrap">Enquiry</span>
       </button>
 
       {isVisible && (
         <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center bg-[#0E1629]/35 backdrop-blur-[2px]">
-          <div className="w-[380px] rounded-2xl border border-[#DDE3F0] bg-white shadow-[0_24px_54px_rgba(14,22,41,0.25)] overflow-hidden">
-            <div className="flex items-center justify-between bg-[#0E1629] px-4 py-3">
-              <h3 className="font-poppins text-[16px] font-semibold text-white">
+          <div className="w-107.5 rounded-2xl border border-[#DDE3F0] bg-white shadow-[0_24px_54px_rgba(14,22,41,0.25)] overflow-hidden">
+            <div className="flex items-center justify-between bg-[#0E1629] px-5 py-4">
+              <h3 className="font-poppins text-[17px] font-semibold text-white">
                 Quick Enquiry
               </h3>
               <button
@@ -73,8 +73,8 @@ export default function EnquiryPopup() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-3 p-4">
-              <p className="font-poppins text-[13px] text-[#6B7280]">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-5">
+              <p className="font-poppins text-[14px] text-[#6B7280]">
                 Share your details and our team will contact you shortly.
               </p>
 
@@ -84,7 +84,7 @@ export default function EnquiryPopup() {
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 placeholder="Your name"
-                className="h-11 rounded-xl border border-[#E5E7EB] px-3 font-poppins text-[14px] outline-none focus:border-[#2F43F2]"
+                className="h-12 rounded-xl border border-[#E5E7EB] px-4 font-poppins text-[14px] outline-none focus:border-[#2F43F2]"
               />
 
               <input
@@ -93,7 +93,7 @@ export default function EnquiryPopup() {
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
                 placeholder="Phone number"
-                className="h-11 rounded-xl border border-[#E5E7EB] px-3 font-poppins text-[14px] outline-none focus:border-[#2F43F2]"
+                className="h-12 rounded-xl border border-[#E5E7EB] px-4 font-poppins text-[14px] outline-none focus:border-[#2F43F2]"
               />
 
               <input
@@ -102,12 +102,12 @@ export default function EnquiryPopup() {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="Email address"
-                className="h-11 rounded-xl border border-[#E5E7EB] px-3 font-poppins text-[14px] outline-none focus:border-[#2F43F2]"
+                className="h-12 rounded-xl border border-[#E5E7EB] px-4 font-poppins text-[14px] outline-none focus:border-[#2F43F2]"
               />
 
               <button
                 type="submit"
-                className="mt-1 h-11 cursor-pointer rounded-xl bg-[#2F43F2] font-poppins text-[14px] font-semibold text-white transition-colors hover:bg-[#2437d1]"
+                className="mt-1 h-12 cursor-pointer rounded-xl bg-[#2F43F2] font-poppins text-[15px] font-semibold text-white transition-colors hover:bg-[#2437d1]"
               >
                 Submit
               </button>

@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react';
 import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import RoleBasedRoute from "@/components/auth/RoleBasedRoute";
+import CollegeSection from '@/components/Revamp/probuddies/CollegeSection';
 import { Toaster } from 'react-hot-toast';
 import RevampLayout from '@/layouts/RevampLayout';
 const ContactPage = lazy(() => import("@/pages/Contact"));
@@ -68,11 +69,19 @@ const UserProfile = lazy(() => import('@/pages/Revamp/UserProfile'));
 const CourseListing = lazy(() => import('@/pages/Revamp/CourseListing'));
 const TestListing = lazy(() => import('@/pages/Revamp/TestListing'));
 const SessionListing = lazy(() => import('@/pages/Revamp/SessionListing'));
-const ProBuddiesComingSoon = lazy(() => import('@/pages/Revamp/ProBuddiesComingSoon'));
+const ProBuddies = lazy(() => import('@/pages/Revamp/ProBuddies'));
+const ProBuddyListing = lazy(() => import('@/pages/Revamp/ProBuddyListing'));
+const ProBuddyProfilePage = lazy(() => import('@/pages/Revamp/ProBuddyProfilePage'));
 const ProBuddiesRegistration = lazy(() => import('@/pages/Revamp/ProBuddiesRegistration'));
 const ProBuddiesDashboard = lazy(() => import('@/pages/Revamp/ProBuddiesDashboard'));
 const DeadlinesPage = lazy(() => import('@/pages/Revamp/DeadlinesPage'));
 const DeadlineDetailPage = lazy(() => import('@/pages/Revamp/DeadlineDetailPage'));
+
+const ProBuddiesCollegeListing = () => (
+    <div className="min-h-screen bg-[#C6DDF040] pb-12 pt-6 md:pt-10">
+        <CollegeSection />
+    </div>
+);
 
 const RevampCounselorDetailsPage = lazy(() => import('@/pages/Revamp/RevampCounselorDetailsPage'));
 const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
@@ -134,11 +143,11 @@ export default function AppRoutes() {
 
                         {/* probuddies pages  */}
                         <Route path='/pro-buddies/register' element={<ProBuddiesRegistration />} />
-                        <Route path='/pro-buddies' element={<ProBuddiesComingSoon />} />
-                        <Route path='/pro-buddies/listing' element={<ProBuddiesComingSoon />} />
-                        <Route path='/pro-buddies/college-listing' element={<ProBuddiesComingSoon />} />
+                        <Route path='/pro-buddies' element={<ProBuddies />} />
+                        <Route path='/pro-buddies/listing' element={<ProBuddyListing />} />
+                        <Route path='/pro-buddies/college-listing' element={<ProBuddiesCollegeListing />} />
                         <Route path='/pro-buddies/dashboard' element={<ProBuddiesDashboard />} />
-                        <Route path="/pro-buddies/profile/:id" element={<ProBuddiesComingSoon />} />
+                        <Route path="/pro-buddies/profile/:id" element={<ProBuddyProfilePage />} />
 
 
                         {/* Community */}
