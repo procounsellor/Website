@@ -61,6 +61,8 @@ import Admissions from '@/pages/Revamp/Admissions';
 const Courses = lazy(() => import('@/pages/Revamp/Courses'));
 const BlogsPage = lazy(() => import('@/pages/Revamp/BlogsPage'));
 const BlogDetailPage = lazy(() => import('@/pages/Revamp/BlogDetailPage'));
+const BlogAuthorsPage = lazy(() => import('@/pages/Revamp/BlogAuthorsPage'));
+const BlogAuthorProfilePage = lazy(() => import('@/pages/Revamp/BlogAuthorProfilePage'));
 const CounsellorsPage = lazy(() => import('@/pages/Revamp/CounsellorsPage'));
 const UserProfile = lazy(() => import('@/pages/Revamp/UserProfile'));
 const CourseListing = lazy(() => import('@/pages/Revamp/CourseListing'));
@@ -108,6 +110,9 @@ export default function AppRoutes() {
                         <Route path='/admissions' element={<Admissions />} />
                         <Route path='/admissions/blogs' element={<BlogsPage />} />
                         <Route path='/admissions/blogs/:id' element={<BlogDetailPage />} />
+                        <Route path='/admissions/blogs/slug/:slug' element={<BlogDetailPage />} />
+                        <Route path='/admissions/blog-authors' element={<BlogAuthorsPage />} />
+                        <Route path='/admissions/blog-authors/:authorId' element={<BlogAuthorProfilePage />} />
                         <Route path='/courses' element={<Courses />} />
                         <Route path='/courses/course-listing' element={<CourseListing />} />
                         <Route path='/courses/test-listing' element={<TestListing />} />

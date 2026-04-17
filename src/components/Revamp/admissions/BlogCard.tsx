@@ -1,20 +1,30 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getAuthorImageWithFallback, getAuthorProfileByName } from "@/lib/blogAuthors";
 
 interface BlogCardProps {
   id?: number | string;
+  slug?: string;
   title: string;
   author: string;
   readTime: string;
   imageUrl: string;
 }
 
-export default function BlogCard({ id, title, author, readTime, imageUrl }: BlogCardProps) {
+export default function BlogCard({ id, slug, title, author, readTime, imageUrl }: BlogCardProps) {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const hasImage = Boolean(imageUrl?.trim());
   const [isImageLoading, setIsImageLoading] = useState(hasImage);
   const imageRef = useRef<HTMLImageElement | null>(null);
+  const authorProfile = getAuthorProfileByName(author);
+  const [authorImage, setAuthorImage] = useState(
+    getAuthorImageWithFallback(authorProfile.imageUrl)
+  );
+
+  useEffect(() => {
+    setAuthorImage(getAuthorImageWithFallback(authorProfile.imageUrl));
+  }, [authorProfile.imageUrl]);
 
   useEffect(() => {
     setIsImageLoading(hasImage);
@@ -28,6 +38,10 @@ export default function BlogCard({ id, title, author, readTime, imageUrl }: Blog
       className="relative w-[200px] h-[260px] md:w-[308px] md:h-[331px] cursor-pointer shrink-0"
       onClick={() => {
         if (id !== undefined && id !== null) {
+          if (slug?.trim()) {
+            navigate(`/admissions/blogs/slug/${encodeURIComponent(slug.trim())}`);
+            return;
+          }
           navigate(`/admissions/blogs/${id}`);
         }
       }}
@@ -71,7 +85,17 @@ export default function BlogCard({ id, title, author, readTime, imageUrl }: Blog
         )}
         <h1 className={`font-[Poppins] font-medium text-[14px] md:text-[1rem] text-[#0E1629] md:text-(--text-main) line-clamp-3 leading-[1.3] md:leading-normal ${hasImage ? "mt-2.5" : "mt-0"}`}>{title}</h1>
         <div className="mt-auto mb-[6px] md:mb-[6px]">
-          <p className="font-[Poppins] text-[#6B7280] md:text-(--text-muted) font-medium text-[12px] md:text-[0.875rem]">By {author}</p>
+          <div className="flex items-center gap-2">
+            <img
+              src={authorImage}
+              alt={authorProfile.name}
+              className="w-5 h-5 md:w-6 md:h-6 rounded-full object-cover border border-[#E3E8F4]"
+              onError={() => setAuthorImage("/round-profile.svg")}
+            />
+            <p className="font-[Poppins] text-[#6B7280] md:text-(--text-muted) font-medium text-[12px] md:text-[0.875rem] truncate">
+              {authorProfile.name}
+            </p>
+          </div>
           <p className="font-[Poppins] text-[#6B7280] md:text-(--text-muted) font-medium text-[10px] md:text-[0.75rem]">{readTime}</p>
         </div>
       </div>

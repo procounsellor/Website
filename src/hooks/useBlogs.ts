@@ -9,10 +9,11 @@ import {
   type BlogUpdatePayload,
 } from "@/api/blogs";
 
-export function useBlogsList() {
+export function useBlogsList(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["blogs", "list"],
     queryFn: fetchBlogsList,
+    enabled: options?.enabled ?? true,
     staleTime: 60_000,
   });
 }
