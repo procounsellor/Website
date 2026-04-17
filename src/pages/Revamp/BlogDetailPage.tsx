@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useBlogDetail } from "@/hooks/useBlogs";
+import { useBlogDetail, useBlogsList } from "@/hooks/useBlogs";
 import { formatPublishedHeading } from "@/api/blogs";
+import { getAuthorImageWithFallback, getAuthorProfileByName } from "@/lib/blogAuthors";
 
 function escapeHtml(text: string): string {
   return text
@@ -110,11 +111,52 @@ function upsertJsonLd(id: string, payload: Record<string, unknown>): void {
 
 export default function BlogDetailPage() {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const { data: blog, isLoading, isError, error, refetch } = useBlogDetail(id);
+  const { id, slug } = useParams<{ id?: string; slug?: string }>();
+  const { data: blogList = [], isLoading: isBlogListLoading } = useBlogsList({
+    enabled: Boolean(slug),
+  });
+
+  const slugMatch = useMemo(() => {
+    if (!slug) return null;
+    const normalized = slug.trim().toLowerCase();
+    return (
+      blogList.find((item) => item.slug.trim().toLowerCase() === normalized) ?? null
+    );
+  }, [blogList, slug]);
+
+  const resolvedBlogKey = id ?? slugMatch?.id ?? slug;
+  const shouldFetchDetail =
+    Boolean(id) ||
+    Boolean(slugMatch?.id) ||
+    (Boolean(slug) && !isBlogListLoading && blogList.length === 0);
+
+  const {
+    data: blog,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useBlogDetail(shouldFetchDetail ? resolvedBlogKey : undefined);
   const hasHeroImage = Boolean(blog?.imageUrl?.trim());
   const [isHeroImageLoading, setIsHeroImageLoading] = useState(true);
+  const [authorImage, setAuthorImage] = useState("/person.svg");
   const heroImageRef = useRef<HTMLImageElement | null>(null);
+
+  const authorProfile = useMemo(
+    () => getAuthorProfileByName(blog?.author),
+    [blog?.author]
+  );
+
+  useEffect(() => {
+    setAuthorImage(getAuthorImageWithFallback(authorProfile.imageUrl));
+  }, [authorProfile.imageUrl]);
+
+  useEffect(() => {
+    if (!blog?.slug || !id) return;
+    navigate(`/admissions/blogs/slug/${encodeURIComponent(blog.slug)}`, {
+      replace: true,
+    });
+  }, [blog?.slug, id, navigate]);
 
   useEffect(() => {
     setIsHeroImageLoading(hasHeroImage);
@@ -137,6 +179,7 @@ export default function BlogDetailPage() {
     );
     const keywordSet = new Set<string>([
       ...blog.keywords,
+      ...blog.keyphrase,
       blog.category,
       "college admissions",
       "education counseling",
@@ -146,20 +189,23 @@ export default function BlogDetailPage() {
       .filter(Boolean)
       .join(", ");
 
-    const canonicalUrl = typeof window !== "undefined" ? window.location.href : "";
-    document.title = `${blog.title} | ProCounsel Blog`;
+    const canonicalUrl =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/admissions/blogs/slug/${encodeURIComponent(blog.slug)}`
+        : "";
+    document.title = `${blog.metaTitle || blog.title} | ProCounsel Blog`;
     upsertMetaByName("description", metaDescription);
     if (keywords) upsertMetaByName("keywords", keywords);
     if (canonicalUrl) upsertCanonical(canonicalUrl);
 
     upsertMetaByProperty("og:type", "article");
-    upsertMetaByProperty("og:title", blog.title);
+    upsertMetaByProperty("og:title", blog.metaTitle || blog.title);
     upsertMetaByProperty("og:description", metaDescription);
     if (canonicalUrl) upsertMetaByProperty("og:url", canonicalUrl);
     if (blog.imageUrl) upsertMetaByProperty("og:image", blog.imageUrl);
 
     upsertMetaByName("twitter:card", blog.imageUrl ? "summary_large_image" : "summary");
-    upsertMetaByName("twitter:title", blog.title);
+    upsertMetaByName("twitter:title", blog.metaTitle || blog.title);
     upsertMetaByName("twitter:description", metaDescription);
     if (blog.imageUrl) upsertMetaByName("twitter:image", blog.imageUrl);
 
@@ -280,9 +326,23 @@ export default function BlogDetailPage() {
             <h1 className="text-[24px] sm:text-[40px] font-semibold text-[#0E1629] leading-snug">
               {blog.title}
             </h1>
-            <p className="mt-3 sm:mt-4 text-[14px] sm:text-[22px] text-[#0E1629] font-medium">
-              By: {blog.author}
-            </p>
+            <button
+              type="button"
+              onClick={() =>
+                navigate(`/admissions/blog-authors/${encodeURIComponent(authorProfile.slug)}`)
+              }
+              className="mt-3 sm:mt-4 flex items-center gap-3 cursor-pointer"
+            >
+              <img
+                src={authorImage}
+                alt={authorProfile.name}
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border border-[#E3E8F4]"
+                onError={() => setAuthorImage("/round-profile.svg")}
+              />
+              <span className="text-[14px] sm:text-[22px] text-[#0E1629] font-medium">
+                {authorProfile.name}
+              </span>
+            </button>
             <p className="mt-1 text-[12px] sm:text-[18px] font-medium text-(--text-muted)">
               Published On: {publishedLabel}
             </p>

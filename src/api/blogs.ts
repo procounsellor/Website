@@ -8,6 +8,9 @@ export type BlogRaw = {
   _id?: string | number;
   category?: string;
   title?: string;
+  slug?: string;
+  metaTitle?: string;
+  keyphrase?: string | string[];
   publisherName?: string;
   description?: string;
   keywords?: string | string[];
@@ -45,7 +48,9 @@ export type BlogRaw = {
 
 export type BlogListItem = {
   id: string;
+  slug: string;
   title: string;
+  metaTitle: string;
   author: string;
   publishedOn: string;
   tag: string;
@@ -54,6 +59,7 @@ export type BlogListItem = {
   description: string;
   category: string;
   keywords: string[];
+  keyphrase: string[];
   publishedOnMillis?: number;
 };
 
@@ -193,17 +199,40 @@ function estimateReadTime(description?: string): string {
 }
 
 function parseKeywords(raw: BlogRaw): string[] {
-  const source = raw.keywords ?? raw.keyword ?? raw.tags;
-  const values = Array.isArray(source) ? source : typeof source === "string" ? source.split(",") : [];
+  const sources: unknown[] = [raw.keywords, raw.keyword, raw.tags, raw.keyphrase];
+  const values: string[] = [];
+
+  for (const source of sources) {
+    if (Array.isArray(source)) {
+      for (const item of source) {
+        if (typeof item === "string") values.push(item);
+      }
+      continue;
+    }
+
+    if (typeof source === "string") {
+      values.push(...source.split(","));
+    }
+  }
 
   const dedup = new Set<string>();
   for (const entry of values) {
-    if (typeof entry !== "string") continue;
     const value = entry.trim();
     if (!value) continue;
     dedup.add(value);
   }
   return Array.from(dedup);
+}
+
+function normalizeSlugValue(raw: BlogRaw, title: string, id: string): string {
+  const source = (raw.slug ?? "").trim();
+  const base = source || title || id;
+  return base
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function parseListPayload(json: unknown): BlogRaw[] {
@@ -232,13 +261,24 @@ export function normalizeBlog(raw: BlogRaw, fallbackId?: string): BlogListItem |
   const id = getId(raw) || (fallbackId ?? "");
   if (!id) return null;
   const title = raw.title?.trim() || "Untitled";
+  const metaTitle = raw.metaTitle?.trim() || title;
   const author = raw.publisherName?.trim() || "—";
   const category = raw.category?.trim() || "General";
   const tag = category.replace(/_/g, " ");
   const publishedOnMillis = resolvePublishedOnMillis(raw);
+  const keywords = parseKeywords(raw);
+  const keyphrase = typeof raw.keyphrase === "string"
+    ? raw.keyphrase.split(",").map((item) => item.trim()).filter(Boolean)
+    : Array.isArray(raw.keyphrase)
+      ? raw.keyphrase.filter((item): item is string => typeof item === "string").map((item) => item.trim()).filter(Boolean)
+      : [];
+  const slug = normalizeSlugValue(raw, title, id);
+
   return {
     id,
+    slug,
     title,
+    metaTitle,
     author,
     publishedOn: formatPublishedLineFlexible(raw),
     tag,
@@ -246,7 +286,8 @@ export function normalizeBlog(raw: BlogRaw, fallbackId?: string): BlogListItem |
     readTime: estimateReadTime(raw.description),
     description: raw.description?.trim() ?? "",
     category,
-    keywords: parseKeywords(raw),
+    keywords,
+    keyphrase,
     publishedOnMillis,
   };
 }

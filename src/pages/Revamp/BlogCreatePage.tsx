@@ -16,6 +16,16 @@ function parseDateInputToMillis(value: string): number {
   return Number.isNaN(t) ? startOfTodayMillis() : t;
 }
 
+function toSlug(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 export default function BlogCreatePage() {
   const navigate = useNavigate();
 
@@ -56,6 +66,11 @@ export default function BlogCreatePage() {
       {
         onSuccess: (data) => {
           toast.success("Blog published.");
+          const nextSlug = toSlug(ttl);
+          if (nextSlug) {
+            navigate(`/admissions/blogs/slug/${encodeURIComponent(nextSlug)}`);
+            return;
+          }
           const rawId = data.id;
           const nextId = rawId != null && String(rawId).length ? String(rawId) : null;
           navigate(nextId ? `/admissions/blogs/${nextId}` : "/admissions/blogs");

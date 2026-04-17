@@ -118,6 +118,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
                 <BlogsPageCard
                   key={blog.id}
                   id={blog.id}
+                  slug={blog.slug}
                   title={blog.title}
                   author={blog.author}
                   publishedOn={blog.publishedOn}
@@ -173,6 +174,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
                 <div key={blog.id} className="shrink-0">
                   <BlogCard
                     id={blog.id}
+                    slug={blog.slug}
                     title={blog.title}
                     author={blog.author}
                     readTime={blog.readTime}

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getAuthorImageWithFallback, getAuthorProfileByName } from "@/lib/blogAuthors";
 
 interface BlogsPageCardProps {
   id: number | string;
+  slug?: string;
   title: string;
   author: string;
   publishedOn: string;
@@ -12,6 +14,7 @@ interface BlogsPageCardProps {
 
 export default function BlogsPageCard({
   id,
+  slug,
   title,
   author,
   publishedOn,
@@ -23,6 +26,14 @@ export default function BlogsPageCard({
   const hasImage = Boolean(imageUrl?.trim());
   const [isImageLoading, setIsImageLoading] = useState(hasImage);
   const canNavigate = Boolean(id);
+  const authorProfile = getAuthorProfileByName(author);
+  const [authorImage, setAuthorImage] = useState(
+    getAuthorImageWithFallback(authorProfile.imageUrl)
+  );
+
+  useEffect(() => {
+    setAuthorImage(getAuthorImageWithFallback(authorProfile.imageUrl));
+  }, [authorProfile.imageUrl]);
 
   useEffect(() => {
     setIsImageLoading(hasImage);
@@ -36,7 +47,16 @@ export default function BlogsPageCard({
 
   const handleNavigate = () => {
     if (!canNavigate) return;
+    if (slug?.trim()) {
+      navigate(`/admissions/blogs/slug/${encodeURIComponent(slug.trim())}`);
+      return;
+    }
     navigate(`/admissions/blogs/${id}`);
+  };
+
+  const handleAuthorNavigate = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    navigate(`/admissions/blog-authors/${encodeURIComponent(authorProfile.slug)}`);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -105,7 +125,21 @@ export default function BlogsPageCard({
         </h3>
         <p className="mt-2 text-(--text-muted) text-[10px] font-normal">{publishedOn}</p>
       </div>
-      <p className="text-(--text-muted) text-[12px] font-medium">By: {author}</p>
+      <button
+        type="button"
+        onClick={handleAuthorNavigate}
+        className="flex items-center gap-1.5 text-left cursor-pointer"
+      >
+        <img
+          src={authorImage}
+          alt={authorProfile.name}
+          className="w-5 h-5 rounded-full object-cover border border-[#E3E8F4]"
+          onError={() => setAuthorImage("/round-profile.svg")}
+        />
+        <span className="text-(--text-muted) text-[12px] font-medium truncate">
+          {authorProfile.name}
+        </span>
+      </button>
     </div>
   </div>
 
@@ -224,9 +258,26 @@ export default function BlogsPageCard({
             {title}
           </h2>
 
-          <p className="text-(--text-muted) text-[14px] font-normal mt-auto mb-[6px]">
-            By: <span className="font-medium">{author}</span>
-          </p>
+          <button
+            type="button"
+            onClick={handleAuthorNavigate}
+            className="mt-auto mb-[6px] flex items-center gap-2 text-left cursor-pointer"
+          >
+            <img
+              src={authorImage}
+              alt={authorProfile.name}
+              className="w-7 h-7 rounded-full object-cover border border-[#E3E8F4]"
+              onError={() => setAuthorImage("/round-profile.svg")}
+            />
+            <div className="min-w-0">
+              <p className="text-(--text-muted) text-[13px] font-medium leading-none truncate">
+                {authorProfile.name}
+              </p>
+              <p className="text-(--text-muted) text-[11px] font-normal leading-none mt-1 truncate">
+                {tag}
+              </p>
+            </div>
+          </button>
         </div>
 
         <div className="absolute bottom-0 -right-px overflow-hidden h-[57px] w-[61px]">
