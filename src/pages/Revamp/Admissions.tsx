@@ -302,17 +302,17 @@ export default function Admissions() {
                 </div>
               </motion.div>
 
-              {/* Scholarships Card */}
+              {/* Rank Predictor Card */}
               <motion.div
-                onClick={() => navigate('/admissions/deadlines')}
+                onClick={() => navigate('/jee-rank-predictor')}
                 initial={{ opacity: 0, y: 10, scale: 0.98 }}
                 animate={cardAnimate}
                 transition={{ ...cardTransition, delay: 0.38 }}
                 className="absolute lg:right-0 xl:right-16 top-42.75 w-53 h-53.75 bg-[#68aab8] rounded-[28px] overflow-hidden cursor-pointer"
               >
                 <img
-                  src="/admissions/sch.png"
-                  alt="Scholarships"
+                  src="/ranking-1.png"
+                  alt="Rank Predictor"
                   className="absolute inset-0 w-full h-full object-fit"
                 />
                 <div
@@ -323,9 +323,9 @@ export default function Admissions() {
                   }}
                 />
                 <div className="absolute top-6 left-1/2 -translate-x-1/2 text-center text-white w-[195px]">
-                  <p className="text-[24px] font-semibold font-['Poppins'] mb-2">Scholarships</p>
+                  <p className="text-[24px] font-semibold font-['Poppins'] mb-2">Rank Predictor</p>
                   <p className="text-[14px] font-['Poppins']">
-                    Up to <span className="font-semibold">100% tuition</span> coverage available based on merit and need.
+                    Estimate your JEE rank and plan the next step with confidence.
                   </p>
                 </div>
               </motion.div>
