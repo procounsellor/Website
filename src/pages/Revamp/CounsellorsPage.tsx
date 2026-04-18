@@ -51,7 +51,7 @@ const CounsellorsPage: React.FC = () => {
     const [selectedDays, setSelectedDays] = useState<string[]>([]);
     const [minPriceInput, setMinPriceInput] = useState<number | "">(100);
     const [maxPriceInput, setMaxPriceInput] = useState<number | "">(10000);
-    const [selectedSort, setSelectedSort] = useState("popularity");
+    const [selectedSort, setSelectedSort] = useState("experience");
     
     // --- Mobile Drawer State ---
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -277,10 +277,36 @@ const CounsellorsPage: React.FC = () => {
             return plans.length ? Math.min(...plans) : Number.MAX_SAFE_INTEGER;
         };
 
+        const getExperienceScore = (c: AllCounselor) => {
+            const rawExperience = String(c.experience ?? "").trim().toLowerCase();
+            const numericMatch = rawExperience.match(/\d+/);
+
+            if (!numericMatch) {
+                return 0;
+            }
+
+            const years = Number(numericMatch[0]);
+            if (Number.isNaN(years)) {
+                return 0;
+            }
+
+            return rawExperience.includes("+") ? years + 0.5 : years;
+        };
+
         if (selectedSort === "price-low") {
             counselorsCopy.sort((a, b) => getMinPlanPrice(a) - getMinPlanPrice(b));
         } else if (selectedSort === "price-high") {
             counselorsCopy.sort((a, b) => getMinPlanPrice(b) - getMinPlanPrice(a));
+        } else if (selectedSort === "experience") {
+            counselorsCopy.sort((a, b) => {
+                const experienceDiff = getExperienceScore(b) - getExperienceScore(a);
+
+                if (experienceDiff !== 0) {
+                    return experienceDiff;
+                }
+
+                return (b.rating || 0) - (a.rating || 0);
+            });
         } else {
             counselorsCopy.sort((a, b) => (b.rating || 0) - (a.rating || 0));
         }
@@ -294,7 +320,8 @@ const CounsellorsPage: React.FC = () => {
     })), [sortedCounselors, favouriteIds]);
 
     return (
-        <div className="max-w-[1440px] mx-auto pt-8 px-4 sm:px-8 lg:px-[60px]">
+        <div className="bg-[#C6DDF040] w-full py-6 md:py-8">
+            <div className="max-w-360 mx-auto px-4 sm:px-8 lg:px-15">
 
             <div className="lg:hidden flex flex-row items-center justify-between mb-4 bg-white p-3 rounded-lg shadow-[0px_2px_8px_rgba(0,0,0,0.15)] cursor-pointer" onClick={() => setIsMobileFilterOpen(true)}>
                 <div className="flex items-center gap-2 text-[#0E1629] font-medium font-[Poppins] text-[15px]">
@@ -309,7 +336,7 @@ const CounsellorsPage: React.FC = () => {
             </div>
 
             {isMobileFilterOpen && (
-                <div className="fixed inset-0 z-[100] bg-gray-50 lg:hidden flex flex-col">
+                <div className="fixed inset-0 z-100 bg-gray-50 lg:hidden flex flex-col">
                     <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200 shadow-sm z-10">
                         <h2 className="text-[18px] font-semibold text-[#0E1629] font-[Poppins]">Sort & Filters</h2>
                         <button onClick={() => setIsMobileFilterOpen(false)} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
@@ -348,9 +375,9 @@ const CounsellorsPage: React.FC = () => {
             )}
 
             {/* Layout Container */}
-            <div className="flex flex-col lg:flex-row items-start gap-6 lg:gap-[64px] relative">
+            <div className="flex flex-col lg:flex-row items-start gap-6 lg:gap-16 relative">
                 
-                <div className="hidden lg:block w-[312px] flex-shrink-0 sticky top-6 max-h-[calc(100vh-48px)] overflow-y-auto overflow-x-hidden scrollbar-hide pb-4">
+                <div className="hidden lg:block w-78 shrink-0 sticky top-6 max-h-[calc(100vh-48px)] overflow-y-auto overflow-x-hidden scrollbar-hide pb-4">
                     <CounsellorListing
                         selectedExperience={selectedExperience} setSelectedExperience={setSelectedExperience}
                         selectedLanguages={selectedLanguages} setSelectedLanguages={setSelectedLanguages}
@@ -363,7 +390,7 @@ const CounsellorsPage: React.FC = () => {
                 </div>
 
                 {/* Main Grid */}
-                <div className="flex-grow w-full lg:min-w-0">
+                <div className="grow w-full lg:min-w-0">
                     <CounsellorListingCards
                         counsellors={cardData}
                         isLoading={isLoading}
@@ -388,6 +415,7 @@ const CounsellorsPage: React.FC = () => {
                     onUploadComplete={() => { }}
                 />
             )}
+            </div>
         </div>
     );
 };

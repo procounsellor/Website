@@ -1,26 +1,21 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { getCommunityDashboard } from '@/api/community';
-import { useAuthStore } from '@/store/AuthStore';
+import { searchCommunityQuestions } from '@/api/community';
 import type { CommunityDashboardItem } from '@/types/community';
 import DashboardCard from './DashboardCard';
 import { Loader2 } from 'lucide-react'; 
-import { getCommunityFeedCache, setCommunityFeedCache, isCommunityFeedCacheValid } from '@/utils/communityCache';
 
 interface DashboardFeedProps {
   selectedCategory?: string | null;
 }
 
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
 const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
   const [items, setItems] = useState<CommunityDashboardItem[]>([]);
-  const [nextPageToken, setNextPageToken] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isMoreLoading, setIsMoreLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { userId } = useAuthStore();
-  const token = localStorage.getItem('jwt');
   const isMounted = useRef(true);
 
   const observer = useRef<IntersectionObserver | null>(null);
@@ -34,14 +29,14 @@ const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
 
   const lastElementRef = useCallback(
     (node: HTMLDivElement) => {
-      if (isLoading) return;
+      if (isLoading || !hasMore) return;
 
       if (observer.current) observer.current.disconnect();
 
       observer.current = new IntersectionObserver((entries) => {
         if (
           entries[0].isIntersecting &&
-          nextPageToken &&
+          hasMore &&
           !isMoreLoading
         ) {
           handleLoadMore();
@@ -50,42 +45,27 @@ const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
 
       if (node) observer.current.observe(node);
     },
-    [isLoading, isMoreLoading, nextPageToken]
+    [isLoading, isMoreLoading, hasMore]
   );
 
   useEffect(() => {
-    if (!userId || !token) {
-      setError('You must be logged in to see the feed.');
-      setIsLoading(false);
-      return;
-    }
-
     const fetchFeed = async () => {
-      const cacheKey = `community-feed-${userId}`;
-      
-      // Check if we have valid cached data
-      if (isCommunityFeedCacheValid(cacheKey, CACHE_DURATION)) {
-        const cached = getCommunityFeedCache(cacheKey);
-        if (cached && isMounted.current) {
-          setItems(cached.data);
-          setNextPageToken(cached.nextPageToken);
-          setIsLoading(false);
-          return;
-        }
-      }
-
       try {
         setIsLoading(true);
         setError(null);
         
-        const response = await getCommunityDashboard(userId, token);
+        const response = await searchCommunityQuestions('', {
+          sortBy: 'rating',
+          sortOrder: 'desc',
+          page: 0,
+          pageSize: 10,
+        });
         
         if (isMounted.current) {
           if (response.status === 'Success') {
             setItems(response.data);
-            setNextPageToken(response.nextPageToken);
-            // Cache the response
-            setCommunityFeedCache(cacheKey, response.data, response.nextPageToken);
+            setHasMore(response.data.length === 10);
+            setPage(0);
           } else {
             setError('Failed to load feed.');
           }
@@ -103,36 +83,39 @@ const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
     };
 
     fetchFeed();
-  }, [userId, token]);
+  }, [selectedCategory]);
 
   const handleLoadMore = useCallback(async () => {
-    if (!userId || !token || !nextPageToken || isMoreLoading) return;
+    if (isMoreLoading || !hasMore) return;
 
     try {
       setIsMoreLoading(true);
       setError(null);
 
-      const response = await getCommunityDashboard(
-        userId,
-        token,
-        nextPageToken
-      );
+      const nextPage = page + 1;
+      const response = await searchCommunityQuestions('', {
+        sortBy: 'rating',
+        sortOrder: 'desc',
+        page: nextPage,
+        pageSize: 10,
+      });
 
       if (response.status === "Success") {
         setItems((prevItems) => [...prevItems, ...response.data]);
-        setNextPageToken(response.nextPageToken);
+        setPage(nextPage);
+        setHasMore(response.data.length === 10);
       } else {
         setError("Failed to load more items.");
-        setNextPageToken(null);
+        setHasMore(false);
       }
     } catch (err) {
       console.error(err);
       setError("An error occurred while loading more items.");
-      setNextPageToken(null);
+      setHasMore(false);
     } finally {
       setIsMoreLoading(false);
     }
-  }, [userId, token, nextPageToken, isMoreLoading]);
+  }, [hasMore, isMoreLoading, page]);
 
   const displayedItems = selectedCategory
     ? items.filter((item) => {
@@ -149,7 +132,7 @@ const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-[900px] p-20 bg-white rounded-lg text-center border border-gray-200 shadow-sm">
+      <div className="w-full max-w-225 p-20 bg-white rounded-lg text-center border border-gray-200 shadow-sm">
         <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-[#13097D]" />
         Loading feed...
       </div>
@@ -158,7 +141,7 @@ const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
 
   if (error && !isMoreLoading && items.length === 0) {
     return (
-      <div className="w-full max-w-[900px] p-20 bg-white rounded-lg text-center text-red-500 border border-gray-200 shadow-sm">
+      <div className="w-full max-w-225 p-20 bg-white rounded-lg text-center text-red-500 border border-gray-200 shadow-sm">
         {error}
       </div>
     );
@@ -166,7 +149,7 @@ const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
 
   return (
     <>
-      <div className="w-full md:max-w-[900px] bg-white rounded-lg p-4 md:p-5 border border-gray-200 shadow-sm">
+      <div className="w-full md:max-w-225 bg-white rounded-lg p-4 md:p-5 border border-gray-200 shadow-sm">
         <div className="flex flex-col space-y-5">
           {displayedItems.length > 0 ? (
             displayedItems.map((item) => (
@@ -182,8 +165,8 @@ const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
         </div>
       </div>
 
-      <div className="ww-full md:max-w-[900px] flex flex-col items-center mt-4">
-        {nextPageToken && (
+      <div className="w-full md:max-w-225 flex flex-col items-center mt-4">
+        {hasMore && (
           <div ref={lastElementRef} className="h-16 flex justify-center items-center">
             {isMoreLoading && (
               <Loader2 className="w-5 h-5 animate-spin text-[#13097D]" />
@@ -191,7 +174,7 @@ const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
           </div>
         )}
 
-        {!nextPageToken && items.length > 0 && (
+        {!hasMore && items.length > 0 && (
           <div className="h-16 flex justify-center items-center">
             <p className="text-sm text-gray-400">You have reached the end</p>
           </div>

@@ -807,19 +807,25 @@ export async function updateQuestion(
 }
 
 export async function searchCommunityQuestions(
-  userId: string | undefined,
   searchTerm: string,
-  token?: string
+  options?: {
+    sortBy?: string;
+    sortOrder?: string;
+    page?: number;
+    pageSize?: number;
+  }
 ): Promise<GetCommunityDashboardResponse> {
   try {
     const params = new URLSearchParams({ search: searchTerm });
-    if (userId) params.set('userId', userId);
-    const url = `${baseUrl}${API_CONFIG.endpoints.getCommunityDashboard}/search?${params.toString()}`;
+    if (options?.sortBy) params.set('sortBy', options.sortBy);
+    if (options?.sortOrder) params.set('sortOrder', options.sortOrder);
+    if (options?.page !== undefined) params.set('page', String(options.page));
+    if (options?.pageSize !== undefined) params.set('pageSize', String(options.pageSize));
+    const url = `${baseUrl}/api/shared/community/dashboard/getCommunityDashboard/search?${params.toString()}`;
 
     const headers: Record<string, string> = {
       'Accept': 'application/json',
     };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
 
     const response = await fetch(url, {
       method: 'GET',
