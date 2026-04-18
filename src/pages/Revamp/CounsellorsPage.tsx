@@ -318,7 +318,7 @@ const CounsellorsPage: React.FC = () => {
 
     return (
         <div className="bg-[#C6DDF040] w-full py-6 md:py-8">
-            <div className="max-w-360 mx-auto px-4 sm:px-8 lg:px-15">
+            <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-15">
 
             <div className="lg:hidden flex flex-row items-center justify-between mb-4 bg-white p-3 rounded-lg shadow-[0px_2px_8px_rgba(0,0,0,0.15)] cursor-pointer" onClick={() => setIsMobileFilterOpen(true)}>
                 <div className="flex items-center gap-2 text-[#0E1629] font-medium font-[Poppins] text-[15px]">
