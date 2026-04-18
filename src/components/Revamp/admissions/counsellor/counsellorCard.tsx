@@ -12,6 +12,8 @@ interface FancyCardProps {
   city: string;
   proCoins?: number;
   showBookmark?: boolean;
+  isBookmarked?: boolean;
+  onBookmarkClick?: () => void;
 }
 
 export default function FancyCard({
@@ -23,6 +25,8 @@ export default function FancyCard({
   city,
   proCoins,
   showBookmark = true,
+  isBookmarked = false,
+  onBookmarkClick,
 }: FancyCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
@@ -55,11 +59,14 @@ export default function FancyCard({
         {showBookmark && (
           <button
             type="button"
-            onClick={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.stopPropagation();
+              onBookmarkClick?.();
+            }}
             className="absolute top-4.5 right-4.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#0E1629] shadow-sm transition-colors hover:bg-white"
             aria-label="Bookmark counselor"
           >
-            <Bookmark size={16} />
+            <Bookmark size={16} fill={isBookmarked ? "#0E1629" : "none"} />
           </button>
         )}
 

@@ -214,10 +214,9 @@ const CounsellorsPage: React.FC = () => {
         if (node) observer.current.observe(node);
     }, [isLoading, isFetchingNextPage, hasNextPage, fetchNextPage]);
 
-
     const handleToggleFavourite = async (counsellorId: string) => {
         const { isAuthenticated, toggleLogin } = useAuthStore.getState();
-        
+
         const toggleFavAction = async () => {
             const freshUserId = localStorage.getItem('phone');
             if (!freshUserId || !counsellorId) return;
@@ -241,16 +240,14 @@ const CounsellorsPage: React.FC = () => {
             toggleLogin(toggleFavAction);
             return;
         }
+
         if (!user?.firstName || !user?.email) {
-            handleProfileIncomplete(toggleFavAction);
+            setPendingAction(() => toggleFavAction);
+            setIsEditProfileModalOpen(true);
             return;
         }
-        await toggleFavAction();
-    };
 
-    const handleProfileIncomplete = (action: () => void) => {
-        setPendingAction(() => action);
-        setIsEditProfileModalOpen(true);
+        await toggleFavAction();
     };
 
     const handleUpdateProfile = async (updatedData: { firstName: string; lastName: string; email: string }) => {

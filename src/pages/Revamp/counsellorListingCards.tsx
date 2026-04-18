@@ -24,7 +24,7 @@ interface CardProps {
     setSelectedSort: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const CounselorCardItem = ({ counsellor, isLast, lastElementRef }: { counsellor: any, isLast: boolean, lastElementRef: any }) => {
+const CounselorCardItem = ({ counsellor, isLast, lastElementRef, onToggleFavourite }: { counsellor: any, isLast: boolean, lastElementRef: any, onToggleFavourite?: (counsellorId: string) => void }) => {
     return (
         <div ref={isLast ? lastElementRef : null} className="shrink-0 snap-start w-50 md:w-61">
             <FancyCard
@@ -36,6 +36,8 @@ const CounselorCardItem = ({ counsellor, isLast, lastElementRef }: { counsellor:
                 city={counsellor.location}
                 proCoins={counsellor.plans?.plus || 0}
                 showBookmark
+                isBookmarked={Boolean(counsellor.isFavourite)}
+                onBookmarkClick={() => onToggleFavourite?.(counsellor.id)}
             />
         </div>
     );
@@ -143,7 +145,7 @@ const CounsellorListingCards: React.FC<CardProps> = ({
             ) : (
                 <>
                     {/* Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 md:gap-6 pb-10">
+                    <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6 pb-10">
                         {counsellors.map((counsellor, index) => (
                             <CounselorCardItem 
                                 key={counsellor.id}
@@ -157,7 +159,7 @@ const CounsellorListingCards: React.FC<CardProps> = ({
 
                     {/* Loading Spinner for Infinite Scroll */}
                     {isFetchingMore && (
-                        <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 md:gap-6 py-6 w-full pb-20">
+                        <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6 py-6 w-full pb-20">
                             {Array.from({ length: 3 }).map((_, idx) => (
                                 <div key={`c-listing-more-skeleton-${idx}`} className="w-full flex justify-center">
                                     <CounselorCardSkeleton />
