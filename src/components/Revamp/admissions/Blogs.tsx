@@ -83,11 +83,11 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
           </div>
 
           {isLoading && (
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(308px,1fr))] justify-items-center gap-5 animate-pulse">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(308px,308px))] justify-center gap-5 animate-pulse">
               {Array.from({ length: 8 }).map((_, idx) => (
                 <div
                   key={`blog-full-skeleton-${idx}`}
-                  className="w-full max-w-[308px] h-[260px] rounded-2xl bg-white/80"
+                  className="w-77 h-65 rounded-2xl bg-white/80"
                 />
               ))}
             </div>
@@ -111,7 +111,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
               No blogs in this category yet.
             </p>
           )}
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(308px,1fr))] justify-items-center gap-5">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(308px,308px))] justify-center gap-5">
             {!isLoading &&
               !isError &&
               filteredBlogs.map((blog) => (

@@ -347,7 +347,7 @@ export default function BlogDetailPage() {
               Published On: {publishedLabel}
             </p>
 
-            {hasHeroImage && (
+            {/* {hasHeroImage && (
               <div className="relative mt-4 sm:mt-6 rounded-[16px] overflow-hidden w-full h-[180px] sm:h-[413px]">
                 {isHeroImageLoading && (
                   <div className="absolute inset-0 bg-[#E5ECF7] animate-pulse" />
@@ -364,7 +364,7 @@ export default function BlogDetailPage() {
                   }`}
                 />
               </div>
-            )}
+            )} */}
 
             <div
               className="mt-4 sm:mt-6 text-[12px] sm:text-[18px] font-medium leading-relaxed text-[#6B7280] [&_p]:mb-4 sm:[&_p]:mb-6 [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-5 [&_ul]:pl-5 [&_li]:mb-1 [&_strong]:text-[#0E1629]"

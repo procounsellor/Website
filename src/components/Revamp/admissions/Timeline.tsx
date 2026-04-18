@@ -182,7 +182,7 @@ export default function Timeline() {
   ];
 
   return (
-    <div ref={sectionRef} className="relative w-full bg-[#C6DDF040] pt-[80px] pb-8 overflow-hidden">
+    <div ref={sectionRef} className="relative w-full bg-[#C6DDF040] pt-[80px] pb-2 overflow-hidden">
       <div className="mx-auto w-full max-w-7xl px-4">
         {/* Section Heading */}
         <h2 className="text-[#0E1629] text-[24px] font-bold text-center mb-14 break-words" style={{ fontFamily: 'Poppins' }}>
@@ -190,7 +190,7 @@ export default function Timeline() {
         </h2>
 
         {/* Timeline Container */}
-        <div className="relative h-[750px] w-full">
+        <div className="relative h-[720px] w-full">
           <div className="absolute h-0 left-0 top-[344px] w-full z-20">
           <div className="absolute inset-[-1px_0_0_0]" style={{
             background: "linear-gradient(90deg, #FF6B35 0%, #F7931E 50%, #FF6B35 100%)",
