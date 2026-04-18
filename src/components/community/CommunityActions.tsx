@@ -30,11 +30,16 @@ export default function CommunityActions() {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
-      if (searchTerm.trim().length >= 3 && userId && token) {
+      if (searchTerm.trim().length >= 3) {
         setIsSearching(true);
         setShowDropdown(true);
         try {
-          const response = await searchCommunityQuestions(userId, searchTerm, token);
+          const response = await searchCommunityQuestions(searchTerm, {
+            sortBy: 'rating',
+            sortOrder: 'desc',
+            page: 0,
+            pageSize: 10,
+          });
           if (response.status === 'Success') {
             setSearchResults(response.data);
           } else {
@@ -96,7 +101,7 @@ export default function CommunityActions() {
         className="flex items-center gap-2 font-semibold text-[#2F43F2] cursor-pointer transition-colors duration-200 justify-center md:justify-start"
       >
         <img src={iconSrc} alt={label} className="w-5 h-5" />
-        <span className="text-[12px] md:text-sm leading-[18px]">{label}</span>
+        <span className="text-[12px] md:text-sm leading-4.5">{label}</span>
         {count && (
           <span className="ml-1 px-2 py-0.5 bg-orange-500 text-white text-xs font-bold rounded-full">
             {count}
@@ -107,12 +112,12 @@ export default function CommunityActions() {
   };
 
   const Separator = () => (
-    <div className="hidden md:block w-px h-[31px] bg-[#13097D33]" />
+    <div className="hidden md:block w-px h-7.75 bg-[#13097D33]" />
   );
 
   return (
     <>
-      <div className="max-w-[900px] w-full mx-auto bg-white rounded-lg p-4 md:p-5 shadow-sm border border-gray-200">
+      <div className="max-w-225 w-full mx-auto bg-white rounded-lg p-4 md:p-5 shadow-sm border border-gray-200">
         <div className="flex flex-col gap-4">
           <div className="relative" ref={searchContainerRef}>
             <div className="flex items-center gap-3">
@@ -131,7 +136,7 @@ export default function CommunityActions() {
               )}
             </div>
             {showDropdown && searchTerm.length >= 3 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-100 max-h-[400px] overflow-y-auto z-50">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-100 max-h-100 overflow-y-auto z-50">
                 {isSearching ? (
                   <div className="p-4 flex items-center justify-center text-gray-500 gap-2">
                     <Loader2 className="animate-spin w-4 h-4" />
@@ -169,7 +174,7 @@ export default function CommunityActions() {
           </div>
 
           <div className="flex items-center justify-between md:justify-center md:gap-10 pl-1">
-            <div className="w-full grid grid-cols-3 gap-2 md:flex md:w-auto md:gap-[60px] items-center">
+            <div className="w-full grid grid-cols-3 gap-2 md:flex md:w-auto md:gap-15 items-center">
               <ActionButton
                 iconSrc="/ask.svg"
                 label="Ask"

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,6 +20,17 @@ export default function RevampHeader() {
     const navigate = useNavigate();
     const location = useLocation();
     const { toggleLogin, isAuthenticated, logout, role, user } = useAuthStore();
+    const isProBuddy = role === 'proBuddy';
+    const visibleTabs = useMemo(() => {
+        if (isProBuddy) {
+            return [
+                { id: 3, name: 'Community', iconPath: '/Community.png', path: '/community' },
+                { id: 4, name: 'Dashboard', iconPath: '/ProBuddy.png', path: '/pro-buddies/dashboard' },
+            ];
+        }
+
+        return tabs;
+    }, [isProBuddy]);
     const [activeTab, setActiveTab] = useState(1);
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
@@ -34,7 +45,7 @@ export default function RevampHeader() {
     const { query, setQuery, performSearch, clearResults, setSearchOpen } = useSearchStore();
 
     useEffect(() => {
-        const currentTab = tabs.find(tab => {
+        const currentTab = visibleTabs.find(tab => {
             if (tab.path === "/admissions") {
                 return location.pathname === "/" || location.pathname === tab.path;
             }
@@ -45,7 +56,7 @@ export default function RevampHeader() {
         if (currentTab) {
             setActiveTab(currentTab.id);
         }
-    }, [location.pathname]);
+    }, [location.pathname, visibleTabs]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -149,6 +160,8 @@ export default function RevampHeader() {
         setSearchOpen(false);
     };
 
+    const showGlobalSearch = !isProBuddy;
+
     const handleLogout = () => {
         logout();
         setIsDropdownOpen(false);
@@ -230,7 +243,7 @@ export default function RevampHeader() {
                             transition={{ duration: 0.2 }}
                             className="absolute left-1/2 -translate-x-1/2 flex items-center gap-[12px] h-full"
                         >
-                            {tabs.map((tab) => (
+                            {visibleTabs.map((tab) => (
                                 <div
                                     key={tab.id}
                                     onClick={() => {
@@ -305,18 +318,20 @@ export default function RevampHeader() {
                                     Profile
                                 </button>
 
-                                <button
-                                    onClick={() => { navigate("/notifications"); setIsDropdownOpen(false); }}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-poppins text-[#232323] hover:bg-gray-50 cursor-pointer transition-colors"
-                                >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                        <path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                    </svg>
-                                    Notifications
-                                </button>
+                                {role !== 'proBuddy' && (
+                                    <button
+                                        onClick={() => { navigate("/notifications"); setIsDropdownOpen(false); }}
+                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-poppins text-[#232323] hover:bg-gray-50 cursor-pointer transition-colors"
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21" stroke="#232323" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                        </svg>
+                                        Notifications
+                                    </button>
+                                )}
 
-                                {role !== 'counselor' && (
+                                {role !== 'counselor' && role !== 'proBuddy' && (
                                     <>
                                         <button
                                             onClick={() => { navigate("/live-sessions"); setIsDropdownOpen(false); }}
@@ -376,6 +391,7 @@ export default function RevampHeader() {
                 )}
             </motion.div>
 
+            {showGlobalSearch && (
             <motion.div 
                 initial={false}
                 animate={{ 
@@ -412,6 +428,7 @@ export default function RevampHeader() {
                     </div>
                 )}
             </motion.div>
+            )}
 
 
             
@@ -426,7 +443,7 @@ export default function RevampHeader() {
                             transition={{ duration: 0.2 }}
                             className="flex w-full justify-between items-center"
                         >
-                            {tabs.map((tab) => (
+                            {visibleTabs.map((tab) => (
                                 <div
                                     key={tab.id}
                                     onClick={() => {
@@ -454,6 +471,7 @@ export default function RevampHeader() {
                 </AnimatePresence>
 
                 <div className="flex w-full items-center gap-[12px]">
+                    {showGlobalSearch && (
                     <div className="flex-1 relative" ref={mobileSearchRef}>
                         <div className="h-[40px] bg-[#FFFFFF] rounded-[12px] border border-gray-50 flex items-center px-[12px] shadow-sm">
                             <img 
@@ -488,6 +506,7 @@ export default function RevampHeader() {
                             </div>
                         )}
                     </div>
+                    )}
 
                     {/* Mobile: Auth-aware right section */}
                     {isAuthenticated ? (
@@ -546,7 +565,7 @@ export default function RevampHeader() {
                                         Notifications
                                     </button>
 
-                                    {role !== 'counselor' && (
+                                    {role !== 'counselor' && role !== 'proBuddy' && (
                                         <>
                                             <button
                                                 onClick={() => { navigate("/live-sessions"); setIsDropdownOpen(false); }}

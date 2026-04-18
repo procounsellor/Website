@@ -40,12 +40,23 @@ export default function RevampLayout() {
     }, []);
 
     useEffect(() => {
-        if (isAuthenticated && role === 'proBuddy' && user && !user.verified) {
-            if (location.pathname !== '/pro-buddies/dashboard') {
+        if (isAuthenticated && role === 'proBuddy') {
+            const isAllowedPath =
+                location.pathname.startsWith('/community') ||
+                location.pathname === '/pro-buddies/dashboard';
+
+            if (!isAllowedPath) {
+                navigate('/community', { replace: true });
+                return;
+            }
+
+            if (user && !user.verified && location.pathname !== '/pro-buddies/dashboard') {
                 navigate('/pro-buddies/dashboard', { replace: true });
             }
         }
     }, [isAuthenticated, role, user, location.pathname, navigate]);
+
+    const isProBuddy = isAuthenticated && role === 'proBuddy';
 
     return <div className="flex flex-col min-h-screen relative">
         <RevampHeader />
@@ -53,8 +64,8 @@ export default function RevampLayout() {
         <div className="flex-1">
             <Outlet />
         </div>
-        <Footer />
-        <EnquiryPopup />
+        {!isProBuddy && <Footer />}
+        {!isProBuddy && <EnquiryPopup />}
         
         {isLoginToggle && <LoginCard />}
         <Toaster 
@@ -68,18 +79,20 @@ export default function RevampLayout() {
             }}
         />
 
-        <button
-            onClick={toggleChatbot}
-            className="fixed right-0 md:right-6 bottom-1 md:bottom-6 z-50 flex h-32 w-32 cursor-pointer items-center justify-center transition-transform duration-300 hover:scale-110"
-            aria-label="Toggle Chatbot"
-        >
-            {chatbotAnimation ? (
-                <Lottie animationData={chatbotAnimation} loop autoplay className="h-full w-full" />
-            ) : (
-                <div className="h-16 w-16 rounded-full bg-[#0E1629]" />
-            )}
-        </button>
+        {!isProBuddy && (
+            <button
+                onClick={toggleChatbot}
+                className="fixed right-0 md:right-6 bottom-1 md:bottom-6 z-50 flex h-32 w-32 cursor-pointer items-center justify-center transition-transform duration-300 hover:scale-110"
+                aria-label="Toggle Chatbot"
+            >
+                {chatbotAnimation ? (
+                    <Lottie animationData={chatbotAnimation} loop autoplay className="h-full w-full" />
+                ) : (
+                    <div className="h-16 w-16 rounded-full bg-[#0E1629]" />
+                )}
+            </button>
+        )}
 
-        {isChatbotOpen && <Chatbot />}
+        {!isProBuddy && isChatbotOpen && <Chatbot />}
     </div>
 }

@@ -159,7 +159,7 @@ const LoginCard: React.FC = () => {
                 <button 
                   onClick={handleSendOtp}
                   disabled={isLoading || phone.length !== 10}
-                  className="w-full md:max-w-[444px] h-11 bg-[#FA660F] text-white rounded-xl font-semibold hover:bg-orange-600 hover:cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full md:max-w-[444px] h-11 bg-(--text-main) text-white rounded-xl font-semibold hover:bg-(--text-main)/80 hover:cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Sending...' : 'Continue'}
                 </button>

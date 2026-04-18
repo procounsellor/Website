@@ -1,4 +1,4 @@
-import { Star, Briefcase, MapPin } from "lucide-react";
+import { Bookmark, Star, Briefcase, MapPin } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { encodeCounselorId } from "@/lib/utils";
@@ -11,6 +11,7 @@ interface FancyCardProps {
   experience: string;
   city: string;
   proCoins?: number;
+  showBookmark?: boolean;
 }
 
 export default function FancyCard({
@@ -21,6 +22,7 @@ export default function FancyCard({
   experience,
   city,
   proCoins,
+  showBookmark = true,
 }: FancyCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
@@ -31,7 +33,7 @@ export default function FancyCard({
 
   return (
     <div
-      className="relative w-[200px] md:w-[244px] h-[275px] md:h-[367px] cursor-pointer group shrink-0"
+      className="relative w-50 md:w-61 h-68.75 md:h-91.75 cursor-pointer group shrink-0"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
@@ -50,8 +52,19 @@ export default function FancyCard({
       </svg>
 
       <div className="w-full relative h-full p-3 flex flex-col">
+        {showBookmark && (
+          <button
+            type="button"
+            onClick={(event) => event.stopPropagation()}
+            className="absolute top-4.5 right-4.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#0E1629] shadow-sm transition-colors hover:bg-white"
+            aria-label="Bookmark counselor"
+          >
+            <Bookmark size={16} />
+          </button>
+        )}
+
         {/* Rating Badge */}
-        <div className="absolute top-[20px] left-[20px] flex items-center gap-1 z-10">
+        <div className="absolute top-5 left-5 flex items-center gap-1 z-10">
           <Star size={16} fill="#0E1629" className="text-[#0E1629]" />
           <p className="font-[Poppins] font-medium text-[12px] md:text-[14px] text-[#0E1629] tracking-[0.28px]">
             {rating?.toFixed(1) || "N/A"}
@@ -62,7 +75,7 @@ export default function FancyCard({
         <img
           src={imageUrl}
           alt={name}
-          className="w-full md:w-[220px] h-[135px] md:h-[208px] rounded-[10px] object-cover shrink-0"
+          className="w-full md:w-55 h-33.75 md:h-52 rounded-[10px] object-cover shrink-0"
         />
 
         {/* Counsellor Name */}
@@ -75,13 +88,13 @@ export default function FancyCard({
         {/* Details */}
         <div className="flex flex-col gap-1 mt-1.5 md:mt-3">
           <div className="flex items-center gap-1">
-            <Briefcase size={16} className="md:w-[20px] md:h-[20px] text-[#6B7280] shrink-0" strokeWidth={1.5} />
+            <Briefcase size={16} className="md:w-5 md:h-5 text-[#6B7280] shrink-0" strokeWidth={1.5} />
             <p className="font-[Poppins] font-normal text-[12px] md:text-[14px] text-[#6B7280] truncate">
               {experience || "Entry Level"}
             </p>
           </div>
           <div className="flex items-center gap-1">
-            <MapPin size={16} className="md:w-[20px] md:h-[20px] text-[#6B7280] shrink-0" strokeWidth={1.5} />
+            <MapPin size={16} className="md:w-5 md:h-5 text-[#6B7280] shrink-0" strokeWidth={1.5} />
             <p className="font-[Poppins] font-normal text-[12px] md:text-[14px] text-[#6B7280] truncate">
               {city || "Not specified"}
             </p>
@@ -91,7 +104,7 @@ export default function FancyCard({
         {/* ProCoins */}
         {proCoins != null && proCoins > 0 && (
           <div className="flex items-center gap-1 mt-1.5 md:mt-3">
-            <div className="w-[24px] h-[24px] md:w-[32px] md:h-[32px] flex items-center justify-center">
+            <div className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center">
               <img src="/coin.svg" alt="procoin_icon" className="w-full h-full" />
             </div>
             <p className="font-[Poppins] font-medium text-[14px] md:text-[16px] text-[#0E1629]">
@@ -102,13 +115,13 @@ export default function FancyCard({
       </div>
 
       {/* Arrow Button */}
-      <div className="absolute right-[-1px] bottom-[1.5px] overflow-hidden w-[48px] md:w-auto h-[41px] md:h-auto">
+      <div className="absolute -right-px bottom-[1.5px] overflow-hidden w-12 md:w-auto h-10.25 md:h-auto">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 52 50"
           preserveAspectRatio="none"
           fill="none"
-          className="w-[48px] md:w-[53px] h-[41px] md:h-[50px] transition-all duration-300"
+          className="w-12 md:w-13.25 h-10.25 md:h-12.5 transition-all duration-300"
         >
           <path
             d="M4.1 7.05536C4.57855 3.03083 7.99114 0 12.044 0H43.9934C48.4117 0 51.9934 3.58172 51.9934 8V42C51.9934 46.4183 48.4117 50 43.9934 50H8.00107C3.20833 50 -0.508886 45.8146 0.0570345 41.0554L4.1 7.05536Z"
