@@ -12,7 +12,7 @@ import Lottie from "lottie-react";
 import EnquiryPopup from "@/components/Revamp/shared/EnquiryPopup";
 
 export default function RevampLayout() {
-    const { isLoginToggle, role, user, isAuthenticated } = useAuthStore();
+    const { isLoginToggle, role, isAuthenticated } = useAuthStore();
     const { isChatbotOpen, toggleChatbot } = useChatStore();
     const navigate = useNavigate();
     const location = useLocation();
@@ -54,10 +54,6 @@ export default function RevampLayout() {
                 return;
             }
 
-            if (user && !user.verified && location.pathname !== '/pro-buddies/dashboard') {
-                navigate('/pro-buddies/dashboard', { replace: true });
-            }
-
             return;
         }
 
@@ -70,7 +66,7 @@ export default function RevampLayout() {
                 navigate('/community', { replace: true });
             }
         }
-    }, [isAuthenticated, role, user, location.pathname, navigate]);
+    }, [isAuthenticated, role, location.pathname, navigate]);
 
     const isRestrictedRole =
         isAuthenticated && (role === 'proBuddy' || role === 'counselor');
