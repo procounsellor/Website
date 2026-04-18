@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useBlogDetail, useBlogsList } from "@/hooks/useBlogs";
 import { formatPublishedHeading } from "@/api/blogs";
@@ -137,10 +137,7 @@ export default function BlogDetailPage() {
     error,
     refetch,
   } = useBlogDetail(shouldFetchDetail ? resolvedBlogKey : undefined);
-  const hasHeroImage = Boolean(blog?.imageUrl?.trim());
-  const [isHeroImageLoading, setIsHeroImageLoading] = useState(true);
   const [authorImage, setAuthorImage] = useState("/person.svg");
-  const heroImageRef = useRef<HTMLImageElement | null>(null);
 
   const authorProfile = useMemo(
     () => getAuthorProfileByName(blog?.author),
@@ -157,13 +154,6 @@ export default function BlogDetailPage() {
       replace: true,
     });
   }, [blog?.slug, id, navigate]);
-
-  useEffect(() => {
-    setIsHeroImageLoading(hasHeroImage);
-    if (hasHeroImage && heroImageRef.current?.complete) {
-      setIsHeroImageLoading(false);
-    }
-  }, [blog?.imageUrl, hasHeroImage]);
 
   const descriptionHtml = useMemo(
     () => (blog?.description ? normalizeDescriptionToHtml(blog.description) : ""),
