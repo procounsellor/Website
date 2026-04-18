@@ -408,7 +408,7 @@ export default function RevampHeader() {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onFocus={handleDesktopSearchFocus}
-                    placeholder="Search courses, tests, exams, counsellors" 
+                    placeholder="Search courses, tests, and counsellors" 
                     className="w-full h-full bg-transparent outline-none font-poppins font-medium text-[16px] leading-[100%] text-[#232323] placeholder:text-[#6B7280]"
                 />
                 <svg 
