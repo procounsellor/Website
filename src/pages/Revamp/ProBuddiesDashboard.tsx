@@ -18,7 +18,7 @@ const ProBuddiesDashboard: React.FC = () => {
     return <div className="min-h-screen bg-[#C6DDF040]" />;
   }
 
-  if (!user?.verified) {
+  if (user?.verified) {
     return (
       <div className="bg-[#C6DDF040] min-h-screen flex flex-col items-center justify-start pt-10 pb-10 px-8 text-center gap-6 font-poppins">
         <div className="bg-white rounded-2xl shadow-xl p-10 max-w-2xl w-full flex flex-col items-center border border-gray-100">

@@ -40,7 +40,11 @@ export default function RevampLayout() {
     }, []);
 
     useEffect(() => {
-        if (isAuthenticated && role === 'proBuddy') {
+        if (!isAuthenticated) {
+            return;
+        }
+
+        if (role === 'proBuddy') {
             const isAllowedPath =
                 location.pathname.startsWith('/community') ||
                 location.pathname === '/pro-buddies/dashboard';
@@ -53,10 +57,23 @@ export default function RevampLayout() {
             if (user && !user.verified && location.pathname !== '/pro-buddies/dashboard') {
                 navigate('/pro-buddies/dashboard', { replace: true });
             }
+
+            return;
+        }
+
+        if (role === 'counselor') {
+            const isAllowedPath =
+                location.pathname.startsWith('/community') ||
+                location.pathname === '/counsellor-dashboard';
+
+            if (!isAllowedPath) {
+                navigate('/community', { replace: true });
+            }
         }
     }, [isAuthenticated, role, user, location.pathname, navigate]);
 
-    const isProBuddy = isAuthenticated && role === 'proBuddy';
+    const isRestrictedRole =
+        isAuthenticated && (role === 'proBuddy' || role === 'counselor');
 
     return <div className="flex flex-col min-h-screen relative">
         <RevampHeader />
@@ -64,8 +81,8 @@ export default function RevampLayout() {
         <div className="flex-1">
             <Outlet />
         </div>
-        {!isProBuddy && <Footer />}
-        {!isProBuddy && <EnquiryPopup />}
+        {!isRestrictedRole && <Footer />}
+        {!isRestrictedRole && <EnquiryPopup />}
         
         {isLoginToggle && <LoginCard />}
         <Toaster 
@@ -79,7 +96,7 @@ export default function RevampLayout() {
             }}
         />
 
-        {!isProBuddy && (
+        {!isRestrictedRole && (
             <button
                 onClick={toggleChatbot}
                 className="fixed right-0 md:right-6 bottom-1 md:bottom-6 z-50 flex h-32 w-32 cursor-pointer items-center justify-center transition-transform duration-300 hover:scale-110"
@@ -93,6 +110,6 @@ export default function RevampLayout() {
             </button>
         )}
 
-        {!isProBuddy && isChatbotOpen && <Chatbot />}
+        {!isRestrictedRole && isChatbotOpen && <Chatbot />}
     </div>
 }

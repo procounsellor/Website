@@ -14,13 +14,14 @@ import {
 import RescheduleOutOfOfficeModal from "@/components/counselor-dashboard/modals/RescheduleOutOfOfficeModal";
 import CancelOutOfOfficeModal from "@/components/counselor-dashboard/modals/CancelOutOfOfficeModal";
 import type { Appointment, OutOfOffice } from "@/types/appointments";
-import { SquareChevronLeft, SquareChevronRight, ChevronLeft, ChevronRight, Loader2, Clock, SquarePen, ChevronDown, ChevronUp, Plus } from "lucide-react";
+import { SquareChevronLeft, SquareChevronRight, ChevronLeft, ChevronRight, Loader2, Clock, ChevronDown, ChevronUp, Plus } from "lucide-react";
 import AppointmentsTab from "@/components/counselor-dashboard/tabs/AppointmentsTab";
 import CounselorProfile from "@/components/counselor-dashboard/CounselorProfile";
 import { useQuery, useMutation, useQueryClient  } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import CourseTab from "@/components/counselor-dashboard/tabs/CoursesTab";
 import SessionsTab from "@/components/counselor-dashboard/tabs/SessionsTab";
+import DashboardProfileHero from "@/components/shared/DashboardProfileHero";
 
 type MainTab = "calendar" | "earnings" | "appointments" | "reviews" | "clients" | "courses" | "sessions";
 
@@ -272,68 +273,22 @@ export default function CounselorDashboard() {
 
   return (
     <div 
-      className="w-full bg-[#F5F5F7] px-4 sm:px-6 lg:px-8 mt-16 sm:mt-20 flex flex-col items-center"
+      className="bg-[#F5F5F7] min-h-screen p-4 md:p-8 pt-15 md:pt-20"
       onClick={() => {
         setOpenOooMenuId(null);
       }}
     >
-      <div className="w-full max-w-[1200px] rounded-xl">
-        <div className="h-32 md:h-56 bg-gray-200 rounded-t-xl">
-          <img
-            src="https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=2070&auto.format&fit=crop"
-            alt="University Banner"
-            className="w-full h-full object-cover rounded-t-xl"
-          />
-        </div>
-        <div className="px-4 md:px-10 pb-6">
-          <div className="relative flex flex-col items-center md:flex-row md:justify-between md:items-start">
-            <div className="flex flex-col md:flex-row items-center md:items-start w-full">
-              <div className="shrink-0 w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-white bg-gray-300 overflow-hidden shadow-lg -mt-16 md:-mt-24">
-                <img
-                  src={
-                    counselor.photoUrl ||
-                    `https://ui-avatars.com/api/?name=${counselor.firstName}+${counselor.lastName}&background=EBF4FF&color=0D47A1`
-                  }
-                  alt={`${counselor.firstName} ${counselor.lastName}`}
-                  onError={(e) => {
-                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${counselor.firstName}+${counselor.lastName}&background=EBF4FF&color=0D47A1`;
-                  }}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="flex-1 mt-4 md:mt-0 md:ml-6 md:pt-6 flex flex-col items-center md:items-start">
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl md:text-2xl font-semibold text-[#343C6A] leading-tight">
-                    {counselor.firstName} {counselor.lastName}
-                  </h1>
-                  <button
-                    onClick={() => setProfileModalOpen(true)}
-                    className="text-[#343C6A] hover:text-blue-800 transition-colors md:hidden"
-                  >
-                    <SquarePen size={20} />
-                  </button>
-                </div>
+      <div className="max-w-7xl mx-auto">
+        <DashboardProfileHero
+          fullName={`${counselor.firstName} ${counselor.lastName}`}
+          subtitle="Career Counsellor"
+          photoUrl={counselor.photoUrl}
+          fallbackName={`${counselor.firstName} ${counselor.lastName}`}
+          buttonLabel="View Profile"
+          onActionClick={() => setProfileModalOpen(true)}
+        />
 
-                <p className="text-sm md:text-lg text-[#718EBF] font-medium">
-                  Career Counsellor
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4 md:mt-0 md:pt-6">
-              <button
-                onClick={() => setProfileModalOpen(true)}
-                className="hidden md:flex items-center hover:cursor-pointer justify-center gap-2 py-2.5 px-4 bg-white border border-[#343C6A] rounded-xl text-[#343C6A] font-medium text-base hover:bg-gray-100 transition-colors shadow-sm whitespace-nowrap"
-              >
-                <SquarePen size={20} />
-                <span>View Profile</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="w-full max-w-[1200px]">
+        <div className="w-full">
         <div className="border-b border-gray-200">
           <div className="overflow-x-auto scrollbar-hide">
             <nav className="flex space-x-6 -mb-px" aria-label="Tabs">
@@ -355,7 +310,7 @@ export default function CounselorDashboard() {
         </div>
       </div>
 
-      <div className="w-full max-w-[1200px] mt-8 mb-16" onClick={() => setOpenOooMenuId(null)}>
+        <div className="w-full mt-8 mb-16" onClick={() => setOpenOooMenuId(null)}>
         <div>
           {mainTab === "calendar" && (
             <>
@@ -726,6 +681,7 @@ export default function CounselorDashboard() {
             <SessionsTab user={authUser} token={token} />
           )}
           
+        </div>
         </div>
       </div>
 

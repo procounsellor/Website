@@ -21,16 +21,24 @@ export default function RevampHeader() {
     const location = useLocation();
     const { toggleLogin, isAuthenticated, logout, role, user } = useAuthStore();
     const isProBuddy = role === 'proBuddy';
+    const isCounselor = role === 'counselor';
     const visibleTabs = useMemo(() => {
+        if (isCounselor) {
+            return [
+                { id: 3, name: 'Community', iconPath: '/Community.png', path: '/community' },
+                { id: 5, name: 'Profile', iconPath: '/person.svg', path: '/counsellor-dashboard' },
+            ];
+        }
+
         if (isProBuddy) {
             return [
                 { id: 3, name: 'Community', iconPath: '/Community.png', path: '/community' },
-                { id: 4, name: 'Dashboard', iconPath: '/ProBuddy.png', path: '/pro-buddies/dashboard' },
+                { id: 4, name: 'Profile', iconPath: '/ProBuddy.png', path: '/pro-buddies/dashboard' },
             ];
         }
 
         return tabs;
-    }, [isProBuddy]);
+    }, [isCounselor, isProBuddy]);
     const [activeTab, setActiveTab] = useState(1);
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
@@ -160,7 +168,7 @@ export default function RevampHeader() {
         setSearchOpen(false);
     };
 
-    const showGlobalSearch = !isProBuddy;
+    const showGlobalSearch = !isProBuddy && !isCounselor;
 
     const handleLogout = () => {
         logout();
