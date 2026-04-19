@@ -344,7 +344,7 @@ export default function MHTCETCollegePredictor() {
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="General">General</SelectItem>
+                        <SelectItem value="Open">Open</SelectItem>
                         <SelectItem value="OBC">OBC</SelectItem>
                         <SelectItem value="SC">SC</SelectItem>
                         <SelectItem value="ST">ST</SelectItem>
