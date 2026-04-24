@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import GyanDhanBanner from './GyanDhanBanner';
 import PredictorBanner from './PredictorBanner';
+import ScalerBanner from './ScalerBanner';
 
 const RevampBannerSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -23,7 +24,12 @@ const RevampBannerSection = () => {
       },
       {
         id: 'desktop-3',
-        left: <PredictorBanner variant="rank" />,
+        left: <ScalerBanner />,
+        right: <PredictorBanner variant="rank" />,
+      },
+      {
+        id: 'desktop-4',
+        left: <PredictorBanner variant="mhtcet" />,
         right: <GyanDhanBanner />,
       },
     ],
@@ -33,9 +39,10 @@ const RevampBannerSection = () => {
   const mobileSlides = useMemo(
     () => [
       { id: 'mobile-1', content: <GyanDhanBanner /> },
-      { id: 'mobile-2', content: <PredictorBanner variant="rank" /> },
-      { id: 'mobile-3', content: <PredictorBanner variant="college" /> },
-      { id: 'mobile-4', content: <PredictorBanner variant="mhtcet" /> },
+      { id: 'mobile-2', content: <ScalerBanner /> },
+      { id: 'mobile-3', content: <PredictorBanner variant="rank" /> },
+      { id: 'mobile-4', content: <PredictorBanner variant="college" /> },
+      { id: 'mobile-5', content: <PredictorBanner variant="mhtcet" /> },
     ],
     []
   );

@@ -67,7 +67,7 @@ const PredictorBanner = ({ variant }: PredictorBannerProps) => {
   const slide = cardConfig[variant];
 
   return (
-    <div className="relative w-[335px] md:w-full max-w-[648px] h-[320px] md:h-[265px] rounded-[12px] md:rounded-2xl overflow-hidden shrink-0">
+    <div className="relative w-[335px] md:w-full max-w-[648px] h-[320px] md:h-[265px] rounded-[12px] md:rounded-2xl overflow-hidden shrink-0 cursor-pointer">
       <div
         className="relative h-full"
         style={{ background: slide.gradient }}
@@ -91,7 +91,7 @@ const PredictorBanner = ({ variant }: PredictorBannerProps) => {
             <button
               onClick={() => navigate(slide.path)}
               type="button"
-              className="font-poppins font-semibold text-[14px] underline cursor-pointer"
+              className="font-poppins font-semibold text-[14px] underline cursor-pointer hover:cursor-pointer"
               style={{ color: slide.titleColor }}
             >
               {slide.cta}

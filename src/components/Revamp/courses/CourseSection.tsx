@@ -217,7 +217,7 @@ export default function CourseSection() {
                     </div>
                     <button
                       onClick={handleSingleCardCta}
-                      className="w-full rounded-lg bg-[#0E1629] px-3 py-2 text-xs font-semibold text-white hover:opacity-90"
+                      className="w-full hover:cursor-pointer rounded-lg bg-[#0E1629] px-3 py-2 text-xs font-semibold text-white hover:opacity-90"
                     >
                       Explore Trending
                     </button>
@@ -331,7 +331,7 @@ export default function CourseSection() {
                         </div>
                         <button
                           onClick={handleSingleCardCta}
-                          className="rounded-xl bg-[#0E1629] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                          className="rounded-xl hover:cursor-pointer bg-[#0E1629] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
                         >
                           Explore Trending
                         </button>
@@ -357,7 +357,7 @@ export default function CourseSection() {
                     </p>
                     <button
                       onClick={() => handleTabChange("trending")}
-                      className="rounded-xl bg-[#0E1629] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                      className="rounded-xl hover:cursor-pointer bg-[#0E1629] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90"
                     >
                       Explore Trending
                     </button>
