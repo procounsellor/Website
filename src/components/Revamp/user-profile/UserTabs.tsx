@@ -857,18 +857,28 @@ function MyTests() {
         {isLoading ? (
           <div className="flex justify-center w-full py-10"><Loader2 className="w-8 h-8 animate-spin text-[#13097D]" /></div>
         ) : testGroups.length > 0 ? (
-          testGroups.map((test) => (
-            <ProfileTestCard
-              key={test.testGroupId}
-              testGroupId={test.testGroupId}
-              title={test.title}
-              image={test.image}
-              totalTests={test.totalTests}
-              totalStudents={test.totalStudents}
-              rating={test.rating}
-              isBought={test.isBought}
-            />
-          ))
+          testGroups.map(
+            (test: {
+              testGroupId: string;
+              title: string;
+              image: string;
+              totalTests: number;
+              totalStudents: number;
+              rating: string;
+              isBought: boolean;
+            }) => (
+              <ProfileTestCard
+          key={test.testGroupId}
+          testGroupId={test.testGroupId}
+          title={test.title}
+          image={test.image}
+          totalTests={test.totalTests}
+          totalStudents={test.totalStudents}
+          rating={test.rating}
+          isBought={test.isBought}
+              />
+            )
+          )
         ) : (
           <p className="text-(--text-muted)">No test series found.</p>
         )}
