@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/AuthStore";
 import { getUserAppointments } from "@/api/appointment";
@@ -29,7 +30,10 @@ const tabs = [
   { title: "My Reviews", id: 7 },
 ];
 export default function UserTabs() {
-  const [active, setActive] = useState(1);
+  const [searchParams] = useSearchParams();
+  const urlTab = searchParams.get('activeTab');
+  const initialTabId = urlTab ? (tabs.find(t => t.title === urlTab)?.id ?? 1) : 1;
+  const [active, setActive] = useState(initialTabId);
   const [isScrolled, setIsScrolled] = useState(false);
 
   return (

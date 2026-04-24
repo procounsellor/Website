@@ -1,12 +1,15 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Loader2, Star, Users } from 'lucide-react';
+import { ChevronRight, ChevronUp, Loader2, Star, Users } from 'lucide-react';
 import {
   getAllTestGroups,
   getAllTestGroupsForGuest,
   getAllTestGroupsOfCounsellorForUser,
 } from '@/api/testGroup';
 import { useAuthStore } from '@/store/AuthStore';
+
+const PAGE_SIZE = 4;
 
 type CounselorTestsCardProps = {
   counsellorId: string;
@@ -65,6 +68,7 @@ function normalizeTestGroups(response: any, counsellorId: string): DisplayTestGr
 export default function RevampCounselorTestsCard({ counsellorId, userRole = 'user' }: CounselorTestsCardProps) {
   const navigate = useNavigate();
   const { userId } = useAuthStore();
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const isCounselor = userRole === 'counselor';
   const isUserOrStudent = userRole === 'user' || userRole === 'student';
@@ -84,7 +88,9 @@ export default function RevampCounselorTestsCard({ counsellorId, userRole = 'use
   });
 
   const testGroups = normalizeTestGroups(data, counsellorId);
-  const displayedTestGroups = testGroups.slice(0, 2);
+  const displayedTestGroups = testGroups.slice(0, visibleCount);
+  const hasMore = visibleCount < testGroups.length;
+  const isExpanded = visibleCount > PAGE_SIZE;
 
   if (isLoading) {
     return (
@@ -100,14 +106,8 @@ export default function RevampCounselorTestsCard({ counsellorId, userRole = 'use
 
   return (
     <div className="w-full max-w-145 bg-white rounded-2xl border border-[#EFEFEF] p-2.5 font-poppins shadow-sm">
-      <div className="flex justify-between items-center px-1">
+      <div className="flex items-center px-1">
         <h2 className="text-[18px] sm:text-[20px] font-semibold text-[#0E1629] leading-none">Tests</h2>
-        <button
-          onClick={() => navigate('/courses/test-listing')}
-          className="flex items-center gap-0.5 text-[12px] sm:text-[14px] font-semibold text-[#3D3D3D] leading-none cursor-pointer hover:text-[#2F43F2] transition-colors"
-        >
-          See All <ChevronRight className="w-4 h-4" />
-        </button>
       </div>
 
       <div className="mt-4 flex flex-col gap-2.5">
@@ -161,6 +161,27 @@ export default function RevampCounselorTestsCard({ counsellorId, userRole = 'use
           </div>
         ))}
       </div>
+
+      {/* See more / See less */}
+      {(hasMore || isExpanded) && (
+        <div className="flex justify-center mt-3">
+          {hasMore ? (
+            <button
+              onClick={() => setVisibleCount(v => v + PAGE_SIZE)}
+              className="flex items-center gap-0.5 text-[12px] sm:text-[14px] font-semibold text-[#3D3D3D] leading-none cursor-pointer hover:text-[#2F43F2] transition-colors"
+            >
+              See more <ChevronRight className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              onClick={() => setVisibleCount(PAGE_SIZE)}
+              className="flex items-center gap-0.5 text-[12px] sm:text-[14px] font-semibold text-[#3D3D3D] leading-none cursor-pointer hover:text-[#2F43F2] transition-colors"
+            >
+              See less <ChevronUp className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -121,8 +121,6 @@ export default function DeadlinesPage() {
              <DeadlineFilters 
                 selectedTypes={selectedTypes}
                 setSelectedTypes={setSelectedTypes}
-                feesRange={feesRange}
-                setFeesRange={setFeesRange}
                 onClearFilters={handleClearFilters}
              />
           </div>
@@ -235,8 +233,6 @@ export default function DeadlinesPage() {
                <DeadlineFilters 
                   selectedTypes={selectedTypes}
                   setSelectedTypes={setSelectedTypes}
-                  feesRange={feesRange}
-                  setFeesRange={setFeesRange}
                   onClearFilters={handleClearFilters}
                />
             </div>

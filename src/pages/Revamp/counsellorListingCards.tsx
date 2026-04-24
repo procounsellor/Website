@@ -197,13 +197,13 @@ const CounsellorListingCards: React.FC<CardProps> = ({
                         <div className="flex flex-row justify-between sm:justify-center items-center gap-3">
                             <span className="font-['Poppins'] font-medium text-[14px] text-[#525055]">Sort by:</span>
                             <Select value={selectedSort} onValueChange={setSelectedSort}>
-                                <SelectTrigger className="w-40 h-12 bg-white rounded-lg border border-transparent hover:border-gray-200 outline-none focus:ring-0 font-['Poppins'] font-medium text-[14px] md:text-[16px] text-[#525055] shadow-none">
+                                <SelectTrigger className="w-40 h-12 bg-white rounded-lg border border-transparent hover:border-gray-200 outline-none focus:ring-0 font-['Poppins'] font-medium text-xs text-[#525055] shadow-none cursor-pointer">
                                     <SelectValue placeholder="Popularity" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
                                         {sortTypes.map((type) => (
-                                            <SelectItem key={type.value} value={type.value} className="font-['Poppins']">
+                                            <SelectItem key={type.value} value={type.value} className="font-['Poppins'] text-xs cursor-pointer">
                                                 {type.label}
                                             </SelectItem>
                                         ))}
@@ -230,13 +230,13 @@ const CounsellorListingCards: React.FC<CardProps> = ({
                     <div className="flex flex-row justify-between items-center gap-3">
                         <span className="font-['Poppins'] font-medium text-[13px] text-[#525055]">Sort by:</span>
                         <Select value={selectedSort} onValueChange={setSelectedSort}>
-                            <SelectTrigger className="w-37.5 h-9 bg-white rounded-lg border border-gray-200 outline-none focus:ring-0 font-['Poppins'] font-medium text-[13px] text-[#525055] shadow-none">
+                            <SelectTrigger className="w-37.5 h-9 bg-white rounded-lg border border-gray-200 outline-none focus:ring-0 font-['Poppins'] font-medium text-xs text-[#525055] shadow-none cursor-pointer">
                                 <SelectValue placeholder="Popularity" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectGroup>
                                     {sortTypes.map((type) => (
-                                        <SelectItem key={type.value} value={type.value} className="font-['Poppins'] text-[13px]">
+                                        <SelectItem key={type.value} value={type.value} className="font-['Poppins'] text-xs cursor-pointer">
                                             {type.label}
                                         </SelectItem>
                                     ))}
