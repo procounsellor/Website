@@ -1,4 +1,4 @@
-import { Bookmark, Star, Briefcase, MapPin } from "lucide-react";
+import { Bookmark, Star, Briefcase, MapPin, User2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { encodeCounselorId } from "@/lib/utils";
@@ -29,6 +29,7 @@ export default function FancyCard({
   onBookmarkClick,
 }: FancyCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -79,11 +80,18 @@ export default function FancyCard({
         </div>
 
         {/* Counsellor Image */}
-        <img
-          src={imageUrl}
-          alt={name}
-          className="w-full md:w-55 h-33.75 md:h-52 rounded-[10px] object-cover shrink-0"
-        />
+        {imageUrl && !imgError ? (
+          <img
+            src={imageUrl}
+            alt={name}
+            className="w-full md:w-55 h-33.75 md:h-52 rounded-[10px] object-cover shrink-0"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="w-full md:w-55 h-33.75 md:h-52 rounded-[10px] shrink-0 bg-[#F0F3FF] flex items-center justify-center">
+            <User2 className="w-14 h-14 text-[#9CA3AF]" strokeWidth={1.2} />
+          </div>
+        )}
 
         {/* Counsellor Name */}
         <div className="mt-2">

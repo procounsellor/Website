@@ -44,7 +44,7 @@ export default function RescheduleModalWrapper({
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-centers bg-opacity-50 backdrop-blur-sm">
+      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm">
         <Loader2 className="w-12 h-12 animate-spin text-white" />
       </div>
     );

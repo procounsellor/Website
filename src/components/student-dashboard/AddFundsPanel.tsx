@@ -38,7 +38,7 @@ const AddFundsPanel: React.FC<AddFundsPanelProps> = ({
   return (
     <>
       <div
-        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-99 transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] transition-opacity duration-300 ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
@@ -46,7 +46,7 @@ const AddFundsPanel: React.FC<AddFundsPanelProps> = ({
 
       <div
         className={`
-          fixed z-100 bg-white shadow-2xl transition-all duration-300 ease-in-out
+          fixed z-[201] bg-white shadow-2xl transition-all duration-300 ease-in-out
           
           /* Mobile: Centered modal */
           inset-x-4 top-1/2 -translate-y-1/2 rounded-2xl max-h-[90vh] overflow-y-auto

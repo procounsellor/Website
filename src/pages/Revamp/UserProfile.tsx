@@ -47,7 +47,7 @@ export default function UserProfile(){
             }}
         >
             <div className="w-full border-b border-[#E3E8F4] bg-white">
-                <div className="max-w-[1440px] mx-auto px-4 md:px-[60px] py-3">
+                <div className="max-w-7xl mx-auto px-4 py-3">
                     <p className="text-[0.875rem] text-(--text-muted) font-medium">
                         Admission <span className="mx-1">{">"}</span>{" "}
                         <span className="text-(--text-main)">Profile</span>
@@ -62,7 +62,7 @@ export default function UserProfile(){
                     aria-hidden="true"
                 />
 
-                <div className="relative z-10 w-full mx-auto max-w-[1440px] px-4 md:px-30 flex flex-col md:flex-row justify-center items-center gap-6 text-center pb-12">
+                <div className="relative w-full mx-auto max-w-7xl px-4 flex flex-col md:flex-row justify-center items-center gap-6 text-center pb-12">
                     <UserDetails onEditClick={() => setIsEditProfileOpen(true)} />
                     <UserTabs/>
                 </div>
