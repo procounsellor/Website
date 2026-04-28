@@ -66,7 +66,7 @@ export default function FancyCard({
               event.stopPropagation();
               onBookmarkClick?.();
             }}
-            className="absolute top-4.5 right-4.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#0E1629] shadow-sm transition-colors hover:bg-white"
+            className="absolute top-4.5 right-4.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#0E1629] shadow-sm transition-colors hover:bg-white cursor-pointer"
             aria-label="Bookmark counselor"
           >
             <Bookmark size={16} fill={isBookmarked ? "#0E1629" : "none"} />

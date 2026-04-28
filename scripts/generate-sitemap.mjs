@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const SITE_URL = process.env.SITE_URL || "https://procounsel.co.in";
+const SITE_URL = process.env.SITE_URL || "https://www.procounsel.co.in";
 const OUTPUT_PATH = path.resolve(process.cwd(), "public", "sitemap.xml");
 
 async function readApiBaseUrlFromEnvFiles() {
@@ -89,11 +89,22 @@ function parseListPayload(json) {
   return [];
 }
 
-async function fetchBlogSlugs() {
-  const apiBaseUrl =
+function encodeCounselorId(id) {
+  if (!id) return "";
+  const encoded = Buffer.from(id).toString("base64");
+  return encoded.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+}
+
+async function getApiBaseUrl() {
+  return (
     process.env.VITE_API_BASE_URL ||
     process.env.API_BASE_URL ||
-    (await readApiBaseUrlFromEnvFiles());
+    (await readApiBaseUrlFromEnvFiles())
+  );
+}
+
+async function fetchBlogSlugs() {
+  const apiBaseUrl = await getApiBaseUrl();
 
   if (!apiBaseUrl) {
     console.warn("[sitemap] VITE_API_BASE_URL/API_BASE_URL not set; skipping dynamic blog slugs.");
@@ -103,9 +114,7 @@ async function fetchBlogSlugs() {
   const endpoint = `${apiBaseUrl.replace(/\/$/, "")}/api/blogs/list`;
 
   try {
-    const response = await fetch(endpoint, {
-      headers: { Accept: "application/json" },
-    });
+    const response = await fetch(endpoint, { headers: { Accept: "application/json" } });
 
     if (!response.ok) {
       console.warn(`[sitemap] Could not fetch blog list (${response.status}).`);
@@ -131,12 +140,68 @@ async function fetchBlogSlugs() {
   }
 }
 
+async function fetchCounsellorIds() {
+  const apiBaseUrl = await getApiBaseUrl();
+  if (!apiBaseUrl) return [];
+
+  try {
+    const response = await fetch(
+      `${apiBaseUrl.replace(/\/$/, "")}/api/shared/getAllCounsellors`,
+      { headers: { Accept: "application/json" } }
+    );
+    if (!response.ok) {
+      console.warn(`[sitemap] Could not fetch counsellors (${response.status}).`);
+      return [];
+    }
+    const json = await response.json();
+    const rows = parseListPayload(json);
+    const ids = rows
+      .map((item) => item?.counsellorId || item?.id || "")
+      .filter(Boolean)
+      .map(encodeCounselorId)
+      .filter(Boolean);
+    console.log(`[sitemap] Fetched ${ids.length} counsellor IDs.`);
+    return Array.from(new Set(ids));
+  } catch (error) {
+    console.warn("[sitemap] Failed to fetch counsellors:", error);
+    return [];
+  }
+}
+
+async function fetchCollegeIds() {
+  const apiBaseUrl = await getApiBaseUrl();
+  if (!apiBaseUrl) return [];
+
+  try {
+    const response = await fetch(
+      `${apiBaseUrl.replace(/\/$/, "")}/api/featured_colleges/all`,
+      { headers: { Accept: "application/json" } }
+    );
+    if (!response.ok) {
+      console.warn(`[sitemap] Could not fetch colleges (${response.status}).`);
+      return [];
+    }
+    const json = await response.json();
+    const rows = parseListPayload(json);
+    const ids = rows
+      .map((item) => item?.collegeId || item?.id || "")
+      .filter(Boolean);
+    console.log(`[sitemap] Fetched ${ids.length} college IDs.`);
+    return Array.from(new Set(ids));
+  } catch (error) {
+    console.warn("[sitemap] Failed to fetch colleges:", error);
+    return [];
+  }
+}
+
 function routeToPriority(route) {
   if (route === "/") return "1.0";
   if (route === "/admissions" || route === "/courses") return "0.9";
   if (route === "/community" || route === "/counsellor-listing" || route === "/pro-buddies") return "0.85";
   if (route === "/jee-rank-predictor" || route === "/jee-college-predictor" || route === "/mhtcet-college-predictor") return "0.85";
   if (route === "/admissions/blogs" || route === "/admissions/deadlines") return "0.8";
+  if (route.startsWith("/counsellor-details/") || route.startsWith("/counsellor/")) return "0.75";
+  if (route.startsWith("/college-details/")) return "0.75";
   if (route.startsWith("/admissions/blogs/slug/")) return "0.7";
   if (route.startsWith("/admissions/blog-authors")) return "0.7";
   if (route === "/pro-buddies/listing" || route === "/pro-buddies/college-listing") return "0.75";
@@ -151,6 +216,8 @@ function routeToChangeFreq(route) {
   if (route.startsWith("/admissions/blogs/slug/")) return "weekly";
   if (route.startsWith("/admissions/blog-authors")) return "weekly";
   if (route === "/counsellor-listing" || route === "/pro-buddies" || route === "/pro-buddies/listing") return "weekly";
+  if (route.startsWith("/counsellor-details/") || route.startsWith("/counsellor/")) return "monthly";
+  if (route.startsWith("/college-details/")) return "monthly";
   return "monthly";
 }
 
@@ -185,8 +252,17 @@ function buildSitemapXml(routes) {
 }
 
 async function main() {
-  const dynamicSlugs = await fetchBlogSlugs();
-  const dynamicRoutes = dynamicSlugs.map((slug) => `/admissions/blogs/slug/${slug}`);
+  const [blogSlugs, counsellorIds, collegeIds] = await Promise.all([
+    fetchBlogSlugs(),
+    fetchCounsellorIds(),
+    fetchCollegeIds(),
+  ]);
+
+  const dynamicRoutes = [
+    ...blogSlugs.map((slug) => `/admissions/blogs/slug/${slug}`),
+    ...counsellorIds.map((id) => `/counsellor-details/${id}`),
+    ...collegeIds.map((id) => `/college-details/${id}`),
+  ];
 
   const allRoutes = Array.from(new Set([...STATIC_ROUTES, ...dynamicRoutes]));
   const xml = buildSitemapXml(allRoutes);

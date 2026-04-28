@@ -6,11 +6,46 @@ import { SeeAllButton } from "../../components/LeftRightButton";
 import { academicApi } from "@/api/academic";
 import type { AllCounselor } from "@/types/academic";
 import { useQuery } from "@tanstack/react-query";
+import { addFav } from "@/api/counsellor";
+import { useAuthStore } from "@/store/AuthStore";
+import toast from "react-hot-toast";
 
 export default function CounsellorSection() {
     const navigate = useNavigate();
     const [activeFilter, setActiveFilter] = useState("all programme");
     const hasAnimated = useRef(false);
+    const { user, refreshUser } = useAuthStore();
+    const [favouriteIds, setFavouriteIds] = useState<Set<string>>(
+        () => new Set(user?.favouriteCounsellorIds ?? [])
+    );
+
+    const handleToggleFavourite = async (counsellorId: string) => {
+        const { isAuthenticated, toggleLogin } = useAuthStore.getState();
+
+        const doToggle = async () => {
+            const freshUserId = localStorage.getItem('phone');
+            if (!freshUserId) return;
+            setFavouriteIds(prev => {
+                const next = new Set(prev);
+                if (next.has(counsellorId)) next.delete(counsellorId);
+                else next.add(counsellorId);
+                return next;
+            });
+            try {
+                await addFav(freshUserId, counsellorId);
+                await refreshUser(true);
+            } catch {
+                toast.error("Could not update favourite status.");
+                setFavouriteIds(new Set(user?.favouriteCounsellorIds ?? []));
+            }
+        };
+
+        if (!isAuthenticated) {
+            toggleLogin(doToggle);
+            return;
+        }
+        await doToggle();
+    };
 
     const filters = [
         "all programme",
@@ -164,6 +199,8 @@ export default function CounsellorSection() {
                                         experience={getExperienceText(c.experience)}
                                         city={c.city || "Not specified"}
                                         proCoins={c.plusAmount}
+                                        isBookmarked={favouriteIds.has(c.counsellorId)}
+                                        onBookmarkClick={() => handleToggleFavourite(c.counsellorId)}
                                     />
                                 </motion.div>
                             ))}
