@@ -10,4 +10,4 @@ Disallow: /take-test/
 Disallow: /t/
 Disallow: /test-result/
 
-Sitemap: https://procounsel.co.in/sitemap.xml
+Sitemap: https://www.procounsel.co.in/sitemap.xml

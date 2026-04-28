@@ -21,8 +21,8 @@ export default function QuestionDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchDetails = async () => {
-    if (!questionId || !userId || !token) {
-      setError('Missing required information to load this page.');
+    if (!questionId) {
+      setError('Missing question ID.');
       setIsLoading(false);
       return;
     }
@@ -32,8 +32,8 @@ export default function QuestionDetailPage() {
       setError(null);
       const response = await getAllAnswersForSpecificQuestion(
         questionId,
-        userId,
-        token,
+        userId ?? undefined,
+        token ?? undefined,
         user?.role || 'user'
       );
 
@@ -52,7 +52,7 @@ export default function QuestionDetailPage() {
 
   useEffect(() => {
     fetchDetails();
-  }, [questionId, userId, token, user]);
+  }, [questionId]);
 
   const questionForCard: CommunityQuestion | null = details
     ? {

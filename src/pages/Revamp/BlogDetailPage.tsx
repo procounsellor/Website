@@ -133,7 +133,7 @@ export default function BlogDetailPage() {
       "education counseling",
     ]);
     const keywords = Array.from(keywordSet).map((k) => k.trim()).filter(Boolean).join(", ");
-    const canonicalUrl = `https://procounsel.co.in/admissions/blogs/slug/${encodeURIComponent(blog.slug)}`;
+    const canonicalUrl = `https://www.procounsel.co.in/admissions/blogs/slug/${encodeURIComponent(blog.slug)}`;
     const pageTitle = `${blog.metaTitle || blog.title} | ProCounsel Blog`;
     const jsonLd = {
       "@context": "https://schema.org",
@@ -147,7 +147,7 @@ export default function BlogDetailPage() {
       keywords: blog.keywords,
       description: metaDescription,
       mainEntityOfPage: canonicalUrl,
-      publisher: { "@type": "Organization", name: "ProCounsel", logo: "https://procounsel.co.in/favicon.png" },
+      publisher: { "@type": "Organization", name: "ProCounsel", logo: "https://www.procounsel.co.in/favicon.png" },
     };
     return { pageTitle, metaDescription, keywords, canonicalUrl, jsonLd };
   }, [blog]);

@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 
-const SITE_URL = 'https://procounsel.co.in';
+const SITE_URL = 'https://www.procounsel.co.in';
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
 const SITE_NAME = 'ProCounsel';
 

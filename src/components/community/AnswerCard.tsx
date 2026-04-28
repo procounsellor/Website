@@ -103,18 +103,20 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, questionId, onAnswerUpd
   };
 
   const fetchComments = async () => {
-    if (userId && token) {
-      try {
-        setIsLoadingComments(true);
-        const response = await getCommentsForAnswer(answer.answerId, userId, token);
-        if (response.status === 'Success') {
-          setComments(response.data.comments || []);
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoadingComments(false);
+    try {
+      setIsLoadingComments(true);
+      const response = await getCommentsForAnswer(
+        answer.answerId,
+        userId ?? undefined,
+        token ?? undefined
+      );
+      if (response.status === 'Success') {
+        setComments(response.data.comments || []);
       }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoadingComments(false);
     }
   };
 

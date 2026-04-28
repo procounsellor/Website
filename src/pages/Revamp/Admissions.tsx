@@ -92,13 +92,13 @@ export default function Admissions() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "ProCounsel",
-    "url": "https://procounsel.co.in",
+    "url": "https://www.procounsel.co.in",
     "description": "India's leading platform for college admissions guidance, career counseling, JEE/NEET preparation, and study abroad support.",
     "potentialAction": {
       "@type": "SearchAction",
       "target": {
         "@type": "EntryPoint",
-        "urlTemplate": "https://procounsel.co.in/admissions/blogs?q={search_term_string}"
+        "urlTemplate": "https://www.procounsel.co.in/admissions/blogs?q={search_term_string}"
       },
       "query-input": "required name=search_term_string"
     }
@@ -108,13 +108,13 @@ export default function Admissions() {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "ProCounsel",
-    "url": "https://procounsel.co.in",
-    "logo": "https://procounsel.co.in/favicon.png",
+    "url": "https://www.procounsel.co.in",
+    "logo": "https://www.procounsel.co.in/favicon.png",
     "sameAs": [],
     "contactPoint": {
       "@type": "ContactPoint",
       "contactType": "customer support",
-      "url": "https://procounsel.co.in/contact"
+      "url": "https://www.procounsel.co.in/contact"
     }
   };
 
