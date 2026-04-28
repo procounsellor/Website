@@ -59,7 +59,11 @@ const StudentDashboardPage: React.FC = () => {
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 768) {
-        navigate('/profile');
+        const mobileTab = new URLSearchParams(window.location.search).get('activeTab');
+        // Map mobile tab names → desktop UserTabs tab names
+        const tabMap: Record<string, string> = { 'Test Series': 'My Tests' };
+        const desktopTab = mobileTab ? (tabMap[mobileTab] ?? mobileTab) : null;
+        navigate('/profile' + (desktopTab ? `?activeTab=${encodeURIComponent(desktopTab)}` : ''));
       }
     };
     handleResize(); // Check on mount

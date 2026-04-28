@@ -6,7 +6,7 @@ import type { ApiReviewReceived } from '@/types/counselorDashboard';
 
 const { baseUrl } = API_CONFIG;
 
-export async function getFavouriteCounsellors(userId: string, token: string): Promise<Counsellor[]> {
+export async function getFavouriteCounsellors(userId: string, token: string): Promise<CounsellorProfile[]> {
   try {
     const response = await fetch(`${baseUrl}/api/user/getCounsellorsMadeFavouriteByUser?userId=${userId}`, {
       headers: {
@@ -23,7 +23,43 @@ export async function getFavouriteCounsellors(userId: string, token: string): Pr
   }
 }
 
-export async function getSubscribedCounsellors(userId: string, token: string): Promise<Counsellor[]> {
+
+export interface CounsellorProfile {
+  counsellorId: string;
+  firstName: string;
+  lastName: string;
+  photoUrlSmall: string;
+  rating: number;
+  newRating: number;
+  numberOfRatings: string; // Stored as string in JSON
+  ratePerYear: number;
+  plusAmount: number | null;
+  proAmount: number | null;
+  eliteAmount: number | null;
+  experience: string; // Stored as string (e.g., "3")
+  languagesKnow: string[];
+  city: string;
+  workingDays: DayOfWeek[];
+  plan: string | null;
+  subscriptionMode: string | null;
+  states: string[] | null;
+  priority: number | null;
+  links: string[] | null;
+}
+
+export type DayOfWeek = 
+
+  | 'Monday' 
+  | 'Tuesday' 
+  | 'Wednesday' 
+
+  | 'Thursday' 
+  | 'Friday' 
+  | 'Saturday' 
+  | 'Sunday';
+
+
+export async function getSubscribedCounsellors(userId: string, token: string): Promise<CounsellorProfile[]> {
   try {
     const response = await fetch(`${baseUrl}/api/user/counsellorsSubscribedByUser?userId=${userId}`, {
       headers: {

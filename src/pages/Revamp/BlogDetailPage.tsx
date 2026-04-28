@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { useBlogDetail, useBlogsList } from "@/hooks/useBlogs";
 import { formatPublishedHeading } from "@/api/blogs";
 import { getAuthorImageWithFallback, getAuthorProfileByName } from "@/lib/blogAuthors";
@@ -68,46 +69,6 @@ function truncateForMeta(text: string, maxLength = 155): string {
   return `${normalized.slice(0, maxLength - 1).trim()}…`;
 }
 
-function upsertMetaByName(name: string, content: string): void {
-  let el = document.head.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
-  if (!el) {
-    el = document.createElement("meta");
-    el.setAttribute("name", name);
-    document.head.appendChild(el);
-  }
-  el.setAttribute("content", content);
-}
-
-function upsertMetaByProperty(property: string, content: string): void {
-  let el = document.head.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
-  if (!el) {
-    el = document.createElement("meta");
-    el.setAttribute("property", property);
-    document.head.appendChild(el);
-  }
-  el.setAttribute("content", content);
-}
-
-function upsertCanonical(url: string): void {
-  let link = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-  if (!link) {
-    link = document.createElement("link");
-    link.setAttribute("rel", "canonical");
-    document.head.appendChild(link);
-  }
-  link.setAttribute("href", url);
-}
-
-function upsertJsonLd(id: string, payload: Record<string, unknown>): void {
-  let script = document.head.querySelector<HTMLScriptElement>(`script#${id}`);
-  if (!script) {
-    script = document.createElement("script");
-    script.type = "application/ld+json";
-    script.id = id;
-    document.head.appendChild(script);
-  }
-  script.textContent = JSON.stringify(payload);
-}
 
 export default function BlogDetailPage() {
   const navigate = useNavigate();
@@ -160,13 +121,10 @@ export default function BlogDetailPage() {
     [blog?.description]
   );
 
-  useEffect(() => {
-    if (!blog) return;
-
-    const plainTextDescription = stripHtmlToText(blog.description ?? "");
-    const metaDescription = truncateForMeta(
-      plainTextDescription || `Read ${blog.title} on ProCounsel.`
-    );
+  const blogSeo = useMemo(() => {
+    if (!blog) return null;
+    const plainText = stripHtmlToText(blog.description ?? "");
+    const metaDescription = truncateForMeta(plainText || `Read ${blog.title} on ProCounsel.`);
     const keywordSet = new Set<string>([
       ...blog.keywords,
       ...blog.keyphrase,
@@ -174,57 +132,24 @@ export default function BlogDetailPage() {
       "college admissions",
       "education counseling",
     ]);
-    const keywords = Array.from(keywordSet)
-      .map((k) => k.trim())
-      .filter(Boolean)
-      .join(", ");
-
-    const canonicalUrl =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/admissions/blogs/slug/${encodeURIComponent(blog.slug)}`
-        : "";
-    document.title = `${blog.metaTitle || blog.title} | ProCounsel Blog`;
-    upsertMetaByName("description", metaDescription);
-    if (keywords) upsertMetaByName("keywords", keywords);
-    if (canonicalUrl) upsertCanonical(canonicalUrl);
-
-    upsertMetaByProperty("og:type", "article");
-    upsertMetaByProperty("og:title", blog.metaTitle || blog.title);
-    upsertMetaByProperty("og:description", metaDescription);
-    if (canonicalUrl) upsertMetaByProperty("og:url", canonicalUrl);
-    if (blog.imageUrl) upsertMetaByProperty("og:image", blog.imageUrl);
-
-    upsertMetaByName("twitter:card", blog.imageUrl ? "summary_large_image" : "summary");
-    upsertMetaByName("twitter:title", blog.metaTitle || blog.title);
-    upsertMetaByName("twitter:description", metaDescription);
-    if (blog.imageUrl) upsertMetaByName("twitter:image", blog.imageUrl);
-
-    upsertJsonLd("blog-posting-jsonld", {
+    const keywords = Array.from(keywordSet).map((k) => k.trim()).filter(Boolean).join(", ");
+    const canonicalUrl = `https://procounsel.co.in/admissions/blogs/slug/${encodeURIComponent(blog.slug)}`;
+    const pageTitle = `${blog.metaTitle || blog.title} | ProCounsel Blog`;
+    const jsonLd = {
       "@context": "https://schema.org",
       "@type": "BlogPosting",
       headline: blog.title,
-      author: {
-        "@type": "Person",
-        name: blog.author || "ProCounsel",
-      },
-      datePublished:
-        blog.publishedOnMillis != null
-          ? new Date(blog.publishedOnMillis).toISOString()
-          : undefined,
-      dateModified:
-        blog.publishedOnMillis != null
-          ? new Date(blog.publishedOnMillis).toISOString()
-          : undefined,
+      author: { "@type": "Person", name: blog.author || "ProCounsel" },
+      datePublished: blog.publishedOnMillis != null ? new Date(blog.publishedOnMillis).toISOString() : undefined,
+      dateModified: blog.publishedOnMillis != null ? new Date(blog.publishedOnMillis).toISOString() : undefined,
       image: blog.imageUrl || undefined,
       articleSection: blog.category,
       keywords: blog.keywords,
       description: metaDescription,
-      mainEntityOfPage: canonicalUrl || undefined,
-      publisher: {
-        "@type": "Organization",
-        name: "ProCounsel",
-      },
-    });
+      mainEntityOfPage: canonicalUrl,
+      publisher: { "@type": "Organization", name: "ProCounsel", logo: "https://procounsel.co.in/favicon.png" },
+    };
+    return { pageTitle, metaDescription, keywords, canonicalUrl, jsonLd };
   }, [blog]);
 
   const publishedLabel = blog
@@ -243,6 +168,25 @@ export default function BlogDetailPage() {
       : blog?.title ?? "Blog";
 
   return (
+    <>
+      {blogSeo && (
+        <Helmet>
+          <title>{blogSeo.pageTitle}</title>
+          <meta name="description" content={blogSeo.metaDescription} />
+          {blogSeo.keywords && <meta name="keywords" content={blogSeo.keywords} />}
+          <link rel="canonical" href={blogSeo.canonicalUrl} />
+          <meta property="og:type" content="article" />
+          <meta property="og:title" content={blogSeo.pageTitle} />
+          <meta property="og:description" content={blogSeo.metaDescription} />
+          <meta property="og:url" content={blogSeo.canonicalUrl} />
+          {blog?.imageUrl && <meta property="og:image" content={blog.imageUrl} />}
+          <meta name="twitter:card" content={blog?.imageUrl ? "summary_large_image" : "summary"} />
+          <meta name="twitter:title" content={blogSeo.pageTitle} />
+          <meta name="twitter:description" content={blogSeo.metaDescription} />
+          {blog?.imageUrl && <meta name="twitter:image" content={blog.imageUrl} />}
+          <script type="application/ld+json">{JSON.stringify(blogSeo.jsonLd)}</script>
+        </Helmet>
+      )}
     <div
       className="min-h-screen"
       style={{
@@ -364,5 +308,6 @@ export default function BlogDetailPage() {
         )}
       </div>
     </div>
+    </>
   );
 }

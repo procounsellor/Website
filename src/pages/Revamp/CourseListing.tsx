@@ -166,7 +166,7 @@ export default function CourseListing() {
           <h3 className="font-[Poppins] font-medium text-[16px] text-[#242645]">Category</h3>
           {openSection === "category" ? <ChevronDown className="h-5 w-5 text-[#242645]" /> : <ChevronRight className="h-5 w-5 text-[#242645]" />}
         </button>
-        {openSection === "category" && <div className="w-full px-5 flex flex-col gap-[16px]">
+        {openSection === "category" && <div className="w-full px-5 pt-[16px] flex flex-col gap-[16px]">
           <input
             type="text"
             value={categorySearch}
@@ -208,7 +208,7 @@ export default function CourseListing() {
           </span>
           {openSection === "price" ? <ChevronDown className="h-5 w-5 text-[#242645]" /> : <ChevronRight className="h-5 w-5 text-[#242645]" />}
         </button>
-        {openSection === "price" && <div className="w-full px-5 flex flex-col gap-[12px]">
+        {openSection === "price" && <div className="w-full px-5 pt-[16px] flex flex-col gap-[12px]">
         <div className="flex flex-row justify-between w-full gap-4">
           <div className="flex flex-col gap-[5px] flex-1">
             <span className="font-[Poppins] font-medium text-[12px] text-[#232323]">Min Price</span>
@@ -262,7 +262,7 @@ export default function CourseListing() {
           <h3 className="font-[Poppins] font-medium text-[16px] text-[#242645]">Minimum Rating</h3>
           {openSection === "rating" ? <ChevronDown className="h-5 w-5 text-[#242645]" /> : <ChevronRight className="h-5 w-5 text-[#242645]" />}
         </button>
-        {openSection === "rating" && <div className="w-full px-5"><select
+        {openSection === "rating" && <div className="w-full px-5 pt-[16px]"><select
           value={minRating}
           onChange={(e) => setMinRating(Number(e.target.value))}
           className="h-[40px] w-full rounded-[12px] border border-[#EFEFEF] bg-white px-[12px] text-[14px] font-[Poppins]"

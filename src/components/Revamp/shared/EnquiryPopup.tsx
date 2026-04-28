@@ -10,6 +10,7 @@ export default function EnquiryPopup() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const hasAutoShown = sessionStorage.getItem(ENQUIRY_AUTO_SHOWN_KEY) === "true";
@@ -27,7 +28,7 @@ export default function EnquiryPopup() {
     setIsVisible(false);
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const trimmedName = name.trim();
@@ -39,11 +40,38 @@ export default function EnquiryPopup() {
       return;
     }
 
-    toast.success("Thanks for your enquiry. We will contact you soon.");
-    setIsVisible(false);
-    setName("");
-    setPhone("");
-    setEmail("");
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(
+        "https://procounsellor-backend-1000407154647.asia-south1.run.app//api/shared/submitEnquiry",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            name: trimmedName,
+            email: trimmedEmail,
+            contact: phone.trim(),
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to submit enquiry");
+      }
+
+      toast.success("Thanks for your enquiry. We will contact you soon.");
+      setIsVisible(false);
+      setName("");
+      setPhone("");
+      setEmail("");
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -107,9 +135,10 @@ export default function EnquiryPopup() {
 
               <button
                 type="submit"
-                className="mt-1 h-12 cursor-pointer rounded-xl bg-[#2F43F2] font-poppins text-[15px] font-semibold text-white transition-colors hover:bg-[#2437d1]"
+                disabled={isSubmitting}
+                className="mt-1 h-12 cursor-pointer rounded-xl bg-[#2F43F2] font-poppins text-[15px] font-semibold text-white transition-colors hover:bg-[#2437d1] disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Submit
+                {isSubmitting ? "Submitting..." : "Submit"}
               </button>
             </form>
           </div>

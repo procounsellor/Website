@@ -1,5 +1,6 @@
 import type { ListingProBudddy, PostReview, ProBuddyReviewForUser, ProBuddyUserSide } from "@/types/probuddies";
 import { API_CONFIG } from "./config";
+import type { collegeProbuddy } from "@/components/Revamp/probuddies/CollegeSection";
 
 export type FeaturedCollegeInIndia = {
   country: string;
@@ -11,6 +12,7 @@ export type FeaturedCollegeInIndia = {
 };
 
 export type ProBuddyListingFilters = {
+  collegeName?: string;
   state?: string;
   city?: string;
   course?: string;
@@ -198,6 +200,7 @@ export const getAllProBudddiesUser = async (
     appendQueryParam(queryParams, "userId", effectiveUserId);
   }
 
+  appendQueryParam(queryParams, "collegeName", filters.collegeName);
   appendQueryParam(queryParams, "state", filters.state);
   appendQueryParam(queryParams, "city", filters.city);
   appendQueryParam(queryParams, "course", filters.course);
@@ -466,6 +469,23 @@ export const getAllReviewsReceivedByAProBuddyForProBuddy = async (proBuddyId: st
 
 
 
+const getAllProBuddyColleges = async ():Promise<collegeProbuddy[]>  =>
+{
+  const response = await fetch(`${API_CONFIG.baseUrl}/api/shared/getProBuddyCollegesWithCounts`, 
+    {
+      headers:{
+        Accept:'application/json'
+      }
+    }
+  )
+  if(!response.ok){
+    throw Error("failed to load  colleges")
+  }
+  const data  = await response.json()
+  return data;
+}
+
+
 
 
 
@@ -477,5 +497,6 @@ export const probuddiesApi = {
   profileForProBuddy: (proBuddyId: string) => getProBuddyByIdForProBuddy(proBuddyId),
   requestsReceivedByProBuddy: (proBuddyId: string) => getRequestsReceivedByProBuddy(proBuddyId),
   createCallRequest: (payload: CreateProBuddyCallRequestPayload) => createProBuddyCallRequest(payload),
-  reviewsForProBuddy: (proBuddyId: string) => getAllReviewsReceivedByAProBuddyForProBuddy(proBuddyId)
+  reviewsForProBuddy: (proBuddyId: string) => getAllReviewsReceivedByAProBuddyForProBuddy(proBuddyId),
+  getColleges:()=>getAllProBuddyColleges()
 }

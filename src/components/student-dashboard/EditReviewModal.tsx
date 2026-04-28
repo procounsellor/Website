@@ -88,7 +88,7 @@ const EditReviewModal: React.FC<EditReviewModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#232323]/50 backdrop-blur-[35px]"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-[#232323]/50 backdrop-blur-[35px]"
       onClick={isSubmitting ? undefined : onClose}
     >
       <div

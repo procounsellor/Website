@@ -58,7 +58,7 @@ export default function ReviewSection({
     }, [reviewItems.length]);
 
     return (
-        <div className="max-w-[1440px] md:px-[60px] mx-auto h-auto md:h-[352px] flex flex-col gap-6 md:gap-8 py-8 md:py-10 pl-5 md:pl-0 overflow-visible md:overflow-hidden">
+        <div className="max-w-[1440px] md:px-[60px] mx-auto flex flex-col gap-6 md:gap-8 py-8 md:py-10 pl-5 md:pl-0">
             <div className="relative flex items-center justify-center pr-5 md:pr-0">
                 <h1 className="text-(--text-main) font-bold text-[1rem] md:text-2xl text-center">
                     Reviews
@@ -76,33 +76,43 @@ export default function ReviewSection({
 
             {composer && <div className="pr-5 md:pr-0">{composer}</div>}
 
+            {/* Mobile: horizontal scroll */}
             <div
-             ref={scrollRef}
-                            className={`flex gap-3 md:gap-8 items-start md:items-end w-full overflow-x-auto snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-4 md:pb-0 ${reviewItems.length === 0 ? "justify-center" : "justify-start"}`}
+                ref={scrollRef}
+                className={`md:hidden flex gap-3 items-start w-full overflow-x-auto snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-4 ${reviewItems.length === 0 ? "justify-center" : "justify-start"}`}
             >
-                {reviewItems.map((review, index)=>(
-                <div key={`${review.name ?? "review"}-${index}`} className="snap-start shrink-0">
-                    <ReviewCard review={review}/>
-                </div>
-            ))}
-
+                {reviewItems.map((review, index) => (
+                    <div key={`${review.name ?? "review"}-${index}`} className="snap-start shrink-0">
+                        <ReviewCard review={review} />
+                    </div>
+                ))}
                 {reviewItems.length === 0 && (
-                    <div className="snap-start shrink-0 min-w-[320px] md:min-w-[597px] w-full p-3 md:p-4">
-                        <p className="text-(--text-muted) text-sm md:text-base text-center w-full">No reviews yet. Be the first to review.</p>
+                    <div className="snap-start shrink-0 min-w-[280px] w-full p-3">
+                        <p className="text-(--text-muted) text-sm text-center w-full">No reviews yet. Be the first to review.</p>
                     </div>
                 )}
-
                 {reviewItems.length > 0 && (
-                    <div className="md:hidden snap-start shrink-0 min-w-[320px] pr-4">
-                        <div className="min-w-[320px] min-h-[146px] flex flex-col items-start justify-center gap-3 p-15 rounded-[12px]">
-                            {/* <p className="text-(--text-main) font-semibold text-sm text-center">See all reviews</p> */}
-                            <SeeAllButton text="See all" onClick={() => setShowAllReviews(true)} />
-                        </div>
+                    <div className="snap-start shrink-0 min-w-[200px] pr-4 flex items-center justify-center">
+                        <SeeAllButton text="See all" onClick={() => setShowAllReviews(true)} />
                     </div>
                 )}
             </div>
+
+            {/* Desktop: responsive grid */}
+            <div className="hidden md:block pr-0">
+                {reviewItems.length === 0 ? (
+                    <p className="text-(--text-muted) text-base text-center w-full py-6">No reviews yet. Be the first to review.</p>
+                ) : (
+                    <div className={`grid gap-6 ${reviewItems.length === 1 ? "grid-cols-1 max-w-xl" : reviewItems.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
+                        {reviewItems.map((review, index) => (
+                            <ReviewCard key={`${review.name ?? "review"}-${index}`} review={review} />
+                        ))}
+                    </div>
+                )}
+            </div>
+
             {reviewItems.length > 0 && (
-                <div className="hidden md:flex justify-end">
+                <div className="hidden md:flex justify-end pr-0">
                     <SeeAllButton onClick={() => setShowAllReviews(true)} />
                 </div>
             )}

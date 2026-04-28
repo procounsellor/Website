@@ -13,6 +13,7 @@ import { Loader2, Lock } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/AuthStore";
 import { Link, useNavigate } from "react-router-dom";
+import PageSEO from "@/components/SEO/PageSEO";
 
 export default function JEERankPredictor() {
   const navigate = useNavigate();
@@ -94,6 +95,13 @@ export default function JEERankPredictor() {
   };
 
   return (
+    <>
+      <PageSEO
+        title="JEE Rank Predictor 2025 – Predict Your JEE Main Rank"
+        description="Use ProCounsel's free JEE Rank Predictor to estimate your JEE Main rank from your percentile score. Get accurate rank predictions based on latest NTA data."
+        canonical="/jee-rank-predictor"
+        keywords="JEE rank predictor, JEE Main rank calculator, JEE percentile to rank, NTA JEE rank, JEE 2025 rank prediction"
+      />
     <div className="min-h-screen bg-gray-50 pb-8">
       <div className="sm:hidden w-full bg-white border-b border-[#E3E8F4]">
         <div className="flex items-center gap-2 px-4 py-3">
@@ -261,6 +269,7 @@ export default function JEERankPredictor() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 

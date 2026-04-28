@@ -289,7 +289,7 @@ export default function TestSection() {
                     </div>
                     <button
                       onClick={() => handleTabChange("trending")}
-                      className="w-full rounded-lg bg-[#0E1629] px-3 py-2 text-xs font-semibold text-white hover:opacity-90"
+                      className="w-full hover:cursor-pointer rounded-lg bg-[#0E1629] px-3 py-2 text-xs font-semibold text-white hover:opacity-90"
                     >
                       Explore Trending
                     </button>
@@ -407,7 +407,7 @@ export default function TestSection() {
                           </div>
                           <button
                             onClick={() => handleTabChange("trending")}
-                            className="rounded-xl bg-[#0E1629] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                            className="rounded-xl hover:cursor-pointer bg-[#0E1629] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
                           >
                             Explore Trending
                           </button>
@@ -426,25 +426,18 @@ export default function TestSection() {
                 transition={{ type: "spring" as const, damping: 20 }}
                 className="flex justify-center mb-6 min-h-[451px] items-center"
               >
-                {isUserLoggedIn && activeTab === "my-tests" && !shouldShowInlineTestUpsell ? (
-                  <div className="flex flex-col items-center gap-3">
-                    <p className="font-[Poppins] text-[14px] text-[#6B7280] self-center text-center">
-                      No tests in My Tests yet. Explore Trending and buy a test group to get started.
+                {isUserLoggedIn && activeTab === "my-tests" ? (
+                  <div className="flex flex-col items-center gap-4 text-center">
+                    <p className="text-xl font-semibold text-[#0E1629]">Keep Learning</p>
+                    <p className="text-sm text-[#6B7280] leading-relaxed max-w-[20rem] mx-auto">
+                      You haven't purchased any test series yet. Explore trending tests and start practising.
                     </p>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => handleTabChange("trending")}
-                        className="px-4 py-2 rounded-lg bg-[#0E1629] text-white text-sm font-medium hover:opacity-90"
-                      >
-                        Explore Trending
-                      </button>
-                      <button
-                        onClick={() => navigate("/courses")}
-                        className="px-4 py-2 rounded-lg border border-[#0E1629] text-[#0E1629] text-sm font-medium hover:bg-[#0E1629] hover:text-white"
-                      >
-                        Browse Test Series
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => handleTabChange("trending")}
+                      className="rounded-xl hover:cursor-pointer bg-[#0E1629] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                    >
+                      Explore Trending
+                    </button>
                   </div>
                 ) : (
                   <p className="font-[Poppins] text-[14px] text-[#6B7280] self-center">No tests found.</p>
@@ -466,7 +459,16 @@ export default function TestSection() {
 
             <SeeAllButton
               text="See all"
-              onClick={() => navigate("/courses/test-listing")}
+              onClick={() => {
+                if (isUserLoggedIn && activeTab === "my-tests") {
+                  navigate(window.innerWidth < 768
+                    ? "/dashboard-student?activeTab=Test Series"
+                    : "/profile?activeTab=My Tests"
+                  );
+                } else {
+                  navigate("/courses/test-listing");
+                }
+              }}
             />
           </div>
         </div>

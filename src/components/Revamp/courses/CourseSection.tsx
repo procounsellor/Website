@@ -217,7 +217,7 @@ export default function CourseSection() {
                     </div>
                     <button
                       onClick={handleSingleCardCta}
-                      className="w-full rounded-lg bg-[#0E1629] px-3 py-2 text-xs font-semibold text-white hover:opacity-90"
+                      className="w-full hover:cursor-pointer rounded-lg bg-[#0E1629] px-3 py-2 text-xs font-semibold text-white hover:opacity-90"
                     >
                       Explore Trending
                     </button>
@@ -331,7 +331,7 @@ export default function CourseSection() {
                         </div>
                         <button
                           onClick={handleSingleCardCta}
-                          className="rounded-xl bg-[#0E1629] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                          className="rounded-xl hover:cursor-pointer bg-[#0E1629] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
                         >
                           Explore Trending
                         </button>
@@ -349,9 +349,24 @@ export default function CourseSection() {
                 transition={{ type: "spring" as const, damping: 20 }}
                 className="flex justify-center mb-6 min-h-[451px] items-center"
               >
-                <p className="font-[Poppins] text-[14px] text-[#6B7280] self-center">
-                  No courses found for this tab.
-                </p>
+                {isUserLoggedIn && activeTab === "my-courses" ? (
+                  <div className="flex flex-col items-center gap-4 text-center">
+                    <p className="text-xl font-semibold text-[#0E1629]">Keep Learning</p>
+                    <p className="text-sm text-[#6B7280] leading-relaxed max-w-[20rem] mx-auto">
+                      You haven't purchased any courses yet. Explore trending courses and start your learning journey.
+                    </p>
+                    <button
+                      onClick={() => handleTabChange("trending")}
+                      className="rounded-xl hover:cursor-pointer bg-[#0E1629] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                    >
+                      Explore Trending
+                    </button>
+                  </div>
+                ) : (
+                  <p className="font-[Poppins] text-[14px] text-[#6B7280] self-center">
+                    No courses found for this tab.
+                  </p>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -361,7 +376,16 @@ export default function CourseSection() {
 
             <SeeAllButton
               text="See all"
-              onClick={() => navigate("/courses/course-listing")}
+              onClick={() => {
+                if (isUserLoggedIn && activeTab === "my-courses") {
+                  navigate(window.innerWidth < 768
+                    ? "/dashboard-student?activeTab=My Courses"
+                    : "/profile?activeTab=My Courses"
+                  );
+                } else {
+                  navigate("/courses/course-listing");
+                }
+              }}
             />
           </div>
         </div>

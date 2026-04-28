@@ -32,7 +32,7 @@ export default function ReviewCard({ review }: { review?: ReviewCardData } = {})
 
 
             {/* desktop */}
-            <div className="min-w-[320px] md:min-w-[597px] flex flex-col gap-3 p-3 rounded-[12px] bg-white border border-[#ededed]">
+            <div className="min-w-[280px] md:min-w-0 md:w-full flex flex-col gap-3 p-3 md:p-4 rounded-[12px] bg-white border border-[#ededed]">
                 {/* image, review and name div */}
                 <div className="flex flex-col gap-3 md:flex-row md:items-start  md:justify-between md:w-full">
                     <div className="flex items-center gap-2 md:gap-3">

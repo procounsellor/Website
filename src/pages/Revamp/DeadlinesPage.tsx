@@ -12,8 +12,9 @@ import {
   SelectGroup,
 } from "@/components/ui/select";
 
-import DeadlinesCard from "@/components/Revamp/admissions/DeadlinesCard"; 
+import DeadlinesCard from "@/components/Revamp/admissions/DeadlinesCard";
 import DeadlineFilters from "@/components/Revamp/deadlinePage/DeadlineFilters";
+import PageSEO from "@/components/SEO/PageSEO";
 
 export default function DeadlinesPage() {
   const navigate = useNavigate();
@@ -78,6 +79,13 @@ export default function DeadlinesPage() {
   };
 
   return (
+    <>
+      <PageSEO
+        title="Admission Deadlines 2025 – College Application Important Dates"
+        description="Track all important college admission deadlines, exam dates, and application cutoffs in one place. Stay on top of JEE, NEET, study abroad, and university application timelines."
+        canonical="/admissions/deadlines"
+        keywords="college admission deadlines 2025, JEE application dates, NEET deadlines, study abroad deadlines, university application timeline India"
+      />
     <div className="min-h-screen bg-[#F3F7FF] font-[Poppins]">
       {/* Top breadcrumb */}
       <div className="w-full border-b border-[#E3E8F4] bg-white">
@@ -121,8 +129,6 @@ export default function DeadlinesPage() {
              <DeadlineFilters 
                 selectedTypes={selectedTypes}
                 setSelectedTypes={setSelectedTypes}
-                feesRange={feesRange}
-                setFeesRange={setFeesRange}
                 onClearFilters={handleClearFilters}
              />
           </div>
@@ -235,8 +241,6 @@ export default function DeadlinesPage() {
                <DeadlineFilters 
                   selectedTypes={selectedTypes}
                   setSelectedTypes={setSelectedTypes}
-                  feesRange={feesRange}
-                  setFeesRange={setFeesRange}
                   onClearFilters={handleClearFilters}
                />
             </div>
@@ -259,5 +263,6 @@ export default function DeadlinesPage() {
         </div>
       )}
     </div>
+    </>
   );
 }

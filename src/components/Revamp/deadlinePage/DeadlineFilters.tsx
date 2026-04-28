@@ -4,20 +4,15 @@ import { ChevronDown, ChevronRight, Info } from "lucide-react";
 interface FilterProps {
   selectedTypes: string[];
   setSelectedTypes: React.Dispatch<React.SetStateAction<string[]>>;
-  feesRange: number;
-  setFeesRange: React.Dispatch<React.SetStateAction<number>>;
   onClearFilters: () => void;
 }
 
 export default function DeadlineFilters({
   selectedTypes,
   setSelectedTypes,
-  feesRange,
-  setFeesRange,
   onClearFilters,
 }: FilterProps) {
-  const [openSection, setOpenSection] = useState<"type" | "fees" | null>("type");
-  const [showFeesTooltip, setShowFeesTooltip] = useState(false);
+  const [openSection, setOpenSection] = useState<"type" | null>("type");
   
   const deadlineTypes = [
     { id: "exam", label: "Exam" },
@@ -34,9 +29,9 @@ export default function DeadlineFilters({
     }
   };
 
-  const activeFilterCount = selectedTypes.length + (feesRange > 0 ? 1 : 0);
+  const activeFilterCount = selectedTypes.length
 
-  const toggleSection = (section: "type" | "fees") => {
+  const toggleSection = (section: "type") => {
     setOpenSection((prev) => (prev === section ? null : section));
   };
 
@@ -96,7 +91,7 @@ export default function DeadlineFilters({
       </div>
 
       {/* Fees Section */}
-      <div className={`box-border flex flex-col items-start mt-[12px] w-full bg-white border border-[#E6E6E6] rounded-[8px] ${openSection === "fees" ? "pb-[16px] gap-[16px]" : "pb-0 gap-0"}`}>
+      {/* <div className={`box-border flex flex-col items-start mt-[12px] w-full bg-white border border-[#E6E6E6] rounded-[8px] ${openSection === "fees" ? "pb-[16px] gap-[16px]" : "pb-0 gap-0"}`}>
         <button type="button" onClick={() => toggleSection("fees")} className="box-border flex flex-row justify-between items-center px-5 py-4 w-full border-b border-[#E6E6E6] cursor-pointer">
           <span className="flex items-center gap-2 font-[Poppins] font-medium text-[16px] text-[#242645]">
             Fees
@@ -128,15 +123,13 @@ export default function DeadlineFilters({
             onChange={(e) => setFeesRange(Number(e.target.value))}
             className="w-full accent-[#0E1629] cursor-pointer"
            />
-          {/* Labels */}
           <div className="flex justify-between w-full mt-2">
              <span className="font-[Poppins] text-[12px] font-medium text-[#6B7280]">0</span>
              <span className="font-[Poppins] text-[12px] font-medium text-[#0E1629]">{feesRange}</span>
              <span className="font-[Poppins] text-[12px] font-medium text-[#6B7280]">100</span>
           </div>
         </div>
-        )}
-      </div>
+      </div> */}
 
       <div className="hidden lg:block w-full mt-4 mb-[70px]">
         <button

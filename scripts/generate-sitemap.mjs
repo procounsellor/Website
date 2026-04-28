@@ -42,27 +42,25 @@ const STATIC_ROUTES = [
   "/admissions/blog-authors/ashutosh-kumar",
   "/admissions/blog-authors/kiran-kudke",
   "/admissions/blog-authors/ananya",
+  "/admissions/deadlines",
   "/courses",
   "/courses/course-listing",
   "/courses/test-listing",
   "/courses/session-listing",
-  "/revamp-courses",
-  "/revamp-about",
   "/counsellor-listing",
   "/pro-buddies",
-  "/pro-buddies/register",
   "/pro-buddies/listing",
   "/pro-buddies/college-listing",
   "/community",
+  "/jee-rank-predictor",
+  "/jee-college-predictor",
+  "/mhtcet-college-predictor",
   "/about",
   "/contact",
   "/privacy-policy",
   "/terms",
   "/cancellation-refund",
   "/shipping-exchange",
-  "/sitemap",
-  "/gurucool",
-  "/promo",
   "/testSeries/pcsat",
   "/subscribe",
 ];
@@ -135,16 +133,24 @@ async function fetchBlogSlugs() {
 
 function routeToPriority(route) {
   if (route === "/") return "1.0";
+  if (route === "/admissions" || route === "/courses") return "0.9";
+  if (route === "/community" || route === "/counsellor-listing" || route === "/pro-buddies") return "0.85";
+  if (route === "/jee-rank-predictor" || route === "/jee-college-predictor" || route === "/mhtcet-college-predictor") return "0.85";
+  if (route === "/admissions/blogs" || route === "/admissions/deadlines") return "0.8";
   if (route.startsWith("/admissions/blogs/slug/")) return "0.7";
   if (route.startsWith("/admissions/blog-authors")) return "0.7";
-  if (route === "/admissions" || route === "/courses") return "0.9";
-  return "0.6";
+  if (route === "/pro-buddies/listing" || route === "/pro-buddies/college-listing") return "0.75";
+  if (route === "/courses/course-listing" || route === "/courses/test-listing") return "0.75";
+  if (route === "/about" || route === "/contact") return "0.6";
+  return "0.5";
 }
 
 function routeToChangeFreq(route) {
-  if (route === "/" || route === "/admissions/blogs") return "daily";
+  if (route === "/" || route === "/admissions/blogs" || route === "/admissions/deadlines") return "daily";
+  if (route === "/admissions" || route === "/community") return "weekly";
   if (route.startsWith("/admissions/blogs/slug/")) return "weekly";
   if (route.startsWith("/admissions/blog-authors")) return "weekly";
+  if (route === "/counsellor-listing" || route === "/pro-buddies" || route === "/pro-buddies/listing") return "weekly";
   return "monthly";
 }
 

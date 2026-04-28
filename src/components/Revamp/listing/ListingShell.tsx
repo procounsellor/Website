@@ -89,15 +89,15 @@ export default function ListingShell({
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-[#525055]">Sort by:</span>
+                    <span className="text-xs font-medium text-[#525055]">Sort by:</span>
                     <Select value={sortValue} onValueChange={onSortChange}>
-                      <SelectTrigger className="h-12 w-[170px] bg-white rounded-lg border border-transparent hover:border-gray-200 outline-none focus:ring-0 font-[Poppins] font-medium text-sm text-[#525055] shadow-none cursor-pointer">
+                      <SelectTrigger className="h-12 w-[170px] bg-white rounded-lg border border-transparent hover:border-gray-200 outline-none focus:ring-0 font-[Poppins] font-medium text-xs text-[#525055] shadow-none cursor-pointer">
                         <SelectValue placeholder={sortOptions[0]?.label ?? "Sort"} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
                           {sortOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value} className="font-[Poppins] cursor-pointer">
+                            <SelectItem key={option.value} value={option.value} className="font-[Poppins] text-xs cursor-pointer">
                               {option.label}
                             </SelectItem>
                           ))}

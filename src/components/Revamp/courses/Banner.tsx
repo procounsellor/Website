@@ -153,7 +153,7 @@ export default function Banner() {
               </p>
               <button
                 onClick={handleLiveSessionsAccess}
-                className="px-10 py-4 bg-[#0E1629] text-white rounded-xl font-[Poppins] font-semibold text-lg hover:opacity-90 transition-all duration-300"
+                className="px-10 py-4 bg-[#0E1629] text-white hover:cursor-pointer rounded-xl font-[Poppins] font-semibold text-lg hover:opacity-90 transition-all duration-300"
               >
                 Explore Live Sessions
               </button>

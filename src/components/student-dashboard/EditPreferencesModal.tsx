@@ -215,7 +215,7 @@ const EditPreferencesModal: React.FC<EditPreferencesModalProps> = ({ mode, curre
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 md:backdrop-blur-sm flex items-center justify-center p-2 md:p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/40 md:backdrop-blur-sm flex items-center justify-center p-2 md:p-4 z-[200]" onClick={onClose}>
       <div
         className="relative w-full max-w-4xl rounded-2xl bg-[#F5F7FA] p-4 md:p-8 shadow-lg flex flex-col max-h-[95vh] md:max-h-[90vh] h-auto md:h-[700px]"
         onClick={(e) => e.stopPropagation()}

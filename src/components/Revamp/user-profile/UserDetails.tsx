@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/store/AuthStore";
+import { User2, User2Icon } from "lucide-react";
 
 interface UserDetailsProps {
     onEditClick: () => void;
@@ -13,12 +14,11 @@ export default function UserDetails({ onEditClick }: UserDetailsProps) {
     const displayRole = user?.role
         ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
         : 'Student';
-    const photoUrl = user?.photo || user?.photoSmall || '/aditya.svg';
+    const photoUrl = user?.photo || user?.photoSmall;
 
     const data = [
         { title: 'Mobile Number', value: user?.phoneNumber || 'Not available' },
         { title: 'Email', value: user?.email || 'Not available' },
-        { title: 'Current City', value: user?.userInterestedStateOfCounsellors?.[0] || 'Not available' },
     ];
 
     return (
@@ -63,11 +63,19 @@ export default function UserDetails({ onEditClick }: UserDetailsProps) {
             </div>
 
             <div className="flex flex-col gap-1 items-center justify-center">
-                <img
+                {photoUrl ? (
+                    <img
                     src={photoUrl}
                     alt="user_image"
                     className="rounded-full w-[6.25rem] h-[6.25rem] object-cover"
                 />
+                ):(
+                   <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-50">
+                     <User2Icon/>
+                   </div>
+                )
+
+                }
                 <h2 className="flex flex-col text-(--text-main) font-semibold text-xl">
                     {displayName}
                     <span className="text-(--text-muted) font-normal text-[1rem]">
