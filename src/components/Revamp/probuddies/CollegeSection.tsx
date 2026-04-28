@@ -4,18 +4,23 @@ import { useNavigate } from "react-router-dom";
 import { SeeAllButton } from "../components/LeftRightButton";
 import CollegeCard from "@/components/Revamp/probuddies/CollegeCard";
 
-const mockColleges = [
-  { id: 1, name: "College 1", city: "Hyderabad" },
-  { id: 2, name: "College 2", city: "Bengaluru" },
-  { id: 3, name: "College 3", city: "Mumbai" },
-  { id: 4, name: "College 4", city: "Delhi" },
-  { id: 5, name: "College 5", city: "Pune" },
-];
+export interface collegeProbuddy {
+        collegeName: string,
+        proBuddyCount:number,
+        collegePhoto: string | null,
+        collegeCity: string | null,
+        collegeState: string | null
+}
+export interface parram {
+  colleges:collegeProbuddy[]
+ }
 
-export default function CollegeSection() {
+
+export default function CollegeSection({colleges}:parram) {
   const navigate = useNavigate();
   const hasAnimated = useRef(false);
-  const displayColleges = mockColleges.slice(0, 5);
+  
+  const displayColleges = colleges.slice(0, 5);
 
   const shouldAnimate = !hasAnimated.current;
   if (displayColleges.length > 0 && !hasAnimated.current) {
@@ -69,13 +74,13 @@ export default function CollegeSection() {
             animate="visible"
             className="flex gap-3 md:gap-6 justify-start md:justify-center overflow-x-auto md:overflow-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-2"
           >
-            {displayColleges.map((college, index) => (
+            {displayColleges.map((college) => (
               <motion.div
-                key={college.id}
+                key={college.collegeName}
                 variants={cardVariants}
-                className={`shrink-0 ${index === 0 ? "" : "md:hidden"}`}
+                className="shrink-0"
               >
-                <CollegeCard />
+                <CollegeCard {...college}/>
               </motion.div>
             ))}
           </motion.div>

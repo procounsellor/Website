@@ -9,6 +9,7 @@ import Deadlines from "@/components/Revamp/admissions/Deadlines";
 import CounsellorSection from "@/components/Revamp/admissions/counsellor/CounsellorSection";
 import Timeline from "@/components/Revamp/admissions/Timeline";
 import RevampBannerSection from "@/components/Revamp/banners/RevampBannerSection";
+import PageSEO from "@/components/SEO/PageSEO";
 
 export default function Admissions() {
   const navigate = useNavigate();
@@ -87,7 +88,45 @@ export default function Admissions() {
   const cardAnimate = splashPhase >= 3 && animationPhase >= 4 ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 10, scale: 0.98 };
   const cardTransition = { duration: 0.55, ease: "easeOut" as const };
 
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "ProCounsel",
+    "url": "https://procounsel.co.in",
+    "description": "India's leading platform for college admissions guidance, career counseling, JEE/NEET preparation, and study abroad support.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://procounsel.co.in/admissions/blogs?q={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
+  };
+
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "ProCounsel",
+    "url": "https://procounsel.co.in",
+    "logo": "https://procounsel.co.in/favicon.png",
+    "sameAs": [],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer support",
+      "url": "https://procounsel.co.in/contact"
+    }
+  };
+
   return (
+    <>
+      <PageSEO
+        title="ProCounsel – College Admissions, Counseling & Exam Prep"
+        description="ProCounsel helps Indian students with college admissions guidance, JEE/NEET preparation, study abroad counseling, expert counsellors, and peer mentorship (ProBuddies)."
+        canonical="/admissions"
+        keywords="college admissions India, JEE counseling, NEET guidance, study abroad, career counseling, ProCounsel"
+        jsonLd={[websiteSchema, organizationSchema]}
+      />
     <div className="min-h-screen">
       <section className="hidden md:flex relative w-full h-[567px] flex items-center justify-center overflow-hidden">
         {/* Splash Screen */}
@@ -376,5 +415,6 @@ export default function Admissions() {
       <Blogs />
       <Faq />
     </div>
+    </>
   );
 }

@@ -6,6 +6,7 @@ import Stories from "@/components/Revamp/probuddies/Stories";
 import { useAuthStore } from "@/store/AuthStore";
 import { useQuery } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
+import PageSEO from "@/components/SEO/PageSEO";
 
 export default function ProBuddies() {
   const {userId} = useAuthStore()
@@ -16,10 +17,24 @@ export default function ProBuddies() {
         gcTime: 10 * 60 * 1000,
     });
 
+     const { data: colleges = [] } = useQuery({
+     queryKey: ['revamp-probuddies-colleges', userId],
+        queryFn: () => probuddiesApi.getColleges(),
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+     });
+
 
 
 
   return (
+    <>
+      <PageSEO
+        title="ProBuddies – Connect with College Seniors & Peer Mentors"
+        description="ProBuddies connects aspiring students with college seniors for real guidance on admissions, campus life, and course selection. Find your ProBuddy today."
+        canonical="/pro-buddies"
+        keywords="ProBuddies, peer mentorship, college seniors, admissions guidance, student community, college advice India"
+      />
     <div className="">
         <div className="w-full h-66 md:h-130 bg-[url('/probuddiesbg.jpg')] bg-cover bg-center">
       <div className="flex flex-col gap-10 items-center justify-center w-full h-full bg-[#0E1629A6]">
@@ -55,12 +70,13 @@ export default function ProBuddies() {
     </div>
 
     <div className=" bg-[#C6DDF040] flex flex-col pb-20">
-      <CollegeSection/>
+      <CollegeSection colleges={colleges} />
       <ProBuddiesSection probuddyList={probuddies}/>
       <AdvantageSection/>
       <Stories/>
     </div>
 
     </div>
+    </>
   );
 }

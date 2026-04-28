@@ -24,6 +24,7 @@ import {
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/AuthStore";
+import PageSEO from "@/components/SEO/PageSEO";
 
 type PredictionMode = "marks" | "percentile" | "rank";
 
@@ -245,6 +246,13 @@ export default function MHTCETCollegePredictor() {
         : setRank;
 
   return (
+    <>
+      <PageSEO
+        title="MHT-CET College Predictor 2025 – Maharashtra Engineering Colleges"
+        description="Predict your MHT-CET college admission chances based on your rank, category, and preferences. Find engineering colleges in Maharashtra with ProCounsel's free predictor tool."
+        canonical="/mhtcet-college-predictor"
+        keywords="MHT-CET college predictor, Maharashtra engineering colleges, MHT CET rank predictor, CAP round Maharashtra, engineering admission Maharashtra"
+      />
     <div className="min-h-screen bg-gray-50 pb-8">
       <div className="sm:hidden w-full bg-white border-b border-[#E3E8F4]">
         <div className="flex items-center gap-2 px-4 py-3">
@@ -821,5 +829,6 @@ export default function MHTCETCollegePredictor() {
         </section>
       </div>
     </div>
+    </>
   );
 }

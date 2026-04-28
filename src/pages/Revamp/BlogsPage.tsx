@@ -1,10 +1,18 @@
 import Blogs from "@/components/Revamp/admissions/Blogs";
 import { useNavigate } from "react-router-dom";
+import PageSEO from "@/components/SEO/PageSEO";
 
 export default function BlogsPage() {
   const navigate = useNavigate();
 
   return (
+    <>
+      <PageSEO
+        title="Admissions Blog – Tips, Guides & News for Students"
+        description="Read expert articles on JEE, NEET, study abroad, college admissions, scholarships, and career guidance. Stay updated with the latest education news on ProCounsel's blog."
+        canonical="/admissions/blogs"
+        keywords="college admissions blog, JEE preparation tips, NEET study guide, study abroad articles, student career advice, education news India"
+      />
     <div
       className="min-h-screen"
       style={{
@@ -37,5 +45,6 @@ export default function BlogsPage() {
 
       <Blogs variant="full" />
     </div>
+    </>
   );
 }

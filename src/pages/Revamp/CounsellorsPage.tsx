@@ -8,6 +8,7 @@ import CounsellorListingCards from "./counsellorListingCards";
 import { X, SlidersHorizontal } from "lucide-react";
 import toast from "react-hot-toast";
 import { addFav } from "@/api/counsellor";
+import PageSEO from "@/components/SEO/PageSEO";
 import EditProfileModal from "@/components/student-dashboard/EditProfileModal";
 import { updateUserProfile } from "@/api/user";
 
@@ -317,6 +318,13 @@ const CounsellorsPage: React.FC = () => {
     })), [sortedCounselors, favouriteIds]);
 
     return (
+        <>
+          <PageSEO
+            title="Find Expert Education Counsellors for Admissions & Career"
+            description="Browse ProCounsel's verified education counsellors specializing in JEE, NEET, study abroad, MBA admissions, and career guidance. Book 1-on-1 sessions with top experts."
+            canonical="/counsellor-listing"
+            keywords="education counsellor India, admission counselor, JEE counseling, study abroad consultant, career guidance, ProCounsel counsellors"
+          />
         <div className="bg-[#C6DDF040] w-full py-6 md:py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-15">
 
@@ -414,6 +422,7 @@ const CounsellorsPage: React.FC = () => {
             )}
             </div>
         </div>
+        </>
     );
 };
 

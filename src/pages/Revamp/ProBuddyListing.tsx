@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { ChevronDown, ChevronRight, Info } from "lucide-react";
 
 import { probuddiesApi } from "@/api/pro-buddies";
@@ -7,6 +8,7 @@ import ListingShell from "@/components/Revamp/listing/ListingShell";
 import ProBuddyCard, { ProbuddyPhoneListinCard } from "@/components/Revamp/probuddies/ProBuddyCard";
 import { useAuthStore } from "@/store/AuthStore";
 import type { ListingProBudddy } from "@/types/probuddies";
+import PageSEO from "@/components/SEO/PageSEO";
 
 const sortOptions = [
   { value: "recommended", label: "Recommended" },
@@ -21,9 +23,13 @@ type OpenSection = "profile" | "language" | "coins" | "rating" | null;
 
 export default function ProBuddyListing() {
   const { userId } = useAuthStore();
+  const [searchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("recommended");
 
+  const [collegeNameFilter, setCollegeNameFilter] = useState(
+    () => searchParams.get("collegeName") ?? ""
+  );
   const [stateFilter, setStateFilter] = useState("");
   const [cityFilter, setCityFilter] = useState("");
   const [courseFilter, setCourseFilter] = useState("");
@@ -49,6 +55,7 @@ export default function ProBuddyListing() {
     queryKey: [
       "pro-buddies-listing",
       userId ?? "guest",
+      collegeNameFilter,
       stateFilter,
       cityFilter,
       courseFilter,
@@ -63,6 +70,7 @@ export default function ProBuddyListing() {
     ],
     queryFn: () =>
       probuddiesApi.listing(userId ?? null, {
+        collegeName: collegeNameFilter,
         state: stateFilter,
         city: cityFilter,
         course: courseFilter,
@@ -102,7 +110,11 @@ export default function ProBuddyListing() {
 
       const matchesCoins = coins >= coinsRange[0] && coins <= coinsRange[1];
 
-      return matchesSearch && matchesCoins;
+      const matchesCollege =
+        !collegeNameFilter ||
+        (item.collegeName ?? "").toLowerCase().includes(collegeNameFilter.toLowerCase());
+
+      return matchesSearch && matchesCoins && matchesCollege;
     });
 
     if (sortBy === "rating") {
@@ -118,6 +130,7 @@ export default function ProBuddyListing() {
 
   const isCoinsChanged = coinsRange[0] > 0 || coinsRange[1] < 500;
   const activeFilterCount =
+    (collegeNameFilter ? 1 : 0) +
     (stateFilter ? 1 : 0) +
     (cityFilter ? 1 : 0) +
     (courseFilter ? 1 : 0) +
@@ -131,6 +144,7 @@ export default function ProBuddyListing() {
   };
 
   const resetFilters = () => {
+    setCollegeNameFilter("");
     setStateFilter("");
     setCityFilter("");
     setCourseFilter("");
@@ -168,7 +182,14 @@ export default function ProBuddyListing() {
           {openSection === "profile" ? <ChevronDown className="h-5 w-5 text-[#242645]" /> : <ChevronRight className="h-5 w-5 text-[#242645]" />}
         </button>
         {openSection === "profile" && (
-          <div className="w-full px-5 flex flex-col gap-[10px]">
+          <div className="w-full px-5 pt-[16px] flex flex-col gap-[10px]">
+            <input
+              type="text"
+              value={collegeNameFilter}
+              onChange={(e) => setCollegeNameFilter(e.target.value)}
+              placeholder="College name"
+              className="h-[40px] w-full rounded-[12px] border border-[#EFEFEF] bg-white px-[12px] text-[14px] font-[Poppins]"
+            />
             <input
               type="text"
               value={stateFilter}
@@ -206,7 +227,7 @@ export default function ProBuddyListing() {
           {openSection === "language" ? <ChevronDown className="h-5 w-5 text-[#242645]" /> : <ChevronRight className="h-5 w-5 text-[#242645]" />}
         </button>
         {openSection === "language" && (
-          <div className="w-full px-5 flex flex-col gap-[10px]">
+          <div className="w-full px-5 pt-[16px] flex flex-col gap-[10px]">
             <input
               type="text"
               value={languageFilter}
@@ -254,7 +275,7 @@ export default function ProBuddyListing() {
           {openSection === "coins" ? <ChevronDown className="h-5 w-5 text-[#242645]" /> : <ChevronRight className="h-5 w-5 text-[#242645]" />}
         </button>
         {openSection === "coins" && (
-          <div className="w-full px-5 flex flex-row justify-between gap-4">
+          <div className="w-full px-5 pt-[16px] flex flex-row justify-between gap-4">
             <div className="flex flex-col gap-[5px] flex-1">
               <span className="font-[Poppins] font-medium text-[12px] text-[#232323]">Min Coins</span>
               <div className="box-border w-full h-[36px] bg-white border border-[#EFEFEF] rounded-[12px] flex items-center px-[12px]">
@@ -289,7 +310,7 @@ export default function ProBuddyListing() {
           {openSection === "rating" ? <ChevronDown className="h-5 w-5 text-[#242645]" /> : <ChevronRight className="h-5 w-5 text-[#242645]" />}
         </button>
         {openSection === "rating" && (
-          <div className="w-full px-5 grid grid-cols-2 gap-3">
+          <div className="w-full px-5 pt-[16px] grid grid-cols-2 gap-3">
             <select
               value={minRating}
               onChange={(e) => setMinRating(Number(e.target.value))}
@@ -387,6 +408,13 @@ export default function ProBuddyListing() {
   );
 
   return (
+    <>
+      <PageSEO
+        title="Find ProBuddies – College Senior Mentors Near You"
+        description="Browse verified ProBuddies — college seniors ready to guide you on admissions, campus life, hostel, and course selection. Filter by college, branch, and availability."
+        canonical="/pro-buddies/listing"
+        keywords="ProBuddy listing, college senior mentors, peer mentors India, college admission guidance, student mentor"
+      />
     <ListingShell
       title=""
       searchValue={search}
@@ -398,5 +426,6 @@ export default function ProBuddyListing() {
       sidebar={sidebar}
       content={content}
     />
+    </>
   );
 }

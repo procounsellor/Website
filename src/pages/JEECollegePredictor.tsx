@@ -24,6 +24,7 @@ import {
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/AuthStore";
+import PageSEO from "@/components/SEO/PageSEO";
 
 type PredictionMode = "marks" | "percentile";
 
@@ -291,6 +292,13 @@ export default function JEECollegePredictor() {
   }, [instituteFilter, sortBy]);
 
   return (
+    <>
+      <PageSEO
+        title="JEE College Predictor 2025 – Find Colleges by Rank & Category"
+        description="Predict which IITs, NITs, and IIITs you can get admission to based on your JEE Main/Advanced rank. Free JEE college predictor tool by ProCounsel."
+        canonical="/jee-college-predictor"
+        keywords="JEE college predictor, JEE Main college list, NIT predictor, IIT predictor, JOSAA counseling, JEE rank college admission"
+      />
     <div className="min-h-screen bg-gray-50 pb-8">
       <div className="sm:hidden w-full bg-white border-b border-[#E3E8F4]">
         <div className="flex items-center gap-2 px-4 py-3">
@@ -966,6 +974,7 @@ export default function JEECollegePredictor() {
         </section>
       </div>
     </div>
+    </>
   );
 }
 

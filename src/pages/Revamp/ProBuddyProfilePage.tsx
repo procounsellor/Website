@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import {  useParams } from 'react-router-dom';
-import {  MapPin, Users, } from 'lucide-react';
+import {  MapPin, Users, Link2 } from 'lucide-react';
 import { Radar, RadarChart, PolarAngleAxis, PolarGrid, ResponsiveContainer, Tooltip } from 'recharts';
 import { FaInstagram, FaLinkedin, FaStar,} from 'react-icons/fa6';
 import { FaCheckCircle } from 'react-icons/fa';
@@ -293,22 +293,51 @@ export default function ProBuddyProfilePage() {
                                     </div>
                                 </div>
 
-                                {/* Dividers & Socials (Kept but integrated) */}
+                                {/* Dividers & Socials */}
                                 <div className="hidden md:block mt-[12px]">
                                     <Divider />
                                     <div className="py-[8px] flex flex-wrap items-center gap-[20px]">
-                                        <a href="#" className="flex items-center gap-[8px] font-medium text-[#6b7280] text-[14px] tracking-[0.28px]">
-                                            <FaInstagram className="text-[20px] text-[#E4405F]" />
-                                            instagramid
-                                        </a>
-                                        <a href="#" className="flex items-center gap-[8px] font-medium text-[#6b7280] text-[14px] tracking-[0.28px]">
-                                            <FaLinkedin className="text-[20px] text-[#0A66C2]" />
-                                            linkedinid
-                                        </a>
-                                        <a href="#" className="flex items-center gap-[8px] font-medium text-[#6b7280] text-[14px] tracking-[0.28px]">
-                                            <FaInstagram className="text-[20px] text-[#E4405F]" />
-                                            instagramid
-                                        </a>
+                                        {(() => {
+                                            const links = probuddy.links ?? [];
+                                            if (links.length === 0) {
+                                                return (
+                                                    <p className="font-normal text-[#9ca3af] text-[13px] italic">
+                                                        No social links added
+                                                    </p>
+                                                );
+                                            }
+                                            return links.map((url, i) => {
+                                                const normalized = url.startsWith('http') ? url : `https://${url}`;
+                                                const isInstagram = url.includes('instagram');
+                                                const isLinkedin = url.includes('linkedin');
+                                                let label = url;
+                                                try {
+                                                    const u = new URL(normalized);
+                                                    const parts = u.pathname.split('/').filter(Boolean);
+                                                    label = parts.length > 0 ? `@${parts[parts.length - 1]}` : u.hostname;
+                                                } catch {
+                                                    label = url;
+                                                }
+                                                return (
+                                                    <a
+                                                        key={i}
+                                                        href={normalized}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-[8px] font-medium text-[#6b7280] text-[14px] tracking-[0.28px] hover:text-[#0e1629] transition-colors"
+                                                    >
+                                                        {isInstagram ? (
+                                                            <FaInstagram className="text-[20px] text-[#E4405F] shrink-0" />
+                                                        ) : isLinkedin ? (
+                                                            <FaLinkedin className="text-[20px] text-[#0A66C2] shrink-0" />
+                                                        ) : (
+                                                            <Link2 className="w-5 h-5 text-[#6b7280] shrink-0" strokeWidth={1.5} />
+                                                        )}
+                                                        <span className="truncate max-w-[160px]">{label}</span>
+                                                    </a>
+                                                );
+                                            });
+                                        })()}
                                     </div>
                                     <Divider />
                                 </div>

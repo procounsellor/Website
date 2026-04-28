@@ -34,10 +34,10 @@ const formatCurrency = (amount: number) =>
 const tabs = [
   { title: "My Info", id: 1 },
   { title: "Appointments", id: 2 },
-  { title: "Counsellor", id: 3 },
+  { title: "Counsellors", id: 3 },
   { title: "My Courses", id: 5 },
   { title: "My Tests", id: 6 },
-  { title: "Transaction", id: 4 },
+  { title: "Transactions", id: 4 },
   { title: "My Reviews", id: 7 },
 ];
 

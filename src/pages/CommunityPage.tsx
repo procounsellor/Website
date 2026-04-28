@@ -2,11 +2,19 @@ import { useState } from "react";
 import CommunityActions from "@/components/community/CommunityActions";
 import DashboardFeed from "@/components/community/DashboardFeed";
 import CategorySidebar from "@/components/community/CategorySidebar";
+import PageSEO from "@/components/SEO/PageSEO";
 
 export default function CommunityPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   return (
+    <>
+      <PageSEO
+        title="Community – Ask Questions & Get Answers on Admissions"
+        description="Join the ProCounsel community to ask questions, share experiences, and get answers about college admissions, JEE, NEET, study abroad, and career guidance from students and experts."
+        canonical="/community"
+        keywords="student community, college admissions Q&A, JEE NEET questions, study abroad forum, ProCounsel community"
+      />
     <div className="bg-gray-50 min-h-screen p-4 md:p-8">
       <div className="max-w-[1440px] mx-auto flex justify-center gap-3">
         <div className="hidden lg:block w-[191px] shrink-0">
@@ -31,5 +39,6 @@ export default function CommunityPage() {
 
       </div>
     </div>
+    </>
   );
 }

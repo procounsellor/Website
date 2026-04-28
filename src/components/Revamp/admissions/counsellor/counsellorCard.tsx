@@ -14,6 +14,7 @@ interface FancyCardProps {
   showBookmark?: boolean;
   isBookmarked?: boolean;
   onBookmarkClick?: () => void;
+  navigateTo?: string;
 }
 
 export default function FancyCard({
@@ -27,13 +28,14 @@ export default function FancyCard({
   showBookmark = true,
   isBookmarked = false,
   onBookmarkClick,
+  navigateTo,
 }: FancyCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [imgError, setImgError] = useState(false);
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`/counsellor-details/${encodeCounselorId(counsellorId)}`);
+    navigate(navigateTo ?? `/counsellor-details/${encodeCounselorId(counsellorId)}`);
   };
 
   return (

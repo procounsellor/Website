@@ -2,7 +2,6 @@ import { Suspense, lazy } from 'react';
 import { Routes, Route, Link } from "react-router-dom";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import RoleBasedRoute from "@/components/auth/RoleBasedRoute";
-import CollegeSection from '@/components/Revamp/probuddies/CollegeSection';
 import { Toaster } from 'react-hot-toast';
 import RevampLayout from '@/layouts/RevampLayout';
 const ContactPage = lazy(() => import("@/pages/Contact"));
@@ -59,6 +58,7 @@ const CollegeDetailsPageNew = lazy(() => import('@/pages/CollegeDetailsPage'));
 const TestGroupCardDetails = lazy(() => import('@/components/Revamp/courses/TestGroupDetails'));
 const RevampAbout = lazy(() => import('@/components/Revamp/about/RevampAbout'));
 import Admissions from '@/pages/Revamp/Admissions';
+import ProBuddies from '@/pages/Revamp/ProBuddies';
 const Courses = lazy(() => import('@/pages/Revamp/Courses'));
 const BlogsPage = lazy(() => import('@/pages/Revamp/BlogsPage'));
 const BlogDetailPage = lazy(() => import('@/pages/Revamp/BlogDetailPage'));
@@ -71,6 +71,7 @@ const TestListing = lazy(() => import('@/pages/Revamp/TestListing'));
 const SessionListing = lazy(() => import('@/pages/Revamp/SessionListing'));
 const ProBuddyListing = lazy(() => import('@/pages/Revamp/ProBuddyListing'));
 const ProBuddyProfilePage = lazy(() => import('@/pages/Revamp/ProBuddyProfilePage'));
+const CollegeListing = lazy(() => import('@/pages/Revamp/CollegeListing'));
 const ProBuddiesRegistration = lazy(() => import('@/pages/Revamp/ProBuddiesRegistration'));
 const ProBuddiesDashboard = lazy(() => import('@/pages/Revamp/ProBuddiesDashboard'));
 const DeadlinesPage = lazy(() => import('@/pages/Revamp/DeadlinesPage'));
@@ -114,11 +115,6 @@ const ProBuddiesComingSoon = () => (
     </div>
 );
 
-const ProBuddiesCollegeListing = () => (
-    <div className="min-h-screen bg-[#C6DDF040] pb-12 pt-6 md:pt-10">
-        <CollegeSection />
-    </div>
-);
 
 const RevampCounselorDetailsPage = lazy(() => import('@/pages/Revamp/RevampCounselorDetailsPage'));
 const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
@@ -180,9 +176,9 @@ export default function AppRoutes() {
 
                         {/* probuddies pages  */}
                         <Route path='/pro-buddies/register' element={<ProBuddiesRegistration />} />
-                        <Route path='/pro-buddies' element={<ProBuddiesComingSoon />} />
+                        <Route path='/pro-buddies' element={<ProBuddiesComingSoon/>} />
                         <Route path='/pro-buddies/listing' element={<ProBuddyListing />} />
-                        <Route path='/pro-buddies/college-listing' element={<ProBuddiesCollegeListing />} />
+                        <Route path='/pro-buddies/college-listing' element={<CollegeListing />} />
                         <Route path='/pro-buddies/dashboard' element={<ProBuddiesDashboard />} />
                         <Route path="/pro-buddies/profile/:id" element={<ProBuddyProfilePage />} />
 
