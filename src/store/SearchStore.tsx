@@ -13,11 +13,11 @@ import {
 export interface SearchResult {
   id: string;
   name: string;
-  type: 'exam' | 'counsellor' | 'course' | 'test';
-  subtitle?: string; 
+  type: 'counsellor' | 'course' | 'test';
+  subtitle?: string;
   imageUrl?: string;
   description?: string;
-  url: string; 
+  url: string;
 }
 
 type SearchState = {
@@ -56,11 +56,7 @@ export const useSearchStore = create<SearchState>()(
           const token = localStorage.getItem("jwt") || "";
           const isAuthenticated = Boolean(userId && token);
 
-          const [examsResponse, counselorsResponse, coursesResponse, testsResponse] = await Promise.all([
-            academicApi.searchExams({search: query}).catch((err) => {
-                console.error("Exam search failed", err);
-                return { exams: [] };
-            }),
+          const [counselorsResponse, coursesResponse, testsResponse] = await Promise.all([
             academicApi.searchAllLoggedOutCounsellors({ search: query }).catch((err) => {
                 console.error("Counselor search failed", err);
                 return { counsellors: [] };
@@ -82,19 +78,6 @@ export const useSearchStore = create<SearchState>()(
           ]);
 
           const results: SearchResult[] = [];
-
-          if (examsResponse?.exams && Array.isArray(examsResponse.exams)) {
-            examsResponse.exams.forEach((exam: any) => { 
-              results.push({
-                id: exam.examId,
-                name: exam.examName,
-                type: 'exam',
-                subtitle: `${exam.examLevel} • ${exam.examType}`,
-                imageUrl: exam.iconUrl,
-                url: `/exams/${exam.examId}`
-              });
-            });
-          }
 
           if (counselorsResponse?.counsellors && Array.isArray(counselorsResponse.counsellors)) {
             counselorsResponse.counsellors.forEach((counselor: any) => {

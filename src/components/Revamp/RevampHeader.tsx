@@ -509,7 +509,7 @@ export default function RevampHeader() {
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 onFocus={handleMobileSearchFocus}
-                                placeholder="Search courses, tests, exams" 
+                                placeholder="Search courses, tests, counsellors"
                                 className="w-full h-full bg-transparent outline-none font-poppins font-medium text-[12px] leading-[100%] text-[#232323] placeholder:text-[#232323]"
                             />
                             <svg 

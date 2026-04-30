@@ -9,14 +9,12 @@ interface SearchResultsProps {
 }
 
 const typeIcons = {
-  exam: ClipboardList,
   course: BookOpen,
   test: ClipboardList,
   counsellor: Users,
 };
 
 const typeColors = {
-  exam: "text-blue-600 bg-blue-50",
   course: "text-purple-600 bg-purple-50",
   test: "text-indigo-600 bg-indigo-50",
   counsellor: "text-orange-600 bg-orange-50",
@@ -30,10 +28,6 @@ export function SearchResults({ onResultClick }: SearchResultsProps) {
     switch(result.type) {
       case 'counsellor': {
         navigate(`/counsellor/${encodeCounselorId(result.id)}`);
-        break;
-      }
-      case 'exam': {
-        navigate(`/exams/${result.id}`);
         break;
       }
       case 'course': {
@@ -59,7 +53,7 @@ export function SearchResults({ onResultClick }: SearchResultsProps) {
         <div className="mb-4">
           <BookOpen className="w-12 h-12 mx-auto text-gray-300" />
         </div>
-        <p className="text-sm">Start typing to search for courses, tests, exams, or counsellors...</p>
+        <p className="text-sm">Start typing to search for courses, tests, or counsellors...</p>
       </div>
     );
   }

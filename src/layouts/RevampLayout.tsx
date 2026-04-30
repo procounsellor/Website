@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Footer from "@/components/layout/Footer";
 import RevampHeader from "@/components/Revamp/RevampHeader";
 import RevampBreadcrumbs from "@/components/Revamp/RevampBreadcrumbs";
@@ -36,6 +36,7 @@ export default function RevampLayout() {
     const navigate = useNavigate();
     const location = useLocation();
     const [chatbotAnimation, setChatbotAnimation] = useState<object | null>(null);
+    const prevAuthenticatedRef = useRef(false);
 
     const shouldHideBanner =
         location.pathname.includes('/test-info') ||
@@ -121,27 +122,35 @@ export default function RevampLayout() {
 
     useEffect(() => {
         if (!isAuthenticated) {
+            prevAuthenticatedRef.current = false;
             return;
         }
 
-        if (role === 'proBuddy') {
-            const isAllowedPath =
-                location.pathname === '/pro-buddies/dashboard' ||
-                location.pathname.startsWith('/community');
+        const justLoggedIn = !prevAuthenticatedRef.current;
+        prevAuthenticatedRef.current = true;
 
-            if (!isAllowedPath) {
+        if (role === 'proBuddy') {
+            if (justLoggedIn) {
                 navigate('/pro-buddies/dashboard', { replace: true });
                 return;
             }
-
+            const isAllowedPath =
+                location.pathname === '/pro-buddies/dashboard' ||
+                location.pathname.startsWith('/community');
+            if (!isAllowedPath) {
+                navigate('/pro-buddies/dashboard', { replace: true });
+            }
             return;
         }
 
         if (role === 'counselor') {
+            if (justLoggedIn) {
+                navigate('/counsellor-dashboard', { replace: true });
+                return;
+            }
             const isAllowedPath =
                 location.pathname === '/counsellor-dashboard' ||
                 location.pathname.startsWith('/community');
-
             if (!isAllowedPath) {
                 navigate('/counsellor-dashboard', { replace: true });
             }

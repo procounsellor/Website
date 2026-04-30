@@ -302,14 +302,25 @@ export default function Admissions() {
                 initial={{ opacity: 0, y: 10, scale: 0.98 }}
                 animate={cardAnimate}
                 transition={{ ...cardTransition, delay: 0.22 }}
-                className="absolute left-133.5 top-71.75 w-53 h-66 bg-[#10335e] rounded-[28px] cursor-pointer"
+                className="absolute left-133.5 top-71.75 w-53 h-66 rounded-[28px] overflow-hidden bg-gray-700 cursor-pointer"
               >
-                <div className="flex flex-col items-center justify-center h-full px-6">
-                  <p className="text-white text-[24px] font-semibold font-['Poppins'] mb-2">Community</p>
-                  <p className="text-white text-[14px] font-['Poppins'] text-center">
+                <img
+                  src="/admissions/community.jpg"
+                  alt="Community"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(179.04deg, rgba(14, 22, 41, 0) 24.07%, rgba(14, 22, 41, 0.7) 69.84%)",
+                  }}
+                />
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center text-white w-[195px]">
+                  <p className="text-[24px] font-semibold font-['Poppins'] mb-2">Community</p>
+                  <p className="text-[14px] font-['Poppins']">
                     <span className="font-semibold">120+</span> Members | <span className="font-semibold">20+</span> Monthly Events
                   </p>
-
                 </div>
               </motion.div>
 
