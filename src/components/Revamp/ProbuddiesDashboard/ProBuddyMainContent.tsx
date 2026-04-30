@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import ProBuddyOverviewTab from '@/components/Revamp/ProbuddiesDashboard/ProBuddyOverviewTab';
 import ProBuddyCallsTab from '@/components/Revamp/ProbuddiesDashboard/ProBuddyCallsTab';
 import ProBuddyEarningsTab from '@/components/Revamp/ProbuddiesDashboard/ProBuddyEarningsTab';
 import ProBuddyReviewsTab from '@/components/Revamp/ProbuddiesDashboard/ProBuddyReviewsTab';
 import { probuddiesApi } from '@/api/pro-buddies';
+import toast from 'react-hot-toast';
 
 const tabs = ['Overview', 'Calls', 'My Earnings', 'Reviews'];
 
@@ -12,6 +13,7 @@ type AnyRecord = Record<string, unknown>;
 
 type CallTabItem = {
   id: string;
+  userId: string;
   initials: string;
   name: string;
   designation: string;
@@ -178,6 +180,7 @@ const ProBuddyMainContent: React.FC = () => {
   const profileDataNode = useMemo(() => toRecordDataNode(profileQuery.data), [profileQuery.data]);
   const requestsDataList = useMemo(() => toArrayDataNode(requestsQuery.data), [requestsQuery.data]);
   const reviewsDataList = useMemo(() => toArrayDataNode(reviewsQuery.data), [reviewsQuery.data]);
+  const proBuddyCallerId = toText(getByPath(profileDataNode, 'phoneNumber'), proBuddyId);
 
   const mappedOverview = useMemo(() => {
     return {
@@ -197,6 +200,7 @@ const ProBuddyMainContent: React.FC = () => {
 
       return {
         id: `${userId}-${index}`,
+        userId,
         initials: getInitials(name),
         name,
         designation: 'NA',
@@ -259,6 +263,39 @@ const ProBuddyMainContent: React.FC = () => {
     return mappedReviews.length;
   }, [mappedReviews.length, profileDataNode]);
 
+  const callUserMutation = useMutation({
+    mutationFn: async (call: CallTabItem) => {
+      if (!proBuddyId) {
+        throw new Error('proBuddyId is required');
+      }
+
+      if (!call.userId || call.userId === 'NA') {
+        throw new Error('userId is missing for this call request');
+      }
+
+      if (!proBuddyCallerId || proBuddyCallerId === 'NA') {
+        throw new Error('ProBuddy caller id is missing');
+      }
+
+      return probuddiesApi.connectInstantCall({
+        from: proBuddyCallerId,
+        to: call.userId,
+        userId: call.userId,
+        proBuddyId,
+      });
+    },
+    onSuccess: () => {
+      toast.success('Calling user now');
+    },
+    onError: (error: unknown) => {
+      toast.error(error instanceof Error ? error.message : 'Failed to place call');
+    },
+  });
+
+  const handleCallRequest = async (call: CallTabItem) => {
+    await callUserMutation.mutateAsync(call);
+  };
+
   return (
     <div className="w-full max-w-full xl:w-232 min-h-0 sm:min-h-148.5 bg-white rounded-2xl shadow-sm flex flex-col relative z-20 font-poppins overflow-visible pb-4 sm:pb-0">
       <div className="flex flex-nowrap sm:items-center w-full h-auto sm:h-14.75 bg-[#C6DDF040] px-2 sm:px-6 xl:px-8 gap-1.5 sm:gap-6 overflow-x-auto overflow-y-hidden">
@@ -295,7 +332,14 @@ const ProBuddyMainContent: React.FC = () => {
             whoShouldConnect={mappedOverview.whoShouldConnect}
           />
         )}
-        {activeTab === 'Calls' && <ProBuddyCallsTab requests={requestsItems} completed={completedItems} />}
+        {activeTab === 'Calls' && (
+          <ProBuddyCallsTab
+            requests={requestsItems}
+            completed={completedItems}
+            onCallRequest={handleCallRequest}
+            isCalling={callUserMutation.isPending}
+          />
+        )}
         {activeTab === 'My Earnings' && <ProBuddyEarningsTab />}
         {activeTab === 'Reviews' && (
           <ProBuddyReviewsTab

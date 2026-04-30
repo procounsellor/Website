@@ -72,7 +72,7 @@ export default function RevampLayout() {
         if (isAuthenticated && needsProfileCompletion && !needsOnboarding) {
             toggleProfileCompletion();
         }
-    }, [isAuthenticated, needsProfileCompletion, needsOnboarding]);
+    }, [isAuthenticated, needsProfileCompletion, needsOnboarding, toggleProfileCompletion]);
 
     const handleOnboardingComplete = () => {
         setNeedsOnboarding(false);
@@ -101,7 +101,9 @@ export default function RevampLayout() {
             setIsProfileCompletionOpen(false);
             const store = useAuthStore.getState();
             if (store.pendingAction) {
-                try { store.pendingAction(); } catch {}
+                try { store.pendingAction(); } catch (error) {
+                    console.error("Pending action failed", error);
+                }
                 store.setPendingAction(null);
                 return;
             }
@@ -124,11 +126,11 @@ export default function RevampLayout() {
 
         if (role === 'proBuddy') {
             const isAllowedPath =
-                location.pathname.startsWith('/community') ||
-                location.pathname === '/pro-buddies/dashboard';
+                location.pathname === '/pro-buddies/dashboard' ||
+                location.pathname.startsWith('/community');
 
             if (!isAllowedPath) {
-                navigate('/community', { replace: true });
+                navigate('/pro-buddies/dashboard', { replace: true });
                 return;
             }
 
@@ -137,11 +139,11 @@ export default function RevampLayout() {
 
         if (role === 'counselor') {
             const isAllowedPath =
-                location.pathname.startsWith('/community') ||
-                location.pathname === '/counsellor-dashboard';
+                location.pathname === '/counsellor-dashboard' ||
+                location.pathname.startsWith('/community');
 
             if (!isAllowedPath) {
-                navigate('/community', { replace: true });
+                navigate('/counsellor-dashboard', { replace: true });
             }
         }
     }, [isAuthenticated, role, location.pathname, navigate]);

@@ -26,15 +26,15 @@ export default function RevampHeader() {
     const visibleTabs = useMemo(() => {
         if (isCounselor) {
             return [
-                { id: 3, name: 'Community', iconPath: '/Community.png', path: '/community' },
                 { id: 5, name: 'Dashboard', iconPath: '/person.svg', path: '/counsellor-dashboard' },
+                { id: 3, name: 'Community', iconPath: '/Community.png', path: '/community' },
             ];
         }
 
         if (isProBuddy) {
             return [
-                { id: 3, name: 'Community', iconPath: '/Community.png', path: '/community' },
                 { id: 4, name: 'Dashboard', iconPath: '/ProBuddy.png', path: '/pro-buddies/dashboard' },
+                { id: 3, name: 'Community', iconPath: '/Community.png', path: '/community' },
             ];
         }
 

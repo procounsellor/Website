@@ -14,6 +14,7 @@ import type { FeaturedCollegeInIndia } from "@/api/pro-buddies";
 
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png"];
+const OFFERING_LIMITS = { min: 1, max: 5 } as const;
 
 const isAcceptedImage = (file: File) => ACCEPTED_IMAGE_TYPES.includes(file.type);
 
@@ -112,15 +113,26 @@ export default function ProBuddiesRegistration() {
     workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
     officeStartTime: "09:00",
     officeEndTime: "18:00",
+    ratePerMinute: "",
     messFood: "",
     attendance: "",
     campusVibe: "",
-    facultyQuality: ""
+    facultyQuality: "",
+    examStrategy: "",
   });
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const normalizeOfferingValue = (value: string) => {
+    const parsedValue = Number(value);
+    if (!Number.isFinite(parsedValue)) {
+      return OFFERING_LIMITS.max;
+    }
+
+    return Math.min(OFFERING_LIMITS.max, Math.max(OFFERING_LIMITS.min, parsedValue));
   };
 
   const handleCollegeSearchChange = (value: string) => {
@@ -306,11 +318,13 @@ export default function ProBuddiesRegistration() {
         subHeading: formData.subHeading || "ProBuddy",
         aboutMe: formData.aboutMe
       },
+      ratePerMinute: formData.ratePerMinute.trim() === "" ? null : Number(formData.ratePerMinute),
       offerings: {
-        "Mess Food": Number(formData.messFood) || 5,
-        "Attendance": Number(formData.attendance) || 5,
-        "Campus Vibe": Number(formData.campusVibe) || 5,
-        "Faculty Quality": Number(formData.facultyQuality) || 5
+        "Mess Food": normalizeOfferingValue(formData.messFood),
+        "Attendance": normalizeOfferingValue(formData.attendance),
+        "Campus Vibe": normalizeOfferingValue(formData.campusVibe),
+        "Faculty Quality": normalizeOfferingValue(formData.facultyQuality),
+        "Exam Strategy": normalizeOfferingValue(formData.examStrategy),
       },
       languagesKnow: formData.languagesKnow.split(",").map(l => l.trim()),
       workingDays: formData.workingDays,
@@ -341,9 +355,9 @@ export default function ProBuddiesRegistration() {
 
       toast.success("Registration completed successfully!");
       navigate("/pro-buddies/dashboard");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Signup error:", error);
-      toast.error(error.message || "Failed to register. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Failed to register. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -656,7 +670,7 @@ export default function ProBuddiesRegistration() {
               </div>
 
               {isCollegeDropdownOpen ? (
-                <div className="absolute left-0 right-0 top-[44px] z-20 max-h-[280px] overflow-auto rounded-[12px] border border-[#E5E7EB] bg-white shadow-[0_12px_30px_rgba(15,23,42,0.12)]">
+                <div className="absolute left-0 right-0 top-[44px] z-20 max-h-[280px] overflow-auto rounded-[12px] border border-[#E5E7EB] bg-white shadow-[0_12px_30px_rgba(15,23,42,0.12)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   {filteredColleges.length === 0 ? (
                     <div className="px-[16px] py-[14px] text-[13px] text-[#6B7280]" style={{ fontFamily: 'Poppins' }}>
                       No colleges match your search.
@@ -987,6 +1001,27 @@ export default function ProBuddiesRegistration() {
         <div className="flex gap-[120px]">
           <div className="flex flex-col gap-[14px] w-[510px]">
             <label 
+              htmlFor="ratePerMinute" 
+              className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
+              style={{ fontFamily: 'Poppins' }}
+            >
+              Rate Per Minute
+            </label>
+            <input 
+              type="number" 
+              id="ratePerMinute"
+              min={0}
+              step={1}
+              value={formData.ratePerMinute}
+              onChange={handleInputChange}
+              placeholder="Enter your rate per minute"
+              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
+              style={{ fontFamily: 'Poppins' }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-[14px] w-[510px]">
+            <label 
               htmlFor="officeStartTime" 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
               style={{ fontFamily: 'Poppins' }}
@@ -1002,7 +1037,9 @@ export default function ProBuddiesRegistration() {
               style={{ fontFamily: 'Poppins' }}
             />
           </div>
+        </div>
 
+        <div className="flex gap-[120px]">
           <div className="flex flex-col gap-[14px] w-[510px]">
             <label 
               htmlFor="officeEndTime" 
@@ -1048,11 +1085,14 @@ export default function ProBuddiesRegistration() {
               Mess Food
             </label>
             <input 
-              type="text" 
+              type="number" 
               id="messFood"
+              min={OFFERING_LIMITS.min}
+              max={OFFERING_LIMITS.max}
+              step={1}
               value={formData.messFood}
               onChange={handleInputChange}
-              placeholder="Start writing"
+              placeholder="Rate 1 to 5"
               className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
@@ -1067,11 +1107,14 @@ export default function ProBuddiesRegistration() {
               Attendance
             </label>
             <input 
-              type="text" 
+              type="number" 
               id="attendance"
+              min={OFFERING_LIMITS.min}
+              max={OFFERING_LIMITS.max}
+              step={1}
               value={formData.attendance}
               onChange={handleInputChange}
-              placeholder="Start writing"
+              placeholder="Rate 1 to 5"
               className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
@@ -1088,11 +1131,14 @@ export default function ProBuddiesRegistration() {
               Campus Vibe
             </label>
             <input 
-              type="text" 
+              type="number" 
               id="campusVibe"
+              min={OFFERING_LIMITS.min}
+              max={OFFERING_LIMITS.max}
+              step={1}
               value={formData.campusVibe}
               onChange={handleInputChange}
-              placeholder="Start writing"
+              placeholder="Rate 1 to 5"
               className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
@@ -1107,11 +1153,38 @@ export default function ProBuddiesRegistration() {
               Faculty Quality
             </label>
             <input 
-              type="text" 
+              type="number" 
               id="facultyQuality"
+              min={OFFERING_LIMITS.min}
+              max={OFFERING_LIMITS.max}
+              step={1}
               value={formData.facultyQuality}
               onChange={handleInputChange}
-              placeholder="Start writing"
+              placeholder="Rate 1 to 5"
+              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
+              style={{ fontFamily: 'Poppins' }}
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-[120px]">
+          <div className="flex flex-col gap-[14px] w-[510px]">
+            <label 
+              htmlFor="examStrategy" 
+              className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
+              style={{ fontFamily: 'Poppins' }}
+            >
+              Exam Strategy
+            </label>
+            <input 
+              type="number" 
+              id="examStrategy"
+              min={OFFERING_LIMITS.min}
+              max={OFFERING_LIMITS.max}
+              step={1}
+              value={formData.examStrategy}
+              onChange={handleInputChange}
+              placeholder="Rate 1 to 5"
               className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />

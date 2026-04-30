@@ -176,7 +176,7 @@ export default function AppRoutes() {
 
                         {/* probuddies pages  */}
                         <Route path='/pro-buddies/register' element={<ProBuddiesRegistration />} />
-                        <Route path='/pro-buddies' element={<ProBuddiesComingSoon/>} />
+                        <Route path='/pro-buddies' element={<ProBuddies/>} />
                         <Route path='/pro-buddies/listing' element={<ProBuddyListing />} />
                         <Route path='/pro-buddies/college-listing' element={<CollegeListing />} />
                         <Route path='/pro-buddies/dashboard' element={<ProBuddiesDashboard />} />

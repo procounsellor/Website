@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { GraduationCap, MapPin, Instagram, Linkedin } from 'lucide-react';
 import EditProfileModal from './EditProfileModal';
-import { probuddiesApi } from '@/api/pro-buddies';
+import { probuddiesApi, type UpdateProBuddyProfilePayload } from '@/api/pro-buddies';
+import type { ProBuddyProfileForProBuddy } from '@/types/probuddies';
+import toast from 'react-hot-toast';
 
 type AnyRecord = Record<string, unknown>;
 
@@ -34,9 +36,9 @@ const getLinkLabel = (link: AnyRecord | null): string => {
 };
 
 const ProBuddySidebar: React.FC = () => {
-  const [previewImage, setPreviewImage] = useState<string>('/counselor.png');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const proBuddyId = useMemo(() => localStorage.getItem('phone') || '', []);
+  const queryClient = useQueryClient();
 
   const profileQuery = useQuery({
     queryKey: ['probuddy-sidebar-profile', proBuddyId],
@@ -44,12 +46,45 @@ const ProBuddySidebar: React.FC = () => {
     enabled: Boolean(proBuddyId),
   });
 
-  const profileData = useMemo(() => {
+  const profileData = useMemo<ProBuddyProfileForProBuddy | null>(() => {
     const payload = profileQuery.data;
-    if (isRecord(payload) && isRecord(payload.data)) return payload.data;
-    if (isRecord(payload)) return payload;
+    if (isRecord(payload) && isRecord(payload.data)) return payload.data as ProBuddyProfileForProBuddy;
+    if (isRecord(payload) && 'data' in payload) return null;
+    if (isRecord(payload)) return payload as ProBuddyProfileForProBuddy;
     return null;
   }, [profileQuery.data]);
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async ({
+      payload,
+      photoFile,
+    }: {
+      payload: UpdateProBuddyProfilePayload;
+      photoFile: File | null;
+    }) => {
+      if (!proBuddyId) {
+        throw new Error('proBuddyId is required');
+      }
+
+      if (photoFile) {
+        await probuddiesApi.uploadPhoto(proBuddyId, photoFile);
+      }
+
+      return probuddiesApi.updateProfile(proBuddyId, payload);
+    },
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['probuddy-sidebar-profile', proBuddyId] }),
+        queryClient.invalidateQueries({ queryKey: ['probuddy-dashboard-profile', proBuddyId] }),
+        queryClient.invalidateQueries({ queryKey: ['probuddy-dashboard-profile-mapped', proBuddyId] }),
+      ]);
+      toast.success('Profile updated successfully');
+      setIsModalOpen(false);
+    },
+    onError: (error: unknown) => {
+      toast.error(error instanceof Error ? error.message : 'Failed to update profile');
+    },
+  });
 
   const displayName = useMemo(() => {
     const firstName = toText(profileData?.firstName, 'NA');
@@ -70,7 +105,7 @@ const ProBuddySidebar: React.FC = () => {
     return `${firstName} ${lastName}`;
   }, [profileData]);
 
-  const college = toText(profileData?.collegeName ?? profileData?.college, 'NA');
+  const college = toText(profileData?.collegeName, 'NA');
 
   const location = useMemo(() => {
     const city = toText(profileData?.city, 'NA');
@@ -91,7 +126,7 @@ const ProBuddySidebar: React.FC = () => {
     return `${city}, ${state}`;
   }, [profileData]);
 
-  const photoUrl = toText(profileData?.photoUrl, previewImage);
+  const photoUrl = toText(profileData?.photoUrl, '/counselor.png');
 
   const instagramLink = getLinkByType(profileData, 'INSTAGRAM');
   const linkedinLink = getLinkByType(profileData, 'LINKEDIN');
@@ -102,12 +137,8 @@ const ProBuddySidebar: React.FC = () => {
   const instagramLabel = getLinkLabel(instagramLink);
   const linkedinLabel = getLinkLabel(linkedinLink);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setPreviewImage(imageUrl);
-    }
+  const handleSaveProfile = async (payload: UpdateProBuddyProfilePayload, photoFile: File | null) => {
+    await updateProfileMutation.mutateAsync({ payload, photoFile });
   };
 
   return (
@@ -186,8 +217,9 @@ const ProBuddySidebar: React.FC = () => {
       <EditProfileModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        previewImage={previewImage}
-        onImageChange={handleImageChange}
+        profileData={profileData}
+        isSaving={updateProfileMutation.isPending}
+        onSave={handleSaveProfile}
       />
     </>
   );
