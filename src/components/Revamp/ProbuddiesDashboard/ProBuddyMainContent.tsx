@@ -54,6 +54,19 @@ const toNumeric = (value: unknown, fallback = 0): number => {
   return Number.isFinite(num) ? num : fallback;
 };
 
+const toDurationLabel = (value: unknown): string => {
+  if (typeof value === 'string' && value.trim()) {
+    return value;
+  }
+
+  const numeric = Number(value);
+  if (Number.isFinite(numeric) && numeric >= 0) {
+    return `${numeric} min`;
+  }
+
+  return 'NA';
+};
+
 const getInitials = (fullName: string): string => {
   const normalized = fullName.trim();
   if (!normalized || normalized === 'NA') return 'PB';
@@ -177,9 +190,16 @@ const ProBuddyMainContent: React.FC = () => {
     enabled: Boolean(proBuddyId),
   });
 
+  const completedCallsQuery = useQuery({
+    queryKey: ['probuddy-dashboard-completed-calls', proBuddyId],
+    queryFn: () => probuddiesApi.proBuddyCallHistory(proBuddyId),
+    enabled: Boolean(proBuddyId),
+  });
+
   const profileDataNode = useMemo(() => toRecordDataNode(profileQuery.data), [profileQuery.data]);
   const requestsDataList = useMemo(() => toArrayDataNode(requestsQuery.data), [requestsQuery.data]);
   const reviewsDataList = useMemo(() => toArrayDataNode(reviewsQuery.data), [reviewsQuery.data]);
+  const completedCallsDataList = useMemo(() => toArrayDataNode(completedCallsQuery.data), [completedCallsQuery.data]);
   const proBuddyCallerId = toText(getByPath(profileDataNode, 'phoneNumber'), proBuddyId);
 
   const mappedOverview = useMemo(() => {
@@ -222,13 +242,42 @@ const ProBuddyMainContent: React.FC = () => {
   );
 
   const completedItems = useMemo(
-    () =>
-      mappedCallItems.filter((_, index) => {
+    () => {
+      const mappedFromHistory = completedCallsDataList.map((item, index) => {
+        const name = toText(
+          getByPath(item, 'userFullName') ??
+            getByPath(item, 'fullName') ??
+            getByPath(item, 'name') ??
+            getByPath(item, 'userName'),
+          'NA'
+        );
+        const userId = toText(getByPath(item, 'userId'), `call-${index}`);
+
+        return {
+          id: `${userId}-${index}`,
+          userId,
+          initials: getInitials(name),
+          name,
+          designation: toText(getByPath(item, 'designation'), 'NA'),
+          date: toDateLabel(getByPath(item, 'callDate') ?? getByPath(item, 'scheduledDate') ?? getByPath(item, 'createdAt')),
+          time: toTimeLabel(getByPath(item, 'callTime') ?? getByPath(item, 'scheduledTime') ?? getByPath(item, 'createdAt')),
+          duration: toDurationLabel(
+            getByPath(item, 'duration') ?? getByPath(item, 'callDuration') ?? getByPath(item, 'durationInMinutes')
+          ),
+        };
+      });
+
+      if (mappedFromHistory.length > 0) {
+        return mappedFromHistory;
+      }
+
+      return mappedCallItems.filter((_, index) => {
         const raw = requestsDataList[index];
         const status = String(getByPath(raw, 'status') ?? '').toLowerCase();
         return ['completed', 'done', 'closed'].includes(status);
-      }),
-    [mappedCallItems, requestsDataList]
+      });
+    },
+    [completedCallsDataList, mappedCallItems, requestsDataList]
   );
 
   const mappedReviews = useMemo<ReviewTabItem[]>(() => {

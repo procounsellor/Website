@@ -45,6 +45,8 @@ export const API_CONFIG = {
     proBuddyRequestsReceived: '/api/proBuddy/getRequestsReceivedByProBuddy',
     proBuddyCreateCallRequest: '/api/proBuddy/createProBuddyCallRequest',
     proBuddyReviewsForProBuddy: '/api/proBuddy/getAllReviewsReceivedByAProBuddyForProBuddy',
+    proBuddyCallHistory: '/api/proBuddy/getProBuddyCallHistory',
+    userCallHistory: '/api/proBuddy/getUserCallHistory',
     proBuddyColleges: '/api/shared/getProBuddyCollegesWithCounts',
     connectCall: '/api/exotel/connectCall',
   },

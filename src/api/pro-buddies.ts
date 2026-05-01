@@ -535,6 +535,54 @@ export const getRequestsReceivedByProBuddy = async (proBuddyId: string) => {
   return data;
 };
 
+export const getProBuddyCallHistory = async (proBuddyId: string) => {
+  if (!proBuddyId) {
+    throw new Error("proBuddyId is required");
+  }
+
+  const response = await fetch(
+    buildApiUrl(API_CONFIG.endpoints.proBuddyCallHistory, { proBuddyId }),
+    {
+      method: "GET",
+      headers: {
+        ...getAuthHeaders(),
+        Accept: "application/json",
+      },
+    }
+  );
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || data.error || "Failed to get ProBuddy call history");
+  }
+
+  return data;
+};
+
+export const getUserCallHistory = async (userId: string) => {
+  if (!userId) {
+    throw new Error("userId is required");
+  }
+
+  const response = await fetch(
+    buildApiUrl(API_CONFIG.endpoints.userCallHistory, { userId }),
+    {
+      method: "GET",
+      headers: {
+        ...getAuthHeaders(),
+        Accept: "application/json",
+      },
+    }
+  );
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || data.error || "Failed to get user call history");
+  }
+
+  return data;
+};
+
 export const createProBuddyCallRequest = async (payload: CreateProBuddyCallRequestPayload) => {
   const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.proBuddyCreateCallRequest}`, {
     method: "POST",
@@ -635,6 +683,8 @@ export const probuddiesApi = {
   updateProfile: (proBuddyId: string, payload: Partial<UpdateProBuddyProfilePayload>) =>
     updateProBuddyProfile(proBuddyId, payload),
   requestsReceivedByProBuddy: (proBuddyId: string) => getRequestsReceivedByProBuddy(proBuddyId),
+  proBuddyCallHistory: (proBuddyId: string) => getProBuddyCallHistory(proBuddyId),
+  userCallHistory: (userId: string) => getUserCallHistory(userId),
   createCallRequest: (payload: CreateProBuddyCallRequestPayload) => createProBuddyCallRequest(payload),
   reviewsForProBuddy: (proBuddyId: string) => getAllReviewsReceivedByAProBuddyForProBuddy(proBuddyId),
   getColleges: () => getAllProBuddyColleges(),
