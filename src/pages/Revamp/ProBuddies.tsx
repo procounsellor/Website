@@ -44,7 +44,7 @@ export default function ProBuddies() {
             type="text"
             name="searchbox"
             id="search"
-            placeholder="search for college"
+            placeholder="search for probuddies"
             className="bg-white rounded-[12px] h-14 w-114 py-4 pl-14 pr-4 placeholder:text-(--text-muted)"
           />
         </div>

@@ -1,5 +1,4 @@
 import { API_CONFIG } from './config';
-import type { Counsellor } from '@/types/counsellor';
 import type { CounselorReview } from '@/types/counselorReview';
 import type { ApiClient, Client } from '@/types/client';
 import type { ApiReviewReceived } from '@/types/counselorDashboard';

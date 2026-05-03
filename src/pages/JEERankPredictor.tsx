@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 // import { Input } from "@/components/ui/input";
@@ -275,6 +274,7 @@ export default function JEERankPredictor() {
                   )}
                 </div>
               </div>
+              )}
 
               {/* Login Overlay - Only show if not authenticated */}
               {!isAuthenticated && (
