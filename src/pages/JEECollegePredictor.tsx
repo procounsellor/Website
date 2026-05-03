@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -52,6 +53,18 @@ export default function JEECollegePredictor() {
     new Set(),
   );
 
+  // Helper function to fetch actual API data
+  // Track last submitted values to avoid unnecessary API calls
+  const lastParamsRef = useRef<{
+    mode: string;
+    marks: string;
+    percentile: string;
+    shiftLevel: string;
+    category: string;
+    quota: string;
+    pool: string;
+  } | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -84,6 +97,11 @@ export default function JEECollegePredictor() {
 
     setIsLoading(true);
     setPrediction(null);
+      // Check if params actually changed
+      const currentParams = { mode, marks, percentile, shiftLevel, category, quota, pool };
+      const paramsChanged = !lastParamsRef.current || 
+        JSON.stringify(lastParamsRef.current) !== JSON.stringify(currentParams);
+
 
     try {
       // If user is not authenticated, use dummy data
@@ -161,25 +179,30 @@ export default function JEECollegePredictor() {
         };
         
         setPrediction(dummyPrediction);
+        lastParamsRef.current = currentParams;
         toast.success("Prediction generated! Login to view detailed results.");
       } else {
-        const requestData: any = {
-          shift_level: shiftLevel,
-          category,
-          quota,
-          pool,
-        };
+        // Only call API if params changed
+        if (paramsChanged) {
+          const requestData: any = {
+            shift_level: shiftLevel,
+            category,
+            quota,
+            pool,
+          };
 
-        // Add only marks OR percentile, not both
-        if (mode === "marks") {
-          requestData.marks = parseFloat(marks);
-        } else {
-          requestData.percentile = parseFloat(percentile);
+          // Add only marks OR percentile, not both
+          if (mode === "marks") {
+            requestData.marks = parseFloat(marks);
+          } else {
+            requestData.percentile = parseFloat(percentile);
+          }
+
+          const response = await predictJEEColleges(requestData);
+          setPrediction(response);
+          lastParamsRef.current = currentParams;
+          toast.success("Colleges predicted successfully!");
         }
-
-        const response = await predictJEEColleges(requestData);
-        setPrediction(response);
-        toast.success("Colleges predicted successfully!");
       }
     } catch (error) {
       const errorMessage =
@@ -290,6 +313,11 @@ export default function JEECollegePredictor() {
   useEffect(() => {
     setCurrentPage(1);
   }, [instituteFilter, sortBy]);
+
+  // Clear prediction when category, quota, pool, or shift level changes to force re-fetch
+  useEffect(() => {
+    setPrediction(null);
+  }, [category, quota, pool, shiftLevel]);
 
   return (
     <>
@@ -556,7 +584,31 @@ export default function JEECollegePredictor() {
               </div>
 
               {/* Results Table/List */}
-              {paginatedColleges.length > 0 ? (
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3, 4, 5].map((idx) => (
+                    <div
+                      key={idx}
+                      className="bg-white rounded-lg border border-gray-200 p-6 animate-pulse"
+                    >
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <div className="w-full md:flex-1">
+                          <div className="h-6 bg-gray-200 rounded w-1/2 mb-3" />
+                          <div className="h-4 bg-gray-200 rounded w-3/4 mb-4" />
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {[1, 2, 3, 4].map((i) => (
+                              <div key={i} className="space-y-2">
+                                <div className="h-3 bg-gray-200 rounded w-full" />
+                                <div className="h-4 bg-gray-200 rounded w-full" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : paginatedColleges.length > 0 ? (
                 <div className="space-y-4">
                   {paginatedColleges.map((college, index) => {
                     const actualIndex = startIndex + index;

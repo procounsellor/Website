@@ -191,17 +191,6 @@ export default function RevampLayout() {
             />
         )}
 
-        <Toaster
-            position="top-center"
-            toastOptions={{
-                duration: 3000,
-                style: {
-                    background: "#363636",
-                    color: "#fff",
-                },
-            }}
-        />
-
         {!isRestrictedRole && !isPromoPage && (
             <button
                 onClick={toggleChatbot}

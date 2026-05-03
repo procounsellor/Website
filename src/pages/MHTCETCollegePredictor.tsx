@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -46,7 +46,7 @@ export default function MHTCETCollegePredictor() {
   const [marks, setMarks] = useState<string>("");
   const [percentile, setPercentile] = useState<string>("");
   const [rank, setRank] = useState<string>("");
-  const [category, setCategory] = useState<string>("General");
+  const [category, setCategory] = useState<string>("Open");
   const [branch, setBranch] = useState<string>("Computer Engineering");
   const [topN, setTopN] = useState<number>(15);
   const [isLoading, setIsLoading] = useState(false);
@@ -60,6 +60,17 @@ export default function MHTCETCollegePredictor() {
   const [expandedBranches, setExpandedBranches] = useState<Set<number>>(
     new Set()
   );
+
+  // Track last submitted values to avoid unnecessary API calls
+  const lastParamsRef = useRef<{
+    mode: string;
+    marks: string;
+    percentile: string;
+    rank: string;
+    category: string;
+    branch: string;
+    topN: number;
+  } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,9 +112,13 @@ export default function MHTCETCollegePredictor() {
     }
 
     setIsLoading(true);
-    setPrediction(null);
 
     try {
+      // Check if params actually changed
+      const currentParams = { mode, marks, percentile, rank, category, branch, topN };
+      const paramsChanged = !lastParamsRef.current || 
+        JSON.stringify(lastParamsRef.current) !== JSON.stringify(currentParams);
+
       if (!isAuthenticated) {
         const estimatedRank =
           mode === "rank"
@@ -149,20 +164,25 @@ export default function MHTCETCollegePredictor() {
           },
         ];
         setPrediction({ estimated_rank: estimatedRank, colleges: dummyColleges });
+        lastParamsRef.current = currentParams;
         toast.success("Prediction generated! Login to view detailed results.");
       } else {
-        const payload: Parameters<typeof predictMHTCETColleges>[0] = {
-          category,
-          branch,
-          top_n: topN,
-        };
-        if (mode === "marks") payload.marks = parseFloat(marks);
-        else if (mode === "percentile") payload.percentile = parseFloat(percentile);
-        else payload.rank = parseInt(rank, 10);
+        // Only call API if params changed or user is authenticated and haven't called yet
+        if (paramsChanged) {
+          const payload: Parameters<typeof predictMHTCETColleges>[0] = {
+            category,
+            branch,
+            top_n: topN,
+          };
+          if (mode === "marks") payload.marks = parseFloat(marks);
+          else if (mode === "percentile") payload.percentile = parseFloat(percentile);
+          else payload.rank = parseInt(rank, 10);
 
-        const response = await predictMHTCETColleges(payload);
-        setPrediction(response);
-        toast.success("Colleges predicted successfully!");
+          const response = await predictMHTCETColleges(payload);
+          setPrediction(response);
+          lastParamsRef.current = currentParams;
+          toast.success("Colleges predicted successfully!");
+        }
       }
     } catch (error) {
       const msg =
@@ -229,6 +249,11 @@ export default function MHTCETCollegePredictor() {
   useEffect(() => {
     setCurrentPage(1);
   }, [sortBy]);
+
+  // Clear prediction when category, branch, or topN changes to force re-fetch
+  useEffect(() => {
+    setPrediction(null);
+  }, [category, branch, topN]);
 
   const inputLabel =
     mode === "marks"
@@ -459,7 +484,30 @@ export default function MHTCETCollegePredictor() {
                   </Select>
                 </div>
 
-                {paginatedColleges.length > 0 ? (
+                {isLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3, 4, 5].map((idx) => (
+                      <div
+                        key={idx}
+                        className="bg-white rounded-xl border border-gray-200 overflow-hidden p-5 flex flex-col md:flex-row gap-4 animate-pulse"
+                      >
+                        <div className="shrink-0 w-16 h-16 bg-gray-200 rounded-lg" />
+                        <div className="grow space-y-3 flex-1">
+                          <div className="h-6 bg-gray-200 rounded w-3/4" />
+                          <div className="h-4 bg-gray-200 rounded w-1/2" />
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                            {[1, 2, 3, 4].map((i) => (
+                              <div key={i} className="space-y-2">
+                                <div className="h-3 bg-gray-200 rounded w-full" />
+                                <div className="h-4 bg-gray-200 rounded w-full" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : paginatedColleges.length > 0 ? (
                   <div className="space-y-4">
                     {paginatedColleges.map((college, index) => {
                       const actualIndex = startIndex + index;
@@ -727,7 +775,7 @@ export default function MHTCETCollegePredictor() {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="General">General</SelectItem>
+                      <SelectItem value="Open">Open</SelectItem>
                       <SelectItem value="OBC">OBC</SelectItem>
                       <SelectItem value="SC">SC</SelectItem>
                       <SelectItem value="ST">ST</SelectItem>
