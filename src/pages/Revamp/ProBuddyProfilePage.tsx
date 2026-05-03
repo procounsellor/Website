@@ -1,20 +1,58 @@
 import { useRef, useState } from 'react';
 import {  useParams } from 'react-router-dom';
-import {  MapPin, Users, Link2 } from 'lucide-react';
+import {  MapPin, Users, Link2, Phone, AlertTriangle } from 'lucide-react';
 import { Radar, RadarChart, PolarAngleAxis, PolarGrid, ResponsiveContainer, Tooltip } from 'recharts';
 import { FaInstagram, FaLinkedin, FaStar,} from 'react-icons/fa6';
 import { FaCheckCircle } from 'react-icons/fa';
 import ReviewSection from '@/components/Revamp/common/ReviewSection';
 import RequestCallbackPopUp from '@/components/Revamp/probuddies/RequestCallbackPopup';
+import AddFundsPanel from '@/components/student-dashboard/AddFundsPanel';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { probuddiesApi } from '@/api/pro-buddies';
+import startRecharge from '@/api/wallet';
 import ProBuddyProfileSkeleton from '@/components/skeletons/probuddies/ProBuddyProfileSkeleton';
 import ProBuddyProfileError from '@/components/Revamp/error/ProBuddyErrorPage';
 import { decodeCounselorId } from '@/lib/utils';
 import { useAuthStore } from '@/store/AuthStore';
 import toast from 'react-hot-toast';
 
-function BookingCard({price, onRequestCall}:{price:string; onRequestCall: () => void}) {
+declare global {
+  interface Window { Razorpay: unknown; }
+}
+type RazorpayConstructor = new (opts: unknown) => { open: () => void };
+const OFFERING_FIELDS = ['Mess Food', 'Attendance', 'Campus Vibe', 'Faculty Quality', 'Exam Strategy'] as const;
+const clampOfferingValue = (value: number) => Math.min(10, Math.max(0, Number.isFinite(value) ? value : 0));
+
+const getSocialHandleLabel = (rawUrl: string) => {
+    const normalized = rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`;
+
+    try {
+        const url = new URL(normalized);
+        const pathParts = url.pathname.split('/').filter(Boolean);
+        return pathParts[pathParts.length - 1] || url.hostname.replace(/^www\./, '');
+    } catch {
+        const cleaned = rawUrl.replace(/^https?:\/\//, '').replace(/^www\./, '');
+        const pathParts = cleaned.split('/').filter(Boolean);
+        return pathParts[pathParts.length - 1] || cleaned;
+    }
+};
+
+const getSocialIconType = (rawUrl: string, type?: string) => {
+    const normalizedType = String(type ?? '').toLowerCase();
+    const normalizedUrl = rawUrl.toLowerCase();
+
+    if (normalizedType.includes('instagram') || normalizedUrl.includes('instagram')) {
+        return 'instagram';
+    }
+
+    if (normalizedType.includes('linkedin') || normalizedUrl.includes('linkedin')) {
+        return 'linkedin';
+    }
+
+    return 'custom';
+};
+
+function BookingCard({price, onRequestCall, onInstantCallback}:{price:string; onRequestCall: () => void; onInstantCallback: () => void}) {
     return (
         <div className="bg-white rounded-[8px] md:rounded-[16px] p-[12px] w-[350px] mx-auto md:w-full xl:w-[580px] h-full md:h-auto font-['Poppins']">
 
@@ -28,8 +66,16 @@ function BookingCard({price, onRequestCall}:{price:string; onRequestCall: () => 
             </div>
 
             <button
+                onClick={onInstantCallback}
+                className="mt-[12px] md:mt-3 w-full bg-[#2F43F2] h-[44px] md:h-auto rounded-[12px] px-4 py-2.5 font-medium text-[16px] text-white cursor-pointer flex items-center justify-center gap-2 hover:bg-[#253ce0] transition-colors"
+            >
+                <Phone className="w-[18px] h-[18px]" />
+                Get Instant Callback
+            </button>
+
+            <button
                 onClick={onRequestCall}
-                className="mt-[12px] md:mt-3 w-full bg-[#0e1629] h-[44px] md:h-auto rounded-[12px] px-4 py-2.5 font-medium text-[16px] text-white cursor-pointer"
+                className="mt-[8px] md:mt-2.5 w-full bg-white border border-[#0e1629] h-[44px] md:h-auto rounded-[12px] px-4 py-2.5 font-medium text-[16px] text-[#0e1629] cursor-pointer hover:bg-[#f5f5f5] transition-colors"
             >
                 Request a Call
             </button>
@@ -41,18 +87,120 @@ function BookingCard({price, onRequestCall}:{price:string; onRequestCall: () => 
     );
 }
 
+function InstantCallbackConfirmModal({
+    isOpen,
+    onClose,
+    onConfirm,
+    ratePerMinute,
+    proBuddyName,
+    walletBalance,
+    isConnecting,
+}: {
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    ratePerMinute: number;
+    proBuddyName: string;
+    walletBalance: number;
+    isConnecting: boolean;
+}) {
+    if (!isOpen) return null;
+    const minCost = ratePerMinute * 30;
+
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] font-['Poppins'] px-4">
+            <div className="bg-white rounded-[20px] p-6 max-w-[420px] w-full shadow-2xl">
+                <div className="flex items-center gap-3 mb-5">
+                    <div className="w-10 h-10 rounded-full bg-[#EEF1FE] flex items-center justify-center shrink-0">
+                        <Phone className="w-5 h-5 text-[#2F43F2]" />
+                    </div>
+                    <div>
+                        <h2 className="text-[18px] font-semibold text-[#0E1629] leading-tight">Get Instant Callback</h2>
+                        <p className="text-[13px] text-[#6B7280] mt-0.5">with {proBuddyName}</p>
+                    </div>
+                </div>
+
+                <div className="bg-[#FFF8ED] border border-[#FDE68A] rounded-[12px] p-4 mb-4 flex gap-3">
+                    <AlertTriangle className="w-5 h-5 text-[#D97706] shrink-0 mt-0.5" />
+                    <div>
+                        <p className="text-[13px] font-semibold text-[#92400E]">Minimum 30 minutes applies</p>
+                        <p className="text-[12px] text-[#B45309] mt-1 leading-relaxed">
+                            Even if you end the call early, charges for 30 minutes will be fully deducted from your wallet.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="bg-[#F9FAFB] rounded-[12px] p-4 mb-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[13px] text-[#6B7280]">Rate</span>
+                        <span className="text-[14px] font-semibold text-[#0E1629]">₹{ratePerMinute}/min</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-[13px] text-[#6B7280]">Min. Charged Duration</span>
+                        <span className="text-[14px] font-semibold text-[#0E1629]">30 minutes</span>
+                    </div>
+                    <div className="h-px bg-[#EFEFEF]" />
+                    <div className="flex items-center justify-between">
+                        <span className="text-[13px] font-medium text-[#0E1629]">Amount Reserved</span>
+                        <span className="text-[15px] font-bold text-[#2F43F2]">₹{minCost.toFixed(2)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-[13px] text-[#6B7280]">Your Balance</span>
+                        <span className="text-[14px] font-semibold text-[#22C55E]">₹{walletBalance.toFixed(2)}</span>
+                    </div>
+                </div>
+
+                <div className="flex gap-3">
+                    <button
+                        onClick={onClose}
+                        disabled={isConnecting}
+                        className="flex-1 h-[44px] rounded-[12px] border border-[#E5E7EB] text-[#6B7280] font-medium text-[15px] cursor-pointer hover:bg-[#F9FAFB] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        disabled={isConnecting}
+                        className="flex-1 h-[44px] rounded-[12px] bg-[#2F43F2] text-white font-medium text-[15px] cursor-pointer hover:bg-[#253ce0] transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                        {isConnecting ? (
+                            <>
+                                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                                </svg>
+                                Connecting...
+                            </>
+                        ) : (
+                            <>
+                                <Phone className="w-4 h-4" />
+                                Confirm
+                            </>
+                        )}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function Divider() {
     return <div className="h-px w-full bg-[#efefef]" />;
 }
 
 export default function ProBuddyProfilePage() {
     const {id} = useParams();
-    const { userId, isAuthenticated, toggleLogin } = useAuthStore();
+    const { user, userId, isAuthenticated, toggleLogin, refreshUser } = useAuthStore();
     const [isReadMore, setIsReadMore] = useState(false);
     const [showCallbackPopup, setShowCallbackPopup] = useState(false);
     const [showPostReviewForm, setShowPostReviewForm] = useState(false);
     const [reviewRating, setReviewRating] = useState(5);
     const [reviewText, setReviewText] = useState('');
+    const [showInstantCallbackConfirm, setShowInstantCallbackConfirm] = useState(false);
+    const [showAddFunds, setShowAddFunds] = useState(false);
+    const [isRecharging, setIsRecharging] = useState(false);
+    const [isConnecting, setIsConnecting] = useState(false);
+    const [displayBalance, setDisplayBalance] = useState(0);
     const reviewFormRef = useRef<HTMLDivElement | null>(null);
 
     const {data:probuddy ,isLoading, isError, refetch} = useQuery({
@@ -61,21 +209,10 @@ export default function ProBuddyProfilePage() {
         staleTime: 5 * 60 * 1000,
         gcTime: 10 * 60 * 1000,
     })
-
-
-    const radarData = [
-    { subject: 'Mess Food', A: 8, fullMark: 10 },
-    { subject: 'Time Management', A: 8, fullMark: 10 },
-    { subject: 'Exam Strategy', A: 9, fullMark: 10 },
-    { subject: 'Career Guidance', A: 6, fullMark: 10 },
-    { subject: 'Campus Navigation', A: 9, fullMark: 10 },
-];
-
-
-
+    const avatarName = `${probuddy?.firstName ?? ''} ${probuddy?.lastName ?? ''}`.trim() || 'ProBuddy';
     const displayImage =
     probuddy?.photoUrl||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(probuddy?.firstName! + probuddy?.lastName|| "ProBuddy")}&background=6B7280&color=ffffff&size=400`;
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(avatarName)}&background=6B7280&color=ffffff&size=400`;
 
     const formatReviewDate = (timestamp: { seconds: number; nanos: number } | null | undefined) => {
         if (!timestamp?.seconds) {
@@ -114,6 +251,11 @@ export default function ProBuddyProfilePage() {
     const reviewCountLabel = displayReviewsCount > 0 ? String(displayReviewsCount) : 'NA';
     const aboutMeText = String(probuddy?.aboutMe?.aboutMe ?? '');
     const shouldShowReadMore = aboutMeText.length > 60;
+    const radarData = OFFERING_FIELDS.map((field) => ({
+        subject: field,
+        score: clampOfferingValue(Number(probuddy?.offerings?.[field] ?? 0)),
+        fullMark: 5,
+    }));
 
     const mappedReviews = (probuddy?.reviewsReceivedForUser ?? []).map((review, index) => {
         const fullName = review.userFullName ?? `Student ${index + 1}`;
@@ -180,6 +322,107 @@ export default function ProBuddyProfilePage() {
 
     const handleOpenCallback = () => withLoginGuard(() => setShowCallbackPopup(true));
 
+    const handleInstantCallback = () => withLoginGuard(() => {
+        const ratePerMin = probuddy?.ratePerMinute ?? 0;
+        const minRequired = 30 * ratePerMin;
+        const walletBalance = user?.walletAmount ?? 0;
+        setDisplayBalance(walletBalance);
+        if (walletBalance < minRequired) {
+            setShowAddFunds(true);
+        } else {
+            setShowInstantCallbackConfirm(true);
+        }
+    });
+
+    const handleRecharge = async (amount: number) => {
+        if (!user?.userName || amount <= 0 || isRecharging) return;
+        setIsRecharging(true);
+        try {
+            const order = await startRecharge(user.userName, amount);
+            const options = {
+                key: order.keyId,
+                amount: order.amount,
+                currency: order.currency,
+                order_id: order.orderId,
+                name: 'ProCounsel Wallet',
+                description: 'Add ProCoins',
+                notes: { userId: user.userName },
+                handler: async () => {
+                    toast.success('Payment successful! Balance updated shortly.');
+                    try {
+                        const updatedUser = await refreshUser(true);
+                        if (updatedUser && typeof updatedUser.walletAmount === 'number') {
+                            setDisplayBalance(updatedUser.walletAmount);
+                        }
+                    } finally {
+                        setIsRecharging(false);
+                        setShowAddFunds(false);
+                    }
+                },
+                modal: { ondismiss: () => setIsRecharging(false) },
+                theme: { color: '#2F43F2' },
+            };
+            const Rz = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
+            new Rz(options).open();
+        } catch {
+            toast.error('Could not start payment. Please try again.');
+            setIsRecharging(false);
+        }
+    };
+
+    const handleConfirmInstantCallback = async () => {
+        if (!probuddy || !userId) return;
+        setIsConnecting(true);
+        try {
+            await probuddiesApi.connectInstantCall({
+                from: userId,
+                to: probuddy.phoneNumber,
+                userId,
+                proBuddyId: probuddy.proBuddyId,
+            });
+            setShowInstantCallbackConfirm(false);
+            toast.success('Connecting you now — you\'ll receive a call shortly!');
+        } catch (err) {
+            const msg = err instanceof Error ? err.message : 'Failed to connect call';
+            toast.error(msg);
+        } finally {
+            setIsConnecting(false);
+        }
+    };
+
+    const requestCallbackMutation = useMutation({
+        mutationFn: async ({ scheduledDate, scheduledTime }: { scheduledDate: string; scheduledTime: string }) => {
+            if (!probuddy?.proBuddyId || !userId) {
+                throw new Error('Missing ProBuddy or user details');
+            }
+
+            return probuddiesApi.createCallRequest({
+                proBuddyId: probuddy.proBuddyId,
+                userId,
+                scheduledDate,
+                scheduledTime,
+            });
+        },
+        onSuccess: () => {
+            toast.success('Callback request submitted successfully');
+            setShowCallbackPopup(false);
+        },
+        onError: (error: unknown) => {
+            const message = error instanceof Error ? error.message : 'Failed to request callback';
+            toast.error(message);
+        },
+    });
+
+    const handleRequestCallbackSubmit = async ({
+        scheduledDate,
+        scheduledTime,
+    }: {
+        scheduledDate: string;
+        scheduledTime: string;
+    }) => {
+        await requestCallbackMutation.mutateAsync({ scheduledDate, scheduledTime });
+    };
+
 
     if(isLoading){
         return <ProBuddyProfileSkeleton />
@@ -222,7 +465,7 @@ export default function ProBuddyProfilePage() {
                                     <div className="absolute left-[64px] top-0 md:relative md:left-0 md:top-0 md:flex-1 min-w-0">
                                         <div className="flex justify-between items-start w-[250px] md:w-full">
                                             <p className="font-semibold text-[#0e1629] text-[14px] md:text-[24px] leading-[1.25]">
-                                                {probuddy.firstName + probuddy.lastName}
+                                                {[probuddy.firstName, probuddy.lastName].filter(Boolean).join(' ')}
                                             </p>
                                             {/* Rating on Mobile (absolute top-right in CSS) */}
                                             <div className="flex items-center gap-[4px] md:hidden">
@@ -306,18 +549,11 @@ export default function ProBuddyProfilePage() {
                                                     </p>
                                                 );
                                             }
-                                            return links.map((url, i) => {
-                                                const normalized = url.startsWith('http') ? url : `https://${url}`;
-                                                const isInstagram = url.includes('instagram');
-                                                const isLinkedin = url.includes('linkedin');
-                                                let label = url;
-                                                try {
-                                                    const u = new URL(normalized);
-                                                    const parts = u.pathname.split('/').filter(Boolean);
-                                                    label = parts.length > 0 ? `@${parts[parts.length - 1]}` : u.hostname;
-                                                } catch {
-                                                    label = url;
-                                                }
+                                            return links.map((linkItem, i) => {
+                                                const rawUrl = typeof linkItem === 'string' ? linkItem : String(linkItem.url ?? '');
+                                                const normalized = rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`;
+                                                const iconType = getSocialIconType(rawUrl, typeof linkItem === 'string' ? '' : linkItem.type);
+                                                const label = getSocialHandleLabel(rawUrl);
                                                 return (
                                                     <a
                                                         key={i}
@@ -326,9 +562,9 @@ export default function ProBuddyProfilePage() {
                                                         rel="noopener noreferrer"
                                                         className="flex items-center gap-[8px] font-medium text-[#6b7280] text-[14px] tracking-[0.28px] hover:text-[#0e1629] transition-colors"
                                                     >
-                                                        {isInstagram ? (
+                                                        {iconType === 'instagram' ? (
                                                             <FaInstagram className="text-[20px] text-[#E4405F] shrink-0" />
-                                                        ) : isLinkedin ? (
+                                                        ) : iconType === 'linkedin' ? (
                                                             <FaLinkedin className="text-[20px] text-[#0A66C2] shrink-0" />
                                                         ) : (
                                                             <Link2 className="w-5 h-5 text-[#6b7280] shrink-0" strokeWidth={1.5} />
@@ -392,6 +628,7 @@ export default function ProBuddyProfilePage() {
                             <BookingCard
                                 price={probuddy.ratePerMinute?.toFixed(2).toString() || 'NA'}
                                 onRequestCall={handleOpenCallback}
+                                onInstantCallback={handleInstantCallback}
                             />
                         </div>
                     </div>
@@ -420,7 +657,7 @@ export default function ProBuddyProfilePage() {
                                         />
                                         <Radar
                                             name="Score"
-                                            dataKey="A"
+                                            dataKey="score"
                                             stroke="#2f43f2"
                                             strokeWidth={2}
                                             fill="#2f43f2"
@@ -439,8 +676,8 @@ export default function ProBuddyProfilePage() {
 
                                 <div className="mt-3 flex justify-between font-medium text-[#0e1629] text-sm leading-normal">
                                     <span>1</span>
+                                    <span>3</span>
                                     <span>5</span>
-                                    <span>10</span>
                                 </div>
                                 <div
                                     className="mt-2.5 h-6 sm:h-7 rounded-3xl"
@@ -549,14 +786,18 @@ export default function ProBuddyProfilePage() {
                 <div className="max-w-[1440px] mx-auto md:border-t md:border-[#E5E7EB]">
                     <div className="py-0 md:py-16 text-center">
                         {/* Mobile View */}
-                        <div className="md:hidden bg-gradient-to-t from-[#2F43F2] to-[#1B278C] rounded-none h-[288px] relative overflow-hidden">
-                            <p className="absolute left-1/2 -translate-x-1/2 top-[60px] w-[309px] font-['Poppins'] font-semibold text-white text-[16px] leading-[1.25]">
+                        <div className="md:hidden bg-gradient-to-t from-[#2F43F2] to-[#1B278C] rounded-none h-[310px] relative overflow-hidden">
+                            <p className="absolute left-1/2 -translate-x-1/2 top-[40px] w-[309px] font-['Poppins'] font-semibold text-white text-[16px] leading-[1.25]">
                                 Ready to Make Your College Decision?
                             </p>
-                            <p className="absolute left-1/2 -translate-x-1/2 top-[100px] w-[316px] font-['Poppins'] font-normal text-[#F5F5F5] text-[14px] leading-[21px] text-center">
+                            <p className="absolute left-1/2 -translate-x-1/2 top-[80px] w-[316px] font-['Poppins'] font-normal text-[#F5F5F5] text-[14px] leading-[21px] text-center">
                                 Book a session with Aditya and get personalized guidance for your unique situation
                             </p>
-                            <button onClick={handleOpenCallback} className="absolute left-1/2 -translate-x-1/2 top-[183px] w-[246px] h-[48px] bg-white rounded-[12px] font-['Poppins'] font-medium text-[16px] text-[#2F43F2] cursor-pointer">
+                            <button onClick={handleInstantCallback} className="absolute left-1/2 -translate-x-1/2 top-[163px] w-[246px] h-[48px] bg-white rounded-[12px] font-['Poppins'] font-medium text-[16px] text-[#2F43F2] cursor-pointer flex items-center justify-center gap-2">
+                                <Phone className="w-4 h-4" />
+                                Get Instant Callback
+                            </button>
+                            <button onClick={handleOpenCallback} className="absolute left-1/2 -translate-x-1/2 top-[223px] w-[246px] h-[48px] border border-white/60 rounded-[12px] font-['Poppins'] font-medium text-[16px] text-white/90 cursor-pointer">
                                 Request a Callback
                             </button>
                         </div>
@@ -569,9 +810,15 @@ export default function ProBuddyProfilePage() {
                             <p className="mt-3 font-['Poppins'] font-normal text-[#6b7280] text-base leading-normal">
                                 Book a session with Aditya and get personalized guidance for your unique situation
                             </p>
-                            <button onClick={handleOpenCallback} className="mt-6 bg-[#2f43f2] rounded-[12px] px-4 py-2.5 w-full max-w-[357px] font-['Poppins'] font-medium text-base text-white cursor-pointer">
-                                Request a Callback
-                            </button>
+                            <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-[500px] mx-auto">
+                                <button onClick={handleInstantCallback} className="bg-[#2f43f2] rounded-[12px] px-4 py-2.5 w-full max-w-[240px] font-['Poppins'] font-medium text-base text-white cursor-pointer flex items-center justify-center gap-2 hover:bg-[#253ce0] transition-colors">
+                                    <Phone className="w-[18px] h-[18px]" />
+                                    Get Instant Callback
+                                </button>
+                                <button onClick={handleOpenCallback} className="border border-[#0e1629] rounded-[12px] px-4 py-2.5 w-full max-w-[240px] font-['Poppins'] font-medium text-base text-[#0e1629] cursor-pointer hover:bg-[#f5f5f5] transition-colors">
+                                    Request a Callback
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -582,8 +829,28 @@ export default function ProBuddyProfilePage() {
                     isOpen={showCallbackPopup}
                     onClose={() => setShowCallbackPopup(false)}
                     info={callbackInfo}
+                    onSubmit={handleRequestCallbackSubmit}
+                    isSubmitting={requestCallbackMutation.isPending}
                 />
             )}
+
+            <InstantCallbackConfirmModal
+                isOpen={showInstantCallbackConfirm}
+                onClose={() => setShowInstantCallbackConfirm(false)}
+                onConfirm={handleConfirmInstantCallback}
+                ratePerMinute={probuddy.ratePerMinute ?? 0}
+                proBuddyName={`${probuddy.firstName} ${probuddy.lastName}`.trim()}
+                walletBalance={displayBalance}
+                isConnecting={isConnecting}
+            />
+
+            <AddFundsPanel
+                isOpen={showAddFunds}
+                onClose={() => setShowAddFunds(false)}
+                balance={displayBalance}
+                onAddMoney={handleRecharge}
+                isProcessing={isRecharging}
+            />
         </div>
     );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Footer from "@/components/layout/Footer";
 import RevampHeader from "@/components/Revamp/RevampHeader";
 import RevampBreadcrumbs from "@/components/Revamp/RevampBreadcrumbs";
@@ -36,6 +36,7 @@ export default function RevampLayout() {
     const navigate = useNavigate();
     const location = useLocation();
     const [chatbotAnimation, setChatbotAnimation] = useState<object | null>(null);
+    const prevAuthenticatedRef = useRef(false);
 
     const shouldHideBanner =
         location.pathname.includes('/test-info') ||
@@ -72,7 +73,7 @@ export default function RevampLayout() {
         if (isAuthenticated && needsProfileCompletion && !needsOnboarding) {
             toggleProfileCompletion();
         }
-    }, [isAuthenticated, needsProfileCompletion, needsOnboarding]);
+    }, [isAuthenticated, needsProfileCompletion, needsOnboarding, toggleProfileCompletion]);
 
     const handleOnboardingComplete = () => {
         setNeedsOnboarding(false);
@@ -101,7 +102,9 @@ export default function RevampLayout() {
             setIsProfileCompletionOpen(false);
             const store = useAuthStore.getState();
             if (store.pendingAction) {
-                try { store.pendingAction(); } catch {}
+                try { store.pendingAction(); } catch (error) {
+                    console.error("Pending action failed", error);
+                }
                 store.setPendingAction(null);
                 return;
             }
@@ -119,29 +122,37 @@ export default function RevampLayout() {
 
     useEffect(() => {
         if (!isAuthenticated) {
+            prevAuthenticatedRef.current = false;
             return;
         }
 
-        if (role === 'proBuddy') {
-            const isAllowedPath =
-                location.pathname.startsWith('/community') ||
-                location.pathname === '/pro-buddies/dashboard';
+        const justLoggedIn = !prevAuthenticatedRef.current;
+        prevAuthenticatedRef.current = true;
 
-            if (!isAllowedPath) {
-                navigate('/community', { replace: true });
+        if (role === 'proBuddy') {
+            if (justLoggedIn) {
+                navigate('/pro-buddies/dashboard', { replace: true });
                 return;
             }
-
+            const isAllowedPath =
+                location.pathname === '/pro-buddies/dashboard' ||
+                location.pathname.startsWith('/community');
+            if (!isAllowedPath) {
+                navigate('/pro-buddies/dashboard', { replace: true });
+            }
             return;
         }
 
         if (role === 'counselor') {
+            if (justLoggedIn) {
+                navigate('/counsellor-dashboard', { replace: true });
+                return;
+            }
             const isAllowedPath =
-                location.pathname.startsWith('/community') ||
-                location.pathname === '/counsellor-dashboard';
-
+                location.pathname === '/counsellor-dashboard' ||
+                location.pathname.startsWith('/community');
             if (!isAllowedPath) {
-                navigate('/community', { replace: true });
+                navigate('/counsellor-dashboard', { replace: true });
             }
         }
     }, [isAuthenticated, role, location.pathname, navigate]);
@@ -179,17 +190,6 @@ export default function RevampLayout() {
                 onUploadComplete={() => {}}
             />
         )}
-
-        <Toaster
-            position="top-center"
-            toastOptions={{
-                duration: 3000,
-                style: {
-                    background: "#363636",
-                    color: "#fff",
-                },
-            }}
-        />
 
         {!isRestrictedRole && !isPromoPage && (
             <button

@@ -25,6 +25,7 @@ const ProBuddiesDashboard: React.FC = () => {
   const profileData = React.useMemo(() => {
     const payload = profileQuery.data;
     if (isRecord(payload) && isRecord(payload.data)) return payload.data;
+    if (isRecord(payload) && 'data' in payload) return null;
     if (isRecord(payload)) return payload;
     return null;
   }, [profileQuery.data]);

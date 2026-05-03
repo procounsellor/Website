@@ -41,7 +41,7 @@ export interface ProBuddyUserSide {
 
   whoShouldConnect: string;
 
-  links: string[] | null;
+  links: Array<ProBuddyLink | string> | null;
 
   offerings: Offerings;
 
@@ -90,11 +90,15 @@ export interface AboutMe {
   aboutMe: string;
 }
 
+export interface ProBuddyLink {
+  type: string;
+  url: string;
+  title: string;
+  thumbnailUrl: string | null;
+}
+
 export interface Offerings {
-  Attendance: number;
-  "Campus Vibe": number;
-  "Mess Food": number;
-  "Faculty Quality": number;
+  [key: string]: number;
 }
 
 export type WorkingDay =
@@ -113,4 +117,28 @@ export interface PostReview{
     proBuddyId:string,
     reviewText:string| null,
     rating:number
-}  
+}
+
+export interface ProBuddyProfileForProBuddy extends ProBuddyUserSide {
+  priority: string | number | null;
+  dateCreated?: {
+    seconds: number;
+    nanos: number;
+  } | null;
+  lastDateAndTimeModified?: {
+    seconds: number;
+    nanos: number;
+  } | null;
+  lastLoginDateAndTime?: {
+    seconds: number;
+    nanos: number;
+  } | null;
+  referralCode?: string | null;
+  t3ReferralCode?: string | null;
+  photoUrlSmall?: string | null;
+  idCardPhotoUrl?: string | null;
+  phoneOtpVerified?: boolean;
+  emailOtpVerified?: boolean;
+  collegeId?: string | null;
+  platform?: string | null;
+}

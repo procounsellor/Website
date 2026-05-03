@@ -26,15 +26,15 @@ export default function RevampHeader() {
     const visibleTabs = useMemo(() => {
         if (isCounselor) {
             return [
-                { id: 3, name: 'Community', iconPath: '/Community.png', path: '/community' },
                 { id: 5, name: 'Dashboard', iconPath: '/person.svg', path: '/counsellor-dashboard' },
+                { id: 3, name: 'Community', iconPath: '/Community.png', path: '/community' },
             ];
         }
 
         if (isProBuddy) {
             return [
-                { id: 3, name: 'Community', iconPath: '/Community.png', path: '/community' },
                 { id: 4, name: 'Dashboard', iconPath: '/ProBuddy.png', path: '/pro-buddies/dashboard' },
+                { id: 3, name: 'Community', iconPath: '/Community.png', path: '/community' },
             ];
         }
 
@@ -494,7 +494,7 @@ export default function RevampHeader() {
                     )}
                 </AnimatePresence>
 
-                <div className="flex w-full items-center gap-[12px]">
+                <div className="flex w-full items-center gap-3">
                     {showGlobalSearch && (
                     <div className="flex-1 relative" ref={mobileSearchRef}>
                         <div className="h-[40px] bg-[#FFFFFF] rounded-[12px] border border-gray-50 flex items-center px-[12px] shadow-sm">
@@ -509,7 +509,7 @@ export default function RevampHeader() {
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 onFocus={handleMobileSearchFocus}
-                                placeholder="Search courses, tests, exams" 
+                                placeholder="Search courses, tests, counsellors"
                                 className="w-full h-full bg-transparent outline-none font-poppins font-medium text-[12px] leading-[100%] text-[#232323] placeholder:text-[#232323]"
                             />
                             <svg 

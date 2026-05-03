@@ -13,10 +13,11 @@ export interface collegeProbuddy {
 }
 export interface parram {
   colleges:collegeProbuddy[]
+  isLoading?: boolean
  }
 
 
-export default function CollegeSection({colleges}:parram) {
+export default function CollegeSection({colleges, isLoading = false}:parram) {
   const navigate = useNavigate();
   const hasAnimated = useRef(false);
   
@@ -67,7 +68,26 @@ export default function CollegeSection({colleges}:parram) {
           </h1>
         </div>
 
-        {displayColleges.length > 0 ? (
+        {isLoading ? (
+          <div className="flex gap-3 md:gap-6 justify-start md:justify-center overflow-x-auto md:overflow-hidden pb-2">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <div key={`college-skeleton-${index}`} className="relative w-42.25 h-66.5 md:w-61 md:h-91.75 shrink-0">
+                <div className="absolute inset-0 rounded-[10px] bg-white animate-pulse" />
+                <div className="absolute inset-0 z-10 flex flex-col p-3">
+                  <div className="h-33.75 w-full rounded-[10px] bg-gray-200 shrink-0" />
+                  <div className="mt-2 h-4 w-4/5 rounded bg-gray-200" />
+                  <div className="flex flex-col gap-1 mt-1.5">
+                    <div className="h-3 w-3/5 rounded bg-gray-200" />
+                    <div className="h-3 w-1/2 rounded bg-gray-200" />
+                  </div>
+                </div>
+                <div className="absolute -right-px bottom-[1.5px] overflow-hidden w-10.75 h-10 md:w-13.25 md:h-12.5">
+                  <div className="w-full h-full rounded-tr-[20px] rounded-br-[20px] bg-gray-200" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : displayColleges.length > 0 ? (
           <motion.div
             variants={containerVariants}
             initial="hidden"

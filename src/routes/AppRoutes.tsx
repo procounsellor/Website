@@ -130,10 +130,26 @@ export default function AppRoutes() {
             <Toaster
                 position="top-center"
                 toastOptions={{
-                    duration: 4000,
+                    duration: 3000,
                     style: {
                         background: '#363636',
                         color: '#fff',
+                        padding: '12px 16px',
+                        borderRadius: '8px',
+                    },
+                    success: {
+                        duration: 3000,
+                        iconTheme: {
+                            primary: '#10b981',
+                            secondary: '#fff',
+                        },
+                    },
+                    error: {
+                        duration: 4000,
+                        iconTheme: {
+                            primary: '#ef4444',
+                            secondary: '#fff',
+                        },
                     },
                 }}
             />
@@ -176,7 +192,7 @@ export default function AppRoutes() {
 
                         {/* probuddies pages  */}
                         <Route path='/pro-buddies/register' element={<ProBuddiesRegistration />} />
-                        <Route path='/pro-buddies' element={<ProBuddiesComingSoon/>} />
+                        <Route path='/pro-buddies' element={<ProBuddies/>} />
                         <Route path='/pro-buddies/listing' element={<ProBuddyListing />} />
                         <Route path='/pro-buddies/college-listing' element={<CollegeListing />} />
                         <Route path='/pro-buddies/dashboard' element={<ProBuddiesDashboard />} />

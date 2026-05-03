@@ -10,19 +10,19 @@ import PageSEO from "@/components/SEO/PageSEO";
 
 export default function ProBuddies() {
   const {userId} = useAuthStore()
-  const { data: probuddies = [] } = useQuery({
-  queryKey: ['revamp-probuddies', userId],
-        queryFn: () => probuddiesApi.listing(userId as string),
-        staleTime: 5 * 60 * 1000,
-        gcTime: 10 * 60 * 1000,
-    });
+  const { data: probuddies = [], isLoading: isProbuddiesLoading } = useQuery({
+    queryKey: ['revamp-probuddies', userId],
+    queryFn: () => probuddiesApi.listing(userId as string),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
-     const { data: colleges = [] } = useQuery({
-     queryKey: ['revamp-probuddies-colleges', userId],
-        queryFn: () => probuddiesApi.getColleges(),
-        staleTime: 5 * 60 * 1000,
-        gcTime: 10 * 60 * 1000,
-     });
+  const { data: colleges = [], isLoading: isCollegesLoading } = useQuery({
+    queryKey: ['revamp-probuddies-colleges', userId],
+    queryFn: () => probuddiesApi.getColleges(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
 
 
@@ -70,8 +70,8 @@ export default function ProBuddies() {
     </div>
 
     <div className=" bg-[#C6DDF040] flex flex-col pb-20">
-      <CollegeSection colleges={colleges} />
-      <ProBuddiesSection probuddyList={probuddies}/>
+      <CollegeSection colleges={colleges} isLoading={isCollegesLoading} />
+      <ProBuddiesSection probuddyList={probuddies} isLoading={isProbuddiesLoading} />
       <AdvantageSection/>
       <Stories/>
     </div>

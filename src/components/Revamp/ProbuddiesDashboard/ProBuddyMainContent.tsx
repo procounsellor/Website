@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import ProBuddyOverviewTab from '@/components/Revamp/ProbuddiesDashboard/ProBuddyOverviewTab';
 import ProBuddyCallsTab from '@/components/Revamp/ProbuddiesDashboard/ProBuddyCallsTab';
 import ProBuddyEarningsTab from '@/components/Revamp/ProbuddiesDashboard/ProBuddyEarningsTab';
 import ProBuddyReviewsTab from '@/components/Revamp/ProbuddiesDashboard/ProBuddyReviewsTab';
 import { probuddiesApi } from '@/api/pro-buddies';
+import toast from 'react-hot-toast';
 
 const tabs = ['Overview', 'Calls', 'My Earnings', 'Reviews'];
 
@@ -12,6 +13,7 @@ type AnyRecord = Record<string, unknown>;
 
 type CallTabItem = {
   id: string;
+  userId: string;
   initials: string;
   name: string;
   designation: string;
@@ -50,6 +52,19 @@ const toText = (value: unknown, fallback = 'NA'): string => {
 const toNumeric = (value: unknown, fallback = 0): number => {
   const num = Number(value);
   return Number.isFinite(num) ? num : fallback;
+};
+
+const toDurationLabel = (value: unknown): string => {
+  if (typeof value === 'string' && value.trim()) {
+    return value;
+  }
+
+  const numeric = Number(value);
+  if (Number.isFinite(numeric) && numeric >= 0) {
+    return `${numeric} min`;
+  }
+
+  return 'NA';
 };
 
 const getInitials = (fullName: string): string => {
@@ -175,9 +190,17 @@ const ProBuddyMainContent: React.FC = () => {
     enabled: Boolean(proBuddyId),
   });
 
+  const completedCallsQuery = useQuery({
+    queryKey: ['probuddy-dashboard-completed-calls', proBuddyId],
+    queryFn: () => probuddiesApi.proBuddyCallHistory(proBuddyId),
+    enabled: Boolean(proBuddyId),
+  });
+
   const profileDataNode = useMemo(() => toRecordDataNode(profileQuery.data), [profileQuery.data]);
   const requestsDataList = useMemo(() => toArrayDataNode(requestsQuery.data), [requestsQuery.data]);
   const reviewsDataList = useMemo(() => toArrayDataNode(reviewsQuery.data), [reviewsQuery.data]);
+  const completedCallsDataList = useMemo(() => toArrayDataNode(completedCallsQuery.data), [completedCallsQuery.data]);
+  const proBuddyCallerId = toText(getByPath(profileDataNode, 'phoneNumber'), proBuddyId);
 
   const mappedOverview = useMemo(() => {
     return {
@@ -197,6 +220,7 @@ const ProBuddyMainContent: React.FC = () => {
 
       return {
         id: `${userId}-${index}`,
+        userId,
         initials: getInitials(name),
         name,
         designation: 'NA',
@@ -218,13 +242,42 @@ const ProBuddyMainContent: React.FC = () => {
   );
 
   const completedItems = useMemo(
-    () =>
-      mappedCallItems.filter((_, index) => {
+    () => {
+      const mappedFromHistory = completedCallsDataList.map((item, index) => {
+        const name = toText(
+          getByPath(item, 'userFullName') ??
+            getByPath(item, 'fullName') ??
+            getByPath(item, 'name') ??
+            getByPath(item, 'userName'),
+          'NA'
+        );
+        const userId = toText(getByPath(item, 'userId'), `call-${index}`);
+
+        return {
+          id: `${userId}-${index}`,
+          userId,
+          initials: getInitials(name),
+          name,
+          designation: toText(getByPath(item, 'designation'), 'NA'),
+          date: toDateLabel(getByPath(item, 'callDate') ?? getByPath(item, 'scheduledDate') ?? getByPath(item, 'createdAt')),
+          time: toTimeLabel(getByPath(item, 'callTime') ?? getByPath(item, 'scheduledTime') ?? getByPath(item, 'createdAt')),
+          duration: toDurationLabel(
+            getByPath(item, 'duration') ?? getByPath(item, 'callDuration') ?? getByPath(item, 'durationInMinutes')
+          ),
+        };
+      });
+
+      if (mappedFromHistory.length > 0) {
+        return mappedFromHistory;
+      }
+
+      return mappedCallItems.filter((_, index) => {
         const raw = requestsDataList[index];
         const status = String(getByPath(raw, 'status') ?? '').toLowerCase();
         return ['completed', 'done', 'closed'].includes(status);
-      }),
-    [mappedCallItems, requestsDataList]
+      });
+    },
+    [completedCallsDataList, mappedCallItems, requestsDataList]
   );
 
   const mappedReviews = useMemo<ReviewTabItem[]>(() => {
@@ -258,6 +311,39 @@ const ProBuddyMainContent: React.FC = () => {
     if (fromProfile > 0) return fromProfile;
     return mappedReviews.length;
   }, [mappedReviews.length, profileDataNode]);
+
+  const callUserMutation = useMutation({
+    mutationFn: async (call: CallTabItem) => {
+      if (!proBuddyId) {
+        throw new Error('proBuddyId is required');
+      }
+
+      if (!call.userId || call.userId === 'NA') {
+        throw new Error('userId is missing for this call request');
+      }
+
+      if (!proBuddyCallerId || proBuddyCallerId === 'NA') {
+        throw new Error('ProBuddy caller id is missing');
+      }
+
+      return probuddiesApi.connectInstantCall({
+        from: proBuddyCallerId,
+        to: call.userId,
+        userId: call.userId,
+        proBuddyId,
+      });
+    },
+    onSuccess: () => {
+      toast.success('Calling user now');
+    },
+    onError: (error: unknown) => {
+      toast.error(error instanceof Error ? error.message : 'Failed to place call');
+    },
+  });
+
+  const handleCallRequest = async (call: CallTabItem) => {
+    await callUserMutation.mutateAsync(call);
+  };
 
   return (
     <div className="w-full max-w-full xl:w-232 min-h-0 sm:min-h-148.5 bg-white rounded-2xl shadow-sm flex flex-col relative z-20 font-poppins overflow-visible pb-4 sm:pb-0">
@@ -295,7 +381,14 @@ const ProBuddyMainContent: React.FC = () => {
             whoShouldConnect={mappedOverview.whoShouldConnect}
           />
         )}
-        {activeTab === 'Calls' && <ProBuddyCallsTab requests={requestsItems} completed={completedItems} />}
+        {activeTab === 'Calls' && (
+          <ProBuddyCallsTab
+            requests={requestsItems}
+            completed={completedItems}
+            onCallRequest={handleCallRequest}
+            isCalling={callUserMutation.isPending}
+          />
+        )}
         {activeTab === 'My Earnings' && <ProBuddyEarningsTab />}
         {activeTab === 'Reviews' && (
           <ProBuddyReviewsTab

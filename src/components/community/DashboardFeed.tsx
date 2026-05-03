@@ -1,134 +1,70 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useRef, useCallback } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { searchCommunityQuestions } from '@/api/community';
 import type { CommunityDashboardItem } from '@/types/community';
 import DashboardCard from './DashboardCard';
-import { Loader2 } from 'lucide-react'; 
+import { Loader2 } from 'lucide-react';
 
 interface DashboardFeedProps {
   selectedCategory?: string | null;
 }
 
+const PAGE_SIZE = 10;
+
 const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
-  const [items, setItems] = useState<CommunityDashboardItem[]>([]);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isMoreLoading, setIsMoreLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const isMounted = useRef(true);
-
   const observer = useRef<IntersectionObserver | null>(null);
 
-  useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['communityFeed'],
+    queryFn: ({ pageParam = 0 }) =>
+      searchCommunityQuestions('', {
+        sortBy: 'rating',
+        sortOrder: 'desc',
+        page: pageParam as number,
+        pageSize: PAGE_SIZE,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.data.length < PAGE_SIZE) return undefined;
+      return allPages.length;
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
   const lastElementRef = useCallback(
     (node: HTMLDivElement) => {
-      if (isLoading || !hasMore) return;
-
+      if (isLoading || !hasNextPage) return;
       if (observer.current) observer.current.disconnect();
-
       observer.current = new IntersectionObserver((entries) => {
-        if (
-          entries[0].isIntersecting &&
-          hasMore &&
-          !isMoreLoading
-        ) {
-          handleLoadMore();
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
         }
       });
-
       if (node) observer.current.observe(node);
     },
-    [isLoading, isMoreLoading, hasMore]
+    [isLoading, hasNextPage, isFetchingNextPage, fetchNextPage]
   );
 
-  useEffect(() => {
-    const fetchFeed = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        const response = await searchCommunityQuestions('', {
-          sortBy: 'rating',
-          sortOrder: 'desc',
-          page: 0,
-          pageSize: 10,
-        });
-        
-        if (isMounted.current) {
-          if (response.status === 'Success') {
-            setItems(response.data);
-            setHasMore(response.data.length === 10);
-            setPage(0);
-          } else {
-            setError('Failed to load feed.');
-          }
-        }
-      } catch (err) {
-        if (isMounted.current) {
-          console.error(err);
-          setError('An error occurred while fetching the feed.');
-        }
-      } finally {
-        if (isMounted.current) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchFeed();
-  }, [selectedCategory]);
-
-  const handleLoadMore = useCallback(async () => {
-    if (isMoreLoading || !hasMore) return;
-
-    try {
-      setIsMoreLoading(true);
-      setError(null);
-
-      const nextPage = page + 1;
-      const response = await searchCommunityQuestions('', {
-        sortBy: 'rating',
-        sortOrder: 'desc',
-        page: nextPage,
-        pageSize: 10,
-      });
-
-      if (response.status === "Success") {
-        setItems((prevItems) => [...prevItems, ...response.data]);
-        setPage(nextPage);
-        setHasMore(response.data.length === 10);
-      } else {
-        setError("Failed to load more items.");
-        setHasMore(false);
-      }
-    } catch (err) {
-      console.error(err);
-      setError("An error occurred while loading more items.");
-      setHasMore(false);
-    } finally {
-      setIsMoreLoading(false);
-    }
-  }, [hasMore, isMoreLoading, page]);
+  const allItems: CommunityDashboardItem[] = data?.pages.flatMap((p) => p.data) ?? [];
 
   const displayedItems = selectedCategory
-    ? items.filter((item) => {
-        const subject = item.subject || ''; 
+    ? allItems.filter((item) => {
+        const subject = item.subject || '';
         const mainCategories = ['Colleges', 'Courses', 'Exams'];
-
         if (selectedCategory === 'Other') {
           return !mainCategories.includes(subject);
         }
-        
         return subject === selectedCategory;
       })
-    : items;
+    : allItems;
 
   if (isLoading) {
     return (
@@ -139,10 +75,10 @@ const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
     );
   }
 
-  if (error && !isMoreLoading && items.length === 0) {
+  if (isError && allItems.length === 0) {
     return (
       <div className="w-full max-w-225 p-20 bg-white rounded-lg text-center text-red-500 border border-gray-200 shadow-sm">
-        {error}
+        An error occurred while fetching the feed.
       </div>
     );
   }
@@ -157,8 +93,8 @@ const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
             ))
           ) : (
             <div className="p-10 text-center text-gray-500">
-              {items.length === 0 
-                ? "No items found in the community feed." 
+              {allItems.length === 0
+                ? 'No items found in the community feed.'
                 : `No items found for category "${selectedCategory}".`}
             </div>
           )}
@@ -166,22 +102,18 @@ const DashboardFeed: React.FC<DashboardFeedProps> = ({ selectedCategory }) => {
       </div>
 
       <div className="w-full md:max-w-225 flex flex-col items-center mt-4">
-        {hasMore && (
+        {hasNextPage && (
           <div ref={lastElementRef} className="h-16 flex justify-center items-center">
-            {isMoreLoading && (
+            {isFetchingNextPage && (
               <Loader2 className="w-5 h-5 animate-spin text-[#13097D]" />
             )}
           </div>
         )}
 
-        {!hasMore && items.length > 0 && (
+        {!hasNextPage && allItems.length > 0 && (
           <div className="h-16 flex justify-center items-center">
             <p className="text-sm text-gray-400">You have reached the end</p>
           </div>
-        )}
-
-        {error && isMoreLoading && (
-          <div className="mt-4 text-center text-red-500">{error}</div>
         )}
       </div>
     </>

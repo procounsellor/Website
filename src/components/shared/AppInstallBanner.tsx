@@ -40,7 +40,7 @@ export default function AppInstallBanner() {
     <>
       {!isPromoPage && (
         <>
-          <div className="font-montserrat md:hidden relative z-40 bg-white shadow-md p-3">
+          <div className="font-Popins hidden relative z-40 bg-white shadow-md p-3">
             <div className="flex items-center justify-between gap-2">
               <button
                 onClick={handleDismiss}

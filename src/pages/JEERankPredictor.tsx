@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 // import { Input } from "@/components/ui/input";
 import {
@@ -23,6 +24,15 @@ export default function JEERankPredictor() {
   const [prediction, setPrediction] = useState<JEERankPredictionResponse | null>(null);
   const { isAuthenticated, toggleLogin } = useAuthStore();
 
+  // Helper function to fetch actual API data
+  // Track last submitted values to avoid unnecessary API calls
+  const lastParamsRef = useRef<{ marks: string; shiftLevel: string } | null>(null);
+
+  // Clear prediction when shift level changes to force re-fetch
+  useEffect(() => {
+    setPrediction(null);
+  }, [shiftLevel]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -42,6 +52,11 @@ export default function JEERankPredictor() {
     setPrediction(null);
 
     try {
+      // Check if params actually changed
+      const currentParams = { marks, shiftLevel };
+      const paramsChanged = !lastParamsRef.current || 
+        JSON.stringify(lastParamsRef.current) !== JSON.stringify(currentParams);
+
       // If user is not authenticated, use dummy data
       if (!isAuthenticated) {
         // Generate dummy prediction based on marks
@@ -66,14 +81,19 @@ export default function JEERankPredictor() {
           confidence: "High"
         };
         setPrediction(dummyPrediction);
+        lastParamsRef.current = currentParams;
         toast.success("Prediction generated! Login to view detailed results.");
       } else {
-        const response = await predictJEERank({
-          marks: marksValue,
-          shift_level: shiftLevel,
-        });
-        setPrediction(response);
-        toast.success("Rank predicted successfully!");
+        // Only call API if params changed
+        if (paramsChanged) {
+          const response = await predictJEERank({
+            marks: parseFloat(marks),
+            shift_level: shiftLevel,
+          });
+          setPrediction(response);
+          lastParamsRef.current = currentParams;
+          toast.success("Rank predicted successfully!");
+        }
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to predict rank";
@@ -200,6 +220,17 @@ export default function JEERankPredictor() {
           {/* Prediction Result */}
           {prediction && (
             <div className="mt-8 relative">
+              {isLoading ? (
+                <div className="p-6 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="h-8 bg-gray-300 rounded w-1/3 mb-6 animate-pulse" />
+                  <div className="space-y-4">
+                    <div className="h-10 bg-gray-300 rounded w-1/2 animate-pulse" />
+                    <div className="h-6 bg-gray-300 rounded w-2/3 animate-pulse" />
+                    <div className="h-6 bg-gray-300 rounded w-2/3 animate-pulse" />
+                    <div className="h-6 bg-gray-300 rounded w-2/3 animate-pulse" />
+                  </div>
+                </div>
+              ) : (
               <div className={`p-6 bg-blue-50 rounded-lg border border-blue-200 ${!isAuthenticated ? 'blur-sm' : ''}`}>
                 <h3 className="text-xl font-bold text-gray-800 mb-4">
                   Your Prediction Results

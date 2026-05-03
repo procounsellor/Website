@@ -7,6 +7,8 @@ interface RequestCallbackPopUpProps {
     isOpen?: boolean;
     onClose?: () => void;
     info:PageData
+    onSubmit: (payload: { scheduledDate: string; scheduledTime: string }) => void | Promise<void>;
+    isSubmitting?: boolean;
 }
 
 interface PageData {
@@ -18,7 +20,13 @@ interface PageData {
     reviewsCount:number,
 }
 
-export default function RequestCallbackPopUp({ isOpen = true, onClose,info  }: RequestCallbackPopUpProps) {
+export default function RequestCallbackPopUp({
+    isOpen = true,
+    onClose,
+    info,
+    onSubmit,
+    isSubmitting = false,
+}: RequestCallbackPopUpProps) {
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedTime, setSelectedTime] = useState("");
     const dateInputRef = useRef<HTMLInputElement | null>(null);
@@ -26,7 +34,7 @@ export default function RequestCallbackPopUp({ isOpen = true, onClose,info  }: R
 
     if (!isOpen) return null;
 
-    const canSubmit = Boolean(selectedDate && selectedTime);
+    const canSubmit = Boolean(selectedDate && selectedTime) && !isSubmitting;
 
     const getFormattedDate = () => {
         if (!selectedDate) return "";
@@ -50,6 +58,17 @@ export default function RequestCallbackPopUp({ isOpen = true, onClose,info  }: R
             timeInputRef.current?.click();
         }
         timeInputRef.current?.focus();
+    };
+
+    const handleSubmit = () => {
+        if (!selectedDate || !selectedTime || isSubmitting) {
+            return;
+        }
+
+        onSubmit({
+            scheduledDate: selectedDate,
+            scheduledTime: selectedTime,
+        });
     };
 
     return (
@@ -193,11 +212,12 @@ export default function RequestCallbackPopUp({ isOpen = true, onClose,info  }: R
                     <div className="w-full flex justify-center md:mt-4">
                         <button
                             type="button"
+                            onClick={handleSubmit}
                             disabled={!canSubmit}
                             className={`px-8 py-3  md:px-20 rounded-2xl font-medium transition-colors ${canSubmit ? "bg-(--text-main) text-white cursor-pointer" : "bg-[#DBE0E5] text-(--text-muted) cursor-not-allowed"}`}
                             style={{ borderRadius: 8 }}
                         >
-                            Request Callback
+                            {isSubmitting ? "Requesting..." : "Request Callback"}
                         </button>
                     </div>
                 </div>

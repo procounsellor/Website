@@ -19,7 +19,7 @@ export default function ReviewSection({
     composer,
 }: ReviewSectionProps){
     const scrollRef = useRef<HTMLDivElement>(null);
-    const [_activeIndex, setActiveIndex] = useState(0);
+    const [, setActiveIndex] = useState(0);
     const [showAllReviews, setShowAllReviews] = useState(false);
     const reviewItems = reviews.slice(0, 3);
 
@@ -58,8 +58,8 @@ export default function ReviewSection({
     }, [reviewItems.length]);
 
     return (
-        <div className="max-w-[1440px] md:px-[60px] mx-auto flex flex-col gap-6 md:gap-8 py-8 md:py-10 pl-5 md:pl-0">
-            <div className="relative flex items-center justify-center pr-5 md:pr-0">
+        <div className="max-w-[1440px] mx-auto flex flex-col gap-6 md:gap-8 py-8 md:py-10 px-5 md:px-[60px]">
+            <div className="relative flex items-center justify-center">
                 <h1 className="text-(--text-main) font-bold text-[1rem] md:text-2xl text-center">
                     Reviews
                 </h1>
@@ -74,7 +74,7 @@ export default function ReviewSection({
                 )}
             </div>
 
-            {composer && <div className="pr-5 md:pr-0">{composer}</div>}
+            {composer && <div>{composer}</div>}
 
             {/* Mobile: horizontal scroll */}
             <div
@@ -82,9 +82,9 @@ export default function ReviewSection({
                 className={`md:hidden flex gap-3 items-start w-full overflow-x-auto snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-4 ${reviewItems.length === 0 ? "justify-center" : "justify-start"}`}
             >
                 {reviewItems.map((review, index) => (
-                    <div key={`${review.name ?? "review"}-${index}`} className="snap-start shrink-0">
-                        <ReviewCard review={review} />
-                    </div>
+                        <div key={`${review.name ?? "review"}-${index}`} className="snap-start shrink-0">
+                            <ReviewCard review={review} />
+                        </div>
                 ))}
                 {reviewItems.length === 0 && (
                     <div className="snap-start shrink-0 min-w-[280px] w-full p-3">
@@ -112,7 +112,7 @@ export default function ReviewSection({
             </div>
 
             {reviewItems.length > 0 && (
-                <div className="hidden md:flex justify-end pr-0">
+                <div className="hidden md:flex justify-end">
                     <SeeAllButton onClick={() => setShowAllReviews(true)} />
                 </div>
             )}

@@ -1,4 +1,12 @@
-import type { ListingProBudddy, PostReview, ProBuddyReviewForUser, ProBuddyUserSide } from "@/types/probuddies";
+import type {
+  ListingProBudddy,
+  PostReview,
+  ProBuddyLink,
+  ProBuddyProfileForProBuddy,
+  ProBuddyReviewForUser,
+  ProBuddyUserSide,
+  WorkingDay,
+} from "@/types/probuddies";
 import { API_CONFIG } from "./config";
 import type { collegeProbuddy } from "@/components/Revamp/probuddies/CollegeSection";
 
@@ -35,6 +43,32 @@ export type CreateProBuddyCallRequestPayload = {
   scheduledDate: string;
 };
 
+export type UpdateProBuddyProfilePayload = {
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  email: string;
+  collegeName: string;
+  collegeId: string | null;
+  currentYear: string;
+  course: string;
+  city: string;
+  state: string;
+  languagesKnow: string[];
+  aboutMe: {
+    heading: string;
+    subHeading: string;
+    aboutMe: string;
+  };
+  whoShouldConnect: string;
+  links: ProBuddyLink[];
+  offerings: Record<string, number>;
+  ratePerMinute: number | null;
+  workingDays: WorkingDay[];
+  officeStartTime: string;
+  officeEndTime: string;
+};
+
 const getAuthToken = () => localStorage.getItem("jwt") || "";
 const getStoredUserId = () => localStorage.getItem("phone") || "";
 
@@ -54,6 +88,35 @@ const appendQueryParam = (params: URLSearchParams, key: string, value: unknown) 
     return;
   }
   params.append(key, String(value));
+};
+
+const buildApiUrl = (endpoint: string, query?: Record<string, string>) => {
+  const url = new URL(`${API_CONFIG.baseUrl}${endpoint}`);
+
+  if (query) {
+    Object.entries(query).forEach(([key, value]) => {
+      if (!value) {
+        return;
+      }
+      url.searchParams.set(key, value);
+    });
+  }
+
+  return url.toString();
+};
+
+const parseApiResponse = async (response: Response) => {
+  const text = await response.text();
+
+  if (!text) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
 };
 
 const normalizeProBuddyListResponse = (data: any): ListingProBudddy[] => {
@@ -113,7 +176,7 @@ const normalizeFeaturedCollegesResponse = (data: any): FeaturedCollegeInIndia[] 
 };
 
 export const registerProBuddy = async (payload: any) => {
-  const response = await fetch(`${API_CONFIG.baseUrl}/api/auth/proBuddySignup`, {
+  const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.proBuddySignup}`, {
     method: "POST",
     headers: {
       ...getAuthHeaders(),
@@ -133,16 +196,25 @@ export const uploadProBuddyPhoto = async (proBuddyId: string, photo: File) => {
   formData.append("proBuddyId", proBuddyId);
   formData.append("photo", photo);
 
-  const response = await fetch(`${API_CONFIG.baseUrl}/api/proBuddy/uploadPhoto`, {
+  const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.proBuddyUploadPhoto}`, {
     method: "POST",
     headers: {
       ...getAuthHeaders(),
+      Accept: "application/json",
     },
     body: formData,
   });
 
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.message || data.error || "Failed to upload photo");
+  const data = await parseApiResponse(response);
+  if (!response.ok) {
+    throw new Error(
+      typeof data === "object" && data !== null
+        ? (data as { message?: string; error?: string }).message ||
+            (data as { message?: string; error?: string }).error ||
+            "Failed to upload photo"
+        : "Failed to upload photo"
+    );
+  }
   return data;
 };
 
@@ -151,14 +223,17 @@ export const uploadProBuddyIdCardPhoto = async (proBuddyId: string, photo: File)
   formData.append("proBuddyId", proBuddyId);
   formData.append("photo", photo);
 
-  const response = await fetch(`${API_CONFIG.baseUrl}/api/proBuddy/uploadIdCardPhoto`, {
+  const response = await fetch(
+    buildApiUrl(API_CONFIG.endpoints.proBuddyUploadIdCardPhoto, { proBuddyId }),
+    {
     method: "POST",
     headers: {
       ...getAuthHeaders(),
       "Accept": "application/json"
     },
     body: formData,
-  });
+    }
+  );
 
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || data.error || "Failed to upload ID Card");
@@ -288,7 +363,7 @@ export const getProBuddyForUser = async (userId: string | null, proBuddyId: stri
     //   "verified": false
     // }
 
-    const response = await fetch(`${API_CONFIG.baseUrl}/api/shared/getProBuddyByIdForUser?proBuddyId=${proBuddyId}`, {
+    const response = await fetch(buildApiUrl(API_CONFIG.endpoints.proBuddyProfileForUserGuest, { proBuddyId }), {
       headers: {
         Accept: 'application/json'
       }
@@ -309,7 +384,10 @@ export const getProBuddyForUser = async (userId: string | null, proBuddyId: stri
     };
 
   } else {
-    const response = await fetch(`${API_CONFIG.baseUrl}/api/user/getProBuddyByIdForUser?userId=${effectiveUserId}&proBuddyId=${proBuddyId}`,
+    const response = await fetch(buildApiUrl(API_CONFIG.endpoints.proBuddyProfileForUser, {
+      userId: effectiveUserId,
+      proBuddyId,
+    }),
       {
         headers: {
           ...getAuthHeaders(),
@@ -336,7 +414,7 @@ export const getProBuddyForUser = async (userId: string | null, proBuddyId: stri
 
 export const getAllReviewsReceivedByAProBuddyForUser = async (proBuddyId: string): Promise<ProBuddyReviewForUser[]> => {
   const response = await fetch(
-    `${API_CONFIG.baseUrl}/api/shared/getAllReviewsReceivedByAProBuddyForUser?proBuddyId=${proBuddyId}`,
+    buildApiUrl(API_CONFIG.endpoints.proBuddyReviewsForUser, { proBuddyId }),
     {
       method: "GET",
       headers: {
@@ -362,7 +440,7 @@ export const postReview = async (params: PostReview) => {
   if (!params.proBuddyId || !params.userId || params.rating === null || params.rating === undefined) {
     throw new Error("Some required fields are missing for review")
   }
-  const response = await fetch(`${API_CONFIG.baseUrl}/api/proBuddy/postReviewToProBuddy`, {
+  const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.proBuddyPostReview}`, {
     method: "POST",
     headers: {
       ...getAuthHeaders(),
@@ -376,13 +454,17 @@ export const postReview = async (params: PostReview) => {
   return data
 }
 
-export const getProBuddyByIdForProBuddy = async (proBuddyId: string) => {
+export const getProBuddyByIdForProBuddy = async (proBuddyId: string): Promise<{
+  message?: string;
+  status?: boolean;
+  data: ProBuddyProfileForProBuddy;
+}> => {
   if (!proBuddyId) {
     throw new Error("proBuddyId is required");
   }
 
   const response = await fetch(
-    `${API_CONFIG.baseUrl}/api/proBuddy/getProBuddyByIdForProBuddy?proBuddyId=${encodeURIComponent(proBuddyId)}`,
+    buildApiUrl(API_CONFIG.endpoints.proBuddyProfileForProBuddy, { proBuddyId }),
     {
       method: "GET",
       headers: {
@@ -400,13 +482,42 @@ export const getProBuddyByIdForProBuddy = async (proBuddyId: string) => {
   return data;
 }
 
+export const updateProBuddyProfile = async (
+  proBuddyId: string,
+  payload: Partial<UpdateProBuddyProfilePayload>
+) => {
+  if (!proBuddyId) {
+    throw new Error("proBuddyId is required");
+  }
+
+  const response = await fetch(
+    buildApiUrl(API_CONFIG.endpoints.proBuddyUpdateProfile, { proBuddyId }),
+    {
+      method: "PATCH",
+      headers: {
+        ...getAuthHeaders(),
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || data.error || "Failed to update ProBuddy profile");
+  }
+
+  return data;
+};
+
 export const getRequestsReceivedByProBuddy = async (proBuddyId: string) => {
   if (!proBuddyId) {
     throw new Error("proBuddyId is required");
   }
 
   const response = await fetch(
-    `${API_CONFIG.baseUrl}/api/proBuddy/getRequestsReceivedByProBuddy?proBuddyId=${encodeURIComponent(proBuddyId)}`,
+    buildApiUrl(API_CONFIG.endpoints.proBuddyRequestsReceived, { proBuddyId }),
     {
       method: "GET",
       headers: {
@@ -424,8 +535,56 @@ export const getRequestsReceivedByProBuddy = async (proBuddyId: string) => {
   return data;
 };
 
+export const getProBuddyCallHistory = async (proBuddyId: string) => {
+  if (!proBuddyId) {
+    throw new Error("proBuddyId is required");
+  }
+
+  const response = await fetch(
+    buildApiUrl(API_CONFIG.endpoints.proBuddyCallHistory, { proBuddyId }),
+    {
+      method: "GET",
+      headers: {
+        ...getAuthHeaders(),
+        Accept: "application/json",
+      },
+    }
+  );
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || data.error || "Failed to get ProBuddy call history");
+  }
+
+  return data;
+};
+
+export const getUserCallHistory = async (userId: string) => {
+  if (!userId) {
+    throw new Error("userId is required");
+  }
+
+  const response = await fetch(
+    buildApiUrl(API_CONFIG.endpoints.userCallHistory, { userId }),
+    {
+      method: "GET",
+      headers: {
+        ...getAuthHeaders(),
+        Accept: "application/json",
+      },
+    }
+  );
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || data.error || "Failed to get user call history");
+  }
+
+  return data;
+};
+
 export const createProBuddyCallRequest = async (payload: CreateProBuddyCallRequestPayload) => {
-  const response = await fetch(`${API_CONFIG.baseUrl}/api/proBuddy/createProBuddyCallRequest`, {
+  const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.proBuddyCreateCallRequest}`, {
     method: "POST",
     headers: {
       ...getAuthHeaders(),
@@ -449,7 +608,7 @@ export const getAllReviewsReceivedByAProBuddyForProBuddy = async (proBuddyId: st
   }
 
   const response = await fetch(
-    `${API_CONFIG.baseUrl}/api/proBuddy/getAllReviewsReceivedByAProBuddyForProBuddy?proBuddyId=${encodeURIComponent(proBuddyId)}`,
+    buildApiUrl(API_CONFIG.endpoints.proBuddyReviewsForProBuddy, { proBuddyId }),
     {
       method: "GET",
       headers: {
@@ -471,7 +630,7 @@ export const getAllReviewsReceivedByAProBuddyForProBuddy = async (proBuddyId: st
 
 const getAllProBuddyColleges = async ():Promise<collegeProbuddy[]>  =>
 {
-  const response = await fetch(`${API_CONFIG.baseUrl}/api/shared/getProBuddyCollegesWithCounts`, 
+  const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.proBuddyColleges}`, 
     {
       headers:{
         Accept:'application/json'
@@ -489,14 +648,45 @@ const getAllProBuddyColleges = async ():Promise<collegeProbuddy[]>  =>
 
 
 
+export type ConnectCallPayload = {
+  from: string;
+  to: string;
+  userId: string;
+  proBuddyId: string;
+};
+
+export const connectInstantCall = async (payload: ConnectCallPayload) => {
+  const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.connectCall}`, {
+    method: 'POST',
+    headers: {
+      ...getAuthHeaders(),
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || data.error || 'Failed to connect call');
+  }
+  return data;
+};
+
 export const probuddiesApi = {
+  uploadPhoto: (proBuddyId: string, photo: File) => uploadProBuddyPhoto(proBuddyId, photo),
   listing: (userId: string | null, filters?: ProBuddyListingFilters) => getAllProBudddiesUser(userId, filters),
   profileUser: (userId: string | null, proBudddyId: string) => getProBuddyForUser(userId, proBudddyId),
   reviewsForUser: (proBuddyId: string) => getAllReviewsReceivedByAProBuddyForUser(proBuddyId),
   postReview: (params: PostReview) => postReview(params),
   profileForProBuddy: (proBuddyId: string) => getProBuddyByIdForProBuddy(proBuddyId),
+  updateProfile: (proBuddyId: string, payload: Partial<UpdateProBuddyProfilePayload>) =>
+    updateProBuddyProfile(proBuddyId, payload),
   requestsReceivedByProBuddy: (proBuddyId: string) => getRequestsReceivedByProBuddy(proBuddyId),
+  proBuddyCallHistory: (proBuddyId: string) => getProBuddyCallHistory(proBuddyId),
+  userCallHistory: (userId: string) => getUserCallHistory(userId),
   createCallRequest: (payload: CreateProBuddyCallRequestPayload) => createProBuddyCallRequest(payload),
   reviewsForProBuddy: (proBuddyId: string) => getAllReviewsReceivedByAProBuddyForProBuddy(proBuddyId),
-  getColleges:()=>getAllProBuddyColleges()
+  getColleges: () => getAllProBuddyColleges(),
+  connectInstantCall: (payload: ConnectCallPayload) => connectInstantCall(payload),
 }
