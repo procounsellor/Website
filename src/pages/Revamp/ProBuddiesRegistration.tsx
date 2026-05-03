@@ -14,7 +14,7 @@ import type { FeaturedCollegeInIndia } from "@/api/pro-buddies";
 
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png"];
-const OFFERING_LIMITS = { min: 1, max: 5 } as const;
+const OFFERING_LIMITS = { min: 0, max: 10 } as const;
 
 const isAcceptedImage = (file: File) => ACCEPTED_IMAGE_TYPES.includes(file.type);
 
@@ -477,10 +477,10 @@ export default function ProBuddiesRegistration() {
               type="text" 
               id="location"
               value={formData.location}
-              readOnly
+              onChange={handleInputChange}
               required
-              placeholder="Auto-filled from selected college"
-              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none bg-[#F8FAFC] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
+              placeholder="Enter your city, state (you can edit after selecting college)"
+              className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
           </div>
@@ -490,7 +490,7 @@ export default function ProBuddiesRegistration() {
               &nbsp;
             </label>
             <p className="pt-[10px] text-[12px] text-[#6B7280]" style={{ fontFamily: 'Poppins' }}>
-              This is auto-filled from the selected college's state-province.
+              This is auto-filled from the selected college's state-province; you can edit it.
             </p>
           </div>
         </div>
@@ -788,11 +788,11 @@ export default function ProBuddiesRegistration() {
                 style={{ fontFamily: 'Poppins' }}
               >
                 <option value="" disabled className="text-[#6B728080]">Select Year</option>
-                <option value="1">1 Year</option>
-                <option value="2">2 Years</option>
-                <option value="3">3 Years</option>
-                <option value="4">4 Years</option>
-                <option value="5+">5+ Years</option>
+                <option value="1st">1st</option>
+                <option value="2nd">2nd</option>
+                <option value="3rd">3rd</option>
+                <option value="4th">4th</option>
+                <option value="5th">5th</option>
               </select>
               <div className="absolute right-[12px] top-[10px] pointer-events-none">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1092,7 +1092,7 @@ export default function ProBuddiesRegistration() {
               step={1}
               value={formData.messFood}
               onChange={handleInputChange}
-              placeholder="Rate 1 to 5"
+              placeholder="Rate 0 to 10"
               className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
@@ -1114,7 +1114,7 @@ export default function ProBuddiesRegistration() {
               step={1}
               value={formData.attendance}
               onChange={handleInputChange}
-              placeholder="Rate 1 to 5"
+              placeholder="Rate 0 to 10"
               className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
@@ -1138,7 +1138,7 @@ export default function ProBuddiesRegistration() {
               step={1}
               value={formData.campusVibe}
               onChange={handleInputChange}
-              placeholder="Rate 1 to 5"
+              placeholder="Rate 0 to 10"
               className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
@@ -1160,7 +1160,7 @@ export default function ProBuddiesRegistration() {
               step={1}
               value={formData.facultyQuality}
               onChange={handleInputChange}
-              placeholder="Rate 1 to 5"
+              placeholder="Rate 0 to 10"
               className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />
@@ -1184,7 +1184,7 @@ export default function ProBuddiesRegistration() {
               step={1}
               value={formData.examStrategy}
               onChange={handleInputChange}
-              placeholder="Rate 1 to 5"
+              placeholder="Rate 0 to 10"
               className="w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px]"
               style={{ fontFamily: 'Poppins' }}
             />

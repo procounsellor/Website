@@ -21,7 +21,7 @@ declare global {
 }
 type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 const OFFERING_FIELDS = ['Mess Food', 'Attendance', 'Campus Vibe', 'Faculty Quality', 'Exam Strategy'] as const;
-const clampOfferingValue = (value: number) => Math.min(5, Math.max(0, Number.isFinite(value) ? value : 0));
+const clampOfferingValue = (value: number) => Math.min(10, Math.max(0, Number.isFinite(value) ? value : 0));
 
 const getSocialHandleLabel = (rawUrl: string) => {
     const normalized = rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`;
