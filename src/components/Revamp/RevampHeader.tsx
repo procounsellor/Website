@@ -494,7 +494,7 @@ export default function RevampHeader() {
                     )}
                 </AnimatePresence>
 
-                <div className="flex w-full items-center gap-[12px]">
+                <div className="flex w-full items-center gap-3">
                     {showGlobalSearch && (
                     <div className="flex-1 relative" ref={mobileSearchRef}>
                         <div className="h-[40px] bg-[#FFFFFF] rounded-[12px] border border-gray-50 flex items-center px-[12px] shadow-sm">
