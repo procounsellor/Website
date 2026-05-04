@@ -59,7 +59,7 @@ const TestGroupCardDetails = lazy(() => import('@/components/Revamp/courses/Test
 const RevampAbout = lazy(() => import('@/components/Revamp/about/RevampAbout'));
 import Admissions from '@/pages/Revamp/Admissions';
 import ProBuddies from '@/pages/Revamp/ProBuddies';
-const Courses = lazy(() => import('@/pages/Revamp/Courses'));
+import Courses from '@/pages/Revamp/Courses';
 const BlogsPage = lazy(() => import('@/pages/Revamp/BlogsPage'));
 const BlogDetailPage = lazy(() => import('@/pages/Revamp/BlogDetailPage'));
 const BlogAuthorsPage = lazy(() => import('@/pages/Revamp/BlogAuthorsPage'));

@@ -209,7 +209,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   }, [previewImage]);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent | globalThis.MouseEvent) => {
+    const handleClickOutside = (event: Event) => {
       if (yearDropdownRef.current && !yearDropdownRef.current.contains(event.target as Node)) {
         setIsYearOpen(false);
       }

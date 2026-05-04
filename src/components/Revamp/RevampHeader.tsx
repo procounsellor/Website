@@ -53,6 +53,30 @@ export default function RevampHeader() {
     const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
     const { query, setQuery, performSearch, clearResults, setSearchOpen } = useSearchStore();
 
+    const preloadRoute = (path: string) => {
+        if (path === '/courses') {
+            void import('@/pages/Revamp/Courses');
+            return;
+        }
+
+        if (path === '/community') {
+            void import('@/pages/CommunityPage');
+            return;
+        }
+
+        if (path === '/pro-buddies') {
+            void import('@/pages/Revamp/ProBuddies');
+        }
+    };
+
+    useEffect(() => {
+        const timeoutId = window.setTimeout(() => {
+            visibleTabs.forEach((tab) => preloadRoute(tab.path));
+        }, 0);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [visibleTabs]);
+
     useEffect(() => {
         const currentTab = visibleTabs.find(tab => {
             if (tab.path === "/admissions") {
@@ -270,12 +294,17 @@ export default function RevampHeader() {
                             className="absolute left-1/2 -translate-x-1/2 flex items-center gap-[12px] h-full"
                         >
                             {visibleTabs.map((tab) => (
-                                <div
+                                <motion.button
                                     key={tab.id}
                                     onClick={() => {
                                         setActiveTab(tab.id);
                                         navigate(tab.path);
                                     }}
+                                    onMouseEnter={() => preloadRoute(tab.path)}
+                                    onFocus={() => preloadRoute(tab.path)}
+                                    whileHover={{ y: -1 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    transition={buttonTransition}
                                     className={`flex flex-row items-center justify-center gap-2 h-full py-[8px] cursor-pointer transition-all ${
                                         activeTab === tab.id ? 'border-b-[1px] border-[#000000]' : 'border-b-[1px] border-transparent'
                                     }`}
@@ -290,7 +319,7 @@ export default function RevampHeader() {
                                     <span className="font-poppins font-medium text-[18px] text-[#232323]">
                                         {tab.name}
                                     </span>
-                                </div>
+                                </motion.button>
                             ))}
                         </motion.div>
                     )}
@@ -468,12 +497,17 @@ export default function RevampHeader() {
                             className={mobileTabsClassName}
                         >
                             {visibleTabs.map((tab) => (
-                                <div
+                                <motion.button
                                     key={tab.id}
                                     onClick={() => {
                                         setActiveTab(tab.id);
                                         navigate(tab.path);
                                     }}
+                                    onMouseEnter={() => preloadRoute(tab.path)}
+                                    onFocus={() => preloadRoute(tab.path)}
+                                    whileHover={{ y: -1 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    transition={buttonTransition}
                                     className={`flex flex-row items-center justify-center gap-[2px] h-[22px] pb-[2px] cursor-pointer transition-all ${
                                         activeTab === tab.id ? 'border-b-[1.5px] border-[#000000]' : 'border-b-[1.5px] border-transparent'
                                     }`}
@@ -488,7 +522,7 @@ export default function RevampHeader() {
                                     <span className="font-poppins font-medium text-[11px] sm:text-[12px] leading-[100%] text-[#232323] whitespace-nowrap">
                                         {tab.name}
                                     </span>
-                                </div>
+                                </motion.button>
                             ))}
                         </motion.div>
                     )}
