@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, Loader2, Plus, Trash2, User, X } from 'lucide-react';
 import type { UpdateProBuddyProfilePayload } from '@/api/pro-buddies';
 import type { ProBuddyLink, ProBuddyProfileForProBuddy, WorkingDay } from '@/types/probuddies';
+import { formatAcademicYearLabel } from '@/lib/utils';
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ const OFFERING_FIELDS = [
 ] as const;
 
 const LINK_TYPE_OPTIONS = ['INSTAGRAM', 'LINKEDIN', 'CUSTOM'] as const;
+const YEAR_OPTIONS = ['1', '2', '3', '4', '5'] as const;
 
 const clampOfferingValue = (value: number) => Math.min(5, Math.max(1, Number.isFinite(value) ? value : 5));
 
@@ -183,6 +185,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isYearOpen, setIsYearOpen] = useState(false);
+  const yearDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isOpen) {
@@ -203,6 +207,22 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       }
     };
   }, [previewImage]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | globalThis.MouseEvent) => {
+      if (yearDropdownRef.current && !yearDropdownRef.current.contains(event.target as Node)) {
+        setIsYearOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, []);
 
   const offeringEntries = useMemo(
     () => OFFERING_FIELDS.map((key) => [key, formData.offerings[key] ?? 5] as const),
@@ -513,7 +533,40 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     <InputField label="email" name="email" value={formData.email} onChange={handleInputChange} type="email" />
                     <InputField label="collegeName" name="collegeName" value={formData.collegeName} onChange={handleInputChange} />
                     <InputField label="collegeId" name="collegeId" value={formData.collegeId || ''} onChange={handleInputChange} />
-                    <InputField label="currentYear" name="currentYear" value={formData.currentYear} onChange={handleInputChange} />
+                    <label className="flex flex-col gap-2">
+                      <span className="text-sm font-medium text-[#0E1629]">currentYear</span>
+                      <div className="relative" ref={yearDropdownRef}>
+                        <button
+                          type="button"
+                          onClick={() => setIsYearOpen((prev) => !prev)}
+                          className="flex h-11 w-full items-center justify-between rounded-xl border border-[#E5E7EB] bg-white px-4 text-sm text-[#111827] focus:border-[#2F43F2] focus:outline-none"
+                        >
+                          <span className={formData.currentYear ? 'text-[#111827]' : 'text-[#9CA3AF]'}>
+                            {formData.currentYear ? formatAcademicYearLabel(formData.currentYear) : 'Select year'}
+                          </span>
+                          <ChevronLeft className={`h-4 w-4 text-[#6B7280] transition-transform ${isYearOpen ? '-rotate-90' : 'rotate-270'}`} />
+                        </button>
+
+                        {isYearOpen && (
+                          <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-20 overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-lg">
+                            {YEAR_OPTIONS.map((year) => (
+                              <button
+                                key={year}
+                                type="button"
+                                onMouseDown={(event) => {
+                                  event.preventDefault();
+                                  setFormData((prev) => ({ ...prev, currentYear: year }));
+                                  setIsYearOpen(false);
+                                }}
+                                className={`flex w-full items-center px-4 py-3 text-left text-sm transition-colors hover:bg-[#F8FAFF] ${formData.currentYear === year ? 'font-semibold text-[#2F43F2]' : 'text-[#111827]'}`}
+                              >
+                                {formatAcademicYearLabel(year)}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </label>
                     <InputField label="course" name="course" value={formData.course} onChange={handleInputChange} />
                   </div>
                   <p className="mt-3 text-xs text-[#6B7280]">Phone number is locked after registration.</p>

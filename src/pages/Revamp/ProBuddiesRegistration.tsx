@@ -15,6 +15,13 @@ import type { FeaturedCollegeInIndia } from "@/api/pro-buddies";
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png"];
 const OFFERING_LIMITS = { min: 0, max: 10 } as const;
+const YEAR_OPTIONS = [
+  { value: "1", label: "1st" },
+  { value: "2", label: "2nd" },
+  { value: "3", label: "3rd" },
+  { value: "4", label: "4th" },
+  { value: "5", label: "5th" },
+] as const;
 
 const isAcceptedImage = (file: File) => ACCEPTED_IMAGE_TYPES.includes(file.type);
 
@@ -837,7 +844,7 @@ export default function ProBuddiesRegistration() {
                 style={{ fontFamily: 'Poppins' }}
               >
                 <span className={formData.years ? 'text-[#0E1629]' : 'text-[#6B728080] text-[12px]'}>
-                  {formData.years ? `${formData.years} Year` : 'Select Year'}
+                  {formData.years ? `${YEAR_OPTIONS.find((option) => option.value === formData.years)?.label || formData.years} Year` : 'Select Year'}
                 </span>
               </button>
               <div className="absolute right-[12px] top-[10px] pointer-events-none">
@@ -847,19 +854,19 @@ export default function ProBuddiesRegistration() {
               </div>
               {isYearsOpen && (
                 <div className="absolute left-0 right-0 top-[40px] z-50 overflow-hidden rounded-[8px] border border-gray-200 bg-white shadow-lg">
-                  {['1st', '2nd', '3rd', '4th', '5th'].map((year) => (
+                  {YEAR_OPTIONS.map((year) => (
                     <button
-                      key={year}
+                      key={year.value}
                       type="button"
                       onMouseDown={(e) => {
                         e.preventDefault();
-                        setFormData((prev) => ({ ...prev, years: year }));
+                        setFormData((prev) => ({ ...prev, years: year.value }));
                         setIsYearsOpen(false);
                       }}
-                      className={`w-full px-[12px] py-[9px] text-left text-[14px] transition-colors hover:bg-[#F8FAFF] ${formData.years === year ? 'font-semibold text-[#2F43F2]' : 'text-[#0E1629]'}`}
+                      className={`w-full px-[12px] py-[9px] text-left text-[14px] transition-colors hover:bg-[#F8FAFF] ${formData.years === year.value ? 'font-semibold text-[#2F43F2]' : 'text-[#0E1629]'}`}
                       style={{ fontFamily: 'Poppins' }}
                     >
-                      {year} Year
+                      {year.label} Year
                     </button>
                   ))}
                 </div>

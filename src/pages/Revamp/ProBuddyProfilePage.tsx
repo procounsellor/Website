@@ -12,7 +12,7 @@ import { probuddiesApi } from '@/api/pro-buddies';
 import startRecharge from '@/api/wallet';
 import ProBuddyProfileSkeleton from '@/components/skeletons/probuddies/ProBuddyProfileSkeleton';
 import ProBuddyProfileError from '@/components/Revamp/error/ProBuddyErrorPage';
-import { decodeCounselorId } from '@/lib/utils';
+import { decodeCounselorId, formatAcademicYearLabel } from '@/lib/utils';
 import { useAuthStore } from '@/store/AuthStore';
 import toast from 'react-hot-toast';
 
@@ -477,7 +477,7 @@ export default function ProBuddyProfilePage() {
                                         </div>
 
                                         <p className="mt-[2px] md:mt-[8px] font-medium md:font-semibold text-[#2f43f2] text-[12px] md:text-[16px] leading-[18px] md:leading-[1.25] line-clamp-1">
-                                            {`${probuddy.currentYear}${probuddy.currentYear==='1'?"st":probuddy.currentYear==='2'?"nd":probuddy.currentYear==='3'?'rd':'th'} year ${probuddy.course} student`}
+                                            {`${formatAcademicYearLabel(probuddy.currentYear)} ${probuddy.course} student`.trim()}
                                         </p>
                                         <p className="mt-[2px] md:mt-[8px] font-normal md:font-medium text-[#6b7280] text-[12px] md:text-[14px] leading-[18px] tracking-[0.02em] md:tracking-[0.28px] line-clamp-1">
                                             {`${probuddy.collegeName} • ${probuddy.course}`}

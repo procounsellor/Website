@@ -2,6 +2,7 @@ import type { ListingProBudddy } from "@/types/probuddies";
 import { motion } from "framer-motion";
 import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { formatAcademicYearLabel } from "@/lib/utils";
 import { SeeAllButton } from "../components/LeftRightButton";
 import ProBuddyCard from "./ProBuddyCard";
 
@@ -98,7 +99,7 @@ export default function ProBuddiesSection({ probuddyList, isLoading = false }: p
                   name={`${buddy.firstName ?? ""} ${buddy.lastName ?? ""}`.trim()}
                   imageUrl={buddy.photoUrl ?? ""}
                   rating={Number(buddy.rating) ?? 0.0}
-                  yearLabel={buddy.collegeName ?? ""}
+                  yearLabel={formatAcademicYearLabel(buddy.currentYear, "1st year")}
                   city={buddy.city ?? ""}
                   proCoins={Number(buddy.ratePerMinute) ?? 0}
                 />

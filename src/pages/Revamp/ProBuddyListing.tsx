@@ -6,6 +6,7 @@ import { ChevronDown, ChevronRight, Info } from "lucide-react";
 import { probuddiesApi } from "@/api/pro-buddies";
 import ListingShell from "@/components/Revamp/listing/ListingShell";
 import ProBuddyCard, { ProbuddyPhoneListinCard } from "@/components/Revamp/probuddies/ProBuddyCard";
+import { formatAcademicYearLabel } from "@/lib/utils";
 import { useAuthStore } from "@/store/AuthStore";
 import type { ListingProBudddy } from "@/types/probuddies";
 import PageSEO from "@/components/SEO/PageSEO";
@@ -383,7 +384,7 @@ export default function ProBuddyListing() {
                     name={name}
                     imageUrl={buddy.photoUrl ?? ""}
                     rating={Number(buddy.rating ?? 0)}
-                    yearLabel={buddy.collegeName ?? ""}
+                    yearLabel={formatAcademicYearLabel(buddy.currentYear, "1st year")}
                     city={buddy.city ?? ""}
                     proCoins={getCoins(buddy)}
                   />
@@ -394,7 +395,7 @@ export default function ProBuddyListing() {
                     name={name}
                     imageUrl={buddy.photoUrl ?? ""}
                     rating={Number(buddy.rating ?? 0)}
-                    yearLabel={buddy.collegeName ?? ""}
+                    yearLabel={formatAcademicYearLabel(buddy.currentYear, "1st year")}
                     city={buddy.city ?? ""}
                     proCoins={getCoins(buddy)}
                   />

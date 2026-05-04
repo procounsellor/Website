@@ -72,7 +72,7 @@ export default function ProBuddyCard({
             <div className="flex items-center gap-1">
               <GraduationCap size={16} className="text-[#6B7280] shrink-0" strokeWidth={1.5} />
               <p className="font-[Poppins] font-normal text-[12px] text-[#6B7280] truncate">
-                {yearLabel || "BTech 1st Year"}
+                {yearLabel || "1st year"}
               </p>
             </div>
             <div className="flex items-center gap-1">
@@ -166,7 +166,7 @@ export default function ProBuddyCard({
             <div className="flex items-center gap-1">
               <GraduationCap size={16} className="w-5 h-5 text-[#6B7280] shrink-0" strokeWidth={1.5} />
               <p className="font-[Poppins] font-normal text-[14px] text-[#6B7280] truncate">
-                {yearLabel || "BTech 1st Year"}
+                {yearLabel || "1st year"}
               </p>
             </div>
             <div className="flex items-center gap-1">
@@ -276,7 +276,7 @@ export function ProbuddyPhoneListinCard(
         <div className="flex items-center gap-1">
           <GraduationCap size={16} className="text-[#6B7280] shrink-0" strokeWidth={1.5} />
           <p className="font-[Poppins] font-normal text-[12px] text-[#6B7280] truncate">
-            {yearLabel || "BTech 1st Year"}
+            {yearLabel || "1st year"}
           </p>
         </div>
         <div className="flex items-center gap-1">
