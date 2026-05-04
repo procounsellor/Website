@@ -120,23 +120,19 @@ const parseApiResponse = async (response: Response) => {
 };
 
 const normalizeProBuddyListResponse = (data: any): ListingProBudddy[] => {
+  let list: any[] = [];
+
   if (Array.isArray(data)) {
-    return data;
+    list = data;
+  } else if (Array.isArray(data?.proBuddies)) {
+    list = data.proBuddies;
+  } else if (Array.isArray(data?.data)) {
+    list = data.data;
+  } else if (Array.isArray(data?.result)) {
+    list = data.result;
   }
 
-  if (Array.isArray(data?.proBuddies)) {
-    return data.proBuddies;
-  }
-
-  if (Array.isArray(data?.data)) {
-    return data.data;
-  }
-
-  if (Array.isArray(data?.result)) {
-    return data.result;
-  }
-
-  return [];
+  return list.filter((item) => item?.verified === true);
 };
 
 const normalizeProBuddyReviewsResponse = (data: any): ProBuddyReviewForUser[] => {

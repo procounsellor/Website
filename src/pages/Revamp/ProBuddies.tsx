@@ -8,6 +8,30 @@ import { useQuery } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
 import PageSEO from "@/components/SEO/PageSEO";
 
+const proBuddyStories = [
+  {
+    name: "Ashutosh",
+    role: "Student",
+    rating: 5,
+    text: "Talking to a real senior about campus life cleared so many doubts. The advice was honest and practical, nothing like what you find online.",
+    image: "/review1.jpeg",
+  },
+  {
+    name: "Ananya",
+    role: "Student",
+    rating: 5,
+    text: "My ProBuddy helped me understand hostel life, branch choices, and placements in one call. Felt like talking to an elder sibling, not a stranger.",
+    image: "/review2.jpeg",
+  },
+  {
+    name: "Shubham",
+    role: "Student",
+    rating: 4.5,
+    text: "I was confused between two colleges and one session with a ProBuddy made it so much clearer. Real insights from someone who actually lived it.",
+    image: "/review3.jpeg",
+  },
+];
+
 export default function ProBuddies() {
   const {userId} = useAuthStore()
   const { data: probuddies = [], isLoading: isProbuddiesLoading } = useQuery({
@@ -73,7 +97,7 @@ export default function ProBuddies() {
       <CollegeSection colleges={colleges} isLoading={isCollegesLoading} />
       <ProBuddiesSection probuddyList={probuddies} isLoading={isProbuddiesLoading} />
       <AdvantageSection/>
-      <Stories/>
+      <Stories stories={proBuddyStories} />
     </div>
 
     </div>

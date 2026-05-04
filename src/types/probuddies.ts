@@ -11,6 +11,7 @@ export interface ListingProBudddy {
     city: string | null;
     state: string | null;
     ratePerMinute: string | null;
+    verified?: boolean;
 }
 
 
