@@ -454,6 +454,19 @@ export const postReview = async (params: PostReview) => {
   return data
 }
 
+export const getProBuddyProfileGuest = async (proBuddyId: string): Promise<ProBuddyUserSide> => {
+  if (!proBuddyId) throw new Error('proBuddyId is required');
+
+  const response = await fetch(
+    buildApiUrl(API_CONFIG.endpoints.proBuddyProfileForUserGuest, { proBuddyId }),
+    { headers: { Accept: 'application/json' } }
+  );
+
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || data.error || 'Failed to get ProBuddy profile');
+  return data;
+};
+
 export const getProBuddyByIdForProBuddy = async (proBuddyId: string): Promise<{
   message?: string;
   status?: boolean;
@@ -679,6 +692,7 @@ export const probuddiesApi = {
   profileUser: (userId: string | null, proBudddyId: string) => getProBuddyForUser(userId, proBudddyId),
   reviewsForUser: (proBuddyId: string) => getAllReviewsReceivedByAProBuddyForUser(proBuddyId),
   postReview: (params: PostReview) => postReview(params),
+  profileGuest: (proBuddyId: string) => getProBuddyProfileGuest(proBuddyId),
   profileForProBuddy: (proBuddyId: string) => getProBuddyByIdForProBuddy(proBuddyId),
   updateProfile: (proBuddyId: string, payload: Partial<UpdateProBuddyProfilePayload>) =>
     updateProBuddyProfile(proBuddyId, payload),

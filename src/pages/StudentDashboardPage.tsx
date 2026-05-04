@@ -10,6 +10,7 @@ import TransactionsTab from '@/components/student-dashboard/TransactionsTab';
 import ReviewsTab from '@/components/student-dashboard/ReviewsTab';
 import MyCoursesTab from '@/components/student-dashboard/tabs/MyCoursesTab';
 import MyTestSeriesTab from '@/components/student-dashboard/tabs/MyTestSeriesTab';
+import CallHistoryTab from '@/components/student-dashboard/tabs/CallHistoryTab';
 import EditProfileModal from '@/components/student-dashboard/EditProfileModal';
 import EditPreferencesModal from '@/components/student-dashboard/EditPreferencesModal';
 import AddFundsPanel from '@/components/student-dashboard/AddFundsPanel';
@@ -25,7 +26,7 @@ declare global {
 }
 type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 
-const TABS = ['My Info', 'Appointments', 'Counsellors', 'My Courses', 'Test Series', 'Transactions', 'Reviews'];
+const TABS = ['My Info', 'Appointments', 'Call History', 'Counsellors', 'My Courses', 'Test Series', 'Transactions', 'Reviews'];
 const ACTIVE_TAB_STORAGE_KEY = 'student-dashboard-active-tab';
 
 const StudentDashboardPage: React.FC = () => {
@@ -270,6 +271,7 @@ const StudentDashboardPage: React.FC = () => {
             />
           )}
           {activeTab === 'Appointments' && <AppointmentsTab />}
+          {activeTab === 'Call History' && <CallHistoryTab />}
           {activeTab === 'Counsellors' && <CounsellorsTab />}
           {activeTab === 'My Courses' && <MyCoursesTab />}
           {activeTab === 'Test Series' && <MyTestSeriesTab />}

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronLeft, Loader2, Plus, Trash2, X } from 'lucide-react';
+import { ChevronLeft, Loader2, Plus, Trash2, User, X } from 'lucide-react';
 import type { UpdateProBuddyProfilePayload } from '@/api/pro-buddies';
 import type { ProBuddyLink, ProBuddyProfileForProBuddy, WorkingDay } from '@/types/probuddies';
 
@@ -181,7 +181,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState<EditableFormState>(() => createInitialState(profileData));
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
-  const [previewImage, setPreviewImage] = useState<string>('/counselor.png');
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -193,12 +193,12 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     setFormData(nextState);
     setStep(0);
     setSelectedPhoto(null);
-    setPreviewImage(profileData?.photoUrl || '/counselor.png');
+    setPreviewImage(profileData?.photoUrl?.trim() || null);
   }, [isOpen, profileData]);
 
   useEffect(() => {
     return () => {
-      if (previewImage.startsWith('blob:')) {
+      if (previewImage?.startsWith('blob:')) {
         URL.revokeObjectURL(previewImage);
       }
     };
@@ -306,7 +306,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       return;
     }
 
-    if (previewImage.startsWith('blob:')) {
+    if (previewImage?.startsWith('blob:')) {
       URL.revokeObjectURL(previewImage);
     }
 
@@ -355,15 +355,21 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           </button>
         </div>
 
-        <div className="grid flex-1 overflow-hidden sm:grid-cols-[260px_minmax(0,1fr)]">
-          <aside className="border-b border-[#E5E7EB] bg-[#F9FAFB] p-4 sm:border-b-0 sm:border-r sm:p-6">
+        <div className="flex flex-1 min-h-0 flex-col sm:grid sm:grid-cols-[260px_minmax(0,1fr)] sm:overflow-hidden">
+          <aside className="hidden border-b border-[#E5E7EB] bg-[#F9FAFB] p-4 sm:block sm:border-b-0 sm:border-r sm:p-6">
             <div className="mb-6 flex items-center gap-4">
               <div className="relative h-20 w-20 shrink-0">
-                <img
-                  src={previewImage}
-                  alt="Profile preview"
-                  className="h-full w-full rounded-full object-cover"
-                />
+                {previewImage ? (
+                  <img
+                    src={previewImage}
+                    alt="Profile preview"
+                    className="h-full w-full rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="h-full w-full rounded-full bg-gray-100 flex items-center justify-center">
+                    <User className="h-9 w-9 text-gray-400" />
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
@@ -413,6 +419,83 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           </aside>
 
           <div className="flex min-h-0 flex-col">
+            <div className="border-b border-[#E5E7EB] bg-[#F9FAFB] px-4 py-4 sm:hidden">
+              <div className="mb-4 flex items-center gap-4">
+                <div className="relative h-16 w-16 shrink-0">
+                  {previewImage ? (
+                    <img
+                      src={previewImage}
+                      alt="Profile preview"
+                      className="h-full w-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-full w-full rounded-full bg-gray-100 flex items-center justify-center">
+                      <User className="h-7 w-7 text-gray-400" />
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-white shadow"
+                  >
+                    <img src="/edit2.svg" alt="Edit profile" className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-[#0E1629]">
+                    {[formData.firstName, formData.lastName].filter(Boolean).join(' ') || 'ProBuddy'}
+                  </p>
+                  <p className="text-xs text-[#6B7280]">{profileData?.proBuddyId || 'Draft'}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-1">
+                {STEPS.map((item, index) => {
+                  const active = index === step;
+                  const completed = index < step;
+                  return (
+                    <button
+                      key={item.title}
+                      type="button"
+                      onClick={() => setStep(index)}
+                      className="flex flex-1 flex-col items-center gap-1.5"
+                    >
+                      <div
+                        className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
+                          active
+                            ? 'bg-[#2F43F2] text-white'
+                            : completed
+                              ? 'bg-[#EEF2FF] text-[#2F43F2]'
+                              : 'bg-[#F3F4F6] text-[#6B7280]'
+                        }`}
+                      >
+                        {index + 1}
+                      </div>
+                      <span
+                        className={`text-center text-[10px] font-medium leading-tight ${
+                          active ? 'text-[#2F43F2]' : 'text-[#6B7280]'
+                        }`}
+                      >
+                        {item.title}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="mt-3 flex gap-1">
+                {STEPS.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`h-1 flex-1 rounded-full transition-colors ${
+                      index <= step ? 'bg-[#2F43F2]' : 'bg-[#E5E7EB]'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
             <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-8 sm:py-7 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {step === 0 && (
                 <div>
@@ -551,7 +634,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
                     <div className="space-y-3">
                       {offeringEntries.map(([key, value]) => (
-                        <div key={key} className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_160px]">
+                        <div key={key} className="grid grid-cols-[minmax(0,1fr)_96px] gap-3 sm:grid-cols-[minmax(0,1fr)_160px]">
                           <input
                             value={key}
                             readOnly
@@ -605,7 +688,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
                   <div>
                     <h4 className="mb-3 text-sm font-semibold text-[#0E1629]">workingDays</h4>
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                       {WORKING_DAYS.map((day) => {
                         const selected = formData.workingDays.includes(day);
                         return (
@@ -629,11 +712,11 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               )}
             </div>
 
-            <div className="flex items-center justify-between border-t border-[#E5E7EB] px-4 py-4 sm:px-8">
+            <div className="flex items-center gap-3 border-t border-[#E5E7EB] px-4 py-4 sm:justify-between sm:px-8">
               <button
                 type="button"
                 onClick={step === 0 ? onClose : () => setStep((prev) => prev - 1)}
-                className="rounded-xl border border-[#D1D5DB] px-4 py-2 text-sm font-medium text-[#111827]"
+                className="flex-1 rounded-xl border border-[#D1D5DB] px-4 py-3 text-sm font-medium text-[#111827] sm:flex-none sm:py-2"
               >
                 {step === 0 ? 'Cancel' : 'Previous'}
               </button>
@@ -642,7 +725,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 type="button"
                 onClick={isLastStep ? handleSubmit : () => setStep((prev) => prev + 1)}
                 disabled={isSaving}
-                className="inline-flex min-w-[140px] items-center justify-center gap-2 rounded-xl bg-[#0E1629] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-70"
+                className="inline-flex flex-[2] items-center justify-center gap-2 rounded-xl bg-[#0E1629] px-5 py-3 text-sm font-semibold text-white disabled:opacity-70 sm:flex-none sm:min-w-35 sm:py-2.5"
               >
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 {isLastStep ? (isSaving ? 'Saving...' : 'Update profile') : 'Next'}
