@@ -57,7 +57,7 @@ const ProBuddySidebar: React.FC = () => {
     const proBuddyPayload = profileQuery.data;
     const proBuddySide = (() => {
       if (isRecord(proBuddyPayload) && isRecord(proBuddyPayload.data)) return proBuddyPayload.data as ProBuddyProfileForProBuddy;
-      if (isRecord(proBuddyPayload)) return proBuddyPayload as ProBuddyProfileForProBuddy;
+      if (isRecord(proBuddyPayload)) return proBuddyPayload as unknown as ProBuddyProfileForProBuddy;
       return null;
     })();
 
