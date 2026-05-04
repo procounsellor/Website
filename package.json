@@ -8,6 +8,7 @@
     "generate:sitemap": "node scripts/generate-sitemap.mjs",
     "prebuild": "npm run generate:sitemap",
     "build": "tsc -b && vite build",
+    "analyze": "ANALYZE=true npm run build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

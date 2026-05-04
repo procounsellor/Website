@@ -2,10 +2,23 @@ import { defineConfig } from 'vite'
 import path from 'path'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 export default defineConfig({
   base: '/',
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    process.env.ANALYZE === 'true'
+      ? visualizer({
+          filename: 'dist/bundle-report.html',
+          template: 'treemap',
+          gzipSize: true,
+          brotliSize: true,
+          open: true,
+        })
+      : null,
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

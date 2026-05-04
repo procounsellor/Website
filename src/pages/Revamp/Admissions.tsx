@@ -15,29 +15,10 @@ export default function Admissions() {
   const navigate = useNavigate();
   const location = useLocation();
   const hasSeenSplash = sessionStorage.getItem('admissions-splash-seen') === 'true';
-  const tabPaths = ['/admissions', '/courses', '/community', '/pro-buddies', '/revamp-about'];
 
   const navigateWithTabTransition = (path: string) => {
     if (location.pathname === path) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-
-    const currentIndex = tabPaths.indexOf(location.pathname);
-    const nextIndex = tabPaths.indexOf(path);
-    const direction =
-      currentIndex >= 0 && nextIndex >= 0 && nextIndex < currentIndex
-        ? 'right-to-left'
-        : 'left-to-right';
-
-    sessionStorage.setItem('revamp-tab-direction', direction);
-
-    const viewTransitionDoc = document as Document & {
-      startViewTransition?: (callback: () => void) => void;
-    };
-
-    if (viewTransitionDoc.startViewTransition) {
-      viewTransitionDoc.startViewTransition(() => navigate(path));
       return;
     }
 

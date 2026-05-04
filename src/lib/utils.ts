@@ -34,3 +34,31 @@ export function decodeCounselorId(hash: string): string {
     return '';
   }
 }
+
+export function formatAcademicYearLabel(year?: string | number | null, fallback = ''): string {
+  if (year === null || year === undefined || year === '') {
+    return fallback;
+  }
+
+  const normalizedYear = String(year).trim();
+  const numericYear = Number(normalizedYear);
+
+  if (!Number.isFinite(numericYear)) {
+    return `${normalizedYear} year`;
+  }
+
+  const lastTwoDigits = numericYear % 100;
+  const lastDigit = numericYear % 10;
+  const suffix =
+    lastTwoDigits >= 11 && lastTwoDigits <= 13
+      ? 'th'
+      : lastDigit === 1
+        ? 'st'
+        : lastDigit === 2
+          ? 'nd'
+          : lastDigit === 3
+            ? 'rd'
+            : 'th';
+
+  return `${normalizedYear}${suffix} year`;
+}
