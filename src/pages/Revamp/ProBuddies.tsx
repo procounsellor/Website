@@ -5,8 +5,22 @@ import ProBuddiesSection from "@/components/Revamp/probuddies/ProBuddiesSection"
 import Stories from "@/components/Revamp/probuddies/Stories";
 import { useAuthStore } from "@/store/AuthStore";
 import { useQuery } from "@tanstack/react-query";
-import { SearchIcon } from "lucide-react";
 import PageSEO from "@/components/SEO/PageSEO";
+
+const proBuddyHighlights = [
+  {
+    title: "Real insider perspective",
+    description: "Talk to current students who know the campus, branch, hostel, and classroom reality.",
+  },
+  {
+    title: "Know before you go",
+    description: "See what life is actually like at a college before you make a final choice.",
+  },
+  {
+    title: "Peer-to-peer admission help",
+    description: "Get guidance on exams, documents, and interviews from someone who has done it.",
+  },
+];
 
 const proBuddyStories = [
   {
@@ -60,35 +74,31 @@ export default function ProBuddies() {
         keywords="ProBuddies, peer mentorship, college seniors, admissions guidance, student community, college advice India"
       />
     <div className="">
-        <div className="w-full h-66 md:h-130 bg-[url('/probuddiesbg.jpg')] bg-cover bg-center">
-      <div className="flex flex-col gap-10 items-center justify-center w-full h-full bg-[#0E1629A6]">
-        <div className="relative hidden md:block">
-          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-(--text-muted)" />
-          <input
-            type="text"
-            name="searchbox"
-            id="search"
-            placeholder="search for probuddies"
-            className="bg-white rounded-[12px] h-14 w-114 py-4 pl-14 pr-4 placeholder:text-(--text-muted)"
-          />
-        </div>
+        <div className="w-full bg-[url('/probuddiesbg.jpg')] bg-cover bg-center">
+      <div className="w-full bg-[#0E1629A6]">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-center gap-5 px-4 py-10 text-center md:gap-6 md:px-8 md:py-14">
+          <div className="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/90 backdrop-blur-sm">
+            Peer mentorship from real students
+          </div>
 
-        <div className="flex flex-col gap-3 md:gap-6 justify-center items-center">
-          <h1 className="text-white text-2xl md:text-6xl font-bold">ProBuddies</h1>
-          <p className="max-w-188.25 text-wrap text-center text-sm md:text-2xl font-normal md:font-medium text-[#9CA3AF]">
-            Bridging the gap between ambitious students and expert education counsellors
+          <h1 className="max-w-4xl text-3xl font-bold leading-tight text-white md:text-5xl">
+            Find a ProBuddy for honest college guidance.
+          </h1>
+
+          <p className="max-w-3xl text-sm leading-6 text-slate-300 md:text-lg md:leading-8">
+            ProBuddies are verified college seniors who share real campus insights, admission advice, hostel tips, and the small details that brochures miss.
           </p>
 
-           <div className="relative md:hidden">
-          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-(--text-muted) h-4 w-4" />
-          <input
-            type="text"
-            name="searchbox"
-            id="search"
-            placeholder="search for college"
-            className="bg-white rounded-[12px] h-8 w-60 py-4 pl-14 pr-4 text-xs placeholder:text-(--text-muted)"
-          />
-        </div>
+          <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
+            {proBuddyHighlights.map((item) => (
+              <div
+                key={item.title}
+                className="rounded-full border border-white/10 bg-white/10 px-3 py-2 text-sm font-medium text-white/90 backdrop-blur-sm md:px-4"
+              >
+                {item.title}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
