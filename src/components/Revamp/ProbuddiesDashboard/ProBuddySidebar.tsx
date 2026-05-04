@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { GraduationCap, MapPin, Instagram, Linkedin } from 'lucide-react';
+import { GraduationCap, MapPin, Instagram, Linkedin, User } from 'lucide-react';
 import EditProfileModal from './EditProfileModal';
 import { probuddiesApi, type UpdateProBuddyProfilePayload } from '@/api/pro-buddies';
 import type { ProBuddyProfileForProBuddy } from '@/types/probuddies';
@@ -46,13 +46,43 @@ const ProBuddySidebar: React.FC = () => {
     enabled: Boolean(proBuddyId),
   });
 
+  const guestProfileQuery = useQuery({
+    queryKey: ['probuddy-guest-profile', proBuddyId],
+    queryFn: () => probuddiesApi.profileGuest(proBuddyId),
+    enabled: Boolean(proBuddyId),
+  });
+
   const profileData = useMemo<ProBuddyProfileForProBuddy | null>(() => {
-    const payload = profileQuery.data;
-    if (isRecord(payload) && isRecord(payload.data)) return payload.data as ProBuddyProfileForProBuddy;
-    if (isRecord(payload) && 'data' in payload) return null;
-    if (isRecord(payload)) return payload as ProBuddyProfileForProBuddy;
-    return null;
-  }, [profileQuery.data]);
+    // ProBuddy-side API: has exclusive fields (collegeId, priority, etc.) but may miss rate/schedule
+    const proBuddyPayload = profileQuery.data;
+    const proBuddySide = (() => {
+      if (isRecord(proBuddyPayload) && isRecord(proBuddyPayload.data)) return proBuddyPayload.data as ProBuddyProfileForProBuddy;
+      if (isRecord(proBuddyPayload)) return proBuddyPayload as unknown as ProBuddyProfileForProBuddy;
+      return null;
+    })();
+
+    // Guest/user-side API: reliably has all common fields including rate, workingDays, etc.
+    const guestSide = guestProfileQuery.data ?? null;
+
+    if (!guestSide && !proBuddySide) return null;
+
+    return {
+      ...(guestSide ?? {}),
+      // Overlay ProBuddy-exclusive fields from the JWT-protected endpoint
+      priority: proBuddySide?.priority ?? null,
+      dateCreated: proBuddySide?.dateCreated ?? null,
+      lastDateAndTimeModified: proBuddySide?.lastDateAndTimeModified ?? null,
+      lastLoginDateAndTime: proBuddySide?.lastLoginDateAndTime ?? null,
+      collegeId: proBuddySide?.collegeId ?? null,
+      referralCode: proBuddySide?.referralCode ?? null,
+      t3ReferralCode: proBuddySide?.t3ReferralCode ?? null,
+      photoUrlSmall: proBuddySide?.photoUrlSmall ?? null,
+      idCardPhotoUrl: proBuddySide?.idCardPhotoUrl ?? null,
+      phoneOtpVerified: proBuddySide?.phoneOtpVerified ?? false,
+      emailOtpVerified: proBuddySide?.emailOtpVerified ?? false,
+      platform: proBuddySide?.platform ?? null,
+    } as ProBuddyProfileForProBuddy;
+  }, [profileQuery.data, guestProfileQuery.data]);
 
   const updateProfileMutation = useMutation({
     mutationFn: async ({
@@ -75,6 +105,7 @@ const ProBuddySidebar: React.FC = () => {
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['probuddy-sidebar-profile', proBuddyId] }),
+        queryClient.invalidateQueries({ queryKey: ['probuddy-guest-profile', proBuddyId] }),
         queryClient.invalidateQueries({ queryKey: ['probuddy-dashboard-profile', proBuddyId] }),
         queryClient.invalidateQueries({ queryKey: ['probuddy-dashboard-profile-mapped', proBuddyId] }),
       ]);
@@ -126,7 +157,7 @@ const ProBuddySidebar: React.FC = () => {
     return `${city}, ${state}`;
   }, [profileData]);
 
-  const photoUrl = toText(profileData?.photoUrl, '/counselor.png');
+  const photoUrl = profileData?.photoUrl?.trim() || null;
 
   const instagramLink = getLinkByType(profileData, 'INSTAGRAM');
   const linkedinLink = getLinkByType(profileData, 'LINKEDIN');
@@ -147,7 +178,7 @@ const ProBuddySidebar: React.FC = () => {
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="absolute w-7 h-7 sm:w-8 sm:h-8 top-2.5 right-2.5 sm:top-3 sm:right-3 rounded-lg p-1 sm:p-1 flex items-center justify-center transition-colors brightness-95 cursor-pointer"
+          className="absolute w-7 h-7 sm:w-8 sm:h-8 top-2.5 right-2.5 sm:top-3 sm:right-3 rounded-lg p-1 flex items-center justify-center transition-colors brightness-95 cursor-pointer"
           style={{
             background: 'linear-gradient(0deg, #FFFFFF, #FFFFFF), linear-gradient(0deg, rgba(198, 221, 240, 0.25), rgba(198, 221, 240, 0.25))'
           }}
@@ -160,11 +191,17 @@ const ProBuddySidebar: React.FC = () => {
         </button>
 
         <div className="relative w-24 h-24 sm:w-28 sm:h-28 mb-3">
-          <img
-            src={photoUrl}
-            alt="Profile"
-            className="w-full h-full rounded-full object-cover border border-gray-100"
-          />
+          {photoUrl ? (
+            <img
+              src={photoUrl}
+              alt="Profile"
+              className="w-full h-full rounded-full object-cover border border-gray-100"
+            />
+          ) : (
+            <div className="w-full h-full rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center">
+              <User className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400" />
+            </div>
+          )}
         </div>
 
         <h2 className="w-full sm:w-35.25 text-[18px] sm:text-[20px] font-semibold text-[#0E1629] leading-none text-center mb-3 truncate">

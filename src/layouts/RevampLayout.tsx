@@ -4,7 +4,6 @@ import RevampHeader from "@/components/Revamp/RevampHeader";
 import RevampBreadcrumbs from "@/components/Revamp/RevampBreadcrumbs";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { LoginCard } from "@/components/cards/LoginCard";
-import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "@/store/AuthStore";
 import { useChatStore } from "@/store/ChatStore";
 import Chatbot from "@/components/chatbot/Chatbot";

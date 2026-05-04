@@ -120,23 +120,19 @@ const parseApiResponse = async (response: Response) => {
 };
 
 const normalizeProBuddyListResponse = (data: any): ListingProBudddy[] => {
+  let list: any[] = [];
+
   if (Array.isArray(data)) {
-    return data;
+    list = data;
+  } else if (Array.isArray(data?.proBuddies)) {
+    list = data.proBuddies;
+  } else if (Array.isArray(data?.data)) {
+    list = data.data;
+  } else if (Array.isArray(data?.result)) {
+    list = data.result;
   }
 
-  if (Array.isArray(data?.proBuddies)) {
-    return data.proBuddies;
-  }
-
-  if (Array.isArray(data?.data)) {
-    return data.data;
-  }
-
-  if (Array.isArray(data?.result)) {
-    return data.result;
-  }
-
-  return [];
+  return list.filter((item) => item?.verified === true);
 };
 
 const normalizeProBuddyReviewsResponse = (data: any): ProBuddyReviewForUser[] => {
@@ -454,6 +450,19 @@ export const postReview = async (params: PostReview) => {
   return data
 }
 
+export const getProBuddyProfileGuest = async (proBuddyId: string): Promise<ProBuddyUserSide> => {
+  if (!proBuddyId) throw new Error('proBuddyId is required');
+
+  const response = await fetch(
+    buildApiUrl(API_CONFIG.endpoints.proBuddyProfileForUserGuest, { proBuddyId }),
+    { headers: { Accept: 'application/json' } }
+  );
+
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || data.error || 'Failed to get ProBuddy profile');
+  return data;
+};
+
 export const getProBuddyByIdForProBuddy = async (proBuddyId: string): Promise<{
   message?: string;
   status?: boolean;
@@ -679,6 +688,7 @@ export const probuddiesApi = {
   profileUser: (userId: string | null, proBudddyId: string) => getProBuddyForUser(userId, proBudddyId),
   reviewsForUser: (proBuddyId: string) => getAllReviewsReceivedByAProBuddyForUser(proBuddyId),
   postReview: (params: PostReview) => postReview(params),
+  profileGuest: (proBuddyId: string) => getProBuddyProfileGuest(proBuddyId),
   profileForProBuddy: (proBuddyId: string) => getProBuddyByIdForProBuddy(proBuddyId),
   updateProfile: (proBuddyId: string, payload: Partial<UpdateProBuddyProfilePayload>) =>
     updateProBuddyProfile(proBuddyId, payload),

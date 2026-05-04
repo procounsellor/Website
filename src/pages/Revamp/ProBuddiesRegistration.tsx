@@ -18,6 +18,53 @@ const OFFERING_LIMITS = { min: 0, max: 10 } as const;
 
 const isAcceptedImage = (file: File) => ACCEPTED_IMAGE_TYPES.includes(file.type);
 
+const ACRONYM_STOP_WORDS = new Set(['of', 'and', 'the', 'for', 'a', 'an', 'in', 'at', 'to', 'by', 'on']);
+
+const getNameAcronym = (name: string) =>
+  name
+    .split(/[\s\-,()/]+/)
+    .filter((w) => w.length > 0 && !ACRONYM_STOP_WORDS.has(w.toLowerCase()))
+    .map((w) => w[0].toLowerCase())
+    .join('');
+
+// Returns a relevance score > 0 if the college matches the query, 0 if no match.
+// Higher score = better match.
+const scoreCollege = (college: FeaturedCollegeInIndia, query: string): number => {
+  const q = query.toLowerCase().trim();
+  if (!q) return 1;
+
+  const name = college.name.toLowerCase();
+  const state = (college['state-province'] || '').toLowerCase();
+  const country = (college.country || '').toLowerCase();
+  const alpha = (college.alpha_two_code || '').toLowerCase();
+  const domains = (college.domains || []).join(' ').toLowerCase();
+  const fullText = [name, state, country, alpha, domains].join(' ');
+  const acronym = getNameAcronym(college.name);
+
+  // Exact acronym match — "iit" === "iit"
+  if (acronym === q) return 7;
+  // Name starts with the full query
+  if (name.startsWith(q)) return 6;
+  // Acronym starts with query — "iit" prefix matches "iitd", "iitr", etc.
+  if (acronym.startsWith(q)) return 5;
+
+  // Multi-token: e.g. "iit delhi" → acronym prefix "iit" + last token "delhi" anywhere
+  const tokens = q.split(/\s+/).filter(Boolean);
+  if (tokens.length > 1) {
+    const acronymPart = tokens.slice(0, -1).join('');
+    const lastToken = tokens[tokens.length - 1];
+    if (acronym.startsWith(acronymPart) && fullText.includes(lastToken)) return 4;
+    if (tokens.every((t) => fullText.includes(t))) return 3;
+  }
+
+  // Acronym contains query anywhere
+  if (acronym.includes(q)) return 2;
+  // Plain substring match on full text
+  if (fullText.includes(q)) return 1;
+
+  return 0;
+};
+
 const getCollegeKey = (college: FeaturedCollegeInIndia) => [college.name, college["state-province"], college.country].filter(Boolean).join("|");
 
 const formatCollegeLocation = (college?: FeaturedCollegeInIndia | null) => {
@@ -41,6 +88,23 @@ export default function ProBuddiesRegistration() {
   const [selectedIdCard, setSelectedIdCard] = useState<File | null>(null);
   const idCardInputRef = useRef<HTMLInputElement>(null);
 
+  const [isYearsOpen, setIsYearsOpen] = useState(false);
+  const yearsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: Event) => {
+      if (yearsRef.current && !yearsRef.current.contains(e.target as Node)) {
+        setIsYearsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, []);
+
   const [collegeSearch, setCollegeSearch] = useState("");
   const [isCollegeDropdownOpen, setIsCollegeDropdownOpen] = useState(false);
   const [selectedCollegeKey, setSelectedCollegeKey] = useState<string | null>(null);
@@ -58,29 +122,16 @@ export default function ProBuddiesRegistration() {
   );
 
   const filteredColleges = useMemo(() => {
-    const normalizedSearch = deferredCollegeSearch.trim().toLowerCase();
+    const q = deferredCollegeSearch.trim();
 
-    if (!normalizedSearch) {
-      return colleges.slice(0, 8);
-    }
+    if (!q) return colleges.slice(0, 8);
 
     return colleges
-      .filter((college) => {
-        const searchTokens = [
-          college.name,
-          college.country,
-          college["state-province"],
-          college.alpha_two_code,
-          ...(college.domains || []),
-          ...(college.web_pages || []),
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-
-        return searchTokens.includes(normalizedSearch);
-      })
-      .slice(0, 8);
+      .map((college) => ({ college, score: scoreCollege(college, q) }))
+      .filter(({ score }) => score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 8)
+      .map(({ college }) => college);
   }, [colleges, deferredCollegeSearch]);
 
   useEffect(() => {
@@ -364,9 +415,9 @@ export default function ProBuddiesRegistration() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full min-h-screen bg-[#C6DDF040] pb-20 flex flex-col items-center gap-[24px]">
+    <form onSubmit={handleSubmit} className="w-full min-h-screen bg-[#C6DDF040] pb-20 flex flex-col items-center gap-[24px] px-4 sm:px-6 lg:px-8">
 
-      <div className="w-[1200px] h-auto bg-white rounded-[8px] mt-[40px] p-[24px] box-border">
+      <div className="w-full max-w-[1200px] h-auto bg-white rounded-[8px] mt-[24px] sm:mt-[40px] p-4 sm:p-[24px] box-border">
         
         <div className="flex items-center gap-[10px] mb-[12px]">
           <div className="w-[24px] h-[24px] rounded-[12px] bg-[#2F43F2] flex items-center justify-center">
@@ -380,8 +431,8 @@ export default function ProBuddiesRegistration() {
           </h2>
         </div>
 
-        <div className="flex gap-[120px] mb-[12px]">
-          <div className="flex flex-col gap-[14px] w-[510px] h-[68px]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-[120px] mb-[12px]">
+          <div className="flex flex-col gap-[14px] w-full h-auto">
             <label 
               htmlFor="firstName" 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
@@ -401,7 +452,7 @@ export default function ProBuddiesRegistration() {
             />
           </div>
 
-          <div className="flex flex-col gap-[14px] w-[510px] h-[68px]">
+          <div className="flex flex-col gap-[14px] w-full h-auto">
             <label 
               htmlFor="lastName" 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
@@ -422,8 +473,8 @@ export default function ProBuddiesRegistration() {
           </div>
         </div>
 
-        <div className="flex gap-[120px] mb-[12px]">
-          <div className="flex flex-col gap-[14px] w-[510px] h-[68px]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-[120px] mb-[12px]">
+          <div className="flex flex-col gap-[14px] w-full h-auto">
             <label 
               htmlFor="email" 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
@@ -443,7 +494,7 @@ export default function ProBuddiesRegistration() {
             />
           </div>
 
-          <div className="flex flex-col gap-[14px] w-[510px] h-[68px]">
+          <div className="flex flex-col gap-[14px] w-full h-auto">
             <label 
               htmlFor="phoneNumber" 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
@@ -464,8 +515,8 @@ export default function ProBuddiesRegistration() {
           </div>
         </div>
 
-        <div className="flex gap-[120px] mb-[12px]">
-          <div className="flex flex-col gap-[14px] w-[510px] h-[68px]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-[120px] mb-[12px]">
+          <div className="flex flex-col gap-[14px] w-full h-auto">
             <label 
               htmlFor="location" 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
@@ -485,7 +536,7 @@ export default function ProBuddiesRegistration() {
             />
           </div>
 
-          <div className="flex flex-col gap-[14px] w-[510px] h-[68px]">
+          <div className="flex flex-col gap-[14px] w-full h-auto">
             <label className="text-transparent text-[14px] font-semibold leading-[125%]" style={{ fontFamily: 'Poppins' }}>
               &nbsp;
             </label>
@@ -495,10 +546,10 @@ export default function ProBuddiesRegistration() {
           </div>
         </div>
 
-        <div className="flex gap-[120px] mb-[12px]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-[120px] mb-[12px]">
           
           {/* Profile Photo Column */}
-          <div className="flex flex-col gap-[12px] w-[510px] h-[152px]">
+          <div className="flex flex-col gap-[12px] w-full h-auto min-h-[152px]">
             <label 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
               style={{ fontFamily: 'Poppins' }}
@@ -555,7 +606,7 @@ export default function ProBuddiesRegistration() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-[12px] w-[510px] h-[152px]">
+          <div className="flex flex-col gap-[12px] w-full h-auto min-h-[152px]">
             <label 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
               style={{ fontFamily: 'Poppins' }}
@@ -615,7 +666,7 @@ export default function ProBuddiesRegistration() {
 
       </div>
 
-      <div className="w-[1200px] h-auto bg-white rounded-[8px] p-[24px] box-border flex flex-col gap-[24px]">
+      <div className="w-full max-w-[1200px] h-auto bg-white rounded-[8px] p-4 sm:p-[24px] box-border flex flex-col gap-[24px]">
         
         <div className="flex items-center gap-[10px]">
           <div className="w-[24px] h-[24px] rounded-[12px] bg-[#2F43F2] flex items-center justify-center">
@@ -629,8 +680,8 @@ export default function ProBuddiesRegistration() {
           </h2>
         </div>
 
-        <div className="flex gap-[120px]">
-          <div className="flex flex-col gap-[14px] w-[510px] relative">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-[120px]">
+          <div className="flex flex-col gap-[14px] w-full relative">
             <div className="flex items-center justify-between gap-[12px]">
               <label 
                 htmlFor="collegeSearch" 
@@ -731,7 +782,7 @@ export default function ProBuddiesRegistration() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-[14px] w-[510px]">
+          <div className="flex flex-col gap-[14px] w-full">
             <label 
               htmlFor="degree" 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
@@ -751,8 +802,8 @@ export default function ProBuddiesRegistration() {
           </div>
         </div>
 
-        <div className="flex gap-[120px]">
-          <div className="flex flex-col gap-[14px] w-[510px]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-[120px]">
+          <div className="flex flex-col gap-[14px] w-full">
             <label 
               htmlFor="course" 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
@@ -771,34 +822,48 @@ export default function ProBuddiesRegistration() {
             />
           </div>
 
-          <div className="flex flex-col gap-[14px] w-[510px]">
-            <label 
-              htmlFor="years" 
+          <div className="flex flex-col gap-[14px] w-full">
+            <label
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
               style={{ fontFamily: 'Poppins' }}
             >
               Years of study
             </label>
-            <div className="relative w-full">
-              <select 
-                id="years"
-                value={formData.years}
-                onChange={handleInputChange}
-                className="appearance-none w-full h-[36px] px-[12px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] bg-white cursor-pointer"
+            <div className="relative w-full" ref={yearsRef}>
+              <button
+                type="button"
+                onClick={() => setIsYearsOpen((prev) => !prev)}
+                className={`w-full h-[36px] px-[12px] pr-[36px] border rounded-[4px] outline-none text-left text-[14px] bg-white cursor-pointer ${isYearsOpen ? 'border-[#2F43F2]' : 'border-gray-200'}`}
                 style={{ fontFamily: 'Poppins' }}
               >
-                <option value="" disabled className="text-[#6B728080]">Select Year</option>
-                <option value="1st">1st</option>
-                <option value="2nd">2nd</option>
-                <option value="3rd">3rd</option>
-                <option value="4th">4th</option>
-                <option value="5th">5th</option>
-              </select>
+                <span className={formData.years ? 'text-[#0E1629]' : 'text-[#6B728080] text-[12px]'}>
+                  {formData.years ? `${formData.years} Year` : 'Select Year'}
+                </span>
+              </button>
               <div className="absolute right-[12px] top-[10px] pointer-events-none">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M6 9L12 15L18 9" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
+              {isYearsOpen && (
+                <div className="absolute left-0 right-0 top-[40px] z-50 overflow-hidden rounded-[8px] border border-gray-200 bg-white shadow-lg">
+                  {['1st', '2nd', '3rd', '4th', '5th'].map((year) => (
+                    <button
+                      key={year}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setFormData((prev) => ({ ...prev, years: year }));
+                        setIsYearsOpen(false);
+                      }}
+                      className={`w-full px-[12px] py-[9px] text-left text-[14px] transition-colors hover:bg-[#F8FAFF] ${formData.years === year ? 'font-semibold text-[#2F43F2]' : 'text-[#0E1629]'}`}
+                      style={{ fontFamily: 'Poppins' }}
+                    >
+                      {year} Year
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -847,7 +912,7 @@ export default function ProBuddiesRegistration() {
 
       </div>
 
-      <div className="w-[1200px] h-auto bg-white rounded-[8px] p-[24px] box-border flex flex-col gap-[24px]">
+      <div className="w-full max-w-[1200px] h-auto bg-white rounded-[8px] p-4 sm:p-[24px] box-border flex flex-col gap-[24px]">
         
         <div className="flex items-center gap-[10px]">
           <div className="w-[24px] h-[24px] rounded-[12px] bg-[#2F43F2] flex items-center justify-center">
@@ -938,7 +1003,7 @@ export default function ProBuddiesRegistration() {
 
       </div>
 
-      <div className="w-[1200px] h-auto bg-white rounded-[8px] p-[24px] box-border flex flex-col gap-[24px]">
+      <div className="w-full max-w-[1200px] h-auto bg-white rounded-[8px] p-4 sm:p-[24px] box-border flex flex-col gap-[24px]">
         
         <div className="flex items-center gap-[10px]">
           <div className="w-[24px] h-[24px] rounded-[12px] bg-[#2F43F2] flex items-center justify-center">
@@ -998,8 +1063,8 @@ export default function ProBuddiesRegistration() {
           </div>
         </div>
 
-        <div className="flex gap-[120px]">
-          <div className="flex flex-col gap-[14px] w-[510px]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-[120px]">
+          <div className="flex flex-col gap-[14px] w-full">
             <label 
               htmlFor="ratePerMinute" 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
@@ -1020,7 +1085,7 @@ export default function ProBuddiesRegistration() {
             />
           </div>
 
-          <div className="flex flex-col gap-[14px] w-[510px]">
+          <div className="flex flex-col gap-[14px] w-full">
             <label 
               htmlFor="officeStartTime" 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
@@ -1039,8 +1104,8 @@ export default function ProBuddiesRegistration() {
           </div>
         </div>
 
-        <div className="flex gap-[120px]">
-          <div className="flex flex-col gap-[14px] w-[510px]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-[120px]">
+          <div className="flex flex-col gap-[14px] w-full">
             <label 
               htmlFor="officeEndTime" 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
@@ -1061,7 +1126,7 @@ export default function ProBuddiesRegistration() {
 
       </div>
 
-      <div className="w-[1200px] h-auto bg-white rounded-[8px] p-[24px] box-border flex flex-col gap-[24px]">
+      <div className="w-full max-w-[1200px] h-auto bg-white rounded-[8px] p-4 sm:p-[24px] box-border flex flex-col gap-[24px]">
         
         <div className="flex items-center gap-[10px]">
           <div className="w-[24px] h-[24px] rounded-[12px] bg-[#2F43F2] flex items-center justify-center">
@@ -1075,8 +1140,8 @@ export default function ProBuddiesRegistration() {
           </h2>
         </div>
 
-        <div className="flex gap-[120px]">
-          <div className="flex flex-col gap-[14px] w-[510px]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-[120px]">
+          <div className="flex flex-col gap-[14px] w-full">
             <label 
               htmlFor="messFood" 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
@@ -1098,7 +1163,7 @@ export default function ProBuddiesRegistration() {
             />
           </div>
 
-          <div className="flex flex-col gap-[14px] w-[510px]">
+          <div className="flex flex-col gap-[14px] w-full">
             <label 
               htmlFor="attendance" 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
@@ -1121,8 +1186,8 @@ export default function ProBuddiesRegistration() {
           </div>
         </div>
 
-        <div className="flex gap-[120px]">
-          <div className="flex flex-col gap-[14px] w-[510px]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-[120px]">
+          <div className="flex flex-col gap-[14px] w-full">
             <label 
               htmlFor="campusVibe" 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
@@ -1144,7 +1209,7 @@ export default function ProBuddiesRegistration() {
             />
           </div>
 
-          <div className="flex flex-col gap-[14px] w-[510px]">
+          <div className="flex flex-col gap-[14px] w-full">
             <label 
               htmlFor="facultyQuality" 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
@@ -1167,8 +1232,8 @@ export default function ProBuddiesRegistration() {
           </div>
         </div>
 
-        <div className="flex gap-[120px]">
-          <div className="flex flex-col gap-[14px] w-[510px]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-[120px]">
+          <div className="flex flex-col gap-[14px] w-full">
             <label 
               htmlFor="examStrategy" 
               className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
@@ -1193,12 +1258,12 @@ export default function ProBuddiesRegistration() {
 
       </div>
 
-      <div className="w-[1200px] flex justify-end gap-[16px]">
+      <div className="w-full max-w-[1200px] flex flex-col-reverse sm:flex-row justify-end gap-[12px] sm:gap-[16px] px-4 sm:px-0">
         <button 
           type="button"
           onClick={() => navigate(-1)}
           disabled={loading}
-          className="w-[90px] h-[44px] rounded-[8px] border border-[#2F43F2] cursor-pointer bg-transparent py-[10px] px-[16px] flex items-center justify-center transition-colors hover:bg-gray-50"
+          className="w-full sm:w-[90px] h-[44px] rounded-[8px] border border-[#2F43F2] cursor-pointer bg-transparent py-[10px] px-[16px] flex items-center justify-center transition-colors hover:bg-gray-50"
         >
           <span 
             className="text-[#2F43F2] text-[16px] font-medium leading-[100%]"
@@ -1211,7 +1276,7 @@ export default function ProBuddiesRegistration() {
         <button 
           type="submit"
           disabled={loading}
-          className="w-[214px] h-[44px] rounded-[8px] border border-[#2F43F2] bg-[#2F43F2] cursor-pointer py-[10px] px-[16px] flex items-center justify-center transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="w-full sm:w-[214px] h-[44px] rounded-[8px] border border-[#2F43F2] bg-[#2F43F2] cursor-pointer py-[10px] px-[16px] flex items-center justify-center transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           <span 
             className="text-white text-[16px] font-medium leading-[100%] text-nowrap"

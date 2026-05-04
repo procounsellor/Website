@@ -1,5 +1,5 @@
 import { useAuthStore } from "@/store/AuthStore";
-import { User2, User2Icon } from "lucide-react";
+import { User2Icon } from "lucide-react";
 
 interface UserDetailsProps {
     onEditClick: () => void;

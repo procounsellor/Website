@@ -40,3 +40,4 @@ next-env.d.ts
 dist.env.production
 .env.production
 .codex
+.claude
