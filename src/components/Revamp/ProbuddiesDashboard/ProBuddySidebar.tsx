@@ -28,13 +28,6 @@ const getLinkByType = (source: unknown, linkType: string): AnyRecord | null => {
   return isRecord(found) ? found : null;
 };
 
-const getLinkLabel = (link: AnyRecord | null): string => {
-  if (!link) return 'NA';
-
-  const title = toText(link.title, '');
-  return title !== 'NA' ? title : 'NA';
-};
-
 const ProBuddySidebar: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const proBuddyId = useMemo(() => localStorage.getItem('phone') || '', []);
@@ -165,9 +158,6 @@ const ProBuddySidebar: React.FC = () => {
   const instagramUrl = toText(instagramLink?.url, '#');
   const linkedinUrl = toText(linkedinLink?.url, '#');
 
-  const instagramLabel = getLinkLabel(instagramLink);
-  const linkedinLabel = getLinkLabel(linkedinLink);
-
   const handleSaveProfile = async (payload: UpdateProBuddyProfilePayload, photoFile: File | null) => {
     await updateProfileMutation.mutateAsync({ payload, photoFile });
   };
@@ -238,14 +228,26 @@ const ProBuddySidebar: React.FC = () => {
           <h3 className="text-[16px] font-medium text-[#0E1629] leading-none">
             Social Media Links
           </h3>
-          <div className="flex flex-col gap-2 sm:gap-3">
-            <a href={instagramUrl || '#'} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[#6B7280] hover:text-[#0E1629] transition-colors min-w-0 w-full">
+          <div className="flex items-center gap-3">
+            <a
+              href={instagramUrl || '#'}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Instagram"
+              title={instagramUrl || 'Instagram'}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F6] text-[#6B7280] transition-colors hover:bg-[#E8EDF3] hover:text-[#0E1629]"
+            >
               <Instagram className="w-5 h-5 text-pink-600" />
-              <span className="text-[14px] sm:text-[16px] font-medium leading-none truncate min-w-0 flex-1">{instagramLabel}</span>
             </a>
-            <a href={linkedinUrl || '#'} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[#6B7280] hover:text-[#0E1629] transition-colors min-w-0 w-full">
+            <a
+              href={linkedinUrl || '#'}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="LinkedIn"
+              title={linkedinUrl || 'LinkedIn'}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F6] text-[#6B7280] transition-colors hover:bg-[#E8EDF3] hover:text-[#0E1629]"
+            >
               <Linkedin className="w-5 h-5 text-blue-600" />
-              <span className="text-[14px] sm:text-[16px] font-medium leading-none truncate min-w-0 flex-1">{linkedinLabel}</span>
             </a>
           </div>
         </div>

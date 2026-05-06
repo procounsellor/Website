@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import type { CourseType } from "@/types/course";
@@ -38,6 +38,8 @@ const normalizeCourses = (response: any, isPurchasedFallback = false): CourseWit
       image: String(course?.courseThumbnailUrl ?? "/course/2.png"),
       rating: formatRatingToOneDecimal(course?.rating),
       name: String(course?.courseName ?? "Course"),
+      counselorName: String(course?.counsellorName ?? course?.counselorName ?? ""),
+      counsellorName: String(course?.counsellorName ?? course?.counselorName ?? ""),
       subject: String(course?.category ?? "General"),
       price: `₹${Number(course?.coursePriceAfterDiscount ?? course?.coursePrice ?? 0).toLocaleString("en-IN")}`,
       courseTimeHours: Number(course?.courseTimeHours ?? 0),
@@ -80,6 +82,19 @@ export default function CourseSection() {
     () => normalizeCourses(myCoursesResponse, true),
     [myCoursesResponse]
   );
+
+  const hasPurchasedCourses = myCoursesData.length > 0;
+  const visibleTabOptions = isUserLoggedIn
+    ? hasPurchasedCourses
+      ? tabOptions
+      : tabOptions.filter((tab) => tab.id !== "my-courses")
+    : [];
+
+  useEffect(() => {
+    if (isUserLoggedIn && !hasPurchasedCourses && activeTab === "my-courses") {
+      setActiveTab("trending");
+    }
+  }, [isUserLoggedIn, hasPurchasedCourses, activeTab]);
 
   const isLoadingCourses = isUserLoggedIn
     ? activeTab === "my-courses"
@@ -178,9 +193,9 @@ export default function CourseSection() {
             around your needs.
           </p>
 
-          {isUserLoggedIn && (
+          {isUserLoggedIn && visibleTabOptions.length > 0 && (
             <div className="flex gap-2.5 pt-2">
-              {tabOptions.map((tab) => (
+              {visibleTabOptions.map((tab) => (
                 <div
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
@@ -246,9 +261,9 @@ export default function CourseSection() {
             </p>
           </div>
 
-          {isUserLoggedIn && (
+          {isUserLoggedIn && visibleTabOptions.length > 0 && (
             <div className="flex justify-center gap-[60px] mb-10">
-              {tabOptions.map((tab) => (
+              {visibleTabOptions.map((tab) => (
                 <motion.button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}

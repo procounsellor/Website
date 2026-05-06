@@ -356,7 +356,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             <button
               type="button"
               onClick={step === 0 ? onClose : () => setStep((prev) => prev - 1)}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E5E7EB] text-[#111827] transition-colors hover:bg-[#F9FAFB]"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E5E7EB] text-[#111827] transition-colors hover:bg-[#F9FAFB] cursor-pointer"
             >
               {step === 0 ? <X className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
             </button>
@@ -369,7 +369,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="hidden h-10 w-10 items-center justify-center rounded-full border border-[#E5E7EB] text-[#111827] transition-colors hover:bg-[#F9FAFB] sm:flex"
+            className="hidden h-10 w-10 items-center justify-center rounded-full border border-[#E5E7EB] text-[#111827] transition-colors hover:bg-[#F9FAFB] sm:flex cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -393,7 +393,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow"
+                  className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow cursor-pointer"
                 >
                   <img src="/edit2.svg" alt="Edit profile" className="h-4 w-4" />
                 </button>
@@ -426,7 +426,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       active
                         ? 'border-[#2F43F2] bg-white shadow-sm'
                         : 'border-transparent bg-transparent hover:bg-white'
-                    }`}
+                    } cursor-pointer`}
                   >
                     <p className="text-sm font-semibold text-[#0E1629]">
                       {index + 1}. {item.title}
@@ -456,7 +456,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-white shadow"
+                    className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-white shadow cursor-pointer"
                   >
                     <img src="/edit2.svg" alt="Edit profile" className="h-4 w-4" />
                   </button>
@@ -479,7 +479,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       key={item.title}
                       type="button"
                       onClick={() => setStep(index)}
-                      className="flex flex-1 flex-col items-center gap-1.5"
+                      className="flex flex-1 flex-col items-center gap-1.5 cursor-pointer"
                     >
                       <div
                         className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
@@ -539,7 +539,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                         <button
                           type="button"
                           onClick={() => setIsYearOpen((prev) => !prev)}
-                          className="flex h-11 w-full items-center justify-between rounded-xl border border-[#E5E7EB] bg-white px-4 text-sm text-[#111827] focus:border-[#2F43F2] focus:outline-none"
+                          className="flex h-11 w-full items-center justify-between rounded-xl border border-[#E5E7EB] bg-white px-4 text-sm text-[#111827] focus:border-[#2F43F2] focus:outline-none cursor-pointer"
                         >
                           <span className={formData.currentYear ? 'text-[#111827]' : 'text-[#9CA3AF]'}>
                             {formData.currentYear ? formatAcademicYearLabel(formData.currentYear) : 'Select year'}
@@ -558,7 +558,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                                   setFormData((prev) => ({ ...prev, currentYear: year }));
                                   setIsYearOpen(false);
                                 }}
-                                className={`flex w-full items-center px-4 py-3 text-left text-sm transition-colors hover:bg-[#F8FAFF] ${formData.currentYear === year ? 'font-semibold text-[#2F43F2]' : 'text-[#111827]'}`}
+                                className={`flex w-full items-center px-4 py-3 text-left text-sm transition-colors hover:bg-[#F8FAFF] cursor-pointer ${formData.currentYear === year ? 'font-semibold text-[#2F43F2]' : 'text-[#111827]'}`}
                               >
                                 {formatAcademicYearLabel(year)}
                               </button>
@@ -632,7 +632,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       <button
                         type="button"
                         onClick={handleAddLink}
-                        className="inline-flex items-center gap-2 rounded-full border border-[#D1D5DB] px-3 py-1.5 text-sm text-[#111827]"
+                        className="inline-flex items-center gap-2 rounded-full border border-[#D1D5DB] px-3 py-1.5 text-sm text-[#111827] cursor-pointer"
                       >
                         <Plus className="h-4 w-4" />
                         Add link
@@ -647,7 +647,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                             <button
                               type="button"
                               onClick={() => handleRemoveLink(index)}
-                              className="text-[#DC2626]"
+                              className="text-[#DC2626] cursor-pointer"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -658,7 +658,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                               <select
                                 value={link.type}
                                 onChange={(event) => handleLinkChange(index, 'type', event.target.value)}
-                                className="h-11 rounded-xl border border-[#E5E7EB] px-4 text-sm text-[#111827] focus:border-[#2F43F2] focus:outline-none"
+                                className="h-11 rounded-xl border border-[#E5E7EB] px-4 text-sm text-[#111827] focus:border-[#2F43F2] focus:outline-none cursor-pointer"
                               >
                                 {LINK_TYPE_OPTIONS.map((option) => (
                                   <option key={option} value={option}>
@@ -753,7 +753,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                               selected
                                 ? 'border-[#2F43F2] bg-[#EEF2FF] text-[#1D4ED8]'
                                 : 'border-[#E5E7EB] text-[#111827]'
-                            }`}
+                            } cursor-pointer`}
                           >
                             {day}
                           </button>
@@ -769,7 +769,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               <button
                 type="button"
                 onClick={step === 0 ? onClose : () => setStep((prev) => prev - 1)}
-                className="flex-1 rounded-xl border border-[#D1D5DB] px-4 py-3 text-sm font-medium text-[#111827] sm:flex-none sm:py-2"
+                className="flex-1 rounded-xl border border-[#D1D5DB] px-4 py-3 text-sm font-medium text-[#111827] sm:flex-none sm:py-2 cursor-pointer"
               >
                 {step === 0 ? 'Cancel' : 'Previous'}
               </button>
@@ -778,7 +778,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 type="button"
                 onClick={isLastStep ? handleSubmit : () => setStep((prev) => prev + 1)}
                 disabled={isSaving}
-                className="inline-flex flex-[2] items-center justify-center gap-2 rounded-xl bg-[#0E1629] px-5 py-3 text-sm font-semibold text-white disabled:opacity-70 sm:flex-none sm:min-w-35 sm:py-2.5"
+                className="inline-flex flex-[2] items-center justify-center gap-2 rounded-xl bg-[#0E1629] px-5 py-3 text-sm font-semibold text-white disabled:opacity-70 disabled:cursor-not-allowed sm:flex-none sm:min-w-35 sm:py-2.5 cursor-pointer"
               >
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 {isLastStep ? (isSaving ? 'Saving...' : 'Update profile') : 'Next'}

@@ -23,20 +23,6 @@ type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 const OFFERING_FIELDS = ['Mess Food', 'Attendance', 'Campus Vibe', 'Faculty Quality', 'Exam Strategy'] as const;
 const clampOfferingValue = (value: number) => Math.min(10, Math.max(0, Number.isFinite(value) ? value : 0));
 
-const getSocialHandleLabel = (rawUrl: string) => {
-    const normalized = rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`;
-
-    try {
-        const url = new URL(normalized);
-        const pathParts = url.pathname.split('/').filter(Boolean);
-        return pathParts[pathParts.length - 1] || url.hostname.replace(/^www\./, '');
-    } catch {
-        const cleaned = rawUrl.replace(/^https?:\/\//, '').replace(/^www\./, '');
-        const pathParts = cleaned.split('/').filter(Boolean);
-        return pathParts[pathParts.length - 1] || cleaned;
-    }
-};
-
 const getSocialIconType = (rawUrl: string, type?: string) => {
     const normalizedType = String(type ?? '').toLowerCase();
     const normalizedUrl = rawUrl.toLowerCase();
@@ -123,9 +109,9 @@ function InstantCallbackConfirmModal({
                 <div className="bg-[#FFF8ED] border border-[#FDE68A] rounded-[12px] p-4 mb-4 flex gap-3">
                     <AlertTriangle className="w-5 h-5 text-[#D97706] shrink-0 mt-0.5" />
                     <div>
-                        <p className="text-[13px] font-semibold text-[#92400E]">Minimum 30 minutes applies</p>
+                        <p className="text-[13px] font-semibold text-[#92400E]">First 5 minutes are on us</p>
                         <p className="text-[12px] text-[#B45309] mt-1 leading-relaxed">
-                            Even if you end the call early, charges for 30 minutes will be fully deducted from your wallet.
+                            Start risk-free and get clarity with a free first 5 minutes. To continue the call for up to 30 minutes, recharge your wallet and activate the 30-minute plan.
                         </p>
                     </div>
                 </div>
@@ -249,6 +235,8 @@ export default function ProBuddyProfilePage() {
     const displayReviewsCount = Number(probuddy?.noOfRatingsReceived ?? 0);
     const ratingLabel = displayRating > 0 ? displayRating.toFixed(1) : 'NA';
     const reviewCountLabel = displayReviewsCount > 0 ? String(displayReviewsCount) : 'NA';
+    const proBuddyDisplayName = `${probuddy?.firstName ?? ''} ${probuddy?.lastName ?? ''}`.trim() || 'this ProBuddy';
+    const canWriteReview = ((probuddy as { canWriteReview?: boolean } | null)?.canWriteReview) === true;
     const aboutMeText = String(probuddy?.aboutMe?.aboutMe ?? '');
     const shouldShowReadMore = aboutMeText.length > 60;
     const radarData = OFFERING_FIELDS.map((field) => ({
@@ -270,12 +258,14 @@ export default function ProBuddyProfilePage() {
         };
     });
 
-    const withLoginGuard = (action: () => void) => {
+    const withLoginGuard = async (action: () => void | Promise<void>) => {
         if (!isAuthenticated || !userId) {
-            toggleLogin(() => action());
+            toggleLogin(() => {
+                void action();
+            });
             return;
         }
-        action();
+        await action();
     };
 
     const openPostReviewForm = () => {
@@ -310,29 +300,49 @@ export default function ProBuddyProfilePage() {
     });
 
     const handlePostReview = () => {
-        withLoginGuard(() => {
-            if (!showPostReviewForm) {
-                openPostReviewForm();
-                return;
-            }
+        if (!canWriteReview) {
+            toast.error('You can write a review only after completing an eligible call.');
+            return;
+        }
 
-            postReviewMutation.mutate();
-        });
+        if (!showPostReviewForm) {
+            openPostReviewForm();
+            return;
+        }
+
+        postReviewMutation.mutate();
     };
 
-    const handleOpenCallback = () => withLoginGuard(() => setShowCallbackPopup(true));
+    const handleOpenCallback = () => {
+        void withLoginGuard(() => setShowCallbackPopup(true));
+    };
 
-    const handleInstantCallback = () => withLoginGuard(() => {
+    const handleInstantCallback = () => {
+        void withLoginGuard(async () => {
         const ratePerMin = probuddy?.ratePerMinute ?? 0;
         const minRequired = 30 * ratePerMin;
-        const walletBalance = user?.walletAmount ?? 0;
+        let walletBalance = user?.walletAmount ?? 0;
+
+        // Always re-check wallet right before call flow so we don't open Add Money on stale state.
+        try {
+            const refreshedUser = await refreshUser(true);
+            if (refreshedUser && typeof refreshedUser.walletAmount === 'number') {
+                walletBalance = refreshedUser.walletAmount;
+            }
+        } catch {
+            // Keep existing in-memory balance if refresh fails.
+        }
+
         setDisplayBalance(walletBalance);
         if (walletBalance < minRequired) {
+            setShowInstantCallbackConfirm(false);
             setShowAddFunds(true);
         } else {
+            setShowAddFunds(false);
             setShowInstantCallbackConfirm(true);
         }
-    });
+        });
+    };
 
     const handleRecharge = async (amount: number) => {
         if (!user?.userName || amount <= 0 || isRecharging) return;
@@ -539,7 +549,7 @@ export default function ProBuddyProfilePage() {
                                 {/* Dividers & Socials */}
                                 <div className="hidden md:block mt-[12px]">
                                     <Divider />
-                                    <div className="py-[8px] flex flex-wrap items-center gap-[20px]">
+                                    <div className="py-[8px] flex items-center gap-[12px]">
                                         {(() => {
                                             const links = probuddy.links ?? [];
                                             if (links.length === 0) {
@@ -553,14 +563,15 @@ export default function ProBuddyProfilePage() {
                                                 const rawUrl = typeof linkItem === 'string' ? linkItem : String(linkItem.url ?? '');
                                                 const normalized = rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`;
                                                 const iconType = getSocialIconType(rawUrl, typeof linkItem === 'string' ? '' : linkItem.type);
-                                                const label = getSocialHandleLabel(rawUrl);
                                                 return (
                                                     <a
                                                         key={i}
                                                         href={normalized}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="flex items-center gap-[8px] font-medium text-[#6b7280] text-[14px] tracking-[0.28px] hover:text-[#0e1629] transition-colors"
+                                                        aria-label={normalized}
+                                                        title={normalized}
+                                                        className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F6] text-[#6b7280] hover:bg-[#E8EDF3] hover:text-[#0e1629] transition-colors"
                                                     >
                                                         {iconType === 'instagram' ? (
                                                             <FaInstagram className="text-[20px] text-[#E4405F] shrink-0" />
@@ -569,7 +580,6 @@ export default function ProBuddyProfilePage() {
                                                         ) : (
                                                             <Link2 className="w-5 h-5 text-[#6b7280] shrink-0" strokeWidth={1.5} />
                                                         )}
-                                                        <span className="truncate max-w-[160px]">{label}</span>
                                                     </a>
                                                 );
                                             });
@@ -742,11 +752,11 @@ export default function ProBuddyProfilePage() {
             {/* Success Stories Section */}
            <ReviewSection
                 reviews={mappedReviews}
-                onWriteReview={handlePostReview}
+                onWriteReview={canWriteReview ? handlePostReview : undefined}
                 writeReviewLabel={showPostReviewForm ? (postReviewMutation.isPending ? 'Posting...' : 'Post Review') : 'Write Review'}
                 writeReviewDisabled={postReviewMutation.isPending}
                 composer={
-                    showPostReviewForm ? (
+                    canWriteReview && showPostReviewForm ? (
                         <div ref={reviewFormRef} className="max-w-[520px] space-y-3 font-['Poppins']">
                             <div>
                                 <label className="block text-xs text-[#6b7280] mb-1">Rating</label>
@@ -791,7 +801,7 @@ export default function ProBuddyProfilePage() {
                                 Ready to Make Your College Decision?
                             </p>
                             <p className="absolute left-1/2 -translate-x-1/2 top-[80px] w-[316px] font-['Poppins'] font-normal text-[#F5F5F5] text-[14px] leading-[21px] text-center">
-                                Book a session with Aditya and get personalized guidance for your unique situation
+                                Book a session with {proBuddyDisplayName} and get personalized guidance for your unique situation
                             </p>
                             <button onClick={handleInstantCallback} className="absolute left-1/2 -translate-x-1/2 top-[163px] w-[246px] h-[48px] bg-white rounded-[12px] font-['Poppins'] font-medium text-[16px] text-[#2F43F2] cursor-pointer flex items-center justify-center gap-2">
                                 <Phone className="w-4 h-4" />
@@ -808,7 +818,7 @@ export default function ProBuddyProfilePage() {
                                 Ready to Make Your College Decision?
                             </p>
                             <p className="mt-3 font-['Poppins'] font-normal text-[#6b7280] text-base leading-normal">
-                                Book a session with Aditya and get personalized guidance for your unique situation
+                                Book a session with {proBuddyDisplayName} and get personalized guidance for your unique situation
                             </p>
                             <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-[500px] mx-auto">
                                 <button onClick={handleInstantCallback} className="bg-[#2f43f2] rounded-[12px] px-4 py-2.5 w-full max-w-[240px] font-['Poppins'] font-medium text-base text-white cursor-pointer flex items-center justify-center gap-2 hover:bg-[#253ce0] transition-colors">
