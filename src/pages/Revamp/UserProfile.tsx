@@ -4,7 +4,7 @@ import EditProfileModal from "@/components/student-dashboard/EditProfileModal";
 import { updateUserProfile } from "@/api/user";
 import { useAuthStore } from "@/store/AuthStore";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 export default function UserProfile(){
@@ -49,7 +49,13 @@ export default function UserProfile(){
             <div className="w-full border-b border-[#E3E8F4] bg-white">
                 <div className="max-w-7xl mx-auto px-4 py-3">
                     <p className="text-[0.875rem] text-(--text-muted) font-medium">
-                        Admission <span className="mx-1">{">"}</span>{" "}
+                        <Link
+                            to="/admissions"
+                            className="hover:text-(--text-main) transition-colors"
+                        >
+                            Admission
+                        </Link>
+                        <span className="mx-1">{">"}</span>{" "}
                         <span className="text-(--text-main)">Profile</span>
                     </p>
                 </div>

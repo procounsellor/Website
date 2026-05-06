@@ -232,15 +232,22 @@ export default function RevampHeader() {
         ? "flex w-full justify-center items-center gap-6"
         : "flex w-full justify-between items-center";
 
-    const mobileHeaderHeight = isRestrictedRole ? 80 : 98;
-    const mobileScrolledHeaderHeight = isRestrictedRole ? 48 : 56;
+    const mobileHeaderHeight = isRestrictedRole ? 52 : 98;
+    const mobileScrolledHeaderHeight = isRestrictedRole ? 32 : 56;
+    const desktopHeaderHeight = isRestrictedRole ? 96 : 184;
+    const desktopScrolledHeaderHeight = isRestrictedRole ? 56 : 100;
+    const desktopTopRowHeight = isRestrictedRole ? 32 : 60;
+    const desktopTopRowMargin = isRestrictedRole
+        ? (isScrolled ? "2px" : "4px")
+        : (isScrolled ? "20px" : "24px");
+    const showMobileUtilityRow = showGlobalSearch || !isRestrictedRole;
 
     return (
         <>
             {/* Invisible placeholder matching the un-scrolled header height to prevent page layout shift jitter */}
             <div 
                 className="w-full hidden md:block" 
-                style={{ height: 184 }}
+                style={{ height: desktopHeaderHeight }}
             />
             <div 
                 className="w-full md:hidden" 
@@ -252,7 +259,7 @@ export default function RevampHeader() {
                 animate={{ 
                     height: isMobile 
                         ? (isScrolled ? mobileScrolledHeaderHeight : mobileHeaderHeight) 
-                        : (isScrolled ? 100 : 184) 
+                        : (isScrolled ? desktopScrolledHeaderHeight : desktopHeaderHeight) 
                 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="fixed top-0 left-0 right-0 z-50 bg-[#C6DDF0]/40 flex flex-col items-center border-b border-gray-100 backdrop-blur-md"
@@ -272,9 +279,10 @@ export default function RevampHeader() {
 
             <motion.div 
                 initial={false}
-                animate={{ marginTop: isScrolled ? "20px" : "24px" }}
+                animate={{ marginTop: desktopTopRowMargin }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="hidden md:flex relative w-full  h-[60px] px-[60px] justify-between items-center z-10"
+                className="hidden md:flex relative w-full px-[60px] justify-between items-center z-10"
+                style={{ height: desktopTopRowHeight }}
             >
                 <div 
                     className="flex items-center gap-2 cursor-pointer w-[170px] h-[43px]" 
@@ -291,7 +299,7 @@ export default function RevampHeader() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }}
                             transition={{ duration: 0.2 }}
-                            className="absolute left-1/2 -translate-x-1/2 flex items-center gap-[12px] h-full"
+                            className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 h-full"
                         >
                             {visibleTabs.map((tab) => (
                                 <motion.button
@@ -305,18 +313,18 @@ export default function RevampHeader() {
                                     whileHover={{ y: -1 }}
                                     whileTap={{ scale: 0.98 }}
                                     transition={buttonTransition}
-                                    className={`flex flex-row items-center justify-center gap-2 h-full py-[8px] cursor-pointer transition-all ${
-                                        activeTab === tab.id ? 'border-b-[1px] border-[#000000]' : 'border-b-[1px] border-transparent'
+                                    className={`flex flex-row items-center justify-center gap-1 h-full py-1 cursor-pointer transition-all ${
+                                        activeTab === tab.id ? 'border-b border-[#000000]' : 'border-b border-transparent'
                                     }`}
                                 >
                                     {tab.iconPath && (
                                         <img
                                             src={tab.iconPath}
                                             alt={tab.name}
-                                            className="w-[44px] h-[44px] object-contain"
+                                            className="w-9 h-9 object-contain"
                                         />
                                     )}
-                                    <span className="font-poppins font-medium text-[18px] text-[#232323]">
+                                    <span className="font-poppins font-medium text-[15px] text-[#232323]">
                                         {tab.name}
                                     </span>
                                 </motion.button>
@@ -528,6 +536,7 @@ export default function RevampHeader() {
                     )}
                 </AnimatePresence>
 
+                {showMobileUtilityRow && (
                 <div className="flex w-full items-center gap-3">
                     {showGlobalSearch && (
                     <div className="flex-1 relative" ref={mobileSearchRef}>
@@ -680,6 +689,7 @@ export default function RevampHeader() {
                         </motion.button>
                     )}
                 </div>
+                )}
 
             </div>
 

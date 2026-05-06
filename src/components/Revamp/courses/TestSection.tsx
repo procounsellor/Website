@@ -156,6 +156,19 @@ export default function TestSection() {
     [myTestsResponse]
   );
 
+  const hasPurchasedTests = myTestsData.length > 0;
+  const visibleTabOptions = isUserLoggedIn
+    ? hasPurchasedTests
+      ? tabOptions
+      : tabOptions.filter((tab) => tab.id !== "my-tests")
+    : [];
+
+  useEffect(() => {
+    if (isUserLoggedIn && !hasPurchasedTests && activeTab === "my-tests") {
+      setActiveTab("trending");
+    }
+  }, [isUserLoggedIn, hasPurchasedTests, activeTab]);
+
   const isLoadingTests = isUserLoggedIn
     ? activeTab === "my-tests"
       ? isLoadingMyTests
@@ -243,9 +256,9 @@ export default function TestSection() {
             around your needs.
           </p>
 
-          {isUserLoggedIn && (
+          {isUserLoggedIn && visibleTabOptions.length > 0 && (
             <div className="flex gap-2.5 pt-2">
-              {tabOptions.map((tab) => (
+              {visibleTabOptions.map((tab) => (
                 <div
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
@@ -326,9 +339,9 @@ export default function TestSection() {
             </p>
           </div>
 
-          {isUserLoggedIn && (
+          {isUserLoggedIn && visibleTabOptions.length > 0 && (
             <div className="flex justify-center gap-[60px] mb-10">
-              {tabOptions.map((tab) => (
+              {visibleTabOptions.map((tab) => (
                 <motion.button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}

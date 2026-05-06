@@ -46,6 +46,9 @@ export default function RevampLayout() {
 
     const shouldShowOnboarding =
         isAuthenticated && (role === "student" || role === "user") && needsOnboarding;
+    const isRestrictedDashboardRoute =
+        location.pathname.startsWith('/pro-buddies/dashboard') ||
+        location.pathname.startsWith('/counsellor-dashboard');
 
     useEffect(() => {
         let isMounted = true;
@@ -159,6 +162,8 @@ export default function RevampLayout() {
     const isRestrictedRole =
         isAuthenticated && (role === 'proBuddy' || role === 'counselor');
 
+    const shouldShowFooter = !isPromoPage && (!isRestrictedRole || isRestrictedDashboardRoute);
+
     return <div className="flex flex-col min-h-screen relative">
         {!shouldHideBanner && <AppInstallBanner />}
         <RevampHeader />
@@ -166,7 +171,7 @@ export default function RevampLayout() {
         <div className="flex-1">
             <Outlet />
         </div>
-        {!isRestrictedRole && !isPromoPage && <Footer />}
+        {shouldShowFooter && <Footer />}
         {!isRestrictedRole && <EnquiryPopup />}
 
         {isLoginToggle && <LoginCard />}

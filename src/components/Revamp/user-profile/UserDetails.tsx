@@ -67,7 +67,7 @@ export default function UserDetails({ onEditClick }: UserDetailsProps) {
                     <img
                     src={photoUrl}
                     alt="user_image"
-                    className="rounded-full w-[6.25rem] h-[6.25rem] object-cover"
+                    className="rounded-full w-25 h-25 object-cover"
                 />
                 ):(
                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-50">
@@ -88,10 +88,10 @@ export default function UserDetails({ onEditClick }: UserDetailsProps) {
                 {data.map((item) => (
                     <h3
                         key={item.title}
-                        className="flex flex-col items-start gap-3 font-medium text-[1rem] text-(--text-main) py-[0.94rem] border-t border-[#E5E5E5]"
+                        className="flex min-w-0 flex-col items-start gap-3 font-medium text-[1rem] text-(--text-main) py-[0.94rem] border-t border-[#E5E5E5]"
                     >
                         {item.title}
-                        <span className="text-(--text-muted) font-medium">
+                        <span className="max-w-full break-all text-(--text-muted) font-medium">
                             {item.value}
                         </span>
                     </h3>

@@ -1,5 +1,6 @@
 import { useLocation, Link } from 'react-router-dom';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { useAuthStore } from '@/store/AuthStore';
 
 interface BreadcrumbItem {
   label: string;
@@ -8,8 +9,12 @@ interface BreadcrumbItem {
 
 export default function RevampBreadcrumbs() {
   const location = useLocation();
+  const role = useAuthStore((state) => state.role);
   const isCourseDetailPath =
     location.pathname.includes('/courses/detail/') || location.pathname.includes('/detail/');
+  const storedRole = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+  const activeRole = role || storedRole;
+  const isRestrictedDashboardRole = activeRole === 'proBuddy' || activeRole === 'counselor';
 
   const getBreadcrumbs = (): BreadcrumbItem[] => {
     const path = location.pathname;
@@ -20,8 +25,19 @@ export default function RevampBreadcrumbs() {
       return [];
     }
 
-    // Always start with Home for non-admission pages
-    crumbs.push({ label: 'Home', path: '/admissions' });
+    // Dashboard pages themselves should stay clean.
+    if (path === '/pro-buddies/dashboard' || path.startsWith('/pro-buddies/dashboard/')) {
+      return [];
+    }
+
+    if (path === '/counsellor-dashboard' || path.startsWith('/counsellor-dashboard/')) {
+      return [];
+    }
+
+    // Only non-restricted roles use Home as the breadcrumb root.
+    if (!isRestrictedDashboardRole) {
+      crumbs.push({ label: 'Home', path: '/admissions' });
+    }
 
     // Revamp course listing pages
     if (path === '/courses/course-listing' || path === '/revamp-courses/course-listing') {
@@ -59,7 +75,13 @@ export default function RevampBreadcrumbs() {
     }
     // Community routes
     else if (path.includes('/community')) {
-      crumbs.push({ label: 'Community', path: '/community' });
+      if (isRestrictedDashboardRole) {
+        const dashboardPath = activeRole === 'counselor' ? '/counsellor-dashboard' : '/pro-buddies/dashboard';
+        crumbs.push({ label: 'Dashboard', path: dashboardPath });
+        crumbs.push({ label: 'Community', path: '/community' });
+      } else {
+        crumbs.push({ label: 'Community', path: '/community' });
+      }
 
       if (path.includes('/community/question/')) {
         crumbs.push({ label: 'Question' });
@@ -136,8 +158,7 @@ export default function RevampBreadcrumbs() {
       crumbs.push({ label: 'Terms' });
     }
     else {
-      // For any other unmatched page, just show Home  
-      // Remove Home if it's the only crumb
+      // For any other unmatched page, just show Home.
       if (crumbs.length === 1 && crumbs[0].label === 'Home') {
         return [];
       }

@@ -21,6 +21,10 @@ export default function CourseCard(params: CourseCardParam) {
   const navigate = useNavigate();
   const role = localStorage.getItem("role") || "user";
   const duration = "3 Week";
+  const counselorName =
+    params.course?.counsellorName?.trim() ||
+    params.course?.counselorName?.trim() ||
+    "NA";
   const displayPrice = formatDisplayPrice(params.course?.price);
   const courseId = params.course?.id;
   const canNavigate = Boolean(courseId);
@@ -126,7 +130,7 @@ export default function CourseCard(params: CourseCardParam) {
                 <h3 className="text-(--text-main) font-medium text-[16px] line-clamp-2">
                   {params.course?.name}
                 </h3>
-                <p className="mt-2 text-(--text-muted) text-[10px] font-normal">By: Aditya Ram</p>
+                <p className="mt-2 text-(--text-muted) text-[10px] font-normal">By: {counselorName}</p>
                 <p className="mt-1 text-(--text-muted) text-[10px] font-normal">Duration: {duration}</p>
               </div>
 
@@ -198,7 +202,7 @@ export default function CourseCard(params: CourseCardParam) {
               <h3 className="text-(--text-main) font-semibold text-[0.875rem] line-clamp-1">
                 {params.course?.name}
               </h3>
-              <p className="text-(--text-muted) text-[0.75rem]">By: Aditya Ram</p>
+              <p className="text-(--text-muted) text-[0.75rem]">By: {counselorName}</p>
             </div>
 
             <div className="mt-2 flex flex-col gap-3">
@@ -264,7 +268,7 @@ export default function CourseCard(params: CourseCardParam) {
               {params.course?.name}
             </h1>
             <span className="text-(--text-muted) text-xs font-normal">
-              Aditya Ram
+              {counselorName}
             </span>
           </div>
 

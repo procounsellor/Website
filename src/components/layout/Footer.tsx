@@ -226,14 +226,17 @@ export default function Footer() {
                     alt="LinkedIn"
                     className="h-6 w-6 sm:h-7 sm:w-7 shrink-0"
                   />
-                  <a
-                    href="https://www.linkedin.com/company/procounsel-by-catalystai/posts/?feedView=all"
-                    target="_blank"
-                    aria-label="LinkedIn"
-                    className="font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
-                  >
-                    LinkedIn
-                  </a>
+                  <div className="min-w-0 flex-1">
+                    <a
+                      href="https://www.linkedin.com/company/procounsel-by-catalystai/posts/?feedView=all"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="LinkedIn"
+                      className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
+                    >
+                      LinkedIn
+                    </a>
+                  </div>
                 </li>
                 <li className="flex items-center gap-3">
                   <img
@@ -241,15 +244,17 @@ export default function Footer() {
                     alt="Facebook"
                     className="h-6 w-6 sm:h-7 sm:w-7 shrink-0"
                   />
-                  <a
-                    href="https://www.facebook.com/share/17GiZ34K46/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Facebook"
-                    className="font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
-                  >
-                    Facebook
-                  </a>
+                  <div className="min-w-0 flex-1">
+                    <a
+                      href="https://www.facebook.com/share/17GiZ34K46/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Facebook"
+                      className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
+                    >
+                      Facebook
+                    </a>
+                  </div>
                 </li>
                 <li className="flex items-center gap-3">
                   <img
@@ -257,15 +262,17 @@ export default function Footer() {
                     alt="Instagram"
                     className="h-6 w-6 sm:h-7 sm:w-7 shrink-0"
                   />
-                  <a
-                    href="https://www.instagram.com/procounsel.co.in?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Instagram"
-                    className="font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
-                  >
-                    Instagram
-                  </a>
+                  <div className="min-w-0 flex-1">
+                    <a
+                      href="https://www.instagram.com/procounsel.co.in?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Instagram"
+                      className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
+                    >
+                      Instagram
+                    </a>
+                  </div>
                 </li>
                 <li className="flex items-center gap-3">
                   <img
@@ -273,15 +280,17 @@ export default function Footer() {
                     alt="Twitter"
                     className="h-6 w-6 sm:h-7 sm:w-7 shrink-0"
                   />
-                  <a
-                    href="https://x.com/procounsel2025"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Twitter"
-                    className="font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
-                  >
-                    Twitter
-                  </a>
+                  <div className="min-w-0 flex-1">
+                    <a
+                      href="https://x.com/procounsel2025"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Twitter"
+                      className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
+                    >
+                      Twitter
+                    </a>
+                  </div>
                 </li>
               </ul>
             </div>
