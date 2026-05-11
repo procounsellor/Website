@@ -14,7 +14,10 @@ import PageSEO from "@/components/SEO/PageSEO";
 export default function Admissions() {
   const navigate = useNavigate();
   const location = useLocation();
-  const hasSeenSplash = sessionStorage.getItem('admissions-splash-seen') === 'true';
+  const isReactSnap = typeof navigator !== 'undefined' && navigator.userAgent === 'ReactSnap';
+  const hasSeenSplash =
+    isReactSnap ||
+    (typeof window !== 'undefined' && window.sessionStorage.getItem('admissions-splash-seen') === 'true');
 
   const navigateWithTabTransition = (path: string) => {
     if (location.pathname === path) {
@@ -52,7 +55,7 @@ export default function Admissions() {
   const animationPhase = 4;
 
   useEffect(() => {
-    if (hasSeenSplash) return; // Skip animation if already seen this session
+    if (hasSeenSplash) return; // Skip animation if already seen this session or while snapping.
 
     const timers = [
       setTimeout(() => setSplashPhase(1), 800),
