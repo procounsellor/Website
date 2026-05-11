@@ -26,7 +26,7 @@ export default function RevampHeader() {
     const visibleTabs = useMemo(() => {
         if (isCounselor) {
             return [
-                { id: 5, name: 'Dashboard', iconPath: '/person.svg', path: '/counsellor-dashboard' },
+                { id: 5, name: 'Dashboard', iconPath: '/ProBuddy.png', path: '/counsellor-dashboard' },
                 { id: 3, name: 'Community', iconPath: '/Community.png', path: '/community' },
             ];
         }

@@ -152,7 +152,14 @@ export default function RevampLayout() {
             }
             const isAllowedPath =
                 location.pathname === '/counsellor-dashboard' ||
-                location.pathname.startsWith('/community');
+                location.pathname.startsWith('/counsellor-dashboard/') ||
+                location.pathname.startsWith('/counselor-dashboard/') ||
+                location.pathname.startsWith('/community') ||
+                location.pathname.startsWith('/courses/detail/') ||
+                location.pathname.startsWith('/detail/') ||
+                location.pathname.startsWith('/counselor/test-groups') ||
+                location.pathname.startsWith('/create-test') ||
+                location.pathname.startsWith('/add-question/');
             if (!isAllowedPath) {
                 navigate('/counsellor-dashboard', { replace: true });
             }
