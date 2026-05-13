@@ -48,7 +48,13 @@ export default function RevampLayout() {
         isAuthenticated && (role === "student" || role === "user") && needsOnboarding;
     const isRestrictedDashboardRoute =
         location.pathname.startsWith('/pro-buddies/dashboard') ||
-        location.pathname.startsWith('/counsellor-dashboard');
+        location.pathname.startsWith('/counsellor-dashboard') ||
+        location.pathname === '/about' ||
+        location.pathname === '/contact' ||
+        location.pathname === '/privacy-policy' ||
+        location.pathname === '/terms' ||
+        location.pathname === '/cancellation-refund' ||
+        location.pathname === '/shipping-exchange';
 
     useEffect(() => {
         let isMounted = true;
@@ -138,7 +144,13 @@ export default function RevampLayout() {
             }
             const isAllowedPath =
                 location.pathname === '/pro-buddies/dashboard' ||
-                location.pathname.startsWith('/community');
+                location.pathname.startsWith('/community') ||
+                location.pathname === '/about' ||
+                location.pathname === '/contact' ||
+                location.pathname === '/privacy-policy' ||
+                location.pathname === '/terms' ||
+                location.pathname === '/cancellation-refund' ||
+                location.pathname === '/shipping-exchange';
             if (!isAllowedPath) {
                 navigate('/pro-buddies/dashboard', { replace: true });
             }
@@ -159,7 +171,13 @@ export default function RevampLayout() {
                 location.pathname.startsWith('/detail/') ||
                 location.pathname.startsWith('/counselor/test-groups') ||
                 location.pathname.startsWith('/create-test') ||
-                location.pathname.startsWith('/add-question/');
+                location.pathname.startsWith('/add-question/') ||
+                location.pathname === '/about' ||
+                location.pathname === '/contact' ||
+                location.pathname === '/privacy-policy' ||
+                location.pathname === '/terms' ||
+                location.pathname === '/cancellation-refund' ||
+                location.pathname === '/shipping-exchange';
             if (!isAllowedPath) {
                 navigate('/counsellor-dashboard', { replace: true });
             }

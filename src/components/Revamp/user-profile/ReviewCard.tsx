@@ -66,7 +66,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review, onEdit }) => {
           </div>
         </div>
         {onEdit && (
-          <button onClick={() => onEdit(review)} className="p-2 bg-[#F5F7FA] rounded-full hover:bg-[#E3E8F4] transition-colors">
+          <button onClick={() => onEdit(review)} className="p-2 bg-[#F5F7FA] rounded-full hover:bg-[#E3E8F4] transition-colors cursor-pointer">
             <Edit className="w-4 h-4 text-[#8C8CA1]" />
           </button>
         )}

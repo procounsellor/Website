@@ -44,11 +44,25 @@ const tabs = [
 ];
 
 export default function UserTabs() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get('activeTab');
   const initialTabId = urlTab ? (tabs.find(t => t.title === urlTab)?.id ?? 1) : 1;
   const [active, setActive] = useState(initialTabId);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  // Sync active tab with URL params
+  useLayoutEffect(() => {
+    const newTabId = urlTab ? (tabs.find(t => t.title === urlTab)?.id ?? 1) : 1;
+    setActive(newTabId);
+  }, [urlTab]);
+
+  const handleTabChange = (tabId: number) => {
+    const tab = tabs.find(t => t.id === tabId);
+    if (tab) {
+      setActive(tabId);
+      setSearchParams({ activeTab: tab.title });
+    }
+  };
 
   return (
     <div
@@ -63,7 +77,7 @@ export default function UserTabs() {
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActive(tab.id)}
+            onClick={() => handleTabChange(tab.id)}
             className="relative flex hover:cursor-pointer pt-[1.38rem] justify-center pr-5 pl-2.5 items-center text-[0.9rem] leading-none"
           >
             <div
@@ -893,88 +907,61 @@ function MyTests() {
 
 type AnyMap = Record<string, unknown>;
 
-type CallHistoryItem = {
-  id: string;
-  proBuddyName: string;
-  dateLabel: string;
-  timeLabel: string;
-  durationLabel: string;
-  statusLabel: string;
-};
-
 const isAnyMap = (value: unknown): value is AnyMap =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const toHistoryArray = (payload: unknown): AnyMap[] => {
-  if (Array.isArray(payload)) {
-    return payload.filter(isAnyMap);
-  }
-
-  if (!isAnyMap(payload)) {
-    return [];
-  }
-
+  if (Array.isArray(payload)) return payload.filter(isAnyMap);
+  if (!isAnyMap(payload)) return [];
   const candidateKeys = ['data', 'result', 'items', 'callHistory', 'history', 'calls'];
   for (const key of candidateKeys) {
     const node = payload[key];
-    if (Array.isArray(node)) {
-      return node.filter(isAnyMap);
-    }
+    if (Array.isArray(node)) return node.filter(isAnyMap);
   }
-
   if (isAnyMap(payload.data)) {
     for (const key of candidateKeys) {
       const node = payload.data[key];
-      if (Array.isArray(node)) {
-        return node.filter(isAnyMap);
-      }
+      if (Array.isArray(node)) return node.filter(isAnyMap);
     }
   }
-
   return [];
 };
 
-const toLabel = (value: unknown, fallback = 'NA') => {
+const toStr = (value: unknown, fallback = 'NA') => {
   if (typeof value !== 'string') return fallback;
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : fallback;
+  const t = value.trim();
+  return t.length > 0 ? t : fallback;
 };
 
-const toDateAndTime = (value: unknown) => {
-  if (typeof value !== 'string' || !value.trim()) {
-    return { dateLabel: 'NA', timeLabel: 'NA' };
-  }
-
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return { dateLabel: value, timeLabel: 'NA' };
-  }
-
+const parseDateTime = (value: unknown) => {
+  if (typeof value !== 'string' || !value.trim()) return { dateLabel: 'NA', timeLabel: 'NA' };
+  const parsed = new Date(value.replace(' ', 'T'));
+  if (Number.isNaN(parsed.getTime())) return { dateLabel: value, timeLabel: 'NA' };
   return {
-    dateLabel: parsed.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }),
-    timeLabel: parsed.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
+    dateLabel: parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+    timeLabel: parsed.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
   };
 };
 
-const toDuration = (value: unknown) => {
-  if (typeof value === 'string' && value.trim()) {
-    return value;
-  }
-
+const formatSeconds = (value: unknown) => {
   const num = Number(value);
-  if (Number.isFinite(num) && num >= 0) {
-    return `${num} min`;
-  }
-
-  return 'NA';
+  if (!Number.isFinite(num) || num < 0) return 'NA';
+  if (num === 0) return '0s';
+  const m = Math.floor(num / 60);
+  const s = num % 60;
+  if (m === 0) return `${s}s`;
+  return s === 0 ? `${m}m` : `${m}m ${s}s`;
 };
+
+const CALL_STATUS_STYLES: Record<string, { bg: string; text: string }> = {
+  completed: { bg: 'bg-[#28A7451A]', text: 'text-[#28A745]' },
+  failed:    { bg: 'bg-[#EE1C1F1A]', text: 'text-[#EE1C1F]'  },
+  missed:    { bg: 'bg-[#F2C94C1A]', text: 'text-[#F2994A]'  },
+  busy:      { bg: 'bg-orange-50',   text: 'text-orange-500'  },
+};
+
+const getCallStatusStyle = (s: string) =>
+  CALL_STATUS_STYLES[s.toLowerCase()] ?? { bg: 'bg-gray-100', text: 'text-gray-500' };
 
 function CallHistory() {
   const { userId } = useAuthStore();
@@ -985,26 +972,26 @@ function CallHistory() {
     enabled: !!userId,
   });
 
-  const rows = toHistoryArray(data).map((item, index): CallHistoryItem => {
-    const dateSource =
-      item.callDateTime ??
-      item.callDate ??
-      item.createdAt ??
-      item.scheduledDateTime ??
-      item.timestamp;
-    const { dateLabel, timeLabel } = toDateAndTime(dateSource);
-    const status = toLabel(item.status ?? item.callStatus, 'Completed');
+  const rows = toHistoryArray(data).map((item, index) => {
+    const { dateLabel, timeLabel } = parseDateTime(item.startTime ?? item.callDateTime ?? item.createdAt);
+    const rawStatus = toStr(item.status ?? item.callStatus, 'completed');
+    const statusStyle = getCallStatusStyle(rawStatus);
+    const paymentSettled = item.paymentSettled;
+    const proCoin = item.proCoinTransferred != null ? Number(item.proCoinTransferred) : null;
 
     return {
-      id: toLabel(item.callId ?? item.id ?? `${index}`, `${index}`),
-      proBuddyName: toLabel(
-        item.proBuddyFullName ?? item.proBuddyName ?? item.fullName ?? item.name,
-        'ProBuddy'
-      ),
+      id: toStr(item.id ?? item.callSid ?? `${index}`, `${index}`),
+      proBuddyId: toStr(item.proBuddyId ?? null, 'ProBuddy'),
+      name: toStr(item.userFullName ?? item.proBuddyFullName ?? item.proBuddyName ?? null, 'ProBuddy'),
+      photoUrl: toStr(item.userPhotoUrl ?? null, ''),
       dateLabel,
       timeLabel,
-      durationLabel: toDuration(item.duration ?? item.callDuration ?? item.durationInMinutes),
-      statusLabel: status.charAt(0).toUpperCase() + status.slice(1),
+      durationLabel: formatSeconds(item.conversationDuration ?? item.duration ?? item.callDuration),
+      statusLabel: rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1),
+      statusStyle,
+      paymentSettled: paymentSettled === true ? true : paymentSettled === false ? false : null,
+      proCoin,
+      eventType: toStr(item.eventType ?? null, ''),
     };
   });
 
@@ -1021,21 +1008,59 @@ function CallHistory() {
   }
 
   return (
-    <div className="w-full rounded-xl border border-[#EFEFEF]">
+    <div className="w-full rounded-xl border border-[#EFEFEF] overflow-hidden bg-white">
       <div className="max-h-136 overflow-y-auto divide-y divide-[#EFEFEF]">
         {rows.map((row) => (
-          <div key={row.id} className="px-4 py-3.5 flex items-center gap-4">
+          <div key={row.id} className="px-4 py-3.5 flex items-center gap-3">
+            {/* Avatar */}
+            <div className="shrink-0 w-9 h-9 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+              {row.photoUrl ? (
+                <img src={row.photoUrl} alt={row.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-[13px] font-semibold text-[#6B7280]">
+                  {row.name !== 'ProBuddy' ? row.name.charAt(0).toUpperCase() : 'P'}
+                </span>
+              )}
+            </div>
+
+            {/* Main info */}
             <div className="flex-1 min-w-0">
-              <p className="text-[15px] font-semibold text-[#0E1629] truncate">{row.proBuddyName}</p>
-              <p className="text-[13px] font-medium text-[#6B7280] mt-0.5">{row.dateLabel} at {row.timeLabel}</p>
+              <p className="text-[14px] font-semibold text-[#0E1629] truncate">{row.name}</p>
+              <p className="text-[12px] text-[#9CA3AF] mt-0.5">{row.dateLabel} · {row.timeLabel}</p>
+              {row.eventType && (
+                <p className="text-[11px] text-[#9CA3AF] capitalize">{row.eventType.replace(/_/g, ' ')}</p>
+              )}
             </div>
+
+            {/* Duration */}
             <div className="text-right shrink-0">
-              <p className="text-[12px] text-[#9CA3AF]">Duration</p>
+              <p className="text-[11px] text-[#9CA3AF]">Duration</p>
               <p className="text-[13px] font-semibold text-[#0E1629]">{row.durationLabel}</p>
+              {row.proCoin != null && (
+                <p className="text-[11px] font-medium text-[#2F43F2]">
+                  {row.proCoin > 0 ? `−${row.proCoin}` : row.proCoin} coins
+                </p>
+              )}
             </div>
-            <span className="shrink-0 px-3 py-1 rounded-3xl text-[12px] font-semibold bg-[#28A7451A] text-[#28A745]">
-              {row.statusLabel}
-            </span>
+
+            {/* Right side: call status + payment status stacked */}
+            <div className="shrink-0 flex flex-col items-end gap-1">
+              {/* Call status */}
+              <span className={`px-2.5 py-0.5 rounded-3xl text-[11px] font-semibold ${row.statusStyle.bg} ${row.statusStyle.text}`}>
+                {row.statusLabel}
+              </span>
+
+              {/* Payment status — only for completed calls, labeled to avoid confusion */}
+              {row.statusLabel.toLowerCase() === 'completed' && row.paymentSettled !== null && (
+                <span className={`px-2.5 py-0.5 rounded-3xl text-[11px] font-medium ${
+                  row.paymentSettled
+                    ? 'bg-[#28A7451A] text-[#28A745]'
+                    : 'bg-[#FEF9C3] text-[#B45309]'
+                }`}>
+                  {row.paymentSettled ? '₹ Paid' : '₹ Pending'}
+                </span>
+              )}
+            </div>
           </div>
         ))}
       </div>

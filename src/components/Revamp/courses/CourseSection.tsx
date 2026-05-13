@@ -111,7 +111,7 @@ export default function CourseSection() {
 
     if (activeTab === "trending") {
       return allCoursesData.filter(
-        (course) => course.isTrending && !course.isPurchased,
+        (course) => !course.isPurchased,
       );
     }
 
