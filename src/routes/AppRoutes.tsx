@@ -4,6 +4,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import RoleBasedRoute from "@/components/auth/RoleBasedRoute";
 import { Toaster } from 'react-hot-toast';
 import RevampLayout from '@/layouts/RevampLayout';
+const NotFound = lazy(() => import("@/pages/NotFound"));
 const ContactPage = lazy(() => import("@/pages/Contact"));
 const PrivacyPolicyPage = lazy(() => import("@/pages/PrivacyPolicy"));
 const TermsPage = lazy(() => import("@/pages/Terms"));
@@ -142,7 +143,7 @@ export default function AppRoutes() {
                         <Route path='/revamp-courses/test-listing' element={<TestListing />} />
                         <Route path='/revamp-courses/session-listing' element={<SessionListing />} />
                         <Route path='/revamp-about' element={<RevampAbout />} />
-                      
+
                         <Route path='/counsellor-listing' element={<CounsellorsPage />} />
                         <Route path='/counsellor-listing-cards' element={<CounsellorsPage />} />
                         <Route path="/counsellor-details/:id" element={<RevampCounselorDetailsPage />} />
@@ -226,6 +227,9 @@ export default function AppRoutes() {
                             <Route path='/live-sessions' element={<LiveSessionsPage />} />
                             <Route path='/wallet' element={<RechargeWallet />} />
                         </Route>
+
+                        {/* 404 Page */}
+                        <Route path='*' element={<NotFound />} />
                     </Route>
                 </Routes>
             </Suspense>
