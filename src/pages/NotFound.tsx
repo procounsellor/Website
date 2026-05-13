@@ -23,12 +23,14 @@ export default function NotFound() {
 
           <div className="flex flex-col gap-3">
             <button
+              type="button"
               onClick={() => navigate('/')}
               className="w-full bg-[#0E1629] text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity cursor-pointer"
             >
               Go to Home
             </button>
             <button
+              type="button"
               onClick={() => navigate(-1)}
               className="w-full border border-[#0E1629] text-[#0E1629] font-semibold py-3 px-6 rounded-lg hover:bg-[#F8FAFC] transition-colors cursor-pointer"
             >
