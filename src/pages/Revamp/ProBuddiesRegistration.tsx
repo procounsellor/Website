@@ -1,16 +1,25 @@
-import { useDeferredValue, useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import type { DragEvent, ChangeEvent, FormEvent, MouseEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/AuthStore";
 import {
-  getAllCollegesListInIndia,
   registerProBuddy,
   uploadProBuddyPhoto,
   uploadProBuddyIdCardPhoto,
 } from "@/api/pro-buddies";
-import type { FeaturedCollegeInIndia } from "@/api/pro-buddies";
+
+// New college search API types
+interface CollegeSearchResult {
+  id: number;
+  college_name: string;
+  university_name: string;
+  state: string;
+  district: string;
+  college_type: string | null;
+  university_type: string | null;
+}
 
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png"];
@@ -24,63 +33,6 @@ const YEAR_OPTIONS = [
 ] as const;
 
 const isAcceptedImage = (file: File) => ACCEPTED_IMAGE_TYPES.includes(file.type);
-
-const ACRONYM_STOP_WORDS = new Set(['of', 'and', 'the', 'for', 'a', 'an', 'in', 'at', 'to', 'by', 'on']);
-
-const getNameAcronym = (name: string) =>
-  name
-    .split(/[\s\-,()/]+/)
-    .filter((w) => w.length > 0 && !ACRONYM_STOP_WORDS.has(w.toLowerCase()))
-    .map((w) => w[0].toLowerCase())
-    .join('');
-
-// Returns a relevance score > 0 if the college matches the query, 0 if no match.
-// Higher score = better match.
-const scoreCollege = (college: FeaturedCollegeInIndia, query: string): number => {
-  const q = query.toLowerCase().trim();
-  if (!q) return 1;
-
-  const name = college.name.toLowerCase();
-  const state = (college['state-province'] || '').toLowerCase();
-  const country = (college.country || '').toLowerCase();
-  const alpha = (college.alpha_two_code || '').toLowerCase();
-  const domains = (college.domains || []).join(' ').toLowerCase();
-  const fullText = [name, state, country, alpha, domains].join(' ');
-  const acronym = getNameAcronym(college.name);
-
-  // Exact acronym match — "iit" === "iit"
-  if (acronym === q) return 7;
-  // Name starts with the full query
-  if (name.startsWith(q)) return 6;
-  // Acronym starts with query — "iit" prefix matches "iitd", "iitr", etc.
-  if (acronym.startsWith(q)) return 5;
-
-  // Multi-token: e.g. "iit delhi" → acronym prefix "iit" + last token "delhi" anywhere
-  const tokens = q.split(/\s+/).filter(Boolean);
-  if (tokens.length > 1) {
-    const acronymPart = tokens.slice(0, -1).join('');
-    const lastToken = tokens[tokens.length - 1];
-    if (acronym.startsWith(acronymPart) && fullText.includes(lastToken)) return 4;
-    if (tokens.every((t) => fullText.includes(t))) return 3;
-  }
-
-  // Acronym contains query anywhere
-  if (acronym.includes(q)) return 2;
-  // Plain substring match on full text
-  if (fullText.includes(q)) return 1;
-
-  return 0;
-};
-
-const getCollegeKey = (college: FeaturedCollegeInIndia) => [college.name, college["state-province"], college.country].filter(Boolean).join("|");
-
-const formatCollegeLocation = (college?: FeaturedCollegeInIndia | null) => {
-  if (!college) {
-    return "";
-  }
-
-  return college["state-province"] || "";
-};
 
 export default function ProBuddiesRegistration() {
   const navigate = useNavigate();
@@ -114,44 +66,80 @@ export default function ProBuddiesRegistration() {
 
   const [collegeSearch, setCollegeSearch] = useState("");
   const [isCollegeDropdownOpen, setIsCollegeDropdownOpen] = useState(false);
-  const [selectedCollegeKey, setSelectedCollegeKey] = useState<string | null>(null);
-  const deferredCollegeSearch = useDeferredValue(collegeSearch);
+  const [selectedCollege, setSelectedCollege] = useState<CollegeSearchResult | null>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout>();
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
 
+  // Handle college search with debounce
+  const handleCollegeSearchChange = useCallback((value: string) => {
+    setCollegeSearch(value);
+    setIsCollegeDropdownOpen(true);
+    setSelectedCollege(null);
+    setFormData((prev) => ({
+      ...prev,
+      institution: "",
+      location: "",
+    }));
+
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Only set debounced query if input is >= 3 characters
+    if (value.trim().length >= 3) {
+      debounceTimerRef.current = setTimeout(() => {
+        setDebouncedSearchQuery(value.trim());
+      }, 500); // 500ms debounce
+    } else {
+      setDebouncedSearchQuery("");
+    }
+  }, []);
+
+  // Fetch colleges from search API with debounced query
   const { data: colleges = [], isLoading: isCollegesLoading } = useQuery({
-    queryKey: ["probuddy-colleges"],
-    queryFn: getAllCollegesListInIndia,
+    queryKey: ["college-search", debouncedSearchQuery],
+    queryFn: async () => {
+      if (!debouncedSearchQuery || debouncedSearchQuery.length < 3) {
+        return [];
+      }
+      const response = await fetch(
+        `https://college-search-api.vercel.app/search?q=${encodeURIComponent(debouncedSearchQuery)}&limit=20`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch colleges");
+      }
+      const data = await response.json();
+      return data.results || [];
+    },
+    enabled: debouncedSearchQuery.length >= 3,
     staleTime: 5 * 60 * 1000,
   });
 
-  const selectedCollegeSummary = useMemo(
-    () => colleges.find((college) => getCollegeKey(college) === selectedCollegeKey) || null,
-    [colleges, selectedCollegeKey]
-  );
+  const filteredColleges = useMemo(() => colleges, [colleges]);
 
-  const filteredColleges = useMemo(() => {
-    const q = deferredCollegeSearch.trim();
+  const handleSelectCollege = (college: CollegeSearchResult) => {
+    setSelectedCollege(college);
+    setCollegeSearch(college.college_name);
+    setIsCollegeDropdownOpen(false);
+    setFormData((prev) => ({
+      ...prev,
+      institution: college.college_name,
+      location: college.state,
+    }));
+  };
 
-    if (!q) return colleges.slice(0, 8);
-
-    return colleges
-      .map((college) => ({ college, score: scoreCollege(college, q) }))
-      .filter(({ score }) => score > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 8)
-      .map(({ college }) => college);
-  }, [colleges, deferredCollegeSearch]);
-
-  useEffect(() => {
-    return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
-
-      if (idCardPreviewUrl) {
-        URL.revokeObjectURL(idCardPreviewUrl);
-      }
-    };
-  }, [previewUrl, idCardPreviewUrl]);
+  const clearCollegeSelection = () => {
+    setSelectedCollege(null);
+    setCollegeSearch("");
+    setIsCollegeDropdownOpen(false);
+    setDebouncedSearchQuery("");
+    setFormData((prev) => ({
+      ...prev,
+      institution: "",
+      location: "",
+    }));
+  };
 
   const [formData, setFormData] = useState({
     firstName: user?.firstName || "",
@@ -193,38 +181,21 @@ export default function ProBuddiesRegistration() {
     return Math.min(OFFERING_LIMITS.max, Math.max(OFFERING_LIMITS.min, parsedValue));
   };
 
-  const handleCollegeSearchChange = (value: string) => {
-    setCollegeSearch(value);
-    setIsCollegeDropdownOpen(true);
-    setSelectedCollegeKey(null);
-    setFormData((prev) => ({
-      ...prev,
-      institution: "",
-      location: "",
-    }));
-  };
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
 
-  const handleSelectCollege = (college: FeaturedCollegeInIndia) => {
-    setSelectedCollegeKey(getCollegeKey(college));
-    setCollegeSearch(college.name);
-    setIsCollegeDropdownOpen(false);
-    setFormData((prev) => ({
-      ...prev,
-      institution: college.name,
-      location: formatCollegeLocation(college),
-    }));
-  };
+      if (idCardPreviewUrl) {
+        URL.revokeObjectURL(idCardPreviewUrl);
+      }
 
-  const clearCollegeSelection = () => {
-    setSelectedCollegeKey(null);
-    setCollegeSearch("");
-    setIsCollegeDropdownOpen(false);
-    setFormData((prev) => ({
-      ...prev,
-      institution: "",
-      location: "",
-    }));
-  };
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [previewUrl, idCardPreviewUrl]);
 
   const setProfilePreview = (file: File) => {
     if (!isAcceptedImage(file)) {
@@ -333,14 +304,14 @@ export default function ProBuddiesRegistration() {
     if (loading) {
       return;
     }
-    
+
     const firstName = formData.firstName.trim();
     const lastName = formData.lastName.trim();
     const location = formData.location.trim();
-    const collegeName = selectedCollegeSummary?.name || formData.institution.trim();
+    const collegeName = selectedCollege?.college_name || formData.institution.trim();
 
-    if (!firstName || !lastName || !location || !selectedCollegeSummary) {
-      toast.error("Please fill in all required fields.");
+    if (!firstName || !lastName || !location || !selectedCollege) {
+      toast.error("Please fill in all required fields and select a college.");
       return;
     }
 
@@ -349,8 +320,6 @@ export default function ProBuddiesRegistration() {
       return;
     }
 
-    const [city = "", state = ""] = location.split(",").map((s) => s.trim());
-    
     const payload = {
       firstName,
       lastName,
@@ -359,16 +328,15 @@ export default function ProBuddiesRegistration() {
       collegeName,
       currentYear: formData.years,
       course: `${formData.degree} ${formData.course}`.trim(),
-      city: city || selectedCollegeSummary?.["state-province"] || location,
-      state: state || selectedCollegeSummary?.country || location,
+      city: selectedCollege.district || location,
+      state: selectedCollege.state || location,
       collegeData: {
-        name: selectedCollegeSummary.name,
-        country: selectedCollegeSummary.country,
-        domains: selectedCollegeSummary.domains,
-        stateProvince: selectedCollegeSummary["state-province"],
-        alpha_two_code: selectedCollegeSummary.alpha_two_code,
-        web_pages: selectedCollegeSummary.web_pages,
-        website: selectedCollegeSummary.web_pages?.[0] || null,
+        name: selectedCollege.college_name,
+        universityName: selectedCollege.university_name,
+        state: selectedCollege.state,
+        district: selectedCollege.district,
+        collegeType: selectedCollege.college_type,
+        universityType: selectedCollege.university_type,
       },
       whoShouldConnect: formData.whyConnect,
       aboutMe: {
@@ -698,7 +666,7 @@ export default function ProBuddiesRegistration() {
                 Institution / College*
               </label>
 
-              {selectedCollegeSummary ? (
+              {selectedCollege ? (
                 <button
                   type="button"
                   onClick={clearCollegeSelection}
@@ -735,12 +703,11 @@ export default function ProBuddiesRegistration() {
                     </div>
                   ) : (
                     filteredColleges.map((college) => {
-                      const collegeLocation = formatCollegeLocation(college);
-                      const domains = college.domains?.length ? college.domains.join(", ") : "No domain listed";
+                      const collegeLocation = college.state;
 
                       return (
                         <button
-                          key={getCollegeKey(college)}
+                          key={college.id}
                           type="button"
                           onMouseDown={(event) => {
                             event.preventDefault();
@@ -750,7 +717,7 @@ export default function ProBuddiesRegistration() {
                         >
                           <div className="flex h-[40px] w-[40px] shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-[#F3F4F6]">
                             <span className="text-[12px] font-semibold text-[#64748B]" style={{ fontFamily: 'Poppins' }}>
-                              {college.name.slice(0, 2).toUpperCase()}
+                              {college.college_name.slice(0, 2).toUpperCase()}
                             </span>
                           </div>
 
@@ -758,7 +725,7 @@ export default function ProBuddiesRegistration() {
                             <div className="flex items-start justify-between gap-[12px]">
                               <div className="min-w-0">
                                 <p className="truncate text-[14px] font-semibold text-[#0E1629]" style={{ fontFamily: 'Poppins' }}>
-                                  {college.name}
+                                  {college.college_name}
                                 </p>
                                 <p className="truncate text-[12px] text-[#6B7280]" style={{ fontFamily: 'Poppins' }}>
                                   {collegeLocation || "Location not available"}
@@ -766,14 +733,13 @@ export default function ProBuddiesRegistration() {
                               </div>
 
                               <span className="shrink-0 rounded-full bg-[#EEF2FF] px-[10px] py-[4px] text-[11px] font-medium text-[#2F43F2]" style={{ fontFamily: 'Poppins' }}>
-                                {college.alpha_two_code || "College"}
+                                {college.college_type || "College"}
                               </span>
                             </div>
 
                             <div className="mt-[8px] flex flex-wrap gap-[8px] text-[11px] text-[#475569]" style={{ fontFamily: 'Poppins' }}>
-                              {college.country ? <span className="rounded-full bg-[#F8FAFC] px-[8px] py-[3px]">{college.country}</span> : null}
-                              {college["state-province"] ? <span className="rounded-full bg-[#F8FAFC] px-[8px] py-[3px]">{college["state-province"]}</span> : null}
-                              <span className="rounded-full bg-[#F8FAFC] px-[8px] py-[3px]">{domains}</span>
+                              {college.state ? <span className="rounded-full bg-[#F8FAFC] px-[8px] py-[3px]">{college.state}</span> : null}
+                              {college.district ? <span className="rounded-full bg-[#F8FAFC] px-[8px] py-[3px]">{college.district}</span> : null}
                             </div>
                           </div>
                         </button>
@@ -876,36 +842,35 @@ export default function ProBuddiesRegistration() {
         </div>
 
         <div className="rounded-[16px] border border-[#E5E7EB] bg-[#F8FAFC] p-[18px] shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-          {selectedCollegeSummary ? (
+          {selectedCollege ? (
             <>
               <div className="flex flex-col gap-[16px] lg:flex-row lg:items-start">
                 <div className="h-[96px] w-full shrink-0 overflow-hidden rounded-[12px] bg-[#E2E8F0] lg:w-[180px] flex items-center justify-center">
                   <span className="text-[28px] font-semibold text-[#64748B]" style={{ fontFamily: 'Poppins' }}>
-                    {selectedCollegeSummary.name.slice(0, 2).toUpperCase()}
+                    {selectedCollege.college_name.slice(0, 2).toUpperCase()}
                   </span>
                 </div>
 
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-[8px]">
                     <h3 className="min-w-0 text-[18px] font-semibold text-[#0E1629]" style={{ fontFamily: 'Poppins' }}>
-                      {selectedCollegeSummary.name}
+                      {selectedCollege.college_name}
                     </h3>
-                    {selectedCollegeSummary.alpha_two_code ? (
+                    {selectedCollege.college_type ? (
                       <span className="rounded-full bg-[#EEF2FF] px-[10px] py-[4px] text-[11px] font-medium text-[#2F43F2]" style={{ fontFamily: 'Poppins' }}>
-                        {selectedCollegeSummary.alpha_two_code}
+                        {selectedCollege.college_type}
                       </span>
                     ) : null}
                   </div>
 
                   <p className="mt-[4px] text-[13px] text-[#475569]" style={{ fontFamily: 'Poppins' }}>
-                    {formatCollegeLocation(selectedCollegeSummary) || "Location not available"}
+                    {selectedCollege.state || "Location not available"}
                   </p>
 
                   <div className="mt-[12px] flex flex-wrap gap-[8px] text-[12px]" style={{ fontFamily: 'Poppins' }}>
-                    {selectedCollegeSummary.country ? <span className="rounded-full bg-white px-[10px] py-[5px] text-[#334155]">Country: {selectedCollegeSummary.country}</span> : null}
-                    {selectedCollegeSummary["state-province"] ? <span className="rounded-full bg-white px-[10px] py-[5px] text-[#334155]">State: {selectedCollegeSummary["state-province"]}</span> : null}
-                    {selectedCollegeSummary.domains?.length ? <span className="rounded-full bg-white px-[10px] py-[5px] text-[#334155]">Domain: {selectedCollegeSummary.domains.join(", ")}</span> : null}
-                    {selectedCollegeSummary.web_pages?.length ? <span className="rounded-full bg-white px-[10px] py-[5px] text-[#334155]">Website: {selectedCollegeSummary.web_pages[0]}</span> : null}
+                    {selectedCollege.state ? <span className="rounded-full bg-white px-[10px] py-[5px] text-[#334155]">State: {selectedCollege.state}</span> : null}
+                    {selectedCollege.district ? <span className="rounded-full bg-white px-[10px] py-[5px] text-[#334155]">District: {selectedCollege.district}</span> : null}
+                    {selectedCollege.university_name ? <span className="rounded-full bg-white px-[10px] py-[5px] text-[#334155]">University: {selectedCollege.university_name}</span> : null}
                   </div>
                 </div>
               </div>
@@ -1143,7 +1108,7 @@ export default function ProBuddiesRegistration() {
             className="text-[#0E1629] text-[20px] font-semibold leading-[100%]"
             style={{ fontFamily: 'Poppins' }}
           >
-            College Life at {selectedCollegeSummary?.name || "Selected College"}
+            College Life at {selectedCollege?.name || "Selected College"}
           </h2>
         </div>
 

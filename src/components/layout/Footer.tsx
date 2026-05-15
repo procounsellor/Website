@@ -133,7 +133,7 @@ export default function Footer() {
                     Exams
                   </a>
                 </li> */}
-                {role !== "counselor" && (
+                {role !== "counselor" && role !== "proBuddy" && (
                   <li>
                     <a
                       href="/counsellor-listing"
@@ -144,25 +144,26 @@ export default function Footer() {
                   </li>
                 )}
                 <li>
-                  <a
-                    href="/about"
+                  <Link
+                    to="/about"
                     className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
                   >
                     About Us
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="/contact"
+                  <Link
+                    to="/contact"
                     className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
                   >
                     Contact
-                  </a>
+                  </Link>
                 </li>
                 {/* <li>
                   <a href="/counsellor-dashboard" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Add College</a>
                 </li> */}
-                {role !== "counselor" && role !== "proBuddy" && (
+                {/* Registration buttons — only for non-authenticated users or students */}
+                {(role !== "counselor" && role !== "proBuddy") && (
                   <>
                     <li>
                       <button

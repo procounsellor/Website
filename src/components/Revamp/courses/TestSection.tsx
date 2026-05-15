@@ -184,7 +184,7 @@ export default function TestSection() {
 
     if (activeTab === "trending") {
       return testsData.filter(
-        (test) => test.isTrending && !test.isPurchased,
+        (test) => !test.isPurchased,
       );
     }
 
