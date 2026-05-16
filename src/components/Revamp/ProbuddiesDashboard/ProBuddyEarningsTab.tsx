@@ -45,15 +45,58 @@ const formatSeconds = (value: unknown) => {
   return s === 0 ? `${m}m` : `${m}m ${s}s`;
 };
 
-const MAX_CHART_VALUE = 1500;
-const mockChartData = [
-  { label: 'Jan', value: 850 }, { label: 'Feb', value: 1490 },
-  { label: 'Mar', value: 1250 }, { label: 'Apr', value: 800 },
-  { label: 'May', value: 650 }, { label: 'Jun', value: 920 },
-  { label: 'Jul', value: 780 }, { label: 'Aug', value: 920 },
-  { label: 'Sep', value: 1216 }, { label: 'Oct', value: 1000 },
-  { label: 'Nov', value: 1250 }, { label: 'Dec', value: 1250 },
-];
+const getMonthlyChartData = (calls: Array<{ coins: number | null; dateLabel: string }>) => {
+  const monthlyEarnings: Record<number, number> = {};
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  calls.forEach(call => {
+    try {
+      const [day, month, year] = call.dateLabel.split(' ');
+      const monthIndex = monthNames.findIndex(m => m === month);
+      if (monthIndex !== -1) {
+        monthlyEarnings[monthIndex] = (monthlyEarnings[monthIndex] || 0) + (call.coins ?? 0);
+      }
+    } catch {
+      // Skip if date parsing fails
+    }
+  });
+
+  return monthNames.map((label, index) => ({
+    label,
+    value: monthlyEarnings[index] || 0,
+  }));
+};
+
+const getYearlyChartData = (calls: Array<{ coins: number | null; dateLabel: string }>) => {
+  const yearlyEarnings: Record<number, number> = {};
+  const currentYear = new Date().getFullYear();
+  
+  calls.forEach(call => {
+    try {
+      const dateParts = call.dateLabel.split(' ');
+      if (dateParts.length >= 3) {
+        const yearStr = dateParts[2];
+        const year = parseInt(yearStr);
+        if (!isNaN(year)) {
+          yearlyEarnings[year] = (yearlyEarnings[year] || 0) + (call.coins ?? 0);
+        }
+      }
+    } catch {
+      // Skip if date parsing fails
+    }
+  });
+
+  // Show last 4 years
+  const years: number[] = [];
+  for (let i = 3; i >= 0; i--) {
+    years.push(currentYear - i);
+  }
+
+  return years.map(year => ({
+    label: String(year),
+    value: yearlyEarnings[year] || 0,
+  }));
+};
 
 function EarningBlock({ title, amount, type }: { title: string; amount: string; type: 'earnings' | 'payout' }) {
   const isEarnings = type === 'earnings';
@@ -87,6 +130,12 @@ const ProBuddyEarningsTab: React.FC = () => {
     enabled: Boolean(proBuddyId),
   });
 
+  const { data: profileData } = useQuery({
+    queryKey: ['probuddy-profile', proBuddyId],
+    queryFn: () => probuddiesApi.profileForProBuddy(proBuddyId),
+    enabled: Boolean(proBuddyId),
+  });
+
   const calls = useMemo(() => toArray(rawData).map((item, i) => {
     const { dateLabel, timeLabel } = parseDateTime(item.startTime ?? item.callDateTime);
     const paymentSettled = item.paymentSettled;
@@ -112,10 +161,37 @@ const ProBuddyEarningsTab: React.FC = () => {
   const completedCalls = useMemo(() => calls.filter(c => c.status === 'completed'), [calls]);
   const paidCalls = useMemo(() => completedCalls.filter(c => c.isPaid), [completedCalls]);
   const pendingPaymentCalls = useMemo(() => completedCalls.filter(c => !c.isPaid), [completedCalls]);
-  const totalCoins = useMemo(() =>
+  
+  // Use walletAmount from profile for total coins (source of truth - unpaid/unsettled coins only)
+  const walletAmount = useMemo(() => {
+    const profileResponse = profileData as any;
+    if (profileResponse?.data?.walletAmount) {
+      return Number(profileResponse.data.walletAmount);
+    }
+    return 0;
+  }, [profileData]);
+
+  // Total Coins = Current wallet amount (unpaid coins)
+  const totalCoins = walletAmount;
+  
+  // Total Earned = All coins earned from all calls (paid + unpaid)
+  const totalEarned = useMemo(() =>
     completedCalls.reduce((sum, c) => sum + (c.coins ?? 0), 0), [completedCalls]);
+  
+  // Paid Coins = Coins that have been settled/paid out
   const paidCoins = useMemo(() =>
     paidCalls.reduce((sum, c) => sum + (c.coins ?? 0), 0), [paidCalls]);
+
+  // Generate dynamic chart data
+  const monthlyChartData = useMemo(() => getMonthlyChartData(completedCalls), [completedCalls]);
+  const yearlyChartData = useMemo(() => getYearlyChartData(completedCalls), [completedCalls]);
+
+  const chartData = slabTab === 'Monthly' ? monthlyChartData : yearlyChartData;
+  const maxChartValue = useMemo(() => {
+    const max = Math.max(...chartData.map(d => d.value), 1);
+    // Round up to nearest 500
+    return Math.ceil(max / 500) * 500;
+  }, [chartData]);
 
   return (
     <div className="pt-3 pl-3 pr-3 sm:pt-6 sm:pl-6 sm:pr-0 font-['Poppins'] h-full">
@@ -167,7 +243,7 @@ const ProBuddyEarningsTab: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <img src="/Procoin.jpg" alt="coin" className="w-5 h-5 rounded-full object-cover" />
-                    <p className="text-[24px] font-bold text-[#14A249]">{totalCoins}</p>
+                    <p className="text-[24px] font-bold text-[#14A249]">{totalEarned}</p>
                   </div>
                 </div>
                 <div className="rounded-[16px] bg-[#FFF7ED] border border-[#FDE68A] p-4">
@@ -225,10 +301,10 @@ const ProBuddyEarningsTab: React.FC = () => {
                 </div>
                 <div className="absolute top-[140px] left-[18px] right-[18px] h-[180px] sm:h-[220px] flex overflow-x-auto overflow-y-hidden pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                   <div className="w-[40px] h-[190px] flex flex-col justify-between items-end pr-2 text-[12px] text-[#B8B8B8] border-r border-dashed border-[#E5E5E5] shrink-0">
-                    <span>1500</span><span>1000</span><span>500</span><span>0</span>
+                    <span>{maxChartValue}</span><span>{Math.round(maxChartValue * 0.67)}</span><span>{Math.round(maxChartValue * 0.33)}</span><span>0</span>
                   </div>
                   <div className="grow min-w-[412px] h-[190px] relative flex items-end justify-between pl-3 pr-2 border-b border-dashed border-[#E5E5E5]">
-                    {mockChartData.map((d, i) => (
+                    {chartData.map((d, i) => (
                       <div
                         key={i}
                         className={`flex flex-col items-center justify-end h-full relative cursor-pointer w-5 ${hoveredIndex === i ? 'z-50' : 'z-10'}`}
@@ -243,7 +319,7 @@ const ProBuddyEarningsTab: React.FC = () => {
                         </div>
                         <div
                           className="w-5 bg-[#2F43F2] rounded-t-[4px] transition-all duration-300 opacity-90 hover:opacity-100"
-                          style={{ height: `${(d.value / MAX_CHART_VALUE) * 100}%` }}
+                          style={{ height: `${maxChartValue > 0 ? (d.value / maxChartValue) * 100 : 0}%` }}
                         />
                         <div className="absolute bottom-[-45px] text-[12px] font-medium text-[#B8B8B8] -ml-[18px] -rotate-90 origin-top translate-y-[-50%]">
                           {d.label}

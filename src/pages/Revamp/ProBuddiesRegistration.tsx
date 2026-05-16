@@ -326,6 +326,7 @@ export default function ProBuddiesRegistration() {
       phoneNumber: formData.phoneNumber.trim(),
       email: formData.email.trim(),
       collegeName,
+      collegeId: selectedCollege?.id ? String(selectedCollege.id) : null,
       currentYear: formData.years,
       course: `${formData.degree} ${formData.course}`.trim(),
       city: selectedCollege.district || location,
@@ -361,17 +362,46 @@ export default function ProBuddiesRegistration() {
     try {
       setLoading(true);
       
+      // Step 1: Register ProBuddy with payload
       const regResponse = await registerProBuddy(payload);
-      const newBuddyId = regResponse.id || regResponse.proBuddyId || regResponse.counsellorId; 
+      const newBuddyId = regResponse.id || regResponse.proBuddyId || regResponse.data?.id || regResponse.data?.proBuddyId || payload?.phoneNumber;
+
+      if (!newBuddyId) {
+        throw new Error("Failed to get ProBuddy ID from registration response");
+      }
+
+      // Step 2: Upload ID Card and Profile Photo in parallel (after registration)
+      // Both are non-blocking - can be uploaded later if they fail
+      const uploadPromises = [];
       
-      if (selectedImage && newBuddyId) {
-        await uploadProBuddyPhoto(String(newBuddyId), selectedImage);
+      if (selectedIdCard) {
+        uploadPromises.push(
+          uploadProBuddyIdCardPhoto(String(newBuddyId), selectedIdCard)
+            .catch(err => {
+              console.warn("ID Card upload failed (non-critical):", err);
+              toast.error("ID Card upload failed - you can update it later in profile settings");
+              return null;
+            })
+        );
       }
 
-      if (selectedIdCard && newBuddyId) {
-        await uploadProBuddyIdCardPhoto(String(newBuddyId), selectedIdCard);
+      if (selectedImage) {
+        uploadPromises.push(
+          uploadProBuddyPhoto(String(newBuddyId), selectedImage)
+            .catch(err => {
+              console.warn("Profile photo upload failed (non-critical):", err);
+              toast.error("Profile photo upload failed - you can update it later in profile settings");
+              return null;
+            })
+        );
       }
 
+      // Wait for all uploads (non-blocking - don't throw if they fail)
+      if (uploadPromises.length > 0) {
+        await Promise.all(uploadPromises);
+      }
+
+      // Update auth state
       if (regResponse.jwtToken) {
         localStorage.setItem("jwt", regResponse.jwtToken);
       }
@@ -379,7 +409,8 @@ export default function ProBuddiesRegistration() {
       useAuthStore.setState({ role: "proBuddy" });
       await useAuthStore.getState().refreshUser(true);
 
-      toast.success("Registration completed successfully!");
+      // Show success message
+      toast.success("Registration completed successfully! You can update photos anytime in profile settings.");
       navigate("/pro-buddies/dashboard");
     } catch (error: unknown) {
       console.error("Signup error:", error);

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { ChevronDown, ChevronRight, Info } from "lucide-react";
@@ -20,7 +20,7 @@ const sortOptions = [
 
 const getCoins = (item: ListingProBudddy): number => Number(item.ratePerMinute ?? 0);
 
-type OpenSection = "profile" | "language" | "coins" | "rating" | null;
+type OpenSection = "colleges" | "states" | "cities" | "language" | "coins" | "rating" | null;
 
 export default function ProBuddyListing() {
   const { userId } = useAuthStore();
@@ -28,19 +28,20 @@ export default function ProBuddyListing() {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("recommended");
 
-  const [collegeNameFilter, setCollegeNameFilter] = useState(
-    () => searchParams.get("collegeName") ?? ""
-  );
-  const [stateFilter, setStateFilter] = useState("");
-  const [cityFilter, setCityFilter] = useState("");
-  const [courseFilter, setCourseFilter] = useState("");
+  const [selectedColleges, setSelectedColleges] = useState<string[]>(() => {
+    const initial = searchParams.get("collegeName");
+    return initial ? initial.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  });
+  const [selectedStates, setSelectedStates] = useState<string[]>([]);
+  const [selectedCities, setSelectedCities] = useState<string[]>([]);
+  
   const [languageFilter, setLanguageFilter] = useState("");
   const [workingDayFilter, setWorkingDayFilter] = useState("");
   const [minRating, setMinRating] = useState(0);
   const [maxRating, setMaxRating] = useState(5);
   const [coinsRange, setCoinsRange] = useState<[number, number]>([0, 500]);
   const [showCoinsTooltip, setShowCoinsTooltip] = useState(false);
-  const [openSection, setOpenSection] = useState<OpenSection>("profile");
+  const [openSection, setOpenSection] = useState<OpenSection>("colleges");
 
   const sortMapping = useMemo(() => {
     if (sortBy === "coins-low") {
@@ -52,18 +53,57 @@ export default function ProBuddyListing() {
     return { sortBy: "rating", sortOrder: "desc" as const };
   }, [sortBy]);
 
+  // fetch proBuddy colleges/options for filters and cache in sessionStorage
+  const { data: proBuddyColleges = [], isLoading: proBuddyCollegesLoading } = useQuery({
+    queryKey: ["probuddy-colleges-options"],
+    queryFn: () => probuddiesApi.getColleges(),
+    staleTime: 60 * 60 * 1000,
+  });
+
+  const collegeOptions = useMemo(() => {
+    return Array.from(new Set((proBuddyColleges as any[]).map((c) => (c.collegeName ?? c.college_name ?? "")).filter(Boolean))).sort();
+  }, [proBuddyColleges]);
+
+  const stateOptions = useMemo(() => {
+    return Array.from(new Set((proBuddyColleges as any[]).map((c) => (c.collegeState ?? c.state ?? "")).filter(Boolean))).sort();
+  }, [proBuddyColleges]);
+
+  const cityOptionsFromApi = useMemo(() => {
+    return Array.from(new Set((proBuddyColleges as any[]).map((c) => (c.collegeCity ?? c.city ?? "")).filter(Boolean))).sort();
+  }, [proBuddyColleges]);
+
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined" && proBuddyColleges && proBuddyColleges.length > 0) {
+        sessionStorage.setItem(
+          "probuddy_filter_options",
+          JSON.stringify({ colleges: collegeOptions, states: stateOptions, cities: cityOptionsFromApi })
+        );
+      }
+    } catch {
+      // ignore
+    }
+  }, [collegeOptions, stateOptions, cityOptionsFromApi, proBuddyColleges]);
+
+  // UI state for expandable pickers
+  const [showCollegePicker, setShowCollegePicker] = useState(false);
+  const [showStatePicker, setShowStatePicker] = useState(false);
+  const [showCityPicker, setShowCityPicker] = useState(false);
+  const [collegeSearch, setCollegeSearch] = useState("");
+  const [stateSearch, setStateSearch] = useState("");
+  const [citySearch, setCitySearch] = useState("");
+
   const { data: probuddies = [], isLoading } = useQuery({
     queryKey: [
       "pro-buddies-listing",
       userId ?? "guest",
-      collegeNameFilter,
-      stateFilter,
-      cityFilter,
-      courseFilter,
+      selectedColleges.join(","),
+      selectedStates.join(","),
+      selectedCities.join(","),
       languageFilter,
       workingDayFilter,
       minRating,
-      maxRating,
+      5,
       coinsRange[0],
       coinsRange[1],
       sortMapping.sortBy,
@@ -71,16 +111,16 @@ export default function ProBuddyListing() {
     ],
     queryFn: () =>
       probuddiesApi.listing(userId ?? null, {
-        collegeName: collegeNameFilter,
-        state: stateFilter,
-        city: cityFilter,
-        course: courseFilter,
+        collegeName: selectedColleges.length ? selectedColleges.join(",") : undefined,
+        state: selectedStates.length ? selectedStates.join(",") : undefined,
+        city: selectedCities.length ? selectedCities.join(",") : undefined,
+        
         languagesKnow: languageFilter,
         workingDays: workingDayFilter,
         minRatePerMinute: coinsRange[0],
         maxRatePerMinute: coinsRange[1],
         minRating,
-        maxRating,
+        maxRating: 5,
         sortBy: sortMapping.sortBy,
         sortOrder: sortMapping.sortOrder,
         page: 0,
@@ -112,10 +152,18 @@ export default function ProBuddyListing() {
       const matchesCoins = coins >= coinsRange[0] && coins <= coinsRange[1];
 
       const matchesCollege =
-        !collegeNameFilter ||
-        (item.collegeName ?? "").toLowerCase().includes(collegeNameFilter.toLowerCase());
+        selectedColleges.length === 0 ||
+        selectedColleges.some((sel) => (item.collegeName ?? "").toLowerCase().includes(sel.toLowerCase()));
 
-      return matchesSearch && matchesCoins && matchesCollege;
+      const matchesState =
+        selectedStates.length === 0 ||
+        selectedStates.some((sel) => (item.state ?? item.city ?? "").toLowerCase().includes(sel.toLowerCase()) || (item.city ?? "").toLowerCase().includes(sel.toLowerCase()));
+
+      const matchesCity =
+        selectedCities.length === 0 ||
+        selectedCities.some((sel) => (item.city ?? "").toLowerCase().includes(sel.toLowerCase()));
+
+      return matchesSearch && matchesCoins && matchesCollege && matchesState && matchesCity;
     });
 
     if (sortBy === "rating") {
@@ -131,13 +179,12 @@ export default function ProBuddyListing() {
 
   const isCoinsChanged = coinsRange[0] > 0 || coinsRange[1] < 500;
   const activeFilterCount =
-    (collegeNameFilter ? 1 : 0) +
-    (stateFilter ? 1 : 0) +
-    (cityFilter ? 1 : 0) +
-    (courseFilter ? 1 : 0) +
+    (selectedColleges.length ? 1 : 0) +
+    (selectedStates.length ? 1 : 0) +
+    (selectedCities.length ? 1 : 0) +
     (languageFilter ? 1 : 0) +
     (workingDayFilter ? 1 : 0) +
-    (minRating > 0 || maxRating < 5 ? 1 : 0) +
+    (minRating > 0 ? 1 : 0) +
     (isCoinsChanged ? 1 : 0);
 
   const toggleSection = (section: Exclude<OpenSection, null>) => {
@@ -145,10 +192,9 @@ export default function ProBuddyListing() {
   };
 
   const resetFilters = () => {
-    setCollegeNameFilter("");
-    setStateFilter("");
-    setCityFilter("");
-    setCourseFilter("");
+    setSelectedColleges([]);
+    setSelectedStates([]);
+    setSelectedCities([]);
     setLanguageFilter("");
     setWorkingDayFilter("");
     setMinRating(0);
@@ -177,47 +223,154 @@ export default function ProBuddyListing() {
         )}
       </div>
 
-      <div className={`box-border flex flex-col items-start mt-[12px] w-full bg-white border border-[#E6E6E6] rounded-[8px] ${openSection === "profile" ? "pb-[16px]" : "pb-0"}`}>
-        <button type="button" onClick={() => toggleSection("profile")} className="box-border flex flex-row justify-between items-center px-[20px] py-[20px] w-full border-b border-[#E6E6E6] rounded-t-[8px] cursor-pointer">
-          <h3 className="font-[Poppins] font-medium text-[16px] text-[#242645]">Location & Profile</h3>
-          {openSection === "profile" ? <ChevronDown className="h-5 w-5 text-[#242645]" /> : <ChevronRight className="h-5 w-5 text-[#242645]" />}
+      {/* Colleges section */}
+      <div className={`box-border flex flex-col items-start mt-[12px] w-full bg-white border border-[#E6E6E6] rounded-[8px] ${openSection === "colleges" ? "pb-[16px]" : "pb-0"}`}>
+        <button type="button" onClick={() => toggleSection("colleges")} className="box-border flex flex-row justify-between items-center px-[20px] py-[20px] w-full border-b border-[#E6E6E6] rounded-t-[8px] cursor-pointer">
+          <h3 className="font-[Poppins] font-medium text-[16px] text-[#242645]">Colleges</h3>
+          {openSection === "colleges" ? <ChevronDown className="h-5 w-5 text-[#242645]" /> : <ChevronRight className="h-5 w-5 text-[#242645]" />}
         </button>
-        {openSection === "profile" && (
+        {openSection === "colleges" && (
           <div className="w-full px-5 pt-[16px] flex flex-col gap-[10px]">
-            <input
-              type="text"
-              value={collegeNameFilter}
-              onChange={(e) => setCollegeNameFilter(e.target.value)}
-              placeholder="College name"
-              className="h-[40px] w-full rounded-[12px] border border-[#EFEFEF] bg-white px-[12px] text-[14px] font-[Poppins]"
-            />
-            <input
-              type="text"
-              value={stateFilter}
-              onChange={(e) => setStateFilter(e.target.value)}
-              placeholder="State"
-              className="h-[40px] w-full rounded-[12px] border border-[#EFEFEF] bg-white px-[12px] text-[14px] font-[Poppins]"
-            />
-            <input
-              type="text"
-              value={cityFilter}
-              onChange={(e) => setCityFilter(e.target.value)}
-              placeholder="City"
-              list="probuddy-city-options"
-              className="h-[40px] w-full rounded-[12px] border border-[#EFEFEF] bg-white px-[12px] text-[14px] font-[Poppins]"
-            />
-            <datalist id="probuddy-city-options">
-              {cityOptions.map((city) => (
-                <option key={city} value={city} />
-              ))}
-            </datalist>
-            <input
-              type="text"
-              value={courseFilter}
-              onChange={(e) => setCourseFilter(e.target.value)}
-              placeholder="Course"
-              className="h-[40px] w-full rounded-[12px] border border-[#EFEFEF] bg-white px-[12px] text-[14px] font-[Poppins]"
-            />
+            <div>
+              <div className="flex flex-row gap-2 flex-wrap">
+                {collegeOptions.slice(0, 4).map((name) => (
+                  <label key={name} className="flex items-center gap-2 px-2 py-1 bg-[#F8F9FA] rounded-md text-sm">
+                    <input
+                      type="checkbox"
+                      className="accent-(--text-main)"
+                      checked={selectedColleges.includes(name)}
+                      onChange={() => {
+                        setSelectedColleges((prev) => (prev.includes(name) ? prev.filter((p) => p !== name) : [...prev, name]));
+                      }}
+                    />
+                    <span className="truncate max-w-[160px]">{name.length > 28 ? `${name.slice(0, 25)}...` : name}</span>
+                  </label>
+                ))}
+                {collegeOptions.length > 4 && (
+                  <button onClick={() => setShowCollegePicker((s) => !s)} className="px-3 py-2 bg-white border rounded-md text-sm">
+                    +{collegeOptions.length - 4} more
+                  </button>
+                )}
+              </div>
+              {showCollegePicker && (
+                <div className="mt-2 p-2 border border-[#E6E6E6] rounded-md bg-white">
+                  <input
+                    type="text"
+                    value={collegeSearch}
+                    onChange={(e) => setCollegeSearch(e.target.value)}
+                    placeholder="Search colleges"
+                    className="w-full h-10 px-3 rounded-md border border-[#EFEFEF]"
+                  />
+                  <div className="max-h-40 overflow-auto mt-2 grid gap-1">
+                    {collegeOptions
+                      .filter((n) => n.toLowerCase().includes(collegeSearch.toLowerCase()))
+                      .map((n) => (
+                        <label key={n} className="px-2 py-1 rounded hover:bg-gray-100 cursor-pointer text-sm flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            className="accent-(--text-main)"
+                            checked={selectedColleges.includes(n)}
+                            onChange={() => {
+                              setSelectedColleges((prev) => (prev.includes(n) ? prev.filter((p) => p !== n) : [...prev, n]));
+                            }}
+                          />
+                          <span>{n}</span>
+                        </label>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* States section */}
+      <div className={`box-border flex flex-col items-start mt-[12px] w-full bg-white border border-[#E6E6E6] rounded-[8px] ${openSection === "states" ? "pb-[16px]" : "pb-0"}`}>
+        <button type="button" onClick={() => toggleSection("states")} className="box-border flex flex-row justify-between items-center px-[20px] py-[20px] w-full border-b border-[#E6E6E6] rounded-t-[8px] cursor-pointer">
+          <h3 className="font-[Poppins] font-medium text-[16px] text-[#242645]">States</h3>
+          {openSection === "states" ? <ChevronDown className="h-5 w-5 text-[#242645]" /> : <ChevronRight className="h-5 w-5 text-[#242645]" />}
+        </button>
+        {openSection === "states" && (
+          <div className="w-full px-5 pt-[16px] flex flex-col gap-[10px]">
+            <div>
+              <div className="flex flex-row gap-2 flex-wrap">
+                {stateOptions.slice(0, 4).map((s) => (
+                  <label key={s} className="flex items-center gap-2 px-2 py-1 bg-[#F8F9FA] rounded-md text-sm">
+                    <input
+                      type="checkbox"
+                      className="accent-(--text-main)"
+                      checked={selectedStates.includes(s)}
+                      onChange={() => setSelectedStates((prev) => (prev.includes(s) ? prev.filter((p) => p !== s) : [...prev, s]))}
+                    />
+                    <span className="truncate max-w-[160px]">{s.length > 28 ? `${s.slice(0, 25)}...` : s}</span>
+                  </label>
+                ))}
+                {stateOptions.length > 4 && (
+                  <button onClick={() => setShowStatePicker((s) => !s)} className="px-3 py-2 bg-white border rounded-md text-sm">
+                    +{stateOptions.length - 4} more
+                  </button>
+                )}
+              </div>
+              {showStatePicker && (
+                <div className="mt-2 p-2 border border-[#E6E6E6] rounded-md bg-white">
+                  <input type="text" value={stateSearch} onChange={(e) => setStateSearch(e.target.value)} placeholder="Search states" className="w-full h-10 px-3 rounded-md border border-[#EFEFEF]" />
+                  <div className="max-h-40 overflow-auto mt-2 grid gap-1">
+                    {stateOptions.filter((n) => n.toLowerCase().includes(stateSearch.toLowerCase())).map((n) => (
+                      <label key={n} className="px-2 py-1 rounded hover:bg-gray-100 cursor-pointer text-sm flex items-center gap-2">
+                        <input type="checkbox" className="accent-(--text-main)" checked={selectedStates.includes(n)} onChange={() => setSelectedStates((prev) => (prev.includes(n) ? prev.filter((p) => p !== n) : [...prev, n]))} />
+                        <span>{n}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Cities section */}
+      <div className={`box-border flex flex-col items-start mt-[12px] w-full bg-white border border-[#E6E6E6] rounded-[8px] ${openSection === "cities" ? "pb-[16px]" : "pb-0"}`}>
+        <button type="button" onClick={() => toggleSection("cities")} className="box-border flex flex-row justify-between items-center px-[20px] py-[20px] w-full border-b border-[#E6E6E6] rounded-t-[8px] cursor-pointer">
+          <h3 className="font-[Poppins] font-medium text-[16px] text-[#242645]">Cities</h3>
+          {openSection === "cities" ? <ChevronDown className="h-5 w-5 text-[#242645]" /> : <ChevronRight className="h-5 w-5 text-[#242645]" />}
+        </button>
+        {openSection === "cities" && (
+          <div className="w-full px-5 pt-[16px] flex flex-col gap-[10px]">
+            <div>
+              <div className="flex flex-row gap-2 flex-wrap">
+                {cityOptionsFromApi.slice(0, 4).map((c) => (
+                  <label key={c} className="flex items-center gap-2 px-2 py-1 bg-[#F8F9FA] rounded-md text-sm">
+                    <input
+                      type="checkbox"
+                      className="accent-(--text-main)"
+                      checked={selectedCities.includes(c)}
+                      onChange={() => setSelectedCities((prev) => (prev.includes(c) ? prev.filter((p) => p !== c) : [...prev, c]))}
+                    />
+                    <span className="truncate max-w-[160px]">{c.length > 28 ? `${c.slice(0, 25)}...` : c}</span>
+                  </label>
+                ))}
+                {cityOptionsFromApi.length > 4 && (
+                  <button onClick={() => setShowCityPicker((s) => !s)} className="px-3 py-2 bg-white border rounded-md text-sm">
+                    +{cityOptionsFromApi.length - 4} more
+                  </button>
+                )}
+              </div>
+              {showCityPicker && (
+                <div className="mt-2 p-2 border border-[#E6E6E6] rounded-md bg-white">
+                  <input type="text" value={citySearch} onChange={(e) => setCitySearch(e.target.value)} placeholder="Search cities" className="w-full h-10 px-3 rounded-md border border-[#EFEFEF]" />
+                  <div className="max-h-40 overflow-auto mt-2 grid gap-1">
+                    {cityOptionsFromApi.filter((n) => n.toLowerCase().includes(citySearch.toLowerCase())).map((n) => (
+                      <label key={n} className="px-2 py-1 rounded hover:bg-gray-100 cursor-pointer text-sm flex items-center gap-2">
+                        <input type="checkbox" className="accent-(--text-main)" checked={selectedCities.includes(n)} onChange={() => setSelectedCities((prev) => (prev.includes(n) ? prev.filter((p) => p !== n) : [...prev, n]))} />
+                        <span>{n}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -305,40 +458,23 @@ export default function ProBuddyListing() {
         )}
       </div>
 
-      <div className={`box-border flex flex-col items-start mt-[12px] w-full bg-white border border-[#E6E6E6] rounded-[8px] ${openSection === "rating" ? "pb-[16px]" : "pb-0"}`}>
-        <button type="button" onClick={() => toggleSection("rating")} className="box-border flex flex-row justify-between items-center px-[20px] py-[20px] w-full border-b border-[#E6E6E6] rounded-t-[8px] cursor-pointer">
-          <h3 className="font-[Poppins] font-medium text-[16px] text-[#242645]">Rating Range</h3>
-          {openSection === "rating" ? <ChevronDown className="h-5 w-5 text-[#242645]" /> : <ChevronRight className="h-5 w-5 text-[#242645]" />}
-        </button>
-        {openSection === "rating" && (
-          <div className="w-full px-5 pt-[16px] grid grid-cols-2 gap-3">
-            <select
-              value={minRating}
-              onChange={(e) => setMinRating(Number(e.target.value))}
-              className="h-[40px] rounded-[12px] border border-[#EFEFEF] bg-white px-[12px] text-[14px] font-[Poppins]"
-            >
-              <option value={0}>Min 0</option>
-              <option value={1}>Min 1</option>
-              <option value={2}>Min 2</option>
-              <option value={3}>Min 3</option>
-              <option value={4}>Min 4</option>
-              <option value={5}>Min 5</option>
-            </select>
-
-            <select
-              value={maxRating}
-              onChange={(e) => setMaxRating(Number(e.target.value))}
-              className="h-[40px] rounded-[12px] border border-[#EFEFEF] bg-white px-[12px] text-[14px] font-[Poppins]"
-            >
-              <option value={0}>Max 0</option>
-              <option value={1}>Max 1</option>
-              <option value={2}>Max 2</option>
-              <option value={3}>Max 3</option>
-              <option value={4}>Max 4</option>
-              <option value={5}>Max 5</option>
-            </select>
-          </div>
-        )}
+      <div className="box-border flex flex-col items-start mt-[12px] w-full bg-white border border-[#E6E6E6] rounded-[8px] pb-[16px]">
+        <div className="box-border flex flex-row justify-between items-center px-[20px] py-[20px] w-full border-b border-[#E6E6E6] rounded-t-[8px]">
+          <h3 className="font-[Poppins] font-medium text-[16px] text-[#242645]">Rating</h3>
+          <div className="font-[Poppins] font-medium text-[14px] text-[#0E1629]">{minRating}+</div>
+        </div>
+        <div className="w-full px-5 pt-[16px]">
+          <input
+            type="range"
+            min={0}
+            max={5}
+            step={0.5}
+            value={minRating}
+            onChange={(e) => setMinRating(Number(e.target.value))}
+            className="w-full accent-(--text-main)"
+          />
+          <p className="mt-2 text-xs text-[#6B7280]">Show ProBuddies with rating &ge; selected value</p>
+        </div>
       </div>
 
       <div className="hidden lg:block w-full mt-4 mb-[70px]">

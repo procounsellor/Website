@@ -187,7 +187,88 @@ export const registerProBuddy = async (payload: any) => {
   return data;
 };
 
+export const registerProBuddyWithUploads = async (
+  payload: any,
+  photo?: File | null,
+  idCard?: File | null
+) => {
+  console.info("registerProBuddyWithUploads: starting registration", { payload, hasPhoto: !!photo, hasIdCard: !!idCard });
+  const data = await registerProBuddy(payload);
+
+  console.info("registerProBuddyWithUploads: registration result", data);
+
+  const extractId = (obj: any): string | null => {
+    if (!obj || typeof obj !== "object") return null;
+    const candidates = [
+      obj.id,
+      obj.proBuddyId,
+      obj.counsellorId,
+      obj._id,
+      obj.pro_buddy_id,
+      obj.probuddyId,
+    ];
+
+    for (const c of candidates) {
+      if (c) return String(c);
+    }
+
+    // look into common nested containers
+    if (obj.data && typeof obj.data === "object") {
+      const nested = extractId(obj.data);
+      if (nested) return nested;
+    }
+
+    if (obj.result && typeof obj.result === "object") {
+      const nested = extractId(obj.result);
+      if (nested) return nested;
+    }
+
+    return null;
+  };
+
+  // Prefer the phoneNumber from the payload as the canonical proBuddy ID (signup uses phone as identifier).
+  let newBuddyId = payload?.phoneNumber ? String(payload.phoneNumber) : (extractId(data) || extractId((data as any)?.data) || extractId((data as any)?.result) || null);
+
+  if (!newBuddyId) {
+    console.warn("registerProBuddyWithUploads: could not determine new proBuddyId from response or payload; skipping uploads", { data, payload });
+    return data;
+  }
+
+  if (!newBuddyId) {
+    console.warn("registerProBuddyWithUploads: could not determine new proBuddyId from response; skipping uploads", { data, payload });
+    return data;
+  }
+
+  let photoResult: any = null;
+  let idCardResult: any = null;
+
+  if (photo) {
+    try {
+      console.info("registerProBuddyWithUploads: uploading photo", { newBuddyId, photoName: photo.name });
+      photoResult = await uploadProBuddyPhoto(newBuddyId, photo);
+      console.info("registerProBuddyWithUploads: photo upload result", photoResult);
+    } catch (err) {
+      console.error("Photo upload failed during register:", err);
+      throw err;
+    }
+  }
+
+  if (idCard) {
+    try {
+      console.info("registerProBuddyWithUploads: uploading idCard", { newBuddyId, idCardName: idCard.name });
+      idCardResult = await uploadProBuddyIdCardPhoto(newBuddyId, idCard);
+      console.info("registerProBuddyWithUploads: idCard upload result", idCardResult);
+    } catch (err) {
+      console.error("ID card upload failed during register:", err);
+      throw err;
+    }
+  }
+
+  return { ...data, photoResult, idCardResult };
+};
+
 export const uploadProBuddyPhoto = async (proBuddyId: string, photo: File) => {
+  console.info("uploadProBuddyPhoto called", { proBuddyId, fileName: photo?.name });
   const formData = new FormData();
   formData.append("proBuddyId", proBuddyId);
   formData.append("photo", photo);
@@ -215,6 +296,7 @@ export const uploadProBuddyPhoto = async (proBuddyId: string, photo: File) => {
 };
 
 export const uploadProBuddyIdCardPhoto = async (proBuddyId: string, photo: File) => {
+  console.info("uploadProBuddyIdCardPhoto called", { proBuddyId, fileName: photo?.name });
   const formData = new FormData();
   formData.append("proBuddyId", proBuddyId);
   formData.append("photo", photo);
@@ -684,6 +766,9 @@ export const connectInstantCall = async (payload: ConnectCallPayload) => {
 
 export const probuddiesApi = {
   uploadPhoto: (proBuddyId: string, photo: File) => uploadProBuddyPhoto(proBuddyId, photo),
+  uploadIdCard: (proBuddyId: string, photo: File) => uploadProBuddyIdCardPhoto(proBuddyId, photo),
+  registerWithUploads: (payload: any, photo?: File | null, idCard?: File | null) =>
+    registerProBuddyWithUploads(payload, photo, idCard),
   listing: (userId: string | null, filters?: ProBuddyListingFilters) => getAllProBudddiesUser(userId, filters),
   profileUser: (userId: string | null, proBudddyId: string) => getProBuddyForUser(userId, proBudddyId),
   reviewsForUser: (proBuddyId: string) => getAllReviewsReceivedByAProBuddyForUser(proBuddyId),
@@ -700,3 +785,4 @@ export const probuddiesApi = {
   getColleges: () => getAllProBuddyColleges(),
   connectInstantCall: (payload: ConnectCallPayload) => connectInstantCall(payload),
 }
+
