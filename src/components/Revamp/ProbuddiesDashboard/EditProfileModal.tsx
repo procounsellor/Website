@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, Loader2, Plus, Trash2, User, X } from 'lucide-react';
+import { ImageCropper } from '@/components/common/ImageCropper';
 import type { UpdateProBuddyProfilePayload } from '@/api/pro-buddies';
 import type { ProBuddyLink, ProBuddyProfileForProBuddy, WorkingDay } from '@/types/probuddies';
 import { formatAcademicYearLabel } from '@/lib/utils';
@@ -185,6 +186,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [photoCropImage, setPhotoCropImage] = useState<string | null>(null);
   const [isYearOpen, setIsYearOpen] = useState(false);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -201,12 +203,27 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   }, [isOpen, profileData]);
 
   useEffect(() => {
+    if (isOpen) {
+      return;
+    }
+
+    if (photoCropImage) {
+      URL.revokeObjectURL(photoCropImage);
+      setPhotoCropImage(null);
+    }
+  }, [isOpen, photoCropImage]);
+
+  useEffect(() => {
     return () => {
       if (previewImage?.startsWith('blob:')) {
         URL.revokeObjectURL(previewImage);
       }
+
+      if (photoCropImage) {
+        URL.revokeObjectURL(photoCropImage);
+      }
     };
-  }, [previewImage]);
+  }, [previewImage, photoCropImage]);
 
   useEffect(() => {
     const handleClickOutside = (event: Event) => {
@@ -326,12 +343,37 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       return;
     }
 
+    if (photoCropImage) {
+      URL.revokeObjectURL(photoCropImage);
+    }
+
+    setPhotoCropImage(URL.createObjectURL(file));
+  };
+
+  const handlePhotoCropComplete = (croppedImage: File) => {
     if (previewImage?.startsWith('blob:')) {
       URL.revokeObjectURL(previewImage);
     }
 
-    setSelectedPhoto(file);
-    setPreviewImage(URL.createObjectURL(file));
+    setSelectedPhoto(croppedImage);
+    setPreviewImage(URL.createObjectURL(croppedImage));
+
+    if (photoCropImage) {
+      URL.revokeObjectURL(photoCropImage);
+    }
+
+    setPhotoCropImage(null);
+  };
+
+  const handlePhotoCropCancel = () => {
+    if (photoCropImage) {
+      URL.revokeObjectURL(photoCropImage);
+    }
+
+    setPhotoCropImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = async () => {
@@ -778,7 +820,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 type="button"
                 onClick={isLastStep ? handleSubmit : () => setStep((prev) => prev + 1)}
                 disabled={isSaving}
-                className="inline-flex flex-[2] items-center justify-center gap-2 rounded-xl bg-[#0E1629] px-5 py-3 text-sm font-semibold text-white disabled:opacity-70 disabled:cursor-not-allowed sm:flex-none sm:min-w-35 sm:py-2.5 cursor-pointer"
+                className="inline-flex flex-2 items-center justify-center gap-2 rounded-xl bg-[#0E1629] px-5 py-3 text-sm font-semibold text-white disabled:opacity-70 disabled:cursor-not-allowed sm:flex-none sm:min-w-35 sm:py-2.5 cursor-pointer"
               >
                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 {isLastStep ? (isSaving ? 'Saving...' : 'Update profile') : 'Next'}
@@ -787,6 +829,15 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           </div>
         </div>
       </div>
+      {photoCropImage ? (
+        <ImageCropper
+          image={photoCropImage}
+          aspectRatio={1}
+          title="Crop Profile Photo"
+          onCropComplete={handlePhotoCropComplete}
+          onCancel={handlePhotoCropCancel}
+        />
+      ) : null}
     </div>
   );
 };
