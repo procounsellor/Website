@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/AuthStore";
+import { ImageCropper } from "@/components/common/ImageCropper";
 import {
   registerProBuddy,
   uploadProBuddyPhoto,
@@ -42,10 +43,12 @@ export default function ProBuddiesRegistration() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [profileCropImage, setProfileCropImage] = useState<string | null>(null);
 
   const [idCardPreviewUrl, setIdCardPreviewUrl] = useState<string | null>(null);
   const [selectedIdCard, setSelectedIdCard] = useState<File | null>(null);
   const idCardInputRef = useRef<HTMLInputElement>(null);
+  const [idCardCropImage, setIdCardCropImage] = useState<string | null>(null);
 
   const [isYearsOpen, setIsYearsOpen] = useState(false);
   const yearsRef = useRef<HTMLDivElement>(null);
@@ -191,11 +194,19 @@ export default function ProBuddiesRegistration() {
         URL.revokeObjectURL(idCardPreviewUrl);
       }
 
+      if (profileCropImage) {
+        URL.revokeObjectURL(profileCropImage);
+      }
+
+      if (idCardCropImage) {
+        URL.revokeObjectURL(idCardCropImage);
+      }
+
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [previewUrl, idCardPreviewUrl]);
+  }, [previewUrl, idCardPreviewUrl, profileCropImage, idCardCropImage]);
 
   const setProfilePreview = (file: File) => {
     if (!isAcceptedImage(file)) {
@@ -203,13 +214,11 @@ export default function ProBuddiesRegistration() {
       return;
     }
 
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
+    if (profileCropImage) {
+      URL.revokeObjectURL(profileCropImage);
     }
 
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-    setSelectedImage(file);
+    setProfileCropImage(URL.createObjectURL(file));
   };
 
   const setIdCardPreview = (file: File) => {
@@ -218,13 +227,11 @@ export default function ProBuddiesRegistration() {
       return;
     }
 
-    if (idCardPreviewUrl) {
-      URL.revokeObjectURL(idCardPreviewUrl);
+    if (idCardCropImage) {
+      URL.revokeObjectURL(idCardCropImage);
     }
 
-    const url = URL.createObjectURL(file);
-    setIdCardPreviewUrl(url);
-    setSelectedIdCard(file);
+    setIdCardCropImage(URL.createObjectURL(file));
   };
 
   const toggleDay = (day: string) => {
@@ -293,6 +300,60 @@ export default function ProBuddiesRegistration() {
     }
     setIdCardPreviewUrl(null);
     setSelectedIdCard(null);
+    if (idCardInputRef.current) {
+      idCardInputRef.current.value = "";
+    }
+  };
+
+  const handleProfileCropComplete = (croppedImage: File) => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
+    const nextPreview = URL.createObjectURL(croppedImage);
+    setPreviewUrl(nextPreview);
+    setSelectedImage(croppedImage);
+
+    if (profileCropImage) {
+      URL.revokeObjectURL(profileCropImage);
+    }
+
+    setProfileCropImage(null);
+  };
+
+  const handleProfileCropCancel = () => {
+    if (profileCropImage) {
+      URL.revokeObjectURL(profileCropImage);
+    }
+
+    setProfileCropImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleIdCardCropComplete = (croppedImage: File) => {
+    if (idCardPreviewUrl) {
+      URL.revokeObjectURL(idCardPreviewUrl);
+    }
+
+    const nextPreview = URL.createObjectURL(croppedImage);
+    setIdCardPreviewUrl(nextPreview);
+    setSelectedIdCard(croppedImage);
+
+    if (idCardCropImage) {
+      URL.revokeObjectURL(idCardCropImage);
+    }
+
+    setIdCardCropImage(null);
+  };
+
+  const handleIdCardCropCancel = () => {
+    if (idCardCropImage) {
+      URL.revokeObjectURL(idCardCropImage);
+    }
+
+    setIdCardCropImage(null);
     if (idCardInputRef.current) {
       idCardInputRef.current.value = "";
     }
@@ -421,6 +482,7 @@ export default function ProBuddiesRegistration() {
   };
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="w-full min-h-screen bg-[#C6DDF040] pb-20 flex flex-col items-center gap-[24px] px-4 sm:px-6 lg:px-8">
 
       <div className="w-full max-w-[1200px] h-auto bg-white rounded-[8px] mt-[24px] sm:mt-[40px] p-4 sm:p-[24px] box-border">
@@ -1291,5 +1353,26 @@ export default function ProBuddiesRegistration() {
       </div>
 
     </form>
+
+      {profileCropImage ? (
+        <ImageCropper
+          image={profileCropImage}
+          aspectRatio={1}
+          title="Crop Profile Photo"
+          onCropComplete={handleProfileCropComplete}
+          onCancel={handleProfileCropCancel}
+        />
+      ) : null}
+
+      {idCardCropImage ? (
+        <ImageCropper
+          image={idCardCropImage}
+          aspectRatio={1.58}
+          title="Crop ID Card"
+          onCropComplete={handleIdCardCropComplete}
+          onCancel={handleIdCardCropCancel}
+        />
+      ) : null}
+    </>
   );
 }

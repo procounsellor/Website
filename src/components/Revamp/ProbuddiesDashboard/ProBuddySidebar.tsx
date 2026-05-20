@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { GraduationCap, MapPin, Instagram, Linkedin, User } from 'lucide-react';
+import { CreditCard, GraduationCap, MapPin, Instagram, Linkedin, User, X } from 'lucide-react';
 import EditProfileModal from './EditProfileModal';
 import { probuddiesApi, type UpdateProBuddyProfilePayload } from '@/api/pro-buddies';
 import type { ProBuddyProfileForProBuddy } from '@/types/probuddies';
@@ -30,6 +30,7 @@ const getLinkByType = (source: unknown, linkType: string): AnyRecord | null => {
 
 const ProBuddySidebar: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isIdCardOpen, setIsIdCardOpen] = useState(false);
   const proBuddyId = useMemo(() => localStorage.getItem('phone') || '', []);
   const queryClient = useQueryClient();
 
@@ -151,6 +152,7 @@ const ProBuddySidebar: React.FC = () => {
   }, [profileData]);
 
   const photoUrl = profileData?.photoUrl?.trim() || null;
+  const idCardUrl = profileData?.idCardPhotoUrl?.trim() || null;
 
   const instagramLink = getLinkByType(profileData, 'INSTAGRAM');
   const linkedinLink = getLinkByType(profileData, 'LINKEDIN');
@@ -224,6 +226,26 @@ const ProBuddySidebar: React.FC = () => {
 
         <hr className="w-full border-[#E5E5E5] mb-2.5" />
 
+        <div className="w-full flex flex-col gap-2 sm:gap-3 mb-2.5">
+          <h3 className="text-[16px] font-medium text-[#0E1629] leading-none">
+            ID Card
+          </h3>
+          {idCardUrl ? (
+            <button
+              type="button"
+              onClick={() => setIsIdCardOpen(true)}
+              className="inline-flex items-center gap-2 rounded-xl border border-[#E5E7EB] px-3 py-2 text-sm font-medium text-[#0E1629] transition-colors hover:bg-[#F9FAFB] cursor-pointer"
+            >
+              <CreditCard className="h-4 w-4" />
+              View ID Card
+            </button>
+          ) : (
+            <p className="text-[14px] text-[#6B7280]">No ID card uploaded yet.</p>
+          )}
+        </div>
+
+        <hr className="w-full border-[#E5E5E5] mb-2.5" />
+
         <div className="w-full flex flex-col gap-2 sm:gap-3">
           <h3 className="text-[16px] font-medium text-[#0E1629] leading-none">
             Social Media Links
@@ -260,6 +282,41 @@ const ProBuddySidebar: React.FC = () => {
         isSaving={updateProfileMutation.isPending}
         onSave={handleSaveProfile}
       />
+
+      {isIdCardOpen && idCardUrl ? (
+        <div
+          className="fixed inset-0 z-60 flex items-center justify-center bg-black/70 px-4 py-6"
+          onClick={() => setIsIdCardOpen(false)}
+        >
+          <div
+            className="w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-[#E5E7EB] px-4 py-3 sm:px-6">
+              <div>
+                <h3 className="text-lg font-semibold text-[#0E1629]">ID Card</h3>
+                <p className="text-sm text-[#6B7280]">Preview of the uploaded ID card</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsIdCardOpen(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E5E7EB] text-[#111827] transition-colors hover:bg-[#F9FAFB] cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="bg-[#F8FAFC] p-4 sm:p-6">
+              <div className="max-h-[75vh] overflow-auto rounded-2xl border border-[#E5E7EB] bg-white p-3">
+                <img
+                  src={idCardUrl}
+                  alt="ID Card"
+                  className="mx-auto h-auto w-full max-w-full rounded-xl object-contain"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 };

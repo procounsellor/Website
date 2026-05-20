@@ -1,12 +1,13 @@
 import { useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
-import { X } from 'lucide-react';
+import { RotateCcw, RotateCw, X } from 'lucide-react';
 
 interface ImageCropperProps {
   image: string;
   onCropComplete: (croppedImage: File) => void;
   onCancel: () => void;
   aspectRatio?: number;
+  title?: string;
 }
 
 interface Area {
@@ -16,9 +17,10 @@ interface Area {
   height: number;
 }
 
-export function ImageCropper({ image, onCropComplete, onCancel, aspectRatio = 1 }: ImageCropperProps) {
+export function ImageCropper({ image, onCropComplete, onCancel, aspectRatio = 1, title = 'Crop Image' }: ImageCropperProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   const onCropChange = (crop: { x: number; y: number }) => {
@@ -40,7 +42,7 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspectRatio = 1 
     if (!croppedAreaPixels) return;
 
     try {
-      const croppedImage = await getCroppedImg(image, croppedAreaPixels);
+      const croppedImage = await getCroppedImg(image, croppedAreaPixels, rotation);
       onCropComplete(croppedImage);
     } catch (e) {
       console.error('Error cropping image:', e);
@@ -52,7 +54,7 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspectRatio = 1 
       <div className="bg-white rounded-2xl w-full max-w-3xl mx-4 overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Crop Image</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
           <button
             onClick={onCancel}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
@@ -67,6 +69,7 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspectRatio = 1 
             image={image}
             crop={crop}
             zoom={zoom}
+            rotation={rotation}
             aspect={aspectRatio}
             onCropChange={onCropChange}
             onZoomChange={onZoomChange}
@@ -96,6 +99,38 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspectRatio = 1 
             </div>
           </div>
 
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Rotate</label>
+            <div className="flex items-center gap-3 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setRotation((value) => value - 90)}
+                className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Left
+              </button>
+              <button
+                type="button"
+                onClick={() => setRotation((value) => value + 90)}
+                className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                <RotateCw className="h-4 w-4" />
+                Right
+              </button>
+              <input
+                type="range"
+                min={-180}
+                max={180}
+                step={1}
+                value={rotation}
+                onChange={(e) => setRotation(Number(e.target.value))}
+                className="flex-1 min-w-55 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+              <span className="w-14 text-right text-xs text-gray-500">{rotation}°</span>
+            </div>
+          </div>
+
           {/* Actions */}
           <div className="flex gap-3 justify-end">
             <button
@@ -118,7 +153,7 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspectRatio = 1 
 }
 
 // Helper function to create cropped image
-async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<File> {
+async function getCroppedImg(imageSrc: string, pixelCrop: Area, rotation = 0): Promise<File> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
@@ -127,13 +162,27 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<File> {
     throw new Error('No 2d context');
   }
 
-  // Set canvas size to match the cropped area
+  const rotRad = getRadianAngle(rotation);
+  const rotatedSize = rotateSize(image.width, image.height, rotation);
+  const rotateCanvas = document.createElement('canvas');
+  const rotateCtx = rotateCanvas.getContext('2d');
+
+  if (!rotateCtx) {
+    throw new Error('No 2d context for rotated canvas');
+  }
+
+  rotateCanvas.width = rotatedSize.width;
+  rotateCanvas.height = rotatedSize.height;
+
+  rotateCtx.translate(rotatedSize.width / 2, rotatedSize.height / 2);
+  rotateCtx.rotate(rotRad);
+  rotateCtx.translate(-image.width / 2, -image.height / 2);
+  rotateCtx.drawImage(image, 0, 0);
+
   canvas.width = pixelCrop.width;
   canvas.height = pixelCrop.height;
-
-  // Draw the cropped image
   ctx.drawImage(
-    image,
+    rotateCanvas,
     pixelCrop.x,
     pixelCrop.y,
     pixelCrop.width,
@@ -165,4 +214,17 @@ function createImage(url: string): Promise<HTMLImageElement> {
     image.setAttribute('crossOrigin', 'anonymous');
     image.src = url;
   });
+}
+
+function getRadianAngle(degreeValue: number) {
+  return (degreeValue * Math.PI) / 180;
+}
+
+function rotateSize(width: number, height: number, rotation: number) {
+  const rotRad = getRadianAngle(rotation);
+
+  return {
+    width: Math.ceil(Math.abs(Math.cos(rotRad) * width) + Math.abs(Math.sin(rotRad) * height)),
+    height: Math.ceil(Math.abs(Math.sin(rotRad) * width) + Math.abs(Math.cos(rotRad) * height)),
+  };
 }
