@@ -1,3 +1,4 @@
+import { getCommunityRole } from '@/lib/communityRole';
 import React, { useState, useEffect, useRef } from 'react';
 import { Heart, MessageSquare, SendHorizontal, Loader2, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { useAuthStore } from '@/store/AuthStore';
@@ -84,7 +85,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, questionId, onAnswerUpd
       const response = await likeAnswer(
         userId,
         answer.answerId,
-        user?.role || 'user',
+        getCommunityRole(user),
         token
       );
 
@@ -141,7 +142,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, questionId, onAnswerUpd
         userId,
         answer.answerId,
         newCommentText,
-        user.role || 'user',
+        getCommunityRole(user),
         token
       );
 
@@ -212,7 +213,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ answer, questionId, onAnswerUpd
         answer.answerId,
         questionId,
         userId, 
-        user.role || 'user', 
+        getCommunityRole(user), 
         token
       );
       

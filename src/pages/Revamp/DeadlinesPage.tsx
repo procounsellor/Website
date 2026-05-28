@@ -34,7 +34,17 @@ export default function DeadlinesPage() {
     refetchOnWindowFocus: false,
   });
 
-  const activeEvents = allEvents.filter((event: EventItem) => !event.isDeleted);
+  // Dedup by id/title, remove deleted
+  const activeEvents = (() => {
+    const seen = new Set<string>();
+    return allEvents.filter((event: EventItem) => {
+      if (event.isDeleted) return false;
+      const key = event.id ?? event.title;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  })();
 
   const getEventFees = (event: EventItem): number | null => {
     const anyEvent = event as EventItem & {

@@ -13,8 +13,24 @@ export default function CollegeSection() {
     gcTime: 10 * 60 * 1000,
   });
 
-  const activeEvents = allEvents.filter((event: EventItem) => !event.isDeleted);
-  
+  // Dedup by id, then filter active, then sort by soonest end date first
+  const activeEvents = (() => {
+    const seen = new Set<string>();
+    return allEvents
+      .filter((event: EventItem) => {
+        if (event.isDeleted) return false;
+        const key = event.id ?? event.title;
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .sort((a: EventItem, b: EventItem) => {
+        const aTime = a.endDate ? new Date(a.endDate).getTime() : Infinity;
+        const bTime = b.endDate ? new Date(b.endDate).getTime() : Infinity;
+        return aTime - bTime;
+      });
+  })();
+
   const displayEvents = activeEvents.slice(0, 4);
 
   const formatDate = (dateString: string) => {

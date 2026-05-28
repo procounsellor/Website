@@ -1,3 +1,4 @@
+import { getCommunityRole } from '@/lib/communityRole';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bookmark, Heart } from 'lucide-react';
@@ -31,7 +32,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ item }) => {
       const response = await bookmarkQuestion(
         userId,
         item.questionId,
-        user?.role || 'user',
+        getCommunityRole(user),
         token
       );
       

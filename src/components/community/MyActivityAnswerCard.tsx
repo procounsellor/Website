@@ -1,3 +1,4 @@
+import { getCommunityRole } from '@/lib/communityRole';
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, MessageSquare, Sparkles, Eye, MoreVertical, Pencil, Trash2 } from 'lucide-react';
@@ -93,7 +94,7 @@ const MyActivityAnswerCard: React.FC<MyActivityAnswerCardProps> = ({ answerItem,
         answerItem.myAnswerId,
         answerItem.questionId,
         userId,
-        user.role || 'user',
+        getCommunityRole(user),
         token
       );
       

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CreditCard, GraduationCap, MapPin, Instagram, Linkedin, User, X } from 'lucide-react';
+import { CreditCard, GraduationCap, MapPin, Instagram, Linkedin, User, X, Plus, Upload } from 'lucide-react';
 import EditProfileModal from './EditProfileModal';
 import { probuddiesApi, type UpdateProBuddyProfilePayload } from '@/api/pro-buddies';
 import type { ProBuddyProfileForProBuddy } from '@/types/probuddies';
@@ -30,7 +30,10 @@ const getLinkByType = (source: unknown, linkType: string): AnyRecord | null => {
 
 const ProBuddySidebar: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalInitialStep, setModalInitialStep] = useState(0);
   const [isIdCardOpen, setIsIdCardOpen] = useState(false);
+  const [isUploadingIdCard, setIsUploadingIdCard] = useState(false);
+  const idCardUploadRef = React.useRef<HTMLInputElement>(null);
   const proBuddyId = useMemo(() => localStorage.getItem('phone') || '', []);
   const queryClient = useQueryClient();
 
@@ -164,6 +167,30 @@ const ProBuddySidebar: React.FC = () => {
     await updateProfileMutation.mutateAsync({ payload, photoFile });
   };
 
+  const openModalAtStep = (step: number) => {
+    setModalInitialStep(step);
+    setIsModalOpen(true);
+  };
+
+  const handleIdCardUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !proBuddyId) return;
+    try {
+      setIsUploadingIdCard(true);
+      await probuddiesApi.uploadIdCard(proBuddyId, file);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['probuddy-sidebar-profile', proBuddyId] }),
+        queryClient.invalidateQueries({ queryKey: ['probuddy-dashboard-profile', proBuddyId] }),
+      ]);
+      toast.success('ID card uploaded successfully');
+    } catch {
+      toast.error('Failed to upload ID card. Please try again.');
+    } finally {
+      setIsUploadingIdCard(false);
+      if (idCardUploadRef.current) idCardUploadRef.current.value = '';
+    }
+  };
+
   return (
     <>
       <div className="w-full max-w-[320px] xl:w-62 min-h-0 sm:min-h-148.5 bg-white rounded-2xl shadow-sm flex flex-col items-center pt-6 sm:pt-8 pb-4 sm:pb-6 px-4 sm:px-6 font-poppins relative z-20 mx-auto xl:mx-0">
@@ -230,18 +257,40 @@ const ProBuddySidebar: React.FC = () => {
           <h3 className="text-[16px] font-medium text-[#0E1629] leading-none">
             ID Card
           </h3>
-          {idCardUrl ? (
+          <div className="flex items-center gap-2 flex-wrap">
+            {idCardUrl && (
+              <button
+                type="button"
+                onClick={() => setIsIdCardOpen(true)}
+                className="inline-flex items-center gap-2 rounded-xl border border-[#E5E7EB] px-3 py-2 text-sm font-medium text-[#0E1629] transition-colors hover:bg-[#F9FAFB] cursor-pointer"
+              >
+                <CreditCard className="h-4 w-4" />
+                View ID Card
+              </button>
+            )}
+            <input
+              ref={idCardUploadRef}
+              type="file"
+              accept="image/jpeg,image/png"
+              className="hidden"
+              onChange={handleIdCardUpload}
+            />
             <button
               type="button"
-              onClick={() => setIsIdCardOpen(true)}
-              className="inline-flex items-center gap-2 rounded-xl border border-[#E5E7EB] px-3 py-2 text-sm font-medium text-[#0E1629] transition-colors hover:bg-[#F9FAFB] cursor-pointer"
+              onClick={() => idCardUploadRef.current?.click()}
+              disabled={isUploadingIdCard}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-dashed border-[#2F43F2] px-3 py-2 text-sm font-medium text-[#2F43F2] transition-colors hover:bg-[#EEF1FF] cursor-pointer disabled:opacity-50"
             >
-              <CreditCard className="h-4 w-4" />
-              View ID Card
+              {isUploadingIdCard ? (
+                <span className="text-xs">Uploading…</span>
+              ) : (
+                <>
+                  <Upload className="h-3.5 w-3.5" />
+                  {idCardUrl ? 'Replace' : 'Upload ID Card'}
+                </>
+              )}
             </button>
-          ) : (
-            <p className="text-[14px] text-[#6B7280]">No ID card uploaded yet.</p>
-          )}
+          </div>
         </div>
 
         <hr className="w-full border-[#E5E5E5] mb-2.5" />
@@ -251,36 +300,63 @@ const ProBuddySidebar: React.FC = () => {
             Social Media Links
           </h3>
           <div className="flex items-center gap-3">
-            <a
-              href={instagramUrl || '#'}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Instagram"
-              title={instagramUrl || 'Instagram'}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F6] text-[#6B7280] transition-colors hover:bg-[#E8EDF3] hover:text-[#0E1629]"
-            >
-              <Instagram className="w-5 h-5 text-pink-600" />
-            </a>
-            <a
-              href={linkedinUrl || '#'}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="LinkedIn"
-              title={linkedinUrl || 'LinkedIn'}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F6] text-[#6B7280] transition-colors hover:bg-[#E8EDF3] hover:text-[#0E1629]"
-            >
-              <Linkedin className="w-5 h-5 text-blue-600" />
-            </a>
+            {instagramUrl && instagramUrl !== '#' ? (
+              <a
+                href={instagramUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Instagram"
+                title={instagramUrl}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F6] transition-colors hover:bg-[#E8EDF3] cursor-pointer"
+              >
+                <Instagram className="w-5 h-5 text-pink-600" />
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={() => openModalAtStep(2)}
+                aria-label="Add Instagram link"
+                title="Add Instagram link"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F6] transition-colors hover:bg-[#E8EDF3] cursor-pointer relative"
+              >
+                <Instagram className="w-5 h-5 text-pink-300" />
+                <Plus className="w-3 h-3 text-[#2F43F2] absolute bottom-1 right-1" />
+              </button>
+            )}
+            {linkedinUrl && linkedinUrl !== '#' ? (
+              <a
+                href={linkedinUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="LinkedIn"
+                title={linkedinUrl}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F6] transition-colors hover:bg-[#E8EDF3] cursor-pointer"
+              >
+                <Linkedin className="w-5 h-5 text-blue-600" />
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={() => openModalAtStep(2)}
+                aria-label="Add LinkedIn link"
+                title="Add LinkedIn link"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F6] transition-colors hover:bg-[#E8EDF3] cursor-pointer relative"
+              >
+                <Linkedin className="w-5 h-5 text-blue-300" />
+                <Plus className="w-3 h-3 text-[#2F43F2] absolute bottom-1 right-1" />
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       <EditProfileModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => { setIsModalOpen(false); setModalInitialStep(0); }}
         profileData={profileData}
         isSaving={updateProfileMutation.isPending}
         onSave={handleSaveProfile}
+        initialStep={modalInitialStep}
       />
 
       {isIdCardOpen && idCardUrl ? (

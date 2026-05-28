@@ -1,3 +1,4 @@
+import { getCommunityRole } from '@/lib/communityRole';
 import React, { useState, useEffect } from 'react';
 import { Bookmark } from 'lucide-react';
 import { useAuthStore } from '@/store/AuthStore';
@@ -42,7 +43,7 @@ const AnswerFeedCard: React.FC<AnswerFeedCardProps> = ({ question }) => {
       const response = await bookmarkQuestion(
         userId,
         question.questionId,
-        user?.role || 'user',
+        getCommunityRole(user),
         token
       );
       
