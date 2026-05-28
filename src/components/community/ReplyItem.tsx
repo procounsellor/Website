@@ -1,3 +1,4 @@
+import { getCommunityRole } from '@/lib/communityRole';
 import React, { useState } from 'react';
 import { Heart } from 'lucide-react';
 import { useAuthStore } from '@/store/AuthStore';
@@ -36,7 +37,7 @@ const ReplyItem: React.FC<ReplyItemProps> = ({ reply, onReplyClick }) => {
     setLikesCount(previousLikedState ? previousCount - 1 : previousCount + 1);
 
     try {
-      const response = await likeReply(userId, reply.replyId, user?.role || 'user', token);
+      const response = await likeReply(userId, reply.replyId, getCommunityRole(user), token);
       if (response.status === 'Success') {
         setIsLiked(response.isLiked);
       } else {

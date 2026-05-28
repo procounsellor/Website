@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuthStore } from '@/store/AuthStore';
+import { getCommunityRole } from '@/lib/communityRole';
 import { getAllAnswersForSpecificQuestion } from '@/api/community';
 import type { QuestionDetailData, CommunityQuestion } from '@/types/community';
 import QuestionCard from '@/components/community/QuestionCard';
@@ -14,6 +15,8 @@ export default function QuestionDetailPage() {
   const { questionId } = useParams<{ questionId: string }>();
   const { userId, user } = useAuthStore();
   const token = localStorage.getItem('jwt');
+
+  const communityRole = getCommunityRole(user);
   // const location = useLocation();
 
   const [details, setDetails] = useState<QuestionDetailData | null>(null);
@@ -34,7 +37,7 @@ export default function QuestionDetailPage() {
         questionId,
         userId ?? undefined,
         token ?? undefined,
-        user?.role || 'user'
+        communityRole
       );
 
       if (response.status === 'Success') {

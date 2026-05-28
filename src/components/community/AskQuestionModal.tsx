@@ -3,6 +3,7 @@ import { X, Loader2, ChevronDown } from 'lucide-react';
 import { useAuthStore } from '@/store/AuthStore';
 import { askQuestion } from '@/api/community';
 import { toast } from 'react-hot-toast';
+import { getCommunityRole } from '@/lib/communityRole';
 
 interface AskQuestionModalProps {
   isOpen: boolean;
@@ -23,6 +24,8 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
 
   const { userId, user } = useAuthStore();
   const token = localStorage.getItem('jwt');
+
+  const communityRole = getCommunityRole(user);
 
   const isSubmitDisabled = !subject || !description || isLoading;
 
@@ -70,7 +73,7 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
         userId,
         subject,
         description,
-        user.role || 'user',
+        communityRole,
         token,
         isAnonymous
       );

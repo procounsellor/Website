@@ -187,6 +187,9 @@ const CounsellorsPage: React.FC = () => {
         gcTime: 10 * 60 * 1000,
         refetchOnWindowFocus: false,
         initialPageParam: 0,
+        // Keep showing previous page data while a new query (e.g. userId just loaded) is fetching,
+        // preventing the blank flash when navigating from the Admissions page.
+        placeholderData: (prev) => prev,
     });
 
     const counselors = useMemo(() => {

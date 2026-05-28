@@ -63,10 +63,10 @@ export default function CounsellorSection() {
     });
 
     const isFromCache = !isLoading && !isFetching && counsellors.length > 0;
-    const shouldAnimate = !hasAnimated.current;
     if (isFromCache && !hasAnimated.current) {
         hasAnimated.current = true;
     }
+    const shouldAnimate = !hasAnimated.current;
 
     const filteredCounsellors = activeFilter === "all programme"
         ? counsellors

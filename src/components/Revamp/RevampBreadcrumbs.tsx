@@ -1,4 +1,5 @@
 import { useLocation, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { useAuthStore } from '@/store/AuthStore';
 
@@ -212,8 +213,27 @@ export default function RevampBreadcrumbs() {
     );
   }
 
+  const SITE_URL = 'https://www.procounsel.co.in';
+  const breadcrumbSchema = breadcrumbs.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": breadcrumbs.map((crumb, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "name": crumb.label,
+      ...(crumb.path ? { "item": `${SITE_URL}${crumb.path}` } : {}),
+    })),
+  } : null;
+
   return (
     <div className="w-full bg-white border-b border-[#E5E7EB]">
+      {breadcrumbSchema && (
+        <Helmet>
+          <script type="application/ld+json">
+            {JSON.stringify(breadcrumbSchema)}
+          </script>
+        </Helmet>
+      )}
       <div className="max-w-360 mx-auto px-15 py-3">
         <div className="flex items-center gap-2 text-xs md:text-sm font-[Poppins]">
           {breadcrumbs.map((crumb, index) => {

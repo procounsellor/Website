@@ -1,3 +1,4 @@
+import { getCommunityRole } from '@/lib/communityRole';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, MoreVertical, Pencil, Trash2, Bookmark } from 'lucide-react';
@@ -64,7 +65,7 @@ const MyActivityQuestionCard: React.FC<MyActivityQuestionCardProps> = ({
       const response = await bookmarkQuestion(
         userId,
         question.questionId,
-        user?.role || 'user',
+        getCommunityRole(user),
         token
       );
       

@@ -11,6 +11,8 @@ interface EditProfileModalProps {
   profileData: ProBuddyProfileForProBuddy | null;
   isSaving: boolean;
   onSave: (payload: UpdateProBuddyProfilePayload, photoFile: File | null) => Promise<void>;
+  /** Open the modal directly on a specific step index (0-based). Default: 0 */
+  initialStep?: number;
 }
 
 type EditableFormState = UpdateProBuddyProfilePayload;
@@ -169,7 +171,7 @@ const TextAreaField = ({
       value={value}
       onChange={onChange}
       rows={rows}
-      className="rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm text-[#111827] focus:border-[#2F43F2] focus:outline-none"
+      className="rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm text-[#111827] focus:border-[#2F43F2] focus:outline-none resize-none"
     />
   </label>
 );
@@ -180,8 +182,9 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   profileData,
   isSaving,
   onSave,
+  initialStep = 0,
 }) => {
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(initialStep);
   const [formData, setFormData] = useState<EditableFormState>(() => createInitialState(profileData));
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -197,7 +200,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
     const nextState = createInitialState(profileData);
     setFormData(nextState);
-    setStep(0);
+    setStep(initialStep);
     setSelectedPhoto(null);
     setPreviewImage(profileData?.photoUrl?.trim() || null);
   }, [isOpen, profileData]);

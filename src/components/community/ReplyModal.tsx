@@ -1,3 +1,4 @@
+import { getCommunityRole } from '@/lib/communityRole';
 import React, { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -47,7 +48,7 @@ const ReplyModal: React.FC<ReplyModalProps> = ({
         replyToUserId,
         commentId,
         replyText,
-        user.role || 'user',
+        getCommunityRole(user),
         token
       );
 

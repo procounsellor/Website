@@ -11,6 +11,21 @@ import { useAuthStore } from "@/store/AuthStore";
 import type { ListingProBudddy } from "@/types/probuddies";
 import PageSEO from "@/components/SEO/PageSEO";
 
+// Renders only the correct card type per viewport — avoids triple-DOM-tree problem
+// where both ProbuddyPhoneListinCard + ProBuddyCard (x2 internally) all mount at once.
+function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = useState<boolean>(
+    () => typeof window !== "undefined" ? window.innerWidth < 768 : false
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isMobile;
+}
+
 const sortOptions = [
   { value: "recommended", label: "Recommended" },
   { value: "rating", label: "Rating: High to Low" },
@@ -23,10 +38,16 @@ const getCoins = (item: ListingProBudddy): number => Number(item.ratePerMinute ?
 type OpenSection = "colleges" | "states" | "cities" | "language" | "coins" | "rating" | null;
 
 export default function ProBuddyListing() {
+  const isMobile = useIsMobile();
   const { userId } = useAuthStore();
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("recommended");
+
+  const PAGE_SIZE = 10;
+  const [page, setPage] = useState(0);
+  const [allBuddies, setAllBuddies] = useState<ListingProBudddy[]>([]);
+  const [hasMore, setHasMore] = useState(true);
 
   const [selectedColleges, setSelectedColleges] = useState<string[]>(() => {
     const initial = searchParams.get("collegeName");
@@ -38,7 +59,7 @@ export default function ProBuddyListing() {
   const [languageFilter, setLanguageFilter] = useState("");
   const [workingDayFilter, setWorkingDayFilter] = useState("");
   const [minRating, setMinRating] = useState(0);
-  const [maxRating, setMaxRating] = useState(5);
+  const [_maxRating, setMaxRating] = useState(5);
   const [coinsRange, setCoinsRange] = useState<[number, number]>([0, 500]);
   const [showCoinsTooltip, setShowCoinsTooltip] = useState(false);
   const [openSection, setOpenSection] = useState<OpenSection>("colleges");
@@ -53,8 +74,30 @@ export default function ProBuddyListing() {
     return { sortBy: "rating", sortOrder: "desc" as const };
   }, [sortBy]);
 
+  const filterKey = useMemo(() =>
+    [
+      userId ?? "guest",
+      selectedColleges.join(","),
+      selectedStates.join(","),
+      selectedCities.join(","),
+      languageFilter,
+      workingDayFilter,
+      minRating,
+      coinsRange.join(","),
+      sortMapping.sortBy,
+      sortMapping.sortOrder,
+    ].join("|"),
+    [userId, selectedColleges, selectedStates, selectedCities, languageFilter, workingDayFilter, minRating, coinsRange, sortMapping]
+  );
+
+  useEffect(() => {
+    setPage(0);
+    setAllBuddies([]);
+    setHasMore(true);
+  }, [filterKey]);
+
   // fetch proBuddy colleges/options for filters and cache in sessionStorage
-  const { data: proBuddyColleges = [], isLoading: proBuddyCollegesLoading } = useQuery({
+  const { data: proBuddyColleges = [] } = useQuery({
     queryKey: ["probuddy-colleges-options"],
     queryFn: () => probuddiesApi.getColleges(),
     staleTime: 60 * 60 * 1000,
@@ -93,28 +136,13 @@ export default function ProBuddyListing() {
   const [stateSearch, setStateSearch] = useState("");
   const [citySearch, setCitySearch] = useState("");
 
-  const { data: probuddies = [], isLoading } = useQuery({
-    queryKey: [
-      "pro-buddies-listing",
-      userId ?? "guest",
-      selectedColleges.join(","),
-      selectedStates.join(","),
-      selectedCities.join(","),
-      languageFilter,
-      workingDayFilter,
-      minRating,
-      5,
-      coinsRange[0],
-      coinsRange[1],
-      sortMapping.sortBy,
-      sortMapping.sortOrder,
-    ],
+  const { data: pageData, isLoading, isFetching } = useQuery({
+    queryKey: ["pro-buddies-listing", filterKey, page],
     queryFn: () =>
       probuddiesApi.listing(userId ?? null, {
         collegeName: selectedColleges.length ? selectedColleges.join(",") : undefined,
         state: selectedStates.length ? selectedStates.join(",") : undefined,
         city: selectedCities.length ? selectedCities.join(",") : undefined,
-        
         languagesKnow: languageFilter,
         workingDays: workingDayFilter,
         minRatePerMinute: coinsRange[0],
@@ -123,21 +151,26 @@ export default function ProBuddyListing() {
         maxRating: 5,
         sortBy: sortMapping.sortBy,
         sortOrder: sortMapping.sortOrder,
-        page: 0,
-        pageSize: 10,
+        page,
+        pageSize: PAGE_SIZE,
       }),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
-  const cityOptions = useMemo(
-    () => Array.from(new Set(probuddies.map((item) => item.city).filter(Boolean) as string[])).sort(),
-    [probuddies]
-  );
+  useEffect(() => {
+    if (!pageData) return;
+    if (page === 0) {
+      setAllBuddies(pageData);
+    } else {
+      setAllBuddies((prev) => [...prev, ...pageData]);
+    }
+    setHasMore(pageData.length >= PAGE_SIZE);
+  }, [pageData, page]);
 
   const filteredBuddies = useMemo(() => {
-    let items = probuddies.filter((item) => {
+    let items = allBuddies.filter((item) => {
       const name = `${item.firstName ?? ""} ${item.lastName ?? ""}`.trim().toLowerCase();
       const searchText = search.toLowerCase();
       const city = (item.city ?? "Not specified").toLowerCase();
@@ -175,7 +208,7 @@ export default function ProBuddyListing() {
     }
 
     return items;
-  }, [coinsRange, probuddies, search, sortBy]);
+  }, [coinsRange, allBuddies, search, sortBy]);
 
   const isCoinsChanged = coinsRange[0] > 0 || coinsRange[1] < 500;
   const activeFilterCount =
@@ -493,7 +526,7 @@ export default function ProBuddyListing() {
     </div>
   );
 
-  const content = isLoading ? (
+  const content = isLoading && page === 0 ? (
     <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6">
       {Array.from({ length: 6 }).map((_, idx) => (
         <div key={`probuddy-skeleton-${idx}`} className="h-66.5 rounded-xl bg-white/90 animate-pulse md:h-91.75" />
@@ -511,34 +544,38 @@ export default function ProBuddyListing() {
         <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6">
           {filteredBuddies.map((buddy, idx) => {
             const name = `${buddy.firstName ?? ""} ${buddy.lastName ?? ""}`.trim();
-            const identifier = buddy.proBuddyId || "";
+            const identifier = buddy.proBuddyId || String(idx);
+            const cardProps = {
+              id: buddy.proBuddyId ?? String(idx),
+              name,
+              imageUrl: buddy.photoUrl ?? "",
+              rating: Number(buddy.rating ?? 0),
+              yearLabel: formatAcademicYearLabel(buddy.currentYear, "1st year"),
+              city: buddy.city ?? "",
+              proCoins: getCoins(buddy),
+            };
             return (
-              <div key={`${identifier}-${idx}`} className="w-full">
-                <div className="md:hidden">
-                  <ProbuddyPhoneListinCard
-                    id={buddy.proBuddyId ?? String(idx)}
-                    name={name}
-                    imageUrl={buddy.photoUrl ?? ""}
-                    rating={Number(buddy.rating ?? 0)}
-                    yearLabel={formatAcademicYearLabel(buddy.currentYear, "1st year")}
-                    city={buddy.city ?? ""}
-                    proCoins={getCoins(buddy)}
-                  />
-                </div>
-                <div className="hidden md:block">
-                  <ProBuddyCard
-                    id={buddy.proBuddyId ?? String(idx)}
-                    name={name}
-                    imageUrl={buddy.photoUrl ?? ""}
-                    rating={Number(buddy.rating ?? 0)}
-                    yearLabel={formatAcademicYearLabel(buddy.currentYear, "1st year")}
-                    city={buddy.city ?? ""}
-                    proCoins={getCoins(buddy)}
-                  />
-                </div>
+              <div key={identifier} className="w-full">
+                {isMobile ? (
+                  <ProbuddyPhoneListinCard {...cardProps} />
+                ) : (
+                  <ProBuddyCard {...cardProps} />
+                )}
               </div>
             );
           })}
+        </div>
+      )}
+
+      {hasMore && !isLoading && filteredBuddies.length > 0 && (
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            disabled={isFetching}
+            className="px-8 py-3 rounded-[8px] border border-[#0E1629] text-[#0E1629] font-[Poppins] font-medium text-[15px] bg-white hover:bg-[#F8F9FA] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isFetching ? "Loading..." : "See More"}
+          </button>
         </div>
       )}
     </>

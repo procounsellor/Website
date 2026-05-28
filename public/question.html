@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ProCounsel Psychometric Assessment</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f5f7fb;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: url('/logo.png') center center no-repeat;
+      background-size: 350px;
+      opacity: 0.04;
+      z-index: -1;
+    }
+
+    .navbar {
+      width: 100%;
+      background: #0d1b4c;
+      color: white;
+      padding: 15px 30px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .navbar img {
+      width: 35px;
+      height: 35px;
+      object-fit: contain;
+      background: #0d1b4c;
+    }
+
+    .navbar h1 {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 850px;
+      margin: 40px auto;
+      background: white;
+      padding: 35px;
+      border-radius: 14px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+
+    .question-count {
+      display: inline-block;
+      background: #0d1b4c;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 25px;
+      letter-spacing: 0.5px;
+    }
+
+    .question {
+      font-size: 24px;
+      line-height: 1.5;
+      color: #1c1c1c;
+      margin-bottom: 35px;
+      font-weight: 600;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .option {
+      padding: 16px 18px;
+      border: 2px solid #dfe3ea;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.2s ease;
+      font-size: 16px;
+      background: #fff;
+    }
+
+    .option:hover {
+      border-color: #0d1b4c;
+      background: #f4f7ff;
+    }
+
+    .option.selected {
+      border-color: #0d1b4c;
+      background: #eaf0ff;
+      font-weight: bold;
+    }
+
+    .buttons {
+      margin-top: 35px;
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+    }
+
+    button {
+      padding: 14px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .prev-btn {
+      background: #d9dce4;
+      color: #222;
+    }
+
+    .next-btn {
+      background: #0d1b4c;
+      color: white;
+    }
+
+    .submit-btn {
+      background: #1d8b38;
+      color: white;
+    }
+
+    .confirmation {
+      text-align: center;
+      padding: 50px 20px;
+    }
+
+    .confirmation h2 {
+      font-size: 34px;
+      color: #0d1b4c;
+      margin-bottom: 20px;
+    }
+
+    .confirmation p {
+      font-size: 20px;
+      line-height: 1.8;
+      color: #333;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    .badge {
+      margin-top: 35px;
+      display: inline-block;
+      padding: 14px 26px;
+      background: #0d1b4c;
+      color: white;
+      border-radius: 50px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    @media(max-width: 768px) {
+      .container {
+        margin: 20px;
+        padding: 25px;
+      }
+
+      .question {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="navbar">
+    <img src="/logo.svg" alt="ProCounsel Logo">
+    <h1>ProCounsel</h1>
+  </div>
+
+  <div class="container" id="app"></div>
+
+  <script>
+    const questions = [
+"I enjoy analyzing different perspectives before making decisions.",
+"I remain calm while handling disagreements.",
+"I prefer solving problems using logical reasoning.",
+"I like reading and understanding detailed information.",
+"I am comfortable speaking confidently in front of others.",
+"I pay attention to small details while completing tasks.",
+"I enjoy discussing social issues and public matters.",
+"I can work under pressure without losing focus.",
+"I like asking questions to understand situations deeply.",
+"I prefer structured and organized environments.",
+"I enjoy debating ideas respectfully.",
+"I can understand both sides of a conflict objectively.",
+"I am comfortable making decisions after evaluating facts.",
+"I enjoy tasks that require careful observation.",
+"I prefer evidence over assumptions.",
+"I communicate my thoughts clearly.",
+"I enjoy reading articles related to society and governance.",
+"I can remain patient during difficult conversations.",
+"I like understanding rules and systems.",
+"I feel confident handling responsibilities.",
+"I enjoy solving complex situations.",
+"I can stay focused for long periods.",
+"I prefer accuracy over speed.",
+"I enjoy writing and expressing my opinions.",
+"I am curious about how institutions function.",
+"I can handle criticism professionally.",
+"I enjoy helping others resolve misunderstandings.",
+"I prefer tasks requiring analytical thinking.",
+"I am comfortable defending my viewpoint logically.",
+"I stay composed in stressful situations.",
+"I enjoy interpreting information carefully.",
+"I can identify inconsistencies in statements.",
+"I like discussing ethical matters.",
+"I can manage time effectively.",
+"I enjoy understanding policies and procedures.",
+"I think before reacting emotionally.",
+"I prefer reasoning over emotional judgment.",
+"I can work independently when required.",
+"I enjoy persuasive communication.",
+"I can evaluate situations fairly.",
+"I enjoy researching topics in depth.",
+"I pay close attention to instructions.",
+"I can adapt to changing circumstances.",
+"I prefer making informed decisions.",
+"I enjoy solving conflicts diplomatically.",
+"I can communicate confidently with authority figures.",
+"I enjoy reading about current affairs.",
+"I stay objective during discussions.",
+"I can organize information efficiently.",
+"I enjoy situations requiring strategic thinking.",
+"I remain professional during disagreements.",
+"I enjoy presenting arguments logically.",
+"I can understand complex written material.",
+"I value fairness in decision making.",
+"I enjoy participating in group discussions.",
+"I can think critically under pressure.",
+"I enjoy evaluating facts carefully.",
+"I prefer planning before taking action.",
+"I communicate respectfully with others.",
+"I enjoy understanding societal systems.",
+"I can remain unbiased while evaluating issues.",
+"I enjoy solving intellectual challenges.",
+"I prefer clarity in communication.",
+"I can persuade others using reasoning.",
+"I enjoy structured discussions.",
+"I stay focused during detailed tasks.",
+"I can manage multiple responsibilities efficiently.",
+"I enjoy learning about governance and society.",
+"I prefer objective analysis over assumptions.",
+"I remain patient while listening to others.",
+"I can express my thoughts effectively in writing.",
+"I enjoy finding practical solutions to problems.",
+"I pay attention to fairness and justice.",
+"I can evaluate information critically.",
+"I enjoy discussions requiring logical thinking.",
+"I stay composed while making difficult decisions.",
+"I can identify important details quickly.",
+"I enjoy understanding how regulations work.",
+"I prefer resolving issues through communication.",
+"I can work responsibly without supervision.",
+"I enjoy analyzing different viewpoints.",
+"I can explain ideas clearly to others.",
+"I enjoy situations requiring negotiation skills.",
+"I think carefully before making judgments.",
+"I can understand complicated instructions.",
+"I enjoy reading and interpreting written information.",
+"I prefer logical conclusions over emotional reactions.",
+"I can maintain professionalism during challenges.",
+"I enjoy participating in meaningful discussions.",
+"I can evaluate situations rationally.",
+"I enjoy understanding systems and structures.",
+"I stay calm while handling difficult tasks.",
+"I can organize ideas effectively.",
+"I enjoy intellectual conversations.",
+"I can defend my opinions respectfully.",
+"I enjoy solving analytical problems.",
+"I remain focused on objectives.",
+"I enjoy understanding social responsibilities.",
+"I can handle pressure while maintaining accuracy.",
+"I enjoy making decisions based on evidence.",
+];
+    const options = [
+      "Strongly Agree",
+      "Agree",
+      "Neutral",
+      "Disagree",
+      "Strongly Disagree"
+    ];
+
+    let currentQuestion = parseInt(localStorage.getItem("currentQuestion")) || 0;
+    let answers = JSON.parse(localStorage.getItem("answers")) || {};
+    let submitted = localStorage.getItem("submitted") === "true";
+
+    const app = document.getElementById("app");
+
+    function saveState() {
+      localStorage.setItem("currentQuestion", currentQuestion);
+      localStorage.setItem("answers", JSON.stringify(answers));
+    }
+
+    function renderConfirmation() {
+      app.innerHTML = `
+        <div class="confirmation">
+          <h2>Assessment Completed Successfully</h2>
+
+          <p>
+            Based on your psychometric assessment responses, your profile demonstrates
+            strong analytical reasoning, communication ability, structured decision-making,
+            critical thinking, and ethical judgment.
+            <br><br>
+            These qualities indicate a strong suitability for pursuing studies and a professional
+            career in the field of <strong>Law</strong>.
+            <br><br>
+            Your aptitude reflects the ability to evaluate situations objectively,
+            communicate persuasively, and handle complex responsibilities effectively —
+            all of which are valuable competencies within the legal profession.
+          </p>
+
+          <div class="badge">
+            Recommended Career Path: Law
+          </div>
+        </div>
+      `;
+    }
+
+    function renderQuestion() {
+      if (submitted) {
+        renderConfirmation();
+        return;
+      }
+
+      const q = questions[currentQuestion];
+
+      app.innerHTML = `
+        <div class="question-count">
+          Question ${currentQuestion + 1} of ${questions.length}
+        </div>
+
+        <div class="question">
+          ${q}
+        </div>
+
+        <div class="options">
+          ${options.map((option, index) => `
+            <div class="option ${answers[currentQuestion] == index ? 'selected' : ''}"
+                 onclick="selectOption(${index})">
+              ${option}
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="buttons">
+          <button class="prev-btn" onclick="prevQuestion()"
+            ${currentQuestion === 0 ? 'disabled' : ''}>
+            Previous
+          </button>
+
+          ${
+            currentQuestion === questions.length - 1
+            ? `<button class="submit-btn" onclick="submitTest()">Submit Test</button>`
+            : `<button class="next-btn" onclick="nextQuestion()">Next</button>`
+          }
+        </div>
+      `;
+    }
+
+    function selectOption(index) {
+      answers[currentQuestion] = index;
+      saveState();
+      renderQuestion();
+    }
+
+    function nextQuestion() {
+      if (answers[currentQuestion] == null) {
+        alert("Please select an option before proceeding.");
+        return;
+      }
+
+      currentQuestion++;
+      saveState();
+      renderQuestion();
+    }
+
+    function prevQuestion() {
+      currentQuestion--;
+      saveState();
+      renderQuestion();
+    }
+
+    function submitTest() {
+      if (answers[currentQuestion] == null) {
+        alert("Please select an option before submitting.");
+        return;
+      }
+
+      localStorage.setItem("submitted", "true");
+      submitted = true;
+      renderConfirmation();
+    }
+
+    renderQuestion();
+  </script>
+
+</body>
+</html>

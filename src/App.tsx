@@ -9,7 +9,9 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: true,
+      refetchOnWindowFocus: false,  // prevents re-fetch flash when switching tabs
+      retry: 1,                     // one retry on failure (not 3)
+      staleTime: 60_000,            // 1-min default stale time
     },
   },
 });

@@ -1042,26 +1042,26 @@ export default function ProBuddiesRegistration() {
             onChange={handleInputChange}
             placeholder="Tell students about your journey, what you can help with, and why they should connect with you."
             rows={5}
-            className="w-full px-[12px] py-[10px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px] resize-y"
+            className="w-full px-[12px] py-[10px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px] resize-none"
             style={{ fontFamily: 'Poppins' }}
           />
         </div>
 
         <div className="flex flex-col gap-[14px] w-full">
-          <label 
-            htmlFor="whyConnect" 
+          <label
+            htmlFor="whyConnect"
             className="text-[#0E1629] text-[14px] font-semibold leading-[125%]"
             style={{ fontFamily: 'Poppins' }}
           >
             Who Should Connect With You?
           </label>
-          <textarea 
+          <textarea
             id="whyConnect"
             value={formData.whyConnect}
             onChange={handleInputChange}
             placeholder="Add the kind of students you can help most."
             rows={4}
-            className="w-full px-[12px] py-[10px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px] resize-y"
+            className="w-full px-[12px] py-[10px] border border-gray-200 rounded-[4px] outline-none focus:border-[#2F43F2] text-[#0E1629] text-[14px] placeholder:text-[#6B728080] placeholder:text-[12px] resize-none"
             style={{ fontFamily: 'Poppins' }}
           />
         </div>

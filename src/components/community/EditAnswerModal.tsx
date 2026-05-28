@@ -1,3 +1,4 @@
+import { getCommunityRole } from '@/lib/communityRole';
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Loader2, ImagePlus, Trash2 } from 'lucide-react';
 import { useAuthStore } from '@/store/AuthStore';
@@ -99,7 +100,7 @@ const EditAnswerModal: React.FC<EditAnswerModalProps> = ({
         answerId,
         yourAnswer,
         userId,
-        user.role || 'user',
+        getCommunityRole(user),
         token,
         selectedImage
       );

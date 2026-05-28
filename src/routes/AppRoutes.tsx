@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import RoleBasedRoute from "@/components/auth/RoleBasedRoute";
 import { Toaster } from 'react-hot-toast';
@@ -142,7 +142,7 @@ export default function AppRoutes() {
                         <Route path='/revamp-courses/course-listing' element={<CourseListing />} />
                         <Route path='/revamp-courses/test-listing' element={<TestListing />} />
                         <Route path='/revamp-courses/session-listing' element={<SessionListing />} />
-                        <Route path='/revamp-about' element={<RevampAbout />} />
+                        <Route path='/revamp-about' element={<Navigate to="/about" replace />} />
 
                         <Route path='/counsellor-listing' element={<CounsellorsPage />} />
                         <Route path='/counsellor-listing-cards' element={<CounsellorsPage />} />

@@ -1,5 +1,6 @@
 import { type FormEvent } from "react";
 import toast from "react-hot-toast";
+import PageSEO from "@/components/SEO/PageSEO";
 export default function RevampAbout() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -16,8 +17,34 @@ export default function RevampAbout() {
     event.currentTarget.reset();
   };
 
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "ProCounsel",
+    "url": "https://www.procounsel.co.in",
+    "logo": "https://www.procounsel.co.in/favicon.png",
+    "description": "ProCounsel is India's leading career counselling and college admissions platform connecting students with verified counsellors, peer mentors, and educational resources.",
+    "foundingDate": "2022",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer support",
+      "email": "support@procounsel.co.in",
+      "availableLanguage": ["English", "Hindi"]
+    },
+    "areaServed": "IN",
+    "sameAs": []
+  };
+
   return (
-    <div className="flex flex-col bg-[#C6DDF040]">
+    <>
+      <PageSEO
+        title="About ProCounsel – India's Career Counselling & Admissions Platform"
+        description="ProCounsel is India's leading platform for career counselling, college admissions guidance, JEE/NEET preparation, and peer mentorship. Meet our team and learn our story."
+        canonical="/about"
+        keywords="about procounsel, career counselling platform india, college admissions guidance, procounsel team"
+        jsonLd={organizationSchema}
+      />
+      <div className="flex flex-col bg-[#C6DDF040]">
       {/* Hero Section */}
       <div 
         className="w-full h-[460px] bg-[url('/probuddiesbg.jpg')] bg-cover bg-center"
@@ -365,5 +392,6 @@ export default function RevampAbout() {
       </section>
 
       </div>
+    </>
   );
 }

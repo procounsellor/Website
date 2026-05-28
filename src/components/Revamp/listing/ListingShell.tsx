@@ -67,7 +67,9 @@ export default function ListingShell({
         </div>
 
         <div className="mt-4 flex flex-col gap-4 md:mt-6 md:flex-row md:items-start md:gap-6">
-          <aside className="hidden p-0 md:sticky md:top-24 md:block md:w-75">
+          {/* translate3d forces Safari to keep this sticky element on its own GPU layer,
+              preventing the blank-on-scroll repaint bug in Safari/WebKit. */}
+          <aside className="hidden p-0 md:sticky md:top-24 md:block md:w-75 [transform:translate3d(0,0,0)] [backface-visibility:hidden] [-webkit-backface-visibility:hidden]">
             {sidebar}
           </aside>
 
