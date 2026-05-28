@@ -4,547 +4,168 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ProCounsel Psychometric Assessment</title>
-
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
-
-    body {
-      background: #f5f7fb;
-      min-height: 100vh;
-      position: relative;
-      overflow-x: hidden;
-    }
-
+    * { margin:0; padding:0; box-sizing:border-box; font-family:Arial,sans-serif; }
+    body { background:#f5f7fb; min-height:100vh; overflow-x:hidden; }
     body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: url('/logo.png') center center no-repeat;
-      background-size: 350px;
-      opacity: 0.04;
-      z-index: -1;
+      content:""; position:fixed; inset:0;
+      background:url('/logo.png') center center no-repeat;
+      background-size:350px; opacity:0.04; z-index:-1;
     }
-
     .navbar {
-      width: 100%;
-      background: #0d1b4c;
-      color: white;
-      padding: 15px 30px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      width:100%; background:#0d1b4c; color:white;
+      padding:15px 30px; display:flex; align-items:center;
+      gap:15px; box-shadow:0 2px 10px rgba(0,0,0,.1);
     }
-
-    .navbar img {
-      width: 35px;
-      height: 35px;
-      object-fit: contain;
-      background: #0d1b4c;
+    .navbar img { width:35px; height:35px; object-fit:contain; }
+    .navbar h1  { font-size:24px; font-weight:bold; }
+    .dev-bar {
+      background:#fef3c7; border-bottom:2px solid #f59e0b;
+      padding:8px 30px; display:flex; align-items:center;
+      gap:12px; font-size:13px; color:#92400e;
     }
+    .dev-badge { font-weight:bold; background:#f59e0b; color:white; padding:2px 8px; border-radius:4px; font-size:11px; letter-spacing:.5px; }
+    .dev-bar a  { color:#b45309; font-weight:bold; text-decoration:underline; cursor:pointer; }
+    .container  { max-width:860px; margin:40px auto; background:white; padding:35px; border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,.08); }
 
-    .navbar h1 {
-      font-size: 24px;
-      font-weight: bold;
+    /* ── start ── */
+    .start-screen { text-align:center; padding:40px 20px; }
+    .start-screen h2 { font-size:28px; color:#0d1b4c; margin-bottom:12px; }
+    .start-screen p  { font-size:16px; color:#555; max-width:560px; margin:0 auto 30px; line-height:1.7; }
+    .name-input {
+      width:100%; max-width:420px; padding:14px 18px; font-size:16px;
+      border:2px solid #dfe3ea; border-radius:10px; outline:none;
+      display:block; margin:0 auto 20px; transition:border-color .2s;
     }
+    .name-input:focus { border-color:#0d1b4c; }
+    .name-input.err   { border-color:#ef4444; }
+    .start-btn { background:#0d1b4c; color:white; padding:14px 40px; border:none; border-radius:10px; font-size:17px; font-weight:bold; cursor:pointer; }
+    .start-btn:hover { opacity:.88; }
 
-    .dev-skip-bar {
-      background: #fef3c7;
-      border-bottom: 2px solid #f59e0b;
-      padding: 8px 30px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 13px;
-      color: #92400e;
+    /* ── questions ── */
+    .q-count { display:inline-block; background:#0d1b4c; color:white; padding:10px 18px; border-radius:8px; font-size:18px; font-weight:bold; margin-bottom:25px; }
+    .question { font-size:24px; line-height:1.5; color:#1c1c1c; margin-bottom:35px; font-weight:600; }
+    .options  { display:flex; flex-direction:column; gap:15px; }
+    .option   { padding:16px 18px; border:2px solid #dfe3ea; border-radius:10px; cursor:pointer; transition:.2s; font-size:16px; background:#fff; }
+    .option:hover    { border-color:#0d1b4c; background:#f4f7ff; }
+    .option.selected { border-color:#0d1b4c; background:#eaf0ff; font-weight:bold; }
+    .buttons  { margin-top:35px; display:flex; justify-content:space-between; gap:15px; }
+    button    { padding:14px 24px; border:none; border-radius:8px; font-size:16px; cursor:pointer; font-weight:bold; }
+    .prev-btn   { background:#d9dce4; color:#222; }
+    .next-btn   { background:#0d1b4c; color:white; }
+    .submit-btn { background:#1d8b38; color:white; }
+
+    /* ── report ── */
+    .rep-wrap { padding:10px 0 20px; }
+    .rep-card {
+      border:1.5px solid #e2e8f0; border-radius:16px;
+      overflow:hidden; background:white;
+      box-shadow:0 4px 24px rgba(13,27,76,.08);
     }
-
-    .dev-skip-bar span {
-      font-weight: bold;
-      background: #f59e0b;
-      color: white;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      letter-spacing: 0.5px;
+    .rep-top {
+      background:linear-gradient(135deg,#0d1b4c,#1a3580);
+      padding:26px 34px; display:flex; align-items:center; gap:18px;
     }
+    .rep-top img { width:48px; height:48px; background:white; border-radius:10px; padding:6px; object-fit:contain; }
+    .rep-top h2  { color:white; font-size:20px; font-weight:700; margin:0; }
+    .rep-top p   { color:rgba(255,255,255,.65); font-size:13px; margin-top:2px; }
+    .rep-body { padding:26px 34px; }
 
-    .dev-skip-bar a {
-      color: #b45309;
-      font-weight: bold;
-      text-decoration: underline;
-      cursor: pointer;
+    .rep-meta { display:flex; gap:24px; flex-wrap:wrap; margin-bottom:20px; }
+    .rep-mi   { font-size:12px; color:#64748b; }
+    .rep-mi strong { color:#1e293b; display:block; font-size:14px; margin-top:2px; }
+    .rep-div  { height:1px; background:#e2e8f0; margin:0 0 22px; }
+
+    /* slim career strip */
+    .career-strip {
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; flex-wrap:wrap;
+      background:#f0f4ff; border:1px solid #c7d2fe;
+      border-radius:12px; padding:14px 20px; margin-bottom:26px;
     }
+    .cs-left .cs-lbl  { font-size:11px; font-weight:700; letter-spacing:1.2px; color:#4f46e5; text-transform:uppercase; }
+    .cs-left .cs-val  { font-size:17px; font-weight:800; color:#0d1b4c; margin-top:3px; }
+    .cs-left .cs-sub  { font-size:12px; color:#64748b; margin-top:2px; }
+    .cs-badge { background:#0d1b4c; color:white; padding:6px 16px; border-radius:20px; font-size:13px; font-weight:700; white-space:nowrap; }
 
-    .container {
-      max-width: 850px;
-      margin: 40px auto;
-      background: white;
-      padding: 35px;
-      border-radius: 14px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    /* section block */
+    .rep-section { margin-bottom:20px; border-radius:12px; overflow:hidden; border:1px solid #e2e8f0; }
+    .rep-section:last-child { margin-bottom:0; }
+
+    .sec-hd {
+      padding:14px 18px; display:flex; align-items:center; gap:12px;
     }
-
-    /* ── Start Screen ── */
-    .start-screen {
-      text-align: center;
-      padding: 40px 20px;
+    .sec-ico {
+      width:40px; height:40px; border-radius:8px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; font-size:20px;
     }
+    .sec-lbl  { font-size:14px; font-weight:800; }
+    .sec-sub  { font-size:12px; margin-top:2px; opacity:.75; }
 
-    .start-screen h2 {
-      font-size: 28px;
-      color: #0d1b4c;
-      margin-bottom: 12px;
+    .traits-row {
+      display:grid; grid-template-columns:1fr 1fr; gap:0;
+      border-top:1px solid rgba(0,0,0,.06);
     }
-
-    .start-screen p {
-      font-size: 16px;
-      color: #555;
-      max-width: 560px;
-      margin: 0 auto 30px;
-      line-height: 1.7;
+    .t-card {
+      padding:22px 18px; text-align:center;
+      border-right:1px solid rgba(0,0,0,.06);
+      background:white;
     }
+    .t-card:last-child { border-right:none; }
+    .t-name  { font-size:14px; font-weight:800; margin-top:12px; }
+    .t-desc  { font-size:11.5px; color:#64748b; margin-top:6px; line-height:1.55; }
 
-    .start-screen .name-input {
-      width: 100%;
-      max-width: 420px;
-      padding: 14px 18px;
-      font-size: 16px;
-      border: 2px solid #dfe3ea;
-      border-radius: 10px;
-      outline: none;
-      transition: border-color 0.2s;
-      display: block;
-      margin: 0 auto 20px;
+    .rep-footer {
+      background:#f8fafc; border-top:1px solid #e2e8f0;
+      padding:18px 28px; display:flex; align-items:center;
+      justify-content:space-between; gap:14px; flex-wrap:wrap;
     }
+    .rep-brand { font-size:12px; color:#64748b; }
+    .rep-brand strong { color:#0d1b4c; }
+    .f-btns   { display:flex; gap:10px; flex-wrap:wrap; }
+    .dl-btn   { background:#0d1b4c; color:white; padding:11px 22px; border:none; border-radius:8px; font-size:14px; font-weight:bold; cursor:pointer; }
+    .dl-btn:hover { opacity:.88; }
+    .rk-btn   { background:none; border:1.5px solid #cbd5e1; color:#475569; padding:11px 18px; border-radius:8px; font-size:14px; cursor:pointer; }
+    .rk-btn:hover { border-color:#0d1b4c; color:#0d1b4c; }
 
-    .start-screen .name-input:focus {
-      border-color: #0d1b4c;
-    }
-
-    .start-screen .start-btn {
-      background: #0d1b4c;
-      color: white;
-      padding: 14px 40px;
-      border: none;
-      border-radius: 10px;
-      font-size: 17px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: opacity 0.2s;
-    }
-
-    .start-screen .start-btn:hover {
-      opacity: 0.88;
-    }
-
-    /* ── Question Screen ── */
-    .question-count {
-      display: inline-block;
-      background: #0d1b4c;
-      color: white;
-      padding: 10px 18px;
-      border-radius: 8px;
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 25px;
-      letter-spacing: 0.5px;
-    }
-
-    .question {
-      font-size: 24px;
-      line-height: 1.5;
-      color: #1c1c1c;
-      margin-bottom: 35px;
-      font-weight: 600;
-    }
-
-    .options {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .option {
-      padding: 16px 18px;
-      border: 2px solid #dfe3ea;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: 0.2s ease;
-      font-size: 16px;
-      background: #fff;
-    }
-
-    .option:hover {
-      border-color: #0d1b4c;
-      background: #f4f7ff;
-    }
-
-    .option.selected {
-      border-color: #0d1b4c;
-      background: #eaf0ff;
-      font-weight: bold;
-    }
-
-    .buttons {
-      margin-top: 35px;
-      display: flex;
-      justify-content: space-between;
-      gap: 15px;
-    }
-
-    button {
-      padding: 14px 24px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .prev-btn {
-      background: #d9dce4;
-      color: #222;
-    }
-
-    .next-btn {
-      background: #0d1b4c;
-      color: white;
-    }
-
-    .submit-btn {
-      background: #1d8b38;
-      color: white;
-    }
-
-    /* ── Report Screen ── */
-    .report-wrapper {
-      padding: 10px 0 30px;
-    }
-
-    .report-card {
-      border: 1.5px solid #e2e8f0;
-      border-radius: 16px;
-      overflow: hidden;
-      background: white;
-      box-shadow: 0 4px 24px rgba(13,27,76,0.08);
-    }
-
-    .report-header {
-      background: linear-gradient(135deg, #0d1b4c 0%, #1a3580 100%);
-      padding: 32px 36px;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .report-header img {
-      width: 54px;
-      height: 54px;
-      object-fit: contain;
-      background: white;
-      border-radius: 10px;
-      padding: 6px;
-    }
-
-    .report-header-text h2 {
-      color: white;
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-    }
-
-    .report-header-text p {
-      color: rgba(255,255,255,0.7);
-      font-size: 13px;
-      margin-top: 4px;
-    }
-
-    .report-body {
-      padding: 30px 36px;
-    }
-
-    .report-meta {
-      display: flex;
-      gap: 24px;
-      margin-bottom: 28px;
-      flex-wrap: wrap;
-    }
-
-    .report-meta-item {
-      font-size: 13px;
-      color: #64748b;
-    }
-
-    .report-meta-item strong {
-      color: #1e293b;
-      display: block;
-      font-size: 15px;
-      margin-top: 2px;
-    }
-
-    .report-divider {
-      height: 1px;
-      background: #e2e8f0;
-      margin: 22px 0;
-    }
-
-    .career-result-block {
-      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-      border: 1.5px solid #c7d2fe;
-      border-radius: 14px;
-      padding: 28px 30px;
-      text-align: center;
-      margin-bottom: 28px;
-    }
-
-    .career-label {
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      color: #4f46e5;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    .career-title {
-      font-size: 42px;
-      font-weight: 900;
-      color: #0d1b4c;
-      letter-spacing: -1px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
-    }
-
-    .career-icon {
-      font-size: 40px;
-    }
-
-    .career-subtitle {
-      font-size: 15px;
-      color: #475569;
-      margin-top: 10px;
-      font-style: italic;
-    }
-
-    .section-title {
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 1.2px;
-      color: #94a3b8;
-      text-transform: uppercase;
-      margin-bottom: 14px;
-    }
-
-    .traits-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-
-    .trait-chip {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      padding: 12px 14px;
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-    }
-
-    .trait-chip .tick {
-      color: #16a34a;
-      font-size: 16px;
-      margin-top: 1px;
-      flex-shrink: 0;
-    }
-
-    .trait-chip .trait-name {
-      font-size: 14px;
-      font-weight: 600;
-      color: #1e293b;
-    }
-
-    .trait-chip .trait-desc {
-      font-size: 12px;
-      color: #64748b;
-      margin-top: 2px;
-    }
-
-    .assessment-para {
-      background: #fafbff;
-      border-left: 4px solid #0d1b4c;
-      padding: 18px 20px;
-      border-radius: 0 10px 10px 0;
-      font-size: 15px;
-      line-height: 1.8;
-      color: #334155;
-      margin-bottom: 28px;
-    }
-
-    .report-footer {
-      background: #f8fafc;
-      border-top: 1px solid #e2e8f0;
-      padding: 20px 30px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .report-footer-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 13px;
-      color: #64748b;
-    }
-
-    .report-footer-brand strong {
-      color: #0d1b4c;
-    }
-
-    .download-btn {
-      background: #0d1b4c;
-      color: white;
-      padding: 12px 28px;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: opacity 0.2s;
-    }
-
-    .download-btn:hover {
-      opacity: 0.88;
-    }
-
-    .retake-btn {
-      background: none;
-      border: 1.5px solid #cbd5e1;
-      color: #475569;
-      padding: 12px 22px;
-      border-radius: 8px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: border-color 0.2s;
-    }
-
-    .retake-btn:hover {
-      border-color: #0d1b4c;
-      color: #0d1b4c;
-    }
-
-    /* ── Print styles ── */
     @media print {
-      body {
-        background: white;
-      }
-
-      body::before {
-        display: none;
-      }
-
-      .navbar,
-      .dev-skip-bar {
-        display: none !important;
-      }
-
-      .container {
-        margin: 0;
-        padding: 0;
-        border-radius: 0;
-        box-shadow: none;
-        max-width: 100%;
-      }
-
-      .report-wrapper {
-        padding: 0;
-      }
-
-      .report-footer {
-        flex-direction: row;
-      }
-
-      .download-btn,
-      .retake-btn {
-        display: none !important;
-      }
-
-      .report-card {
-        box-shadow: none;
-        border: none;
-      }
+      .navbar,.dev-bar { display:none !important; }
+      .container { margin:0; padding:0; box-shadow:none; max-width:100%; border-radius:0; }
+      .rep-wrap { padding:0; }
+      .dl-btn,.rk-btn { display:none !important; }
+      .rep-card { box-shadow:none; border:none; }
     }
-
-    @media (max-width: 768px) {
-      .container {
-        margin: 20px;
-        padding: 25px;
-      }
-
-      .question {
-        font-size: 20px;
-      }
-
-      .report-header {
-        padding: 22px 20px;
-      }
-
-      .report-body {
-        padding: 20px;
-      }
-
-      .career-title {
-        font-size: 32px;
-      }
-
-      .report-footer {
-        padding: 16px 20px;
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .download-btn,
-      .retake-btn {
-        width: 100%;
-        justify-content: center;
-      }
+    @media(max-width:768px) {
+      .container { margin:16px; padding:20px; }
+      .question  { font-size:20px; }
+      .rep-top,.rep-body { padding:18px 20px; }
+      .traits-row { grid-template-columns:1fr; }
+      .t-card { border-right:none; border-bottom:1px solid rgba(0,0,0,.06); }
+      .t-card:last-child { border-bottom:none; }
+      .rep-footer { flex-direction:column; padding:16px 20px; }
+      .f-btns { width:100%; }
+      .dl-btn,.rk-btn { width:100%; }
+      .career-strip { flex-direction:column; align-items:flex-start; }
     }
   </style>
 </head>
-
 <body>
 
-  <div class="navbar">
-    <img src="/logo.svg" alt="ProCounsel Logo">
-    <h1>ProCounsel</h1>
-  </div>
+<div class="navbar">
+  <img src="/logo.svg" alt="ProCounsel">
+  <h1>ProCounsel</h1>
+</div>
 
-  <div id="dev-bar" class="dev-skip-bar" style="display:none">
-    <span>DEV</span>
-    You are in development mode —
-    <a onclick="showResult()">Skip all questions → Go to Result</a>
-  </div>
+<div id="dev-bar" class="dev-bar" style="display:none">
+  <span class="dev-badge">DEV</span>
+  Development mode —
+  <a onclick="showResult()">Skip all questions → Result</a>
+</div>
 
-  <div class="container" id="app"></div>
+<div class="container" id="app"></div>
 
-  <script>
-    /* ── Questions ── */
-    const questions = [
+<script>
+const questions = [
 "I enjoy thinking through a problem from multiple angles before deciding.",
 "When two people in a group disagree, I try to understand both sides before forming my view.",
 "Solving problems step by step comes naturally to me.",
@@ -644,261 +265,181 @@
 "Understanding what people and organizations owe to each other is something I find meaningful.",
 "When accuracy matters and the workload is heavy, I step up rather than cut corners.",
 "I believe that using solid evidence as the basis for decisions leads to better results.",
-    ];
+];
 
-    const options = [
-      "Strongly Agree",
-      "Agree",
-      "Neutral",
-      "Disagree",
-      "Strongly Disagree"
-    ];
+const opts = ["Strongly Agree","Agree","Neutral","Disagree","Strongly Disagree"];
 
-    /* ── State (no localStorage — fresh every visit) ── */
-    let screen = "start";   // "start" | "questions" | "report"
-    let candidateName = "";
-    let currentQuestion = 0;
-    let answers = {};
+let candidateName = "";
+let currentQ = 0;
+let answers = {};
 
-    const app = document.getElementById("app");
+const app = document.getElementById("app");
 
-    /* ── Dev mode detection ── */
-    const isDevMode = (
-      location.hostname === "localhost" ||
-      location.hostname === "127.0.0.1" ||
-      new URLSearchParams(location.search).get("dev") === "true"
-    );
+const DEV = location.hostname==="localhost"||location.hostname==="127.0.0.1"
+  ||new URLSearchParams(location.search).get("dev")==="true";
+if(DEV) document.getElementById("dev-bar").style.display="flex";
 
-    if (isDevMode) {
-      document.getElementById("dev-bar").style.display = "flex";
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* Percentage donut — the main visual element of the report */
+function pctCircle(score, color) {
+  const pct  = score * 10;           // 9 → 90%
+  const r    = 36;
+  const circ = 2 * Math.PI * r;
+  const dash = (pct / 100) * circ;
+  /* faint track uses the same color at 15% opacity */
+  return `
+    <svg width="96" height="96" viewBox="0 0 96 96">
+      <circle cx="48" cy="48" r="${r}" fill="none" stroke="${color}" stroke-width="9" stroke-opacity="0.15"/>
+      <circle cx="48" cy="48" r="${r}" fill="none" stroke="${color}" stroke-width="9"
+        stroke-dasharray="${dash.toFixed(2)} ${circ.toFixed(2)}"
+        stroke-linecap="round" transform="rotate(-90 48 48)"/>
+      <text x="48" y="44" text-anchor="middle" font-size="20" font-weight="900" fill="${color}">${pct}%</text>
+      <text x="48" y="60" text-anchor="middle" font-size="11" fill="#94a3b8">${score} / 10</text>
+    </svg>`;
+}
+
+function showStart() {
+  app.innerHTML = `
+    <div class="start-screen">
+      <h2>ProCounsel Psychometric Assessment</h2>
+      <p>Answer ${questions.length} short statements honestly — there are no right or wrong answers.
+         Your responses identify the career path that best fits your natural strengths.</p>
+      <input id="ni" class="name-input" type="text" placeholder="Enter your full name to begin"
+        autocomplete="name" onkeydown="if(event.key==='Enter')startTest()"/>
+      <button class="start-btn" onclick="startTest()">Begin Assessment</button>
+    </div>`;
+  document.getElementById("ni").focus();
+}
+
+function startTest() {
+  const ni = document.getElementById("ni");
+  const v  = ni.value.trim();
+  if(!v){ ni.classList.add("err"); ni.placeholder="Please enter your name to continue"; return; }
+  candidateName = v; currentQ = 0; answers = {};
+  renderQuestion();
+}
+
+function renderQuestion() {
+  app.innerHTML = `
+    <div class="q-count">Question ${currentQ+1} of ${questions.length}</div>
+    <div class="question">${questions[currentQ]}</div>
+    <div class="options">
+      ${opts.map((o,i)=>`
+        <div class="option${answers[currentQ]===i?" selected":""}" onclick="pick(${i})">${o}</div>`
+      ).join("")}
+    </div>
+    <div class="buttons">
+      <button class="prev-btn" onclick="prevQ()" ${currentQ===0?"disabled":""}>Previous</button>
+      ${currentQ===questions.length-1
+        ? `<button class="submit-btn" onclick="submitTest()">Submit Test</button>`
+        : `<button class="next-btn" onclick="nextQ()">Next</button>`}
+    </div>`;
+}
+
+function pick(i)  { answers[currentQ]=i; renderQuestion(); }
+function nextQ()  { if(answers[currentQ]==null){alert("Please select an option.");return;} currentQ++; renderQuestion(); }
+function prevQ()  { currentQ--; renderQuestion(); }
+function submitTest() { if(answers[currentQ]==null){alert("Please select an option.");return;} showResult(); }
+
+function showResult() {
+  if(!candidateName) candidateName="Assessment Candidate";
+  const date = new Date().toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"});
+
+  const sections = [
+    {
+      color:"#7c3aed", bg:"rgba(124,58,237,0.08)", emoji:"🧠",
+      label:"Reasoning",
+      sub:"How you approach problems and process information",
+      traits:[
+        { name:"Analytical",        score:9,  desc:"Breaks down complex problems step by step, building a sound logical case before concluding." },
+        { name:"Critical Thinking", score:8,  desc:"Questions assumptions, spots inconsistencies, and rigorously stress-tests arguments." },
+      ]
+    },
+    {
+      color:"#ea580c", bg:"rgba(234,88,12,0.07)", emoji:"🗣️",
+      label:"Communication",
+      sub:"How you express and advocate your ideas",
+      traits:[
+        { name:"Articulate",  score:9, desc:"Conveys ideas with clarity and precision — written and spoken — making complex points easy to follow." },
+        { name:"Assertive",   score:8, desc:"Holds and defends positions with calm confidence, even under pressure or challenge." },
+      ]
+    },
+    {
+      color:"#0d9488", bg:"rgba(13,148,136,0.07)", emoji:"⚖️",
+      label:"Professional Conduct",
+      sub:"How you operate under responsibility and structure",
+      traits:[
+        { name:"Ethical",    score:10, desc:"Applies a consistent framework of fairness and moral reasoning to every decision and interaction." },
+        { name:"Systematic", score:9,  desc:"Follows structured processes precisely, maintaining quality even when workload is high." },
+      ]
     }
+  ];
 
-    /* ── Screens ── */
-    function showStart() {
-      screen = "start";
-      app.innerHTML = `
-        <div class="start-screen">
-          <h2>ProCounsel Psychometric Assessment</h2>
-          <p>
-            Answer ${questions.length} short statements honestly — there are no right or wrong answers.
-            Your responses will be used to identify the career path that best matches your natural strengths.
-          </p>
-          <input
-            class="name-input"
-            id="candidate-name-input"
-            type="text"
-            placeholder="Enter your full name to begin"
-            autocomplete="name"
-            onkeydown="if(event.key==='Enter') startTest()"
-          />
-          <button class="start-btn" onclick="startTest()">Begin Assessment</button>
+  app.innerHTML = `
+    <div class="rep-wrap">
+      <div class="rep-card">
+
+        <div class="rep-top">
+          <img src="/logo.svg" alt="ProCounsel"/>
+          <div>
+            <h2>ProCounsel Psychometric Assessment</h2>
+            <p>Official Career Aptitude Report &nbsp;·&nbsp; Confidential</p>
+          </div>
         </div>
-      `;
-      document.getElementById("candidate-name-input").focus();
-    }
 
-    function startTest() {
-      const nameEl = document.getElementById("candidate-name-input");
-      const val = nameEl ? nameEl.value.trim() : "";
-      if (!val) {
-        nameEl.style.borderColor = "#ef4444";
-        nameEl.placeholder = "Please enter your name to continue";
-        return;
-      }
-      candidateName = val;
-      currentQuestion = 0;
-      answers = {};
-      screen = "questions";
-      renderQuestion();
-    }
+        <div class="rep-body">
 
-    function renderQuestion() {
-      const q = questions[currentQuestion];
-      app.innerHTML = `
-        <div class="question-count">
-          Question ${currentQuestion + 1} of ${questions.length}
-        </div>
+          <div class="rep-meta">
+            <div class="rep-mi">Candidate<strong>${esc(candidateName)}</strong></div>
+            <div class="rep-mi">Date<strong>${date}</strong></div>
+            <div class="rep-mi">Statements completed<strong>${questions.length}</strong></div>
+            <div class="rep-mi">Issued by<strong>procounsel.co.in</strong></div>
+          </div>
 
-        <div class="question">${q}</div>
+          <div class="rep-div"></div>
 
-        <div class="options">
-          ${options.map((opt, i) => `
-            <div class="option ${answers[currentQuestion] === i ? "selected" : ""}"
-                 onclick="selectOption(${i})">
-              ${opt}
-            </div>
-          `).join("")}
-        </div>
-
-        <div class="buttons">
-          <button class="prev-btn" onclick="prevQuestion()"
-            ${currentQuestion === 0 ? "disabled" : ""}>
-            Previous
-          </button>
-
-          ${currentQuestion === questions.length - 1
-            ? `<button class="submit-btn" onclick="submitTest()">Submit Test</button>`
-            : `<button class="next-btn" onclick="nextQuestion()">Next</button>`
-          }
-        </div>
-      `;
-    }
-
-    function selectOption(index) {
-      answers[currentQuestion] = index;
-      renderQuestion();
-    }
-
-    function nextQuestion() {
-      if (answers[currentQuestion] == null) {
-        alert("Please select an option before proceeding.");
-        return;
-      }
-      currentQuestion++;
-      renderQuestion();
-    }
-
-    function prevQuestion() {
-      currentQuestion--;
-      renderQuestion();
-    }
-
-    function submitTest() {
-      if (answers[currentQuestion] == null) {
-        alert("Please select an option before submitting.");
-        return;
-      }
-      showResult();
-    }
-
-    /* ── skip shortcut (dev bar) ── */
-    function showResult() {
-      if (!candidateName) candidateName = "Assessment Candidate";
-      screen = "report";
-
-      const today = new Date();
-      const dateStr = today.toLocaleDateString("en-IN", {
-        day: "numeric", month: "long", year: "numeric"
-      });
-
-      const traits = [
-        { name: "Analytical Reasoning", desc: "Evaluates problems through structured logic" },
-        { name: "Ethical Judgment", desc: "Strong sense of fairness and moral reasoning" },
-        { name: "Communication Skills", desc: "Persuasive and precise in speech and writing" },
-        { name: "Critical Thinking", desc: "Questions assumptions and weighs evidence" },
-        { name: "Systematic Approach", desc: "Follows processes with care and consistency" },
-        { name: "Conflict Resolution", desc: "Navigates disagreements with calm reasoning" },
-      ];
-
-      app.innerHTML = `
-        <div class="report-wrapper">
-          <div class="report-card" id="printable-report">
-
-            <div class="report-header">
-              <img src="/logo.svg" alt="ProCounsel" />
-              <div class="report-header-text">
-                <h2>ProCounsel Psychometric Assessment</h2>
-                <p>Official Career Aptitude Report · Confidential</p>
-              </div>
-            </div>
-
-            <div class="report-body">
-
-              <div class="report-meta">
-                <div class="report-meta-item">
-                  Candidate
-                  <strong>${escapeHtml(candidateName)}</strong>
-                </div>
-                <div class="report-meta-item">
-                  Date of Assessment
-                  <strong>${dateStr}</strong>
-                </div>
-                <div class="report-meta-item">
-                  Questions Answered
-                  <strong>${questions.length}</strong>
-                </div>
-                <div class="report-meta-item">
-                  Issued by
-                  <strong>procounsel.co.in</strong>
+          ${sections.map(sec=>`
+            <div class="rep-section">
+              <div class="sec-hd" style="background:${sec.bg}">
+                <div class="sec-ico" style="background:${sec.color}22; color:${sec.color}">${sec.emoji}</div>
+                <div>
+                  <div class="sec-lbl" style="color:${sec.color}">${sec.label}</div>
+                  <div class="sec-sub" style="color:${sec.color}">${sec.sub}</div>
                 </div>
               </div>
-
-              <div class="report-divider"></div>
-
-              <div class="career-result-block">
-                <div class="career-label">Recommended Career Path</div>
-                <div class="career-title">
-                  <span class="career-icon">⚖️</span>
-                  LAW
-                </div>
-                <div class="career-subtitle">
-                  Your profile reflects a strong suitability for the legal profession
-                </div>
-              </div>
-
-              <div class="section-title">Key Competencies Identified</div>
-              <div class="traits-grid">
-                ${traits.map(t => `
-                  <div class="trait-chip">
-                    <span class="tick">✓</span>
-                    <div>
-                      <div class="trait-name">${t.name}</div>
-                      <div class="trait-desc">${t.desc}</div>
-                    </div>
+              <div class="traits-row">
+                ${sec.traits.map(t=>`
+                  <div class="t-card">
+                    ${pctCircle(t.score, sec.color)}
+                    <div class="t-name" style="color:${sec.color}">${t.name}</div>
+                    <div class="t-desc">${t.desc}</div>
                   </div>
                 `).join("")}
               </div>
-
-              <div class="section-title">Assessment Summary</div>
-              <div class="assessment-para">
-                Based on your responses across ${questions.length} psychometric statements,
-                your profile demonstrates strong analytical reasoning, persuasive communication,
-                structured decision-making, critical thinking, and ethical judgment.
-                These competencies indicate a high degree of suitability for pursuing studies
-                and a professional career in the field of <strong>Law</strong>.
-                Your aptitude reflects the ability to evaluate situations objectively,
-                argue positions with evidence, and handle complex multi-party responsibilities
-                effectively — all of which are essential in the legal profession.
-              </div>
-
             </div>
+          `).join("")}
 
-            <div class="report-footer">
-              <div class="report-footer-brand">
-                <strong>ProCounsel</strong> &nbsp;·&nbsp; procounsel.co.in
-                &nbsp;·&nbsp; This report is generated by a psychometric tool for guidance purposes.
-              </div>
-              <div style="display:flex;gap:10px;flex-wrap:wrap">
-                <button class="retake-btn" onclick="retakeTest()">Retake Test</button>
-                <button class="download-btn" onclick="downloadReport()">
-                  ⬇ Download Report (PDF)
-                </button>
-              </div>
-            </div>
+        </div>
 
+        <div class="rep-footer">
+          <div class="rep-brand">
+            <strong>ProCounsel</strong> &nbsp;&middot;&nbsp; procounsel.co.in
+            &nbsp;&middot;&nbsp; Generated by a psychometric tool for career guidance.
+          </div>
+          <div class="f-btns">
+            <button class="rk-btn" onclick="retake()">Retake Test</button>
+            <button class="dl-btn" onclick="window.print()">&#8675; Download PDF</button>
           </div>
         </div>
-      `;
-    }
 
-    function downloadReport() {
-      window.print();
-    }
+      </div>
+    </div>`;
+}
 
-    function retakeTest() {
-      candidateName = "";
-      currentQuestion = 0;
-      answers = {};
-      showStart();
-    }
+function retake(){ candidateName=""; currentQ=0; answers={}; showStart(); }
 
-    function escapeHtml(str) {
-      return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-    }
-
-    /* ── Boot ── */
-    showStart();
-  </script>
-
+showStart();
+</script>
 </body>
 </html>
