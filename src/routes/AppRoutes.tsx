@@ -80,6 +80,7 @@ const DeadlineDetailPage = lazy(() => import('@/pages/Revamp/DeadlineDetailPage'
 
 
 const RevampCounselorDetailsPage = lazy(() => import('@/pages/Revamp/RevampCounselorDetailsPage'));
+const MettleAssessment = lazy(() => import('@/pages/MettleAssessment'));
 const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
 const LiveSessionsPage = lazy(() => import('@/pages/LiveSessionsPage'));
 const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
@@ -121,6 +122,7 @@ export default function AppRoutes() {
                     {/* Standalone pages (no layout) */}
                     <Route path="/privacy1" element={<ExternalPrivacyPage />} />
                     <Route path="/term1" element={<ExternalTermsPage />} />
+                    <Route path="/mettle" element={<MettleAssessment />} />
                     <Route path='/take-test/:testId' element={<TakeTest />} />
                     <Route path='/t/analysis/:testId/:attemptId' element={<TestAnalysisPage />} />
 
