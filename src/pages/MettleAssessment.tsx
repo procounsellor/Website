@@ -1,349 +1,104 @@
 import { useState, useEffect } from "react";
 
-/* ────────────────────────────────────────────────────────── */
-/*  Inline styles that exactly replicate question.html        */
-/* ────────────────────────────────────────────────────────── */
 const CSS = `
-  .mettle-body {
-    background: #f5f7fb;
-    min-height: 100vh;
-    font-family: Arial, sans-serif;
-    position: relative;
-  }
+  .mettle-body { background:#f5f7fb; min-height:100vh; font-family:Arial,sans-serif; overflow-x:hidden; position:relative; }
   .mettle-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background: url('/logo.png') center center no-repeat;
-    background-size: 350px;
-    opacity: 0.04;
-    z-index: -1;
+    content:""; position:fixed; inset:0;
+    background:url('/logo.png') center center no-repeat;
+    background-size:350px; opacity:0.04; z-index:-1; pointer-events:none;
   }
-  .m-navbar {
-    width: 100%;
-    background: #0d1b4c;
-    color: white;
-    padding: 15px 30px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  }
-  .m-navbar img {
-    width: 35px;
-    height: 35px;
-    object-fit: contain;
-    background: #0d1b4c;
-  }
-  .m-navbar h1 {
-    font-size: 24px;
-    font-weight: bold;
-    color: white;
-  }
-  .m-dev-bar {
-    background: #fef3c7;
-    border-bottom: 2px solid #f59e0b;
-    padding: 8px 30px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 13px;
-    color: #92400e;
-  }
-  .m-dev-badge {
-    font-weight: bold;
-    background: #f59e0b;
-    color: white;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    letter-spacing: 0.5px;
-  }
-  .m-dev-bar a {
-    color: #b45309;
-    font-weight: bold;
-    text-decoration: underline;
-    cursor: pointer;
-  }
-  .m-container {
-    max-width: 850px;
-    margin: 40px auto;
-    background: white;
-    padding: 35px;
-    border-radius: 14px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-  }
-  /* Start screen */
-  .m-start {
-    text-align: center;
-    padding: 40px 20px;
-  }
-  .m-start h2 {
-    font-size: 28px;
-    color: #0d1b4c;
-    margin-bottom: 12px;
-  }
-  .m-start p {
-    font-size: 16px;
-    color: #555;
-    max-width: 560px;
-    margin: 0 auto 30px;
-    line-height: 1.7;
-  }
-  .m-name-input {
-    width: 100%;
-    max-width: 420px;
-    padding: 14px 18px;
-    font-size: 16px;
-    border: 2px solid #dfe3ea;
-    border-radius: 10px;
-    outline: none;
-    display: block;
-    margin: 0 auto 20px;
-    font-family: Arial, sans-serif;
-    transition: border-color 0.2s;
-  }
-  .m-name-input:focus {
-    border-color: #0d1b4c;
-  }
-  .m-name-input.error {
-    border-color: #ef4444;
-  }
-  .m-start-btn {
-    background: #0d1b4c;
-    color: white;
-    padding: 14px 40px;
-    border: none;
-    border-radius: 10px;
-    font-size: 17px;
-    font-weight: bold;
-    cursor: pointer;
-    font-family: Arial, sans-serif;
-  }
-  .m-start-btn:hover { opacity: 0.88; }
-  /* Questions */
-  .m-q-count {
-    display: inline-block;
-    background: #0d1b4c;
-    color: white;
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 25px;
-    letter-spacing: 0.5px;
-  }
-  .m-question {
-    font-size: 24px;
-    line-height: 1.5;
-    color: #1c1c1c;
-    margin-bottom: 35px;
-    font-weight: 600;
-  }
-  .m-options {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-  .m-option {
-    padding: 16px 18px;
-    border: 2px solid #dfe3ea;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: 0.2s ease;
-    font-size: 16px;
-    background: #fff;
-    font-family: Arial, sans-serif;
-  }
-  .m-option:hover { border-color: #0d1b4c; background: #f4f7ff; }
-  .m-option.selected { border-color: #0d1b4c; background: #eaf0ff; font-weight: bold; }
-  .m-buttons {
-    margin-top: 35px;
-    display: flex;
-    justify-content: space-between;
-    gap: 15px;
-  }
-  .m-btn {
-    padding: 14px 24px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-    font-weight: bold;
-    font-family: Arial, sans-serif;
-  }
-  .m-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  .m-prev { background: #d9dce4; color: #222; }
-  .m-next { background: #0d1b4c; color: white; }
-  .m-submit { background: #1d8b38; color: white; }
-  /* Report */
-  .m-report-wrapper { padding: 10px 0 30px; }
-  .m-report-card {
-    border: 1.5px solid #e2e8f0;
-    border-radius: 16px;
-    overflow: hidden;
-    background: white;
-    box-shadow: 0 4px 24px rgba(13,27,76,0.08);
-  }
-  .m-report-header {
-    background: linear-gradient(135deg, #0d1b4c 0%, #1a3580 100%);
-    padding: 32px 36px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
-  .m-report-header img {
-    width: 54px;
-    height: 54px;
-    object-fit: contain;
-    background: white;
-    border-radius: 10px;
-    padding: 6px;
-  }
-  .m-report-header-text h2 {
-    color: white;
-    font-size: 22px;
-    font-weight: 700;
-  }
-  .m-report-header-text p {
-    color: rgba(255,255,255,0.7);
-    font-size: 13px;
-    margin-top: 4px;
-  }
-  .m-report-body { padding: 30px 36px; }
-  .m-meta {
-    display: flex;
-    gap: 24px;
-    margin-bottom: 28px;
-    flex-wrap: wrap;
-  }
-  .m-meta-item { font-size: 13px; color: #64748b; }
-  .m-meta-item strong {
-    color: #1e293b;
-    display: block;
-    font-size: 15px;
-    margin-top: 2px;
-  }
-  .m-divider { height: 1px; background: #e2e8f0; margin: 22px 0; }
-  .m-career-block {
-    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-    border: 1.5px solid #c7d2fe;
-    border-radius: 14px;
-    padding: 28px 30px;
-    text-align: center;
-    margin-bottom: 28px;
-  }
-  .m-career-label {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    color: #4f46e5;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-  .m-career-title {
-    font-size: 42px;
-    font-weight: 900;
-    color: #0d1b4c;
-    letter-spacing: -1px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-  }
-  .m-career-sub {
-    font-size: 15px;
-    color: #475569;
-    margin-top: 10px;
-    font-style: italic;
-  }
-  .m-section-title {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 1.2px;
-    color: #94a3b8;
-    text-transform: uppercase;
-    margin-bottom: 14px;
-  }
-  .m-traits-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
-    margin-bottom: 28px;
-  }
-  .m-trait-chip {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 12px 14px;
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  .m-tick { color: #16a34a; font-size: 16px; flex-shrink: 0; margin-top: 1px; }
-  .m-trait-name { font-size: 14px; font-weight: 600; color: #1e293b; }
-  .m-trait-desc { font-size: 12px; color: #64748b; margin-top: 2px; }
-  .m-para {
-    background: #fafbff;
-    border-left: 4px solid #0d1b4c;
-    padding: 18px 20px;
-    border-radius: 0 10px 10px 0;
-    font-size: 15px;
-    line-height: 1.8;
-    color: #334155;
-    margin-bottom: 28px;
-  }
-  .m-report-footer {
-    background: #f8fafc;
-    border-top: 1px solid #e2e8f0;
-    padding: 20px 30px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-  .m-footer-brand { font-size: 13px; color: #64748b; }
-  .m-footer-brand strong { color: #0d1b4c; }
-  .m-footer-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-  .m-download-btn {
-    background: #0d1b4c;
-    color: white;
-    padding: 12px 28px;
-    border: none;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: bold;
-    cursor: pointer;
-    font-family: Arial, sans-serif;
-  }
-  .m-download-btn:hover { opacity: 0.88; }
-  .m-retake-btn {
-    background: none;
-    border: 1.5px solid #cbd5e1;
-    color: #475569;
-    padding: 12px 22px;
-    border-radius: 8px;
-    font-size: 14px;
-    cursor: pointer;
-    font-family: Arial, sans-serif;
-  }
-  .m-retake-btn:hover { border-color: #0d1b4c; color: #0d1b4c; }
+  .m-nav { width:100%; background:#0d1b4c; color:white; padding:15px 30px; display:flex; align-items:center; gap:15px; box-shadow:0 2px 10px rgba(0,0,0,.1); }
+  .m-nav img { width:35px; height:35px; object-fit:contain; }
+  .m-nav h1  { font-size:24px; font-weight:bold; color:white; margin:0; }
+  .m-dev-bar { background:#fef3c7; border-bottom:2px solid #f59e0b; padding:8px 30px; display:flex; align-items:center; gap:12px; font-size:13px; color:#92400e; }
+  .m-dev-badge { font-weight:bold; background:#f59e0b; color:white; padding:2px 8px; border-radius:4px; font-size:11px; letter-spacing:.5px; }
+  .m-dev-bar a { color:#b45309; font-weight:bold; text-decoration:underline; cursor:pointer; }
+  .m-con { max-width:860px; margin:40px auto; background:white; padding:35px; border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,.08); }
+
+  /* start */
+  .m-start { text-align:center; padding:40px 20px; }
+  .m-start h2 { font-size:28px; color:#0d1b4c; margin-bottom:12px; }
+  .m-start p  { font-size:16px; color:#555; max-width:560px; margin:0 auto 30px; line-height:1.7; }
+  .m-nin { width:100%; max-width:420px; padding:14px 18px; font-size:16px; border:2px solid #dfe3ea; border-radius:10px; outline:none; display:block; margin:0 auto 20px; font-family:Arial,sans-serif; transition:border-color .2s; }
+  .m-nin:focus { border-color:#0d1b4c; }
+  .m-nin.err   { border-color:#ef4444; }
+  .m-sbtn { background:#0d1b4c; color:white; padding:14px 40px; border:none; border-radius:10px; font-size:17px; font-weight:bold; cursor:pointer; font-family:Arial,sans-serif; }
+  .m-sbtn:hover { opacity:.88; }
+
+  /* questions */
+  .m-qc { display:inline-block; background:#0d1b4c; color:white; padding:10px 18px; border-radius:8px; font-size:18px; font-weight:bold; margin-bottom:25px; }
+  .m-q  { font-size:24px; line-height:1.5; color:#1c1c1c; margin-bottom:35px; font-weight:600; }
+  .m-opts { display:flex; flex-direction:column; gap:15px; }
+  .m-opt { padding:16px 18px; border:2px solid #dfe3ea; border-radius:10px; cursor:pointer; transition:.2s; font-size:16px; background:#fff; font-family:Arial,sans-serif; }
+  .m-opt:hover    { border-color:#0d1b4c; background:#f4f7ff; }
+  .m-opt.sel { border-color:#0d1b4c; background:#eaf0ff; font-weight:bold; }
+  .m-btns { margin-top:35px; display:flex; justify-content:space-between; gap:15px; }
+  .m-btn  { padding:14px 24px; border:none; border-radius:8px; font-size:16px; cursor:pointer; font-weight:bold; font-family:Arial,sans-serif; }
+  .m-btn:disabled { opacity:.45; cursor:not-allowed; }
+  .m-prev   { background:#d9dce4; color:#222; }
+  .m-next   { background:#0d1b4c; color:white; }
+  .m-submit { background:#1d8b38; color:white; }
+
+  /* report */
+  .m-rw { padding:10px 0 20px; }
+  .m-rc { border:1.5px solid #e2e8f0; border-radius:16px; overflow:hidden; background:white; box-shadow:0 4px 24px rgba(13,27,76,.08); }
+  .m-rtop { background:linear-gradient(135deg,#0d1b4c,#1a3580); padding:26px 34px; display:flex; align-items:center; gap:18px; }
+  .m-rtop img { width:48px; height:48px; background:white; border-radius:10px; padding:6px; object-fit:contain; }
+  .m-rtop h2  { color:white; font-size:20px; font-weight:700; margin:0; }
+  .m-rtop p   { color:rgba(255,255,255,.65); font-size:13px; margin-top:2px; }
+  .m-rbody { padding:26px 34px; }
+
+  .m-meta { display:flex; gap:24px; flex-wrap:wrap; margin-bottom:20px; }
+  .m-mi   { font-size:12px; color:#64748b; }
+  .m-mi strong { color:#1e293b; display:block; font-size:14px; margin-top:2px; }
+  .m-rdiv { height:1px; background:#e2e8f0; margin:0 0 22px; }
+
+  /* slim career strip */
+  .m-cstrip { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; background:#f0f4ff; border:1px solid #c7d2fe; border-radius:12px; padding:14px 20px; margin-bottom:26px; }
+  .m-csl .m-csl-lbl { font-size:11px; font-weight:700; letter-spacing:1.2px; color:#4f46e5; text-transform:uppercase; }
+  .m-csl .m-csl-val { font-size:17px; font-weight:800; color:#0d1b4c; margin-top:3px; }
+  .m-csl .m-csl-sub { font-size:12px; color:#64748b; margin-top:2px; }
+  .m-cbadge { background:#0d1b4c; color:white; padding:6px 16px; border-radius:20px; font-size:13px; font-weight:700; white-space:nowrap; }
+
+  /* section */
+  .m-sec { margin-bottom:20px; border-radius:12px; overflow:hidden; border:1px solid #e2e8f0; }
+  .m-sec:last-child { margin-bottom:0; }
+  .m-sechd { padding:14px 18px; display:flex; align-items:center; gap:12px; }
+  .m-secico { width:40px; height:40px; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:20px; }
+  .m-seclbl { font-size:14px; font-weight:800; }
+  .m-secsub { font-size:12px; margin-top:2px; opacity:.75; }
+  .m-trow { display:grid; grid-template-columns:1fr 1fr; gap:0; border-top:1px solid rgba(0,0,0,.06); }
+  .m-tc { padding:22px 18px; text-align:center; border-right:1px solid rgba(0,0,0,.06); background:white; }
+  .m-tc:last-child { border-right:none; }
+  .m-tname { font-size:14px; font-weight:800; margin-top:12px; }
+  .m-tdesc { font-size:11.5px; color:#64748b; margin-top:6px; line-height:1.55; }
+
+  .m-rfooter { background:#f8fafc; border-top:1px solid #e2e8f0; padding:18px 28px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+  .m-rbrand  { font-size:12px; color:#64748b; }
+  .m-rbrand strong { color:#0d1b4c; }
+  .m-facts   { display:flex; gap:10px; flex-wrap:wrap; }
+  .m-dlbtn { background:#0d1b4c; color:white; padding:11px 22px; border:none; border-radius:8px; font-size:14px; font-weight:bold; cursor:pointer; font-family:Arial,sans-serif; }
+  .m-dlbtn:hover { opacity:.88; }
+  .m-rkbtn { background:none; border:1.5px solid #cbd5e1; color:#475569; padding:11px 18px; border-radius:8px; font-size:14px; cursor:pointer; font-family:Arial,sans-serif; }
+  .m-rkbtn:hover { border-color:#0d1b4c; color:#0d1b4c; }
+
   @media print {
-    .m-navbar, .m-dev-bar, .m-download-btn, .m-retake-btn { display: none !important; }
-    .m-container { margin: 0; padding: 0; box-shadow: none; max-width: 100%; }
-    .m-report-card { box-shadow: none; border: none; }
-    .m-report-wrapper { padding: 0; }
+    .m-nav,.m-dev-bar,.m-dlbtn,.m-rkbtn { display:none !important; }
+    .m-con { margin:0; padding:0; box-shadow:none; max-width:100%; border-radius:0; }
+    .m-rw  { padding:0; }
+    .m-rc  { box-shadow:none; border:none; }
   }
-  @media (max-width: 768px) {
-    .m-container { margin: 20px; padding: 25px; }
-    .m-question { font-size: 20px; }
-    .m-report-header { padding: 22px 20px; }
-    .m-report-body { padding: 20px; }
-    .m-career-title { font-size: 32px; }
-    .m-report-footer { flex-direction: column; padding: 16px 20px; }
-    .m-footer-actions { width: 100%; }
-    .m-download-btn, .m-retake-btn { width: 100%; justify-content: center; }
+  @media(max-width:768px) {
+    .m-con { margin:16px; padding:20px; }
+    .m-q   { font-size:20px; }
+    .m-rtop,.m-rbody { padding:18px 20px; }
+    .m-trow { grid-template-columns:1fr; }
+    .m-tc   { border-right:none; border-bottom:1px solid rgba(0,0,0,.06); }
+    .m-tc:last-child { border-bottom:none; }
+    .m-rfooter { flex-direction:column; padding:16px 20px; }
+    .m-facts   { width:100%; }
+    .m-dlbtn,.m-rkbtn { width:100%; }
+    .m-cstrip  { flex-direction:column; align-items:flex-start; }
   }
 `;
 
@@ -449,253 +204,211 @@ const QUESTIONS = [
   "I believe that using solid evidence as the basis for decisions leads to better results.",
 ];
 
-const ANSWER_OPTIONS = [
-  "Strongly Agree",
-  "Agree",
-  "Neutral",
-  "Disagree",
-  "Strongly Disagree",
+const OPTS = ["Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"];
+
+const SECTIONS = [
+  {
+    color: "#7c3aed", bg: "rgba(124,58,237,0.08)", emoji: "🧠",
+    label: "Reasoning",
+    sub: "How you approach problems and process information",
+    traits: [
+      { name: "Analytical",        score: 9,  desc: "Breaks down complex problems step by step, building a sound logical case before concluding." },
+      { name: "Critical Thinking", score: 8,  desc: "Questions assumptions, spots inconsistencies, and rigorously stress-tests arguments." },
+    ],
+  },
+  {
+    color: "#ea580c", bg: "rgba(234,88,12,0.07)", emoji: "🗣️",
+    label: "Communication",
+    sub: "How you express and advocate your ideas",
+    traits: [
+      { name: "Articulate", score: 9, desc: "Conveys ideas with clarity and precision — written and spoken — making complex points easy to follow." },
+      { name: "Assertive",  score: 8, desc: "Holds and defends positions with calm confidence, even under pressure or challenge." },
+    ],
+  },
+  {
+    color: "#0d9488", bg: "rgba(13,148,136,0.07)", emoji: "⚖️",
+    label: "Professional Conduct",
+    sub: "How you operate under responsibility and structure",
+    traits: [
+      { name: "Ethical",    score: 10, desc: "Applies a consistent framework of fairness and moral reasoning to every decision and interaction." },
+      { name: "Systematic", score: 9,  desc: "Follows structured processes precisely, maintaining quality even when workload is high." },
+    ],
+  },
 ];
 
-const TRAITS = [
-  { name: "Analytical Reasoning", desc: "Evaluates problems through structured logic" },
-  { name: "Ethical Judgment", desc: "Strong sense of fairness and moral reasoning" },
-  { name: "Communication Skills", desc: "Persuasive and precise in speech and writing" },
-  { name: "Critical Thinking", desc: "Questions assumptions and weighs evidence" },
-  { name: "Systematic Approach", desc: "Follows processes with care and consistency" },
-  { name: "Conflict Resolution", desc: "Navigates disagreements with calm reasoning" },
-];
-
-type Screen = "start" | "questions" | "report";
-
-const isDevMode =
+const DEV =
   typeof window !== "undefined" &&
   (window.location.hostname === "localhost" ||
     window.location.hostname === "127.0.0.1" ||
     new URLSearchParams(window.location.search).get("dev") === "true");
 
+/* Percentage donut — the main visual of the report */
+function PctCircle({ score, color }: { score: number; color: string }) {
+  const pct  = score * 10;
+  const r    = 36;
+  const circ = 2 * Math.PI * r;
+  const dash = (pct / 100) * circ;
+  return (
+    <svg width="96" height="96" viewBox="0 0 96 96">
+      <circle cx="48" cy="48" r={r} fill="none" stroke={color} strokeWidth="9" strokeOpacity="0.15" />
+      <circle
+        cx="48" cy="48" r={r}
+        fill="none" stroke={color} strokeWidth="9"
+        strokeDasharray={`${dash.toFixed(2)} ${circ.toFixed(2)}`}
+        strokeLinecap="round"
+        transform="rotate(-90 48 48)"
+      />
+      <text x="48" y="44" textAnchor="middle" fontSize="20" fontWeight="900" fill={color}>{pct}%</text>
+      <text x="48" y="60" textAnchor="middle" fontSize="11" fill="#94a3b8">{score} / 10</text>
+    </svg>
+  );
+}
+
+type Screen = "start" | "questions" | "report";
+
 export default function MettleAssessment() {
-  const [screen, setScreen] = useState<Screen>("start");
-  const [candidateName, setCandidateName] = useState("");
-  const [nameError, setNameError] = useState(false);
+  const [screen, setScreen]     = useState<Screen>("start");
+  const [name, setName]         = useState("");
+  const [nameErr, setNameErr]   = useState(false);
   const [currentQ, setCurrentQ] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [answers, setAnswers]   = useState<Record<number, number>>({});
 
   useEffect(() => {
-    const style = document.createElement("style");
-    style.textContent = CSS;
-    document.head.appendChild(style);
-    return () => { document.head.removeChild(style); };
+    const el = document.createElement("style");
+    el.textContent = CSS;
+    document.head.appendChild(el);
+    return () => { document.head.removeChild(el); };
   }, []);
 
-  const dateStr = new Date().toLocaleDateString("en-IN", {
-    day: "numeric", month: "long", year: "numeric",
-  });
+  const dateStr    = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+  const displayName = name.trim() || "Assessment Candidate";
 
-  function handleStart() {
-    if (!candidateName.trim()) {
-      setNameError(true);
-      return;
-    }
-    setNameError(false);
-    setCurrentQ(0);
-    setAnswers({});
-    setScreen("questions");
+  function startTest() {
+    if (!name.trim()) { setNameErr(true); return; }
+    setNameErr(false); setCurrentQ(0); setAnswers({}); setScreen("questions");
   }
-
-  function selectOption(idx: number) {
-    setAnswers((prev) => ({ ...prev, [currentQ]: idx }));
-  }
-
-  function nextQ() {
-    if (answers[currentQ] == null) { alert("Please select an option before proceeding."); return; }
-    setCurrentQ((q) => q + 1);
-  }
-
-  function prevQ() {
-    setCurrentQ((q) => q - 1);
-  }
-
-  function submit() {
-    if (answers[currentQ] == null) { alert("Please select an option before submitting."); return; }
-    setScreen("report");
-  }
-
-  function retake() {
-    setCandidateName("");
-    setAnswers({});
-    setCurrentQ(0);
-    setScreen("start");
-  }
-
-  const displayName = candidateName.trim() || "Assessment Candidate";
+  function pick(i: number) { setAnswers(a => ({ ...a, [currentQ]: i })); }
+  function nextQ() { if (answers[currentQ] == null) { alert("Please select an option."); return; } setCurrentQ(q => q + 1); }
+  function prevQ() { setCurrentQ(q => q - 1); }
+  function submit() { if (answers[currentQ] == null) { alert("Please select an option."); return; } setScreen("report"); }
+  function skipToResult() { if (!name.trim()) setName("Test User"); setScreen("report"); }
+  function retake() { setName(""); setAnswers({}); setCurrentQ(0); setScreen("start"); }
 
   return (
     <div className="mettle-body">
-      {/* Navbar */}
-      <div className="m-navbar">
-        <img src="/logo.svg" alt="ProCounsel Logo" />
+      <div className="m-nav">
+        <img src="/logo.svg" alt="ProCounsel" />
         <h1>ProCounsel</h1>
       </div>
 
-      {/* Dev bar */}
-      {isDevMode && (
+      {DEV && (
         <div className="m-dev-bar">
           <span className="m-dev-badge">DEV</span>
-          You are in development mode —{" "}
-          <a onClick={() => { if (!candidateName.trim()) setCandidateName("Test User"); setScreen("report"); }}>
-            Skip all questions → Go to Result
-          </a>
+          Development mode — <a onClick={skipToResult}>Skip all questions → Result</a>
         </div>
       )}
 
-      <div className="m-container">
+      <div className="m-con">
 
-        {/* ── Start Screen ── */}
+        {/* ── Start ── */}
         {screen === "start" && (
           <div className="m-start">
             <h2>ProCounsel Mettle Assessment</h2>
             <p>
               Answer {QUESTIONS.length} short statements honestly — there are no right or wrong answers.
-              Your responses will be used to identify the career path that best matches your natural strengths.
+              Your responses identify the career path that best fits your natural strengths.
             </p>
             <input
-              className={`m-name-input${nameError ? " error" : ""}`}
+              className={`m-nin${nameErr ? " err" : ""}`}
               type="text"
-              placeholder={nameError ? "Please enter your name to continue" : "Enter your full name to begin"}
-              value={candidateName}
-              onChange={(e) => { setCandidateName(e.target.value); setNameError(false); }}
-              onKeyDown={(e) => { if (e.key === "Enter") handleStart(); }}
+              placeholder={nameErr ? "Please enter your name to continue" : "Enter your full name to begin"}
+              value={name}
               autoFocus
+              onChange={e => { setName(e.target.value); setNameErr(false); }}
+              onKeyDown={e => { if (e.key === "Enter") startTest(); }}
             />
-            <button className="m-start-btn" onClick={handleStart}>
-              Begin Assessment
-            </button>
+            <button className="m-sbtn" onClick={startTest}>Begin Assessment</button>
           </div>
         )}
 
-        {/* ── Questions Screen ── */}
+        {/* ── Questions ── */}
         {screen === "questions" && (
           <div>
-            <div className="m-q-count">
-              Question {currentQ + 1} of {QUESTIONS.length}
-            </div>
-
-            <div className="m-question">{QUESTIONS[currentQ]}</div>
-
-            <div className="m-options">
-              {ANSWER_OPTIONS.map((opt, i) => (
-                <div
-                  key={i}
-                  className={`m-option${answers[currentQ] === i ? " selected" : ""}`}
-                  onClick={() => selectOption(i)}
-                >
+            <div className="m-qc">Question {currentQ + 1} of {QUESTIONS.length}</div>
+            <div className="m-q">{QUESTIONS[currentQ]}</div>
+            <div className="m-opts">
+              {OPTS.map((opt, i) => (
+                <div key={i} className={`m-opt${answers[currentQ] === i ? " sel" : ""}`} onClick={() => pick(i)}>
                   {opt}
                 </div>
               ))}
             </div>
-
-            <div className="m-buttons">
-              <button
-                className="m-btn m-prev"
-                onClick={prevQ}
-                disabled={currentQ === 0}
-              >
-                Previous
-              </button>
-
-              {currentQ === QUESTIONS.length - 1 ? (
-                <button className="m-btn m-submit" onClick={submit}>
-                  Submit Test
-                </button>
-              ) : (
-                <button className="m-btn m-next" onClick={nextQ}>
-                  Next
-                </button>
-              )}
+            <div className="m-btns">
+              <button className="m-btn m-prev" onClick={prevQ} disabled={currentQ === 0}>Previous</button>
+              {currentQ === QUESTIONS.length - 1
+                ? <button className="m-btn m-submit" onClick={submit}>Submit Test</button>
+                : <button className="m-btn m-next" onClick={nextQ}>Next</button>
+              }
             </div>
           </div>
         )}
 
-        {/* ── Report Screen ── */}
+        {/* ── Report ── */}
         {screen === "report" && (
-          <div className="m-report-wrapper">
-            <div className="m-report-card">
+          <div className="m-rw">
+            <div className="m-rc">
 
-              <div className="m-report-header">
+              <div className="m-rtop">
                 <img src="/logo.svg" alt="ProCounsel" />
-                <div className="m-report-header-text">
+                <div>
                   <h2>ProCounsel Mettle Assessment</h2>
                   <p>Official Career Aptitude Report · Confidential</p>
                 </div>
               </div>
 
-              <div className="m-report-body">
+              <div className="m-rbody">
                 <div className="m-meta">
-                  <div className="m-meta-item">
-                    Candidate<strong>{displayName}</strong>
-                  </div>
-                  <div className="m-meta-item">
-                    Date of Assessment<strong>{dateStr}</strong>
-                  </div>
-                  <div className="m-meta-item">
-                    Questions Answered<strong>{QUESTIONS.length}</strong>
-                  </div>
-                  <div className="m-meta-item">
-                    Issued by<strong>procounsel.co.in</strong>
-                  </div>
+                  <div className="m-mi">Candidate<strong>{displayName}</strong></div>
+                  <div className="m-mi">Date<strong>{dateStr}</strong></div>
+                  <div className="m-mi">Statements completed<strong>{QUESTIONS.length}</strong></div>
+                  <div className="m-mi">Issued by<strong>procounsel.co.in</strong></div>
                 </div>
 
-                <div className="m-divider" />
+                <div className="m-rdiv" />
 
-                <div className="m-career-block">
-                  <div className="m-career-label">Recommended Career Path</div>
-                  <div className="m-career-title">
-                    <span>⚖️</span> LAW
-                  </div>
-                  <div className="m-career-sub">
-                    Your profile reflects a strong suitability for the legal profession
-                  </div>
-                </div>
-
-                <div className="m-section-title">Key Competencies Identified</div>
-                <div className="m-traits-grid">
-                  {TRAITS.map((t, i) => (
-                    <div key={i} className="m-trait-chip">
-                      <span className="m-tick">✓</span>
+                {/* Sections */}
+                {SECTIONS.map((sec, si) => (
+                  <div key={si} className="m-sec">
+                    <div className="m-sechd" style={{ background: sec.bg }}>
+                      <div className="m-secico" style={{ background: `${sec.color}22`, color: sec.color }}>
+                        {sec.emoji}
+                      </div>
                       <div>
-                        <div className="m-trait-name">{t.name}</div>
-                        <div className="m-trait-desc">{t.desc}</div>
+                        <div className="m-seclbl" style={{ color: sec.color }}>{sec.label}</div>
+                        <div className="m-secsub" style={{ color: sec.color }}>{sec.sub}</div>
                       </div>
                     </div>
-                  ))}
-                </div>
-
-                <div className="m-section-title">Assessment Summary</div>
-                <div className="m-para">
-                  Based on your responses across {QUESTIONS.length} psychometric statements,
-                  your profile demonstrates strong analytical reasoning, persuasive communication,
-                  structured decision-making, critical thinking, and ethical judgment.
-                  These competencies indicate a high degree of suitability for pursuing studies
-                  and a professional career in the field of <strong>Law</strong>.
-                  Your aptitude reflects the ability to evaluate situations objectively,
-                  argue positions with evidence, and handle complex multi-party responsibilities
-                  effectively — all of which are essential in the legal profession.
-                </div>
+                    <div className="m-trow">
+                      {sec.traits.map((t, ti) => (
+                        <div key={ti} className="m-tc">
+                          <PctCircle score={t.score} color={sec.color} />
+                          <div className="m-tname" style={{ color: sec.color }}>{t.name}</div>
+                          <div className="m-tdesc">{t.desc}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <div className="m-report-footer">
-                <div className="m-footer-brand">
+              <div className="m-rfooter">
+                <div className="m-rbrand">
                   <strong>ProCounsel</strong> &nbsp;·&nbsp; procounsel.co.in
-                  &nbsp;·&nbsp; Generated by a psychometric tool for guidance purposes.
+                  &nbsp;·&nbsp; Generated by a psychometric tool for career guidance.
                 </div>
-                <div className="m-footer-actions">
-                  <button className="m-retake-btn" onClick={retake}>
-                    Retake Test
-                  </button>
-                  <button className="m-download-btn" onClick={() => window.print()}>
-                    ⬇ Download Report (PDF)
-                  </button>
+                <div className="m-facts">
+                  <button className="m-rkbtn" onClick={retake}>Retake Test</button>
+                  <button className="m-dlbtn" onClick={() => window.print()}>↓ Download PDF</button>
                 </div>
               </div>
 
