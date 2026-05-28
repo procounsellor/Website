@@ -1,13 +1,30 @@
 User-agent: *
 Allow: /
 
+# Private / account pages
 Disallow: /dashboard-student
 Disallow: /wallet
 Disallow: /profile
 Disallow: /counsellor-dashboard
-Disallow: /counselor-dashboard/client-profile
+Disallow: /counselor-dashboard/
+Disallow: /pro-buddies/dashboard
+
+# Test / exam pages (session-based, no SEO value)
 Disallow: /take-test/
 Disallow: /t/
 Disallow: /test-result/
+Disallow: /test-info/
+
+# Duplicate / redirect routes (canonical is the clean URL)
+Disallow: /revamp-about
+Disallow: /revamp-courses
+Disallow: /revamp-courses/
+Disallow: /counsellor-listing-cards
+
+# Thin / internal pages
+Disallow: /add-college
+Disallow: /sitemap
+Disallow: /subscribe
+Disallow: /gurucool
 
 Sitemap: https://www.procounsel.co.in/sitemap.xml

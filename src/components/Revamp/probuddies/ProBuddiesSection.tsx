@@ -16,10 +16,10 @@ export default function ProBuddiesSection({ probuddyList, isLoading = false }: p
   const hasAnimated = useRef(false);
   const displayBuddies = probuddyList.slice(0, 5);
 
-  const shouldAnimate = !hasAnimated.current;
   if (displayBuddies.length > 0 && !hasAnimated.current) {
     hasAnimated.current = true;
   }
+  const shouldAnimate = !hasAnimated.current;
 
   const containerVariants = shouldAnimate
     ? {

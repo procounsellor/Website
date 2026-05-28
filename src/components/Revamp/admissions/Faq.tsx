@@ -4,24 +4,59 @@ import { ChevronDown } from "lucide-react";
 export default function Faq() {
     const faqData = [
         {
-            question: "What do you mean by career counselling?",
-            answer: "Career counselling means helping a student understand which career path suits them. Many students feel confused about courses and future options. Through proper career counselling and career guidance for students, we help them think clearly and take the next step with confidence.",
-            keywords: ["career counselling", "career guidance for students"]
+            question: "What does an education consultant in India do?",
+            answer: "An education consultant in India is like your personal navigator for school and job choices, zeroing in on what you love, what you're good at, and where you wanna end up. Over at ProCounsel, we hook you up with career counselling services, solid career guidance for students, and hands-on university admission support whether you're staying in India or heading overseas.",
+            keywords: ["education consultant in india", "career counselling services", "career guidance for students", "university admission support"]
         },
         {
-            question: "Is career counselling after 12th really necessary?",
-            answer: "For many students, yes. Career counselling after 12th helps avoid wrong decisions at an important stage. With the right career guidance and counselling, students can choose a course and college that matches their interests and long-term goals.",
-            keywords: ["career counselling after 12th", "career guidance and counselling"]
+            question: "How do career counselling services help students?",
+            answer: "Career counselling services are a lifesaver—they help kids figure out their real strengths, what fires them up, and careers that actually match. You do some structured assessments, chat with a certified career coach, and boom: no more head-scratching, just clear steps to nail your education and career picks with total confidence.",
+            keywords: ["career counselling services", "career counselling online"]
         },
         {
-            question: "How does online career counselling work?",
-            answer: "Online career counselling is a simple one-to-one discussion with a counsellor. The student talks openly about doubts and plans, and we provide clear career guidance for students based on their situation, without the need to visit any office.",
-            keywords: ["online career counselling", "career guidance for students"]
+            question: "What are the benefits of career counselling?",
+            answer: "The benefits of career counselling? You get crystal-clear thinking, a confidence boost, and a solid plan for the long game. Lean on experienced career coaching services, and you'll dodge those career mistakes that cost you big, save tons of time and cash, plus snag personalized career guidance for students that's spot-on for your dreams.",
+            keywords: ["career coaching services", "career guidance for students"]
         },
         {
-            question: "Do you provide personal support and is it affordable?",
-            answer: "Yes. We offer affordable career coaching so that students can access the right help without stress. Each student receives support from a personal career coach who provides honest career counselling and guidance throughout the decision-making process.",
-            keywords: ["affordable career coaching", "personal career coach", "career counselling"]
+            question: "Is career counselling worth it in India?",
+            answer: "Oh yeah, career counselling is worth it in India hands down—think cutthroat competition and a million paths to pick from. With top career coaches and dependable career counselling services in your corner, you and other pros make choices that stick and charge into your future feeling unstoppable.",
+            keywords: ["career counselling services", "best career coaching services"]
+        },
+        {
+            question: "What is the scope of career counselling?",
+            answer: "The scope of career counselling is exploding everywhere in India these days. Career coaching services tackle subject selection, skill assessment, plotting higher education, smooth career transitions, and even career counselling online, so top guidance hits students no matter where they are.",
+            keywords: ["career coaching services", "career counselling online"]
+        },
+        {
+            question: "How does career counselling online work?",
+            answer: "Career counselling online? It's all about jumping on virtual calls for pro advice without leaving home. ProCounsel's setup includes quick assessments, real-talk one-on-ones, and custom tips from a certified career coach—quality stuff you can grab from any corner of India.",
+            keywords: ["career counselling online", "career counselling services"]
+        },
+        {
+            question: "Who should take career guidance for students?",
+            answer: "Anyone grabbing career guidance for students will love it post-10th, after 12th, once you're done with grad school, or if you're a pro in the workforce. Feeling stuck on your next move, college plans, or skills? Dive into professional career counselling services and sort it out.",
+            keywords: ["career guidance for students", "career counselling services"]
+        },
+        {
+            question: "How do study abroad consultants in India support students?",
+            answer: "Study abroad consultants in India got your back on choosing countries, scouting unis, apps, and visas. As one of the best study abroad consultants in India, ProCounsel makes the whole international education journey a breeze with full support from start to finish.",
+            keywords: ["study abroad consultant india", "best study abroad consultants in india"]
+        },
+        {
+            question: "What makes ProCounsel a trusted career consultant?",
+            answer: "What sets ProCounsel apart as a trusted career consultant? It's our custom-fit advice, straight-up ethical counselling, and pro-level planning. Certified career coaches and battle-tested education consultants in India dish out real-world pointers, solid assessments, and total backup for your school and job decisions.",
+            keywords: ["education consultant in india", "best career coaching services"]
+        },
+        {
+            question: "How do I choose the best career coaching services?",
+            answer: "To snag the best career coaching services, hunt for certified pros, open-and-honest processes, and advice tailored just for you. The top career coaches who really get student goals and what's hot in industries? They're the ones who deliver career support that actually moves the needle.",
+            keywords: ["best career coaching services", "career coaching services"]
+        },
+        {
+            question: "Are career coaching services useful for working professionals?",
+            answer: "For sure, career coaching services rock for working professionals chasing growth, a career switch, or fresh skills. Top career coaches link up your know-how with killer future gigs.",
+            keywords: ["career coaching services", "best career coaching services"]
         },
     ]
 

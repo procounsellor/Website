@@ -59,6 +59,10 @@ export default function ProBuddyCard({
           <img
             src={displayImage}
             alt={name}
+            loading="lazy"
+            decoding="async"
+            width={176}
+            height={135}
             className="w-44 h-33.75 rounded-[10px] object-cover shrink-0"
           />
 
@@ -153,6 +157,10 @@ export default function ProBuddyCard({
           <img
             src={displayImage}
             alt={name}
+            loading="lazy"
+            decoding="async"
+            width={220}
+            height={208}
             className="w-55 h-52 rounded-[10px] object-cover shrink-0"
           />
 
@@ -263,6 +271,10 @@ export function ProbuddyPhoneListinCard(
       <img
         src={displayImage}
         alt={name}
+        loading="lazy"
+        decoding="async"
+        width={169}
+        height={135}
         className="w-full h-33.75 rounded-[10px] object-cover shrink-0"
       />
 

@@ -72,12 +72,58 @@ export default function Admissions() {
   const cardAnimate = splashPhase >= 3 && animationPhase >= 4 ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 10, scale: 0.98 };
   const cardTransition = { duration: 0.55, ease: "easeOut" as const };
 
+  // SiteNavigationElement tells Google which pages should appear as sitelinks
+  const siteNavigationSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "ProCounsel Main Navigation",
+    "description": "Explore ProCounsel's key sections for career counselling, admissions, and student guidance",
+    "itemListElement": [
+      {
+        "@type": "SiteNavigationElement",
+        "position": 1,
+        "name": "Admissions",
+        "description": "College admission guidance, blogs, deadlines, and expert counsellors",
+        "url": "https://www.procounsel.co.in/admissions"
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "position": 2,
+        "name": "Courses",
+        "description": "JEE, NEET, MBA and career prep courses by verified counsellors",
+        "url": "https://www.procounsel.co.in/courses"
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "position": 3,
+        "name": "Community",
+        "description": "Student Q&A community for admissions, exams, and career guidance",
+        "url": "https://www.procounsel.co.in/community"
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "position": 4,
+        "name": "ProBuddies",
+        "description": "Connect with college seniors for peer mentorship and campus insights",
+        "url": "https://www.procounsel.co.in/pro-buddies"
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "position": 5,
+        "name": "About",
+        "description": "Learn about ProCounsel's mission and team",
+        "url": "https://www.procounsel.co.in/about"
+      }
+    ]
+  };
+
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": "https://www.procounsel.co.in/#website",
     "name": "ProCounsel",
     "url": "https://www.procounsel.co.in",
-    "description": "India's leading platform for college admissions guidance, career counseling, JEE/NEET preparation, and study abroad support.",
+    "description": "India's leading platform for career counselling services, university admission support, study abroad consultant, and career guidance for students.",
     "potentialAction": {
       "@type": "SearchAction",
       "target": {
@@ -102,14 +148,109 @@ export default function Admissions() {
     }
   };
 
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What does an education consultant in India do?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "An education consultant in India is like your personal navigator for school and job choices, zeroing in on what you love, what you're good at, and where you wanna end up. Over at ProCounsel, we hook you up with career counselling services, solid career guidance for students, and hands-on university admission support whether you're staying in India or heading overseas."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do career counselling services help students?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Career counselling services are a lifesaver—they help kids figure out their real strengths, what fires them up, and careers that actually match. You do some structured assessments, chat with a certified career coach, and boom: no more head-scratching, just clear steps to nail your education and career picks with total confidence."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What are the benefits of career counselling?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The benefits of career counselling? You get crystal-clear thinking, a confidence boost, and a solid plan for the long game. Lean on experienced career coaching services, and you'll dodge those career mistakes that cost you big, save tons of time and cash, plus snag personalized career guidance for students that's spot-on for your dreams."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is career counselling worth it in India?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Oh yeah, career counselling is worth it in India hands down—think cutthroat competition and a million paths to pick from. With top career coaches and dependable career counselling services in your corner, you and other pros make choices that stick and charge into your future feeling unstoppable."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the scope of career counselling?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The scope of career counselling is exploding everywhere in India these days. Career coaching services tackle subject selection, skill assessment, plotting higher education, smooth career transitions, and even career counselling online, so top guidance hits students no matter where they are."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does career counselling online work?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Career counselling online? It's all about jumping on virtual calls for pro advice without leaving home. ProCounsel's setup includes quick assessments, real-talk one-on-ones, and custom tips from a certified career coach—quality stuff you can grab from any corner of India."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Who should take career guidance for students?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Anyone grabbing career guidance for students will love it post-10th, after 12th, once you're done with grad school, or if you're a pro in the workforce. Feeling stuck on your next move, college plans, or skills? Dive into professional career counselling services and sort it out."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do study abroad consultants in India support students?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Study abroad consultants in India got your back on choosing countries, scouting unis, apps, and visas. As one of the best study abroad consultants in India, ProCounsel makes the whole international education journey a breeze with full support from start to finish."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What makes ProCounsel a trusted career consultant?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "What sets ProCounsel apart as a trusted career consultant? It's our custom-fit advice, straight-up ethical counselling, and pro-level planning. Certified career coaches and battle-tested education consultants in India dish out real-world pointers, solid assessments, and total backup for your school and job decisions."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I choose the best career coaching services?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "To snag the best career coaching services, hunt for certified pros, open-and-honest processes, and advice tailored just for you. The top career coaches who really get student goals and what's hot in industries? They're the ones who deliver career support that actually moves the needle."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Are career coaching services useful for working professionals?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "For sure, career coaching services rock for working professionals chasing growth, a career switch, or fresh skills. Top career coaches link up your know-how with killer future gigs."
+        }
+      }
+    ]
+  };
+
   return (
     <>
       <PageSEO
-        title="ProCounsel – College Admissions, Counseling & Exam Prep"
-        description="ProCounsel helps Indian students with college admissions guidance, JEE/NEET preparation, study abroad counseling, expert counsellors, and peer mentorship (ProBuddies)."
-        canonical="/admissions"
-        keywords="college admissions India, JEE counseling, NEET guidance, study abroad, career counseling, ProCounsel"
-        jsonLd={[websiteSchema, organizationSchema]}
+        title="Best Career Counselling Services for Students – Unlock Your Future with Procounsel"
+        description="Procounsel offers expert career counselling services in India. From university admissions support to study abroad consultant, we shape student futures with personalized coaching. Book now!"
+        canonical="/"
+        keywords="education consultant in india, university admission support, career counselling services, study abroad consultant india, career coaching services, career counselling online, career guidance for students, best study abroad consultants in india, best career coaching services"
+        jsonLd={[siteNavigationSchema, websiteSchema, organizationSchema, faqSchema]}
       />
     <div className="min-h-screen">
       <section className="hidden md:flex relative w-full h-[567px] flex items-center justify-center overflow-hidden">

@@ -6,6 +6,7 @@ import { getCounselorProfileById } from "@/api/counselor-Dashboard";
 import type { User } from "@/types/user";
 import type { CounselorProfileData } from "@/types/counselorProfile";
 import type { Transaction as UserTransaction } from "@/types/user";
+import { setToken, clearToken, cacheTokenInMemory, getToken } from '@/lib/tokenManager';
 
 const mapCounselorToUser = (counselorData: CounselorProfileData): User => {
   return {
@@ -108,13 +109,15 @@ export const useAuthStore = create<AuthState>()(
         set({ needsProfileCompletion: value }),
       setIsCounselorSignupFlow: (value) =>
         set({ isCounselorSignupFlow: value }),
-      setTempJwt: (jwt, phone) => set({ tempJwt: jwt, tempPhone: phone }),
+      setTempJwt: (jwt, phone) => {
+        if (jwt) cacheTokenInMemory(jwt);
+        set({ tempJwt: jwt, tempPhone: phone });
+      },
 
       completeOnboarding: () => {
         const { tempJwt, tempPhone } = get();
         if (tempJwt && tempPhone) {
-          localStorage.setItem("jwt", tempJwt);
-          localStorage.setItem("phone", tempPhone);
+          setToken(tempJwt, tempPhone);
           set({ tempJwt: null, tempPhone: null, needsOnboarding: false });
         }
       },
@@ -207,7 +210,7 @@ export const useAuthStore = create<AuthState>()(
             : null);
         const token =
           state.tempJwt ??
-          (typeof window !== "undefined" ? localStorage.getItem("jwt") : null);
+          getToken();
         const role =
           state.role ??
           (typeof window !== "undefined" ? localStorage.getItem("role") : null);
@@ -337,10 +340,7 @@ export const useAuthStore = create<AuthState>()(
             // Store in localStorage for existing users
             console.log("📝 Storing JWT in localStorage for existing user");
             if (data?.jwtToken) {
-              localStorage.setItem("jwt", data.jwtToken);
-            }
-            if (phone) {
-              localStorage.setItem("phone", phone);
+              setToken(data.jwtToken, phone);
             }
           }
         } catch (err) {
@@ -375,10 +375,7 @@ export const useAuthStore = create<AuthState>()(
              set({ isCounselorSignupFlow: false });
 
              if (data?.jwtToken) {
-               localStorage.setItem("jwt", data.jwtToken);
-             }
-             if (phone) {
-               localStorage.setItem("phone", phone);
+               setToken(data.jwtToken, phone);
              }
           } else if (!isUser) {
             const counselorData = await getCounselorProfileById(
@@ -466,11 +463,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        try {
-          localStorage.removeItem("jwt");
-          localStorage.removeItem("phone");
-          localStorage.removeItem("role");
-        } catch {}
+        clearToken();
         set({
           user: null,
           userId: null,

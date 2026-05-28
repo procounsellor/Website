@@ -4,8 +4,15 @@ import path from "node:path";
 export const SITE_URL = process.env.SITE_URL || "https://www.procounsel.co.in";
 
 export const STATIC_ROUTES = [
+  // Core pages — highest priority (target sitelinks)
   "/",
   "/admissions",
+  "/courses",
+  "/community",
+  "/pro-buddies",
+  "/about",
+
+  // Admissions sub-pages
   "/admissions/blogs",
   "/admissions/blog-authors",
   "/admissions/blog-authors/aswini-verma",
@@ -13,37 +20,30 @@ export const STATIC_ROUTES = [
   "/admissions/blog-authors/kiran-kudke",
   "/admissions/blog-authors/ananya",
   "/admissions/deadlines",
-  "/courses",
+
+  // Courses sub-pages
   "/courses/course-listing",
   "/courses/test-listing",
   "/courses/session-listing",
-  "/revamp-courses",
-  "/revamp-courses/course-listing",
-  "/revamp-courses/test-listing",
-  "/revamp-courses/session-listing",
-  "/revamp-about",
-  "/counsellor-listing",
-  "/counsellor-listing-cards",
-  "/pro-buddies",
-  "/pro-buddies/register",
+
+  // ProBuddies sub-pages
   "/pro-buddies/listing",
   "/pro-buddies/college-listing",
-  "/community",
+
+  // Counsellors
+  "/counsellor-listing",
+
+  // Tools
   "/jee-rank-predictor",
   "/jee-college-predictor",
   "/mhtcet-college-predictor",
-  "/about",
+
+  // Legal / info pages
   "/contact",
   "/privacy-policy",
   "/terms",
   "/cancellation-refund",
   "/shipping-exchange",
-  "/sitemap",
-  "/add-college",
-  "/gurucool",
-  "/promo",
-  "/testSeries/pcsat",
-  "/subscribe",
 ];
 
 async function readApiBaseUrlFromEnvFiles() {
@@ -282,12 +282,11 @@ export async function getPublicRoutes() {
 
 export function routeToPriority(route) {
   if (route === "/") return "1.0";
-  if (route === "/admissions" || route === "/courses") return "0.9";
-  if (
-    route === "/community" ||
-    route === "/counsellor-listing" ||
-    route === "/pro-buddies"
-  ) return "0.85";
+  // The 5 sitelink target pages — all get high priority
+  if (route === "/admissions") return "1.0";
+  if (route === "/courses" || route === "/community" || route === "/pro-buddies") return "0.95";
+  if (route === "/about") return "0.9";
+  if (route === "/counsellor-listing") return "0.85";
   if (
     route === "/jee-rank-predictor" ||
     route === "/jee-college-predictor" ||

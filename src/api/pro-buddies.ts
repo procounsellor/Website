@@ -9,6 +9,7 @@ import type {
 } from "@/types/probuddies";
 import { API_CONFIG } from "./config";
 import type { collegeProbuddy } from "@/components/Revamp/probuddies/CollegeSection";
+import { getToken, getStoredPhone } from '@/lib/tokenManager';
 
 export type FeaturedCollegeInIndia = {
   country: string;
@@ -69,8 +70,8 @@ export type UpdateProBuddyProfilePayload = {
   officeEndTime: string;
 };
 
-const getAuthToken = () => localStorage.getItem("jwt") || "";
-const getStoredUserId = () => localStorage.getItem("phone") || "";
+const getAuthToken = () => getToken() ?? "";
+const getStoredUserId = () => getStoredPhone() ?? "";
 
 const getAuthHeaders = (): HeadersInit => {
   const token = getAuthToken();
@@ -366,7 +367,7 @@ export const getAllProBudddiesUser = async (
   appendQueryParam(queryParams, "sortBy", filters.sortBy ?? "rating");
   appendQueryParam(queryParams, "sortOrder", filters.sortOrder ?? "desc");
   appendQueryParam(queryParams, "page", filters.page ?? 0);
-  appendQueryParam(queryParams, "pageSize", filters.pageSize ?? 10);
+  appendQueryParam(queryParams, "pageSize", filters.pageSize ?? 200);
 
   const response = await fetch(`${API_CONFIG.baseUrl}${endpoint}?${queryParams.toString()}`, {
     method: "GET",

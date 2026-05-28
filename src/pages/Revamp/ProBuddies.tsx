@@ -71,7 +71,7 @@ export default function ProBuddies() {
         title="ProBuddies – Connect with College Seniors & Peer Mentors"
         description="ProBuddies connects aspiring students with college seniors for real guidance on admissions, campus life, and course selection. Find your ProBuddy today."
         canonical="/pro-buddies"
-        keywords="ProBuddies, peer mentorship, college seniors, admissions guidance, student community, college advice India"
+        keywords="probuddy, college senior mentors, peer mentorship india, campus life guidance, admission peer help"
       />
     <div className="">
         <div className="w-full bg-[url('/probuddiesbg.jpg')] bg-cover bg-center">

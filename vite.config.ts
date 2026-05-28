@@ -29,13 +29,19 @@ export default defineConfig({
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'query-vendor': ['@tanstack/react-query'],
+          'motion-vendor': ['framer-motion'],
+          'ui-vendor': ['lucide-react', 'react-icons'],
+          'chart-vendor': ['recharts'],
           'mui-vendor': ['@mui/material', '@mui/x-date-pickers', '@emotion/react', '@emotion/styled'],
           'firebase-vendor': ['firebase'],
-          'ui-vendor': ['framer-motion', 'lucide-react', 'recharts', 'react-icons'],
-          'query-vendor': ['@tanstack/react-query']
-        }
-      }
-    }
+        },
+      },
+    },
+    // Enable CSS code-splitting per chunk
+    cssCodeSplit: true,
+    // Reduce chunk size warnings threshold
+    chunkSizeWarningLimit: 600,
   }
 })
 

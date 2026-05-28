@@ -6,10 +6,10 @@ export default function Courses() {
   return (
     <>
       <PageSEO
-        title="Courses & Test Series – Learn from Expert Counsellors"
-        description="Explore courses, mock test series, and live sessions created by verified counsellors on ProCounsel. Find the right course based on your counsellor's guidance and your academic goals."
+        title="Courses & Test Series – JEE, NEET & Career Prep | ProCounsel"
+        description="Explore JEE, NEET, MBA and career prep courses, mock test series, and live sessions by verified counsellors on ProCounsel. Start learning today."
         canonical="/courses"
-        keywords="counsellor courses, online courses, mock test series, live sessions, academic guidance, ProCounsel courses"
+        keywords="JEE courses online, NEET preparation, MBA entrance coaching, career counselling courses india"
       />
       <div className="min-h-screen relative ">
         <Banner />

@@ -1,5 +1,6 @@
 import { API_CONFIG } from "./config";
 import type { CollegeDetails,CollegeApiResponse, ExamApiResponse, CourseApiResponse, CounsellorApiResponse, AllCounselor, CounselorDetails } from "../types/academic";
+import { getToken } from '@/lib/tokenManager';
 
 interface BookingRequest {
   userId: string;
@@ -28,11 +29,15 @@ async function fetcher<T>(endpoint: string): Promise<T> {
   if (!API_CONFIG.baseUrl) {
     throw new Error('API base URL not configured. Please check environment variables.');
   }
-  
-  const res = await fetch(`${API_CONFIG.baseUrl}${endpoint}`,{
-    headers:{
-        'Accept':'application/json'
-    }
+
+  const res = await fetch(`${API_CONFIG.baseUrl}${endpoint}`, {
+    headers: {
+      'Accept': 'application/json',
+    },
+    // Safari aggressively caches GET requests — no-store forces a fresh fetch every time.
+    cache: 'no-store',
+    mode: 'cors',
+    redirect: 'follow',
   });
   if (!res.ok) throw new Error("API error");
   return res.json();
@@ -42,12 +47,15 @@ async function authFetcher<T>(endpoint: string, token: string): Promise<T> {
   if (!API_CONFIG.baseUrl) {
     throw new Error('API base URL not configured.');
   }
-  
+
   const res = await fetch(`${API_CONFIG.baseUrl}${endpoint}`, {
     headers: {
       'Accept': 'application/json',
-      'Authorization': `Bearer ${token}`
-    }
+      'Authorization': `Bearer ${token}`,
+    },
+    cache: 'no-store',
+    mode: 'cors',
+    redirect: 'follow',
   });
   if (!res.ok) throw new Error("API error");
   return res.json();
@@ -64,9 +72,9 @@ export const academicApi = {
   getLoggedInCounsellors: (userId: string, token: string) => authFetcher<AllCounselor[]>(`/api/user/counsellorsAccordingToInterestedCourse/all?userName=${userId}`, token),
   getCounselorById: (id: string) => fetcher<CounselorDetails>(`${API_CONFIG.endpoints.getCounsellorById}?counsellorId=${id}`),
   getCounselorNonAvailability: async (userId: string, counsellorId: string) => {
-  const token = localStorage.getItem('jwt');
+  const token = getToken();
     if (!token) {
-      throw new Error('Authentication token not found');
+      throw new Error('Please log in to continue');
     }
     
     const res = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.getCounsellorNonAvailability}?userId=${userId}&counsellorId=${counsellorId}`, {
@@ -83,9 +91,9 @@ export const academicApi = {
   },
   
   bookAppointment: async (bookingData: BookingRequest): Promise<BookingResponse> => {
-  const token = localStorage.getItem('jwt');
+  const token = getToken();
     if (!token) {
-      throw new Error('Authentication token not found');
+      throw new Error('Please log in to continue');
     }
     
     const res = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.bookAppointment}`, {
@@ -118,8 +126,8 @@ export const academicApi = {
     page: number = 0,
     pageSize: number = 9
   ) => {
-    const token = localStorage.getItem("jwt");
-    if (!token) throw new Error("Authentication token not found");
+    const token = getToken();
+    if (!token) throw new Error("Please log in to continue");
 
     const params = new URLSearchParams();
 
@@ -225,8 +233,8 @@ export const academicApi = {
   },
 
   getTopCounsellorsAuth: async (userId: string, limit: number = 8) => {
-    const token = localStorage.getItem('jwt');
-    if (!token) throw new Error('Authentication token not found');
+    const token = getToken();
+    if (!token) throw new Error('Please log in to continue');
 
     const res = await fetch(`${API_CONFIG.baseUrl}/api/user/topCounsellors?userId=${userId}&limit=${limit}`, {
       headers: {
