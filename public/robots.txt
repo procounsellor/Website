@@ -23,7 +23,6 @@ Disallow: /counsellor-listing-cards
 
 # Thin / internal pages
 Disallow: /add-college
-Disallow: /sitemap
 Disallow: /subscribe
 Disallow: /gurucool
 
