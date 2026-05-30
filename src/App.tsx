@@ -1,5 +1,6 @@
 import { BrowserRouter } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
+import { useEffect } from "react";
 import AppRoutes from "./routes/AppRoutes";
 import ScrollToTop from "./components/ui/ScrollToTop";
 import NoInternet from "./components/common/NoInternet";
@@ -16,7 +17,43 @@ const queryClient = new QueryClient({
   },
 });
 
+function useVisitorTracking() {
+  useEffect(() => {
+    const referrer = document.referrer;
+    let source = "direct";
+    let detail = "";
+
+    if (referrer) {
+      try {
+        const url = new URL(referrer);
+        const host = url.hostname.toLowerCase();
+        detail = host;
+
+        if (/google\./i.test(host)) source = "google";
+        else if (/bing\./i.test(host)) source = "bing";
+        else if (/yahoo\./i.test(host)) source = "yahoo";
+        else if (/facebook\.|fb\./i.test(host)) source = "facebook";
+        else if (/instagram\./i.test(host)) source = "instagram";
+        else if (/twitter\.|x\.com/i.test(host)) source = "twitter/x";
+        else if (/linkedin\./i.test(host)) source = "linkedin";
+        else if (/youtube\./i.test(host)) source = "youtube";
+        else if (/whatsapp\./i.test(host)) source = "whatsapp";
+        else source = "referral";
+      } catch {
+        source = "referral";
+        detail = referrer;
+      }
+    }
+
+    console.log("[ProCounsel] Visitor source:", source, detail ? `(${detail})` : "");
+    console.log("[ProCounsel] Full referrer:", referrer || "(none — direct/bookmark/typed)");
+    console.log("[ProCounsel] Landing page:", window.location.pathname);
+    console.log("[ProCounsel] UTM params:", Object.fromEntries(new URLSearchParams(window.location.search)));
+  }, []);
+}
+
 export default function App(){
+  useVisitorTracking();
   return(
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
