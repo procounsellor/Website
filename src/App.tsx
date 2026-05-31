@@ -17,6 +17,8 @@ const queryClient = new QueryClient({
   },
 });
 
+const ANALYTICS_API = "https://college-search-api.vercel.app";
+
 function useVisitorTracking() {
   useEffect(() => {
     const referrer = document.referrer;
@@ -45,10 +47,23 @@ function useVisitorTracking() {
       }
     }
 
+    const utms = Object.fromEntries(new URLSearchParams(window.location.search));
     console.log("[ProCounsel] Visitor source:", source, detail ? `(${detail})` : "");
-    console.log("[ProCounsel] Full referrer:", referrer || "(none — direct/bookmark/typed)");
     console.log("[ProCounsel] Landing page:", window.location.pathname);
-    console.log("[ProCounsel] UTM params:", Object.fromEntries(new URLSearchParams(window.location.search)));
+
+    // Fire-and-forget — never blocks the page
+    fetch(`${ANALYTICS_API}/track-referrer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        source,
+        referrerUrl: referrer || "",
+        landingPage: window.location.pathname,
+        utmSource:   utms["utm_source"]   || "",
+        utmMedium:   utms["utm_medium"]   || "",
+        utmCampaign: utms["utm_campaign"] || "",
+      }),
+    }).catch(() => {}); // silently ignore network errors
   }, []);
 }
 
