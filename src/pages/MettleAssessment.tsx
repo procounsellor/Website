@@ -1,64 +1,18 @@
 import { useState, useEffect, useRef } from "react";
-import axios from "axios";
 
-const COLLEGE_API = "https://college-search-api.vercel.app";
+const API = "https://college-search-api.vercel.app";
 
-// ── Category definitions ──────────────────────────────────────────────────────
-const CATEGORIES = [
-  {
-    key: "Analytical", name: "Analytical Thinking", emoji: "🧠",
-    color: "#7c3aed", light: "#f5f3ff", dark: "#4c1d95",
-    bg: "linear-gradient(135deg, #2d1b69 0%, #7c3aed 100%)",
-    desc: "How you approach complex problems, reason through evidence, and build logical conclusions.",
-  },
-  {
-    key: "Creative", name: "Creative Expression", emoji: "🎨",
-    color: "#e11d78", light: "#fdf2f8", dark: "#9d174d",
-    bg: "linear-gradient(135deg, #6b0f3a 0%, #e11d78 100%)",
-    desc: "Your capacity for original thinking, imagination, and expressing ideas in new ways.",
-  },
-  {
-    key: "Social", name: "Social & Empathy", emoji: "🤝",
-    color: "#0284c7", light: "#f0f9ff", dark: "#075985",
-    bg: "linear-gradient(135deg, #0c3453 0%, #0284c7 100%)",
-    desc: "How naturally you connect with people, read emotions, and build meaningful relationships.",
-  },
-  {
-    key: "Leadership", name: "Leadership", emoji: "🚀",
-    color: "#ea580c", light: "#fff7ed", dark: "#9a3412",
-    bg: "linear-gradient(135deg, #5c1a04 0%, #ea580c 100%)",
-    desc: "Your drive to lead, take initiative, persuade others, and turn vision into results.",
-  },
-  {
-    key: "Technical", name: "Technical Aptitude", emoji: "⚙️",
-    color: "#059669", light: "#ecfdf5", dark: "#065f46",
-    bg: "linear-gradient(135deg, #022c22 0%, #059669 100%)",
-    desc: "Your affinity for technology, science, precision, and hands-on problem solving.",
-  },
-  {
-    key: "Nature", name: "Nature & Environment", emoji: "🌿",
-    color: "#16a34a", light: "#f0fdf4", dark: "#14532d",
-    bg: "linear-gradient(135deg, #052e16 0%, #16a34a 100%)",
-    desc: "Your connection to the natural world, living systems, and environmental stewardship.",
-  },
-  {
-    key: "Organized", name: "Organization & Structure", emoji: "📋",
-    color: "#475569", light: "#f8fafc", dark: "#1e293b",
-    bg: "linear-gradient(135deg, #0f172a 0%, #475569 100%)",
-    desc: "How well you manage detail, build systems, follow procedures, and maintain order.",
-  },
-  {
-    key: "Communication", name: "Communication", emoji: "💬",
-    color: "#b45309", light: "#fffbeb", dark: "#78350f",
-    bg: "linear-gradient(135deg, #3d1a02 0%, #b45309 100%)",
-    desc: "How effectively you express ideas, argue positions, write, and engage through language.",
-  },
-  {
-    key: "Social Impact", name: "Social Impact", emoji: "🌍",
-    color: "#6d28d9", light: "#f5f3ff", dark: "#4c1d95",
-    bg: "linear-gradient(135deg, #2e1065 0%, #6d28d9 100%)",
-    desc: "Your motivation to serve communities, drive change, and make society a better place.",
-  },
+// ── Categories ────────────────────────────────────────────────────────────────
+const CATS = [
+  { key: "Analytical",    name: "Analytical Thinking",     emoji: "🧠", color: "#4f46e5", light: "#eef2ff", mid: "#c7d2fe", catBg: "linear-gradient(135deg,#eef2ff 0%,#e0e7ff 100%)" },
+  { key: "Creative",      name: "Creative Expression",      emoji: "🎨", color: "#ea580c", light: "#fff7ed", mid: "#fed7aa", catBg: "linear-gradient(135deg,#fff7ed 0%,#ffedd5 100%)" },
+  { key: "Social",        name: "Social & Empathy",         emoji: "🤝", color: "#0284c7", light: "#f0f9ff", mid: "#bae6fd", catBg: "linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 100%)" },
+  { key: "Leadership",    name: "Leadership",               emoji: "🚀", color: "#d97706", light: "#fffbeb", mid: "#fde68a", catBg: "linear-gradient(135deg,#fffbeb 0%,#fef3c7 100%)" },
+  { key: "Technical",     name: "Technical Aptitude",       emoji: "⚙️",  color: "#059669", light: "#ecfdf5", mid: "#a7f3d0", catBg: "linear-gradient(135deg,#ecfdf5 0%,#d1fae5 100%)" },
+  { key: "Nature",        name: "Nature & Environment",     emoji: "🌿", color: "#16a34a", light: "#f0fdf4", mid: "#bbf7d0", catBg: "linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)" },
+  { key: "Organized",     name: "Organization & Structure", emoji: "📋", color: "#475569", light: "#f8fafc", mid: "#e2e8f0", catBg: "linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%)" },
+  { key: "Communication", name: "Communication",            emoji: "💬", color: "#db2777", light: "#fdf2f8", mid: "#fbcfe8", catBg: "linear-gradient(135deg,#fdf2f8 0%,#fce7f3 100%)" },
+  { key: "Social Impact", name: "Social Impact",            emoji: "🌍", color: "#7c3aed", light: "#f5f3ff", mid: "#ddd6fe", catBg: "linear-gradient(135deg,#f5f3ff 0%,#ede9fe 100%)" },
 ];
 
 const QUESTIONS: { text: string; category: string }[] = [
@@ -114,278 +68,244 @@ const QUESTIONS: { text: string; category: string }[] = [
   { text: "I find work that serves communities or the public sector genuinely fulfilling.", category: "Social Impact" },
 ];
 
-// Build category → questions map in CATEGORIES order
-const CAT_QUESTIONS = CATEGORIES.map(cat => ({
-  ...cat,
-  qs: QUESTIONS.filter(q => q.category === cat.key),
-}));
+const CAT_QS = CATS.map(c => ({ ...c, qs: QUESTIONS.filter(q => q.category === c.key) }));
 
-// Global index for a question (catIdx, qInCat)
-function gIdx(catIdx: number, qInCat: number) {
-  let n = 0;
-  for (let i = 0; i < catIdx; i++) n += CAT_QUESTIONS[i].qs.length;
-  return n + qInCat;
+function gIdx(ci: number, qi: number) {
+  let n = 0; for (let i = 0; i < ci; i++) n += CAT_QS[i].qs.length; return n + qi;
 }
 
-const SCALE = [
-  { score: 1, label: "Strongly\nDisagree" },
-  { score: 2, label: "Disagree" },
-  { score: 3, label: "Neutral" },
-  { score: 4, label: "Agree" },
-  { score: 5, label: "Strongly\nAgree" },
-];
+const SCALE_LABELS = ["", "Strongly\nDisagree", "Disagree", "Neutral", "Agree", "Strongly\nAgree"];
 
-// ── Types ─────────────────────────────────────────────────────────────────────
 interface CareerPath { title: string; field: string; fitScore: number; description: string; whyYouFit: string; keySkills: string[]; steps: string[]; }
-interface Strength { name: string; score: number; description: string; }
-interface DevArea { name: string; tip: string; }
-interface AssessmentReport { personalityType: string; personalityTagline: string; overallProfile: string; topCareers: CareerPath[]; strengths: Strength[]; developmentAreas: DevArea[]; nextSteps: string[]; }
+interface Strength    { name: string; score: number; description: string; }
+interface DevArea     { name: string; tip: string; }
+interface Report      { personalityType: string; personalityTagline: string; overallProfile: string; topCareers: CareerPath[]; strengths: Strength[]; developmentAreas: DevArea[]; nextSteps: string[]; }
 
-// ── CSS ───────────────────────────────────────────────────────────────────────
+// ── Shared styles ─────────────────────────────────────────────────────────────
+const F   = "'Inter','Poppins',system-ui,sans-serif";
+const GLASS = (opacity = 0.7, blur = 20) => ({
+  background: `rgba(255,255,255,${opacity})`,
+  backdropFilter: `blur(${blur}px) saturate(160%)`,
+  WebkitBackdropFilter: `blur(${blur}px) saturate(160%)`,
+  border: "1px solid rgba(255,255,255,0.9)",
+  boxShadow: "0 4px 24px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.95)",
+} as React.CSSProperties);
+
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-  .ma-root { font-family: 'Inter', 'Poppins', system-ui, sans-serif; }
-  @keyframes maFadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
-  @keyframes maSpin { to { transform:rotate(360deg); } }
-  @keyframes maPulse { 0%,100%{opacity:1} 50%{opacity:.45} }
-  @keyframes maScaleIn { from{opacity:0;transform:scale(.92)} to{opacity:1;transform:scale(1)} }
-  @keyframes maSweep { from{width:0} }
-  .ma-fade-up { animation: maFadeUp .45s cubic-bezier(.22,1,.36,1) both; }
-  .ma-scale-in { animation: maScaleIn .35s cubic-bezier(.22,1,.36,1) both; }
-  .ma-spinner { animation: maSpin 1s linear infinite; }
-  .ma-pulse { animation: maPulse 1.8s ease infinite; }
-  .ma-bar-fill { animation: maSweep 1.2s cubic-bezier(.22,1,.36,1) both; }
-  .ma-opt:hover { filter: brightness(1.06); transform: translateY(-1px); }
-  .ma-opt { transition: all .15s cubic-bezier(.22,1,.36,1); }
-  .ma-card-hover:hover { transform: translateY(-3px); box-shadow: 0 20px 48px rgba(0,0,0,.12) !important; }
-  .ma-card-hover { transition: all .2s ease; }
-  @media print {
-    .ma-no-print { display:none!important; }
-    .ma-root { background: white!important; }
-  }
-  @media(max-width:640px) {
-    .ma-scale-row { gap: 8px!important; }
-    .ma-scale-circle { width: 48px!important; height: 48px!important; font-size: 14px!important; }
-    .ma-career-grid { grid-template-columns: 1fr!important; }
+  .ma { font-family:${F}; -webkit-font-smoothing:antialiased; }
+  @keyframes maUp  { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes maIn  { from{opacity:0;transform:scale(.95)}       to{opacity:1;transform:scale(1)}     }
+  @keyframes maSpin{ to{transform:rotate(360deg)} }
+  @keyframes maPop { 0%,100%{opacity:1} 50%{opacity:.5} }
+  @keyframes maBar { from{width:0} }
+  .ma-up  { animation:maUp  .45s cubic-bezier(.22,1,.36,1) both }
+  .ma-in  { animation:maIn  .38s cubic-bezier(.22,1,.36,1) both }
+  .ma-spin{ animation:maSpin 1s linear infinite }
+  .ma-pop { animation:maPop 2s ease infinite }
+  .ma-bar { animation:maBar .9s cubic-bezier(.22,1,.36,1) both }
+  .ma-btn { transition:all .15s cubic-bezier(.22,1,.36,1); cursor:pointer; }
+  .ma-btn:hover { transform:translateY(-1px); }
+  .ma-card{ transition:transform .18s ease, box-shadow .18s ease; }
+  .ma-card:hover{ transform:translateY(-3px); box-shadow:0 16px 40px rgba(0,0,0,0.1) !important; }
+  @media print{
+    .ma-np{display:none!important;}
+    .ma{background:white!important;}
+    *{box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;}
   }
 `;
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function ScoreRing({ score, color, size = 84 }: { score: number; color: string; size?: number }) {
-  const r = size * 0.36, cx = size / 2, circ = 2 * Math.PI * r;
-  const dash = (score / 100) * circ;
+const DEV = typeof window !== "undefined" && (window.location.hostname === "localhost" || new URLSearchParams(window.location.search).get("dev") === "true");
+
+// ── Score ring ────────────────────────────────────────────────────────────────
+function Ring({ pct, color, size = 72 }: { pct: number; color: string; size?: number }) {
+  const r = size * .37, cx = size / 2, c = 2 * Math.PI * r;
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ flexShrink: 0 }}>
-      <circle cx={cx} cy={cx} r={r} fill="none" stroke={color} strokeWidth={size * 0.1} strokeOpacity=".15" />
-      <circle cx={cx} cy={cx} r={r} fill="none" stroke={color} strokeWidth={size * 0.1}
-        strokeDasharray={`${dash.toFixed(1)} ${circ.toFixed(1)}`} strokeLinecap="round"
+      <circle cx={cx} cy={cx} r={r} fill="none" stroke={color} strokeWidth={size*.09} strokeOpacity=".12" />
+      <circle cx={cx} cy={cx} r={r} fill="none" stroke={color} strokeWidth={size*.09}
+        strokeDasharray={`${((pct/100)*c).toFixed(1)} ${c.toFixed(1)}`} strokeLinecap="round"
         transform={`rotate(-90 ${cx} ${cx})`} />
-      <text x={cx} y={cx + 1} textAnchor="middle" fontSize={size * 0.23} fontWeight="800" fill={color} fontFamily="Inter,system-ui">{score}%</text>
-      <text x={cx} y={cx + size * 0.17} textAnchor="middle" fontSize={size * 0.12} fill="#94a3b8" fontFamily="Inter,system-ui">fit</text>
+      <text x={cx} y={cx+2} textAnchor="middle" fontSize={size*.22} fontWeight="800" fill={color} fontFamily={F}>{pct}%</text>
+      <text x={cx} y={cx+size*.18} textAnchor="middle" fontSize={size*.12} fill="#94a3b8" fontFamily={F}>fit</text>
     </svg>
   );
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
-type Screen = "start" | "cat-intro" | "quiz" | "loading" | "report" | "error";
+// ── Progress dots ─────────────────────────────────────────────────────────────
+function Dots({ ci }: { ci: number }) {
+  return (
+    <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+      {CAT_QS.map((c, i) => (
+        <div key={i} style={{ height: 6, width: i === ci ? 18 : 6, borderRadius: 99, background: i < ci ? c.color : i === ci ? c.color : "#e2e8f0", transition: "all .3s ease", opacity: i > ci ? .4 : 1 }} />
+      ))}
+    </div>
+  );
+}
 
-const DEV = typeof window !== "undefined" && (window.location.hostname === "localhost" || new URLSearchParams(window.location.search).get("dev") === "true");
+// ── Page wrapper ──────────────────────────────────────────────────────────────
+function Page({ bg, children, ref: _r }: { bg: string; children: React.ReactNode; ref?: React.RefObject<HTMLDivElement | null> }) {
+  return (
+    <div style={{ minHeight: "100vh", background: bg, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+      {children}
+    </div>
+  );
+}
+
+type Screen = "start" | "cat-intro" | "quiz" | "loading" | "report" | "error";
 
 export default function MettleAssessment() {
   const [screen, setScreen] = useState<Screen>("start");
-  const [name, setName] = useState("");
+  const [name, setName]     = useState("");
   const [nameErr, setNameErr] = useState(false);
-  const [catIdx, setCatIdx] = useState(0);
-  const [qInCat, setQInCat] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, number>>({}); // globalIdx → score 1-5
-  const [report, setReport] = useState<AssessmentReport | null>(null);
-  const [errorMsg, setErrorMsg] = useState("");
-  const topRef = useRef<HTMLDivElement>(null);
+  const [ci, setCi]         = useState(0);
+  const [qi, setQi]         = useState(0);
+  const [ans, setAns]       = useState<Record<number, number>>({});
+  const [report, setReport] = useState<Report | null>(null);
+  const [err, setErr]       = useState("");
+  const top = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const el = document.createElement("style");
-    el.textContent = CSS;
-    document.head.appendChild(el);
+    const el = document.createElement("style"); el.textContent = CSS; document.head.appendChild(el);
     return () => { document.head.removeChild(el); };
   }, []);
 
-  useEffect(() => {
-    topRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [screen, catIdx, qInCat]);
+  useEffect(() => { top.current?.scrollIntoView({ behavior: "smooth" }); }, [screen, ci, qi]);
 
-  const cat = CAT_QUESTIONS[catIdx];
-  const totalAnswered = Object.keys(answers).length;
-  const totalQ = QUESTIONS.length;
-  const dateStr = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+  const cat  = CAT_QS[ci];
+  const date = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
 
-  function startTest() {
+  function start() {
     if (!name.trim()) { setNameErr(true); return; }
-    setCatIdx(0); setQInCat(0); setAnswers({});
-    setScreen("cat-intro");
+    setCi(0); setQi(0); setAns({}); setScreen("cat-intro");
   }
 
-  function beginCategory() { setScreen("quiz"); }
-
-  function pickAnswer(score: number) {
-    const gi = gIdx(catIdx, qInCat);
-    setAnswers(a => ({ ...a, [gi]: score }));
-  }
+  function pick(s: number) { setAns(a => ({ ...a, [gIdx(ci, qi)]: s })); }
 
   function goNext() {
-    const gi = gIdx(catIdx, qInCat);
-    if (!answers[gi]) return;
-    const isLastInCat = qInCat === cat.qs.length - 1;
-    const isLastCat = catIdx === CAT_QUESTIONS.length - 1;
-    if (isLastInCat && isLastCat) { submitAssessment(); return; }
-    if (isLastInCat) { setCatIdx(c => c + 1); setQInCat(0); setScreen("cat-intro"); return; }
-    setQInCat(q => q + 1);
+    if (!ans[gIdx(ci, qi)]) return;
+    if (qi === cat.qs.length - 1 && ci === CAT_QS.length - 1) { submit(); return; }
+    if (qi === cat.qs.length - 1) { setCi(c => c + 1); setQi(0); setScreen("cat-intro"); return; }
+    setQi(q => q + 1);
   }
 
   function goPrev() {
-    if (qInCat > 0) { setQInCat(q => q - 1); return; }
-    if (catIdx > 0) { setCatIdx(c => c - 1); setQInCat(CAT_QUESTIONS[catIdx - 1].qs.length - 1); setScreen("quiz"); }
+    if (qi > 0) { setQi(q => q - 1); return; }
+    if (ci > 0) { setCi(c => c - 1); setQi(CAT_QS[ci - 1].qs.length - 1); setScreen("quiz"); }
   }
 
-  async function submitAssessment() {
+  async function submit() {
     setScreen("loading");
-    const payload = QUESTIONS.map((q, i) => {
-      const score = answers[i] ?? 3;
-      return { question: q.text, category: q.category, answer: SCALE.find(s => s.score === score)?.label.replace("\n", " ") ?? "Neutral", score };
-    });
+    const payload = QUESTIONS.map((q, i) => ({
+      question: q.text, category: q.category,
+      answer: SCALE_LABELS[ans[i] ?? 3].replace("\n", " "),
+      score: ans[i] ?? 3,
+    }));
     try {
-      const { data } = await axios.post<AssessmentReport>(`${COLLEGE_API}/assess`, { name: name.trim(), answers: payload });
-      setReport(data);
-      setScreen("report");
-    } catch (err: unknown) {
-      setErrorMsg(axios.isAxiosError(err) && err.response?.data?.error ? err.response.data.error : "Could not reach the assessment server.");
+      const res = await fetch(`${API}/assess`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), answers: payload }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Server error"); }
+      setReport(await res.json()); setScreen("report");
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Could not reach the assessment server.");
       setScreen("error");
     }
   }
 
-  function retake() { setName(""); setAnswers({}); setCatIdx(0); setQInCat(0); setReport(null); setErrorMsg(""); setScreen("start"); }
+  function retake() { setName(""); setAns({}); setCi(0); setQi(0); setReport(null); setErr(""); setScreen("start"); }
 
-  function devSkip() {
-    const n = name.trim() || "Test User";
-    setName(n);
-    const a: Record<number, number> = {};
-    QUESTIONS.forEach((_, i) => { a[i] = [5, 4, 5, 3, 2][i % 5]; });
-    setAnswers(a);
-    setScreen("loading");
-    axios.post<AssessmentReport>(`${COLLEGE_API}/assess`, {
-      name: n,
-      answers: QUESTIONS.map((q, i) => ({ question: q.text, category: q.category, answer: "Strongly Agree", score: 5 })),
-    }).then(({ data }) => { setReport(data); setScreen("report"); })
-      .catch(() => { setErrorMsg("Dev skip API error"); setScreen("error"); });
+  async function devSkip() {
+    const n = name.trim() || "Test User"; setName(n); setScreen("loading");
+    try {
+      const res = await fetch(`${API}/assess`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: n, answers: QUESTIONS.map(q => ({ question: q.text, category: q.category, answer: "Strongly Agree", score: 5 })) }),
+      });
+      setReport(await res.json()); setScreen("report");
+    } catch { setErr("Dev skip error"); setScreen("error"); }
   }
 
-  // ── Category progress dots ────────────────────────────────────────────────
-  const CatDots = () => (
-    <div style={{ display: "flex", gap: 6, alignItems: "center", justifyContent: "center" }}>
-      {CAT_QUESTIONS.map((c, i) => {
-        const done = i < catIdx || (i === catIdx && screen === "report");
-        const active = i === catIdx;
-        return (
-          <div key={i} style={{
-            width: active ? 28 : 8, height: 8, borderRadius: 99,
-            background: done ? c.color : active ? c.color : "rgba(255,255,255,.25)",
-            opacity: done ? 1 : active ? 1 : .5,
-            transition: "all .3s ease",
-          }} />
-        );
-      })}
-    </div>
-  );
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // START SCREEN
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ────────────────────────────────── START ──────────────────────────────────
   if (screen === "start") return (
-    <div ref={topRef} className="ma-root" style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0a0f1e 0%, #1a1040 40%, #0a1628 100%)", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
-      {/* Decorative blobs */}
-      <div style={{ position: "absolute", top: -100, right: -100, width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(124,58,237,.2) 0%, transparent 70%)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", bottom: -80, left: -80, width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(2,132,199,.15) 0%, transparent 70%)", pointerEvents: "none" }} />
+    <div ref={top} className="ma" style={{ minHeight: "100vh", background: "linear-gradient(145deg, #f0f4ff 0%, #fdf4ff 45%, #fff8f0 100%)", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+      {/* Soft orbs */}
+      <div style={{ position: "absolute", top: -80, right: -80, width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(167,139,250,.22) 0%, transparent 65%)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", bottom: -60, left: -60, width: 350, height: 350, borderRadius: "50%", background: "radial-gradient(circle, rgba(56,189,248,.18) 0%, transparent 65%)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", top: "45%", left: "35%", width: 250, height: 250, borderRadius: "50%", background: "radial-gradient(circle, rgba(251,146,60,.14) 0%, transparent 65%)", pointerEvents: "none" }} />
 
-      {/* Nav */}
-      <div style={{ padding: "18px 32px", display: "flex", alignItems: "center", gap: 12 }} className="ma-no-print">
-        <img src="/logo.svg" alt="ProCounsel" style={{ width: 32, height: 32, filter: "brightness(0) invert(1)" }} />
-        <span style={{ color: "white", fontWeight: 700, fontSize: 17, letterSpacing: "-0.3px" }}>ProCounsel</span>
-      </div>
+      <nav style={{ padding: "18px 28px", display: "flex", alignItems: "center", gap: 10 }} className="ma-np">
+        <img src="/logo.svg" alt="" style={{ width: 30, height: 30 }} />
+        <span style={{ color: "#1e1b4b", fontWeight: 700, fontSize: 16, fontFamily: F }}>ProCounsel</span>
+      </nav>
 
       {DEV && (
-        <div style={{ background: "#fef3c7", padding: "8px 32px", fontSize: 13, color: "#92400e", display: "flex", gap: 10 }} className="ma-no-print">
-          <span style={{ background: "#f59e0b", color: "white", padding: "2px 8px", borderRadius: 4, fontWeight: 700, fontSize: 11 }}>DEV</span>
-          <button onClick={devSkip} style={{ background: "none", border: "none", cursor: "pointer", color: "#b45309", fontWeight: 700, textDecoration: "underline" }}>Skip to AI Report</button>
+        <div style={{ margin: "0 28px 8px", background: "rgba(251,191,36,.15)", border: "1px solid rgba(251,191,36,.4)", borderRadius: 8, padding: "7px 14px", fontSize: 13, color: "#92400e", display: "flex", gap: 10, alignItems: "center" }} className="ma-np">
+          <span style={{ background: "#fbbf24", color: "#000", padding: "1px 8px", borderRadius: 4, fontWeight: 700, fontSize: 11 }}>DEV</span>
+          <button onClick={devSkip} style={{ background: "none", border: "none", cursor: "pointer", color: "#b45309", fontWeight: 600, textDecoration: "underline", fontFamily: F }}>Skip → AI Report</button>
         </div>
       )}
 
-      {/* Hero */}
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
-        <div className="ma-scale-in" style={{ width: "100%", maxWidth: 480, textAlign: "center" }}>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "28px 20px 48px" }}>
+        <div className="ma-in" style={{ width: "100%", maxWidth: 460, textAlign: "center" }}>
 
-          {/* Badge */}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(124,58,237,.25)", border: "1px solid rgba(124,58,237,.5)", borderRadius: 99, padding: "6px 16px", marginBottom: 28 }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#7c3aed" }} />
-            <span style={{ color: "#c4b5fd", fontSize: 13, fontWeight: 600, letterSpacing: .5 }}>AI-Powered Career Assessment</span>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, ...GLASS(0.7, 16), borderRadius: 99, padding: "7px 18px", marginBottom: 24 }}>
+            <span style={{ fontSize: 14 }}>✨</span>
+            <span style={{ color: "#4f46e5", fontSize: 12, fontWeight: 700, letterSpacing: .6, fontFamily: F }}>AI-Powered Career Assessment</span>
           </div>
 
-          <h1 style={{ fontSize: "clamp(32px,7vw,52px)", fontWeight: 900, color: "white", lineHeight: 1.1, margin: "0 0 16px", letterSpacing: "-1.5px" }}>
-            Discover Your<br /><span style={{ background: "linear-gradient(90deg,#a78bfa,#38bdf8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Ideal Career Path</span>
+          <h1 style={{ fontSize: "clamp(30px,7vw,46px)", fontWeight: 900, color: "#1e1b4b", lineHeight: 1.1, margin: "0 0 14px", letterSpacing: "-1.5px", fontFamily: F }}>
+            Find Your Perfect<br />
+            <span style={{ background: "linear-gradient(90deg,#4f46e5,#7c3aed,#db2777)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Career Path</span>
           </h1>
 
-          <p style={{ fontSize: 16, color: "rgba(255,255,255,.6)", lineHeight: 1.75, margin: "0 0 36px", maxWidth: 380, marginLeft: "auto", marginRight: "auto" }}>
-            Answer 50 honest statements across 9 skill areas. Our AI analyzes your unique profile and reveals career paths built for you.
+          <p style={{ fontSize: 15, color: "#64748b", lineHeight: 1.8, margin: "0 0 28px", fontFamily: F }}>
+            50 thoughtful statements across 9 skill areas. Answer honestly — our AI maps your natural strengths to careers built for you.
           </p>
 
-          {/* Stats row */}
-          <div style={{ display: "flex", justifyContent: "center", gap: 28, marginBottom: 36 }}>
-            {[["9", "Sections"], ["50", "Questions"], ["~10", "Minutes"]].map(([v, l]) => (
-              <div key={l}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: "white" }}>{v}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,.4)", fontWeight: 600, textTransform: "uppercase", letterSpacing: .8 }}>{l}</div>
+          {/* Stats */}
+          <div style={{ display: "flex", ...GLASS(0.65, 16), borderRadius: 16, overflow: "hidden", marginBottom: 24 }}>
+            {[["9", "Sections"], ["50", "Questions"], ["~10m", "Duration"]].map(([v, l], i) => (
+              <div key={l} style={{ flex: 1, padding: "14px 8px", borderRight: i < 2 ? "1px solid rgba(0,0,0,.05)" : "none", textAlign: "center" }}>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "#1e1b4b", fontFamily: F }}>{v}</div>
+                <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: .8, fontFamily: F }}>{l}</div>
               </div>
             ))}
           </div>
 
-          {/* Input + CTA */}
-          <div style={{ background: "rgba(255,255,255,.06)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,.12)", borderRadius: 20, padding: "28px 28px 24px" }}>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,.5)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8, textAlign: "left" }}>Your Name</label>
+          {/* Input card */}
+          <div style={{ ...GLASS(0.75, 20), borderRadius: 20, padding: "26px 24px 22px" }}>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 8, textAlign: "left", fontFamily: F }}>Your Name</label>
             <input
-              type="text"
-              value={name}
-              autoFocus
-              placeholder={nameErr ? "Please enter your name" : "Enter your full name"}
+              type="text" value={name} autoFocus
+              placeholder={nameErr ? "Please enter your name to continue" : "Enter your full name"}
               onChange={e => { setName(e.target.value); setNameErr(false); }}
-              onKeyDown={e => e.key === "Enter" && startTest()}
+              onKeyDown={e => e.key === "Enter" && start()}
               style={{
-                width: "100%", boxSizing: "border-box", padding: "14px 16px", fontSize: 16,
-                background: nameErr ? "rgba(239,68,68,.08)" : "rgba(255,255,255,.08)",
-                border: `1.5px solid ${nameErr ? "#ef4444" : "rgba(255,255,255,.15)"}`,
-                borderRadius: 12, color: "white", outline: "none", fontFamily: "inherit",
-                marginBottom: 16, transition: "border-color .2s",
+                width: "100%", boxSizing: "border-box", padding: "13px 16px", fontSize: 15,
+                background: nameErr ? "rgba(239,68,68,.06)" : "rgba(255,255,255,.8)",
+                border: `1.5px solid ${nameErr ? "#fca5a5" : "rgba(0,0,0,.08)"}`,
+                borderRadius: 12, color: "#1e1b4b", outline: "none", fontFamily: F,
+                marginBottom: 14, boxShadow: "inset 0 1px 2px rgba(0,0,0,.04)", transition: "border .2s",
               }}
             />
-            <button
-              onClick={startTest}
-              style={{
-                width: "100%", padding: "15px", fontSize: 16, fontWeight: 700, fontFamily: "inherit",
-                background: "linear-gradient(135deg, #7c3aed, #2563eb)", color: "white",
-                border: "none", borderRadius: 12, cursor: "pointer",
-                boxShadow: "0 8px 32px rgba(124,58,237,.4)", letterSpacing: .2,
-              }}
-            >
-              Begin Assessment →
-            </button>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,.3)", margin: "14px 0 0", lineHeight: 1.5 }}>
-              Free · No account needed · Powered by GPT-4o
-            </p>
+            <button onClick={start} className="ma-btn" style={{
+              width: "100%", padding: "14px", fontSize: 15, fontWeight: 700, fontFamily: F,
+              background: "linear-gradient(135deg, #4f46e5, #7c3aed)", color: "white",
+              border: "none", borderRadius: 12, cursor: "pointer",
+              boxShadow: "0 4px 20px rgba(79,70,229,.35), inset 0 1px 0 rgba(255,255,255,.15)",
+            }}>Begin Assessment →</button>
+            <p style={{ fontSize: 11, color: "#94a3b8", margin: "12px 0 0", fontFamily: F }}>Free · No account needed · Powered by GPT-4o</p>
           </div>
 
-          {/* Category previews */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginTop: 28 }}>
-            {CATEGORIES.map(c => (
-              <div key={c.key} style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.08)", borderRadius: 99, padding: "5px 12px" }}>
-                <span style={{ fontSize: 13 }}>{c.emoji}</span>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,.5)", fontWeight: 500 }}>{c.name}</span>
+          {/* Category chips */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center", marginTop: 22 }}>
+            {CATS.map(c => (
+              <div key={c.key} style={{ ...GLASS(0.6, 12), borderRadius: 99, padding: "5px 12px", display: "flex", alignItems: "center", gap: 5 }}>
+                <span style={{ fontSize: 12 }}>{c.emoji}</span>
+                <span style={{ fontSize: 10, color: "#64748b", fontWeight: 600, fontFamily: F }}>{c.name}</span>
               </div>
             ))}
           </div>
@@ -394,179 +314,142 @@ export default function MettleAssessment() {
     </div>
   );
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // CATEGORY INTRO
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ─────────────────────────────── CATEGORY INTRO ────────────────────────────
   if (screen === "cat-intro") return (
-    <div ref={topRef} className="ma-root" style={{ minHeight: "100vh", background: cat.bg, display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 70% 30%, rgba(255,255,255,.06) 0%, transparent 60%)", pointerEvents: "none" }} />
-      <div style={{ padding: "18px 32px", display: "flex", alignItems: "center", gap: 12 }} className="ma-no-print">
-        <img src="/logo.svg" alt="ProCounsel" style={{ width: 28, height: 28, filter: "brightness(0) invert(1)", opacity: .7 }} />
-        <span style={{ color: "rgba(255,255,255,.6)", fontWeight: 600, fontSize: 15 }}>ProCounsel</span>
-        <div style={{ marginLeft: "auto" }}>
-          <CatDots />
-        </div>
-      </div>
+    <div ref={top} className="ma" style={{ minHeight: "100vh", background: cat.catBg, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+      <div style={{ position: "absolute", top: -60, right: -60, width: 360, height: 360, borderRadius: "50%", background: `radial-gradient(circle, ${cat.color}22 0%, transparent 65%)`, pointerEvents: "none" }} />
+      <div style={{ position: "absolute", bottom: -40, left: -40, width: 280, height: 280, borderRadius: "50%", background: `radial-gradient(circle, ${cat.color}14 0%, transparent 65%)`, pointerEvents: "none" }} />
 
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
-        <div className="ma-scale-in" style={{ maxWidth: 440, textAlign: "center" }}>
-          <div style={{ fontSize: 72, marginBottom: 20, filter: "drop-shadow(0 8px 24px rgba(0,0,0,.3))" }}>{cat.emoji}</div>
-          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, color: "rgba(255,255,255,.5)", textTransform: "uppercase", marginBottom: 10 }}>
-            Section {catIdx + 1} of {CATEGORIES.length}
+      <nav style={{ padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }} className="ma-np">
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <img src="/logo.svg" alt="" style={{ width: 24, height: 24, opacity: .5 }} />
+          <span style={{ color: "#64748b", fontWeight: 600, fontSize: 13, fontFamily: F }}>ProCounsel</span>
+        </div>
+        <Dots ci={ci} />
+      </nav>
+
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "32px 20px" }}>
+        <div className="ma-in" style={{ maxWidth: 400, textAlign: "center", width: "100%" }}>
+          <div style={{ fontSize: 72, marginBottom: 20, filter: `drop-shadow(0 4px 16px ${cat.color}40)` }}>{cat.emoji}</div>
+
+          <div style={{ display: "inline-block", background: `${cat.color}14`, border: `1px solid ${cat.color}30`, borderRadius: 99, padding: "5px 16px", marginBottom: 14 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: cat.color, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: F }}>Section {ci + 1} of {CATS.length}</span>
           </div>
-          <h2 style={{ fontSize: "clamp(28px,6vw,42px)", fontWeight: 900, color: "white", margin: "0 0 16px", letterSpacing: "-0.8px", lineHeight: 1.15 }}>{cat.name}</h2>
-          <p style={{ fontSize: 16, color: "rgba(255,255,255,.65)", lineHeight: 1.75, margin: "0 0 36px" }}>{cat.desc}</p>
-          <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 36 }}>
-            {cat.qs.map((_, i) => (
-              <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: "rgba(255,255,255,.35)" }} />
-            ))}
+
+          <h2 style={{ fontSize: "clamp(26px,6vw,36px)", fontWeight: 900, color: "#1e1b4b", margin: "0 0 12px", letterSpacing: "-0.8px", lineHeight: 1.15, fontFamily: F }}>{cat.name}</h2>
+          <p style={{ fontSize: 15, color: "#64748b", lineHeight: 1.8, margin: "0 0 28px", fontFamily: F }}>{cat.qs.length} statements about your {cat.name.toLowerCase()} aptitude.</p>
+
+          <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 28 }}>
+            {cat.qs.map((_, i) => <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: `${cat.color}30`, border: `1px solid ${cat.color}40` }} />)}
           </div>
-          <button
-            onClick={beginCategory}
-            style={{
-              padding: "15px 44px", fontSize: 16, fontWeight: 700, fontFamily: "inherit",
-              background: "white", color: cat.color, border: "none", borderRadius: 14, cursor: "pointer",
-              boxShadow: "0 8px 32px rgba(0,0,0,.25)", letterSpacing: .2,
-            }}
-          >
-            Start Section →
-          </button>
-          {catIdx > 0 && (
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,.35)", marginTop: 16 }}>
-              {totalAnswered} of {totalQ} questions answered so far
-            </p>
-          )}
+
+          <button onClick={() => setScreen("quiz")} className="ma-btn" style={{
+            padding: "14px 44px", fontSize: 15, fontWeight: 700, fontFamily: F,
+            background: cat.color, color: "white", border: "none", borderRadius: 14, cursor: "pointer",
+            boxShadow: `0 6px 24px ${cat.color}40, inset 0 1px 0 rgba(255,255,255,.2)`,
+          }}>Start Section →</button>
+
+          {ci > 0 && <p style={{ fontSize: 12, color: "#94a3b8", marginTop: 14, fontFamily: F }}>{Object.keys(ans).length} of {QUESTIONS.length} answered so far</p>}
         </div>
       </div>
     </div>
   );
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // QUIZ SCREEN
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ──────────────────────────────── QUIZ ─────────────────────────────────────
   if (screen === "quiz") {
-    const question = cat.qs[qInCat];
-    const gi = gIdx(catIdx, qInCat);
-    const selected = answers[gi];
-    const isFirstQ = catIdx === 0 && qInCat === 0;
-    const isLastQ = catIdx === CAT_QUESTIONS.length - 1 && qInCat === cat.qs.length - 1;
-    const catProgress = ((qInCat + 1) / cat.qs.length) * 100;
+    const gi   = gIdx(ci, qi);
+    const sel  = ans[gi];
+    const last = ci === CAT_QS.length - 1 && qi === cat.qs.length - 1;
+    const first = ci === 0 && qi === 0;
+    const catPct = ((qi + 1) / cat.qs.length) * 100;
 
     return (
-      <div ref={topRef} className="ma-root" style={{ minHeight: "100vh", background: cat.light, display: "flex", flexDirection: "column" }}>
-        {/* Top bar */}
-        <div style={{ background: cat.bg, padding: "0 0 0" }} className="ma-no-print">
-          {/* Nav row */}
-          <div style={{ padding: "14px 24px 0", display: "flex", alignItems: "center", gap: 12 }}>
-            <img src="/logo.svg" alt="ProCounsel" style={{ width: 26, height: 26, filter: "brightness(0) invert(1)", opacity: .8 }} />
-            <span style={{ color: "rgba(255,255,255,.7)", fontWeight: 600, fontSize: 14 }}>ProCounsel</span>
-            <div style={{ marginLeft: "auto" }}>
-              <CatDots />
+      <div ref={top} className="ma" style={{ minHeight: "100vh", background: cat.catBg, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+        <div style={{ position: "absolute", top: -40, right: -40, width: 300, height: 300, borderRadius: "50%", background: `radial-gradient(circle, ${cat.color}18 0%, transparent 65%)`, pointerEvents: "none" }} />
+
+        {/* Header */}
+        <div className="ma-np">
+          <div style={{ padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+              <span style={{ fontSize: 16 }}>{cat.emoji}</span>
+              <span style={{ color: cat.color, fontWeight: 700, fontSize: 13, fontFamily: F }}>{cat.name}</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ color: "#94a3b8", fontSize: 12, fontWeight: 600, fontFamily: F }}>{qi + 1}/{cat.qs.length}</span>
+              <Dots ci={ci} />
             </div>
           </div>
-          {/* Category label + progress */}
-          <div style={{ padding: "12px 24px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 18 }}>{cat.emoji}</span>
-              <span style={{ color: "rgba(255,255,255,.9)", fontWeight: 700, fontSize: 15 }}>{cat.name}</span>
-            </div>
-            <span style={{ color: "rgba(255,255,255,.55)", fontSize: 13, fontWeight: 600 }}>{qInCat + 1} / {cat.qs.length}</span>
-          </div>
-          {/* Progress bar */}
-          <div style={{ height: 3, background: "rgba(255,255,255,.15)" }}>
-            <div style={{ height: "100%", width: `${catProgress}%`, background: "rgba(255,255,255,.8)", transition: "width .3s ease" }} />
+          <div style={{ height: 3, background: "rgba(0,0,0,.06)", margin: "0 20px" }}>
+            <div style={{ height: "100%", width: `${catPct}%`, background: cat.color, borderRadius: 99, transition: "width .3s ease" }} />
           </div>
         </div>
 
-        {/* Question card */}
-        <div style={{ flex: 1, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "28px 16px 48px" }}>
-          <div className="ma-scale-in" style={{ width: "100%", maxWidth: 580 }}>
+        {/* Card */}
+        <div style={{ flex: 1, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "24px 16px 48px" }}>
+          <div className="ma-in" style={{ width: "100%", maxWidth: 560 }}>
+            <div style={{ ...GLASS(0.78, 22), borderRadius: 22, padding: "30px 26px 26px" }}>
 
-            {/* Q number */}
-            <div style={{ fontSize: 12, fontWeight: 700, color: cat.color, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 14, opacity: .7 }}>
-              Question {qInCat + 1} of {cat.qs.length}
-            </div>
-
-            {/* Question text */}
-            <h2 style={{ fontSize: "clamp(18px,3.5vw,22px)", fontWeight: 700, color: "#0f172a", lineHeight: 1.6, margin: "0 0 36px", letterSpacing: "-0.2px" }}>
-              {question.text}
-            </h2>
-
-            {/* Scale */}
-            <div style={{ marginBottom: 36 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>Strongly Disagree</span>
-                <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>Strongly Agree</span>
+              <div style={{ fontSize: 11, fontWeight: 700, color: cat.color, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 14, fontFamily: F }}>
+                Question {qi + 1} of {cat.qs.length}
               </div>
-              <div className="ma-scale-row" style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-                {SCALE.map(s => {
-                  const isSelected = selected === s.score;
-                  return (
-                    <div key={s.score} className="ma-opt" onClick={() => pickAnswer(s.score)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, cursor: "pointer", flex: 1 }}>
-                      <div
-                        className="ma-scale-circle"
-                        style={{
-                          width: 56, height: 56, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: 18, fontWeight: 800, fontFamily: "inherit",
-                          background: isSelected ? cat.color : "white",
-                          color: isSelected ? "white" : "#94a3b8",
-                          border: `2px solid ${isSelected ? cat.color : "#e2e8f0"}`,
-                          boxShadow: isSelected ? `0 4px 20px ${cat.color}40` : "0 2px 8px rgba(0,0,0,.04)",
-                          transition: "all .15s cubic-bezier(.22,1,.36,1)",
-                        }}
-                      >
-                        {s.score}
-                      </div>
-                      <span style={{ fontSize: 10, fontWeight: 600, color: isSelected ? cat.color : "#cbd5e1", textAlign: "center", lineHeight: 1.3 }}>
-                        {s.label}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
 
-            {/* Instruction hint */}
-            {!selected && (
-              <p style={{ textAlign: "center", fontSize: 13, color: "#94a3b8", marginBottom: 24 }}>
-                Tap a number to select your answer
+              <p style={{ fontSize: "clamp(17px,3.5vw,20px)", fontWeight: 700, color: "#1e1b4b", lineHeight: 1.65, margin: "0 0 30px", fontFamily: F }}>
+                {cat.qs[qi].text}
               </p>
-            )}
 
-            {/* Navigation */}
-            <div style={{ display: "flex", gap: 12, justifyContent: "space-between" }}>
-              <button
-                onClick={goPrev} disabled={isFirstQ}
-                style={{
-                  padding: "13px 22px", borderRadius: 12, border: "1.5px solid #e2e8f0",
-                  background: "white", color: "#64748b", fontWeight: 600, fontFamily: "inherit",
-                  fontSize: 14, cursor: isFirstQ ? "not-allowed" : "pointer", opacity: isFirstQ ? .35 : 1,
-                }}
-              >
-                ← Back
-              </button>
-              <button
-                onClick={goNext} disabled={!selected}
-                style={{
-                  flex: 1, padding: "13px 22px", borderRadius: 12, border: "none",
-                  background: selected ? cat.color : "#e2e8f0",
-                  color: selected ? "white" : "#94a3b8",
-                  fontWeight: 700, fontFamily: "inherit", fontSize: 14,
-                  cursor: selected ? "pointer" : "not-allowed",
-                  boxShadow: selected ? `0 4px 20px ${cat.color}40` : "none",
-                  transition: "all .15s ease",
-                }}
-              >
-                {isLastQ ? "Submit & Get Report →" : "Next →"}
-              </button>
+              {/* Scale */}
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                  <span style={{ fontSize: 10, color: "#94a3b8", fontWeight: 600, fontFamily: F }}>Strongly Disagree</span>
+                  <span style={{ fontSize: 10, color: "#94a3b8", fontWeight: 600, fontFamily: F }}>Strongly Agree</span>
+                </div>
+                <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                  {[1, 2, 3, 4, 5].map(s => {
+                    const on = sel === s;
+                    return (
+                      <div key={s} className="ma-btn" onClick={() => pick(s)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7, flex: 1 }}>
+                        <div style={{
+                          width: "100%", maxWidth: 56, aspectRatio: "1", borderRadius: "50%",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 16, fontWeight: 800, fontFamily: F,
+                          background: on ? cat.color : "rgba(255,255,255,.85)",
+                          border: `2px solid ${on ? cat.color : "rgba(0,0,0,.08)"}`,
+                          color: on ? "white" : "#94a3b8",
+                          boxShadow: on ? `0 4px 16px ${cat.color}45` : "0 1px 4px rgba(0,0,0,.06)",
+                          transition: "all .15s ease",
+                        }}>{s}</div>
+                        <span style={{ fontSize: 9, color: on ? cat.color : "#94a3b8", textAlign: "center", lineHeight: 1.3, fontWeight: on ? 700 : 500, fontFamily: F, whiteSpace: "pre-line" }}>
+                          {SCALE_LABELS[s]}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {!sel && <p style={{ textAlign: "center", fontSize: 12, color: "#94a3b8", marginTop: 18, fontFamily: F }}>Tap a number to answer</p>}
+
+              <div style={{ display: "flex", gap: 10, marginTop: 26 }}>
+                <button onClick={goPrev} disabled={first} className="ma-btn" style={{
+                  padding: "12px 20px", borderRadius: 12, fontFamily: F, fontSize: 14, fontWeight: 600,
+                  background: "rgba(255,255,255,.6)", border: "1.5px solid rgba(0,0,0,.08)", color: "#64748b",
+                  cursor: first ? "not-allowed" : "pointer", opacity: first ? .4 : 1,
+                }}>← Back</button>
+                <button onClick={goNext} disabled={!sel} className="ma-btn" style={{
+                  flex: 1, padding: "12px 20px", borderRadius: 12, fontFamily: F, fontSize: 14, fontWeight: 700,
+                  background: sel ? cat.color : "rgba(0,0,0,.06)",
+                  color: sel ? "white" : "#94a3b8", border: "none", cursor: sel ? "pointer" : "not-allowed",
+                  boxShadow: sel ? `0 4px 16px ${cat.color}40` : "none", transition: "all .2s",
+                }}>{last ? "Submit & Get Report →" : "Next →"}</button>
+              </div>
             </div>
 
             {/* Overall progress */}
-            <div style={{ marginTop: 20, textAlign: "center" }}>
-              <div style={{ height: 4, background: "#e2e8f0", borderRadius: 99, overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${Math.round((totalAnswered / totalQ) * 100)}%`, background: `linear-gradient(90deg, ${cat.color}, ${cat.color}aa)`, transition: "width .3s ease" }} />
+            <div style={{ marginTop: 14, padding: "0 4px" }}>
+              <div style={{ height: 4, background: "rgba(0,0,0,.07)", borderRadius: 99, overflow: "hidden" }}>
+                <div className="ma-bar" style={{ height: "100%", width: `${(Object.keys(ans).length / QUESTIONS.length) * 100}%`, background: `linear-gradient(90deg,#4f46e5,${cat.color})`, transition: "width .3s ease" }} />
               </div>
-              <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 6 }}>{totalAnswered} of {totalQ} total questions answered</p>
+              <p style={{ fontSize: 10, color: "#94a3b8", marginTop: 5, textAlign: "center", fontFamily: F }}>{Object.keys(ans).length} of {QUESTIONS.length} answered</p>
             </div>
           </div>
         </div>
@@ -574,135 +457,107 @@ export default function MettleAssessment() {
     );
   }
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // LOADING
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ─────────────────────────────── LOADING ──────────────────────────────────
   if (screen === "loading") return (
-    <div ref={topRef} className="ma-root" style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0a0f1e 0%, #1a1040 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 40 }}>
-      <div style={{ position: "relative", width: 88, height: 88, marginBottom: 36 }}>
-        <div className="ma-spinner" style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "4px solid rgba(124,58,237,.2)", borderTop: "4px solid #7c3aed" }} />
-        <div style={{ position: "absolute", inset: 10, borderRadius: "50%", border: "3px solid rgba(56,189,248,.15)", borderTop: "3px solid #38bdf8", animation: "maSpin 1.4s linear infinite reverse" }} className="ma-spinner" />
-        <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>🧠</span>
+    <div ref={top} className="ma" style={{ minHeight: "100vh", background: "linear-gradient(145deg,#f0f4ff 0%,#fdf4ff 50%,#fff8f0 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 40 }}>
+      <div style={{ position: "relative", width: 88, height: 88, margin: "0 auto 28px" }}>
+        <div className="ma-spin" style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "3px solid #e0e7ff", borderTop: "3px solid #4f46e5" }} />
+        <div className="ma-spin" style={{ position: "absolute", inset: 12, borderRadius: "50%", border: "2px solid #fce7f3", borderTop: "2px solid #db2777", animationDirection: "reverse", animationDuration: "1.4s" }} />
+        <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>🧠</span>
       </div>
-      <h2 style={{ color: "white", fontSize: 24, fontWeight: 800, margin: "0 0 12px", letterSpacing: "-0.4px" }}>Building your career report…</h2>
-      <p className="ma-pulse" style={{ color: "rgba(255,255,255,.5)", fontSize: 15, textAlign: "center", maxWidth: 360, lineHeight: 1.75 }}>
-        GPT-4o is analyzing your {totalQ} responses across 9 aptitude areas. This takes 10–20 seconds.
-      </p>
-      <div style={{ display: "flex", gap: 8, marginTop: 32, flexWrap: "wrap", justifyContent: "center" }}>
-        {["Mapping aptitudes", "Matching careers", "Writing your profile"].map((s, i) => (
-          <div key={i} style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.08)", padding: "6px 14px", borderRadius: 99, fontSize: 12, color: "rgba(255,255,255,.5)" }}>{s}</div>
+      <h2 style={{ color: "#1e1b4b", fontSize: 22, fontWeight: 800, margin: "0 0 10px", fontFamily: F, textAlign: "center" }}>Analyzing your profile…</h2>
+      <p className="ma-pop" style={{ color: "#64748b", fontSize: 14, maxWidth: 320, lineHeight: 1.8, fontFamily: F, textAlign: "center" }}>GPT-4o is mapping your 50 responses to career paths tailored just for you.</p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginTop: 24 }}>
+        {["Mapping aptitudes", "Matching careers", "Writing report"].map((s, i) => (
+          <div key={i} style={{ ...GLASS(0.65, 12), borderRadius: 99, padding: "6px 14px", fontSize: 11, color: "#64748b", fontFamily: F }}>{s}</div>
         ))}
       </div>
     </div>
   );
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // ERROR
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ──────────────────────────────── ERROR ────────────────────────────────────
   if (screen === "error") return (
-    <div ref={topRef} className="ma-root" style={{ minHeight: "100vh", background: "#f8fafc", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-      <div style={{ background: "white", borderRadius: 20, padding: "48px 36px", maxWidth: 420, width: "100%", textAlign: "center", boxShadow: "0 8px 40px rgba(0,0,0,.07)" }}>
-        <div style={{ fontSize: 52, marginBottom: 20 }}>⚠️</div>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", margin: "0 0 12px" }}>Something went wrong</h2>
-        <p style={{ fontSize: 14, color: "#64748b", lineHeight: 1.7, marginBottom: 28 }}>{errorMsg}</p>
-        <button onClick={retake} style={{ background: "#0f172a", color: "white", border: "none", borderRadius: 12, padding: "13px 28px", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Try Again</button>
+    <div ref={top} className="ma" style={{ minHeight: "100vh", background: "linear-gradient(145deg,#fff5f5 0%,#fef2f2 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div className="ma-in" style={{ ...GLASS(0.8, 20), borderRadius: 22, padding: "44px 32px", maxWidth: 400, width: "100%", textAlign: "center" }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+        <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1e1b4b", margin: "0 0 10px", fontFamily: F }}>Something went wrong</h2>
+        <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.75, marginBottom: 24, fontFamily: F }}>{err}</p>
+        <button onClick={retake} className="ma-btn" style={{ background: "#1e1b4b", color: "white", border: "none", borderRadius: 12, padding: "12px 28px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: F }}>Try Again</button>
       </div>
     </div>
   );
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // REPORT
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ─────────────────────────────── REPORT ───────────────────────────────────
   if (screen === "report" && report) {
-    const fieldColor: Record<string, string> = {
-      Technology: "#7c3aed", Engineering: "#6d28d9", Healthcare: "#059669",
-      Business: "#ea580c", Arts: "#e11d78", Law: "#1e40af",
-      Education: "#0284c7", Environment: "#16a34a", Science: "#0d9488",
-      Media: "#be185d", Finance: "#ca8a04", Design: "#db2777",
-    };
-    const getFC = (field: string) => fieldColor[field] || "#334155";
+    const FC: Record<string, string> = { Technology:"#4f46e5",Engineering:"#6366f1",Healthcare:"#059669",Business:"#d97706",Arts:"#db2777",Law:"#0284c7",Education:"#0ea5e9",Environment:"#16a34a",Science:"#0d9488",Media:"#db2777",Finance:"#d97706",Design:"#9333ea" };
+    const fc = (f: string) => FC[f] || "#475569";
 
     return (
-      <div ref={topRef} className="ma-root" style={{ minHeight: "100vh", background: "#f1f5f9" }}>
-
+      <div ref={top} className="ma" style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f0f4ff 0%,#fdf4ff 45%,#fff8f0 100%)" }}>
         {/* Nav */}
-        <div style={{ background: "#0a0f1e", padding: "14px 28px", display: "flex", alignItems: "center", gap: 12 }} className="ma-no-print">
-          <img src="/logo.svg" alt="ProCounsel" style={{ width: 28, height: 28, filter: "brightness(0) invert(1)" }} />
-          <span style={{ color: "white", fontWeight: 700, fontSize: 16 }}>ProCounsel</span>
+        <div style={{ padding: "14px 24px", display: "flex", alignItems: "center", gap: 10, ...GLASS(0.8, 16), borderBottom: "1px solid rgba(0,0,0,.06)", position: "sticky", top: 0, zIndex: 10 }} className="ma-np">
+          <img src="/logo.svg" alt="" style={{ width: 26, height: 26 }} />
+          <span style={{ color: "#1e1b4b", fontWeight: 700, fontSize: 15, fontFamily: F }}>ProCounsel</span>
           <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-            <button onClick={retake} style={{ background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.15)", color: "rgba(255,255,255,.8)", padding: "7px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Retake</button>
-            <button onClick={() => window.print()} style={{ background: "linear-gradient(135deg,#7c3aed,#2563eb)", color: "white", border: "none", padding: "7px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>↓ Download PDF</button>
+            <button onClick={retake} className="ma-btn" style={{ ...GLASS(0.6, 12), borderRadius: 9, padding: "7px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: F, color: "#64748b", border: "1.5px solid rgba(0,0,0,.08)" }}>Retake</button>
+            <button onClick={() => window.print()} className="ma-btn" style={{ background: "linear-gradient(135deg,#4f46e5,#7c3aed)", color: "white", border: "none", borderRadius: 9, padding: "7px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: F, boxShadow: "0 4px 14px rgba(79,70,229,.35)" }}>↓ Download PDF</button>
           </div>
         </div>
 
-        <div style={{ maxWidth: 880, margin: "0 auto", padding: "28px 16px 60px" }}>
+        <div style={{ maxWidth: 880, margin: "0 auto", padding: "24px 16px 60px" }}>
 
-          {/* ── Hero section ── */}
-          <div className="ma-fade-up" style={{ background: "linear-gradient(135deg, #0a0f1e 0%, #1a1040 50%, #0c2340 100%)", borderRadius: 20, padding: "36px 40px", marginBottom: 20, position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", top: -60, right: -60, width: 280, height: 280, borderRadius: "50%", background: "radial-gradient(circle, rgba(124,58,237,.2), transparent 70%)", pointerEvents: "none" }} />
-            <div style={{ position: "absolute", bottom: -40, left: -40, width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle, rgba(56,189,248,.1), transparent 70%)", pointerEvents: "none" }} />
-
-            {/* Candidate info */}
-            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", gap: 16, marginBottom: 24 }}>
-              <div style={{ width: 52, height: 52, borderRadius: 14, background: "linear-gradient(135deg,#7c3aed,#2563eb)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🧠</div>
+          {/* Hero card */}
+          <div className="ma-up" style={{ ...GLASS(0.82, 24), borderRadius: 22, padding: "30px 34px", marginBottom: 18, position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", top: -40, right: -40, width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle, rgba(79,70,229,.1), transparent 65%)", pointerEvents: "none" }} />
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", gap: 14, marginBottom: 18 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: "linear-gradient(135deg,#4f46e5,#7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>🧠</div>
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: "rgba(255,255,255,.4)", textTransform: "uppercase", marginBottom: 3 }}>ProCounsel · Mettle Assessment Report</div>
-                <h1 style={{ color: "white", fontSize: 22, fontWeight: 800, margin: 0, letterSpacing: "-0.3px" }}>{name}</h1>
-                <div style={{ color: "rgba(255,255,255,.45)", fontSize: 12, marginTop: 3 }}>{dateStr} · 50 questions · procounsel.co.in</div>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "#94a3b8", textTransform: "uppercase", marginBottom: 2, fontFamily: F }}>ProCounsel · Mettle Assessment</div>
+                <h1 style={{ color: "#1e1b4b", fontSize: 20, fontWeight: 800, margin: 0, fontFamily: F }}>{name}</h1>
+                <div style={{ color: "#94a3b8", fontSize: 11, marginTop: 2, fontFamily: F }}>{date} · 50 questions · procounsel.co.in</div>
               </div>
             </div>
-
-            {/* Personality type */}
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.14)", borderRadius: 12, padding: "10px 18px", marginBottom: 16 }}>
-              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#a78bfa" }} />
-              <span style={{ color: "white", fontWeight: 800, fontSize: 16, letterSpacing: "-0.2px" }}>{report.personalityType}</span>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "9px 16px", marginBottom: 12 }}>
+              <span style={{ fontSize: 16 }}>✦</span>
+              <span style={{ color: "#4f46e5", fontWeight: 800, fontSize: 15, fontFamily: F }}>{report.personalityType}</span>
             </div>
-
-            <p style={{ color: "rgba(255,255,255,.55)", fontSize: 14, lineHeight: 1.6, margin: "0 0 18px", fontStyle: "italic" }}>"{report.personalityTagline}"</p>
-            <p style={{ color: "rgba(255,255,255,.7)", fontSize: 14, lineHeight: 1.8, margin: 0, padding: "16px 20px", background: "rgba(255,255,255,.05)", borderRadius: 10, borderLeft: "3px solid rgba(167,139,250,.6)" }}>
+            <p style={{ color: "#64748b", fontSize: 13, margin: "0 0 14px", fontStyle: "italic", lineHeight: 1.6, fontFamily: F }}>"{report.personalityTagline}"</p>
+            <p style={{ color: "#374151", fontSize: 13, lineHeight: 1.8, margin: 0, padding: "14px 16px", background: "#eef2ff", borderRadius: 10, border: "1px solid #c7d2fe", borderLeft: "3px solid #4f46e5", fontFamily: F }}>
               {report.overallProfile}
             </p>
           </div>
 
-          {/* ── Career matches ── */}
-          <SLabel>Top Career Matches</SLabel>
-          <div className="ma-career-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14, marginBottom: 20 }}>
+          <Label>Top Career Matches</Label>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 14, marginBottom: 18 }}>
             {report.topCareers.map((c, i) => {
-              const fc = getFC(c.field);
+              const color = fc(c.field);
               return (
-                <div key={i} className="ma-card-hover ma-fade-up" style={{ background: "white", borderRadius: 16, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,.06)", border: `1px solid ${fc}18`, animationDelay: `${i * .08}s` }}>
-                  {/* Card top */}
-                  <div style={{ background: fc, padding: "20px 20px 16px", position: "relative", overflow: "hidden" }}>
-                    <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,.08)", pointerEvents: "none" }} />
-                    {i === 0 && (
-                      <div style={{ display: "inline-block", background: "rgba(255,255,255,.2)", border: "1px solid rgba(255,255,255,.3)", borderRadius: 99, padding: "2px 10px", fontSize: 10, fontWeight: 700, color: "white", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Best Match</div>
-                    )}
-                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                <div key={i} className="ma-card" style={{ ...GLASS(0.8, 20), borderRadius: 18, overflow: "hidden", border: `1px solid ${color}20` }}>
+                  <div style={{ padding: "18px 20px 14px", background: `linear-gradient(135deg,${color}10,${color}06)`, borderBottom: `1px solid ${color}15` }}>
+                    {i === 0 && <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.5, color, textTransform: "uppercase", marginBottom: 7, fontFamily: F, background: `${color}14`, display: "inline-block", padding: "2px 8px", borderRadius: 99 }}>Best Match</div>}
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
                       <div>
-                        <h3 style={{ color: "white", fontWeight: 800, fontSize: 15, margin: "0 0 4px", lineHeight: 1.3 }}>{c.title}</h3>
-                        <div style={{ fontSize: 11, color: "rgba(255,255,255,.7)", fontWeight: 600 }}>{c.field}</div>
+                        <h3 style={{ color: "#1e1b4b", fontWeight: 800, fontSize: 15, margin: "0 0 3px", fontFamily: F, lineHeight: 1.3 }}>{c.title}</h3>
+                        <div style={{ fontSize: 11, color, fontWeight: 700, fontFamily: F }}>{c.field}</div>
                       </div>
-                      <ScoreRing score={c.fitScore} color="white" size={64} />
+                      <Ring pct={c.fitScore} color={color} size={64} />
                     </div>
                   </div>
-                  {/* Card body */}
-                  <div style={{ padding: "16px 18px" }}>
-                    <p style={{ fontSize: 12, color: "#475569", lineHeight: 1.65, margin: "0 0 12px" }}>{c.description}</p>
-                    <div style={{ background: `${fc}08`, border: `1px solid ${fc}1a`, borderRadius: 8, padding: "10px 12px", marginBottom: 12 }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: fc, textTransform: "uppercase", letterSpacing: .8, marginBottom: 4 }}>Why You Fit</div>
-                      <p style={{ fontSize: 11.5, color: "#374151", lineHeight: 1.6, margin: 0 }}>{c.whyYouFit}</p>
+                  <div style={{ padding: "16px 20px" }}>
+                    <p style={{ fontSize: 12, color: "#475569", lineHeight: 1.7, margin: "0 0 12px", fontFamily: F }}>{c.description}</p>
+                    <div style={{ background: `${color}08`, border: `1px solid ${color}18`, borderRadius: 8, padding: "10px 12px", marginBottom: 12 }}>
+                      <div style={{ fontSize: 9, fontWeight: 700, color, textTransform: "uppercase", letterSpacing: .8, marginBottom: 4, fontFamily: F }}>Why You Fit</div>
+                      <p style={{ fontSize: 11, color: "#374151", lineHeight: 1.65, margin: 0, fontFamily: F }}>{c.whyYouFit}</p>
                     </div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 12 }}>
-                      {c.keySkills.map((sk, j) => (
-                        <span key={j} style={{ background: `${fc}10`, color: fc, padding: "3px 10px", borderRadius: 99, fontSize: 11, fontWeight: 600 }}>{sk}</span>
-                      ))}
+                      {c.keySkills.map((sk, j) => <span key={j} style={{ background: `${color}10`, color, padding: "3px 10px", borderRadius: 99, fontSize: 10, fontWeight: 700, fontFamily: F, border: `1px solid ${color}20` }}>{sk}</span>)}
                     </div>
-                    <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: 12 }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: .8, marginBottom: 8 }}>Path to Get There</div>
+                    <div style={{ borderTop: "1px solid rgba(0,0,0,.05)", paddingTop: 12 }}>
+                      <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: .8, marginBottom: 8, fontFamily: F }}>Path to Get There</div>
                       {c.steps.map((step, j) => (
                         <div key={j} style={{ display: "flex", gap: 8, marginBottom: 6, alignItems: "flex-start" }}>
-                          <div style={{ width: 18, height: 18, borderRadius: "50%", background: fc, color: "white", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>{j + 1}</div>
-                          <span style={{ fontSize: 11.5, color: "#374151", lineHeight: 1.55 }}>{step}</span>
+                          <div style={{ width: 18, height: 18, borderRadius: "50%", background: color, color: "white", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>{j + 1}</div>
+                          <span style={{ fontSize: 11, color: "#374151", lineHeight: 1.6, fontFamily: F }}>{step}</span>
                         </div>
                       ))}
                     </div>
@@ -712,71 +567,67 @@ export default function MettleAssessment() {
             })}
           </div>
 
-          {/* ── Strengths ── */}
-          <SLabel>Your Key Strengths</SLabel>
-          <div className="ma-fade-up" style={{ background: "white", borderRadius: 16, padding: "28px 32px", marginBottom: 20, boxShadow: "0 4px 24px rgba(0,0,0,.05)" }}>
+          <Label>Your Key Strengths</Label>
+          <div style={{ ...GLASS(0.8, 20), borderRadius: 18, padding: "24px 28px", marginBottom: 18 }}>
             {report.strengths.map((s, i) => {
-              const barColor = CATEGORIES[i % CATEGORIES.length].color;
+              const sc = CATS[i % CATS.length].color;
               return (
-                <div key={i} style={{ marginBottom: i < report.strengths.length - 1 ? 22 : 0 }}>
+                <div key={i} style={{ marginBottom: i < report.strengths.length - 1 ? 20 : 0 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                    <span style={{ fontWeight: 700, fontSize: 14, color: "#0f172a" }}>{s.name}</span>
-                    <span style={{ fontWeight: 800, fontSize: 14, color: barColor }}>{s.score}%</span>
+                    <span style={{ fontWeight: 700, fontSize: 13, color: "#1e1b4b", fontFamily: F }}>{s.name}</span>
+                    <span style={{ fontWeight: 800, fontSize: 13, color: sc, fontFamily: F }}>{s.score}%</span>
                   </div>
-                  <div style={{ height: 8, background: "#f1f5f9", borderRadius: 99, overflow: "hidden", marginBottom: 5 }}>
-                    <div className="ma-bar-fill" style={{ height: "100%", width: `${s.score}%`, background: `linear-gradient(90deg, ${barColor}, ${barColor}cc)`, borderRadius: 99, animationDelay: `${i * .1}s` }} />
+                  <div style={{ height: 7, background: "rgba(0,0,0,.06)", borderRadius: 99, overflow: "hidden", marginBottom: 5 }}>
+                    <div className="ma-bar" style={{ height: "100%", width: `${s.score}%`, background: `linear-gradient(90deg,${sc},${sc}bb)`, borderRadius: 99 }} />
                   </div>
-                  <p style={{ fontSize: 12, color: "#64748b", lineHeight: 1.55, margin: 0 }}>{s.description}</p>
+                  <p style={{ fontSize: 11, color: "#64748b", lineHeight: 1.6, margin: 0, fontFamily: F }}>{s.description}</p>
                 </div>
               );
             })}
           </div>
 
-          {/* ── Dev areas + next steps ── */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 14, marginBottom: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 14, marginBottom: 18 }}>
             <div>
-              <SLabel>Areas to Develop</SLabel>
-              <div className="ma-fade-up" style={{ background: "white", borderRadius: 16, padding: "22px 26px", boxShadow: "0 4px 24px rgba(0,0,0,.05)" }}>
+              <Label>Areas to Develop</Label>
+              <div style={{ ...GLASS(0.78, 18), borderRadius: 18, padding: "20px 22px" }}>
                 {report.developmentAreas.map((d, i) => (
-                  <div key={i} style={{ marginBottom: i < report.developmentAreas.length - 1 ? 18 : 0, paddingBottom: i < report.developmentAreas.length - 1 ? 18 : 0, borderBottom: i < report.developmentAreas.length - 1 ? "1px solid #f1f5f9" : "none" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b", flexShrink: 0 }} />
-                      <span style={{ fontWeight: 700, fontSize: 14, color: "#0f172a" }}>{d.name}</span>
+                  <div key={i} style={{ marginBottom: i < report.developmentAreas.length - 1 ? 16 : 0, paddingBottom: i < report.developmentAreas.length - 1 ? 16 : 0, borderBottom: i < report.developmentAreas.length - 1 ? "1px solid rgba(0,0,0,.05)" : "none" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 4 }}>
+                      <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#f59e0b", flexShrink: 0 }} />
+                      <span style={{ fontWeight: 700, fontSize: 13, color: "#1e1b4b", fontFamily: F }}>{d.name}</span>
                     </div>
-                    <p style={{ fontSize: 12.5, color: "#64748b", lineHeight: 1.65, margin: "0 0 0 16px" }}>{d.tip}</p>
+                    <p style={{ fontSize: 12, color: "#64748b", lineHeight: 1.7, margin: "0 0 0 14px", fontFamily: F }}>{d.tip}</p>
                   </div>
                 ))}
               </div>
             </div>
             <div>
-              <SLabel>Your Next Steps</SLabel>
-              <div className="ma-fade-up" style={{ background: "white", borderRadius: 16, padding: "22px 26px", boxShadow: "0 4px 24px rgba(0,0,0,.05)" }}>
+              <Label>Your Next Steps</Label>
+              <div style={{ ...GLASS(0.78, 18), borderRadius: 18, padding: "20px 22px" }}>
                 {report.nextSteps.map((step, i) => (
-                  <div key={i} style={{ display: "flex", gap: 12, marginBottom: i < report.nextSteps.length - 1 ? 16 : 0, alignItems: "flex-start" }}>
-                    <div style={{ width: 26, height: 26, borderRadius: 8, background: "linear-gradient(135deg,#7c3aed,#2563eb)", color: "white", fontSize: 12, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</div>
-                    <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.65, margin: 0 }}>{step}</p>
+                  <div key={i} style={{ display: "flex", gap: 10, marginBottom: i < report.nextSteps.length - 1 ? 14 : 0, alignItems: "flex-start" }}>
+                    <div style={{ width: 24, height: 24, borderRadius: 7, background: "linear-gradient(135deg,#4f46e5,#7c3aed)", color: "white", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 2px 8px rgba(79,70,229,.3)" }}>{i + 1}</div>
+                    <p style={{ fontSize: 12, color: "#374151", lineHeight: 1.7, margin: 0, fontFamily: F }}>{step}</p>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* ── Footer ── */}
-          <div className="ma-no-print" style={{ background: "white", borderRadius: 16, padding: "18px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, boxShadow: "0 4px 24px rgba(0,0,0,.05)" }}>
-            <span style={{ fontSize: 13, color: "#94a3b8" }}><strong style={{ color: "#0f172a" }}>ProCounsel</strong> · Powered by GPT-4o · procounsel.co.in</span>
+          <div className="ma-np" style={{ ...GLASS(0.75, 16), borderRadius: 16, padding: "15px 22px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+            <span style={{ fontSize: 11, color: "#94a3b8", fontFamily: F }}><strong style={{ color: "#1e1b4b" }}>ProCounsel</strong> · Powered by GPT-4o · procounsel.co.in</span>
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={retake} style={{ background: "white", border: "1.5px solid #e2e8f0", color: "#475569", padding: "9px 18px", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Retake</button>
-              <button onClick={() => window.print()} style={{ background: "linear-gradient(135deg,#7c3aed,#2563eb)", color: "white", border: "none", padding: "9px 18px", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>↓ Download PDF</button>
+              <button onClick={retake} className="ma-btn" style={{ ...GLASS(0.6, 12), borderRadius: 9, padding: "8px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: F, color: "#64748b", border: "1.5px solid rgba(0,0,0,.08)" }}>Retake</button>
+              <button onClick={() => window.print()} className="ma-btn" style={{ background: "linear-gradient(135deg,#4f46e5,#7c3aed)", color: "white", border: "none", borderRadius: 9, padding: "8px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: F, boxShadow: "0 4px 12px rgba(79,70,229,.35)" }}>↓ Download PDF</button>
             </div>
           </div>
         </div>
       </div>
     );
   }
-
   return null;
 }
 
-function SLabel({ children }: { children: React.ReactNode }) {
-  return <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10 }}>{children}</div>;
+function Label({ children }: { children: React.ReactNode }) {
+  return <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10, fontFamily: "'Inter','Poppins',system-ui,sans-serif" }}>{children}</div>;
 }
