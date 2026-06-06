@@ -6,6 +6,7 @@ import ScrollToTop from "./components/ui/ScrollToTop";
 import NoInternet from "./components/common/NoInternet";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { persistVisitSource } from "./lib/leadSource";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,6 +51,9 @@ function useVisitorTracking() {
     const utms = Object.fromEntries(new URLSearchParams(window.location.search));
     console.log("[ProCounsel] Visitor source:", source, detail ? `(${detail})` : "");
     console.log("[ProCounsel] Landing page:", window.location.pathname);
+
+    // Persist first-touch source so captureLead can use it after login
+    persistVisitSource(source, utms["utm_source"] || "", window.location.pathname);
 
     // Fire-and-forget — never blocks the page
     fetch(`${ANALYTICS_API}/track-referrer`, {

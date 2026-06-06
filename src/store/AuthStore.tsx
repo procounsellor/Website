@@ -7,6 +7,7 @@ import type { User } from "@/types/user";
 import type { CounselorProfileData } from "@/types/counselorProfile";
 import type { Transaction as UserTransaction } from "@/types/user";
 import { setToken, clearToken, cacheTokenInMemory, getToken } from '@/lib/tokenManager';
+import { captureLeadFromUser } from "@/api/leads";
 
 const mapCounselorToUser = (counselorData: CounselorProfileData): User => {
   return {
@@ -115,10 +116,12 @@ export const useAuthStore = create<AuthState>()(
       },
 
       completeOnboarding: () => {
-        const { tempJwt, tempPhone } = get();
+        const { tempJwt, tempPhone, user } = get();
         if (tempJwt && tempPhone) {
           setToken(tempJwt, tempPhone);
           set({ tempJwt: null, tempPhone: null, needsOnboarding: false });
+          // New user finished onboarding — capture lead with their filled-in data
+          captureLeadFromUser(user, tempPhone);
         }
       },
 
@@ -434,6 +437,13 @@ export const useAuthStore = create<AuthState>()(
                 loading: false,
                 needsProfileCompletion: needsCompletion,
               });
+
+              // Capture lead with tracked source — fire-and-forget, never blocks login.
+              // New users are captured in completeOnboarding() instead, so the lead
+              // includes the name/email/course they fill in during onboarding.
+              if (!userNeedsOnboarding) {
+                captureLeadFromUser(user, phone);
+              }
 
               // Only execute onLoginSuccess if user doesn't need onboarding
               // If they need onboarding, the callback will be executed after onboarding completes
