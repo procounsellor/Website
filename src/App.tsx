@@ -41,6 +41,9 @@ function useVisitorTracking() {
         else if (/linkedin\./i.test(host)) source = "linkedin";
         else if (/youtube\./i.test(host)) source = "youtube";
         else if (/whatsapp\./i.test(host)) source = "whatsapp";
+        else if (/quora\./i.test(host)) source = "quora";
+        else if (/reddit\./i.test(host)) source = "reddit";
+        else if (/telegram\.|t\.me/i.test(host)) source = "telegram";
         else source = "referral";
       } catch {
         source = "referral";

@@ -16,14 +16,20 @@ export interface TrackedSource {
  */
 export function persistVisitSource(source: string, utmSource: string, landingPage: string) {
   try {
-    if (localStorage.getItem(SOURCE_KEY)) return; // keep first touch
-
     // utm_source wins over referrer-derived source
     const raw = (utmSource || source || "direct").trim();
     const normalized = normalizeSource(raw);
 
+    const existing = localStorage.getItem(SOURCE_KEY);
+    // Keep the first meaningful touch. A stored DIRECT can be upgraded by a
+    // later visit that has a real source (e.g. first visited directly, then
+    // came back via a Quora/Instagram campaign link).
+    if (existing && existing !== "DIRECT") return;
+    if (existing === "DIRECT" && normalized === "DIRECT") return;
+
     localStorage.setItem(SOURCE_KEY, normalized);
     localStorage.setItem(LANDING_KEY, landingPage || "/");
+    console.log("[ProCounsel] Lead source persisted:", normalized);
   } catch {
     // storage unavailable (private mode) — ignore
   }

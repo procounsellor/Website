@@ -438,12 +438,6 @@ export const useAuthStore = create<AuthState>()(
                 needsProfileCompletion: needsCompletion,
               });
 
-              // Capture lead with tracked source — fire-and-forget, never blocks login.
-              // New users are captured in completeOnboarding() instead, so the lead
-              // includes the name/email/course they fill in during onboarding.
-              if (!userNeedsOnboarding) {
-                captureLeadFromUser(user, phone);
-              }
 
               // Only execute onLoginSuccess if user doesn't need onboarding
               // If they need onboarding, the callback will be executed after onboarding completes
@@ -457,6 +451,13 @@ export const useAuthStore = create<AuthState>()(
           }
         } catch (err) {
           console.error("Failed during verifyOtp data fetch:", err);
+        }
+
+        // Capture lead immediately on login for students — fire-and-forget,
+        // deduped per phone, runs even if the profile fetch above failed so we
+        // always get at least phone + tracked source.
+        if (isUser) {
+          captureLeadFromUser(get().user, phone);
         }
 
         const { pendingAction } = get();

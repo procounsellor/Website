@@ -51,7 +51,14 @@ export async function captureLead(payload: CaptureLeadPayload) {
  */
 export function captureLeadFromUser(user: Partial<User> | null, phone: string) {
     try {
-        if (!phone || isLeadCaptured(phone)) return
+        if (!phone) {
+            console.warn('[ProCounsel] Lead capture skipped: no phone number')
+            return
+        }
+        if (isLeadCaptured(phone)) {
+            console.log('[ProCounsel] Lead capture skipped: already captured for', phone)
+            return
+        }
 
         const { source, landingPage } = getTrackedSource()
 
@@ -66,13 +73,18 @@ export function captureLeadFromUser(user: Partial<User> | null, phone: string) {
             remarks: `Website login. Landing page: ${landingPage}`
         }
 
+        console.log('[ProCounsel] Capturing lead:', payload)
+
         captureLead(payload)
-            .then(() => {
+            .then((response) => {
                 markLeadCaptured(phone)
-                console.log('[ProCounsel] Lead captured for', phone, 'source:', source)
+                console.log('[ProCounsel] Lead capture response:', response)
             })
-            .catch(() => { }) // silently ignore — lead capture must never affect login
-    } catch {
-        // ignore
+            .catch((err) => {
+                // log loudly but never affect login
+                console.error('[ProCounsel] Lead capture FAILED:', err)
+            })
+    } catch (err) {
+        console.error('[ProCounsel] Lead capture error:', err)
     }
 }
