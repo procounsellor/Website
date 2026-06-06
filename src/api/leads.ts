@@ -48,14 +48,23 @@ export async function captureLead(payload: CaptureLeadPayload) {
  * Fire-and-forget lead capture on login.
  * Builds the payload from the logged-in user + the source tracked on first visit.
  * Deduped per phone number on this device — never throws, never blocks login.
+ *
+ * The backend upserts by phoneNumber, so pass `{ update: true }` to re-send the
+ * lead with richer data (e.g. after onboarding fills in the course, or profile
+ * completion fills in the name/email). `extra` fields override the user-derived
+ * ones in the payload.
  */
-export function captureLeadFromUser(user: Partial<User> | null, phone: string) {
+export function captureLeadFromUser(
+    user: Partial<User> | null,
+    phone: string,
+    opts?: { update?: boolean; extra?: Partial<CaptureLeadPayload> }
+) {
     try {
         if (!phone) {
             console.warn('[ProCounsel] Lead capture skipped: no phone number')
             return
         }
-        if (isLeadCaptured(phone)) {
+        if (!opts?.update && isLeadCaptured(phone)) {
             console.log('[ProCounsel] Lead capture skipped: already captured for', phone)
             return
         }
@@ -73,7 +82,17 @@ export function captureLeadFromUser(user: Partial<User> | null, phone: string) {
             remarks: `Website login. Landing page: ${landingPage}`
         }
 
-        console.log('[ProCounsel] Capturing lead:', payload)
+        // Richer data (from onboarding / profile completion) wins over store values
+        if (opts?.extra) {
+            const cleaned = Object.fromEntries(
+                Object.entries(opts.extra).filter(
+                    ([, value]) => value !== undefined && value !== null && value !== ''
+                )
+            ) as Partial<CaptureLeadPayload>
+            Object.assign(payload, cleaned)
+        }
+
+        console.log(`[ProCounsel] ${opts?.update ? 'Updating' : 'Capturing'} lead:`, payload)
 
         captureLead(payload)
             .then((response) => {

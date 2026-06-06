@@ -20,6 +20,7 @@ import AppInstallBanner from "@/components/shared/AppInstallBanner";
 import { useVoiceChatStore } from "@/store/VoiceChatStore";
 import { useLiveStreamStore } from "@/store/LiveStreamStore";
 import { updateUserProfile } from "@/api/user";
+import { captureLeadFromUser } from "@/api/leads";
 
 export default function RevampLayout() {
     const {
@@ -107,6 +108,12 @@ export default function RevampLayout() {
             if (!uid || !token) return;
             await updateUserProfile(uid, updatedData, token);
             if (refreshUser) await refreshUser(true);
+
+            // Enrich the captured lead with the completed profile (backend upserts by phone)
+            captureLeadFromUser(useAuthStore.getState().user, uid, {
+                update: true,
+                extra: updatedData,
+            });
             setNeedsProfileCompletion(false);
             setIsProfileCompletionOpen(false);
             const store = useAuthStore.getState();

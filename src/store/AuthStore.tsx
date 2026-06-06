@@ -116,12 +116,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       completeOnboarding: () => {
-        const { tempJwt, tempPhone, user } = get();
+        const { tempJwt, tempPhone } = get();
         if (tempJwt && tempPhone) {
           setToken(tempJwt, tempPhone);
           set({ tempJwt: null, tempPhone: null, needsOnboarding: false });
-          // New user finished onboarding — capture lead with their filled-in data
-          captureLeadFromUser(user, tempPhone);
         }
       },
 

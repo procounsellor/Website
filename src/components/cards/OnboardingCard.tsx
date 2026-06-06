@@ -4,6 +4,7 @@ import { getSates, getCoursesOnborading, updateUser } from "@/api/auth";
 import toast from "react-hot-toast";
 import type { CousrseApiLogin, StatesApiResponse } from "@/types";
 import { useAuthStore } from "@/store/AuthStore";
+import { captureLeadFromUser } from "@/api/leads";
 
 interface SelectCourseStepProps {
   selectedCourseName: string | null;
@@ -378,6 +379,17 @@ const OnboardingCard = ({ onComplete }: { onComplete?: () => void }) => {
 
       // Complete onboarding - this will move JWT from memory to localStorage
       completeOnboarding();
+
+      // Enrich the captured lead with the onboarding selections (backend upserts by phone)
+      if (userId) {
+        captureLeadFromUser(useAuthStore.getState().user, userId, {
+          update: true,
+          extra: {
+            interestedCourseName: selectedCourseName || "",
+            interestedStates: selectedStates,
+          },
+        });
+      }
 
       // Delay closing the modal to allow toast to show
       setTimeout(() => {
