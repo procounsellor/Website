@@ -9,6 +9,7 @@ import { useChatStore } from "@/store/ChatStore";
 import Chatbot from "@/components/chatbot/Chatbot";
 import Lottie from "lottie-react";
 import EnquiryPopup from "@/components/Revamp/shared/EnquiryPopup";
+import LoginPromptPopup from "@/components/Revamp/shared/LoginPromptPopup";
 import InfoModal from "@/components/counselor-signup/InfoModal";
 import CounselorSignupModal from "@/components/counselor-signup/CounselorSignupModal.tsx";
 import OnboardingCard from "@/components/cards/OnboardingCard";
@@ -198,6 +199,7 @@ export default function RevampLayout() {
         </div>
         {shouldShowFooter && <Footer />}
         {!isRestrictedRole && <EnquiryPopup />}
+        {!isAuthenticated && <LoginPromptPopup />}
 
         {isLoginToggle && <LoginCard />}
         <InfoModal />

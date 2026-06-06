@@ -7,6 +7,7 @@ import type { User } from "@/types/user";
 import type { CounselorProfileData } from "@/types/counselorProfile";
 import type { Transaction as UserTransaction } from "@/types/user";
 import { setToken, clearToken, cacheTokenInMemory, getToken } from '@/lib/tokenManager';
+import { captureLeadFromUser } from "@/api/leads";
 
 const mapCounselorToUser = (counselorData: CounselorProfileData): User => {
   return {
@@ -115,10 +116,12 @@ export const useAuthStore = create<AuthState>()(
       },
 
       completeOnboarding: () => {
-        const { tempJwt, tempPhone } = get();
+        const { tempJwt, tempPhone, user } = get();
         if (tempJwt && tempPhone) {
           setToken(tempJwt, tempPhone);
           set({ tempJwt: null, tempPhone: null, needsOnboarding: false });
+          // New user finished onboarding — capture lead with their filled-in data
+          captureLeadFromUser(user, tempPhone);
         }
       },
 
@@ -435,6 +438,7 @@ export const useAuthStore = create<AuthState>()(
                 needsProfileCompletion: needsCompletion,
               });
 
+
               // Only execute onLoginSuccess if user doesn't need onboarding
               // If they need onboarding, the callback will be executed after onboarding completes
               const { onLoginSuccess, needsOnboarding } = get();
@@ -447,6 +451,13 @@ export const useAuthStore = create<AuthState>()(
           }
         } catch (err) {
           console.error("Failed during verifyOtp data fetch:", err);
+        }
+
+        // Capture lead immediately on login for students — fire-and-forget,
+        // deduped per phone, runs even if the profile fetch above failed so we
+        // always get at least phone + tracked source.
+        if (isUser) {
+          captureLeadFromUser(get().user, phone);
         }
 
         const { pendingAction } = get();

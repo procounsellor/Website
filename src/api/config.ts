@@ -49,6 +49,7 @@ export const API_CONFIG = {
     userCallHistory: '/api/proBuddy/getUserCallHistory',
     proBuddyColleges: '/api/shared/getProBuddyCollegesWithCounts',
     connectCall: '/api/exotel/connectCall',
+    captureLead: '/api/leads/captureLead',
   },
   defaultTimeout: 10000,
 } as const;
