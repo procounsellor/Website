@@ -479,7 +479,7 @@ export default function Admissions() {
 
               {/* Rank Predictor Card */}
               <motion.div
-                onClick={() => navigate('/jee-rank-predictor')}
+                onClick={() => navigate('/mhtcet-college-predictor')}
                 initial={{ opacity: 0, y: 10, scale: 0.98 }}
                 animate={cardAnimate}
                 transition={{ ...cardTransition, delay: 0.38 }}
@@ -487,7 +487,7 @@ export default function Admissions() {
               >
                 <img
                   src="/ranking-1.png"
-                  alt="Rank Predictor"
+                  alt="MHT-CET College Predictor"
                   className="absolute inset-0 w-full h-full object-fit"
                 />
                 <div
@@ -498,9 +498,9 @@ export default function Admissions() {
                   }}
                 />
                 <div className="absolute top-6 left-1/2 -translate-x-1/2 text-center text-white w-[195px]">
-                  <p className="text-[24px] font-semibold font-['Poppins'] mb-2">Rank Predictor</p>
+                  <p className="text-[24px] font-semibold font-['Poppins'] mb-2">MHT-CET Predictor</p>
                   <p className="text-[14px] font-['Poppins']">
-                    Estimate your JEE rank and plan the next step with confidence.
+                    Estimate your MHT-CET rank and discover the colleges within your reach.
                   </p>
                 </div>
               </motion.div>

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const PREDICTOR_BASE_URL = "https://chatbot-backend-364445951625.asia-south1.run.app";
+const PREDICTOR_BASE_URL = "https://mht-cet-predictor-beige.vercel.app";
 
 export interface MHTCETCollegePredictionRequest {
   marks?: number;
@@ -22,6 +22,25 @@ export interface MHTCETCollegeItem {
 export interface MHTCETCollegePredictionResponse {
   estimated_rank: number;
   colleges: MHTCETCollegeItem[];
+}
+
+// Raw shape returned by the predictor backend (different field names).
+interface RawPredictResponse {
+  user_rank: number;
+  category: string;
+  branch_filter: string | null;
+  results: MHTCETCollegeItem[];
+}
+
+// The backend filters on its own branch labels; map the few that differ from
+// the names shown in the UI. "Other" means "no branch filter".
+const BRANCH_MAP: Record<string, string> = {
+  "Electronics and Telecommunication": "Electronics and Telecommunication Engg",
+};
+
+function toApiBranch(branch: string): string | undefined {
+  if (!branch || branch === "Other") return undefined;
+  return BRANCH_MAP[branch] ?? branch;
 }
 
 const TRANSIENT_STATUSES = [429, 500, 502, 503, 504];
@@ -73,25 +92,49 @@ function toFriendlyError(error: unknown): Error {
   return new Error("Failed to predict colleges");
 }
 
+// Pick the right endpoint + key query param for the supplied input mode.
+function resolveRequest(data: MHTCETCollegePredictionRequest): {
+  endpoint: string;
+  params: Record<string, string | number>;
+} {
+  const params: Record<string, string | number> = {
+    category: data.category.toUpperCase(),
+    top_n: data.top_n,
+  };
+  const branch = toApiBranch(data.branch);
+  if (branch) params.branch = branch;
+
+  if (data.rank != null) {
+    return { endpoint: `${PREDICTOR_BASE_URL}/predict`, params: { ...params, rank: data.rank } };
+  }
+  if (data.percentile != null) {
+    return {
+      endpoint: `${PREDICTOR_BASE_URL}/predict/by-percentile`,
+      params: { ...params, percentile: data.percentile },
+    };
+  }
+  return {
+    endpoint: `${PREDICTOR_BASE_URL}/predict/by-marks`,
+    params: { ...params, marks: data.marks ?? 0 },
+  };
+}
+
 export async function predictMHTCETColleges(
   data: MHTCETCollegePredictionRequest
 ): Promise<MHTCETCollegePredictionResponse> {
-  const endpoint = `${PREDICTOR_BASE_URL}/mah-cet/predict-colleges`;
+  const { endpoint, params } = resolveRequest(data);
   let lastError: unknown;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const response = await axios.post<MHTCETCollegePredictionResponse>(
-        endpoint,
-        data,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          timeout: 30000,
-        }
-      );
-      return response.data;
+      const response = await axios.get<RawPredictResponse>(endpoint, {
+        params,
+        timeout: 30000,
+      });
+      return {
+        estimated_rank: response.data.user_rank,
+        colleges: response.data.results ?? [],
+      };
     } catch (error) {
       lastError = error;
       // Don't retry validation/client errors, and stop after the last attempt.
