@@ -7,7 +7,7 @@ export interface MHTCETCollegePredictionRequest {
   percentile?: number;
   rank?: number;
   category: string;
-  branch: string;
+  branch?: string | null;
   top_n: number;
 }
 
@@ -39,7 +39,7 @@ const BRANCH_MAP: Record<string, string> = {
 };
 
 function toApiBranch(branch: string): string | undefined {
-  if (!branch || branch === "Other") return undefined;
+  if (!branch || branch === "All" || branch === "Other") return undefined;
   return BRANCH_MAP[branch] ?? branch;
 }
 

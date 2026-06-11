@@ -29,6 +29,7 @@ import PageSEO from "@/components/SEO/PageSEO";
 type PredictionMode = "marks" | "percentile" | "rank";
 
 const BRANCH_OPTIONS = [
+  "All",
   "Computer Engineering",
   "Mechanical Engineering",
   "Civil Engineering",
@@ -47,7 +48,7 @@ export default function MHTCETCollegePredictor() {
   const [percentile, setPercentile] = useState<string>("");
   const [rank, setRank] = useState<string>("");
   const [category, setCategory] = useState<string>("Open");
-  const [branch, setBranch] = useState<string>("Computer Engineering");
+  const [branch, setBranch] = useState<string>("All");
   const [topN, setTopN] = useState<number>(15);
   const [isLoading, setIsLoading] = useState(false);
   const [prediction, setPrediction] =
@@ -104,9 +105,9 @@ export default function MHTCETCollegePredictor() {
 
     const payload: Parameters<typeof predictMHTCETColleges>[0] = {
       category,
-      branch,
       top_n: topN,
     };
+    if (branch !== "All") payload.branch = branch;
     if (mode === "marks") payload.marks = parseFloat(marks);
     else if (mode === "percentile") payload.percentile = parseFloat(percentile);
     else payload.rank = parseInt(rank, 10);
@@ -348,7 +349,10 @@ export default function MHTCETCollegePredictor() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Branch
                     </label>
-                    <Select value={branch} onValueChange={setBranch}>
+                    <Select
+                      value={branch}
+                      onValueChange={setBranch}
+                    >
                       <SelectTrigger className="w-full h-12 border border-[#13097D66] rounded-xl text-base text-gray-800 bg-white focus:ring-2 focus:ring-blue-100 focus:border-[#2F43F2] cursor-pointer">
                         <SelectValue placeholder="Select branch" />
                       </SelectTrigger>
