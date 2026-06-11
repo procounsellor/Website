@@ -61,137 +61,79 @@ export default function MHTCETCollegePredictor() {
     new Set()
   );
 
-  // Track last submitted values to avoid unnecessary API calls
-  const lastParamsRef = useRef<{
-    mode: string;
-    marks: string;
-    percentile: string;
-    rank: string;
-    category: string;
-    branch: string;
-    topN: number;
-  } | null>(null);
+  // High-traffic robustness: ignore stale responses + skip redundant refetches
+  const requestIdRef = useRef(0);
+  const lastSigRef = useRef<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const buildSignature = () =>
+    JSON.stringify({ mode, marks, percentile, rank, category, branch, topN });
 
+  const validateInput = (): { valid: boolean; message?: string } => {
     if (mode === "marks") {
-      if (!marks) {
-        toast.error("Please enter your MHT-CET marks");
-        return;
-      }
-      const marksValue = parseFloat(marks);
-      if (isNaN(marksValue) || marksValue < 0) {
-        toast.error("Please enter a valid marks value");
-        return;
-      }
+      if (!marks) return { valid: false, message: "Please enter your MHT-CET marks" };
+      const v = parseFloat(marks);
+      if (isNaN(v) || v < 0)
+        return { valid: false, message: "Please enter a valid marks value" };
     } else if (mode === "percentile") {
-      if (!percentile) {
-        toast.error("Please enter your MHT-CET percentile");
-        return;
-      }
-      const percentileValue = parseFloat(percentile);
-      if (
-        isNaN(percentileValue) ||
-        percentileValue < 0 ||
-        percentileValue > 100
-      ) {
-        toast.error("Please enter a valid percentile (0-100)");
-        return;
-      }
+      if (!percentile)
+        return { valid: false, message: "Please enter your MHT-CET percentile" };
+      const v = parseFloat(percentile);
+      if (isNaN(v) || v < 0 || v > 100)
+        return { valid: false, message: "Please enter a valid percentile (0-100)" };
     } else {
-      if (!rank) {
-        toast.error("Please enter your rank");
-        return;
-      }
-      const rankValue = parseInt(rank, 10);
-      if (isNaN(rankValue) || rankValue < 1) {
-        toast.error("Please enter a valid rank");
-        return;
-      }
+      if (!rank) return { valid: false, message: "Please enter your rank" };
+      const v = parseInt(rank, 10);
+      if (isNaN(v) || v < 1)
+        return { valid: false, message: "Please enter a valid rank" };
+    }
+    return { valid: true };
+  };
+
+  // Single source of truth for fetching. Used by both the submit button and the
+  // in-place refetch when category/branch/topN change. `silent` = background
+  // refetch (no success toast, skip if params are unchanged).
+  const runPrediction = async ({ silent = false }: { silent?: boolean } = {}) => {
+    const check = validateInput();
+    if (!check.valid) {
+      if (!silent && check.message) toast.error(check.message);
+      return;
     }
 
+    const signature = buildSignature();
+    if (silent && signature === lastSigRef.current) return;
+
+    const payload: Parameters<typeof predictMHTCETColleges>[0] = {
+      category,
+      branch,
+      top_n: topN,
+    };
+    if (mode === "marks") payload.marks = parseFloat(marks);
+    else if (mode === "percentile") payload.percentile = parseFloat(percentile);
+    else payload.rank = parseInt(rank, 10);
+
+    const reqId = ++requestIdRef.current;
     setIsLoading(true);
-
     try {
-      // Check if params actually changed
-      const currentParams = { mode, marks, percentile, rank, category, branch, topN };
-      const paramsChanged = !lastParamsRef.current || 
-        JSON.stringify(lastParamsRef.current) !== JSON.stringify(currentParams);
-
-      if (!isAuthenticated) {
-        const estimatedRank =
-          mode === "rank"
-            ? parseInt(rank, 10)
-            : mode === "percentile"
-              ? Math.max(1, Math.floor(100000 * (1 - parseFloat(percentile) / 100)))
-              : Math.max(1, Math.floor(200000 * (1 - parseFloat(marks) / 200)));
-        const dummyColleges: MHTCETCollegePredictionResponse["colleges"] = [
-          {
-            college: "COEP Pune",
-            branches: ["Computer Engineering", "Mechanical Engineering"],
-            best_closing_rank: estimatedRank - 5000,
-            best_closing_percentile: 99.5,
-            chance: "High",
-          },
-          {
-            college: "VJTI Mumbai",
-            branches: ["Computer Engineering", "Information Technology"],
-            best_closing_rank: estimatedRank - 3000,
-            best_closing_percentile: 99.7,
-            chance: "Very High",
-          },
-          {
-            college: "SPIT Mumbai",
-            branches: ["Computer Engineering", "Electronics and Telecommunication"],
-            best_closing_rank: estimatedRank + 2000,
-            best_closing_percentile: 98.5,
-            chance: "Moderate",
-          },
-          {
-            college: "PICT Pune",
-            branches: ["Computer Engineering", "Information Technology"],
-            best_closing_rank: estimatedRank + 5000,
-            best_closing_percentile: 97.2,
-            chance: "Moderate",
-          },
-          {
-            college: "VIT Pune",
-            branches: ["Computer Engineering", "Mechanical Engineering"],
-            best_closing_rank: estimatedRank + 8000,
-            best_closing_percentile: 95.8,
-            chance: "Low",
-          },
-        ];
-        setPrediction({ estimated_rank: estimatedRank, colleges: dummyColleges });
-        lastParamsRef.current = currentParams;
-        toast.success("Prediction generated! Login to view detailed results.");
-      } else {
-        // Only call API if params changed or user is authenticated and haven't called yet
-        if (paramsChanged) {
-          const payload: Parameters<typeof predictMHTCETColleges>[0] = {
-            category,
-            branch,
-            top_n: topN,
-          };
-          if (mode === "marks") payload.marks = parseFloat(marks);
-          else if (mode === "percentile") payload.percentile = parseFloat(percentile);
-          else payload.rank = parseInt(rank, 10);
-
-          const response = await predictMHTCETColleges(payload);
-          setPrediction(response);
-          lastParamsRef.current = currentParams;
-          toast.success("Colleges predicted successfully!");
-        }
-      }
+      const response = await predictMHTCETColleges(payload);
+      if (reqId !== requestIdRef.current) return; // superseded by a newer request
+      setPrediction(response);
+      lastSigRef.current = signature;
+      setCurrentPage(1);
+      if (!silent) toast.success("Colleges predicted successfully!");
     } catch (error) {
+      if (reqId !== requestIdRef.current) return;
       const msg =
         error instanceof Error ? error.message : "Failed to predict colleges";
       toast.error(msg);
-      setPrediction(null);
+      // Keep any existing results on screen instead of bouncing back to the form.
     } finally {
-      setIsLoading(false);
+      if (reqId === requestIdRef.current) setIsLoading(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    runPrediction();
   };
 
   const formatRank = (r: number | null | undefined) =>
@@ -250,9 +192,25 @@ export default function MHTCETCollegePredictor() {
     setCurrentPage(1);
   }, [sortBy]);
 
-  // Clear prediction when category, branch, or topN changes to force re-fetch
+  // Free preview: how many real colleges a logged-out visitor can see.
+  const FREE_PREVIEW_COUNT = 2;
+  const displayColleges = isAuthenticated
+    ? paginatedColleges
+    : filteredAndSortedColleges.slice(0, FREE_PREVIEW_COUNT);
+  const displayOffset = isAuthenticated ? startIndex : 0;
+  const lockedCount = isAuthenticated
+    ? 0
+    : Math.max(0, filteredAndSortedColleges.length - FREE_PREVIEW_COUNT);
+
+  // When category / branch / top-N change while results are on screen, refetch
+  // in place (debounced) instead of throwing the user back to the start form.
   useEffect(() => {
-    setPrediction(null);
+    if (!prediction) return;
+    const t = setTimeout(() => {
+      runPrediction({ silent: true });
+    }, 400);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, branch, topN]);
 
   const inputLabel =
@@ -449,9 +407,7 @@ export default function MHTCETCollegePredictor() {
             </aside>
 
             <section className="lg:col-span-8 space-y-6 relative">
-              <div
-                className={`space-y-6 ${!isAuthenticated ? "blur-sm pointer-events-none" : ""}`}
-              >
+              <div className="space-y-6">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                   <div>
                     <h1 className="text-2xl font-bold text-gray-800 mb-1">
@@ -461,6 +417,12 @@ export default function MHTCETCollegePredictor() {
                       Based on MHT-CET counseling data
                     </p>
                   </div>
+                  {isLoading && prediction && (
+                    <span className="inline-flex items-center gap-2 text-xs font-medium text-[#2F43F2]">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Updating results…
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 bg-white p-3 rounded-lg border border-[#2F43F2]/5">
@@ -484,7 +446,7 @@ export default function MHTCETCollegePredictor() {
                   </Select>
                 </div>
 
-                {isLoading ? (
+                {displayColleges.length === 0 && isLoading ? (
                   <div className="space-y-4">
                     {[1, 2, 3, 4, 5].map((idx) => (
                       <div
@@ -507,10 +469,12 @@ export default function MHTCETCollegePredictor() {
                       </div>
                     ))}
                   </div>
-                ) : paginatedColleges.length > 0 ? (
-                  <div className="space-y-4">
-                    {paginatedColleges.map((college, index) => {
-                      const actualIndex = startIndex + index;
+                ) : displayColleges.length > 0 ? (
+                  <div
+                    className={`space-y-4 ${isLoading ? "opacity-50 pointer-events-none transition-opacity" : ""}`}
+                  >
+                    {displayColleges.map((college, index) => {
+                      const actualIndex = displayOffset + index;
                       const isExpanded = expandedBranches.has(actualIndex);
                       const hasMultipleBranches =
                         college.branches && college.branches.length > 1;
@@ -626,7 +590,7 @@ export default function MHTCETCollegePredictor() {
                   </div>
                 )}
 
-                {totalPages > 1 && (
+                {isAuthenticated && totalPages > 1 && (
                   <div className="flex items-center justify-center gap-2 pt-4">
                     <button
                       onClick={() =>
@@ -686,21 +650,23 @@ export default function MHTCETCollegePredictor() {
                 )}
               </div>
 
-              {!isAuthenticated && prediction && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 rounded-lg z-10">
-                  <Lock className="h-16 w-16 text-[#2F43F2] mb-4" />
-                  <h4 className="text-xl font-bold text-gray-800 mb-2">
-                    Login to View Results
+              {!isAuthenticated && prediction && displayColleges.length > 0 && (
+                <div className="rounded-xl p-6 sm:p-8 text-center text-white shadow-lg bg-gradient-to-br from-[#2F43F2] to-[#4B5DF5]">
+                  <Lock className="h-12 w-12 mx-auto mb-3 opacity-90" />
+                  <h4 className="text-xl font-bold mb-2">
+                    {lockedCount > 0
+                      ? `Login to unlock ${lockedCount} more ${lockedCount === 1 ? "college" : "colleges"}`
+                      : "Login to view your full personalized results"}
                   </h4>
-                  <p className="text-sm text-gray-600 text-center mb-6 max-w-md px-4">
-                    Please login to see your personalized college prediction
-                    results and unlock all features.
+                  <p className="text-sm text-white/85 mb-5 max-w-md mx-auto">
+                    You're seeing a free preview. Login to see all matching
+                    colleges, branch-wise cutoffs, and save your prediction.
                   </p>
                   <Button
                     onClick={() => toggleLogin()}
-                    className="bg-[#2F43F2] hover:bg-[#2F43F2]/90 text-white px-8 py-2 rounded-xl font-semibold cursor-pointer"
+                    className="bg-white text-[#2F43F2] hover:bg-white/90 px-8 py-2 rounded-xl font-semibold cursor-pointer"
                   >
-                    Login Now
+                    Login to See All Colleges
                   </Button>
                 </div>
               )}
