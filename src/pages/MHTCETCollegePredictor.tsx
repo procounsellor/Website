@@ -193,8 +193,8 @@ export default function MHTCETCollegePredictor() {
     setCurrentPage(1);
   }, [sortBy]);
 
-  // Free preview: how many real colleges a logged-out visitor can see.
-  const FREE_PREVIEW_COUNT = 2;
+  // Logged-out visitors see no colleges at all — login is required to view results.
+  const FREE_PREVIEW_COUNT = 0;
   const displayColleges = isAuthenticated
     ? paginatedColleges
     : filteredAndSortedColleges.slice(0, FREE_PREVIEW_COUNT);
@@ -429,28 +429,30 @@ export default function MHTCETCollegePredictor() {
                   )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 bg-white p-3 rounded-lg border border-[#2F43F2]/5">
-                  <span className="text-xs font-medium text-gray-700">
-                    Sort by Rank:
-                  </span>
-                  <Select
-                    value={sortBy}
-                    onValueChange={(v) => {
-                      setSortBy(v);
-                      setCurrentPage(1);
-                    }}
-                  >
-                    <SelectTrigger className="bg-transparent border-none text-xs font-bold text-[#2F43F2] cursor-pointer outline-none">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Ascending">Ascending</SelectItem>
-                      <SelectItem value="Descending">Descending</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {isAuthenticated && (
+                  <div className="flex flex-wrap items-center gap-3 bg-white p-3 rounded-lg border border-[#2F43F2]/5">
+                    <span className="text-xs font-medium text-gray-700">
+                      Sort by Rank:
+                    </span>
+                    <Select
+                      value={sortBy}
+                      onValueChange={(v) => {
+                        setSortBy(v);
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="bg-transparent border-none text-xs font-bold text-[#2F43F2] cursor-pointer outline-none">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Ascending">Ascending</SelectItem>
+                        <SelectItem value="Descending">Descending</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
-                {displayColleges.length === 0 && isLoading ? (
+                {!isAuthenticated && prediction ? null : displayColleges.length === 0 && isLoading ? (
                   <div className="space-y-4">
                     {[1, 2, 3, 4, 5].map((idx) => (
                       <div
@@ -654,17 +656,17 @@ export default function MHTCETCollegePredictor() {
                 )}
               </div>
 
-              {!isAuthenticated && prediction && displayColleges.length > 0 && (
+              {!isAuthenticated && prediction && (
                 <div className="rounded-xl p-6 sm:p-8 text-center text-white shadow-lg bg-gradient-to-br from-[#2F43F2] to-[#4B5DF5]">
                   <Lock className="h-12 w-12 mx-auto mb-3 opacity-90" />
                   <h4 className="text-xl font-bold mb-2">
                     {lockedCount > 0
-                      ? `Login to unlock ${lockedCount} more ${lockedCount === 1 ? "college" : "colleges"}`
-                      : "Login to view your full personalized results"}
+                      ? `Login to unlock ${lockedCount} ${lockedCount === 1 ? "matching college" : "matching colleges"}`
+                      : "Login to view your personalized results"}
                   </h4>
                   <p className="text-sm text-white/85 mb-5 max-w-md mx-auto">
-                    You're seeing a free preview. Login to see all matching
-                    colleges, branch-wise cutoffs, and save your prediction.
+                    Login to see all matching colleges, branch-wise cutoffs, and
+                    save your prediction.
                   </p>
                   <Button
                     onClick={() => toggleLogin()}
