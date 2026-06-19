@@ -1,6 +1,96 @@
 import { useState, useEffect, useRef } from "react";
+import PageSEO from "@/components/SEO/PageSEO";
+import { useAuthStore } from "@/store/AuthStore";
+import { LoginCard } from "@/components/cards/LoginCard";
 
 const API = "https://college-search-api.vercel.app";
+
+// Price of the Mettle career assessment (INR). Payment is NOT wired yet —
+// see the backend API contract in METTLE_PAYMENT_TODO below.
+const METTLE_PRICE = 2000;
+
+/*
+ * ─── PAYMENT TO BE WIRED LATER (backend endpoints required) ──────────────────
+ * Build these two endpoints on the main wallet backend (API_CONFIG.baseUrl),
+ * then gate `start()` behind them:
+ *
+ *   GET  /api/mettle/access?userId=<userName>
+ *        → { "hasPaid": boolean }            // unlock instantly on return
+ *
+ *   POST /api/mettle/pay
+ *        body: { userId, mode: "wallet" | "razorpay", paymentId?, amount }
+ *        → { "status": boolean }             // mode=wallet deducts ₹2000 from
+ *                                            // proCoins; mode=razorpay records
+ *                                            // a verified Razorpay payment.
+ *                                            // Either way marks the user paid.
+ *
+ * Frontend flow once live: open /mettle → check access → if unpaid show paywall
+ *   → if wallet balance ≥ ₹2000 "Pay from Wallet" else Razorpay (reuse
+ *   startRecharge + getLoggedInPhone/formatPhoneForRazorpay from src/lib/phone)
+ *   → on success call /api/mettle/pay → unlock the assessment.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+// SEO structured data so /mettle can rank for career-test queries.
+const METTLE_SEO_TITLE = "Mettle — AI Career Assessment Test for Students";
+const METTLE_SEO_DESC =
+  "Take ProCounsel's Mettle career assessment: 50 questions across 9 skill areas, scored by AI into your top career matches, strengths and a personalised roadmap. Get a downloadable career report.";
+const METTLE_JSONLD = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: "Mettle AI Career Assessment",
+    brand: { "@type": "Brand", name: "ProCounsel" },
+    description: METTLE_SEO_DESC,
+    category: "Career Assessment",
+    url: "https://www.procounsel.co.in/mettle",
+    offers: {
+      "@type": "Offer",
+      price: String(METTLE_PRICE),
+      priceCurrency: "INR",
+      availability: "https://schema.org/InStock",
+      url: "https://www.procounsel.co.in/mettle",
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "What is the Mettle career assessment?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Mettle is ProCounsel's AI-powered career assessment. You answer 50 statements across 9 skill areas, and AI maps your natural strengths to the careers best suited to you, with fit-scores and a step-by-step roadmap.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How long does the Mettle test take?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "About 10 minutes. There are 50 short statements you rate on a 5-point scale, after which your personalised career report is generated instantly.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What do I get after completing the assessment?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "A full career report: your personality type and profile, your top 3 career matches with AI fit-scores, a scored breakdown of your strengths, development areas with tips, and a roadmap for each recommended career — all downloadable as a PDF.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How much does the Mettle assessment cost?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "The Mettle career assessment is a one-time ₹2,000 and includes your complete AI-generated career report.",
+        },
+      },
+    ],
+  },
+];
 
 // ── Categories ────────────────────────────────────────────────────────────────
 const CATS = [
@@ -143,27 +233,24 @@ function Dots({ ci }: { ci: number }) {
   );
 }
 
-// ── Page wrapper ──────────────────────────────────────────────────────────────
-function Page({ bg, children, ref: _r }: { bg: string; children: React.ReactNode; ref?: React.RefObject<HTMLDivElement | null> }) {
-  return (
-    <div style={{ minHeight: "100vh", background: bg, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-      {children}
-    </div>
-  );
-}
-
 type Screen = "start" | "cat-intro" | "quiz" | "loading" | "report" | "error";
 
 export default function MettleAssessment() {
   const [screen, setScreen] = useState<Screen>("start");
   const [name, setName]     = useState("");
-  const [nameErr, setNameErr] = useState(false);
   const [ci, setCi]         = useState(0);
   const [qi, setQi]         = useState(0);
   const [ans, setAns]       = useState<Record<number, number>>({});
   const [report, setReport] = useState<Report | null>(null);
   const [err, setErr]       = useState("");
   const top = useRef<HTMLDivElement>(null);
+
+  // Login is mandatory: we use the logged-in user's profile name, so there is
+  // no name field — they fill their name during login/onboarding.
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isLoginToggle = useAuthStore((s) => s.isLoginToggle);
+  const profileName = `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim();
 
   useEffect(() => {
     const el = document.createElement("style"); el.textContent = CSS; document.head.appendChild(el);
@@ -175,9 +262,21 @@ export default function MettleAssessment() {
   const cat  = CAT_QS[ci];
   const date = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
 
-  function start() {
-    if (!name.trim()) { setNameErr(true); return; }
+  function beginAssessment() {
+    const u = useAuthStore.getState().user;
+    const n = `${u?.firstName ?? ""} ${u?.lastName ?? ""}`.trim() || u?.userName || "Student";
+    setName(n);
     setCi(0); setQi(0); setAns({}); setScreen("cat-intro");
+  }
+
+  function start() {
+    const s = useAuthStore.getState();
+    // Mandatory login — open the login flow and resume once signed in.
+    if (!s.isAuthenticated || !s.user) {
+      s.toggleLogin(() => beginAssessment());
+      return;
+    }
+    beginAssessment();
   }
 
   function pick(s: number) { setAns(a => ({ ...a, [gIdx(ci, qi)]: s })); }
@@ -231,6 +330,13 @@ export default function MettleAssessment() {
   // ────────────────────────────────── START ──────────────────────────────────
   if (screen === "start") return (
     <div ref={top} className="ma" style={{ minHeight: "100vh", background: "linear-gradient(145deg, #f0f4ff 0%, #fdf4ff 45%, #fff8f0 100%)", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+      <PageSEO
+        title={METTLE_SEO_TITLE}
+        description={METTLE_SEO_DESC}
+        canonical="/mettle"
+        keywords="career assessment, AI career test, career test for students, psychometric test India, career counselling, find my career, ProCounsel Mettle"
+        jsonLd={METTLE_JSONLD}
+      />
       {/* Soft orbs */}
       <div style={{ position: "absolute", top: -80, right: -80, width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(167,139,250,.22) 0%, transparent 65%)", pointerEvents: "none" }} />
       <div style={{ position: "absolute", bottom: -60, left: -60, width: 350, height: 350, borderRadius: "50%", background: "radial-gradient(circle, rgba(56,189,248,.18) 0%, transparent 65%)", pointerEvents: "none" }} />
@@ -249,68 +355,105 @@ export default function MettleAssessment() {
       )}
 
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "28px 20px 48px" }}>
-        <div className="ma-in" style={{ width: "100%", maxWidth: 460, textAlign: "center" }}>
+        <div className="ma-in" style={{ width: "100%", maxWidth: 980, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(310px, 1fr))", gap: 28, alignItems: "center", textAlign: "left" }}>
 
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, ...GLASS(0.7, 16), borderRadius: 99, padding: "7px 18px", marginBottom: 24 }}>
-            <span style={{ fontSize: 14 }}>✨</span>
-            <span style={{ color: "#4f46e5", fontSize: 12, fontWeight: 700, letterSpacing: .6, fontFamily: F }}>AI-Powered Career Assessment</span>
+          {/* ── Left: pitch ───────────────────────────────────────────── */}
+          <div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, ...GLASS(0.7, 16), borderRadius: 99, padding: "7px 18px", marginBottom: 18 }}>
+              <span style={{ fontSize: 14 }}>✨</span>
+              <span style={{ color: "#4f46e5", fontSize: 12, fontWeight: 700, letterSpacing: .6, fontFamily: F }}>AI-Powered Career Assessment</span>
+            </div>
+
+            <h1 style={{ fontSize: "clamp(28px,5vw,42px)", fontWeight: 900, color: "#1e1b4b", lineHeight: 1.1, margin: "0 0 14px", letterSpacing: "-1.5px", fontFamily: F }}>
+              Find Your Perfect{" "}
+              <span style={{ background: "linear-gradient(90deg,#4f46e5,#7c3aed,#db2777)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Career Path</span>
+            </h1>
+
+            <p style={{ fontSize: 14.5, color: "#64748b", lineHeight: 1.7, margin: "0 0 20px", fontFamily: F }}>
+              50 thoughtful statements across 9 skill areas. Answer honestly — our AI maps your natural strengths to careers built for you.
+            </p>
+
+            {/* Stats */}
+            <div style={{ display: "flex", ...GLASS(0.65, 16), borderRadius: 16, overflow: "hidden", marginBottom: 18 }}>
+              {[["9", "Sections"], ["50", "Questions"], ["~10m", "Duration"]].map(([v, l], i) => (
+                <div key={l} style={{ flex: 1, padding: "12px 8px", borderRight: i < 2 ? "1px solid rgba(0,0,0,.05)" : "none", textAlign: "center" }}>
+                  <div style={{ fontSize: 19, fontWeight: 800, color: "#1e1b4b", fontFamily: F }}>{v}</div>
+                  <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: .8, fontFamily: F }}>{l}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Category chips */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {CATS.map(c => (
+                <div key={c.key} style={{ ...GLASS(0.6, 12), borderRadius: 99, padding: "5px 12px", display: "flex", alignItems: "center", gap: 5 }}>
+                  <span style={{ fontSize: 12 }}>{c.emoji}</span>
+                  <span style={{ fontSize: 10, color: "#64748b", fontWeight: 600, fontFamily: F }}>{c.name}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <h1 style={{ fontSize: "clamp(30px,7vw,46px)", fontWeight: 900, color: "#1e1b4b", lineHeight: 1.1, margin: "0 0 14px", letterSpacing: "-1.5px", fontFamily: F }}>
-            Find Your Perfect<br />
-            <span style={{ background: "linear-gradient(90deg,#4f46e5,#7c3aed,#db2777)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Career Path</span>
-          </h1>
-
-          <p style={{ fontSize: 15, color: "#64748b", lineHeight: 1.8, margin: "0 0 28px", fontFamily: F }}>
-            50 thoughtful statements across 9 skill areas. Answer honestly — our AI maps your natural strengths to careers built for you.
-          </p>
-
-          {/* Stats */}
-          <div style={{ display: "flex", ...GLASS(0.65, 16), borderRadius: 16, overflow: "hidden", marginBottom: 24 }}>
-            {[["9", "Sections"], ["50", "Questions"], ["~10m", "Duration"]].map(([v, l], i) => (
-              <div key={l} style={{ flex: 1, padding: "14px 8px", borderRight: i < 2 ? "1px solid rgba(0,0,0,.05)" : "none", textAlign: "center" }}>
-                <div style={{ fontSize: 20, fontWeight: 800, color: "#1e1b4b", fontFamily: F }}>{v}</div>
-                <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: .8, fontFamily: F }}>{l}</div>
+          {/* ── Right: what you get + start ─────────────────────────────── */}
+          <div>
+            {/* What you'll get */}
+            <div style={{ ...GLASS(0.7, 18), borderRadius: 18, padding: "18px 20px", marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 14 }}>
+                <span style={{ fontSize: 12, fontWeight: 800, color: "#1e1b4b", textTransform: "uppercase", letterSpacing: 1, fontFamily: F }}>What you'll get</span>
+                <span style={{ display: "inline-flex", alignItems: "baseline", gap: 5, background: "linear-gradient(135deg,#4f46e5,#7c3aed)", color: "white", borderRadius: 99, padding: "5px 13px", boxShadow: "0 4px 14px rgba(79,70,229,.35)" }}>
+                  <span style={{ fontSize: 15, fontWeight: 900, fontFamily: F }}>₹{METTLE_PRICE.toLocaleString("en-IN")}</span>
+                  <span style={{ fontSize: 9, fontWeight: 600, opacity: .85, fontFamily: F }}>one-time</span>
+                </span>
               </div>
-            ))}
-          </div>
+              {[
+                ["✦", "Your personality type and how you think and work"],
+                ["🎯", "Top 3 career matches with AI fit-scores"],
+                ["📊", "Your strongest skill areas, scored out of 100"],
+                ["🌱", "Development areas with practical tips"],
+                ["🗺️", "A step-by-step roadmap into each career"],
+                ["📄", "A polished report you can download as PDF"],
+              ].map(([icon, text], i, arr) => (
+                <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: i < arr.length - 1 ? 9 : 0 }}>
+                  <span style={{ fontSize: 13, lineHeight: 1.45, flexShrink: 0 }}>{icon}</span>
+                  <span style={{ fontSize: 12, color: "#475569", lineHeight: 1.5, fontFamily: F }}>{text}</span>
+                </div>
+              ))}
+            </div>
 
-          {/* Input card */}
-          <div style={{ ...GLASS(0.75, 20), borderRadius: 20, padding: "26px 24px 22px" }}>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 8, textAlign: "left", fontFamily: F }}>Your Name</label>
-            <input
-              type="text" value={name} autoFocus
-              placeholder={nameErr ? "Please enter your name to continue" : "Enter your full name"}
-              onChange={e => { setName(e.target.value); setNameErr(false); }}
-              onKeyDown={e => e.key === "Enter" && start()}
-              style={{
-                width: "100%", boxSizing: "border-box", padding: "13px 16px", fontSize: 15,
-                background: nameErr ? "rgba(239,68,68,.06)" : "rgba(255,255,255,.8)",
-                border: `1.5px solid ${nameErr ? "#fca5a5" : "rgba(0,0,0,.08)"}`,
-                borderRadius: 12, color: "#1e1b4b", outline: "none", fontFamily: F,
-                marginBottom: 14, boxShadow: "inset 0 1px 2px rgba(0,0,0,.04)", transition: "border .2s",
-              }}
-            />
-            <button onClick={start} className="ma-btn" style={{
-              width: "100%", padding: "14px", fontSize: 15, fontWeight: 700, fontFamily: F,
-              background: "linear-gradient(135deg, #4f46e5, #7c3aed)", color: "white",
-              border: "none", borderRadius: 12, cursor: "pointer",
-              boxShadow: "0 4px 20px rgba(79,70,229,.35), inset 0 1px 0 rgba(255,255,255,.15)",
-            }}>Begin Assessment →</button>
-            <p style={{ fontSize: 11, color: "#94a3b8", margin: "12px 0 0", fontFamily: F }}>Free · No account needed · Powered by GPT-4o</p>
-          </div>
-
-          {/* Category chips */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center", marginTop: 22 }}>
-            {CATS.map(c => (
-              <div key={c.key} style={{ ...GLASS(0.6, 12), borderRadius: 99, padding: "5px 12px", display: "flex", alignItems: "center", gap: 5 }}>
-                <span style={{ fontSize: 12 }}>{c.emoji}</span>
-                <span style={{ fontSize: 10, color: "#64748b", fontWeight: 600, fontFamily: F }}>{c.name}</span>
-              </div>
-            ))}
+            {/* Start card — login mandatory; TODO: gate behind ₹2000 payment (see METTLE_PAYMENT_TODO). */}
+            <div style={{ ...GLASS(0.75, 20), borderRadius: 20, padding: "20px 22px 18px" }}>
+              {isAuthenticated && user ? (
+                <>
+                  <div style={{ fontSize: 13, color: "#475569", marginBottom: 14, fontFamily: F }}>
+                    Signed in as{" "}
+                    <strong style={{ color: "#1e1b4b" }}>{profileName || user.userName}</strong>. Your report will be generated under this name.
+                  </div>
+                  <button onClick={start} className="ma-btn" style={{
+                    width: "100%", padding: "14px", fontSize: 15, fontWeight: 700, fontFamily: F,
+                    background: "linear-gradient(135deg, #4f46e5, #7c3aed)", color: "white",
+                    border: "none", borderRadius: 12, cursor: "pointer",
+                    boxShadow: "0 4px 20px rgba(79,70,229,.35), inset 0 1px 0 rgba(255,255,255,.15)",
+                  }}>Start Assessment →</button>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontSize: 13, color: "#475569", marginBottom: 14, fontFamily: F }}>
+                    Sign in to begin — we'll use your profile name, so there's nothing to type.
+                  </div>
+                  <button onClick={start} className="ma-btn" style={{
+                    width: "100%", padding: "14px", fontSize: 15, fontWeight: 700, fontFamily: F,
+                    background: "linear-gradient(135deg, #4f46e5, #7c3aed)", color: "white",
+                    border: "none", borderRadius: 12, cursor: "pointer",
+                    boxShadow: "0 4px 20px rgba(79,70,229,.35), inset 0 1px 0 rgba(255,255,255,.15)",
+                  }}>Sign in & Start →</button>
+                </>
+              )}
+              <p style={{ fontSize: 11, color: "#94a3b8", margin: "10px 0 0", textAlign: "center", fontFamily: F }}>Personalised AI report · Instant results · Downloadable PDF</p>
+            </div>
           </div>
         </div>
       </div>
+      {isLoginToggle && <LoginCard />}
     </div>
   );
 

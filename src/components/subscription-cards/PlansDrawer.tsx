@@ -8,6 +8,7 @@ import { useAuthStore } from "@/store/AuthStore";
 import { useNavigate } from "react-router-dom";
 import { transferAmount, subscribeCounselor, manualPaymentApproval, upgradeSubscriptionPlan, type UpgradePlanPayload } from "@/api/wallet";
 import startRecharge from "@/api/wallet";
+import { getLoggedInPhone, formatPhoneForRazorpay } from "@/lib/phone";
 import toast from 'react-hot-toast';
 import type { SubscribedCounsellor } from "@/types/user";
 import { ConfirmationModal } from '@/components/shared/ConfirmationModal';
@@ -176,6 +177,11 @@ export default function PlansDrawer({
         order_id: order.orderId,
         name: "ProCounsel Wallet",
         description: "Wallet Recharge",
+        prefill: {
+          contact: formatPhoneForRazorpay(getLoggedInPhone()),
+          email: user?.email || "",
+          name: `${user?.firstName || ""} ${user?.lastName || ""}`.trim(),
+        },
         notes: { userId: user?.userName },
         handler: async function () {
           toast.success("Payment successful. Your balance will be updated shortly.");

@@ -15,6 +15,7 @@ import EditProfileModal from '@/components/student-dashboard/EditProfileModal';
 import EditPreferencesModal from '@/components/student-dashboard/EditPreferencesModal';
 import AddFundsPanel from '@/components/student-dashboard/AddFundsPanel';
 import startRecharge from '@/api/wallet';
+import { getLoggedInPhone, formatPhoneForRazorpay } from '@/lib/phone';
 import { updateUserProfile, getUserProfile } from '@/api/user';
 import toast from 'react-hot-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -175,6 +176,11 @@ const StudentDashboardPage: React.FC = () => {
         order_id: order.orderId,
         name: 'ProCounsel Wallet',
         description: 'Wallet Recharge',
+        prefill: {
+          contact: formatPhoneForRazorpay(getLoggedInPhone()),
+          email: user?.email || '',
+          name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim(),
+        },
         notes: { userId: user?.userName },
         handler: () => {
           toast.success('Payment successful. Your balance will be updated shortly.');

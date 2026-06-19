@@ -10,6 +10,7 @@ import AddFundsPanel from '@/components/student-dashboard/AddFundsPanel';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { probuddiesApi } from '@/api/pro-buddies';
 import startRecharge from '@/api/wallet';
+import { getLoggedInPhone, formatPhoneForRazorpay } from '@/lib/phone';
 import ProBuddyProfileSkeleton from '@/components/skeletons/probuddies/ProBuddyProfileSkeleton';
 import ProBuddyProfileError from '@/components/Revamp/error/ProBuddyErrorPage';
 import { decodeCounselorId, formatAcademicYearLabel } from '@/lib/utils';
@@ -356,6 +357,11 @@ export default function ProBuddyProfilePage() {
                 order_id: order.orderId,
                 name: 'ProCounsel Wallet',
                 description: 'Add ProCoins',
+                prefill: {
+                  contact: formatPhoneForRazorpay(getLoggedInPhone()),
+                  email: user?.email || '',
+                  name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim(),
+                },
                 notes: { userId: user.userName },
                 handler: async () => {
                     toast.success('Payment successful! Balance updated shortly.');

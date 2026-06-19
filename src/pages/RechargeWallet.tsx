@@ -2,6 +2,7 @@ import { useAuthStore } from "@/store/AuthStore"
 import { useState, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import startRecharge from "@/api/wallet"
+import { getLoggedInPhone, formatPhoneForRazorpay } from "@/lib/phone"
 import AddFundsPanel from "@/components/student-dashboard/AddFundsPanel"
 import toast from "react-hot-toast"
 
@@ -58,6 +59,11 @@ export default function RechargeWallet() {
         order_id: order.orderId,
         name: "ProCounsel Wallet",
         description: "Wallet Recharge",
+        prefill: {
+          contact: formatPhoneForRazorpay(getLoggedInPhone()),
+          email: user?.email || "",
+          name: `${user?.firstName || ""} ${user?.lastName || ""}`.trim(),
+        },
         notes: { userId: user?.userName },
         handler: async function () {
           toast.success("Payment successful. Your balance will be updated shortly.");
