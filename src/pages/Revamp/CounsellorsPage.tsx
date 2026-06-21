@@ -323,10 +323,10 @@ const CounsellorsPage: React.FC = () => {
     return (
         <>
           <PageSEO
-            title="Find Expert Education Counsellors for Admissions & Career"
-            description="Browse ProCounsel's verified education counsellors specializing in JEE, NEET, study abroad, MBA admissions, and career guidance. Book 1-on-1 sessions with top experts."
+            title="Best Career Consultant & Certified Career Coach | ProCounsel"
+            description="Connect with a professional career coach and personal career counselor at ProCounsel. Get expert career guidance from certified career consultants you can trust."
             canonical="/counsellor-listing"
-            keywords="education counsellor India, admission counselor, JEE counseling, study abroad consultant, career guidance, ProCounsel counsellors"
+            keywords="best career consultant, professional career coach, personal career counselor, career consultant, certified career coach, top career coaches"
           />
         <div className="bg-[#C6DDF040] w-full py-6 md:py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-15">
