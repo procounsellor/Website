@@ -8,10 +8,10 @@ export default function BlogsPage() {
   return (
     <>
       <PageSEO
-        title="Admissions Blog – Tips, Guides & News for Students"
-        description="Read expert articles on JEE, NEET, study abroad, college admissions, scholarships, and career guidance. Stay updated with the latest education news on ProCounsel's blog."
+        title="Career Counselling Blog | Expert Career Advice for Students"
+        description="Explore our career counselling blog for expert career guidance, career clarity, course selection tips, and practical advice to help students make the right career decisions."
         canonical="/admissions/blogs"
-        keywords="college admissions blog, JEE preparation tips, NEET study guide, study abroad articles, student career advice, education news India"
+        keywords="career counselling blog, career coaching blog, study abroad guide, career guidance article, career counseling article, article on importance of career counselling, blog on career counselling"
       />
     <div
       className="min-h-screen"

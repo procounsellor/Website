@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import GyanDhanBanner from './GyanDhanBanner';
+import MettleBanner from './MettleBanner';
 import PredictorBanner from './PredictorBanner';
 import ScalerBanner from './ScalerBanner';
 
@@ -14,8 +15,8 @@ const RevampBannerSection = () => {
     () => [
       {
         id: 'desktop-1',
-        left: <GyanDhanBanner />,
-        right: <PredictorBanner variant="rank" />,
+        left: <MettleBanner />,
+        right: <GyanDhanBanner />,
       },
       {
         id: 'desktop-2',
@@ -25,12 +26,12 @@ const RevampBannerSection = () => {
       {
         id: 'desktop-3',
         left: <ScalerBanner />,
-        right: <PredictorBanner variant="rank" />,
+        right: <PredictorBanner variant="college" />,
       },
       {
         id: 'desktop-4',
-        left: <PredictorBanner variant="mhtcet" />,
-        right: <GyanDhanBanner />,
+        left: <MettleBanner />,
+        right: <PredictorBanner variant="mhtcet" />,
       },
     ],
     []
@@ -38,9 +39,9 @@ const RevampBannerSection = () => {
 
   const mobileSlides = useMemo(
     () => [
-      { id: 'mobile-1', content: <GyanDhanBanner /> },
-      { id: 'mobile-2', content: <ScalerBanner /> },
-      { id: 'mobile-3', content: <PredictorBanner variant="rank" /> },
+      { id: 'mobile-1', content: <MettleBanner /> },
+      { id: 'mobile-2', content: <GyanDhanBanner /> },
+      { id: 'mobile-3', content: <ScalerBanner /> },
       { id: 'mobile-4', content: <PredictorBanner variant="college" /> },
       { id: 'mobile-5', content: <PredictorBanner variant="mhtcet" /> },
     ],
@@ -104,7 +105,7 @@ const RevampBannerSection = () => {
 
   return (
     <section className="w-full bg-[#C6DDF040] overflow-hidden">
-      <div className="max-w-7xl mx-auto py-10 md:py-8 px-4 md:px-8 flex flex-col items-center">
+      <div className="max-w-7xl mx-auto pt-6 pb-10 md:pt-4 md:pb-8 px-4 md:px-8 flex flex-col items-center">
         <div className="flex flex-col items-start md:items-center gap-6 md:gap-8 w-full">
 
           <div className="self-start box-border flex items-center gap-2 bg-white border border-gray-100 rounded-[6px] px-3 py-1 shadow-sm md:ml-0">

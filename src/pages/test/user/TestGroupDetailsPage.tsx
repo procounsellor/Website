@@ -12,6 +12,7 @@ import {
 } from "@/api/testGroup";
 import { useAuthStore } from "@/store/AuthStore";
 import startRecharge from "@/api/wallet";
+import { getLoggedInPhone, formatPhoneForRazorpay } from "@/lib/phone";
 import AddFundsPanel from "@/components/student-dashboard/AddFundsPanel";
 
 declare global {
@@ -273,6 +274,11 @@ export default function TestGroupDetailsPage() {
         order_id: order.orderId,
         name: "ProCounsel Wallet",
         description: "Wallet Recharge",
+        prefill: {
+          contact: formatPhoneForRazorpay(getLoggedInPhone()),
+          email: user?.email || "",
+          name: `${user?.firstName || ""} ${user?.lastName || ""}`.trim(),
+        },
         notes: { userId },
         handler: async function () {
           toast.success("Payment successful. Your balance will be updated shortly.");

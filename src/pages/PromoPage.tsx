@@ -9,6 +9,7 @@ import { getBoughtCourses, buyCourse, applyCoupon } from "@/api/course";
 import { FaWhatsapp } from "react-icons/fa";
 import toast from "react-hot-toast";
 import startRecharge from "@/api/wallet";
+import { getLoggedInPhone, formatPhoneForRazorpay } from "@/lib/phone";
 import CourseEnrollmentPopup from "@/components/landing-page/CourseEnrollmentPopup";
 import CouponCodeModal from "@/components/modals/CouponCodeModal";
 
@@ -323,11 +324,9 @@ export default function PromoPage() {
     const authState = useAuthStore.getState();
     const freshUser = authState.user;
 
-    const phoneFromStorage = localStorage.getItem("phone");
-    const phoneFromTemp = authState.tempPhone;
-    const phoneFromUser = freshUser?.phoneNumber;
-
-    const phoneNumber = phoneFromStorage || phoneFromTemp || phoneFromUser;
+    // Always use the number the user is LOGGED IN with (login/OTP phone),
+    // never the editable profile field which may be a different number.
+    const phoneNumber = getLoggedInPhone();
 
     if (!freshUser?.userName || !phoneNumber) {
       toast.error("User information not found. Please try logging in again.");
@@ -411,14 +410,8 @@ export default function PromoPage() {
         throw new Error("Failed to create payment order. Please try again.");
       }
 
-      let formattedPhone = phoneNumber;
-      if (phoneNumber) {
-        formattedPhone = phoneNumber.replace(/\D/g, "");
-
-        if (formattedPhone.length === 10) {
-          formattedPhone = "91" + formattedPhone;
-        }
-      }
+      // Razorpay expects digits only with country code, e.g. 919876543210
+      const formattedPhone = formatPhoneForRazorpay(phoneNumber);
 
       // Track InitiateCheckout event for Meta Pixel when Razorpay payment is initiated
       try {

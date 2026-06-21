@@ -9,6 +9,7 @@ import { Carousel } from "@/components/landing-page/Carousel";
 import { GuidanceSection } from "@/components/landing-page/GuidanceSection";
 import toast from "react-hot-toast";
 import startRecharge from "@/api/wallet";
+import { getLoggedInPhone, formatPhoneForRazorpay } from "@/lib/phone";
 import { useQuery } from "@tanstack/react-query";
 import { FaWhatsapp } from "react-icons/fa";
 import { useSearchParams } from "react-router-dom";
@@ -135,15 +136,9 @@ export default function LandingPage() {
   const handleDirectPayment = async (amount: number) => {
     const authState = useAuthStore.getState();
     const freshUser = authState.user;
-    // Get phone from multiple sources in priority order (matching PromoPage):
-    // 1. localStorage (used for signup/login) - highest priority
-    // 2. tempPhone (for users in onboarding flow)
-    // 3. user.phoneNumber (from user object)
-    const phoneFromStorage = localStorage.getItem("phone");
-    const phoneFromTemp = authState.tempPhone;
-    const phoneFromUser = freshUser?.phoneNumber;
-
-    const phoneNumber = phoneFromStorage || phoneFromTemp || phoneFromUser;
+    // Always use the number the user is LOGGED IN with (login/OTP phone),
+    // never the editable profile field which may be a different number.
+    const phoneNumber = getLoggedInPhone();
 
     if (!freshUser?.userName || !phoneNumber) {
       toast.error("User information not found. Please try logging in again.");
@@ -156,18 +151,8 @@ export default function LandingPage() {
     try {
       const order = await startRecharge(freshUser.userName, amount);
 
-      // Format phone number for Razorpay (must be without + symbol)
-      // Razorpay expects format: 919876543210 (country code + number)
-      let formattedPhone = phoneNumber;
-      if (phoneNumber) {
-        // Remove all non-digit characters including + and spaces
-        formattedPhone = phoneNumber.replace(/\D/g, '');
-        
-        // If phone doesn't start with country code, add 91 for India
-        if (formattedPhone.length === 10) {
-          formattedPhone = '91' + formattedPhone;
-        }
-      }
+      // Razorpay expects digits only with country code, e.g. 919876543210
+      const formattedPhone = formatPhoneForRazorpay(phoneNumber);
 
       const options = {
         key: order.keyId,

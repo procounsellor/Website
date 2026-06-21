@@ -249,7 +249,7 @@ export default function Admissions() {
         title="Best Career Counselling Services for Students – Unlock Your Future with Procounsel"
         description="Procounsel offers expert career counselling services in India. From university admissions support to study abroad consultant, we shape student futures with personalized coaching. Book now!"
         canonical="/"
-        keywords="education consultant in india, university admission support, career counselling services, study abroad consultant india, career coaching services, career counselling online, career guidance for students, best study abroad consultants in india, best career coaching services"
+        keywords="education consultant in india, university admission support, career counselling services, study abroad consultant india, career coaching services, career counselling online, career guidance for students, best study abroad consultants in india, best career coaching services, b tech registration, btech admission, engineering admission"
         jsonLd={[siteNavigationSchema, websiteSchema, organizationSchema, faqSchema]}
       />
     <div className="min-h-screen">
