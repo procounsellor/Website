@@ -9,12 +9,12 @@ const ScalerBanner = () => {
 
   return (
     <div
-      className="relative w-[335px] md:w-full max-w-[648px] h-[320px] md:h-[265px] rounded-[12px] md:rounded-2xl overflow-hidden shrink-0 cursor-pointer"
+      className="relative w-full max-w-[648px] h-[300px] md:h-[265px] rounded-[12px] md:rounded-2xl overflow-hidden shrink-0 cursor-pointer"
       style={{
         background: 'linear-gradient(180deg, #477DF1 0%, #0138AF 100%)',
       }}
     >
-      <div className="absolute top-5 left-5 md:top-6 md:left-6 flex flex-col items-start z-10 w-[295px] md:w-[380px]">
+      <div className="absolute top-5 left-5 md:top-6 md:left-6 flex flex-col items-start z-10 w-[calc(100%-40px)] md:w-[380px]">
         <img
           src="/scalerlogo.svg"
           alt="Scaler Academy Logo"

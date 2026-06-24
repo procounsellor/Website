@@ -25,6 +25,7 @@ import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/AuthStore";
 import PageSEO from "@/components/SEO/PageSEO";
+import OtherPredictors from "@/components/predictors/OtherPredictors";
 
 type PredictionMode = "marks" | "percentile" | "rank";
 
@@ -841,6 +842,8 @@ export default function MHTCETCollegePredictor() {
           </div>
         </section>
       </div>
+
+      <OtherPredictors currentPath="/mhtcet-college-predictor" accent="#0E7490" />
     </div>
     </>
   );

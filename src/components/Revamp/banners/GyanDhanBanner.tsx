@@ -9,12 +9,12 @@ const GyanDhanBanner = () => {
 
   return (
     <div 
-      className="relative w-[335px] md:w-full max-w-[648px] h-[320px] md:h-[265px] rounded-[12px] md:rounded-2xl overflow-hidden shrink-0 cursor-pointer"
+      className="relative w-full max-w-[648px] h-[300px] md:h-[265px] rounded-[12px] md:rounded-2xl overflow-hidden shrink-0 cursor-pointer"
       style={{
         background: 'linear-gradient(90deg, #81C041 -84.26%, #FFFFFF 99.51%)'
       }}
     >
-      <div className="absolute top-5 left-5 md:top-6 md:left-6 flex flex-col items-start z-10 w-[295px] md:w-auto">
+      <div className="absolute top-5 left-5 md:top-6 md:left-6 flex flex-col items-start z-10 w-[calc(100%-40px)] md:w-auto">
         
         <h2 className="w-full md:w-[417px] font-poppins font-bold text-[18px] md:text-[24px] leading-[140%] md:leading-[170%] text-[#48387C]">
           Plan your education journey with clarity and confidence to

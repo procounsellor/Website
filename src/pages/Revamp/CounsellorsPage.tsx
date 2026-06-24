@@ -9,6 +9,8 @@ import { X, SlidersHorizontal } from "lucide-react";
 import toast from "react-hot-toast";
 import { addFav } from "@/api/counsellor";
 import PageSEO from "@/components/SEO/PageSEO";
+import SeoArticle from "@/components/SEO/SeoArticle";
+import { counsellorsContent } from "@/components/SEO/seoContent";
 import EditProfileModal from "@/components/student-dashboard/EditProfileModal";
 import { updateUserProfile } from "@/api/user";
 
@@ -424,6 +426,7 @@ const CounsellorsPage: React.FC = () => {
                 />
             )}
             </div>
+            <SeoArticle {...counsellorsContent} />
         </div>
         </>
     );

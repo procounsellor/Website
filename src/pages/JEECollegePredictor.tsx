@@ -25,6 +25,7 @@ import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/AuthStore";
 import PageSEO from "@/components/SEO/PageSEO";
+import OtherPredictors from "@/components/predictors/OtherPredictors";
 
 type PredictionMode = "marks" | "percentile";
 
@@ -1024,6 +1025,8 @@ export default function JEECollegePredictor() {
           </div>
         </section>
       </div>
+
+      <OtherPredictors currentPath="/jee-college-predictor" accent="#2F43F2" />
     </div>
     </>
   );

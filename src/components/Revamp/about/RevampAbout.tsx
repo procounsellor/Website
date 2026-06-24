@@ -1,6 +1,8 @@
 import { type FormEvent } from "react";
 import toast from "react-hot-toast";
 import PageSEO from "@/components/SEO/PageSEO";
+import SeoArticle from "@/components/SEO/SeoArticle";
+import { aboutContent } from "@/components/SEO/seoContent";
 export default function RevampAbout() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -38,10 +40,10 @@ export default function RevampAbout() {
   return (
     <>
       <PageSEO
-        title="About ProCounsel – India's Career Counselling & Admissions Platform"
-        description="ProCounsel is India's leading platform for career counselling, college admissions guidance, JEE/NEET preparation, and peer mentorship. Meet our team and learn our story."
+        title="About ProCounsel | Career Counselling & Study Abroad Consultants in India"
+        description="ProCounsel is a trusted career counselling and study abroad consultancy in India, helping students choose the right career and global education paths."
         canonical="/about"
-        keywords="about procounsel, career counselling platform india, college admissions guidance, procounsel team"
+        keywords="career guidance and counselling, best abroad education consultants in india, top study abroad consultants in india, best counselling for abroad studies in india, career counselling website, top 10 educational consultants in india, best site for career guidance"
         jsonLd={organizationSchema}
       />
       <div className="flex flex-col bg-[#C6DDF040]">
@@ -390,6 +392,8 @@ export default function RevampAbout() {
 
         </div>
       </section>
+
+      <SeoArticle {...aboutContent} />
 
       </div>
     </>

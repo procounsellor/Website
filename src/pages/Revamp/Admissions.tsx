@@ -10,6 +10,8 @@ import CounsellorSection from "@/components/Revamp/admissions/counsellor/Counsel
 import Timeline from "@/components/Revamp/admissions/Timeline";
 import RevampBannerSection from "@/components/Revamp/banners/RevampBannerSection";
 import PageSEO from "@/components/SEO/PageSEO";
+import SeoArticle from "@/components/SEO/SeoArticle";
+import { homeContent } from "@/components/SEO/seoContent";
 
 export default function Admissions() {
   const navigate = useNavigate();
@@ -549,6 +551,7 @@ export default function Admissions() {
       <Deadlines />
       <Stories stories={admissionsStories} />
       <Blogs />
+      <SeoArticle {...homeContent} />
       <Faq />
     </div>
     </>
