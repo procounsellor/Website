@@ -1,7 +1,7 @@
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-type PredictorVariant = 'rank' | 'college' | 'mhtcet';
+type PredictorVariant = 'rank' | 'college' | 'mhtcet' | 'neet-rank' | 'neet-college';
 
 type PredictorCardConfig = {
   title: string;
@@ -56,6 +56,32 @@ const cardConfig: Record<PredictorVariant, PredictorCardConfig> = {
     icon: '/mortarboard-1.png',
     iconAlt: 'MHT-CET College Predictor Icon',
   },
+  'neet-rank': {
+    title: 'NEET Rank Predictor',
+    description:
+      'Turn your expected NEET score into an accurate All India Rank estimate built on real NEET cutoff data.',
+    cta: 'Predict NEET Rank',
+    path: '/neet-rank-predictor',
+    gradient: 'linear-gradient(96deg, #A7E8CE -12%, #ECFBF4 65%, #FFFFFF 110%)',
+    titleColor: '#064E3B',
+    textColor: '#0F5132',
+    buttonColor: '#059669',
+    icon: '/ranking-1.png',
+    iconAlt: 'NEET Rank Predictor Icon',
+  },
+  'neet-college': {
+    title: 'NEET College Predictor',
+    description:
+      'Find the MBBS and medical colleges you can target by rank, category, quota and state with admission chances.',
+    cta: 'Predict NEET Colleges',
+    path: '/neet-college-predictor',
+    gradient: 'linear-gradient(96deg, #B9E6DD -12%, #EEFBF8 65%, #FFFFFF 110%)',
+    titleColor: '#0E4B4D',
+    textColor: '#134E4A',
+    buttonColor: '#0D9488',
+    icon: '/mortarboard-1.png',
+    iconAlt: 'NEET College Predictor Icon',
+  },
 };
 
 interface PredictorBannerProps {
@@ -67,12 +93,12 @@ const PredictorBanner = ({ variant }: PredictorBannerProps) => {
   const slide = cardConfig[variant];
 
   return (
-    <div className="relative w-[335px] md:w-full max-w-[648px] h-[320px] md:h-[265px] rounded-[12px] md:rounded-2xl overflow-hidden shrink-0 cursor-pointer">
+    <div className="relative w-full max-w-[648px] h-[300px] md:h-[265px] rounded-[12px] md:rounded-2xl overflow-hidden shrink-0 cursor-pointer">
       <div
         className="relative h-full"
         style={{ background: slide.gradient }}
       >
-        <div className="absolute top-5 left-5 md:top-6 md:left-6 flex flex-col items-start z-10 w-[295px] md:w-[400px]">
+        <div className="absolute top-5 left-5 md:top-6 md:left-6 flex flex-col items-start z-10 w-[calc(100%-40px)] md:w-[400px]">
           <h2
             className="w-full font-poppins font-bold text-[18px] md:text-[24px] leading-[140%] md:leading-[145%]"
             style={{ color: slide.titleColor }}

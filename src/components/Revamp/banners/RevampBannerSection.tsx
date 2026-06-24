@@ -20,18 +20,18 @@ const RevampBannerSection = () => {
       },
       {
         id: 'desktop-2',
+        left: <PredictorBanner variant="neet-rank" />,
+        right: <PredictorBanner variant="neet-college" />,
+      },
+      {
+        id: 'desktop-3',
         left: <PredictorBanner variant="college" />,
         right: <PredictorBanner variant="mhtcet" />,
       },
       {
-        id: 'desktop-3',
-        left: <ScalerBanner />,
-        right: <PredictorBanner variant="college" />,
-      },
-      {
         id: 'desktop-4',
-        left: <MettleBanner />,
-        right: <PredictorBanner variant="mhtcet" />,
+        left: <ScalerBanner />,
+        right: <PredictorBanner variant="neet-college" />,
       },
     ],
     []
@@ -42,8 +42,10 @@ const RevampBannerSection = () => {
       { id: 'mobile-1', content: <MettleBanner /> },
       { id: 'mobile-2', content: <GyanDhanBanner /> },
       { id: 'mobile-3', content: <ScalerBanner /> },
-      { id: 'mobile-4', content: <PredictorBanner variant="college" /> },
-      { id: 'mobile-5', content: <PredictorBanner variant="mhtcet" /> },
+      { id: 'mobile-4', content: <PredictorBanner variant="neet-rank" /> },
+      { id: 'mobile-5', content: <PredictorBanner variant="neet-college" /> },
+      { id: 'mobile-6', content: <PredictorBanner variant="college" /> },
+      { id: 'mobile-7', content: <PredictorBanner variant="mhtcet" /> },
     ],
     []
   );
@@ -135,9 +137,9 @@ const RevampBannerSection = () => {
             </div>
           </div>
 
-          <div className="md:hidden w-full flex items-center justify-start">
+          <div className="md:hidden w-full">
             <div
-              className="relative w-full max-w-[320px] overflow-hidden rounded-[12px]"
+              className="relative w-full overflow-hidden"
               onMouseEnter={() => setIsPaused(true)}
               onMouseLeave={() => setIsPaused(false)}
             >
@@ -146,7 +148,7 @@ const RevampBannerSection = () => {
                 className="flex w-full overflow-x-auto snap-x snap-mandatory scroll-smooth [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
               >
                 {mobileSlides.map((slide) => (
-                  <div key={slide.id} className="w-full shrink-0 snap-start flex justify-center">
+                  <div key={slide.id} className="w-full shrink-0 snap-center">
                     {slide.content}
                   </div>
                 ))}

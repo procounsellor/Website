@@ -84,11 +84,10 @@ export default function CourseSection() {
   );
 
   const hasPurchasedCourses = myCoursesData.length > 0;
-  const visibleTabOptions = isUserLoggedIn
-    ? hasPurchasedCourses
-      ? tabOptions
-      : tabOptions.filter((tab) => tab.id !== "my-courses")
-    : [];
+  // Only show the tabs (My Courses + Trending) when the user actually has
+  // purchased courses. With nothing in "My Courses", a lone Trending tab is
+  // pointless, so hide the tabs entirely.
+  const visibleTabOptions = isUserLoggedIn && hasPurchasedCourses ? tabOptions : [];
 
   useEffect(() => {
     if (isUserLoggedIn && !hasPurchasedCourses && activeTab === "my-courses") {

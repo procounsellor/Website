@@ -157,11 +157,10 @@ export default function TestSection() {
   );
 
   const hasPurchasedTests = myTestsData.length > 0;
-  const visibleTabOptions = isUserLoggedIn
-    ? hasPurchasedTests
-      ? tabOptions
-      : tabOptions.filter((tab) => tab.id !== "my-tests")
-    : [];
+  // Only show the tabs (My Tests + Trending) when the user actually has
+  // purchased tests. With nothing in "My Tests", a lone Trending tab is
+  // pointless, so hide the tabs entirely.
+  const visibleTabOptions = isUserLoggedIn && hasPurchasedTests ? tabOptions : [];
 
   useEffect(() => {
     if (isUserLoggedIn && !hasPurchasedTests && activeTab === "my-tests") {

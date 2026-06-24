@@ -24,6 +24,18 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      // Dev-only proxy so the NEET predictor API is same-origin and avoids CORS.
+      // In production the NEET API must send CORS headers (see Access-Control-Allow-Origin).
+      '/neet-api': {
+        target: 'https://neet-rank-predictor-two.vercel.app',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (p) => p.replace(/^\/neet-api/, ''),
+      },
+    },
+  },
   build: {
     rollupOptions: {
       output: {

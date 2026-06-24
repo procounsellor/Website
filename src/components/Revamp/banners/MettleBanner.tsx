@@ -14,7 +14,7 @@ const MettleBanner = () => {
       tabIndex={0}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && go()}
       aria-label="Mettle AI Career Assessment"
-      className="relative w-[335px] md:w-full max-w-[648px] h-[320px] md:h-[265px] rounded-[12px] md:rounded-2xl overflow-hidden shrink-0 cursor-pointer"
+      className="relative w-full max-w-[648px] h-[300px] md:h-[265px] rounded-[12px] md:rounded-2xl overflow-hidden shrink-0 cursor-pointer"
       style={{
         background:
           'linear-gradient(125deg, #2B1D6E 0%, #4F46E5 48%, #7C3AED 100%)',

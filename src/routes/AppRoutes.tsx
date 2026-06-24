@@ -87,6 +87,9 @@ const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
 const JEERankPredictorPage = lazy(() => import('@/pages/JEERankPredictor'));
 const JEECollegePredictorPage = lazy(() => import('@/pages/JEECollegePredictor'));
 const MHTCETCollegePredictorPage = lazy(() => import('@/pages/MHTCETCollegePredictor'));
+const NEETRankPredictorPage = lazy(() => import('@/pages/NEETRankPredictor'));
+const NEETCollegePredictorPage = lazy(() => import('@/pages/NEETCollegePredictor'));
+const PredictorsHubPage = lazy(() => import('@/pages/PredictorsHub'));
 
 export default function AppRoutes() {
     return (
@@ -178,6 +181,9 @@ export default function AppRoutes() {
                         <Route path='/jee-rank-predictor' element={<JEERankPredictorPage />} />
                         <Route path='/jee-college-predictor' element={<JEECollegePredictorPage />} />
                         <Route path='/mhtcet-college-predictor' element={<MHTCETCollegePredictorPage />} />
+                        <Route path='/neet-rank-predictor' element={<NEETRankPredictorPage />} />
+                        <Route path='/neet-college-predictor' element={<NEETCollegePredictorPage />} />
+                        <Route path='/predictors' element={<PredictorsHubPage />} />
 
 
                         {/* Info / Static Pages */}

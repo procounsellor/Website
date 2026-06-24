@@ -1,19 +1,22 @@
 import Banner from "@/components/Revamp/courses/Banner";
 import MobileCourseBottomNav from "@/components/Revamp/courses/MobileCourseBottomNav";
 import PageSEO from "@/components/SEO/PageSEO";
+import SeoArticle from "@/components/SEO/SeoArticle";
+import { coursesContent } from "@/components/SEO/seoContent";
 
 export default function Courses() {
   return (
     <>
       <PageSEO
-        title="Courses & Test Series – JEE, NEET & Career Prep | ProCounsel"
-        description="Explore JEE, NEET, MBA and career prep courses, mock test series, and live sessions by verified counsellors on ProCounsel. Start learning today."
+        title="Online Courses, Test Series & Live Classes for Students | ProCounsel"
+        description="Explore online courses, mock test series and live classes for JEE, NEET, MHT-CET, CUET, boards, foundation and skill-building — taught by verified counsellors on ProCounsel."
         canonical="/courses"
-        keywords="JEE courses online, NEET preparation, MBA entrance coaching, career counselling courses india"
+        keywords="online courses for students, entrance exam preparation, JEE NEET courses, MHT CET preparation, CUET courses, mock test series, online test series, foundation course, live online classes"
       />
       <div className="min-h-screen relative ">
         <Banner />
         <MobileCourseBottomNav />
+        <SeoArticle {...coursesContent} />
       </div>
     </>
   );

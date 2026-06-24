@@ -14,6 +14,7 @@ import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/AuthStore";
 import { Link, useNavigate } from "react-router-dom";
 import PageSEO from "@/components/SEO/PageSEO";
+import OtherPredictors from "@/components/predictors/OtherPredictors";
 
 export default function JEERankPredictor() {
   const navigate = useNavigate();
@@ -299,6 +300,8 @@ export default function JEERankPredictor() {
           </div>
         </div>
       </div>
+
+      <OtherPredictors currentPath="/jee-rank-predictor" accent="#2F43F2" />
     </div>
     </>
   );

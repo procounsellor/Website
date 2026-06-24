@@ -6,6 +6,8 @@ import Stories from "@/components/Revamp/probuddies/Stories";
 import { useAuthStore } from "@/store/AuthStore";
 import { useQuery } from "@tanstack/react-query";
 import PageSEO from "@/components/SEO/PageSEO";
+import SeoArticle from "@/components/SEO/SeoArticle";
+import { probuddiesContent } from "@/components/SEO/seoContent";
 
 const proBuddyHighlights = [
   {
@@ -109,6 +111,8 @@ export default function ProBuddies() {
       <AdvantageSection/>
       <Stories stories={proBuddyStories} />
     </div>
+
+    <SeoArticle {...probuddiesContent} eyebrow="ProBuddies Guide" />
 
     </div>
     </>
