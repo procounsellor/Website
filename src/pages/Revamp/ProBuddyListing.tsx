@@ -44,7 +44,7 @@ export default function ProBuddyListing() {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("recommended");
 
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 100;
   const [page, setPage] = useState(0);
   const [allBuddies, setAllBuddies] = useState<ListingProBudddy[]>([]);
   const [hasMore, setHasMore] = useState(true);

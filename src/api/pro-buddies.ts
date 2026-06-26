@@ -133,7 +133,9 @@ const normalizeProBuddyListResponse = (data: any): ListingProBudddy[] => {
     list = data.result;
   }
 
-  return list.filter((item) => item?.verified === true);
+  // Hide only ProBuddies explicitly marked unverified; show the rest
+  // (including those where the API omits the `verified` field).
+  return list.filter((item) => item?.verified !== false);
 };
 
 const normalizeProBuddyReviewsResponse = (data: any): ProBuddyReviewForUser[] => {
