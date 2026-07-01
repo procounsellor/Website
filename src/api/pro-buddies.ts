@@ -187,6 +187,11 @@ export const registerProBuddy = async (payload: any) => {
 
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || data.error || "Failed to register ProBuddy");
+  // Success is decided by the response body, not the HTTP status (may be 200).
+  // Only treat registration as successful when statusCode is "CREATED".
+  if (data?.statusCode !== "CREATED") {
+    throw new Error(data?.message || data?.error || "Failed to register ProBuddy");
+  }
   return data;
 };
 
@@ -305,7 +310,7 @@ export const uploadProBuddyIdCardPhoto = async (proBuddyId: string, photo: File)
   formData.append("photo", photo);
 
   const response = await fetch(
-    buildApiUrl(API_CONFIG.endpoints.proBuddyUploadIdCardPhoto, { proBuddyId }),
+    `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.proBuddyUploadIdCardPhoto}`,
     {
     method: "POST",
     headers: {
