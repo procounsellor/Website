@@ -21,18 +21,18 @@ export default function CollegeCard({ id, name, description, logoUrl }: CollegeC
     >
       <div className="relative md:static w-full h-full md:w-auto md:h-auto flex md:items-center md:gap-[6.19rem] md:max-w-[1320px]">
 
-        <img 
+        <img loading="lazy" decoding="async" 
           src={logoUrl} 
           alt={name} 
           className="absolute md:static top-0 left-0 w-[80px] h-[80px] rounded-[8px] md:w-[7.5rem] md:h-[5.8125rem] md:rounded-[0.5rem] shrink-0 object-cover" 
         />
 
         {/* Fixed desktop column width (md:w-[20rem] md:shrink-0) and lowered mobile top offset (top-[4px]) */}
-        <h1
+        <h3
           className="absolute md:static top-[4px] left-[92px] w-[217px] h-[42px] md:w-[20rem] md:shrink-0 md:h-auto font-[Poppins] font-medium text-[14px] leading-[1.2] md:leading-normal text-[#0E1629] md:text-[1.125rem] md:text-(--text-main) md:overflow-clip line-clamp-2 md:line-clamp-none"
         >
           {name}
-        </h1>
+        </h3>
 
         {/* Lowered mobile top offset slightly (top-[48px]) to adjust for the name moving down */}
         <p
@@ -58,7 +58,7 @@ export default function CollegeCard({ id, name, description, logoUrl }: CollegeC
           </svg>
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[16px] h-[16px] md:w-[20px] md:h-[20px]">
             {/* Arrow going out to right */}
-            <img 
+            <img loading="lazy" decoding="async" 
               src="/arrow.svg" 
               alt="arrow" 
               className={`absolute inset-0 w-full h-full transition-all duration-600 ${
@@ -69,7 +69,7 @@ export default function CollegeCard({ id, name, description, logoUrl }: CollegeC
               style={{ filter: 'brightness(0) invert(1)' }}
             />
             {/* Arrow coming in from left */}
-            <img 
+            <img loading="lazy" decoding="async" 
               src="/arrow.svg" 
               alt="arrow" 
               className={`absolute inset-0 w-full h-full transition-all duration-600 ${

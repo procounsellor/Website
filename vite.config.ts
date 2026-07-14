@@ -19,6 +19,13 @@ export default defineConfig({
         })
       : null,
   ].filter(Boolean),
+  // Strip debug logging from PRODUCTION builds only (dev keeps them).
+  // console.error / console.warn are kept on purpose — they're legitimate
+  // diagnostics you'd want if something goes wrong in prod.
+  esbuild: {
+    pure: ['console.log', 'console.info', 'console.debug', 'console.trace'],
+    drop: ['debugger'],
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -44,8 +51,11 @@ export default defineConfig({
           'query-vendor': ['@tanstack/react-query'],
           'motion-vendor': ['framer-motion'],
           'ui-vendor': ['lucide-react', 'react-icons'],
-          'chart-vendor': ['recharts'],
-          'mui-vendor': ['@mui/material', '@mui/x-date-pickers', '@emotion/react', '@emotion/styled'],
+          // NOTE: recharts and MUI intentionally NOT grouped into named chunks.
+          // Forcing them into named vendor chunks co-located a small shared dep with
+          // eager code, dragging the whole ~356KB (recharts) / ~160KB (MUI) chunk into
+          // the initial home bundle. Letting Rollup auto-split keeps them only in the
+          // lazy dashboard/profile/calendar routes that actually use them.
           'firebase-vendor': ['firebase'],
         },
       },

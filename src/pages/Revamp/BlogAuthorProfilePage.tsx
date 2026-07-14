@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import PageSEO from "@/components/SEO/PageSEO";
 import { useNavigate, useParams } from "react-router-dom";
 import BlogsPageCard from "@/components/Revamp/admissions/BlogsPageCard";
 import { useBlogsList } from "@/hooks/useBlogs";
@@ -36,6 +37,7 @@ export default function BlogAuthorProfilePage() {
           "linear-gradient(0deg, rgba(198, 221, 240, 0.25), rgba(198, 221, 240, 0.25))",
       }}
     >
+      <PageSEO title={`${profile.name} — Author at ProCounsel`} description={`Read career and admissions articles by ${profile.name} on ProCounsel.`} canonical={`/admissions/blog-authors/${authorId}`} />
       <div className="w-full border-b border-[#E3E8F4] bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-10 xl:px-12 pt-3 pb-3">
           <p className="text-[0.875rem] text-(--text-muted) font-medium">
@@ -71,7 +73,7 @@ export default function BlogAuthorProfilePage() {
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-10 xl:px-12 py-8 sm:py-10">
         <div className="bg-white rounded-2xl border border-[#E3E8F4] p-5 sm:p-6 mb-8">
           <div className="flex items-start sm:items-center gap-4 sm:gap-5 flex-col sm:flex-row">
-            <img
+            <img loading="lazy" decoding="async"
               src={getAuthorImageWithFallback(profile.imageUrl)}
               alt={profile.name}
               className="w-20 h-20 rounded-full object-cover border border-[#E3E8F4]"

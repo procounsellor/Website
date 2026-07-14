@@ -1,17 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
-import Stories from "@/components/Revamp/probuddies/Stories";
-import Faq from "@/components/Revamp/admissions/Faq";
-import Blogs from "@/components/Revamp/admissions/Blogs";
-import College from "@/components/Revamp/admissions/College";
-import Deadlines from "@/components/Revamp/admissions/Deadlines";
 import CounsellorSection from "@/components/Revamp/admissions/counsellor/CounsellorSection";
-import Timeline from "@/components/Revamp/admissions/Timeline";
-import RevampBannerSection from "@/components/Revamp/banners/RevampBannerSection";
 import PageSEO from "@/components/SEO/PageSEO";
 import SeoArticle from "@/components/SEO/SeoArticle";
 import { homeContent } from "@/components/SEO/seoContent";
+
+// Below-the-fold sections: lazy-loaded so they don't bloat the initial JS that
+// must hydrate before the above-the-fold counsellor section (the LCP) renders.
+// react-snap still prerenders their HTML for SEO (chunks resolve during snapshot).
+const Timeline = lazy(() => import("@/components/Revamp/admissions/Timeline"));
+const RevampBannerSection = lazy(() => import("@/components/Revamp/banners/RevampBannerSection"));
+const College = lazy(() => import("@/components/Revamp/admissions/College"));
+const Deadlines = lazy(() => import("@/components/Revamp/admissions/Deadlines"));
+const Stories = lazy(() => import("@/components/Revamp/probuddies/Stories"));
+const Blogs = lazy(() => import("@/components/Revamp/admissions/Blogs"));
+const Faq = lazy(() => import("@/components/Revamp/admissions/Faq"));
 
 export default function Admissions() {
   const navigate = useNavigate();
@@ -35,21 +39,21 @@ export default function Admissions() {
       role: "Student",
       rating: 4,
       text: "The course planning was clear and easy to follow. Weekly targets and mock tests kept me focused and helped me prepare with confidence.",
-      image: "/review1.jpeg",
+      image: "/review1.webp",
     },
     {
       name: "Ananya",
       role: "Student",
       rating: 5,
       text: "Topic-wise lessons and regular doubt sessions made preparation smooth. The structure helped me stay disciplined and improve consistently.",
-      image: "/review2.jpeg",
+      image: "/review2.webp",
     },
     {
       name: "Shubham",
       role: "Student",
       rating: 4.5,
       text: "Math and Chemistry sessions were practical and exam-focused. Shortcuts plus regular practice improved my speed, accuracy, and confidence.",
-      image: "/review3.jpeg",
+      image: "/review3.webp",
     },
   ];
 
@@ -60,12 +64,12 @@ export default function Admissions() {
     if (hasSeenSplash) return; // Skip animation if already seen this session or while snapping.
 
     const timers = [
-      setTimeout(() => setSplashPhase(1), 800),
-      setTimeout(() => setSplashPhase(2), 1400),
-      setTimeout(() => setSplashPhase(3), 3000),
+      setTimeout(() => setSplashPhase(1), 450),
+      setTimeout(() => setSplashPhase(2), 850),
+      setTimeout(() => setSplashPhase(3), 1650),
       setTimeout(() => {
         sessionStorage.setItem('admissions-splash-seen', 'true');
-      }, 4900),
+      }, 2600),
     ];
 
     return () => timers.forEach(clearTimeout);
@@ -255,6 +259,12 @@ export default function Admissions() {
         jsonLd={[siteNavigationSchema, websiteSchema, organizationSchema, faqSchema]}
       />
     <div className="min-h-screen">
+      {/* Visually-hidden H1 for SEO (one H1 per page). No visible mobile hero —
+          the mobile LCP is the first counsellor card image, which is now baked
+          into the prerendered HTML (see scripts/prerender-public-pages.mjs), so
+          it paints fast without waiting for the client-side API. */}
+      <h1 className="sr-only">Your personal Admission Expert — ProCounsel</h1>
+
       <section className="hidden md:flex relative w-full h-[567px] flex items-center justify-center overflow-hidden">
         {/* Splash Screen */}
         <AnimatePresence>
@@ -320,14 +330,14 @@ export default function Admissions() {
           <div className="w-7xl h-full relative">
             {/* Header Text */}
             <div className="absolute left-1/2 -translate-x-1/2 top-[36px] max-w-[818px] w-full px-4">
-              <motion.h1
+              <motion.h2
                 initial={{ opacity: 0, y: 20 }}
                 animate={splashPhase >= 3 && animationPhase >= 1 ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                 transition={{ duration: 0.7, ease: "easeOut" }}
                 className="text-white text-[40px] font-extrabold font-['Poppins'] mb-4 leading-tight"
               >
                 Your personal Admission Expert
-              </motion.h1>
+              </motion.h2>
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={splashPhase >= 3 && animationPhase >= 2 ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
@@ -360,8 +370,11 @@ export default function Admissions() {
                 className="absolute left-16 top-42.75 w-53 h-53.75 bg-[#ffc8af] rounded-[28px] overflow-hidden cursor-pointer"
               >
                 <img
+                  loading="lazy"
+                  decoding="async"
                   src="/admissions/admission.svg"
                   alt="Student"
+                  fetchPriority="high"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
                 <div
@@ -404,7 +417,9 @@ export default function Admissions() {
                 className="absolute left-74.5 top-66 w-53 h-71.75 rounded-[28px] overflow-hidden bg-gray-700 cursor-pointer"
               >
                 <img
-                  src="/admissions/course.jpg"
+                  loading="lazy"
+                  decoding="async"
+                  src="/admissions/course.webp"
                   alt="Courses"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
@@ -432,7 +447,9 @@ export default function Admissions() {
                 className="absolute left-133.5 top-71.75 w-53 h-66 rounded-[28px] overflow-hidden bg-gray-700 cursor-pointer"
               >
                 <img
-                  src="/admissions/community.jpg"
+                  loading="lazy"
+                  decoding="async"
+                  src="/admissions/community.webp"
                   alt="Community"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
@@ -460,7 +477,9 @@ export default function Admissions() {
                 className="absolute left-192.5 top-66 w-53 h-71.75 rounded-[28px] overflow-hidden bg-gray-700 cursor-pointer"
               >
                 <img
-                  src="/admissions/pro.jpg"
+                  loading="lazy"
+                  decoding="async"
+                  src="/admissions/pro.webp"
                   alt="ProBuddies"
                   className="absolute inset-0 w-full h-full object-fit"
                 />
@@ -488,6 +507,8 @@ export default function Admissions() {
                 className="absolute lg:right-0 xl:right-16 top-42.75 w-53 h-53.75 bg-[#68aab8] rounded-[28px] overflow-hidden cursor-pointer"
               >
                 <img
+                  loading="lazy"
+                  decoding="async"
                   src="/ranking-1.png"
                   alt="MHT-CET College Predictor"
                   className="absolute inset-0 w-full h-full object-fit"
@@ -516,6 +537,8 @@ export default function Admissions() {
                 className="absolute lg:right-0 xl:right-16 top-102.5 w-53 h-35.25 rounded-[28px] overflow-hidden bg-gray-700 cursor-pointer"
               >
                 <img
+                  loading="lazy"
+                  decoding="async"
                   src="/admissions/deadline.svg"
                   alt="Deadlines"
                   className="absolute inset-0 w-full h-full object-cover"
@@ -543,16 +566,18 @@ export default function Admissions() {
       </section>
       
       <CounsellorSection />
-      <div className="hidden md:block">
-        <Timeline />
-      </div>
-      <RevampBannerSection />
-      <College />
-      <Deadlines />
-      <Stories stories={admissionsStories} />
-      <Blogs />
-      <SeoArticle {...homeContent} />
-      <Faq />
+      <Suspense fallback={<div className="min-h-[400px]" />}>
+        <div className="hidden md:block">
+          <Timeline />
+        </div>
+        <RevampBannerSection />
+        <College />
+        <Deadlines />
+        <Stories stories={admissionsStories} />
+        <Blogs />
+        <SeoArticle {...homeContent} />
+        <Faq />
+      </Suspense>
     </div>
     </>
   );

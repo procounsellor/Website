@@ -29,7 +29,7 @@ const TimelineItem = ({
         </p>
         <div className="flex flex-col gap-[12px] items-center w-full shrink-0">
           <div className="flex items-center justify-center shrink-0">
-            <img src="/line-bottom.svg" alt="line" className="h-[52px] w-[6px] block" />
+            <img loading="lazy" decoding="async" src="/line-bottom.svg" alt="line" className="h-[52px] w-[6px] block" />
           </div>
           <div className="flex flex-col min-h-[48px] justify-end text-center text-[#2a2b2a] text-[15px] w-full shrink-0">
             {subtitle ? (
@@ -47,7 +47,7 @@ const TimelineItem = ({
         </div>
         <div className="-translate-x-1/2 absolute h-[32px] left-[calc(50%-0.5px)] top-[32px] w-[37.689px] z-30">
           <div className="absolute bg-white left-0 size-[32px] top-0" />
-          <img src={iconUrl} alt={title} className="absolute left-[3.33px] size-[27.378px] top-[2.13px] max-w-none object-cover pointer-events-none" />
+          <img loading="lazy" decoding="async" src={iconUrl} alt={title} className="absolute left-[3.33px] size-[27.378px] top-[2.13px] max-w-none object-cover pointer-events-none" />
         </div>
       </div>
     );
@@ -70,7 +70,7 @@ const TimelineItem = ({
           )}
         </div>
         <div className="flex items-center justify-center shrink-0">
-          <img src="/line-top.svg" alt="line" className="h-[52px] w-[6px] block" />
+          <img loading="lazy" decoding="async" src="/line-top.svg" alt="line" className="h-[52px] w-[6px] block" />
         </div>
       </div>
       <p className="font-bold not-italic text-[#2f43f2] text-[20px] text-center whitespace-pre-wrap leading-normal min-w-full w-[min-content] shrink-0">
@@ -78,7 +78,7 @@ const TimelineItem = ({
       </p>
       <div className="-translate-x-1/2 absolute bottom-[32px] h-[32px] left-[calc(50%-0.5px)] w-[30.588px] z-30">
         <div className="absolute bg-white h-[32px] left-[-0.12px] top-0 w-[30.588px]" />
-        <img src={iconUrl} alt={title} className="absolute left-[2.16px] size-[28px] top-[2px] max-w-none object-cover pointer-events-none" />
+        <img loading="lazy" decoding="async" src={iconUrl} alt={title} className="absolute left-[2.16px] size-[28px] top-[2px] max-w-none object-cover pointer-events-none" />
       </div>
     </div>
   );
@@ -126,7 +126,7 @@ export default function Timeline() {
     {
       month: "Dec-Jan",
       title: "Exam Preps & \nPre Boards",
-      iconUrl: "/timeline-icons/exam-time.png",
+      iconUrl: "/timeline-icons/exam-time.webp",
       position: "bottom" as const,
     },
     {
@@ -139,7 +139,7 @@ export default function Timeline() {
       month: "Mar-Apr",
       title: "Entrance Exam",
       subtitle: "(JEE, NEET)",
-      iconUrl: "/timeline-icons/exam-time.png",
+      iconUrl: "/timeline-icons/exam-time.webp",
       position: "bottom" as const,
     },
     {
@@ -157,13 +157,13 @@ export default function Timeline() {
     {
       month: "Jul-Aug",
       title: "Seat Allotment/CAP",
-      iconUrl: "/timeline-icons/immigration.png",
+      iconUrl: "/timeline-icons/immigration.webp",
       position: "top" as const,
     },
     {
       month: "Aug-Sep",
       title: "Non CAP/ SPOT/IL Rounds",
-      iconUrl: "/timeline-icons/non-cap.png",
+      iconUrl: "/timeline-icons/non-cap.webp",
       position: "bottom" as const,
     },
     {
@@ -176,7 +176,7 @@ export default function Timeline() {
       month: "Aug-Sep",
       title:
         "Assistance with hostel, loans, internships, placements, and further studies",
-      iconUrl: "/timeline-icons/assistance.png",
+      iconUrl: "/timeline-icons/assistance.webp",
       position: "bottom" as const,
     },
   ];

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import PageSEO from "@/components/SEO/PageSEO";
 import { useNavigate } from "react-router-dom";
 import { useBlogsList } from "@/hooks/useBlogs";
 import {
@@ -38,6 +39,7 @@ export default function BlogAuthorsPage() {
           "linear-gradient(0deg, rgba(198, 221, 240, 0.25), rgba(198, 221, 240, 0.25))",
       }}
     >
+      <PageSEO title="Blog Authors — Career & Admissions Experts | ProCounsel" description="Meet the career experts and writers behind ProCounsel's admissions and career guidance blog." canonical="/admissions/blog-authors" />
       <div className="w-full border-b border-[#E3E8F4] bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-10 xl:px-12 pt-3 pb-3">
           <p className="text-[0.875rem] text-(--text-muted) font-medium">
@@ -79,7 +81,7 @@ export default function BlogAuthorsPage() {
               className="w-full text-left rounded-2xl border border-[#E3E8F4] bg-white p-4 hover:shadow-md transition-shadow cursor-pointer"
             >
               <div className="flex items-center gap-3 mb-3">
-                <img
+                <img loading="lazy" decoding="async"
                   src={getAuthorImageWithFallback(author.imageUrl)}
                   alt={author.name}
                   className="w-12 h-12 rounded-full object-cover border border-[#E3E8F4]"

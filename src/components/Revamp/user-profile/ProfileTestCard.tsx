@@ -30,8 +30,8 @@ export default function ProfileTestCard({
       onClick={() => navigate(`/courses/test-group/${testGroupId}`)}
     >
       <div className="relative shrink-0">
-        <img
-          src={image || "/discover-exam.jpg"}
+        <img loading="lazy" decoding="async"
+          src={image || "/discover-exam.webp"}
           alt={title}
           className="w-full h-[130px] rounded-xl object-cover bg-gray-100"
         />

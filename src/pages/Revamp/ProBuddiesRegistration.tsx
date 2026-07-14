@@ -70,7 +70,7 @@ export default function ProBuddiesRegistration() {
   const [collegeSearch, setCollegeSearch] = useState("");
   const [isCollegeDropdownOpen, setIsCollegeDropdownOpen] = useState(false);
   const [selectedCollege, setSelectedCollege] = useState<CollegeSearchResult | null>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout>();
+  const debounceTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
 
   // Handle college search with debounce
@@ -641,7 +641,7 @@ export default function ProBuddiesRegistration() {
 
               {previewUrl ? (
                 <>
-                  <img 
+                  <img loading="lazy" decoding="async" 
                     src={previewUrl} 
                     alt="Profile Preview" 
                     className="w-full h-full object-contain bg-white" 
@@ -698,7 +698,7 @@ export default function ProBuddiesRegistration() {
 
               {idCardPreviewUrl ? (
                 <>
-                  <img 
+                  <img loading="lazy" decoding="async" 
                     src={idCardPreviewUrl} 
                     alt="ID Card Preview" 
                     className="w-full h-full object-contain bg-white" 
@@ -795,7 +795,7 @@ export default function ProBuddiesRegistration() {
                       No colleges match your search.
                     </div>
                   ) : (
-                    filteredColleges.map((college) => {
+                    filteredColleges.map((college: CollegeSearchResult) => {
                       const collegeLocation = college.state;
 
                       return (
@@ -1201,7 +1201,7 @@ export default function ProBuddiesRegistration() {
             className="text-[#0E1629] text-[20px] font-semibold leading-[100%]"
             style={{ fontFamily: 'Poppins' }}
           >
-            College Life at {selectedCollege?.name || "Selected College"}
+            College Life at {selectedCollege?.college_name || "Selected College"}
           </h2>
         </div>
 

@@ -1,5 +1,6 @@
 import { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from "react-router-dom";
+import PageLoader from "@/components/ui/PageLoader";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import RoleBasedRoute from "@/components/auth/RoleBasedRoute";
 import { Toaster } from 'react-hot-toast';
@@ -59,8 +60,8 @@ const CollegeDetailsPageNew = lazy(() => import('@/pages/CollegeDetailsPage'));
 const TestGroupCardDetails = lazy(() => import('@/components/Revamp/courses/TestGroupDetails'));
 const RevampAbout = lazy(() => import('@/components/Revamp/about/RevampAbout'));
 import Admissions from '@/pages/Revamp/Admissions';
-import ProBuddies from '@/pages/Revamp/ProBuddies';
-import Courses from '@/pages/Revamp/Courses';
+const ProBuddies = lazy(() => import('@/pages/Revamp/ProBuddies'));
+const Courses = lazy(() => import('@/pages/Revamp/Courses'));
 const BlogsPage = lazy(() => import('@/pages/Revamp/BlogsPage'));
 const BlogDetailPage = lazy(() => import('@/pages/Revamp/BlogDetailPage'));
 const BlogAuthorsPage = lazy(() => import('@/pages/Revamp/BlogAuthorsPage'));
@@ -120,7 +121,7 @@ export default function AppRoutes() {
                     },
                 }}
             />
-            <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+            <Suspense fallback={<PageLoader />}>
                 <Routes>
                     {/* Standalone pages (no layout) */}
                     <Route path="/privacy1" element={<ExternalPrivacyPage />} />

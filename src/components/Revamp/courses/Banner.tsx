@@ -38,7 +38,7 @@ export default function Banner() {
       {/* phone design */}
       <div className="block relative md:hidden">
 
-        <div className="w-full h-[210px] bg-[url('/probuddiesbg.jpg')] bg-cover bg-center">
+        <div className="w-full h-[210px] bg-[url('/probuddiesbg.webp')] bg-cover bg-center">
           <div className="w-full h-full bg-[#0E1629A6]/95 px-5 pt-6 text-white">
             <div className="flex flex-col gap-3">
               <h1 className="text-[1.625rem] font-bold leading-tight">Courses</h1>
@@ -49,7 +49,7 @@ export default function Banner() {
 
               <div className="flex items-center gap-3 pt-1">
                 <div className="flex items-center gap-1.5">
-                  <img src="/onne.svg" alt="courses" className="w-5 h-5" />
+                  <img loading="lazy" decoding="async" src="/onne.svg" alt="courses" className="w-5 h-5" />
                   <div className="flex flex-col">
                     <span className="text-sm font-semibold">100+</span>
                     <span className="text-[10px] text-white/75">Courses</span>
@@ -63,7 +63,7 @@ export default function Banner() {
                 onClick={handleLiveSessionsAccess}
               >
                   <div className="relative">
-                    <img src="/twoo.svg" alt="live sessions" className="w-5 h-5" />
+                    <img loading="lazy" decoding="async" src="/twoo.svg" alt="live sessions" className="w-5 h-5" />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-semibold">{liveSessionsCount} Live</span>
@@ -74,7 +74,7 @@ export default function Banner() {
                 <div className="h-7 w-px bg-white/30" />
 
                 <div className="flex items-center gap-1.5">
-                  <img src="/threee.svg" alt="students" className="w-5 h-5" />
+                  <img loading="lazy" decoding="async" src="/threee.svg" alt="students" className="w-5 h-5" />
                   <div className="flex flex-col">
                     <span className="text-sm font-semibold">1260+</span>
                     <span className="text-[10px] text-white/75">Students</span>
@@ -99,10 +99,10 @@ export default function Banner() {
 
       {/* laptops and desktops view */}
       <div className="hidden md:block">
-      <div className="w-full h-[520px] bg-[url('/probuddiesbg.jpg')] bg-cover bg-center">
+      <div className="w-full h-[520px] bg-[url('/probuddiesbg.webp')] bg-cover bg-center">
         <div className="flex flex-col gap-8 items-center justify-center w-full h-full bg-[#0E1629A6]/95">
           <div className="flex flex-col gap-6 items-center justify-center">
-            <h1 className="text-white font-bold text-[3.75rem]">Courses</h1>
+            <h2 className="text-white font-bold text-[3.75rem]">Courses</h2>
             <p className="bg-gradient-to-r text-transparent bg-clip-text from-[#6B7280] to-[#ffffff]/50 font-medium text-[1.5rem] text-center max-w-[753px]">
               Master in-demand skills with our expert-led courses. Learn at your own pace, practice with real-world projects, and advance your career with confidence.
             </p>
@@ -110,7 +110,7 @@ export default function Banner() {
 
           <div className="flex gap-6">
             <div className="flex w-[200px] h-[58px] gap-2  border-r border-(--text-muted) justify-start items-center">
-              <img src="/onne.svg" alt="firstone" />
+              <img loading="lazy" decoding="async" src="/onne.svg" alt="firstone" />
               <p className="flex flex-col text-[#FFC107] leading-8 font-medium text-[1.5rem]">
                 100+<span className="leading-[22px] text-[1rem]">courses</span>
               </p>
@@ -118,7 +118,7 @@ export default function Banner() {
 
             <div className="flex w-[200px] h-[58px] gap-2  border-r border-(--text-muted) justify-start items-center relative" onClick={handleLiveSessionsAccess} style={{ cursor: "pointer" }}>
               <div className="relative">
-                <img src="/twoo.svg" alt="firstone" />
+                <img loading="lazy" decoding="async" src="/twoo.svg" alt="firstone" />
                 <div className="absolute w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" style={{ top: "-4px", right: "-4px" }} />
               </div>
               <p className="flex flex-col text-[#DC3545] leading-8 font-medium text-[1.5rem]">
@@ -130,7 +130,7 @@ export default function Banner() {
             </div>
 
             <div className="flex w-[200px] h-[58px] gap-2  justify-start items-center">
-              <img src="/threee.svg" alt="firstone" />
+              <img loading="lazy" decoding="async" src="/threee.svg" alt="firstone" />
               <p className="flex flex-col text-[#198754] leading-8 font-medium text-[1.5rem]">
                 1260+
                 <span className="leading-[22px] text-[1rem]">Students</span>

@@ -15,6 +15,8 @@ interface FancyCardProps {
   isBookmarked?: boolean;
   onBookmarkClick?: () => void;
   navigateTo?: string;
+  /** First above-the-fold card = LCP candidate: load eagerly, not lazily. */
+  priority?: boolean;
 }
 
 export default function FancyCard({
@@ -29,6 +31,7 @@ export default function FancyCard({
   isBookmarked = false,
   onBookmarkClick,
   navigateTo,
+  priority = false,
 }: FancyCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -84,6 +87,9 @@ export default function FancyCard({
         {/* Counsellor Image */}
         {imageUrl && !imgError ? (
           <img
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : undefined}
+            decoding="async"
             src={imageUrl}
             alt={name}
             className="w-full md:w-55 h-33.75 md:h-52 rounded-[10px] object-cover shrink-0"
@@ -122,7 +128,7 @@ export default function FancyCard({
         {proCoins != null && proCoins > 0 && (
           <div className="flex items-center gap-1 mt-1.5 md:mt-3">
             <div className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center">
-              <img src="/coin.svg" alt="procoin_icon" className="w-full h-full" />
+              <img loading="lazy" decoding="async" src="/coin.svg" alt="procoin_icon" className="w-full h-full" />
             </div>
             <p className="font-[Poppins] font-medium text-[14px] md:text-[16px] text-[#0E1629]">
               {proCoins} ProCoins
@@ -147,7 +153,7 @@ export default function FancyCard({
           />
         </svg>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[16px] md:w-[20px] h-[16px] md:h-[20px]">
-          <img
+          <img loading="lazy" decoding="async"
             src="/arrow.svg"
             alt="arrow"
             className={`absolute inset-0 w-full h-full transition-all duration-600 ${isHovered
@@ -156,7 +162,7 @@ export default function FancyCard({
               }`}
             style={{ filter: 'brightness(0) invert(1)' }}
           />
-          <img
+          <img loading="lazy" decoding="async"
             src="/arrow.svg"
             alt="arrow"
             className={`absolute inset-0 w-full h-full transition-all duration-600 ${isHovered
