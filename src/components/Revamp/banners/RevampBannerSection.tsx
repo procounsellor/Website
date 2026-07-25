@@ -26,7 +26,7 @@ const RevampBannerSection = () => {
       {
         id: 'desktop-3',
         left: <PredictorBanner variant="college" />,
-        right: <PredictorBanner variant="neet-rank" />,
+        right: <PredictorBanner variant="mhtcet" />,
       },
       {
         id: 'desktop-4',
@@ -45,7 +45,7 @@ const RevampBannerSection = () => {
       { id: 'mobile-4', content: <PredictorBanner variant="neet-rank" /> },
       { id: 'mobile-5', content: <PredictorBanner variant="neet-college" /> },
       { id: 'mobile-6', content: <PredictorBanner variant="college" /> },
-      { id: 'mobile-7', content: <PredictorBanner variant="neet-rank" /> },
+      { id: 'mobile-7', content: <PredictorBanner variant="mhtcet" /> },
     ],
     []
   );

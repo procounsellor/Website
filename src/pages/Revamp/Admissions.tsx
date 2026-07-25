@@ -500,30 +500,27 @@ export default function Admissions() {
 
               {/* Rank Predictor Card */}
               <motion.div
-                onClick={() => navigate('/mhtcet-college-predictor')}
+                onClick={() => navigate('/neet-rank-predictor')}
                 initial={{ opacity: 0, y: 10, scale: 0.98 }}
                 animate={cardAnimate}
                 transition={{ ...cardTransition, delay: 0.38 }}
-                className="absolute lg:right-0 xl:right-16 top-42.75 w-53 h-53.75 bg-[#68aab8] rounded-[28px] overflow-hidden cursor-pointer"
+                className="absolute lg:right-0 xl:right-16 top-42.75 w-53 h-53.75 rounded-[28px] overflow-hidden cursor-pointer"
+                style={{
+                  background:
+                    "linear-gradient(160deg, #0d9488 0%, #064e3b 100%)",
+                }}
               >
                 <img
                   loading="lazy"
                   decoding="async"
                   src="/ranking-1.png"
-                  alt="MHT-CET College Predictor"
-                  className="absolute inset-0 w-full h-full object-fit"
-                />
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "linear-gradient(179.04deg, rgba(14, 22, 41, 0) 24.07%, rgba(14, 22, 41, 0.7) 69.84%)",
-                  }}
+                  alt="NEET Rank Predictor"
+                  className="absolute -bottom-4 -right-4 w-28 h-28 object-contain opacity-20 pointer-events-none"
                 />
                 <div className="absolute top-6 left-1/2 -translate-x-1/2 text-center text-white w-[195px]">
-                  <p className="text-[24px] font-semibold font-['Poppins'] mb-2">MHT-CET Predictor</p>
+                  <p className="text-[24px] font-semibold font-['Poppins'] mb-2">NEET Predictor</p>
                   <p className="text-[14px] font-['Poppins']">
-                    Estimate your MHT-CET rank and discover the colleges within your reach.
+                    Estimate your NEET rank and discover the colleges within your reach.
                   </p>
                 </div>
               </motion.div>
