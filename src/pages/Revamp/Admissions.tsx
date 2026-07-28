@@ -78,6 +78,28 @@ export default function Admissions() {
   const cardAnimate = splashPhase >= 3 && animationPhase >= 4 ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 10, scale: 0.98 };
   const cardTransition = { duration: 0.55, ease: "easeOut" as const };
 
+  // The option-form card shows a live preference list: the choices keep
+  // re-sorting so the card demonstrates the service (reordering your options)
+  // instead of just naming it. Paused for react-snap and reduced-motion.
+  const optionFormChoices = [
+    { college: "COEP", branch: "Computer Engg." },
+    { college: "VJTI", branch: "Information Tech." },
+    { college: "SPIT", branch: "Computer Engg." },
+  ];
+  const [choiceOrder, setChoiceOrder] = useState([0, 1, 2]);
+
+  useEffect(() => {
+    if (isReactSnap) return;
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const interval = setInterval(() => {
+      setChoiceOrder((prev) => [prev[2], prev[0], prev[1]]);
+    }, 2400);
+
+    return () => clearInterval(interval);
+  }, [isReactSnap]);
+
   // SiteNavigationElement tells Google which pages should appear as sitelinks
   const siteNavigationSchema = {
     "@context": "https://schema.org",
@@ -146,10 +168,17 @@ export default function Admissions() {
     "name": "ProCounsel",
     "url": "https://www.procounsel.co.in",
     "logo": "https://www.procounsel.co.in/favicon.png",
-    "sameAs": [],
+    "sameAs": [
+      "https://www.linkedin.com/company/procounsel-by-catalystai/",
+      "https://www.facebook.com/share/17GiZ34K46/",
+      "https://www.instagram.com/procounsel.co.in",
+      "https://x.com/procounsel2025"
+    ],
     "contactPoint": {
       "@type": "ContactPoint",
       "contactType": "customer support",
+      "telephone": "+91-7004789484",
+      "email": "support@procounsel.co.in",
       "url": "https://www.procounsel.co.in/contact"
     }
   };
@@ -252,10 +281,10 @@ export default function Admissions() {
   return (
     <>
       <PageSEO
-        title="Best Career Counselling Services for Students in India | ProCounsel"
-        description="ProCounsel offers expert career counselling services in India. From university admission support to study abroad consulting, we shape student futures with personalised coaching. Book now!"
-        canonical="/admissions"
-        keywords="education consultant in india, university admission support, career counselling services, study abroad consultant india, career coaching services, career counselling online, career guidance for students, best study abroad consultants in india, best career coaching services, b tech registration, btech admission, engineering admission"
+        title="College Admission Counselling & Career Guidance for Students in India | ProCounsel"
+        description="ProCounsel connects students with verified admission counsellors and college seniors for end-to-end support — college admission counselling, NEET & JEE choice-filling and form-filling help, exam-prep courses, and a student community for every admission question."
+        canonical="/"
+        keywords="college admission counselling, admission counselling india, career counselling services, neet counselling, jee counselling, admission form filling help, choice filling counselling, college admission guidance, education consultant in india, university admission support, career guidance for students, talk to college seniors, student community for admissions, study abroad consultant india"
         jsonLd={[siteNavigationSchema, websiteSchema, organizationSchema, faqSchema]}
       />
     <div className="min-h-screen">
@@ -263,7 +292,7 @@ export default function Admissions() {
           the mobile LCP is the first counsellor card image, which is now baked
           into the prerendered HTML (see scripts/prerender-public-pages.mjs), so
           it paints fast without waiting for the client-side API. */}
-      <h1 className="sr-only">Your personal Admission Expert — ProCounsel</h1>
+      <h1 className="sr-only">College Admission Counselling &amp; Career Guidance for Students in India — ProCounsel</h1>
 
       <section className="hidden md:flex relative w-full h-[567px] flex items-center justify-center overflow-hidden">
         {/* Splash Screen */}
@@ -438,32 +467,83 @@ export default function Admissions() {
                 </div>
               </motion.div>
 
-              {/* Community Card */}
+              {/* Option Form Filling Card — paid MHT-CET CAP round service */}
               <motion.div
-                onClick={() => navigateWithTabTransition('/community')}
+                onClick={() => navigate('/mhtcet-option-form-filling')}
                 initial={{ opacity: 0, y: 10, scale: 0.98 }}
                 animate={cardAnimate}
                 transition={{ ...cardTransition, delay: 0.22 }}
-                className="absolute left-133.5 top-71.75 w-53 h-66 rounded-[28px] overflow-hidden bg-gray-700 cursor-pointer"
+                whileHover={{ y: -6 }}
+                className="absolute left-133.5 top-71.75 w-53 h-66 rounded-[28px] overflow-hidden cursor-pointer shadow-[0_18px_40px_-18px_rgba(250,102,15,0.65)]"
+                style={{
+                  background:
+                    "linear-gradient(150deg, #FF9147 0%, #F1490D 34%, #7B1FA2 78%, #3A1178 100%)",
+                }}
               >
-                <img
-                  loading="lazy"
-                  decoding="async"
-                  src="/admissions/community.webp"
-                  alt="Community"
-                  className="absolute inset-0 w-full h-full object-cover"
+                {/* Soft light so the gradient reads as depth, not a flat fill */}
+                <div
+                  aria-hidden
+                  className="absolute -top-14 -left-10 w-44 h-44 rounded-full blur-2xl"
+                  style={{ background: "radial-gradient(circle, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 70%)" }}
                 />
+
+                {/* The live preference list — the service, demonstrated */}
+                <div aria-hidden className="absolute inset-x-4 top-4 rounded-2xl border border-white/25 bg-white/12 p-2.5 backdrop-blur-[3px]">
+                  {choiceOrder.map((choiceIndex, position) => {
+                    const choice = optionFormChoices[choiceIndex];
+                    const isTop = position === 0;
+                    return (
+                      <motion.div
+                        key={choice.college}
+                        layout
+                        transition={{ type: "spring", stiffness: 320, damping: 32 }}
+                        className={`flex items-center gap-2 rounded-xl px-2 py-1.5 ${position > 0 ? "mt-1.5" : ""} ${
+                          isTop ? "bg-white shadow-sm" : "bg-white/10"
+                        }`}
+                      >
+                        <span
+                          className={`flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full text-[9px] font-bold font-['Poppins'] tabular-nums ${
+                            isTop ? "bg-[#FA660F] text-white" : "bg-white/25 text-white/85"
+                          }`}
+                        >
+                          {position + 1}
+                        </span>
+                        <span className="min-w-0">
+                          <span
+                            className={`block truncate text-[11px] font-semibold font-['Poppins'] leading-tight ${
+                              isTop ? "text-[#0E1629]" : "text-white"
+                            }`}
+                          >
+                            {choice.college}
+                          </span>
+                          <span
+                            className={`block truncate text-[9px] font-['Poppins'] leading-tight ${
+                              isTop ? "text-[#FA660F]" : "text-white/60"
+                            }`}
+                          >
+                            {choice.branch}
+                          </span>
+                        </span>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+
                 <div
                   className="absolute inset-0"
                   style={{
                     background:
-                      "linear-gradient(179.04deg, rgba(14, 22, 41, 0) 24.07%, rgba(14, 22, 41, 0.7) 69.84%)",
+                      "linear-gradient(179.04deg, rgba(14, 22, 41, 0) 32%, rgba(14, 22, 41, 0.82) 72%)",
                   }}
                 />
+
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center text-white w-[195px]">
-                  <p className="text-[24px] font-semibold font-['Poppins'] mb-2">Community</p>
-                  <p className="text-[14px] font-['Poppins']">
-                    <span className="font-semibold">120+</span> Members | <span className="font-semibold">20+</span> Monthly Events
+                  <span className="inline-block mb-2 rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-semibold font-['Poppins'] uppercase tracking-[0.12em] backdrop-blur-[2px]">
+                    MHT-CET
+                  </span>
+                  <p className="text-[22px] font-semibold font-['Poppins'] mb-1 leading-tight">Option Form</p>
+                  <p className="text-[12.5px] font-['Poppins'] leading-snug text-white/85">
+                    Your choices, ordered by an expert
                   </p>
                 </div>
               </motion.div>

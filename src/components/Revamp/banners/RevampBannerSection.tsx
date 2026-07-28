@@ -20,16 +20,21 @@ const RevampBannerSection = () => {
       },
       {
         id: 'desktop-2',
+        left: <PredictorBanner variant="option-form" />,
+        right: <PredictorBanner variant="mhtcet" />,
+      },
+      {
+        id: 'desktop-3',
         left: <PredictorBanner variant="neet-rank" />,
         right: <PredictorBanner variant="neet-college" />,
       },
       {
-        id: 'desktop-3',
+        id: 'desktop-4',
         left: <PredictorBanner variant="college" />,
-        right: <PredictorBanner variant="mhtcet" />,
+        right: <PredictorBanner variant="rank" />,
       },
       {
-        id: 'desktop-4',
+        id: 'desktop-5',
         left: <ScalerBanner />,
         right: <PredictorBanner variant="neet-college" />,
       },
@@ -39,13 +44,16 @@ const RevampBannerSection = () => {
 
   const mobileSlides = useMemo(
     () => [
-      { id: 'mobile-1', content: <MettleBanner /> },
-      { id: 'mobile-2', content: <GyanDhanBanner /> },
-      { id: 'mobile-3', content: <ScalerBanner /> },
-      { id: 'mobile-4', content: <PredictorBanner variant="neet-rank" /> },
-      { id: 'mobile-5', content: <PredictorBanner variant="neet-college" /> },
-      { id: 'mobile-6', content: <PredictorBanner variant="college" /> },
-      { id: 'mobile-7', content: <PredictorBanner variant="mhtcet" /> },
+      // Option form leads on mobile: the hero grid that promotes it is
+      // desktop-only, so this carousel is where phone users first meet it.
+      { id: 'mobile-1', content: <PredictorBanner variant="option-form" /> },
+      { id: 'mobile-2', content: <MettleBanner /> },
+      { id: 'mobile-3', content: <GyanDhanBanner /> },
+      { id: 'mobile-4', content: <ScalerBanner /> },
+      { id: 'mobile-5', content: <PredictorBanner variant="neet-rank" /> },
+      { id: 'mobile-6', content: <PredictorBanner variant="neet-college" /> },
+      { id: 'mobile-7', content: <PredictorBanner variant="college" /> },
+      { id: 'mobile-8', content: <PredictorBanner variant="mhtcet" /> },
     ],
     []
   );

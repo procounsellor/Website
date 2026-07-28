@@ -37,6 +37,7 @@ import { Link } from "react-router-dom";
 import { useAuthStore } from "@/store/AuthStore";
 import PageSEO from "@/components/SEO/PageSEO";
 import OtherPredictors from "@/components/predictors/OtherPredictors";
+import CounsellingCTA from "@/components/predictors/CounsellingCTA";
 import CutoffBanner from "@/components/predictors/CutoffBanner";
 import { persistPredictorSearch } from "@/lib/predictorIntent";
 
@@ -488,6 +489,7 @@ export default function NEETCollegePredictorV2() {
           </section>
         </div>
 
+        <CounsellingCTA accent="#0D9488" exam="NEET" />
         <OtherPredictors currentPath="/neet-college-predictor" accent="#0D9488" />
       </div>
     </>

@@ -118,29 +118,29 @@ export default function Footer() {
               <h4 className="mb-4 sm:mb-6 font-montserrat font-medium text-lg sm:text-xl leading-none text-white">
                 Useful Links
               </h4>
-              <ul className="space-y-3 sm:space-y-6 flex-1">
-                {/* <li>
-                  <a href="/colleges" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Colleges</a>
-                </li> */}
-                {/* <li>
-                  <a href="/courses" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Courses</a>
-                </li> */}
-                {/* <li>
-                  <a
-                    href="/exams"
-                    className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
-                  >
-                    Exams
-                  </a>
-                </li> */}
+              <ul className="space-y-3 sm:space-y-5 flex-1">
+                {/* Main sections — crawlable internal links that reinforce site
+                    structure for search engines (and help brand sitelinks). */}
+                <li>
+                  <Link to="/admissions" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors">Admissions</Link>
+                </li>
+                <li>
+                  <Link to="/courses" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors">Courses</Link>
+                </li>
+                <li>
+                  <Link to="/community" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors">Community</Link>
+                </li>
+                <li>
+                  <Link to="/pro-buddies" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors">ProBuddies</Link>
+                </li>
                 {role !== "counselor" && role !== "proBuddy" && (
                   <li>
-                    <a
-                      href="/counsellor-listing"
+                    <Link
+                      to="/counsellor-listing"
                       className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
                     >
                       Counsellors
-                    </a>
+                    </Link>
                   </li>
                 )}
                 <li>
@@ -159,30 +159,6 @@ export default function Footer() {
                     Contact
                   </Link>
                 </li>
-                {/* <li>
-                  <a href="/counsellor-dashboard" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-[#180033] hover:text-[#FA660F] transition-colors">Add College</a>
-                </li> */}
-                {/* Registration buttons — only for non-authenticated users or students */}
-                {(role !== "counselor" && role !== "proBuddy") && (
-                  <>
-                    <li>
-                      <button
-                        onClick={handleBecomeCounselor}
-                        className="block cursor-pointer font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors text-left w-full"
-                      >
-                        Register as Counsellor
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onClick={handleBecomeProBuddy}
-                        className="block cursor-pointer font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors text-left w-full"
-                      >
-                        Register as ProBuddy
-                      </button>
-                    </li>
-                  </>
-                )}
               </ul>
             </div>
           </div>
@@ -190,26 +166,26 @@ export default function Footer() {
           <div className="md:col-span-3">
             <div className="md:min-h-[270px] flex flex-col">
               <h4 className="mb-4 sm:mb-6 font-montserrat font-medium text-lg sm:text-xl leading-none text-white">
-                Popular Categories
+                Resources
               </h4>
-              <ul className="space-y-3 sm:space-y-6 flex-1">
-                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-white">
-                  Engineering
+              <ul className="space-y-3 sm:space-y-5 flex-1">
+                <li>
+                  <Link to="/mbbs-colleges" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors">MBBS Colleges in India</Link>
                 </li>
-                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-white">
-                  Medical
+                <li>
+                  <Link to="/neet-counselling" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors">NEET Counselling</Link>
                 </li>
-                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-white">
-                  Management
+                <li>
+                  <Link to="/neet-cutoffs" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors">NEET Cutoffs 2026</Link>
                 </li>
-                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-white">
-                  Design
+                <li>
+                  <Link to="/counselling" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors">Admission Counselling</Link>
                 </li>
-                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-white">
-                  Science
+                <li>
+                  <Link to="/admissions/blogs" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors">Admission Blogs</Link>
                 </li>
-                <li className="font-montserrat font-normal text-sm sm:text-base leading-none text-white">
-                  Arts
+                <li>
+                  <Link to="/admissions/deadlines" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors">Exam Deadlines</Link>
                 </li>
               </ul>
             </div>
@@ -220,80 +196,68 @@ export default function Footer() {
               <h4 className="mb-4 sm:mb-6 font-montserrat font-medium text-lg sm:text-xl leading-none text-white">
                 Follow Us on
               </h4>
-              <ul className="space-y-3 sm:space-y-6 flex-1">
-                <li className="flex items-center gap-3">
-                  <img loading="lazy" decoding="async"
-                    src={linkedinIcon}
-                    alt="LinkedIn"
-                    className="h-6 w-6 sm:h-7 sm:w-7 shrink-0"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <a
-                      href="https://www.linkedin.com/company/procounsel-by-catalystai/posts/?feedView=all"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="LinkedIn"
-                      className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
+              {/* Social icons — horizontal row */}
+              <div className="flex items-center gap-4 mb-7">
+                <a
+                  href="https://www.linkedin.com/company/procounsel-by-catalystai/posts/?feedView=all"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="ProCounsel on LinkedIn"
+                  className="opacity-90 hover:opacity-100 transition-opacity"
+                >
+                  <img loading="lazy" decoding="async" src={linkedinIcon} alt="LinkedIn" className="h-7 w-7 sm:h-8 sm:w-8" />
+                </a>
+                <a
+                  href="https://www.facebook.com/share/17GiZ34K46/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="ProCounsel on Facebook"
+                  className="opacity-90 hover:opacity-100 transition-opacity"
+                >
+                  <img loading="lazy" decoding="async" src={facebookIcon} alt="Facebook" className="h-7 w-7 sm:h-8 sm:w-8" />
+                </a>
+                <a
+                  href="https://www.instagram.com/procounsel.co.in?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="ProCounsel on Instagram"
+                  className="opacity-90 hover:opacity-100 transition-opacity"
+                >
+                  <img loading="lazy" decoding="async" src={instagramIcon} alt="Instagram" className="h-7 w-7 sm:h-8 sm:w-8" />
+                </a>
+                <a
+                  href="https://x.com/procounsel2025"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="ProCounsel on X (Twitter)"
+                  className="opacity-90 hover:opacity-100 transition-opacity"
+                >
+                  <img loading="lazy" decoding="async" src={twitterIcon} alt="Twitter" className="h-7 w-7 sm:h-8 sm:w-8" />
+                </a>
+              </div>
+
+              {/* Join us — signup CTAs kept easy to reach */}
+              {role !== "counselor" && role !== "proBuddy" && (
+                <>
+                  <h4 className="mb-3 font-montserrat font-medium text-lg sm:text-xl leading-none text-white">
+                    Join ProCounsel
+                  </h4>
+                  <div className="flex flex-col gap-3 max-w-[220px]">
+                    <button
+                      onClick={handleBecomeCounselor}
+                      className="inline-flex items-center justify-center rounded-lg bg-[#FA660F] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-95 transition-opacity cursor-pointer"
                     >
-                      LinkedIn
-                    </a>
-                  </div>
-                </li>
-                <li className="flex items-center gap-3">
-                  <img loading="lazy" decoding="async"
-                    src={facebookIcon}
-                    alt="Facebook"
-                    className="h-6 w-6 sm:h-7 sm:w-7 shrink-0"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <a
-                      href="https://www.facebook.com/share/17GiZ34K46/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="Facebook"
-                      className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
+                      Register as Counsellor
+                    </button>
+                    <button
+                      onClick={handleBecomeProBuddy}
+                      className="inline-flex items-center justify-center rounded-lg border border-white/40 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10 transition-colors cursor-pointer"
                     >
-                      Facebook
-                    </a>
+                      Register as ProBuddy
+                    </button>
                   </div>
-                </li>
-                <li className="flex items-center gap-3">
-                  <img loading="lazy" decoding="async"
-                    src={instagramIcon}
-                    alt="Instagram"
-                    className="h-6 w-6 sm:h-7 sm:w-7 shrink-0"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <a
-                      href="https://www.instagram.com/procounsel.co.in?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="Instagram"
-                      className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
-                    >
-                      Instagram
-                    </a>
-                  </div>
-                </li>
-                <li className="flex items-center gap-3">
-                  <img loading="lazy" decoding="async"
-                    src={twitterIcon}
-                    alt="Twitter"
-                    className="h-6 w-6 sm:h-7 sm:w-7 shrink-0"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <a
-                      href="https://x.com/procounsel2025"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="Twitter"
-                      className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors"
-                    >
-                      Twitter
-                    </a>
-                  </div>
-                </li>
-              </ul>
+                </>
+              )}
             </div>
           </div>
         </div>

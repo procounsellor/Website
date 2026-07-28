@@ -1,7 +1,7 @@
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-type PredictorVariant = 'rank' | 'college' | 'mhtcet' | 'neet-rank' | 'neet-college';
+type PredictorVariant = 'rank' | 'college' | 'mhtcet' | 'neet-rank' | 'neet-college' | 'option-form';
 
 type PredictorCardConfig = {
   title: string;
@@ -68,6 +68,21 @@ const cardConfig: Record<PredictorVariant, PredictorCardConfig> = {
     buttonColor: '#059669',
     icon: '/ranking-1.png',
     iconAlt: 'NEET Rank Predictor Icon',
+  },
+  // Paid service, not a free tool — it rides in the same carousel because that
+  // is where phone users actually see the tools (the hero grid is desktop-only).
+  'option-form': {
+    title: 'MHT-CET Option Form Filling',
+    description:
+      'Your CAP choice list decides your college, not your percentile. Have a counsellor build and order it for you.',
+    cta: 'Fill My Option Form',
+    path: '/mhtcet-option-form-filling',
+    gradient: 'linear-gradient(96deg, #FFD0AE -12%, #FFF4EC 65%, #FFFFFF 110%)',
+    titleColor: '#7A2B02',
+    textColor: '#6A3A1B',
+    buttonColor: '#FA660F',
+    icon: '/ranking-1.png',
+    iconAlt: 'MHT-CET Option Form Filling Icon',
   },
   'neet-college': {
     title: 'NEET College Predictor',

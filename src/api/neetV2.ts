@@ -131,6 +131,46 @@ export interface NEETOptions {
   rounds: number[];
 }
 
+export interface NEETCounsellingAuthority {
+  sno: number;
+  state: string;
+  authority: string;
+  url: string;
+}
+
+export interface NEETStateCounsellingResponse {
+  count: number;
+  authorities: NEETCounsellingAuthority[];
+}
+
+export interface NEETInstitute {
+  sno: number;
+  college: string;
+  state: string;
+  district: string;
+  university: string;
+  management: string;
+  type: string;
+  sector: string;
+  established: string;
+  seats: number;
+  url: string;
+}
+
+export interface NEETInstituteState {
+  state: string;
+  count: number;
+  total_seats: number;
+  colleges: NEETInstitute[];
+}
+
+export interface NEETInstitutesResponse {
+  total_colleges: number;
+  total_seats: number;
+  total_states: number;
+  states: NEETInstituteState[];
+}
+
 /* ------------------------------------------------------------------ */
 /*  Endpoints                                                          */
 /* ------------------------------------------------------------------ */
@@ -271,6 +311,27 @@ export async function getNEETOptions(): Promise<NEETOptions> {
     return optionsCache;
   } catch {
     return NEET_FALLBACK_OPTIONS;
+  }
+}
+
+export async function getStateCounselling(): Promise<NEETCounsellingAuthority[]> {
+  try {
+    const { data } = await client.get<NEETStateCounsellingResponse>(
+      "/api/state-counselling",
+    );
+    return data.authorities ?? [];
+  } catch {
+    // Callers fall back to the embedded static snapshot.
+    return [];
+  }
+}
+
+export async function getInstitutes(): Promise<NEETInstitutesResponse | null> {
+  try {
+    const { data } = await client.get<NEETInstitutesResponse>("/api/institutes");
+    return data;
+  } catch {
+    return null;
   }
 }
 
