@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import Footer from "@/components/layout/Footer";
+import SeoFooterLinks from "@/components/layout/SeoFooterLinks";
 import RevampHeader from "@/components/Revamp/RevampHeader";
 import RevampBreadcrumbs from "@/components/Revamp/RevampBreadcrumbs";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
@@ -216,6 +217,7 @@ export default function RevampLayout() {
                 <Outlet />
             </motion.div>
         </div>
+        {shouldShowFooter && <SeoFooterLinks />}
         {shouldShowFooter && <Footer />}
         {!isRestrictedRole && <EnquiryPopup />}
         {!isAuthenticated && <LoginPromptPopup />}

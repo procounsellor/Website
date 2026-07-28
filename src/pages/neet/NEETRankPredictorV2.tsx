@@ -26,6 +26,7 @@ import { useAuthStore } from "@/store/AuthStore";
 import { Link, useNavigate } from "react-router-dom";
 import PageSEO from "@/components/SEO/PageSEO";
 import OtherPredictors from "@/components/predictors/OtherPredictors";
+import CounsellingCTA from "@/components/predictors/CounsellingCTA";
 import { persistPredictorSearch } from "@/lib/predictorIntent";
 
 const ACCENT = "#059669";
@@ -273,6 +274,7 @@ export default function NEETRankPredictorV2() {
           </section>
         </div>
 
+        <CounsellingCTA accent="#059669" exam="NEET" />
         <OtherPredictors currentPath="/neet-rank-predictor" accent="#059669" />
       </div>
     </>

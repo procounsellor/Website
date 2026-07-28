@@ -52,7 +52,6 @@ export default function NEETCutoffAnalyzer() {
   const [options, setOptions] = useState<NEETOptions>(NEET_FALLBACK_OPTIONS);
   const [college, setCollege] = useState("");
   const [state, setState] = useState("All");
-  const [type, setType] = useState("All");
   const [quota, setQuota] = useState("AIQ");
   const [category, setCategory] = useState("GN");
   const [year, setYear] = useState<number>(2025);
@@ -76,7 +75,7 @@ export default function NEETCutoffAnalyzer() {
     getRoundCutoffs({
       college: college || undefined,
       state,
-      type,
+      type: "All",
       quota,
       category,
       year,
@@ -95,7 +94,7 @@ export default function NEETCutoffAnalyzer() {
       .finally(() => {
         if (id === reqId.current) setLoading(false);
       });
-  }, [college, state, type, quota, category, year]);
+  }, [college, state, quota, category, year]);
 
   // Pivot flat rows into round-wise groups (one row per college / quota / category).
   const groups = useMemo<CutoffGroup[]>(() => {
@@ -259,26 +258,6 @@ export default function NEETCutoffAnalyzer() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <Label>College Type</Label>
-              <div className="flex flex-wrap gap-2">
-                {["All", ...options.types].map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setType(t)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
-                      type === t
-                        ? "bg-emerald-600 text-white border-emerald-600"
-                        : "bg-white text-gray-600 border-emerald-200 hover:bg-emerald-50"
-                    }`}
-                  >
-                    {t === "All" ? "All Types" : t}
-                  </button>
-                ))}
               </div>
             </div>
           </div>

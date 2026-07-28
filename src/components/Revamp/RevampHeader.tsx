@@ -1,7 +1,12 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+
+// Real anchor (<a href>) that still navigates client-side via react-router — so
+// Googlebot can crawl the primary navigation as links (crucial for internal link
+// equity and sitelinks), while users keep the SPA experience + hover animation.
+const MotionLink = motion.create(Link);
 import { buttonHoverScale, buttonTapScale, buttonTransition } from "@/components/common/PageTransition";
 import { useAuthStore } from "@/store/AuthStore";
 import { useSearchStore } from "@/store/SearchStore";
@@ -284,13 +289,14 @@ export default function RevampHeader() {
                 className="hidden md:flex relative w-full px-[60px] justify-between items-center z-10"
                 style={{ height: desktopTopRowHeight }}
             >
-                <div 
-                    className="flex items-center gap-2 cursor-pointer w-[170px] h-[43px]" 
-                    onClick={() => navigate('/admissions')}
+                <Link
+                    to="/"
+                    aria-label="ProCounsel home"
+                    className="flex items-center gap-2 cursor-pointer w-[170px] h-[43px]"
                 >
                     <img src="/logo.svg" alt="procounsel_logo" className="h-[43px] w-[43px] object-contain" />
                     <span className="text-[#232323] font-semibold text-[1.25rem]">ProCounsel</span>
-                </div>
+                </Link>
 
                 <AnimatePresence>
                     {!isScrolled && (
@@ -302,12 +308,10 @@ export default function RevampHeader() {
                             className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 h-full"
                         >
                             {visibleTabs.map((tab) => (
-                                <motion.button
+                                <MotionLink
                                     key={tab.id}
-                                    onClick={() => {
-                                        setActiveTab(tab.id);
-                                        navigate(tab.path);
-                                    }}
+                                    to={tab.path}
+                                    onClick={() => setActiveTab(tab.id)}
                                     onMouseEnter={() => preloadRoute(tab.path)}
                                     onFocus={() => preloadRoute(tab.path)}
                                     whileHover={{ y: -1 }}
@@ -327,7 +331,7 @@ export default function RevampHeader() {
                                     <span className="font-poppins font-medium text-[15px] text-[#232323]">
                                         {tab.name}
                                     </span>
-                                </motion.button>
+                                </MotionLink>
                             ))}
                         </motion.div>
                     )}
@@ -505,12 +509,10 @@ export default function RevampHeader() {
                             className={mobileTabsClassName}
                         >
                             {visibleTabs.map((tab) => (
-                                <motion.button
+                                <MotionLink
                                     key={tab.id}
-                                    onClick={() => {
-                                        setActiveTab(tab.id);
-                                        navigate(tab.path);
-                                    }}
+                                    to={tab.path}
+                                    onClick={() => setActiveTab(tab.id)}
                                     onMouseEnter={() => preloadRoute(tab.path)}
                                     onFocus={() => preloadRoute(tab.path)}
                                     whileHover={{ y: -1 }}
@@ -530,7 +532,7 @@ export default function RevampHeader() {
                                     <span className="font-poppins font-medium text-[11px] sm:text-[12px] leading-[100%] text-[#232323] whitespace-nowrap">
                                         {tab.name}
                                     </span>
-                                </motion.button>
+                                </MotionLink>
                             ))}
                         </motion.div>
                     )}

@@ -2,6 +2,7 @@
   "hosting": {
     "site":"procounsel-c",
     "public": "dist",
+    "trailingSlash": false,
     "ignore": [
       "firebase.json",
       "**/.*",

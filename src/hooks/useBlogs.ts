@@ -6,8 +6,16 @@ import {
   fetchBlogsList,
   updateBlog,
   type BlogCreatePayload,
+  type BlogListItem,
   type BlogUpdatePayload,
 } from "@/api/blogs";
+import { BLOGS_SNAPSHOT } from "@/data/blogsSnapshot";
+
+// Build-time snapshot of published blogs. Used as react-query initialData so
+// blog pages render real content during the prerender (the live API is blocked
+// then). initialDataUpdatedAt:0 marks it stale so the client refetches on mount
+// to pick up the latest content.
+const SNAPSHOT_LIST = BLOGS_SNAPSHOT as unknown as BlogListItem[];
 
 export function useBlogsList(options?: { enabled?: boolean }) {
   return useQuery({
@@ -15,15 +23,22 @@ export function useBlogsList(options?: { enabled?: boolean }) {
     queryFn: fetchBlogsList,
     enabled: options?.enabled ?? true,
     staleTime: 60_000,
+    initialData: SNAPSHOT_LIST.length ? SNAPSHOT_LIST : undefined,
+    initialDataUpdatedAt: 0,
   });
 }
 
 export function useBlogDetail(id: string | undefined) {
+  const seed = id
+    ? SNAPSHOT_LIST.find((b) => b.id === id || b.slug === id)
+    : undefined;
   return useQuery({
     queryKey: ["blogs", "detail", id],
     queryFn: () => fetchBlogById(id!),
     enabled: Boolean(id?.length),
     staleTime: 60_000,
+    initialData: seed,
+    initialDataUpdatedAt: 0,
   });
 }
 

@@ -1,7 +1,23 @@
 import fs from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 
 export const SITE_URL = process.env.SITE_URL || "https://www.procounsel.co.in";
+
+// Blog slug routes to PRERENDER — read from the build-time snapshot written by
+// scripts/generate-blog-snapshot.mjs (which runs first in `prebuild`). This is
+// what makes blog article pages prerender with real content; the sitemap fetches
+// its own blog slugs dynamically. Empty/missing snapshot degrades gracefully.
+const BLOG_SLUG_ROUTES = (() => {
+  try {
+    const slugs = JSON.parse(
+      readFileSync(path.resolve(process.cwd(), "scripts/blog-slugs.json"), "utf8"),
+    );
+    return Array.isArray(slugs) ? slugs.map((s) => `/admissions/blogs/slug/${s}`) : [];
+  } catch {
+    return [];
+  }
+})();
 
 // Keep in sync with COUNSELLING_CITIES in src/lib/counsellingCities.ts.
 // (This is a plain .mjs run by Node, which can't import the .ts source directly.)
@@ -29,6 +45,7 @@ export const STATIC_ROUTES = [
   "/admissions/blog-authors/ashutosh-kumar",
   "/admissions/blog-authors/kiran-kudke",
   "/admissions/blog-authors/ananya",
+  ...BLOG_SLUG_ROUTES,
   "/admissions/deadlines",
 
   // Courses sub-pages
@@ -52,9 +69,14 @@ export const STATIC_ROUTES = [
   "/neet-rank-predictor",
   "/neet-college-predictor",
   "/neet-cutoffs",
+  "/neet-counselling",
+  "/mbbs-colleges",
   "/jee-rank-predictor",
   "/jee-college-predictor",
   "/mhtcet-college-predictor",
+
+  // Paid services
+  "/mhtcet-option-form-filling",
 
   // Legal / info pages
   "/contact",

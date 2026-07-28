@@ -1,0 +1,88 @@
+// AUTO-GENERATED static snapshot of the NEET directory API
+// (https://neet-rank-predictor-two.vercel.app). Embedded so the
+// state-counselling and MBBS-college pages ship crawlable content even
+// though the build-time prerender (react-snap) skips API requests.
+
+export interface CounsellingAuthority { sno: number; state: string; authority: string; url: string; }
+export interface StateInstituteSummary { state: string; count: number; totalSeats: number; }
+
+export const STATE_COUNSELLING_AUTHORITIES: CounsellingAuthority[] = [
+  { sno: 1, state: "All India Quota", authority: "Medical Counselling Committee (MCC)", url: "https://mcc.nic.in/ug-medical-counselling/" },
+  { sno: 2, state: "AFMC Pune", authority: "Armed Force Medical College, Pune", url: "https://afmc.nic.in/" },
+  { sno: 3, state: "Andaman & Nicobar Islands", authority: "ANIIMS/CCAP", url: "http://andssw1.and.nic.in/aniims/" },
+  { sno: 4, state: "Andhra Pradesh", authority: "Dr. NTR University (CQ/MQ)", url: "https://apuhs-ugadmissions.aptonline.in/" },
+  { sno: 5, state: "Arunachal Pradesh", authority: "Directorate of Medical Education", url: "https://apdhte.nic.in/" },
+  { sno: 6, state: "Assam", authority: "Director of Medical Education", url: "https://dme.assam.gov.in/" },
+  { sno: 7, state: "Bihar", authority: "BCECEB", url: "https://bceceboard.bihar.gov.in/" },
+  { sno: 8, state: "Chandigarh", authority: "GMCH", url: "https://gmch.gov.in/" },
+  { sno: 9, state: "Chhattisgarh", authority: "Director of Medical Education", url: "https://cgdme.admissions.nic.in/" },
+  { sno: 10, state: "Dadra & Nagar Haveli", authority: "Directorate Medical & Health Service", url: "https://namomeriadmission.in/" },
+  { sno: 11, state: "Delhi (GGS IPU)", authority: "Guru Gobind Singh Indraprastha University", url: "https://admissions.nic.in/IPUADM/" },
+  { sno: 12, state: "Goa", authority: "Director of Technical Education", url: "https://dte.goa.gov.in/" },
+  { sno: 13, state: "Gujarat", authority: "ACPUGMEC", url: "https://medadmgujarat.ncode.in/UG/Purchase_PIN.aspx" },
+  { sno: 14, state: "Haryana", authority: "Directorate of Medical Education & Research", url: "https://uhsrugcounselling.com/" },
+  { sno: 15, state: "Himachal Pradesh", authority: "Atal Medical & Research University", url: "https://amruhp.ac.in/" },
+  { sno: 16, state: "Jammu and Kashmir", authority: "JKBOPEE", url: "https://www.jkbopee.gov.in/Pages/ForgotPassword.aspx" },
+  { sno: 17, state: "Jharkhand", authority: "JCECEB", url: "https://jceceb.jharkhand.gov.in/" },
+  { sno: 18, state: "Karnataka", authority: "Karnataka Education Authority", url: "https://cetonline.karnataka.gov.in/kea/indexnew" },
+  { sno: 19, state: "Kerala", authority: "Commissioner of Entrance Examination", url: "https://cee.kerala.gov.in/cee/index.php?url=in" },
+  { sno: 20, state: "Madhya Pradesh", authority: "Director of Medical Education", url: "https://dme.mponline.gov.in/Portal/Services/DMEMP/DMEUG/" },
+  { sno: 21, state: "Maharashtra", authority: "Commissionerate CET Cell", url: "https://cetcell.mahacet.org/" },
+  { sno: 22, state: "Manipur", authority: "Directorate of Health Services", url: "https://manipurmc.mn.gov.in/" },
+  { sno: 23, state: "Meghalaya", authority: "NEIGRIHMS", url: "https://meghealth.gov.in/" },
+  { sno: 24, state: "Mizoram", authority: "Department of Higher & Technical Education", url: "https://dhte.mizoram.gov.in/" },
+  { sno: 25, state: "Nagaland", authority: "Nagaland University", url: "https://nimsr.nagaland.gov.in/" },
+  { sno: 26, state: "Odisha", authority: "Directorate of Medical Education & Training", url: "https://ojee.nic.in/" },
+  { sno: 27, state: "Puducherry", authority: "CENTAC", url: "https://centacpuducherry.in/" },
+  { sno: 28, state: "Punjab", authority: "BFUHS", url: "https://bfuhs.ac.in/indexM.aspx" },
+  { sno: 29, state: "Punjab (CMC Ludhiana)", authority: "CMC Ludhiana", url: "https://www.cmcludhiana.in/" },
+  { sno: 30, state: "Rajasthan", authority: "Medical Education", url: "https://rajugneet2025.in/" },
+  { sno: 31, state: "Sikkim", authority: "Directorate of Technical Education", url: "https://smu.edu.in/" },
+  { sno: 32, state: "Tamil Nadu", authority: "Directorate of Medical Education", url: "https://tnmedicalselection.net/" },
+  { sno: 33, state: "Tamil Nadu (CMC Vellore)", authority: "CMC Vellore", url: "https://admissions.cmcvellore.ac.in/" },
+  { sno: 34, state: "Telangana", authority: "KNRUHS", url: "https://tsmedadm.tsche.in/" },
+  { sno: 35, state: "Tripura", authority: "Directorate of Medical Education", url: "https://dme.tripura.gov.in/" },
+  { sno: 36, state: "Uttar Pradesh", authority: "DMET Lucknow", url: "https://upneet.gov.in/" },
+  { sno: 37, state: "Uttarakhand", authority: "HNBUMU", url: "https://meta-secure.com/HNBUMU_NEETUG" },
+  { sno: 38, state: "West Bengal", authority: "Department of Health & Family Welfare", url: "https://wbmcc.nic.in/" },
+];
+
+export const STATE_INSTITUTE_SUMMARY: StateInstituteSummary[] = [
+  { state: "Andaman & Nicobar Islands", count: 1, totalSeats: 114 },
+  { state: "Andhra Pradesh", count: 39, totalSeats: 7215 },
+  { state: "Arunachal Pradesh", count: 1, totalSeats: 100 },
+  { state: "Assam", count: 16, totalSeats: 1975 },
+  { state: "Bihar", count: 25, totalSeats: 3545 },
+  { state: "Chandigarh", count: 1, totalSeats: 150 },
+  { state: "Chhattisgarh", count: 17, totalSeats: 2580 },
+  { state: "Dadra & Nagar Haveli", count: 1, totalSeats: 177 },
+  { state: "Delhi", count: 10, totalSeats: 1396 },
+  { state: "Goa", count: 1, totalSeats: 200 },
+  { state: "Gujarat", count: 43, totalSeats: 7525 },
+  { state: "Haryana", count: 17, totalSeats: 2710 },
+  { state: "Himachal Pradesh", count: 8, totalSeats: 970 },
+  { state: "Jammu & Kashmir", count: 12, totalSeats: 1676 },
+  { state: "Jharkhand", count: 10, totalSeats: 1255 },
+  { state: "Karnataka", count: 72, totalSeats: 13944 },
+  { state: "Kerala", count: 37, totalSeats: 5554 },
+  { state: "Madhya Pradesh", count: 35, totalSeats: 5725 },
+  { state: "Maharashtra", count: 86, totalSeats: 12924 },
+  { state: "Manipur", count: 4, totalSeats: 525 },
+  { state: "Meghalaya", count: 3, totalSeats: 200 },
+  { state: "Mizoram", count: 1, totalSeats: 100 },
+  { state: "Nagaland", count: 1, totalSeats: 100 },
+  { state: "Odisha", count: 21, totalSeats: 3025 },
+  { state: "Puducherry", count: 10, totalSeats: 1934 },
+  { state: "Punjab", count: 14, totalSeats: 2049 },
+  { state: "Rajasthan", count: 49, totalSeats: 7330 },
+  { state: "Sikkim", count: 1, totalSeats: 150 },
+  { state: "Tamil Nadu", count: 78, totalSeats: 13050 },
+  { state: "Telangana", count: 66, totalSeats: 9540 },
+  { state: "Tripura", count: 3, totalSeats: 450 },
+  { state: "Uttar Pradesh", count: 89, totalSeats: 13525 },
+  { state: "Uttarakhand", count: 10, totalSeats: 1450 },
+  { state: "West Bengal", count: 41, totalSeats: 6549 },
+];
+
+export const INSTITUTE_TOTALS = { colleges: 823, seats: 129712, states: 34 } as const;
+export const COUNSELLING_AUTHORITY_COUNT = 38;

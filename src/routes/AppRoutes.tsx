@@ -94,7 +94,11 @@ const MHTCETCollegePredictorPage = lazy(() => import('@/pages/MHTCETCollegePredi
 const NEETRankPredictorPage = lazy(() => import('@/pages/neet/NEETRankPredictorV2'));
 const NEETCollegePredictorPage = lazy(() => import('@/pages/neet/NEETCollegePredictorV2'));
 const NEETCutoffAnalyzerPage = lazy(() => import('@/pages/neet/NEETCutoffAnalyzer'));
+// NEET directory pages (state-wise counselling authorities + MBBS college list)
+const NEETStateCounsellingPage = lazy(() => import('@/pages/neet/NEETStateCounselling'));
+const NEETMedicalCollegesPage = lazy(() => import('@/pages/neet/NEETMedicalColleges'));
 const PredictorsHubPage = lazy(() => import('@/pages/PredictorsHub'));
+const OptionFormFillingPage = lazy(() => import('@/pages/OptionFormFilling'));
 const CounsellingHubPage = lazy(() => import('@/pages/counselling/CounsellingHub'));
 const CounsellingCityPage = lazy(() => import('@/pages/counselling/CounsellingCityPage'));
 
@@ -192,10 +196,16 @@ export default function AppRoutes() {
                         <Route path='/neet-college-predictor' element={<NEETCollegePredictorPage />} />
                         {/* Round-wise cutoff analyzer (separate, permanent) */}
                         <Route path='/neet-cutoffs' element={<NEETCutoffAnalyzerPage />} />
+                        {/* NEET directory: state-wise counselling authorities + MBBS college list */}
+                        <Route path='/neet-counselling' element={<NEETStateCounsellingPage />} />
+                        <Route path='/mbbs-colleges' element={<NEETMedicalCollegesPage />} />
                         {/* Legacy preview paths → redirect to the primary ranking URLs */}
                         <Route path='/neet/rank-predictor' element={<Navigate to="/neet-rank-predictor" replace />} />
                         <Route path='/neet/college-predictor' element={<Navigate to="/neet-college-predictor" replace />} />
                         <Route path='/predictors' element={<PredictorsHubPage />} />
+
+                        {/* Paid service: MHT-CET CAP round option form filling */}
+                        <Route path='/mhtcet-option-form-filling' element={<OptionFormFillingPage />} />
 
                         {/* Programmatic city counselling landing pages (SEO) */}
                         <Route path='/counselling' element={<CounsellingHubPage />} />
