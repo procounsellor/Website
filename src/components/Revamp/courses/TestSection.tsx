@@ -12,6 +12,13 @@ import {
   getAllTestGroupsForLoggedInUser,
   getUserBoughtTestGroups,
 } from "@/api/testGroup";
+import { TEST_COUNT_BY_GROUP, TEST_GROUPS_SNAPSHOT } from "@/data/contentSnapshot";
+
+// Build-time seed so /courses prerenders real test series instead of the
+// "No tests found" empty state (the API is unreachable during the prerender).
+const TESTS_SEED = TEST_GROUPS_SNAPSHOT.length
+  ? ({ status: "snapshot", data: TEST_GROUPS_SNAPSHOT } as any)
+  : undefined;
 
 type TestTab = "my-tests" | "trending" | "all-tests";
 
@@ -75,11 +82,19 @@ const normalizeTestGroups = (response: any): TestWithMeta[] => {
   return rawList.map((item: any, index: number) => {
     const tg = item?.testGroup ?? item;
     const soldCount = Number(tg?.soldCount ?? item?.soldCount ?? 0);
+    // The list endpoint returns neither `attachedTests` nor a usable count, so
+    // this used to fall through to the "1 test" default. Prefer resolved rows,
+    // then the build-time resolved count; `attachedTestIds` is only a last
+    // resort because it still names deleted tests and overstates the total.
+    const groupId = String(tg?.testGroupId ?? item?.testGroupId ?? item?.id ?? "");
     const totalTests = Number(
       item?.attachedTests?.length ??
       tg?.attachedTests?.length ??
+      TEST_COUNT_BY_GROUP[groupId] ??
       item?.totalTests ??
       item?.testSeriesCount ??
+      tg?.attachedTestIds?.length ??
+      item?.attachedTestIds?.length ??
       0
     );
 
@@ -138,6 +153,8 @@ export default function TestSection() {
         ? getAllTestGroupsForLoggedInUser(userId)
         : getAllTestGroupsForGuest(),
     enabled: !isUserLoggedIn || Boolean(userId),
+    initialData: TESTS_SEED,
+    initialDataUpdatedAt: 0,
   });
 
   const { data: myTestsResponse, isLoading: isLoadingMyTests } = useQuery({
@@ -235,6 +252,10 @@ export default function TestSection() {
 
   const shouldShowInlineTestUpsell =
     isUserLoggedIn && activeTab === "my-tests" && filteredTests.length <= 1 && !isLoadingTests;
+
+  // Signed-out visitor with nothing to show gets no section at all, rather than
+  // a "No tests found" placeholder baked into the crawlable HTML.
+  if (!isUserLoggedIn && !isLoadingTests && testsData.length === 0) return null;
 
   return (
     <div>

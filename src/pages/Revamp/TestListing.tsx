@@ -9,6 +9,7 @@ import {
   getAllTestGroupsForGuest,
   getAllTestGroupsForLoggedInUser,
 } from "@/api/testGroup";
+import { TEST_COUNT_BY_GROUP, TEST_GROUPS_SNAPSHOT } from "@/data/contentSnapshot";
 
 type TestListItem = {
   id: string;
@@ -34,11 +35,17 @@ const normalizeTests = (response: any): TestListItem[] => {
   return rawList.map((item: any, index: number) => {
     const tg = item?.testGroup ?? item;
     const soldCount = Number(tg?.soldCount ?? item?.soldCount ?? 0);
+    // Prefer resolved rows, then the build-time resolved count.
+    // `attachedTestIds` is a last resort: it still names deleted tests.
+    const groupId = String(tg?.testGroupId ?? item?.testGroupId ?? item?.id ?? "");
     const totalTests = Number(
       item?.attachedTests?.length ??
       tg?.attachedTests?.length ??
+      TEST_COUNT_BY_GROUP[groupId] ??
       item?.totalTests ??
       item?.testSeriesCount ??
+      tg?.attachedTestIds?.length ??
+      item?.attachedTestIds?.length ??
       0
     );
 
@@ -99,6 +106,12 @@ export default function TestListing() {
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
+    // Build-time seed: without it this page prerendered as filter chrome with
+    // no test series, which reads as a thin/empty page to crawlers.
+    initialData: TEST_GROUPS_SNAPSHOT.length
+      ? ({ status: "snapshot", data: TEST_GROUPS_SNAPSHOT } as any)
+      : undefined,
+    initialDataUpdatedAt: 0,
   });
 
   const toggleSection = (section: "priceType" | "price" | "rating" | "students") => {

@@ -30,6 +30,7 @@ const MyInfoTab: React.FC<MyInfoTabProps> = ({ user, onEditCourse, onEditStates,
             <p className="text-sm md:text-base font-medium text-[#8C8CA1]">No preferred states selected.</p>
           )}
         </InfoCard>
+
       </div>
 
       <div className="lg:col-span-1">

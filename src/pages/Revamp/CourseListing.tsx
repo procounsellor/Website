@@ -9,6 +9,7 @@ import {
   getAllCounsellorCoursesForGuest,
   getAllCounsellorCoursesForUser,
 } from "@/api/course";
+import { COURSES_SNAPSHOT } from "@/data/contentSnapshot";
 import type { CourseType } from "@/types/course";
 
 type CourseListItem = {
@@ -69,6 +70,12 @@ export default function CourseListing() {
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
+    // Build-time seed: without it this page prerendered as filter chrome with
+    // no courses, which reads as a thin/empty page to crawlers.
+    initialData: COURSES_SNAPSHOT.length
+      ? ({ data: COURSES_SNAPSHOT, message: "snapshot" } as any)
+      : undefined,
+    initialDataUpdatedAt: 0,
   });
 
   const courses = useMemo(() => normalizeCourses(data), [data]);

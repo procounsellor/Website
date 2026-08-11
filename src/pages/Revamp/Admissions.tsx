@@ -112,35 +112,35 @@ export default function Admissions() {
         "position": 1,
         "name": "Admissions",
         "description": "College admission guidance, blogs, deadlines, and expert counsellors",
-        "url": "https://www.procounsel.co.in/admissions"
+        "url": "https://procounsel.co.in/admissions"
       },
       {
         "@type": "SiteNavigationElement",
         "position": 2,
         "name": "Courses",
         "description": "JEE, NEET, MBA and career prep courses by verified counsellors",
-        "url": "https://www.procounsel.co.in/courses"
+        "url": "https://procounsel.co.in/courses"
       },
       {
         "@type": "SiteNavigationElement",
         "position": 3,
         "name": "Community",
         "description": "Student Q&A community for admissions, exams, and career guidance",
-        "url": "https://www.procounsel.co.in/community"
+        "url": "https://procounsel.co.in/community"
       },
       {
         "@type": "SiteNavigationElement",
         "position": 4,
         "name": "ProBuddies",
         "description": "Connect with college seniors for peer mentorship and campus insights",
-        "url": "https://www.procounsel.co.in/pro-buddies"
+        "url": "https://procounsel.co.in/pro-buddies"
       },
       {
         "@type": "SiteNavigationElement",
         "position": 5,
         "name": "About",
         "description": "Learn about ProCounsel's mission and team",
-        "url": "https://www.procounsel.co.in/about"
+        "url": "https://procounsel.co.in/about"
       }
     ]
   };
@@ -148,15 +148,15 @@ export default function Admissions() {
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "@id": "https://www.procounsel.co.in/#website",
+    "@id": "https://procounsel.co.in/#website",
     "name": "ProCounsel",
-    "url": "https://www.procounsel.co.in",
+    "url": "https://procounsel.co.in",
     "description": "India's leading platform for career counselling services, university admission support, study abroad consultant, and career guidance for students.",
     "potentialAction": {
       "@type": "SearchAction",
       "target": {
         "@type": "EntryPoint",
-        "urlTemplate": "https://www.procounsel.co.in/admissions/blogs?q={search_term_string}"
+        "urlTemplate": "https://procounsel.co.in/admissions/blogs?q={search_term_string}"
       },
       "query-input": "required name=search_term_string"
     }
@@ -166,8 +166,8 @@ export default function Admissions() {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "ProCounsel",
-    "url": "https://www.procounsel.co.in",
-    "logo": "https://www.procounsel.co.in/favicon.png",
+    "url": "https://procounsel.co.in",
+    "logo": "https://procounsel.co.in/favicon.png",
     "sameAs": [
       "https://www.linkedin.com/company/procounsel-by-catalystai/",
       "https://www.facebook.com/share/17GiZ34K46/",
@@ -179,7 +179,7 @@ export default function Admissions() {
       "contactType": "customer support",
       "telephone": "+91-7004789484",
       "email": "support@procounsel.co.in",
-      "url": "https://www.procounsel.co.in/contact"
+      "url": "https://procounsel.co.in/contact"
     }
   };
 

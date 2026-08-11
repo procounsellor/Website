@@ -23,8 +23,8 @@ export default function RevampAbout() {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "ProCounsel",
-    "url": "https://www.procounsel.co.in",
-    "logo": "https://www.procounsel.co.in/favicon.png",
+    "url": "https://procounsel.co.in",
+    "logo": "https://procounsel.co.in/favicon.png",
     "description": "ProCounsel is India's leading career counselling and college admissions platform connecting students with verified counsellors, peer mentors, and educational resources.",
     "foundingDate": "2022",
     "contactPoint": {

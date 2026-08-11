@@ -45,7 +45,10 @@ export default function StoriesCard({ active, story }: { active: boolean; story:
           <div className="flex items-center gap-[10px]">
             <img loading="lazy" decoding="async" src={story.image} alt={story.name} className="w-[36px] h-[36px] rounded-full object-cover"/>
             <div className="flex flex-col">
-              <h3 className={`${active ? "text-white" : "text-[#0E1629]"} font-[Poppins] font-semibold text-[16px] leading-none`}>{story.name}</h3>
+              {/* Not an <h3>: the desktop block below carries the heading for
+                  this card. Both variants sit in the DOM, so two headings per
+                  card would duplicate every name in the document outline. */}
+              <p className={`${active ? "text-white" : "text-[#0E1629]"} font-[Poppins] font-semibold text-[16px] leading-none`}>{story.name}</p>
               <p className={`${active ? "text-white" : "text-[#6B7280]"} font-[Poppins] font-normal text-[12px] leading-none mt-1`}>{story.role}</p>
             </div>
           </div>

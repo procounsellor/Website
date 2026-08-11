@@ -23,18 +23,18 @@ export default function CounsellingHub() {
       "@context": "https://schema.org",
       "@type": "Service",
       serviceType: "College admission & career counselling",
-      provider: { "@type": "Organization", name: "ProCounsel", url: "https://www.procounsel.co.in" },
+      provider: { "@type": "Organization", name: "ProCounsel", url: "https://procounsel.co.in" },
       areaServed: { "@type": "Country", name: "India" },
       description:
         "Expert college admission and career counselling across India — connect with verified counsellors and college seniors for JEE, NEET, CUET, state exams, study abroad and course selection.",
-      url: "https://www.procounsel.co.in/counselling",
+      url: "https://procounsel.co.in/counselling",
     },
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: "https://www.procounsel.co.in/" },
-        { "@type": "ListItem", position: 2, name: "Counselling", item: "https://www.procounsel.co.in/counselling" },
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://procounsel.co.in/" },
+        { "@type": "ListItem", position: 2, name: "Counselling", item: "https://procounsel.co.in/counselling" },
       ],
     },
   ];

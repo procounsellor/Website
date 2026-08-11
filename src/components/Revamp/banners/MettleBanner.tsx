@@ -57,6 +57,7 @@ const MettleBanner = () => {
         </h2>
 
         <p className="mt-2 md:mt-2.5 font-poppins font-medium text-[12px] md:text-[13px] leading-[140%] text-white/80">
+          {/* Keep in sync with METTLE_PRICE in src/pages/MettleAssessment.tsx */}
           AI-scored career report · ₹2,000
         </p>
 

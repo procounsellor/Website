@@ -1,26 +1,43 @@
 import { useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getEventById, getDeadlines, type EventItem } from "@/api/deadlines";
 import DeadlinesCard from "@/components/Revamp/admissions/DeadlinesCard";
 import { SeeAllButton } from "@/components/Revamp/components/LeftRightButton";
+import PageSEO from "@/components/SEO/PageSEO";
+import { DEADLINES_SNAPSHOT } from "@/data/contentSnapshot";
+import { deadlineStaticPath, withStaticFallback } from "@/lib/staticContent";
+
+const DEADLINES_SEED = DEADLINES_SNAPSHOT as unknown as EventItem[];
 
 export default function DeadlineDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-
-  const { data: event, isLoading, isError } = useQuery({
+  // Live API first, then the build-time static copy. Retries cover Cloud Run
+  // cold starts — an API hiccup used to render a bare "Could not load this
+  // deadline" with no content at all.
+  const { data: event, isLoading, isFetched } = useQuery({
     queryKey: ['revamp-deadline-detail', id],
-    queryFn: () => getEventById(id as string),
+    queryFn: () =>
+      withStaticFallback<EventItem>(
+        () => getEventById(id as string),
+        deadlineStaticPath(id as string),
+      ),
     enabled: !!id,
+    retry: 2,
+    retryDelay: (attempt) => 800 * (attempt + 1),
     staleTime: 5 * 60 * 1000,
+    initialData: () => DEADLINES_SEED.find((deadline) => deadline.id === id),
+    initialDataUpdatedAt: 0,
   });
 
   const { data: allEvents = [] } = useQuery({
     queryKey: ['revamp-deadlines'],
     queryFn: () => getDeadlines(),
     staleTime: 5 * 60 * 1000,
+    initialData: DEADLINES_SEED.length ? DEADLINES_SEED : undefined,
+    initialDataUpdatedAt: 0,
   });
 
   const otherDeadlines = useMemo(() => {
@@ -65,7 +82,7 @@ export default function DeadlineDetailPage() {
     });
   };
 
-  if (isLoading) {
+  if (isLoading || !isFetched) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F3F7FF]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0E1629]"></div>
@@ -73,13 +90,39 @@ export default function DeadlineDetailPage() {
     );
   }
 
-  if (isError || !event) {
+  // A deadline that has genuinely been removed. Serve a real page with onward
+  // links and mark it noindex so it is never indexed as a soft 404.
+  if (!event || event.isDeleted) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F3F7FF] gap-4">
-        <p className="text-red-600 font-[Poppins] font-medium">Could not load this deadline.</p>
-        <button onClick={() => navigate(-1)} className="text-[#0E1629] font-[Poppins] underline font-semibold cursor-pointer hover:opacity-80">
-          Go Back
-        </button>
+      <div className="min-h-screen bg-[#F3F7FF] px-5 py-20 font-[Poppins]">
+        <PageSEO
+          title="Deadline no longer available"
+          description="This admission deadline has been removed or has passed. Track every live exam and counselling deadline on ProCounsel."
+          noIndex
+        />
+        <div className="max-w-2xl mx-auto text-center flex flex-col gap-4">
+          <h1 className="text-2xl md:text-3xl font-semibold text-[#0E1629]">
+            This deadline is no longer available
+          </h1>
+          <p className="text-[#6B7280]">
+            The exam or counselling deadline you were looking for has passed or been removed.
+            Browse every live admission deadline below.
+          </p>
+          <div className="flex flex-wrap gap-3 justify-center mt-2">
+            <Link
+              to="/admissions/deadlines"
+              className="rounded-xl bg-[#0E1629] px-5 py-2.5 text-sm font-semibold text-white"
+            >
+              All admission deadlines
+            </Link>
+            <Link
+              to="/admissions"
+              className="rounded-xl border border-[#0E1629] px-5 py-2.5 text-sm font-semibold text-[#0E1629]"
+            >
+              Admissions home
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
@@ -89,6 +132,37 @@ export default function DeadlineDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#F3F7FF] font-[Poppins] pb-20">
+      <PageSEO
+        title={`${event.title} — Dates, Eligibility & How to Apply`}
+        description={
+          (event.description || '').trim().slice(0, 155) ||
+          `${event.title}: important dates${startSchedule.datePart ? ` from ${startSchedule.datePart}` : ''}${endSchedule.datePart ? ` to ${endSchedule.datePart}` : ''}, application link and eligibility. Track every admission deadline on ProCounsel.`
+        }
+        canonical={`/admissions/deadlines/${event.id}`}
+        image={event.photoUrl || undefined}
+        type="article"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Event',
+          name: event.title,
+          description: event.description || undefined,
+          startDate: event.startDate
+            ? `${event.startDate}${event.startTime ? `T${event.startTime}` : ''}`
+            : undefined,
+          endDate: event.endDate
+            ? `${event.endDate}${event.endTime ? `T${event.endTime}` : ''}`
+            : undefined,
+          eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
+          eventStatus: 'https://schema.org/EventScheduled',
+          image: event.photoUrl || undefined,
+          url: `https://procounsel.co.in/admissions/deadlines/${event.id}`,
+          location: {
+            '@type': 'VirtualLocation',
+            url: event.applicationUrl || `https://procounsel.co.in/admissions/deadlines/${event.id}`,
+          },
+          organizer: { '@type': 'Organization', name: 'ProCounsel', url: 'https://procounsel.co.in' },
+        }}
+      />
       {/* Breadcrumb */}
       <div className="w-full bg-white border-b border-[#E3E8F4]">
         <div className="max-w-[1440px] mx-auto px-[20px] md:px-[60px] py-4 text-[0.875rem] text-[#6B7280] font-medium flex items-center overflow-x-auto whitespace-nowrap [&::-webkit-scrollbar]:hidden">

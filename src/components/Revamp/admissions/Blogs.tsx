@@ -59,6 +59,11 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
   const sectionBlogs = useMemo(() => blogItems.slice(0, 2), [blogItems]);
   const showSectionSeeAll = sectionBlogs.length > 0;
 
+  // On the home page, no blogs means no section — an empty "No blogs yet"
+  // band is thin content in the crawlable HTML. The full /admissions/blogs
+  // page keeps its empty state, since that page is *about* the blog list.
+  if (variant === "section" && !isLoading && sectionBlogs.length === 0) return null;
+
   if (variant === "full") {
     return (
       <div className="bg-[#F3F7FF] w-full">

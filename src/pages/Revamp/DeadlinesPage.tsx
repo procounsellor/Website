@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { getDeadlines, type EventItem } from "@/api/deadlines";
+import { type EventItem } from "@/api/deadlines";
+import { useDeadlinesList } from "@/hooks/useDeadlines";
 import { useNavigate } from "react-router-dom";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import {
@@ -26,13 +26,7 @@ export default function DeadlinesPage() {
   const [feesRange, setFeesRange] = useState<number>(0);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  const { data: allEvents = [], isLoading, isError, error, refetch } = useQuery({
-    queryKey: ['revamp-deadlines'],
-    queryFn: () => getDeadlines(),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
+  const { data: allEvents = [], isLoading, isError, error, refetch } = useDeadlinesList();
 
   // Dedup by id/title, remove deleted
   const activeEvents = (() => {

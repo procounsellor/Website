@@ -53,6 +53,14 @@ export interface User {
   phoneNumber: string;
   email: string;
   password?: string | null;
+  /**
+   * Link to the student's saved Mettle career report, written by
+   * /api/shared/postPsychometricReport. Present only once they have taken the
+   * test, so it doubles as the "already taken it" flag.
+   *
+   * The key really is spelled "pyschometric" on the API — do not correct it.
+   */
+  pyschometricReportPdfLink?: string | null;
   walletAmount: number;
   transactions: Transaction[];
   offlineTransactions: Transaction[];

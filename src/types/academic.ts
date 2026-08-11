@@ -65,6 +65,7 @@ export interface CollegeDetails {
   logoUrl: string;
   bannerUrl: string;
   collegeInfo: string; // HTML content
+  campusSize?: string; // acres, as returned by getCollegeById
   nirfOverallRank: string;
   naacGrade: string;
   approvals: string[];

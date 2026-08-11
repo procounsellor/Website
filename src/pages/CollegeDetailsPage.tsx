@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { academicApi } from '@/api/academic';
-import type { CollegeDetails } from '@/types';
+import type { CollegeApiResponse, CollegeDetails } from '@/types';
+import { COLLEGES_SNAPSHOT } from '@/data/contentSnapshot';
+import { collegeStaticPath, withStaticFallback } from '@/lib/staticContent';
 import PageSEO from '@/components/SEO/PageSEO';
 import CollegeBannerCard from '@/components/college/CollegeBannerCard';
 import CollegeTabs from '@/components/college/CollegeTabs';
@@ -17,38 +20,69 @@ import AluminiTab from '@/components/college/tabs/AluminiTab';
 import ExamsTab from '@/components/college/tabs/ExamsTab';
 import ImportantDatesTab from '@/components/college/tabs/ImportantDatesTab';
 
+const COLLEGES_SEED = COLLEGES_SNAPSHOT as unknown as CollegeApiResponse[];
+
+const stripHtml = (html: string) =>
+  html.replace(/<[^>]*>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim();
+
 const CollegeDetailsPageNew = () => {
   const { id } = useParams();
   const collegeTabStorageKey = id ? `college-details-active-tab:${id}` : 'college-details-active-tab';
 
-  const [activeTab, setActiveTab] = useState(() => {
-    if (!id) return 'Info';
+  const [activeTab, setActiveTab] = useState('Info');
 
-    try {
-      return sessionStorage.getItem(collegeTabStorageKey) || 'Info';
-    } catch {
-      return 'Info';
-    }
+  // Live API first, then the build-time static copy on public/data. Retries
+  // cover Cloud Run cold starts, which is what produced the intermittent
+  // "College not found" the AdSense reviewer hit.
+  const {
+    data: collegeData,
+    isLoading,
+    isFetched,
+  } = useQuery({
+    queryKey: ['college-details', id],
+    queryFn: () =>
+      withStaticFallback<CollegeDetails>(
+        () => academicApi.getCollegeById(id as string),
+        collegeStaticPath(id as string),
+      ),
+    enabled: Boolean(id),
+    retry: 2,
+    retryDelay: (attempt) => 800 * (attempt + 1),
+    staleTime: 5 * 60 * 1000,
   });
-  const [collegeData, setCollegeData] = useState<CollegeDetails | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchCollegeDetails = async () => {
-      if (!id) return;
-      try {
-        setLoading(true);
-        const response = await academicApi.getCollegeById(id);
-        setCollegeData(response);
-      } catch (error) {
-        console.error("Failed to fetch college details:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // The list endpoint is the only source of coursesOffered/examsAccepted, and
+  // it is seeded from the snapshot so those tabs render during the prerender.
+  const { data: allColleges = [] } = useQuery({
+    queryKey: ['revamp-colleges'],
+    queryFn: () => academicApi.getColleges(),
+    staleTime: 5 * 60 * 1000,
+    initialData: COLLEGES_SEED.length ? COLLEGES_SEED : undefined,
+    initialDataUpdatedAt: 0,
+  });
 
-    fetchCollegeDetails();
-  }, [id]);
+  const listEntry = useMemo(
+    () => allColleges.find((college) => college.collegeId === id),
+    [allColleges, id],
+  );
+  const coursesOffered = useMemo(() => listEntry?.coursesOffered ?? [], [listEntry]);
+
+  // Only surface tabs that actually have content for this college — an empty
+  // tab is thin content, and the hard-coded filler they used to show made every
+  // college page a near-duplicate of the others.
+  const availableTabs = useMemo(() => {
+    if (!collegeData) return ['Info'];
+    const tabs = ['Info'];
+    if (coursesOffered.length) tabs.push('Courses');
+    if (coursesOffered.some((course) => (course.examsAccepted || []).length)) tabs.push('Exams');
+    if (collegeData.importantDates?.length) tabs.push('Important Dates');
+    if (collegeData.scholarships?.length) tabs.push('Scholarships');
+    if (collegeData.infrastructure?.length || collegeData.campusSize) tabs.push('Infrastructure');
+    if (collegeData.events?.length) tabs.push('Events');
+    if (collegeData.alumni?.length) tabs.push('Alumini');
+    tabs.push('Counsellors');
+    return tabs;
+  }, [collegeData, coursesOffered]);
 
   useEffect(() => {
     if (!id) {
@@ -57,11 +91,12 @@ const CollegeDetailsPageNew = () => {
     }
 
     try {
-      setActiveTab(sessionStorage.getItem(collegeTabStorageKey) || 'Info');
+      const stored = sessionStorage.getItem(collegeTabStorageKey);
+      setActiveTab(stored && availableTabs.includes(stored) ? stored : 'Info');
     } catch {
       setActiveTab('Info');
     }
-  }, [collegeTabStorageKey, id]);
+  }, [collegeTabStorageKey, id, availableTabs]);
 
   useEffect(() => {
     if (!id) return;
@@ -77,69 +112,142 @@ const CollegeDetailsPageNew = () => {
     if (!collegeData) return null;
 
     switch (activeTab) {
-      case "Info":
+      case 'Info':
         return <InfoTab data={collegeData} />;
-      case "Courses":
-        return <CoursesTab />;
-      case "Counsellors":
+      case 'Courses':
+        return <CoursesTab courses={coursesOffered} fallbackImage={collegeData.bannerUrl} />;
+      case 'Counsellors':
         return <CounsellorsTab />;
-      case "Infrastructure":
-        return <InfrastructureTab />;
-      case "Scholarships":
-        return <ScholarshipsTab />;
-      case "Events":
-        return <EventsTab />
-      case "Alumini":
-        return <AluminiTab />
-      case "Exams":
-        return <ExamsTab />
-      case "Important Dates":
-        return <ImportantDatesTab />;
-      default:
+      case 'Infrastructure':
         return (
-          <div className="p-4 min-h-[300px] rounded-lg flex items-center justify-center text-gray-400">
-            Content for {activeTab} coming soon...
-          </div>
+          <InfrastructureTab
+            infrastructure={collegeData.infrastructure}
+            campusSize={collegeData.campusSize}
+            collegeName={collegeData.collegeName}
+          />
         );
+      case 'Scholarships':
+        return <ScholarshipsTab scholarships={collegeData.scholarships} />;
+      case 'Events':
+        return <EventsTab events={collegeData.events} />;
+      case 'Alumini':
+        return <AluminiTab alumni={collegeData.alumni} />;
+      case 'Exams':
+        return <ExamsTab courses={coursesOffered} fallbackImage={collegeData.bannerUrl} />;
+      case 'Important Dates':
+        return <ImportantDatesTab importantDates={collegeData.importantDates} />;
+      default:
+        return <InfoTab data={collegeData} />;
     }
+  };
+
+  if (isLoading || !isFetched) {
+    return <div className="min-h-screen flex items-center justify-center">Loading…</div>;
   }
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  }
-
+  // Genuinely unknown college: a real page with navigation, marked noindex so
+  // it never gets indexed as a soft 404.
   if (!collegeData) {
-    return <div className="min-h-screen flex items-center justify-center">College not found</div>;
+    return (
+      <div className="min-h-screen bg-white px-4 py-20">
+        <PageSEO
+          title="College not found"
+          description="This college page is no longer available on ProCounsel. Browse our verified college directory instead."
+          noIndex
+        />
+        <div className="max-w-2xl mx-auto text-center flex flex-col gap-4">
+          <h1 className="text-2xl md:text-3xl font-semibold text-[#0E1629]">
+            This college page is no longer available
+          </h1>
+          <p className="text-[#6B7280]">
+            The college you are looking for has been removed or its address has changed. You can
+            browse every verified college on ProCounsel, or talk to a counsellor about your
+            admission options.
+          </p>
+          <div className="flex flex-wrap gap-3 justify-center mt-2">
+            <Link
+              to="/pro-buddies/college-listing"
+              className="rounded-xl bg-[#0E1629] px-5 py-2.5 text-sm font-semibold text-white"
+            >
+              Browse all colleges
+            </Link>
+            <Link
+              to="/counsellor-listing"
+              className="rounded-xl border border-[#0E1629] px-5 py-2.5 text-sm font-semibold text-[#0E1629]"
+            >
+              Talk to a counsellor
+            </Link>
+            <Link
+              to="/admissions/deadlines"
+              className="rounded-xl border border-[#0E1629] px-5 py-2.5 text-sm font-semibold text-[#0E1629]"
+            >
+              Admission deadlines
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
+
+  const location = [collegeData.collegesLocationCity, collegeData.collegesLocationState]
+    .filter(Boolean)
+    .join(', ');
+  const summary = stripHtml(collegeData.collegeInfo || '').slice(0, 155);
 
   return (
     <div className="min-h-screen bg-[#FFFFFF] pb-20">
       <PageSEO
-        title={`${collegeData.collegeName} — Admissions, Courses, Cutoffs & Reviews | ProCounsel`}
-        description={`Explore ${collegeData.collegeName}: courses, fees, admissions, cutoffs, scholarships, placements and reviews. Get expert admission counselling from ProCounsel.`}
+        title={`${collegeData.collegeName} — Admissions, Courses, Cutoffs & Reviews`}
+        description={
+          summary ||
+          `Explore ${collegeData.collegeName}${location ? ` in ${location}` : ''}: courses, fees, admissions, cutoffs, scholarships, placements and reviews. Get expert admission counselling from ProCounsel.`
+        }
         canonical={`/college-details/${id}`}
+        image={collegeData.bannerUrl || undefined}
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'CollegeOrUniversity',
+          name: collegeData.collegeName,
+          url: `https://procounsel.co.in/college-details/${id}`,
+          ...(collegeData.website ? { sameAs: collegeData.website } : {}),
+          ...(collegeData.logoUrl ? { logo: collegeData.logoUrl } : {}),
+          ...(collegeData.establishedYear ? { foundingDate: collegeData.establishedYear } : {}),
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: collegeData.collegeFullAddress || undefined,
+            addressLocality: collegeData.collegesLocationCity || undefined,
+            addressRegion: collegeData.collegesLocationState || undefined,
+            postalCode: collegeData.pincode || undefined,
+            addressCountry: 'IN',
+          },
+        }}
       />
       <div className="max-w-7xl mx-auto md:mt-14 px-4 md:px-8 md:pt-10">
         <div className="mb-6 md:mb-8">
-          
-          <p 
+          <h1 className="font-semibold text-[#0E1629] text-[22px] md:text-[32px] leading-[130%]">
+            {collegeData.collegeName}
+            {location ? ` — Admissions ${new Date().getFullYear()}` : ''}
+          </h1>
+          <p
             className="text-[#8C8CA1] font-medium mt-1 md:mt-2 text-[14px] md:text-[18px] leading-[135%] md:leading-[125%]"
             style={{ fontFamily: 'Montserrat' }}
           >
-            Discover their expertise and find the right guidance for your future
+            {location
+              ? `Courses, fees, cutoffs, scholarships and placements at ${collegeData.collegeName}, ${location}.`
+              : 'Discover their expertise and find the right guidance for your future'}
           </p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6 md:gap-8 relative">
           <div className="flex-1 w-full lg:w-[70%]">
-            <CollegeBannerCard 
-              name={collegeData.collegeName} 
-              location={`${collegeData.collegesLocationCity}, ${collegeData.collegesLocationState}`}
+            <CollegeBannerCard
+              name={collegeData.collegeName}
+              location={location}
               imageUrl={collegeData.bannerUrl}
             />
 
             <div className="mt-6 md:mt-8">
-               <CollegeTabs activeTab={activeTab} onTabChange={setActiveTab} />
+               <CollegeTabs tabs={availableTabs} activeTab={activeTab} onTabChange={setActiveTab} />
             </div>
 
             <div className="mt-4 md:mt-6">

@@ -10,6 +10,11 @@ import {
   getBoughtCourses,
 } from "@/api/course";
 import { useNavigate } from "react-router-dom";
+import { COURSES_SNAPSHOT } from "@/data/contentSnapshot";
+
+const COURSES_SEED = COURSES_SNAPSHOT.length
+  ? ({ data: COURSES_SNAPSHOT, message: "snapshot" } as any)
+  : undefined;
 
 type CourseTab = "my-courses" | "trending" | "all-courses";
 
@@ -65,6 +70,10 @@ export default function CourseSection() {
         ? getAllCounsellorCoursesForUser(userId)
         : getAllCounsellorCoursesForGuest(),
     enabled: !isUserLoggedIn || Boolean(userId),
+    // Seeded from the build-time snapshot so /courses prerenders with real
+    // courses instead of "No courses found for this tab."
+    initialData: COURSES_SEED,
+    initialDataUpdatedAt: 0,
   });
 
   const { data: myCoursesResponse, isLoading: isLoadingMyCourses } = useQuery({
@@ -120,6 +129,10 @@ export default function CourseSection() {
   const handleTabChange = (tab: CourseTab) => {
     setActiveTab(tab);
   };
+
+  // A signed-out visitor with no courses at all gets no section, rather than a
+  // "No courses found" placeholder — that empty block is what crawlers saw.
+  if (!isUserLoggedIn && !isLoadingCourses && allCoursesData.length === 0) return null;
 
   const shouldShowInlineCourseUpsell =
     isUserLoggedIn && activeTab === "my-courses" && filteredCourses.length <= 1 && !isLoadingCourses;

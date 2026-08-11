@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 import { existsSync } from "node:fs";
-import { STATIC_ROUTES } from "./site-routes.mjs";
+import { getPrerenderRoutes } from "./site-routes.mjs";
 
 const require = createRequire(import.meta.url);
 
@@ -25,7 +25,7 @@ if (!process.env.PUPPETEER_EXECUTABLE_PATH) {
 const { run } = require("react-snap");
 
 async function main() {
-  const routes = STATIC_ROUTES;
+  const routes = getPrerenderRoutes();
 
   await run({
     source: "dist",

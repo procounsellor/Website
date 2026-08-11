@@ -43,10 +43,10 @@ export default function CounsellingCityPage() {
       "@context": "https://schema.org",
       "@type": "Service",
       serviceType: "College admission & career counselling",
-      provider: { "@type": "Organization", name: "ProCounsel", url: "https://www.procounsel.co.in" },
+      provider: { "@type": "Organization", name: "ProCounsel", url: "https://procounsel.co.in" },
       areaServed: { "@type": "City", name: cityData.city, containedInPlace: { "@type": "State", name: cityData.state } },
       description: content.metaDescription,
-      url: `https://www.procounsel.co.in/counselling/${cityData.slug}`,
+      url: `https://procounsel.co.in/counselling/${cityData.slug}`,
     },
     {
       "@context": "https://schema.org",
@@ -61,9 +61,9 @@ export default function CounsellingCityPage() {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: "https://www.procounsel.co.in/" },
-        { "@type": "ListItem", position: 2, name: "Counselling", item: "https://www.procounsel.co.in/counselling" },
-        { "@type": "ListItem", position: 3, name: `Counselling in ${cityData.city}`, item: `https://www.procounsel.co.in/counselling/${cityData.slug}` },
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://procounsel.co.in/" },
+        { "@type": "ListItem", position: 2, name: "Counselling", item: "https://procounsel.co.in/counselling" },
+        { "@type": "ListItem", position: 3, name: `Counselling in ${cityData.city}`, item: `https://procounsel.co.in/counselling/${cityData.slug}` },
       ],
     },
   ];

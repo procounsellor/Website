@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-export const SITE_URL = process.env.SITE_URL || "https://www.procounsel.co.in";
+export const SITE_URL = process.env.SITE_URL || "https://procounsel.co.in";
 
 // Blog slug routes to PRERENDER — read from the build-time snapshot written by
 // scripts/generate-blog-snapshot.mjs (which runs first in `prebuild`). This is
@@ -48,10 +48,11 @@ export const STATIC_ROUTES = [
   ...BLOG_SLUG_ROUTES,
   "/admissions/deadlines",
 
-  // Courses sub-pages
+  // Courses sub-pages. /courses/session-listing is intentionally absent: live
+  // sessions are signed-in Firebase state with nothing crawlable, so that page
+  // is noindex rather than an indexable empty shell.
   "/courses/course-listing",
   "/courses/test-listing",
-  "/courses/session-listing",
 
   // ProBuddies sub-pages
   "/pro-buddies/listing",
@@ -259,8 +260,13 @@ export async function fetchDeadlineIds() {
     }
     const json = await response.json();
     const rows = parseListPayload(json);
-    const ids = rows.map((item) => item?.id || item?.eventId || "").filter(Boolean);
-    console.log(`[sitemap] Fetched ${ids.length} deadline IDs.`);
+    // Most rows come back soft-deleted. Publishing those produced sitemap URLs
+    // that rendered "Could not load this deadline" — soft 404s to a crawler.
+    const ids = rows
+      .filter((item) => !item?.isDeleted)
+      .map((item) => item?.id || item?.eventId || "")
+      .filter(Boolean);
+    console.log(`[sitemap] Fetched ${ids.length} live deadline IDs (of ${rows.length} rows).`);
     return Array.from(new Set(ids));
   } catch (error) {
     console.warn("[sitemap] Failed to fetch deadlines:", error);
@@ -297,6 +303,19 @@ export async function fetchProBuddyIds() {
   }
 }
 
+// Written by scripts/generate-content-snapshot.mjs, which runs first in
+// `prebuild`. It only ever lists colleges and *live* (non-deleted) deadlines,
+// so it doubles as the fallback when the API is unreachable at build time.
+function readContentIndex() {
+  try {
+    return JSON.parse(
+      readFileSync(path.resolve(process.cwd(), "public/data/content-index.json"), "utf8"),
+    );
+  } catch {
+    return { colleges: [], deadlines: [] };
+  }
+}
+
 export async function getDynamicRoutes() {
   const [blogSlugs, counsellorIds, collegeIds, deadlineIds, proBuddyIds] = await Promise.all([
     fetchBlogSlugs(),
@@ -306,13 +325,33 @@ export async function getDynamicRoutes() {
     fetchProBuddyIds(),
   ]);
 
+  const snapshot = readContentIndex();
+  // Prefer the live API, but never emit an empty section just because the
+  // backend was cold — fall back to what the snapshot verified exists.
+  const colleges = collegeIds.length ? collegeIds : snapshot.colleges || [];
+  const deadlines = deadlineIds.length ? deadlineIds : snapshot.deadlines || [];
+
   return [
     ...blogSlugs.map((slug) => `/admissions/blogs/slug/${slug}`),
     ...counsellorIds.map((id) => `/counsellor-details/${id}`),
-    ...collegeIds.map((id) => `/college-details/${id}`),
-    ...deadlineIds.map((id) => `/admissions/deadlines/${id}`),
+    ...colleges.map((id) => `/college-details/${id}`),
+    ...deadlines.map((id) => `/admissions/deadlines/${id}`),
     ...proBuddyIds.map((id) => `/pro-buddies/profile/${id}`),
   ];
+}
+
+// Routes react-snap prerenders. Detail pages are included so college and
+// deadline URLs ship real HTML instead of an empty SPA shell that only fills in
+// if the crawler runs JS and the backend answers in time.
+export function getPrerenderRoutes() {
+  const snapshot = readContentIndex();
+  return Array.from(
+    new Set([
+      ...STATIC_ROUTES,
+      ...(snapshot.colleges || []).map((id) => `/college-details/${id}`),
+      ...(snapshot.deadlines || []).map((id) => `/admissions/deadlines/${id}`),
+    ]),
+  );
 }
 
 export async function getPublicRoutes() {

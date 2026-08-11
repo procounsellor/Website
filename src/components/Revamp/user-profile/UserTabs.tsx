@@ -298,6 +298,9 @@ function MyInfoTab() {
           </div>
         </InfoCard>
 
+        {/* Mettle lives on the profile sidebar (UserDetails), not here — one
+            entry point per screen. */}
+
       </div>
 
       <AddFundsPanel

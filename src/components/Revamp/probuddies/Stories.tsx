@@ -1,36 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import StoriesCard, { type StoryItem } from "./StoriesCard";
 
-const defaultStories: StoryItem[] = [
-    {
-        name: "Leo",
-        role: "Lead Designer",
-        rating: 5,
-        text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cursus nibh mauris, nec turpis orci lectus maecenas. Suspendisse sed magna eget nibh in turpis. Consequat duis diam lacus arcu.",
-        image: "/1st.png",
-    },
-    {
-        name: "Leo",
-        role: "Lead Designer",
-        rating: 5,
-        text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cursus nibh mauris, nec turpis orci lectus maecenas. Suspendisse sed magna eget nibh in turpis. Consequat duis diam lacus arcu.",
-        image: "/2nd.png",
-    },
-    {
-        name: "Leo",
-        role: "Lead Designer",
-        rating: 5,
-        text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cursus nibh mauris, nec turpis orci lectus maecenas. Suspendisse sed magna eget nibh in turpis. Consequat duis diam lacus arcu.",
-        image: "/1st.png",
-    },
-];
-
 export default function Stories({ stories }: { stories?: StoryItem[] }) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [_activeIndex, setActiveIndex] = useState(0);
-    const displayedStories = (stories && stories.length >= 3 ? stories.slice(0, 3) : defaultStories);
+    // No lorem-ipsum fallback: a caller with no real stories renders nothing
+    // rather than publishing placeholder testimonials.
+    const displayedStories = (stories ?? []).slice(0, 3);
 
     useEffect(() => {
+        if (displayedStories.length === 0) return;
         const interval = setInterval(() => {
             if (window.innerWidth < 768 && scrollRef.current) {
                 setActiveIndex((prev) => {
@@ -46,6 +25,8 @@ export default function Stories({ stories }: { stories?: StoryItem[] }) {
         }, 4500);
         return () => clearInterval(interval);
     }, [displayedStories.length]);
+
+    if (displayedStories.length === 0) return null;
 
     return (
         <div className="w-full py-6 md:py-10 pb-6 md:pb-[95px]">

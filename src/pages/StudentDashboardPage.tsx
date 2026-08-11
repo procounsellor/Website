@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/AuthStore';
 import ProfileHeader from '@/components/student-dashboard/ProfileHeader';
+import MettleReportStrip from '@/components/student-dashboard/MettleReportStrip';
 import MyInfoTab from '@/components/student-dashboard/MyInfoTab';
 import AppointmentsTab from '@/components/student-dashboard/AppointmentsTab';
 import { Loader2 } from 'lucide-react';
@@ -246,6 +247,8 @@ const StudentDashboardPage: React.FC = () => {
     <div className="bg-[#F5F5F7] min-h-screen p-4 md:p-8 pt-15 md:pt-20">
       <div className="max-w-7xl mx-auto">
         <ProfileHeader user={user} onEditClick={() => setIsEditModalOpen(true)} />
+
+        <MettleReportStrip user={user} />
 
         <div className="border-b border-gray-200 mb-6">
           <nav

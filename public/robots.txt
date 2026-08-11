@@ -26,4 +26,4 @@ Disallow: /add-college
 Disallow: /subscribe
 Disallow: /gurucool
 
-Sitemap: https://www.procounsel.co.in/sitemap.xml
+Sitemap: https://procounsel.co.in/sitemap.xml

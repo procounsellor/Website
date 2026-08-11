@@ -525,7 +525,7 @@ export const optionFormContent: {
       heading: "What ProCounsel does on your option form",
       paragraphs: [
         "A counsellor speaks with you first — branch priority, budget, how far from home you are willing to go, whether you would repeat a year for a specific branch. Only then is the list built, college by college, with a reason attached to each position, and filled and verified with you before the CAP deadline.",
-        "The work does not end when the form is locked. Cutoffs move after every allotment, so your list is reviewed and reordered before each subsequent round, and you are told plainly whether to accept an allotment or hold for the next round. If you have already filled a form yourself, an expert revision reviews it line by line, adds what is missing and corrects the order.",
+        "If you have already filled a form yourself, an expert revision reviews it line by line, adds the colleges and branches you have missed, and corrects the order against this year's cutoff movement.",
       ],
     },
   ],
@@ -553,7 +553,7 @@ export const optionFormContent: {
     {
       question: "How much does MHT-CET option form filling help cost at ProCounsel?",
       answer:
-        "A complete option form built from scratch by a counsellor, and an expert revision of a form you have already filled, are both one-time payments made from your ProCounsel wallet — the current prices are shown on this page. Revisions between CAP rounds are included, and a counsellor contacts you on call or WhatsApp within 4 hours of payment.",
+        "A complete option form built from scratch by a counsellor, and an expert revision of a form you have already filled, are both one-time payments made from your ProCounsel wallet — the current prices are shown on this page. A counsellor contacts you on call or WhatsApp within 4 hours of payment.",
     },
     {
       question: "Do I still need help if I have a very high percentile?",

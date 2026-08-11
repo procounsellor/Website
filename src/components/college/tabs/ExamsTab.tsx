@@ -1,41 +1,48 @@
 import ExamCard from './ExamCard';
+import type { CourseOffered } from '@/types/academic';
 
-const EXAMS_DATA = [
-  {
-    id: 1,
-    title: "JEE Advanced 2026",
-    tag: "National",
-    image: "https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?q=80&w=2940&auto=format&fit=crop"
-  },
-  {
-    id: 2,
-    title: "GATE 2026 (Graduate Aptitude Test)",
-    tag: "PG Entrance",
-    image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2940&auto=format&fit=crop"
-  },
-  {
-    id: 3,
-    title: "CEED (Common Entrance Exam for Design)",
-    tag: "Design",
-    image: "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?q=80&w=2874&auto=format&fit=crop"
-  },
-  {
-    id: 4,
-    title: "JAM (Joint Admission Test for Masters)",
-    tag: "Science",
-    image: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=2940&auto=format&fit=crop"
+interface ExamsTabProps {
+  courses?: CourseOffered[];
+  fallbackImage?: string;
+}
+
+// Entrance exams this college actually accepts, derived from the exams attached
+// to each offered course. Previously a hard-coded JEE/GATE/CEED/JAM list.
+const ExamsTab = ({ courses = [], fallbackImage }: ExamsTabProps) => {
+  const byExam = new Map<string, { title: string; tag: string }>();
+
+  for (const course of courses) {
+    for (const exam of course?.examsAccepted || []) {
+      const title = exam?.examName?.trim();
+      if (!title) continue;
+      const key = exam.examId?.trim() || title.toLowerCase();
+      if (!byExam.has(key)) {
+        byExam.set(key, {
+          title,
+          tag: String(course.courseLevel).toUpperCase() === 'PG' ? 'PG Entrance' : 'UG Entrance',
+        });
+      }
+    }
   }
-];
 
-const ExamsTab = () => {
+  const items = Array.from(byExam.values());
+
+  if (items.length === 0) {
+    return (
+      <div className="p-4 min-h-[200px] rounded-lg flex items-center justify-center text-center text-[#718EBF] font-medium">
+        Accepted entrance exams for this college have not been published yet.
+      </div>
+    );
+  }
+
   return (
     <div className="w-full grid grid-cols-2 gap-3 md:flex md:flex-wrap md:gap-[23px] md:justify-center">
-      {EXAMS_DATA.map((exam) => (
+      {items.map((exam) => (
         <ExamCard
-          key={exam.id}
+          key={exam.title}
           title={exam.title}
           tag={exam.tag}
-          image={exam.image}
+          image={fallbackImage || '/course/3.webp'}
           onViewDetails={() => {}}
         />
       ))}

@@ -9,19 +9,18 @@ import {
   ShieldCheck,
   Wallet,
   X,
+  Clock,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import PageSEO from "@/components/SEO/PageSEO";
 import SeoArticle from "@/components/SEO/SeoArticle";
 import { optionFormContent } from "@/components/SEO/seoContent";
-import AddFundsPanel from "@/components/student-dashboard/AddFundsPanel";
 import { useAuthStore } from "@/store/AuthStore";
 import startRecharge from "@/api/wallet";
 import { getLoggedInPhone, formatPhoneForRazorpay } from "@/lib/phone";
 import {
   OPTION_FORM_PRICE,
-  debitWalletForOptionForm,
-  markOptionFormPaymentCompleted,
+  payOptionFormFromWallet,
   registerOptionForm,
   type OptionFormRequirement,
 } from "@/api/optionForm";
@@ -39,10 +38,21 @@ const STATES = [
   "Ladakh", "Lakshadweep", "Puducherry",
 ];
 
+/**
+ * Launch offer. The struck-through figure is the standard fee; the timer below
+ * is what makes it an offer rather than just a lower price.
+ *
+ * Ends 31 July 2026, 12:00 AM IST. Move this date to extend the offer — the
+ * countdown, the banner and the strike-through all read from it, and everything
+ * quietly reverts to the plain price once it passes.
+ */
+const OFFER_ENDS_AT = Date.parse("2026-07-31T00:00:00+05:30");
+
 const PLANS: {
   id: OptionFormRequirement;
   name: string;
   price: number;
+  mrp: number;
   tagline: string;
   includes: string[];
 }[] = [
@@ -50,25 +60,25 @@ const PLANS: {
     id: "NEW",
     name: "Full option form",
     price: OPTION_FORM_PRICE.NEW,
+    mrp: 6000,
     tagline: "We build your preference list from scratch.",
     includes: [
       "Call or WhatsApp within 4 hours of payment",
       "Complete choice list, ordered college by college",
       "Filled and verified with you before you lock it",
-      "Support through every CAP round",
     ],
   },
   {
     id: "REVISED",
     name: "Form revision",
     price: OPTION_FORM_PRICE.REVISED,
+    mrp: 4000,
     tagline: "You already have a list. We fix the order.",
     includes: [
       "Call or WhatsApp within 4 hours of payment",
       "Line-by-line review of your existing choices",
       "Reordering based on this year's cutoff movement",
       "Missing colleges and branches added",
-      "Support for the remaining CAP rounds",
     ],
   },
 ];
@@ -107,13 +117,41 @@ const MISTAKES = [
 ];
 
 const STEPS = [
-  { label: "Register", body: "Fill your marks and domicile below and complete the payment." },
+  { label: "Register", body: "Enter your marks, percentile or rank and your domicile below, then complete the payment." },
   { label: "We call you", body: "Within 4 hours an MHT-CET counsellor reaches you on call or WhatsApp to understand your branch priority, budget and location limits." },
   { label: "Draft list", body: "You get a full choice list, ordered and explained — why each college sits where it sits." },
-  { label: "Lock it in", body: "We fill and verify the form with you, well before the CAP deadline. Revisions between rounds included." },
+  { label: "Lock it in", body: "We fill and verify the form with you, well before the CAP deadline." },
 ];
 
 const rupees = (value: number) => `₹${value.toLocaleString("en-IN")}`;
+
+/**
+ * Phones we've already registered, kept as `{ "9876543210": "NEW" }`.
+ *
+ * The backend refuses a second register for the same phone, so once a row
+ * exists a retry must go straight to paying. Stored rather than held in state
+ * so it survives a reload or a browser restart mid-payment.
+ */
+const REGISTERED_KEY = "optionForm:registered";
+
+const readRegistered = (): Record<string, string> => {
+  try {
+    const raw = localStorage.getItem(REGISTERED_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const rememberRegistered = (phone: string, requirement: string) => {
+  try {
+    const all = readRegistered();
+    all[phone] = requirement;
+    localStorage.setItem(REGISTERED_KEY, JSON.stringify(all));
+  } catch {
+    // Private mode / quota — the duplicate-tolerant register call covers us.
+  }
+};
 
 const FAQS = [
   {
@@ -122,7 +160,7 @@ const FAQS = [
   },
   {
     q: "What happens after I pay?",
-    a: "Our counsellor will contact you on call or WhatsApp within 4 hours of your payment, on the number you register with. From there they stay with you through the whole process — understanding your priorities, building the choice list, filling the form and revising it between rounds.",
+    a: "Our counsellor will contact you on call or WhatsApp within 4 hours of your payment, on the number you register with. They understand your priorities, build your choice list in order, and fill and verify the form with you before the deadline.",
   },
   {
     q: "How much does it cost?",
@@ -133,8 +171,8 @@ const FAQS = [
     a: "The amount is taken from your ProCounsel wallet. If your balance is short, add money on the same page with any UPI app, card or netbanking — the amount is then deducted straight away and your registration is confirmed.",
   },
   {
-    q: "Can I get my form revised between rounds?",
-    a: "Yes. Cutoffs shift after every round, so your list is reviewed and reordered before each subsequent round at no extra cost.",
+    q: "I have already filled my form. Can you correct it?",
+    a: "Yes — that is what the revision is for. A counsellor reviews your existing list line by line, adds colleges and branches you have missed, and corrects the order against this year's cutoff movement.",
   },
 ];
 
@@ -152,18 +190,21 @@ export default function OptionFormFilling() {
   const reduceMotion = useReducedMotion();
 
   const [plan, setPlan] = useState<OptionFormRequirement>("NEW");
+  // Until a plan is actually picked, showing one plan's price would hide the
+  // other. The phone bar stays a "choose" prompt up to that point.
+  const [hasChosenPlan, setHasChosenPlan] = useState(false);
   const [name, setName] = useState("");
   const [marks, setMarks] = useState("");
   const [stateDomicile, setStateDomicile] = useState("Maharashtra");
   const [phone, setPhone] = useState("");
   const [status, setStatus] = useState<"idle" | "paying" | "done">("idle");
-  const [addFundsOpen, setAddFundsOpen] = useState(false);
   const [sorted, setSorted] = useState(false);
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isWide, setIsWide] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [msLeft, setMsLeft] = useState(() => OFFER_ENDS_AT - Date.now());
 
-  const pendingPayRef = useRef(false);
   const resumeAfterAuthRef = useRef(false);
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -175,11 +216,38 @@ export default function OptionFormFilling() {
   const choices = sorted || !animateReorder ? CHOICES_AFTER : CHOICES_BEFORE;
 
   // Prefill from the logged-in profile so a returning student only picks a plan.
+  // The phone is overwritten rather than merely defaulted: the registration is
+  // created under the login number, so showing any other number would be a lie.
   useEffect(() => {
     if (!user) return;
     setName((prev) => prev || `${user.firstName || ""} ${user.lastName || ""}`.trim());
-    setPhone((prev) => prev || getLoggedInPhone() || user.phoneNumber || "");
+    const loginPhone = (getLoggedInPhone() || user.phoneNumber || "").replace(/\D/g, "").slice(-10);
+    if (loginPhone) setPhone(loginPhone);
   }, [user]);
+
+  /**
+   * Someone opening a shared link is asked to log in on arrival.
+   *
+   * The login card opens OVER the page — the page still renders underneath, so
+   * Google, the sitemap prerender and link previews all see the full content.
+   * The prerender crawler itself is skipped so the built HTML stays clean.
+   */
+  const isReactSnap = typeof navigator !== "undefined" && navigator.userAgent === "ReactSnap";
+  const authLoading = useAuthStore((s) => s.loading);
+  useEffect(() => {
+    // Wait for the store to rehydrate, or it prompts a logged-in student too.
+    if (isReactSnap || authLoading || isAuthenticated) return;
+    toggleLogin();
+    // Once, on arrival — not every time the login card is dismissed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading]);
+
+  // Ticks once a second while the offer is live, then stops for good.
+  useEffect(() => {
+    if (msLeft <= 0) return;
+    const timer = setInterval(() => setMsLeft(OFFER_ENDS_AT - Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [msLeft]);
 
   useEffect(() => {
     const query = window.matchMedia("(min-width: 1024px)");
@@ -207,51 +275,133 @@ export default function OptionFormFilling() {
 
   const validationError = useMemo(() => {
     if (!name.trim()) return "Enter your full name.";
-    const marksValue = Number(marks);
-    if (!marks.trim() || Number.isNaN(marksValue) || marksValue <= 0) return "Enter your MHT-CET marks or percentile.";
-    if (marksValue > 200) return "Marks look too high. Enter your MHT-CET score out of 200, or your percentile.";
+    const scoreValue = Number(marks);
+    if (!marks.trim() || Number.isNaN(scoreValue) || scoreValue <= 0)
+      return "Enter your MHT-CET marks, percentile or rank.";
     if (!stateDomicile) return "Select your state of domicile.";
     if (!/^\d{10}$/.test(phone.replace(/\D/g, "").slice(-10))) return "Enter a 10-digit phone number.";
     return null;
   }, [name, marks, stateDomicile, phone]);
 
+  /**
+   * The wallet is credited by the payment webhook, so the money does not always
+   * show up on the very first read after Razorpay returns. Poll for it instead
+   * of failing with "couldn't fetch funds" the moment it isn't there yet.
+   */
+  const waitForWalletCredit = async (target: number): Promise<boolean> => {
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const fresh = await refreshUser(true);
+      // refreshUser logs the user out if the profile call fails, so a null here
+      // means the session is gone — polling on would be pointless and would
+      // leave the student staring at a spinner.
+      if (!fresh) {
+        throw new Error(
+          "Your payment went through, but your session dropped. Log in again and tap Pay — the money is in your wallet, you won't be charged twice."
+        );
+      }
+      if ((fresh.walletAmount ?? 0) >= target) return true;
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+    }
+    return false;
+  };
+
+  /**
+   * Charges the shortfall on Razorpay and resolves only once that money is
+   * actually visible in the wallet, so the caller can debit straight after.
+   */
+  const topUpWallet = async (walletId: string, amount: number, target: number) => {
+    const order = await startRecharge(walletId, amount);
+    if (!order || typeof order === "string" || !order.orderId) {
+      throw new Error("Could not start the payment. Please try again.");
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      const options = {
+        key: order.keyId,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.orderId,
+        name: "ProCounsel",
+        description:
+          plan === "NEW" ? "MHT-CET option form filling" : "MHT-CET option form revision",
+        prefill: {
+          contact: formatPhoneForRazorpay(getLoggedInPhone()),
+          email: user?.email || "",
+          name: `${user?.firstName || ""} ${user?.lastName || ""}`.trim(),
+        },
+        notes: { userId: walletId, service: "mhtcet-option-form" },
+        handler: () => {
+          void (async () => {
+            const credited = await waitForWalletCredit(target);
+            if (credited) {
+              resolve();
+              return;
+            }
+            reject(
+              new Error(
+                "Payment went through but your balance hasn't updated yet. Give it a minute and tap Pay again — you won't be charged twice."
+              )
+            );
+          })();
+        },
+        modal: { ondismiss: () => reject(new Error("Payment cancelled.")) },
+        theme: { color: "#FA660F" },
+      };
+
+      const Rz = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
+      new Rz(options).open();
+    });
+  };
+
   const runPayment = async () => {
-    const uid = getLoggedInPhone() || userId;
-    if (!uid) {
+    // One identity throughout: the backend finds the wallet AND the registration
+    // row from this same id, so the registration must be created under the
+    // logged-in phone or the payment call won't find it.
+    const walletId = getLoggedInPhone() || userId;
+    if (!walletId) {
       toast.error("Please log in to continue.");
       return;
     }
 
     setStatus("paying");
     try {
-      // Read the balance from the server, not the cached profile — the student
-      // may have just topped up in another tab.
-      const fresh = await refreshUser(true);
-      const currentBalance =
-        fresh && typeof fresh.walletAmount === "number" ? fresh.walletAmount : balance;
-
-      if (currentBalance < price) {
-        pendingPayRef.current = true;
-        setStatus("idle");
-        setAddFundsOpen(true);
-        toast.error(`Add ₹${(price - currentBalance).toLocaleString("en-IN")} more to your wallet to continue.`);
-        return;
+      // Skip register on a retry — the row is already there and a second call
+      // would only come back "already exists". registerOptionForm tolerates the
+      // duplicate too, for a retry from another device or after clearing data.
+      if (readRegistered()[walletId] !== plan) {
+        await registerOptionForm({
+          name: name.trim(),
+          marks: Number(marks),
+          stateDomicile,
+          phoneNumber: walletId,
+          optionFormRequirement: plan,
+        });
+        rememberRegistered(walletId, plan);
       }
 
-      await registerOptionForm({
-        name: name.trim(),
-        marks: Number(marks),
-        stateDomicile,
-        phoneNumber: phone.replace(/\D/g, "").slice(-10),
-        optionFormRequirement: plan,
-      });
+      // Read the balance from the server, not the cached profile. A cached
+      // number here would charge the wrong amount, so a failed read aborts
+      // rather than guesses.
+      const fresh = await refreshUser(true);
+      if (!fresh) {
+        throw new Error("Your session expired. Please log in again and tap Pay.");
+      }
+      const shortfall = price - (fresh.walletAmount ?? 0);
 
-      await debitWalletForOptionForm(uid, price);
-      await markOptionFormPaymentCompleted(uid);
+      if (shortfall > 0) {
+        // Straight to Razorpay for exactly what's missing — no separate
+        // "add money to your wallet" detour.
+        await topUpWallet(walletId, shortfall, price);
+      }
 
-      pendingPayRef.current = false;
+      // Deducts and marks the registration paid in one call, so it can no
+      // longer half-succeed. Deliberately not retried: a repeat could deduct
+      // twice unless the backend makes it idempotent.
+      await payOptionFormFromWallet(walletId, price);
+
       await refreshUser(true);
       setStatus("done");
+      setSuccessOpen(true);
       toast.success("Payment received. Our counsellor will contact you within 4 hours.");
     } catch (error) {
       console.error("Option form payment failed:", error);
@@ -296,52 +446,20 @@ export default function OptionFormFilling() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, needsOnboarding, needsProfileCompletion, isProfileCompletionOpen, status]);
 
-  const handleRecharge = async (amount: number) => {
-    if (!amount || amount <= 0) {
-      toast.error("Enter a valid amount.");
-      return;
-    }
-    const uid = getLoggedInPhone() || userId || "";
-    try {
-      const order = await startRecharge(uid, amount);
-      const options = {
-        key: order.keyId,
-        amount: order.amount,
-        currency: order.currency,
-        order_id: order.orderId,
-        name: "ProCounsel Wallet",
-        description: "Wallet Recharge",
-        prefill: {
-          contact: formatPhoneForRazorpay(getLoggedInPhone()),
-          email: user?.email || "",
-          name: `${user?.firstName || ""} ${user?.lastName || ""}`.trim(),
-        },
-        notes: { userId: uid },
-        handler: async function () {
-          toast.success("Money added. Completing your registration…");
-          try {
-            await refreshUser(true);
-          } catch (err) {
-            console.error("Failed to refresh wallet balance after payment.", err);
-          }
-          setAddFundsOpen(false);
-          if (pendingPayRef.current) {
-            setTimeout(() => runPayment(), 500);
-          }
-        },
-        modal: { ondismiss: () => undefined },
-        theme: { color: "#FA660F" },
-      };
-
-      const Rz = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
-      new Rz(options).open();
-    } catch (error) {
-      console.error("Failed to start Razorpay order.", error);
-      toast.error("Could not start the payment. Please try again.");
-    }
-  };
-
   const scrollToForm = () => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  /**
+   * Login gate for the checkout buttons — NOT for the page. The route stays
+   * public so it keeps ranking; only starting a purchase needs an account, which
+   * is what keeps the registration on the same number they logged in with.
+   * Returns false when it opened the login card instead.
+   */
+  const requireLogin = () => {
+    if (isAuthenticated) return true;
+    setSheetOpen(false);   // the login card sits below the sheet
+    toggleLogin();
+    return false;
+  };
 
   /**
    * Phone users can't see the plan cards and the detail fields at the same time,
@@ -349,11 +467,22 @@ export default function OptionFormFilling() {
    * side-by-side panel and just scrolls to it.
    */
   const startCheckout = () => {
-    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+    if (!requireLogin()) return;
+    // On a phone, send them to the plans first — the details sheet only opens
+    // once they've actually picked one.
+    if (typeof window !== "undefined" && window.innerWidth < 1024 && hasChosenPlan) {
       setSheetOpen(true);
       return;
     }
     scrollToForm();
+  };
+
+  /** Picking a plan on the page is what opens the details sheet on mobile. */
+  const choosePlan = (id: OptionFormRequirement) => {
+    if (!requireLogin()) return;
+    setPlan(id);
+    setHasChosenPlan(true);
+    if (typeof window !== "undefined" && window.innerWidth < 1024) setSheetOpen(true);
   };
 
   useEffect(() => {
@@ -370,6 +499,28 @@ export default function OptionFormFilling() {
     };
   }, [sheetOpen]);
 
+  const offerLive = msLeft > 0;
+  const countdown = (() => {
+    const total = Math.max(0, Math.floor(msLeft / 1000));
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return {
+      h: pad(Math.floor(total / 3600)),
+      m: pad(Math.floor((total % 3600) / 60)),
+      s: pad(total % 60),
+    };
+  })();
+
+  // Quiet on the dark hero — a thin line of text, not a coloured slab.
+  const offerTimer = offerLive ? (
+    <span className="inline-flex items-center gap-2 text-[13px] text-white/50">
+      <Clock className="h-3.5 w-3.5 shrink-0" />
+      Offer ends in
+      <span className="font-['Montserrat'] font-semibold tabular-nums text-white/80">
+        {countdown.h}:{countdown.m}:{countdown.s}
+      </span>
+    </span>
+  ) : null;
+
   const fieldClass =
     "mt-1.5 h-11 w-full rounded-xl border border-[#E4E7F1] bg-[#FAFBFF] px-3.5 text-[15px] text-[#0B1020] outline-none transition-colors placeholder:text-[#A8AEC6] focus:border-[#FA660F] focus:bg-white";
   const labelClass = "text-[12px] font-medium text-[#5A6180]";
@@ -377,7 +528,12 @@ export default function OptionFormFilling() {
   // Shared between the desktop panel and the mobile sheet — one set of fields,
   // one piece of state, rendered in whichever surface fits the screen.
   const detailFields = (
-    <div className="space-y-4">
+    <div
+      className="space-y-4"
+      // The desktop panel sits open on the page, so the fields are reachable
+      // without pressing any button. Touching one asks for login first.
+      onPointerDownCapture={(e) => { if (!requireLogin()) e.preventDefault(); }}
+    >
       <label className="block">
         <span className={labelClass}>Full name</span>
         <input
@@ -389,24 +545,29 @@ export default function OptionFormFilling() {
       </label>
 
       <div className="grid grid-cols-2 gap-3">
+        {/* One number, whichever the student knows — the counsellor sorts out
+            which it is on the call. The API carries it as `marks`. */}
         <label className="block">
-          <span className={labelClass}>MHT-CET marks</span>
+          <span className={labelClass}>Marks, percentile or rank</span>
           <input
             value={marks}
             onChange={(e) => setMarks(e.target.value.replace(/[^\d.]/g, ""))}
             inputMode="decimal"
-            placeholder="e.g. 142"
+            placeholder="e.g. 142 or 98.6"
             className={`${fieldClass} tabular-nums`}
           />
         </label>
         <label className="block">
-          <span className={labelClass}>Phone</span>
+          <span className={labelClass}>
+            Phone {isAuthenticated && <span className="text-[#8189A6]">(your login number)</span>}
+          </span>
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
             inputMode="numeric"
             placeholder="10-digit number"
-            className={`${fieldClass} tabular-nums`}
+            readOnly={isAuthenticated}
+            className={`${fieldClass} tabular-nums ${isAuthenticated ? "text-[#5A6180]" : ""}`}
           />
         </label>
       </div>
@@ -473,7 +634,7 @@ export default function OptionFormFilling() {
   const payFootnote = (
     <p className="text-center text-[12px] leading-relaxed text-[#8189A6]">
       {isAuthenticated
-        ? "Short on balance? You can add money here without leaving this page."
+        ? "Pay by UPI, card or netbanking — the payment window opens right here."
         : "You'll be asked to log in here — nothing you typed is lost."}
     </p>
   );
@@ -484,22 +645,22 @@ export default function OptionFormFilling() {
     serviceType: "MHT-CET option form filling",
     name: "MHT-CET Option Form Filling by ProCounsel",
     description:
-      "Expert MHT-CET CAP round option form filling and revision. A counsellor builds and orders your college preference list, fills the form with you and supports you through every round.",
+      "Expert MHT-CET CAP round option form filling and revision. A counsellor builds and orders your college preference list and fills the form with you before the deadline.",
     provider: {
       "@type": "Organization",
       name: "ProCounsel",
-      url: "https://www.procounsel.co.in",
+      url: "https://procounsel.co.in",
       telephone: "+91-7004789484",
     },
     areaServed: { "@type": "State", name: "Maharashtra" },
-    url: "https://www.procounsel.co.in/mhtcet-option-form-filling",
+    url: "https://procounsel.co.in/mhtcet-option-form-filling",
     offers: PLANS.map((p) => ({
       "@type": "Offer",
       name: p.name,
       price: String(p.price),
       priceCurrency: "INR",
       availability: "https://schema.org/InStock",
-      url: "https://www.procounsel.co.in/mhtcet-option-form-filling",
+      url: "https://procounsel.co.in/mhtcet-option-form-filling",
     })),
   };
 
@@ -523,18 +684,18 @@ export default function OptionFormFilling() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.procounsel.co.in/" },
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://procounsel.co.in/" },
       {
         "@type": "ListItem",
         position: 2,
         name: "Admissions",
-        item: "https://www.procounsel.co.in/admissions",
+        item: "https://procounsel.co.in/admissions",
       },
       {
         "@type": "ListItem",
         position: 3,
         name: "MHT-CET Option Form Filling",
-        item: "https://www.procounsel.co.in/mhtcet-option-form-filling",
+        item: "https://procounsel.co.in/mhtcet-option-form-filling",
       },
     ],
   };
@@ -543,7 +704,7 @@ export default function OptionFormFilling() {
     <>
       <PageSEO
         title="MHT-CET Option Form Filling 2026 — Expert CAP Round Choice Filling Help"
-        description={`Get your MHT-CET option form filled by an admission counsellor. Full preference list built from scratch at ${rupees(OPTION_FORM_PRICE.NEW)}, or an expert revision of your existing form at ${rupees(OPTION_FORM_PRICE.REVISED)}. A counsellor contacts you within 4 hours and stays with you through every CAP round.`}
+        description={`Get your MHT-CET option form filled by an admission counsellor. Full preference list built from scratch at ${rupees(OPTION_FORM_PRICE.NEW)}, or an expert revision of your existing form at ${rupees(OPTION_FORM_PRICE.REVISED)}. A counsellor contacts you on call or WhatsApp within 4 hours.`}
         canonical="/mhtcet-option-form-filling"
         keywords="mht cet option form filling, option form filling, mhtcet choice filling, cap round option form, mht cet option form help, option form filling service, mht cet cap round counselling, maharashtra engineering admission counselling, mhtcet form filling near me, how to fill mht cet option form, home university quota mht cet"
         jsonLd={[serviceSchema, faqSchema, breadcrumbSchema]}
@@ -589,16 +750,14 @@ export default function OptionFormFilling() {
                     Fill my option form
                     <ArrowRight className="h-4 w-4" />
                   </button>
-                  <span className="text-[13px] text-white/55 sm:text-sm">
-                    {rupees(OPTION_FORM_PRICE.NEW)} new · {rupees(OPTION_FORM_PRICE.REVISED)} revision
-                  </span>
+                  {offerTimer}
                 </div>
 
                 <dl className="mt-7 grid max-w-[520px] grid-cols-3 gap-px overflow-hidden rounded-2xl bg-white/10 text-center sm:mt-10">
                   {[
                     ["10,000+", "students guided"],
                     ["4 hrs", "to first call"],
-                    ["All rounds", "revisions free"],
+                    ["1-on-1", "counsellor call"],
                   ].map(([value, label]) => (
                     <div key={label} className="bg-[#0B1020] px-1.5 py-3 sm:px-3 sm:py-4">
                       <dt className="font-['Montserrat'] text-[14px] font-bold tracking-tight sm:text-lg">
@@ -731,9 +890,20 @@ export default function OptionFormFilling() {
                   Choose what you need
                 </h2>
                 <p className="mt-3 max-w-[560px] text-[15px] leading-relaxed text-[#5A6180]">
-                  One-time payment, taken from your ProCounsel wallet. Revisions between CAP
-                  rounds are included in both.
+                  One-time payment, taken from your ProCounsel wallet. Pick the one that
+                  matches where you are right now.
                 </p>
+
+                {/* The offer repeated where the decision is actually made. */}
+                {offerLive && (
+                  <div className="mt-5 inline-flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-[#FFD9C2] bg-[#FFF7F2] px-3.5 py-2.5">
+                    <Clock className="h-4 w-4 shrink-0 text-[#D9480F]" />
+                    <span className="text-[13px] font-semibold text-[#0B1020]">Launch pricing ends in</span>
+                    <span className="font-['Montserrat'] text-[15px] font-extrabold tabular-nums text-[#D9480F]">
+                      {countdown.h}:{countdown.m}:{countdown.s}
+                    </span>
+                  </div>
+                )}
 
                 <div className="mt-8 grid gap-4 sm:grid-cols-2">
                   {PLANS.map((item) => {
@@ -743,7 +913,7 @@ export default function OptionFormFilling() {
                         key={item.id}
                         type="button"
                         aria-pressed={active}
-                        onClick={() => setPlan(item.id)}
+                        onClick={() => choosePlan(item.id)}
                         className={`rounded-2xl border p-6 text-left transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FA660F] ${
                           active
                             ? "border-[#FA660F] bg-[#FFF7F2] shadow-[0_10px_30px_-18px_rgba(250,102,15,0.8)]"
@@ -762,8 +932,24 @@ export default function OptionFormFilling() {
                             {active && <Check className="h-3 w-3 text-white" />}
                           </span>
                         </span>
-                        <span className="mt-3 block font-['Montserrat'] text-[28px] font-extrabold tabular-nums tracking-tight text-[#0B1020]">
-                          ₹{item.price.toLocaleString("en-IN")}
+                        {/* Current price leads, original struck beside it, saving
+                            named in rupees — the layout people already read on
+                            every store page. */}
+                        <span className="mt-4 block">
+                          <span className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+                            <span className="font-['Montserrat'] text-[32px] font-extrabold tabular-nums leading-none tracking-tight text-[#0B1020]">
+                              {rupees(item.price)}
+                            </span>
+                            <span className="text-[15px] font-medium tabular-nums text-[#A8AEC6] line-through">
+                              {rupees(item.mrp)}
+                            </span>
+                            <span className="rounded-md bg-[#12A150]/10 px-1.5 py-0.5 text-[11px] font-bold text-[#12A150]">
+                              {Math.round(((item.mrp - item.price) / item.mrp) * 100)}% OFF
+                            </span>
+                          </span>
+                          <span className="mt-1.5 block text-[12px] text-[#8189A6]">
+                            One-time · you save {rupees(item.mrp - item.price)}
+                          </span>
                         </span>
                         <span className="mt-1 block text-[13px] text-[#5A6180]">{item.tagline}</span>
                         <ul className="mt-5 space-y-2.5">
@@ -783,7 +969,7 @@ export default function OptionFormFilling() {
                     opens the sheet that collects the details. */}
                 <button
                   type="button"
-                  onClick={() => setSheetOpen(true)}
+                  onClick={() => requireLogin() && setSheetOpen(true)}
                   className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#FA660F] text-[15px] font-semibold text-white lg:hidden cursor-pointer"
                 >
                   Continue with {plan === "NEW" ? "full option form" : "form revision"}
@@ -879,6 +1065,47 @@ export default function OptionFormFilling() {
         </section>
       </main>
 
+      {/* Confirmation popup — the success section further up the page is easy to
+          scroll past, and the 4-hour callback promise is the one thing they must
+          leave with. */}
+      {status === "done" && successOpen && (
+        <div className="fixed inset-0 z-[80] flex items-end justify-center p-0 sm:items-center sm:p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setSuccessOpen(false)} />
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="relative w-full max-w-[440px] rounded-t-3xl bg-white p-6 text-center sm:rounded-3xl sm:p-8"
+            style={{ paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
+          >
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#12A150] text-white">
+              <Check className="h-7 w-7" />
+            </span>
+            <h2 className="mt-5 font-['Montserrat'] text-[22px] font-bold tracking-[-0.02em] text-[#0B1020]">
+              Payment received
+            </h2>
+            <p className="mt-3 text-[14.5px] leading-relaxed text-[#4A5470]">
+              {rupees(price)} has been deducted for your{" "}
+              {plan === "NEW" ? "full option form" : "form revision"}. Our counsellor will call or
+              WhatsApp you on{" "}
+              <span className="font-semibold text-[#0B1020]">
+                {phone.replace(/\D/g, "").slice(-10)}
+              </span>{" "}
+              <span className="font-semibold text-[#0B1020]">within 4 hours</span>.
+            </p>
+            <p className="mt-3 text-[12.5px] text-[#6B7392]">
+              Keep your phone reachable. Wallet balance now {rupees(user?.walletAmount ?? 0)}.
+            </p>
+            <button
+              type="button"
+              onClick={() => setSuccessOpen(false)}
+              className="mt-6 h-12 w-full rounded-xl bg-[#FA660F] text-[15px] font-semibold text-white cursor-pointer"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Mobile pay bar — opens the sheet so the plan and the fields are always
           on screen together. */}
       {status !== "done" && !sheetOpen && (
@@ -888,21 +1115,44 @@ export default function OptionFormFilling() {
           }`}
           style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
         >
+          {/* Before a plan is picked this is a prompt, not a price — quoting one
+              plan would hide the other. */}
           <div className="flex items-center gap-3">
             <div className="min-w-0">
-              <p className="truncate text-[11.5px] text-[#5A6180]">
-                {plan === "NEW" ? "Full option form" : "Form revision"}
-              </p>
-              <p className="font-['Montserrat'] text-[18px] font-extrabold tabular-nums leading-tight text-[#0B1020]">
-                {rupees(price)}
-              </p>
+              {hasChosenPlan ? (
+                <>
+                  <p className="truncate text-[11px] text-[#5A6180]">
+                    {plan === "NEW" ? "Full option form" : "Form revision"}
+                  </p>
+                  <p className="flex items-baseline gap-1.5">
+                    <span className="font-['Montserrat'] text-[19px] font-extrabold tabular-nums leading-none text-[#0B1020]">
+                      {rupees(price)}
+                    </span>
+                    <span className="text-[11.5px] tabular-nums text-[#A8AEC6] line-through">
+                      {rupees(PLANS.find((p) => p.id === plan)?.mrp ?? 0)}
+                    </span>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-[13px] font-semibold text-[#0B1020]">Two plans available</p>
+                  <p className="mt-0.5 truncate text-[11px] text-[#5A6180]">
+                    New form or revision
+                    {offerLive && (
+                      <span className="text-[#D9480F]">
+                        {" "}· ends {countdown.h}:{countdown.m}
+                      </span>
+                    )}
+                  </p>
+                </>
+              )}
             </div>
             <button
               type="button"
-              onClick={() => setSheetOpen(true)}
-              className="ml-auto flex h-12 min-w-0 flex-1 max-w-[200px] items-center justify-center gap-2 rounded-xl bg-[#FA660F] text-[15px] font-semibold text-white cursor-pointer"
+              onClick={() => requireLogin() && (hasChosenPlan ? setSheetOpen(true) : scrollToForm())}
+              className="ml-auto flex h-12 min-w-0 flex-1 max-w-[190px] items-center justify-center gap-2 rounded-xl bg-[#FA660F] text-[15px] font-semibold text-white cursor-pointer"
             >
-              Continue
+              {hasChosenPlan ? "Continue" : "Choose plan"}
               <ArrowRight className="h-4 w-4 shrink-0" />
             </button>
           </div>
@@ -943,32 +1193,39 @@ export default function OptionFormFilling() {
             </div>
 
             <div className="px-5 pt-4">
-              {/* Plan choice, as a segmented control */}
-              <div className="grid grid-cols-2 gap-2">
-                {PLANS.map((item) => {
-                  const active = plan === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => setPlan(item.id)}
-                      className={`rounded-2xl border p-3 text-left transition-colors cursor-pointer ${
-                        active ? "border-[#FA660F] bg-[#FFF7F2]" : "border-[#E4E7F1] bg-white"
-                      }`}
-                    >
-                      <span className="block text-[12.5px] font-semibold text-[#0B1020]">
-                        {item.id === "NEW" ? "New form" : "Revision"}
-                      </span>
-                      <span className="mt-0.5 block font-['Montserrat'] text-[19px] font-extrabold tabular-nums text-[#0B1020]">
-                        {rupees(item.price)}
-                      </span>
-                      <span className="mt-0.5 block text-[11px] leading-snug text-[#5A6180]">
-                        {item.id === "NEW" ? "Built from scratch" : "Fix my existing list"}
-                      </span>
-                    </button>
-                  );
-                })}
+              {offerLive && (
+                <div className="mb-3 flex items-center gap-2 rounded-lg bg-[#FFF7F2] px-3 py-2">
+                  <Clock className="h-3.5 w-3.5 shrink-0 text-[#D9480F]" />
+                  <span className="text-[12px] text-[#5A6180]">Launch pricing ends in</span>
+                  <span className="ml-auto font-['Montserrat'] text-[13px] font-extrabold tabular-nums text-[#D9480F]">
+                    {countdown.h}:{countdown.m}:{countdown.s}
+                  </span>
+                </div>
+              )}
+
+              {/* The plan was chosen on the page — this confirms it and gets out
+                  of the way, rather than repeating the whole picker. */}
+              <div className="flex items-center gap-3 rounded-2xl border border-[#FA660F] bg-[#FFF7F2] p-3.5">
+                <div className="min-w-0">
+                  <p className="text-[13px] font-semibold text-[#0B1020]">
+                    {plan === "NEW" ? "Full option form" : "Form revision"}
+                  </p>
+                  <p className="mt-0.5 flex items-baseline gap-1.5">
+                    <span className="font-['Montserrat'] text-[20px] font-extrabold tabular-nums leading-none text-[#0B1020]">
+                      {rupees(price)}
+                    </span>
+                    <span className="text-[12px] tabular-nums text-[#A8AEC6] line-through">
+                      {rupees(PLANS.find((p) => p.id === plan)?.mrp ?? 0)}
+                    </span>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setSheetOpen(false); scrollToForm(); }}
+                  className="ml-auto shrink-0 rounded-lg border border-[#FA660F]/40 px-3 py-2 text-[12.5px] font-semibold text-[#D9480F] cursor-pointer"
+                >
+                  Change
+                </button>
               </div>
 
               <div className="mt-5">{detailFields}</div>
@@ -980,15 +1237,6 @@ export default function OptionFormFilling() {
         </div>
       )}
 
-      <AddFundsPanel
-        isOpen={addFundsOpen}
-        onClose={() => {
-          setAddFundsOpen(false);
-          pendingPayRef.current = false;
-        }}
-        balance={balance}
-        onAddMoney={handleRecharge}
-      />
     </>
   );
 }
