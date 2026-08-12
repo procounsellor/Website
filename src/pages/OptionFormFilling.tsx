@@ -125,34 +125,6 @@ const STEPS = [
 
 const rupees = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
-/**
- * Phones we've already registered, kept as `{ "9876543210": "NEW" }`.
- *
- * The backend refuses a second register for the same phone, so once a row
- * exists a retry must go straight to paying. Stored rather than held in state
- * so it survives a reload or a browser restart mid-payment.
- */
-const REGISTERED_KEY = "optionForm:registered";
-
-const readRegistered = (): Record<string, string> => {
-  try {
-    const raw = localStorage.getItem(REGISTERED_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-};
-
-const rememberRegistered = (phone: string, requirement: string) => {
-  try {
-    const all = readRegistered();
-    all[phone] = requirement;
-    localStorage.setItem(REGISTERED_KEY, JSON.stringify(all));
-  } catch {
-    // Private mode / quota — the duplicate-tolerant register call covers us.
-  }
-};
-
 const FAQS = [
   {
     q: "What is MHT-CET option form filling?",
@@ -296,7 +268,7 @@ export default function OptionFormFilling() {
       // leave the student staring at a spinner.
       if (!fresh) {
         throw new Error(
-          "Your payment went through, but your session dropped. Log in again and tap Pay — the money is in your wallet, you won't be charged twice."
+          "Your payment went through, but we lost your login on this device. Log in again and tap Pay — the money is in your wallet, you won't be charged twice."
         );
       }
       if ((fresh.walletAmount ?? 0) >= target) return true;
@@ -359,32 +331,31 @@ export default function OptionFormFilling() {
     // logged-in phone or the payment call won't find it.
     const walletId = getLoggedInPhone() || userId;
     if (!walletId) {
+      // Open the login sheet rather than just telling them to log in.
       toast.error("Please log in to continue.");
+      toggleLogin();
       return;
     }
 
     setStatus("paying");
     try {
-      // Skip register on a retry — the row is already there and a second call
-      // would only come back "already exists". registerOptionForm tolerates the
-      // duplicate too, for a retry from another device or after clearing data.
-      if (readRegistered()[walletId] !== plan) {
-        await registerOptionForm({
-          name: name.trim(),
-          marks: Number(marks),
-          stateDomicile,
-          phoneNumber: walletId,
-          optionFormRequirement: plan,
-        });
-        rememberRegistered(walletId, plan);
-      }
+      // registerOptionForm is idempotent — on a retry the row is already there,
+      // so it makes no request and we resume at the payment step.
+      await registerOptionForm({
+        name: name.trim(),
+        marks: Number(marks),
+        stateDomicile,
+        phoneNumber: walletId,
+        optionFormRequirement: plan,
+      });
 
       // Read the balance from the server, not the cached profile. A cached
       // number here would charge the wrong amount, so a failed read aborts
       // rather than guesses.
       const fresh = await refreshUser(true);
       if (!fresh) {
-        throw new Error("Your session expired. Please log in again and tap Pay.");
+        toggleLogin();
+        throw new Error("We couldn't read your account just now. Log in again and tap Pay.");
       }
       const shortfall = price - (fresh.walletAmount ?? 0);
 

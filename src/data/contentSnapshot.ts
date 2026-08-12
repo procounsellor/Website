@@ -78,7 +78,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1887",
     "accreditation": "AICTE, NBA, NAAC",
     "collegeType": "Govt",
-    "popularityCount": 794,
+    "popularityCount": 795,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -115,7 +115,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1999",
     "accreditation": "NAAC, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 572,
+    "popularityCount": 573,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -160,7 +160,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1854",
     "accreditation": "AICTE, NBA, NAAC, UGC",
     "collegeType": "Govt",
-    "popularityCount": 557,
+    "popularityCount": 558,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -192,7 +192,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1981",
     "accreditation": "AACSB, AMBA, EQUIS",
     "collegeType": "Pvt",
-    "popularityCount": 175,
+    "popularityCount": 176,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -233,7 +233,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1960",
     "accreditation": "AICTE, UGC, NBA, NIRF",
     "collegeType": "Govt",
-    "popularityCount": 134,
+    "popularityCount": 135,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -270,7 +270,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2021",
     "accreditation": "AICTE, NAAC, NBA",
     "collegeType": "Pvt",
-    "popularityCount": 128,
+    "popularityCount": 129,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -303,7 +303,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1991",
     "accreditation": "NAAC (A), NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 84,
+    "popularityCount": 85,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -339,7 +339,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2005",
     "accreditation": "AICTE, NAAC, NBA",
     "collegeType": "Pvt",
-    "popularityCount": 78,
+    "popularityCount": 79,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -376,7 +376,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1994",
     "accreditation": "NA",
     "collegeType": "Pvt",
-    "popularityCount": 75,
+    "popularityCount": 76,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -421,7 +421,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1994",
     "accreditation": "NAAC (A+), NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 74,
+    "popularityCount": 75,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -441,7 +441,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1983",
     "accreditation": "NAAC (A), NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 74,
+    "popularityCount": 75,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -482,7 +482,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1978",
     "accreditation": "NAAC, NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 72,
+    "popularityCount": 73,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -507,7 +507,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1996",
     "accreditation": "NBA, NAAC (A+), AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 70,
+    "popularityCount": 71,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -543,7 +543,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1965",
     "accreditation": "AICTE, NAAC",
     "collegeType": "Govt",
-    "popularityCount": 64,
+    "popularityCount": 65,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -584,7 +584,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1994",
     "accreditation": "AICTE, NAAC, NBA",
     "collegeType": "Pvt",
-    "popularityCount": 57,
+    "popularityCount": 58,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -609,7 +609,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1995",
     "accreditation": "AMBA, AACSB, NBA",
     "collegeType": "Govt",
-    "popularityCount": 54,
+    "popularityCount": 55,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -634,7 +634,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2006",
     "accreditation": "NAAC (A+), AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 52,
+    "popularityCount": 53,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -675,7 +675,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1993",
     "accreditation": "NAAC, NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 48,
+    "popularityCount": 49,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -700,7 +700,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1963",
     "accreditation": "NAAC, AICTE",
     "collegeType": "Govt",
-    "popularityCount": 47,
+    "popularityCount": 48,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -725,7 +725,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1933",
     "accreditation": "UGC, AICTE, NBA, NAAC",
     "collegeType": "Govt",
-    "popularityCount": 47,
+    "popularityCount": 48,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -766,7 +766,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2017",
     "accreditation": "AICTE, NBA",
     "collegeType": "Pvt",
-    "popularityCount": 47,
+    "popularityCount": 48,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -791,7 +791,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1936",
     "accreditation": "NAAC, UGC",
     "collegeType": "Deemed",
-    "popularityCount": 47,
+    "popularityCount": 48,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -816,7 +816,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1981",
     "accreditation": "NBA, NAAC, AACSB (Member), AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 45,
+    "popularityCount": 46,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -857,7 +857,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1977",
     "accreditation": "NBA, NAAC, AACSB (Membership), AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 44,
+    "popularityCount": 45,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -902,7 +902,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2000",
     "accreditation": "AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 41,
+    "popularityCount": 42,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -947,7 +947,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1971",
     "accreditation": "AICTE, NAAC, UGC, NBA",
     "collegeType": "Govt",
-    "popularityCount": 35,
+    "popularityCount": 36,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",

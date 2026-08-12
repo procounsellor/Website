@@ -92,14 +92,60 @@ const isDuplicateRegistration = (message: string) =>
   /already|exist|duplicate|registered/i.test(message);
 
 /**
- * Creates the student's option-form registration.
+ * Phones this browser has already registered, kept as `{ "9876543210": "NEW" }`.
  *
- * The backend rejects a second register for the same phone, so a retry after a
- * failed payment used to die here with "already exists" while the money sat in
- * the wallet. A duplicate is therefore treated as success: the row is present,
- * which is all the payment needs.
+ * The backend keeps ONE row per phone and refuses a second create, so once a row
+ * exists every retry must go straight to paying. Stored rather than held in
+ * state so it survives a reload or a browser restart mid-payment.
+ */
+const REGISTERED_KEY = "optionForm:registered";
+
+const readRegistered = (): Record<string, string> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(REGISTERED_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : {};
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, string>) : {};
+  } catch {
+    return {};
+  }
+};
+
+const rememberRegistered = (phone: string, requirement: string) => {
+  if (typeof window === "undefined" || !phone) return;
+  try {
+    const all = readRegistered();
+    all[phone] = requirement;
+    window.localStorage.setItem(REGISTERED_KEY, JSON.stringify(all));
+  } catch {
+    // Private mode / quota — the duplicate-tolerant branch below covers us.
+  }
+};
+
+/** True when this browser has already created the row for this phone + product. */
+export const isOptionFormRegistered = (phone: string, requirement: OptionFormRequirement | "METTLE") =>
+  !!phone && readRegistered()[phone] === requirement;
+
+/**
+ * Creates the student's option-form registration — once.
+ *
+ * Two guards, because the row must exist exactly once per phone:
+ *
+ *  1. Already registered from this browser → no request at all. A retry after a
+ *     cancelled or failed payment resumes at the payment step, which is where
+ *     it belongs; asking the backend to reject the create was pointless noise.
+ *  2. The backend says "already exists" anyway (retry from another device, or
+ *     after clearing site data) → treated as success and remembered, so the
+ *     next attempt takes guard 1. The row is present, which is all the payment
+ *     needs.
  */
 export async function registerOptionForm(payload: OptionFormRegistrationPayload) {
+  const { phoneNumber, optionFormRequirement } = payload;
+
+  if (isOptionFormRegistered(phoneNumber, optionFormRequirement)) {
+    return { success: true, message: "Registration already exists for this phone number.", skipped: true };
+  }
+
   const response = await fetch(`${baseUrl}/api/optionFormRegistration/register`, {
     method: "POST",
     headers: authHeaders(),
@@ -109,9 +155,10 @@ export async function registerOptionForm(payload: OptionFormRegistrationPayload)
   const body = await readBody(response);
   if (!response.ok || failedOf(body)) {
     const message = messageOf(body);
-    if (isDuplicateRegistration(message)) return body;
+    if (isDuplicateRegistration(message)) { rememberRegistered(phoneNumber, optionFormRequirement); return body; }
     throw new Error(message || "Could not save your registration. Please try again.");
   }
+  rememberRegistered(phoneNumber, optionFormRequirement);
   return body;
 }
 

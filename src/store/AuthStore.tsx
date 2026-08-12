@@ -334,8 +334,13 @@ export const useAuthStore = create<AuthState>()(
         // For existing users, store in localStorage
         try {
           if (needsOnboarding) {
-            // Store in memory for new users
+            // Store in memory for new users — deliberately NOT localStorage
+            // until onboarding completes. It must still go through
+            // cacheTokenInMemory (as setTempJwt does), or getToken() returns
+            // null and every authenticated call a new user makes before
+            // finishing onboarding — wallet, profile, payments — is refused.
             console.log("📝 Storing JWT in memory for new user");
+            if (data?.jwtToken) cacheTokenInMemory(data.jwtToken);
             set({ tempJwt: data?.jwtToken, tempPhone: phone });
           } else {
             // Store in localStorage for existing users

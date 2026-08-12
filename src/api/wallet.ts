@@ -1,4 +1,14 @@
 import { API_CONFIG } from "./config";
+import { getToken } from "@/lib/tokenManager";
+
+/**
+ * Every call here reads the JWT through `getToken()`, never straight from
+ * localStorage. A user who just signed up is authenticated with a token that
+ * lives ONLY in memory until onboarding finishes (see tokenManager), so a raw
+ * `localStorage.getItem('jwt')` came back null and these calls bailed out with
+ * "auth token not found." — which is what stopped Razorpay from ever opening
+ * for brand-new accounts.
+ */
 
 const {baseUrl} = API_CONFIG
 
@@ -6,7 +16,7 @@ const {baseUrl} = API_CONFIG
 
 export default async function startRecharge(userId:string, amount:number){
     try{
-        const token = localStorage.getItem('jwt')
+        const token = getToken()
         if(!token){
             return "auth token not found."
         }
@@ -38,7 +48,7 @@ export default async function startRecharge(userId:string, amount:number){
 
 export  async function transferAmount(counselorId:string, userId:string, amount:number){
     try{
-        const token = localStorage.getItem('jwt')
+        const token = getToken()
         if(!token){
             return "auth token not found."
         }
@@ -68,7 +78,7 @@ export  async function transferAmount(counselorId:string, userId:string, amount:
 
 export  async function subscribeCounselor(counselorId:string, userId:string, amount:number, plan:string){
     try{
-        const token = localStorage.getItem('jwt')
+        const token = getToken()
         if(!token){
             return "auth token not found."
         }
@@ -102,7 +112,7 @@ export  async function subscribeCounselor(counselorId:string, userId:string, amo
 
 export async function manualPaymentApproval(counselorId: string, userId: string, amount: number, plan: string, subscriptionType: string) {
   try {
-    const token = localStorage.getItem('jwt');
+    const token = getToken();
     if (!token) {
       throw new Error("Authentication token not found.");
     }
@@ -149,7 +159,7 @@ export interface UpgradePlanPayload {
 }
 
 export async function upgradeSubscriptionPlan(payload: UpgradePlanPayload) {
-    const token = localStorage.getItem('jwt');
+    const token = getToken();
     if (!token) throw new Error("Authentication token not found.");
   try {
     const response = await fetch(`${baseUrl}/api/user/upgradePlan`, {

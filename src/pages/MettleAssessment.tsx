@@ -4,8 +4,10 @@ import { useAuthStore } from "@/store/AuthStore";
 import { LoginCard } from "@/components/cards/LoginCard";
 import startRecharge from "@/api/wallet";
 import { getLoggedInPhone, formatPhoneForRazorpay } from "@/lib/phone";
+import { getToken } from "@/lib/tokenManager";
 import { registerOptionForm, payOptionFormFromWallet } from "@/api/optionForm";
 import { uploadPsychometricReport, downloadReport } from "@/api/psychometric";
+import { updateUserProfile } from "@/api/user";
 import { buildReportPdf, type Report } from "@/lib/mettleReportPdf";
 
 type RazorpayConstructor = new (opts: unknown) => { open: () => void };
@@ -143,7 +145,7 @@ const METTLE_JSONLD = [
         name: "Do I need to create an account to take the career test?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. You sign in with your phone number and a one-time OTP so your report is saved against your name and you can return to it. There is no separate form to fill — your name is taken from your ProCounsel profile.",
+          text: "Yes. You sign in with your phone number and a one-time OTP so your report is saved against your name and you can return to it. Your name is taken from your ProCounsel profile; if you are new and have not added one yet, you enter it once before the test starts.",
         },
       },
     ],
@@ -382,6 +384,16 @@ function Dots({ ci }: { ci: number }) {
 
 type Screen = "start" | "cat-intro" | "quiz" | "loading" | "report" | "error";
 
+const cleanName = (raw: string) => raw.trim().replace(/\s+/g, " ");
+
+/** The report is titled with this, so a blank or junk name is not accepted. */
+function validateName(raw: string): string | null {
+  const n = cleanName(raw);
+  if (n.length < 2) return "Please enter your full name.";
+  if (!/^[\p{L}][\p{L}\s.'-]*$/u.test(n)) return "Please use letters only — no numbers or symbols.";
+  return null;
+}
+
 export default function MettleAssessment() {
   const [screen, setScreen] = useState<Screen>("start");
   const [name, setName]     = useState("");
@@ -394,16 +406,24 @@ export default function MettleAssessment() {
   const [payBusy, setPayBusy] = useState(false);
   const [payErr, setPayErr] = useState("");
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "failed" | "skipped">("idle");
+  // Filled in on the start card by students whose profile carries no name.
+  const [nameInput, setNameInput] = useState("");
+  const [nameErr, setNameErr] = useState("");
+  const [nameBusy, setNameBusy] = useState(false);
   const savedRef = useRef(false);
   const [err, setErr]       = useState("");
   const top = useRef<HTMLDivElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
 
-  // Login is mandatory: we use the logged-in user's profile name, so there is
-  // no name field — they fill their name during login/onboarding.
+  // Login is mandatory and the report is titled with the student's name. That
+  // normally comes from their profile — but a brand-new account can reach this
+  // page with nothing but a phone number, so when the profile has no name we
+  // ask for one here and it is required before the test can start.
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isLoginToggle = useAuthStore((s) => s.isLoginToggle);
   const profileName = `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim();
+  const needsName = isAuthenticated && !!user && !profileName;
 
   // Login persists for months, so the stored profile can be from long before the
   // report existed. Ask the profile API once on arrival — the answer decides
@@ -433,9 +453,63 @@ export default function MettleAssessment() {
 
   function beginAssessment() {
     const u = useAuthStore.getState().user;
-    const n = `${u?.firstName ?? ""} ${u?.lastName ?? ""}`.trim() || u?.userName || "Student";
+    // Profile name first; the name typed on the start card is the fallback for
+    // accounts that have none (and for the rare case the profile write failed).
+    const n = `${u?.firstName ?? ""} ${u?.lastName ?? ""}`.trim() || cleanName(nameInput) || "Student";
     setName(n);
     setCi(0); setQi(0); setAns({}); setScreen("cat-intro");
+  }
+
+  /**
+   * Finishes the student's signup before a rupee is touched: a real name on the
+   * profile, and the account out of the half-created onboarding state.
+   *
+   * /mettle is a standalone route — it sits outside RevampLayout, so the
+   * OnboardingCard that normally closes out a new signup never renders here. A
+   * user who signs up on this page would otherwise stay mid-onboarding for the
+   * whole session, with their JWT held in memory only, and every authenticated
+   * call after that (payment included) made on a half-built account.
+   *
+   * Returns false when the student still has to type a name — the field is on
+   * the start card and the error is shown there.
+   */
+  async function ensureSignupComplete(): Promise<boolean> {
+    const s = useAuthStore.getState();
+    const u = s.user;
+    const hasName = !!`${u?.firstName ?? ""} ${u?.lastName ?? ""}`.trim();
+
+    if (!hasName) {
+      const problem = validateName(nameInput);
+      if (problem) { setNameErr(problem); return false; }
+    }
+
+    setNameBusy(true); setNameErr("");
+    try {
+      if (!hasName) {
+        const full = cleanName(nameInput);
+        const [firstName, ...rest] = full.split(" ");
+        const lastName = rest.join(" ");
+        // getToken(), not localStorage — a just-signed-up user's JWT is still
+        // in-memory only, and reading localStorage here would skip the save.
+        const uid = getLoggedInPhone() || s.userId;
+        const token = getToken();
+        if (uid && token) {
+          await updateUserProfile(uid, { firstName, lastName }, token);
+        }
+      }
+
+      // Promotes the in-memory JWT to storage and clears needsOnboarding, so
+      // from here on this is an ordinary signed-in account. No-op once done.
+      if (s.needsOnboarding || s.tempJwt) s.completeOnboarding();
+
+      await useAuthStore.getState().refreshUser(true);
+    } catch (e) {
+      // The name still titles this report even if the profile write failed.
+      console.error("Could not finish the signup:", e instanceof Error ? e.message : String(e));
+    } finally {
+      setNameBusy(false);
+    }
+    return true;
   }
 
   function applyCoupon() {
@@ -448,8 +522,18 @@ export default function MettleAssessment() {
   /** Charges the shortfall on Razorpay and waits for the wallet to show it. */
   async function topUpWallet(walletId: string, amount: number, target: number) {
     const order = await startRecharge(walletId, amount);
-    if (!order || typeof order === "string" || !order.orderId) {
+    // startRecharge answers with a bare string when it refuses (e.g. no auth
+    // token) — that used to surface as a flat "try again" with no clue why.
+    if (typeof order === "string") {
+      throw /token|auth/i.test(order)
+        ? openLogin("We couldn't read your login on this device. Log in again and press Start.")
+        : new Error(order);
+    }
+    if (!order || !order.orderId) {
       throw new Error("Could not start the payment. Please try again.");
+    }
+    if (typeof (window as unknown as { Razorpay?: unknown }).Razorpay !== "function") {
+      throw new Error("The payment window could not load. Check your connection or any ad-blocker, then press Start again.");
     }
     await new Promise<void>((resolve, reject) => {
       const u = useAuthStore.getState().user;
@@ -468,7 +552,7 @@ export default function MettleAssessment() {
             // failing on the first read.
             for (let i = 0; i < 8; i += 1) {
               const fresh = await useAuthStore.getState().refreshUser(true);
-              if (!fresh) { reject(new Error("Payment went through but your session dropped. Log in again — you won't be charged twice.")); return; }
+              if (!fresh) { reject(openLogin("Payment went through but we lost your login on this device. Log in again — the money is in your wallet, you won't be charged twice.")); return; }
               if ((fresh.walletAmount ?? 0) >= target) { resolve(); return; }
               await new Promise(r => setTimeout(r, 1200));
             }
@@ -489,15 +573,17 @@ export default function MettleAssessment() {
 
     const s = useAuthStore.getState();
     const walletId = getLoggedInPhone() || s.userId;
-    if (!walletId) { setPayErr("Please log in again to continue."); return; }
+    if (!walletId) { setPayErr(openLogin("We couldn't read your account. Log in again to continue.").message); return; }
 
     setPayBusy(true); setPayErr("");
     try {
       // Mettle rides the option-form registration + transfer pair — the only
-      // wallet-debit endpoint available. Duplicates are tolerated by the API.
+      // wallet-debit endpoint available. The call is idempotent: once the row
+      // exists for this phone it makes no request, so a retry after a cancelled
+      // payment goes straight to the debit instead of re-registering.
       const u = s.user;
       await registerOptionForm({
-        name: `${u?.firstName ?? ""} ${u?.lastName ?? ""}`.trim() || u?.userName || "Student",
+        name: `${u?.firstName ?? ""} ${u?.lastName ?? ""}`.trim() || cleanName(nameInput) || "Student",
         marks: 0,
         stateDomicile: "-",
         phoneNumber: walletId,
@@ -505,7 +591,7 @@ export default function MettleAssessment() {
       });
 
       const fresh = await s.refreshUser(true);
-      if (!fresh) throw new Error("Your session expired. Please log in again.");
+      if (!fresh) throw openLogin("We couldn't read your account just now. Log in again and press Start.");
 
       // Razorpay only opens if the wallet can't cover it.
       const shortfall = payable - (fresh.walletAmount ?? 0);
@@ -521,14 +607,48 @@ export default function MettleAssessment() {
     }
   }
 
-  function start() {
+  /**
+   * Opens the login card rather than leaving the student reading "please log in
+   * again" with no way to do it. Returns the error to throw, so the caller reads
+   * `throw openLogin("…")` and the reason still lands on the start card behind
+   * the login sheet.
+   */
+  function openLogin(reason: string): Error {
+    const s = useAuthStore.getState();
+    if (!s.isLoginToggle) s.toggleLogin(() => { void afterLogin(); });
+    return new Error(reason);
+  }
+
+  async function start() {
     const s = useAuthStore.getState();
     // Mandatory login — open the login flow and resume once signed in.
     if (!s.isAuthenticated || !s.user) {
-      s.toggleLogin(() => { void payAndBegin(); });
+      s.toggleLogin(() => { void afterLogin(); });
       return;
     }
-    void payAndBegin();
+    if (!(await ensureSignupComplete())) return;
+    await payAndBegin();
+  }
+
+  /**
+   * Resumes after the login card closes. A freshly created account often has
+   * nothing but a phone number, so we stop at the start card with the name
+   * field waiting rather than charging them for a report titled "Student".
+   *
+   * Note this only fires for accounts the store considers complete — AuthStore
+   * holds the callback back for users who still need onboarding and hands it to
+   * RevampLayout, which /mettle does not sit under. That is fine: the start card
+   * re-renders signed-in either way, so a new user simply presses Start again
+   * after typing their name.
+   */
+  async function afterLogin() {
+    const fresh = await useAuthStore.getState().refreshUser(true);
+    if (!`${fresh?.firstName ?? ""} ${fresh?.lastName ?? ""}`.trim()) {
+      setNameErr("");
+      setTimeout(() => nameRef.current?.focus(), 150);
+      return;
+    }
+    await payAndBegin();
   }
 
   function pick(s: number) { setAns(a => ({ ...a, [gIdx(ci, qi)]: s })); }
@@ -733,10 +853,40 @@ export default function MettleAssessment() {
             <div style={{ ...GLASS(0.75, 20), borderRadius: 20, padding: "20px 22px 18px" }}>
               {isAuthenticated && user ? (
                 <>
-                  <div style={{ fontSize: 13, color: "#475569", marginBottom: 14, fontFamily: F }}>
-                    Signed in as{" "}
-                    <strong style={{ color: "#1e1b4b" }}>{profileName || user.userName}</strong>. Your report will be generated under this name.
-                  </div>
+                  {needsName ? (
+                    <div style={{ marginBottom: 14 }}>
+                      <label htmlFor="mettle-name" style={{ display: "block", fontSize: 13, color: "#475569", marginBottom: 7, fontFamily: F }}>
+                        Your full name <span style={{ color: "#dc2626" }}>*</span>
+                        <span style={{ display: "block", fontSize: 11.5, color: "#94a3b8", marginTop: 2 }}>
+                          Required — your report is generated and saved under this name.
+                        </span>
+                      </label>
+                      <input
+                        id="mettle-name"
+                        ref={nameRef}
+                        value={nameInput}
+                        onChange={e => { setNameInput(e.target.value); if (nameErr) setNameErr(""); }}
+                        onKeyDown={e => { if (e.key === "Enter") void start(); }}
+                        placeholder="e.g. Ananya Sharma"
+                        autoComplete="name"
+                        aria-required="true"
+                        aria-invalid={!!nameErr}
+                        style={{
+                          width: "100%", height: 44, borderRadius: 10, background: "white",
+                          border: `1px solid ${nameErr ? "#fca5a5" : "rgba(0,0,0,.1)"}`,
+                          padding: "0 12px", fontSize: 14, fontFamily: F, color: "#1e1b4b", outline: "none",
+                        }}
+                      />
+                      {nameErr && (
+                        <div style={{ fontSize: 12, color: "#b91c1c", marginTop: 6, fontFamily: F }}>{nameErr}</div>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: 13, color: "#475569", marginBottom: 14, fontFamily: F }}>
+                      Signed in as{" "}
+                      <strong style={{ color: "#1e1b4b" }}>{profileName}</strong>. Your report will be generated under this name.
+                    </div>
+                  )}
 
                   {/* Already taken it — their paid report is one tap away, and
                       a retake is a fresh purchase. */}
@@ -824,21 +974,30 @@ export default function MettleAssessment() {
                     </div>
                   )}
 
-                  <button onClick={start} disabled={payBusy} className="ma-btn" style={{
-                    width: "100%", padding: "14px", fontSize: 15, fontWeight: 700, fontFamily: F,
-                    background: payBusy ? "#a5b4fc" : "linear-gradient(135deg, #4f46e5, #7c3aed)", color: "white",
-                    border: "none", borderRadius: 12, cursor: payBusy ? "not-allowed" : "pointer",
-                    boxShadow: "0 4px 20px rgba(79,70,229,.35), inset 0 1px 0 rgba(255,255,255,.15)",
-                  }}>
-                    {payBusy ? "Processing…" : payable === 0 ? "Start Assessment →" : `Pay ₹${payable.toLocaleString("en-IN")} & Start →`}
-                  </button>
+                  {(() => {
+                    // No name, no test — the button stays locked until the
+                    // required field holds something usable.
+                    const blocked = needsName && !!validateName(nameInput);
+                    const busy = payBusy || nameBusy;
+                    return (
+                      <button onClick={() => void start()} disabled={busy || blocked} className="ma-btn" style={{
+                        width: "100%", padding: "14px", fontSize: 15, fontWeight: 700, fontFamily: F,
+                        background: busy ? "#a5b4fc" : "linear-gradient(135deg, #4f46e5, #7c3aed)", color: "white",
+                        border: "none", borderRadius: 12, cursor: busy || blocked ? "not-allowed" : "pointer",
+                        opacity: blocked ? .55 : 1,
+                        boxShadow: "0 4px 20px rgba(79,70,229,.35), inset 0 1px 0 rgba(255,255,255,.15)",
+                      }}>
+                        {busy ? "Processing…" : payable === 0 ? "Start Assessment →" : `Pay ₹${payable.toLocaleString("en-IN")} & Start →`}
+                      </button>
+                    );
+                  })()}
                 </>
               ) : (
                 <>
                   <div style={{ fontSize: 13, color: "#475569", marginBottom: 14, fontFamily: F }}>
-                    Sign in to begin — we'll use your profile name, so there's nothing to type.
+                    Sign in to begin. We'll use the name on your profile — if you're new, we'll ask for it here.
                   </div>
-                  <button onClick={start} className="ma-btn" style={{
+                  <button onClick={() => void start()} className="ma-btn" style={{
                     width: "100%", padding: "14px", fontSize: 15, fontWeight: 700, fontFamily: F,
                     background: "linear-gradient(135deg, #4f46e5, #7c3aed)", color: "white",
                     border: "none", borderRadius: 12, cursor: "pointer",
