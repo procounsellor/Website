@@ -14,6 +14,7 @@ export default function CommunityPage() {
         description="Join the ProCounsel community to ask questions, share experiences, and get answers about college admissions, JEE, NEET, study abroad, and career guidance from students and experts."
         canonical="/community"
         keywords="college admissions Q&A, JEE NEET student community, career guidance forum india, study abroad community"
+        noIndex
       />
     <div className="bg-gray-50 min-h-screen p-4 md:p-8">
       <h1 className="sr-only">ProCounsel Community — Ask Questions &amp; Get Answers on Admissions, Exams &amp; Careers</h1>

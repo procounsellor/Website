@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { useCounselorById } from '@/hooks/useCounselors';
 import { useAuthStore } from '@/store/AuthStore';
@@ -23,6 +23,9 @@ import { RevampFreeCareerAssessmentCard } from '@/components/Revamp/counsellor-d
 import RevampCounselorCoursesCard from '@/components/Revamp/counsellor-details/CounselorCoursesCard';
 import RevampCounselorTestsCard from '@/components/Revamp/counsellor-details/CounselorTestsCard';
 import { RevampCounselorReviews } from '@/components/Revamp/counsellor-details/CounselorReviews';
+import PageSEO from '@/components/SEO/PageSEO';
+import { COUNSELLORS_SNAPSHOT } from '@/data/contentSnapshot';
+import type { CounselorDetails } from '@/types/academic';
 
 type ApiSubscribedCounselor = {
   counsellorId: string;
@@ -43,7 +46,52 @@ export default function RevampCounselorDetailsPage() {
   const decodedParamId = paramId ? decodeCounselorId(paramId) : null;
   const computedId = decodedParamId || queryId || state?.id;
 
-  const { counselor, loading, error } = useCounselorById(computedId ?? '');
+  const { counselor: liveCounselor, loading, error } = useCounselorById(computedId ?? '');
+
+  /**
+   * Build-time copy of this counsellor's public profile.
+   *
+   * The prerender runs with the API blocked, so without this the crawler saw
+   * "Loading Profile..." and the page shipped the home page's title,
+   * description and canonical — 120 URLs that all looked like duplicates of the
+   * home page. The snapshot renders the real profile immediately; the live API
+   * replaces it on mount for anything that has changed since the build.
+   */
+  const seedCounselor = useMemo(() => {
+    const row = COUNSELLORS_SNAPSHOT.find(
+      (c) => c.encodedId === paramId || (computedId && c.counsellorId === computedId),
+    );
+    if (!row) return null;
+    return {
+      counsellorId: row.counsellorId,
+      userName: row.counsellorId,
+      firstName: row.firstName,
+      lastName: row.lastName,
+      photoUrl: row.photoUrl,
+      photoUrlSmall: row.photoUrl,
+      rating: row.rating,
+      numberOfRatings: String(row.numberOfRatings),
+      experience: String(row.experience),
+      languagesKnow: row.languagesKnow,
+      expertise: row.expertise,
+      states: row.states,
+      city: row.city,
+      description: row.description,
+      organisationName: row.organisationName,
+      ratePerYear: row.ratePerYear,
+      plusAmount: row.plusAmount,
+      proAmount: row.proAmount,
+      eliteAmount: row.eliteAmount,
+      fullOfficeAddress: { city: row.city },
+      workingDays: [],
+      verified: true,
+    };
+  }, [paramId, computedId]);
+
+  // Live data wins the moment it lands; the snapshot only covers the gap.
+  // The seed carries every field this page and its cards actually read;
+  // the cast is for the rest of the wide CounselorDetails interface.
+  const counselor = liveCounselor ?? (seedCounselor as unknown as CounselorDetails | undefined);
   const { user, userId, refreshUser, role, isAuthenticated, toggleLogin } = useAuthStore();
   const token = localStorage.getItem('jwt');
   const storedPhone = localStorage.getItem('phone');
@@ -298,11 +346,47 @@ export default function RevampCounselorDetailsPage() {
   };
 
   if (!computedId) return <div className="p-8 text-center text-red-500">Error: Counsellor ID is missing.</div>;
-  if (loading || loadingData) return <div className="flex h-screen items-center justify-center">Loading Profile...</div>;
-  if (error || !counselor) return <div className="flex h-screen items-center justify-center text-red-500">{error || "Counsellor not found."}</div>;
+  if ((loading || loadingData) && !counselor) return <div className="flex h-screen items-center justify-center">Loading Profile...</div>;
+  if (!counselor) return <div className="flex h-screen items-center justify-center text-red-500">{error || "Counsellor not found."}</div>;
+
+  const counsellorName = `${counselor.firstName ?? ''} ${counselor.lastName ?? ''}`.trim() || 'Counsellor';
+  const counsellorCity = counselor.fullOfficeAddress?.city || seedCounselor?.city || '';
+  const expertiseList = (counselor.expertise ?? []).slice(0, 4).join(', ');
+  // A profile with no bio is a name, a photo and a price — nothing worth
+  // indexing, and 14 such pages drag the whole site's content quality down.
+  // It stays fully visible and shareable; it just isn't submitted to Google.
+  const isThinProfile = (counselor.description || '').trim().length < 120;
+  const seoDescription = (counselor.description || '').trim()
+    ? `${counselor.description!.trim().slice(0, 155)}`
+    : `${counsellorName} is a verified admission counsellor on ProCounsel${
+        counsellorCity ? ` in ${counsellorCity}` : ''
+      }${expertiseList ? `, guiding students on ${expertiseList}` : ''}. Book a call or subscribe for one-to-one guidance.`;
 
   return (
     <div style={{ backgroundColor: '#C6DDF040' }} className="min-h-screen flex flex-col">
+      <PageSEO
+        title={`${counsellorName} — Admission Counsellor${counsellorCity ? ` in ${counsellorCity}` : ''}`}
+        description={seoDescription}
+        canonical={paramId ? `/counsellor-details/${paramId}` : undefined}
+        image={counselor.photoUrl || undefined}
+        type="website"
+        noIndex={isThinProfile}
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'ProfilePage',
+          mainEntity: {
+            '@type': 'Person',
+            name: counsellorName,
+            jobTitle: 'Admission Counsellor',
+            image: counselor.photoUrl || undefined,
+            description: counselor.description || undefined,
+            worksFor: { '@type': 'Organization', name: counselor.organisationName || 'ProCounsel' },
+            knowsAbout: counselor.expertise ?? [],
+            knowsLanguage: counselor.languagesKnow ?? [],
+            ...(counsellorCity ? { address: { '@type': 'PostalAddress', addressLocality: counsellorCity } } : {}),
+          },
+        }}
+      />
       
       <div className="py-6 md:py-10 px-3 sm:px-6 lg:px-10 flex flex-col items-center flex-1">
         <div className="w-full max-w-[1330px] flex flex-col xl:flex-row gap-6 md:gap-8">

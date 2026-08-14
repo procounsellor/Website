@@ -588,6 +588,7 @@ export default function ProBuddyListing() {
         title="Find ProBuddies – College Senior Mentors Near You"
         description="Browse verified ProBuddies — college seniors ready to guide you on admissions, campus life, hostel, and course selection. Filter by college, branch, and availability."
         canonical="/pro-buddies/listing"
+        noIndex
         keywords="ProBuddy listing, college senior mentors, peer mentors India, college admission guidance, student mentor"
       />
     <ListingShell

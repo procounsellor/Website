@@ -43,7 +43,10 @@ export default function PageSEO({
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
       {keywords && <meta name="keywords" content={keywords} />}
-      <meta name="robots" content={noIndex ? 'noindex,nofollow' : 'index,follow,max-image-preview:large'} />
+      {/* noindex still FOLLOWS: a thin listing page should not be indexed, but
+          the real articles and profiles it links to must stay discoverable.
+          nofollow here would strand them. */}
+      <meta name="robots" content={noIndex ? 'noindex,follow' : 'index,follow,max-image-preview:large'} />
       <link rel="canonical" href={canonicalUrl} />
 
       {/* Open Graph */}

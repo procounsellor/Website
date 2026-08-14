@@ -78,6 +78,7 @@ export const STATIC_ROUTES = [
 
   // Paid services
   "/mhtcet-option-form-filling",
+  "/mettle",
 
   // Legal / info pages
   "/contact",
@@ -154,39 +155,37 @@ export async function getApiBaseUrl() {
   );
 }
 
+/**
+ * Blog slugs for the SITEMAP — the exact same list the prerender uses.
+ *
+ * This used to re-derive slugs from /api/blogs/list, and that list carries no
+ * `slug` field, so it fell back to slugifying the headline: "How to Start a
+ * Career in Data Analytics" → how-to-start-a-career-in-data-analytics. The
+ * snapshot meanwhile reads each blog's DETAIL endpoint, which does have a slug:
+ * career-in-data-analytics.
+ *
+ * The sitemap therefore listed both — the real prerendered article AND a URL
+ * the app cannot resolve, which served the homepage shell and rendered "not
+ * found". Nine articles, eighteen submitted URLs, half of them soft 404s
+ * carrying the homepage's title, description and canonical. That is the
+ * duplicate/thin content an AdSense review sees.
+ *
+ * One source now: scripts/blog-slugs.json, written by generate-blog-snapshot
+ * during prebuild. If a slug is not in there it was not prerendered, so it has
+ * no business being in the sitemap either.
+ */
 export async function fetchBlogSlugs() {
-  const apiBaseUrl = await getApiBaseUrl();
-
-  if (!apiBaseUrl) {
-    console.warn("[sitemap] VITE_API_BASE_URL/API_BASE_URL not set; skipping dynamic blog slugs.");
-    return [];
-  }
-
-  const endpoint = `${apiBaseUrl.replace(/\/$/, "")}/api/blogs/list`;
-
   try {
-    const response = await fetch(endpoint, { headers: { Accept: "application/json" } });
-
-    if (!response.ok) {
-      console.warn(`[sitemap] Could not fetch blog list (${response.status}).`);
+    const slugs = JSON.parse(
+      await fs.readFile(path.resolve(process.cwd(), "scripts/blog-slugs.json"), "utf8"),
+    );
+    if (!Array.isArray(slugs) || slugs.length === 0) {
+      console.warn("[sitemap] blog-slugs.json is empty; no blog URLs will be listed.");
       return [];
     }
-
-    const json = await response.json();
-    const rows = parseListPayload(json);
-
-    const slugs = rows
-      .map((item) => {
-        const rawSlug = typeof item?.slug === "string" ? item.slug : "";
-        if (rawSlug.trim()) return toSlug(rawSlug);
-        const title = typeof item?.title === "string" ? item.title : "";
-        return toSlug(title);
-      })
-      .filter(Boolean);
-
-    return Array.from(new Set(slugs));
+    return Array.from(new Set(slugs.filter((s) => typeof s === "string" && s.trim()).map(toSlug)));
   } catch (error) {
-    console.warn("[sitemap] Failed to fetch dynamic slugs:", error);
+    console.warn("[sitemap] Could not read scripts/blog-slugs.json:", error.message);
     return [];
   }
 }
@@ -312,7 +311,7 @@ function readContentIndex() {
       readFileSync(path.resolve(process.cwd(), "public/data/content-index.json"), "utf8"),
     );
   } catch {
-    return { colleges: [], deadlines: [] };
+    return { colleges: [], deadlines: [], counsellors: [] };
   }
 }
 
@@ -326,14 +325,24 @@ export async function getDynamicRoutes() {
   ]);
 
   const snapshot = readContentIndex();
-  // Prefer the live API, but never emit an empty section just because the
-  // backend was cold — fall back to what the snapshot verified exists.
-  const colleges = collegeIds.length ? collegeIds : snapshot.colleges || [];
-  const deadlines = deadlineIds.length ? deadlineIds : snapshot.deadlines || [];
+  // The SNAPSHOT wins, not the live API.
+  //
+  // The snapshot is what react-snap prerenders from, and it was written minutes
+  // earlier in this same prebuild. Taking ids from the live API instead means
+  // anything added since — or anything whose detail fetch failed — lands in the
+  // sitemap without a prerendered page behind it, which is how 120 counsellor
+  // URLs came to serve the home page shell. The API is only a fallback for when
+  // the snapshot is missing entirely.
+  const colleges = snapshot.colleges?.length ? snapshot.colleges : collegeIds;
+  const deadlines = snapshot.deadlines?.length ? snapshot.deadlines : deadlineIds;
+  const thinCounsellors = new Set(snapshot.counsellorsThin || []);
+  const counsellors = (snapshot.counsellors?.length ? snapshot.counsellors : counsellorIds).filter(
+    (id) => !thinCounsellors.has(id),
+  );
 
   return [
     ...blogSlugs.map((slug) => `/admissions/blogs/slug/${slug}`),
-    ...counsellorIds.map((id) => `/counsellor-details/${id}`),
+    ...counsellors.map((id) => `/counsellor-details/${id}`),
     ...colleges.map((id) => `/college-details/${id}`),
     ...deadlines.map((id) => `/admissions/deadlines/${id}`),
     ...proBuddyIds.map((id) => `/pro-buddies/profile/${id}`),
@@ -350,13 +359,58 @@ export function getPrerenderRoutes() {
       ...STATIC_ROUTES,
       ...(snapshot.colleges || []).map((id) => `/college-details/${id}`),
       ...(snapshot.deadlines || []).map((id) => `/admissions/deadlines/${id}`),
+      // Counsellor profiles. These sat in the sitemap for months while serving
+      // the home page shell — same title, same description, canonical pointing
+      // at "/" — i.e. 120 URLs that told Google they were duplicates of the
+      // home page. They are prerendered from the snapshot now.
+      ...(snapshot.counsellors || []).map((id) => `/counsellor-details/${id}`),
     ]),
   );
 }
 
+/**
+ * Routes that are PRERENDERED and crawlable but deliberately kept OUT of the
+ * sitemap, because the page carries <meta name="robots" content="noindex">.
+ *
+ * These are thin by nature — author cards, an empty-by-default community feed,
+ * two listing pages that are just filters over other pages. Submitting a
+ * noindex URL in a sitemap is a contradiction Search Console flags, and thin
+ * pages in a sitemap are exactly what an AdSense "thin content" review counts.
+ *
+ * Keep this in sync with the `noIndex` props in the matching page components.
+ */
+export const SITEMAP_EXCLUDED_ROUTES = new Set([
+  "/community",
+  "/pro-buddies/listing",
+  "/pro-buddies/college-listing",
+  "/admissions/blog-authors",
+  "/admissions/blog-authors/aswini-verma",
+  "/admissions/blog-authors/ashutosh-kumar",
+  "/admissions/blog-authors/kiran-kudke",
+  "/admissions/blog-authors/ananya",
+]);
+
 export async function getPublicRoutes() {
   const dynamicRoutes = await getDynamicRoutes();
-  return Array.from(new Set([...STATIC_ROUTES, ...dynamicRoutes]));
+  const all = Array.from(new Set([...STATIC_ROUTES, ...dynamicRoutes]));
+  const routes = all.filter((r) => !SITEMAP_EXCLUDED_ROUTES.has(r));
+
+  // A sitemap must only ever contain URLs that ship real prerendered HTML.
+  // Listing a route that is not prerendered submits the SPA shell — the home
+  // page's title, description and canonical — which is how nine broken blog
+  // URLs and 120 counsellor URLs ended up looking like duplicates of the home
+  // page. Fail loudly at build time rather than shipping that again.
+  const prerendered = new Set(getPrerenderRoutes());
+  const unprerendered = routes.filter((r) => !prerendered.has(r));
+  if (unprerendered.length) {
+    console.warn(
+      `[sitemap] ${unprerendered.length} route(s) are in the sitemap but NOT prerendered — ` +
+        `they will serve the home page shell:\n  ${unprerendered.slice(0, 10).join("\n  ")}` +
+        (unprerendered.length > 10 ? `\n  …and ${unprerendered.length - 10} more` : ""),
+    );
+  }
+
+  return routes;
 }
 
 export function routeToPriority(route) {

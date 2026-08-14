@@ -145,6 +145,7 @@ export default function CollegeListing() {
         title="College Listing – Browse Colleges with ProBuddies"
         description="Explore colleges and find ProBuddies (senior students) from each institution. Get insider advice on admissions, campus life, courses, and placements from real students."
         canonical="/pro-buddies/college-listing"
+        noIndex
         keywords="college listing India, college ProBuddies, engineering colleges, medical colleges, senior student mentors"
       />
     <ListingShell
