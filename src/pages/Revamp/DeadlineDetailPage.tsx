@@ -180,72 +180,51 @@ export default function DeadlineDetailPage() {
 
       <div className="max-w-[1440px] mx-auto px-[20px] md:px-[60px] pt-[24px] md:pt-[40px]">
         
-        {/* Main Details Section */}
-        <div className="flex flex-col md:flex-row gap-[16px] md:gap-[24px] mb-[32px] md:mb-[40px]">
-          
-          {/* Mobile Top Row: Image + Title + Badges */}
-          <div className="flex flex-row md:contents gap-[10px] md:gap-0">
-            {/* Image */}
-            {event.photoUrl ? (
-              <img loading="lazy" decoding="async" 
-                src={event.photoUrl} 
-                alt={event.title} 
-                className="w-[100px] h-[100px] md:w-[320px] md:h-[320px] object-cover rounded-[8px] md:rounded-[16px] shrink-0"
-              />
-            ) : (
-              <div className="w-[100px] h-[100px] md:w-[320px] md:h-[320px] bg-[#E3E8F4] rounded-[8px] md:rounded-[16px] shrink-0 flex items-center justify-center">
-                 <span className="text-gray-400 font-medium text-[10px] md:text-base">No Image</span>
-              </div>
-            )}
+        {/* Main Details Section
+            The title and the badges each render exactly once. They used to be
+            duplicated — a `md:hidden` mobile copy and a `hidden md:block`
+            desktop copy — which put two <h1>s and two copies of every badge in
+            the served HTML. Mobile keeps its image-beside-title layout via
+            explicit grid placement; desktop falls back to the original flex row
+            (the grid-* utilities are inert once the container is `display:flex`). */}
+        <div className="grid grid-cols-[100px_1fr] gap-x-[10px] gap-y-[8px] md:flex md:flex-row md:gap-[24px] mb-[32px] md:mb-[40px]">
 
-            {/* Mobile Title & Badges (Hidden on Desktop) */}
-            <div className="flex flex-col justify-start md:hidden w-full gap-[8px]">
-              <h1 className="text-[16px] font-semibold text-[#0E1629] font-[Poppins] leading-none capitalize">
-                {event.title}
-              </h1>
-              <div className="flex flex-wrap gap-[6px]">
-                {event.typeOfEvent && (
-                  <div className="bg-[#FA660F14] px-[12px] py-[4px] rounded-[24px] flex items-center justify-center">
-                    <span className="text-[#FA660F] text-[10px] font-medium font-[Poppins] leading-none capitalize">
-                      {event.typeOfEvent.toLowerCase()}
-                    </span>
-                  </div>
-                )}
-                {event.associatedCourseId?.map((course) => (
-                  <div key={course} className="bg-[#6B728040] px-[12px] py-[4px] rounded-[24px] flex items-center justify-center">
-                    <span className="text-[#0E1629] text-[10px] font-medium font-[Poppins] leading-none capitalize">
-                      {course.replace(/_/g, ' ')}
-                    </span>
-                  </div>
-                ))}
-              </div>
+          {/* Image — spans the title and badge rows on mobile */}
+          {event.photoUrl ? (
+            <img loading="lazy" decoding="async"
+              src={event.photoUrl}
+              alt={event.title}
+              className="col-start-1 row-start-1 row-span-2 self-start w-[100px] h-[100px] md:w-[320px] md:h-[320px] object-cover rounded-[8px] md:rounded-[16px] shrink-0"
+            />
+          ) : (
+            <div className="col-start-1 row-start-1 row-span-2 self-start w-[100px] h-[100px] md:w-[320px] md:h-[320px] bg-[#E3E8F4] rounded-[8px] md:rounded-[16px] shrink-0 flex items-center justify-center">
+               <span className="text-gray-400 font-medium text-[10px] md:text-base">No Image</span>
             </div>
-          </div>
+          )}
 
-          {/* Details Column */}
-          <div className="flex flex-col justify-start w-full">
-            {/* Desktop Title (Hidden on Mobile) */}
-            <h1 className="hidden md:block text-[40px] font-semibold text-[#0E1629] font-[Poppins] leading-none capitalize mb-[12px] max-w-[976px]">
+          {/* Details column. `contents` on mobile so the three children below
+              become grid items of the container above and can be placed
+              independently; a normal flex column from md up. */}
+          <div className="contents md:flex md:flex-col md:justify-start md:w-full">
+            <h1 className="col-start-2 row-start-1 text-[16px] md:text-[40px] font-semibold text-[#0E1629] font-[Poppins] leading-none capitalize md:mb-[12px] md:max-w-[976px]">
               {event.title}
             </h1>
-            
-            {/* Description (Shared, scales font size) */}
-            <p className="text-[12px] md:text-[18px] font-medium text-[#6B7280] font-[Poppins] leading-[1.3] md:leading-none capitalize mb-[0px] md:mb-[24px] max-w-[976px]">
+
+            <p className="col-start-1 col-span-2 row-start-3 mt-[8px] md:mt-0 text-[12px] md:text-[18px] font-medium text-[#6B7280] font-[Poppins] leading-[1.3] md:leading-none capitalize mb-[0px] md:mb-[24px] md:max-w-[976px]">
               {event.description}
             </p>
 
-            {/* Desktop Badges (Hidden on Mobile) */}
-            <div className="hidden md:flex flex-wrap gap-[10px]">
+            <div className="col-start-2 row-start-2 flex flex-wrap gap-[6px] md:gap-[10px]">
               {event.typeOfEvent && (
-                <div className="bg-[#FA660F14] px-[20px] py-[8px] rounded-[24px] flex items-center justify-center">
-                  <span className="text-[#FA660F] text-[20px] font-medium font-[Poppins] leading-none capitalize">
+                <div className="bg-[#FA660F14] px-[12px] md:px-[20px] py-[4px] md:py-[8px] rounded-[24px] flex items-center justify-center">
+                  <span className="text-[#FA660F] text-[10px] md:text-[20px] font-medium font-[Poppins] leading-none capitalize">
                     {event.typeOfEvent.toLowerCase()}
                   </span>
                 </div>
               )}
               {event.associatedCourseId?.map((course) => (
-                <div key={course} className="bg-[#6B728040] px-[20px] py-[8px] rounded-[24px] flex items-center justify-center">
-                  <span className="text-[#0E1629] text-[20px] font-medium font-[Poppins] leading-none capitalize">
+                <div key={course} className="bg-[#6B728040] px-[12px] md:px-[20px] py-[4px] md:py-[8px] rounded-[24px] flex items-center justify-center">
+                  <span className="text-[#0E1629] text-[10px] md:text-[20px] font-medium font-[Poppins] leading-none capitalize">
                     {course.replace(/_/g, ' ')}
                   </span>
                 </div>

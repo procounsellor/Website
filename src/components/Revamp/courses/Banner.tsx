@@ -142,11 +142,6 @@ export default function Banner() {
           </div>
         </div>
 
-        <div>
-          <CourseSection/>
-          <TestSection/>
-        </div>
-
       </div>
 
 
@@ -207,12 +202,19 @@ export default function Banner() {
         </div>
       </div>
 
-      <div className="bg-[#F5F5F7] flex flex-col pb-20">
+      </div>
+
+      {/* Course and test lists render ONCE for both breakpoints. They used to be
+          mounted inside the mobile hero *and* again inside the desktop hero, so
+          every course and test title was served twice over — on top of the
+          mobile/desktop split inside each section, that put the same titles in
+          the HTML up to eight times. Both sections are already responsive. */}
+      <div className="md:bg-[#F5F5F7] flex flex-col md:pb-20">
         <CourseSection />
         <TestSection />
-        
-        {/* Live Sessions Section */}
-        <div className="w-full pt-16 pb-16">
+
+        {/* Live Sessions Section (desktop only, as before) */}
+        <div className="hidden md:block w-full pt-16 pb-16">
           <div className="max-w-[1440px] h-full mx-auto px-[60px]">
             <div className="flex flex-col items-center justify-center text-center gap-6 min-h-[220px]">
               <p className="font-[Poppins] font-medium text-[24px] text-[#0E1629] max-w-[760px] leading-normal">
@@ -228,7 +230,6 @@ export default function Banner() {
           </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }

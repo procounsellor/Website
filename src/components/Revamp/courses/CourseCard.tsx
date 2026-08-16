@@ -264,9 +264,9 @@ export default function CourseCard(params: CourseCardParam) {
 
         <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-1">
-            <h1 className="text-(--text-main) font-semibold text-[1rem] truncate whitespace-nowrap overflow-hidden">
+            <h3 className="text-(--text-main) font-semibold text-[1rem] truncate whitespace-nowrap overflow-hidden">
               {params.course?.name}
-            </h1>
+            </h3>
             <span className="text-(--text-muted) text-xs font-normal">
               {counselorName}
             </span>

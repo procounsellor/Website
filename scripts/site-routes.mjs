@@ -370,16 +370,26 @@ export function getPrerenderRoutes() {
 
 /**
  * Routes that are PRERENDERED and crawlable but deliberately kept OUT of the
- * sitemap, because the page carries <meta name="robots" content="noindex">.
+ * sitemap. Two reasons qualify a route for this list:
  *
- * These are thin by nature — author cards, an empty-by-default community feed,
- * two listing pages that are just filters over other pages. Submitting a
- * noindex URL in a sitemap is a contradiction Search Console flags, and thin
- * pages in a sitemap are exactly what an AdSense "thin content" review counts.
+ *  1. the page carries <meta name="robots" content="noindex"> — thin by nature
+ *     (author cards, an empty-by-default community feed, two listing pages that
+ *     are just filters over other pages). Submitting a noindex URL in a sitemap
+ *     is a contradiction Search Console flags, and thin pages in a sitemap are
+ *     exactly what an AdSense "thin content" review counts;
+ *  2. the page's canonical points somewhere else, so the URL is an alias rather
+ *     than a document. Listing it asks Google to index a URL the page itself
+ *     disclaims — Search Console files those under "Alternative page with
+ *     proper canonical tag" and the entry is simply wasted crawl budget.
  *
- * Keep this in sync with the `noIndex` props in the matching page components.
+ * Prerendering is unaffected: getPrerenderRoutes() reads STATIC_ROUTES directly,
+ * so these routes still ship real HTML and still work when linked or typed in.
+ *
+ * Keep this in sync with the `noIndex`/`canonical` props in the page components.
  */
 export const SITEMAP_EXCLUDED_ROUTES = new Set([
+  // Renders the home page component; PageSEO sets canonical to "/".
+  "/admissions",
   "/community",
   "/pro-buddies/listing",
   "/pro-buddies/college-listing",

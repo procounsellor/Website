@@ -8,6 +8,50 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "redirects": [
+      { "source": "/colleges/:id", "destination": "/college-details/:id", "type": 301 },
+
+      { "source": "/counsellor/:id", "destination": "/counsellor-details/:id", "type": 301 },
+
+      {
+        "source": "/admissions/blogs/slug/how-to-start-a-career-in-data-analytics",
+        "destination": "/admissions/blogs/slug/career-in-data-analytics",
+        "type": 301
+      },
+      {
+        "source": "/admissions/blogs/slug/steps-to-plan-your-career-after-12th-dont-get-stuck-in-wrong-field",
+        "destination": "/admissions/blogs/slug/steps-to-plan-career-after-12th",
+        "type": 301
+      },
+      {
+        "source": "/admissions/blogs/slug/future-career-options-students-should-know-high-demand-jobs-after-12th",
+        "destination": "/admissions/blogs/slug/future-career-options-students",
+        "type": 301
+      },
+      {
+        "source": "/admissions/blogs/slug/confused-about-your-career-how-career-counseling-can-help-students-choose-the-right-path",
+        "destination": "/admissions/blogs/slug/career-counseling-students-right-path",
+        "type": 301
+      },
+      {
+        "source": "/admissions/blogs/slug/how-learning-a-new-language-improves-brain-health-and-intelligence",
+        "destination": "/admissions/blogs/slug/learning-language-brain-health-intelligence-benefits",
+        "type": 301
+      },
+
+      {
+        "source": "/admissions/deadlines/jee_advanced_2026_registration",
+        "destination": "/admissions/deadlines",
+        "type": 301
+      },
+      {
+        "source": "/admissions/deadlines/jee_advanced_2026_exam",
+        "destination": "/admissions/deadlines",
+        "type": 301
+      },
+
+      { "source": "/favicon.ico", "destination": "/favicon.png", "type": 301 }
+    ],
     "rewrites": [
       {
         "source": "**",

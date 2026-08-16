@@ -1,12 +1,8 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { X } from "lucide-react";
-import { Button } from "@/components/ui";
 import SmartImage from "@/components/ui/SmartImage";
 
-const APP_STORE_LINK = "https://apps.apple.com/app/procounsel/id6752525886";
-const PLAY_STORE_LINK =
-  "https://play.google.com/store/apps/details?id=com.catalystai.ProCounsel";
 const QR_CODE_IMAGE_PATH = "/qr_procounsel.jpg";
 
 export const BANNER_DISMISS_EVENT = "appBannerDismissed";
@@ -21,17 +17,6 @@ export default function AppInstallBanner() {
     window.dispatchEvent(new CustomEvent(BANNER_DISMISS_EVENT));
   };
 
-  const handleDownloadClick = () => {
-    const userAgent = navigator.userAgent || navigator.vendor;
-    if (/android/i.test(userAgent)) {
-      window.location.href = PLAY_STORE_LINK;
-    } else if (/iPad|iPhone|iPod/.test(userAgent)) {
-      window.location.href = APP_STORE_LINK;
-    } else {
-      window.location.href = PLAY_STORE_LINK;
-    }
-  };
-
   if (!isVisible) {
     return null;
   }
@@ -40,42 +25,11 @@ export default function AppInstallBanner() {
     <>
       {!isPromoPage && (
         <>
-          <div className="font-Popins hidden relative z-40 bg-white shadow-md p-3">
-            <div className="flex items-center justify-between gap-2">
-              <button
-                onClick={handleDismiss}
-                className="p-1 text-gray-400 hover:text-gray-600 hover:cursor-pointer"
-                aria-label="Dismiss app download banner"
-              >
-                <X size={20} />
-              </button>
-
-              {/* <SmartImage
-            src="/logo.svg"
-            alt="App Icon"
-            width={32}
-            height={32}
-            className="h-8 w-8 flex-shrink-0"
-          /> */}
-
-              <div className="flex-1 min-w-0">
-                <h4 className="text-xs font-semibold text-gray-800 truncate">
-                  EXCLUSIVE OFFERS ON APP!
-                </h4>
-                <p className="text-[11px] text-gray-500 truncate">
-                  Experience the features on the app from anywhere!.
-                </p>
-              </div>
-
-              <Button
-                onClick={handleDownloadClick}
-                className="h-9 px-3 text-sm font-bold bg-[#FF660F] text-white hover:bg-[#FF660F]/90 whitespace-nowrap"
-              >
-                Get App
-              </Button>
-            </div>
-          </div>
-
+          {/* The mobile variant of this banner was a plain `hidden` block — no
+              responsive variant, so it never became visible at any width. It
+              still shipped its heading and copy into the HTML of every page,
+              duplicating both strings site-wide for crawlers. Removed; the
+              desktop card below is the only banner that ever rendered. */}
           <div className="hidden md:flex fixed bottom-6 left-6 z-40 bg-white shadow-xl rounded-lg p-2 max-w-sm border border-gray-100">
             <div className="relative flex gap-4">
               <button

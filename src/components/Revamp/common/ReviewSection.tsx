@@ -60,9 +60,9 @@ export default function ReviewSection({
     return (
         <div className="max-w-[1440px] mx-auto flex flex-col gap-6 md:gap-8 py-8 md:py-10 px-5 md:px-[60px]">
             <div className="relative flex items-center justify-center">
-                <h1 className="text-(--text-main) font-bold text-[1rem] md:text-2xl text-center">
+                <h2 className="text-(--text-main) font-bold text-[1rem] md:text-2xl text-center">
                     Reviews
-                </h1>
+                </h2>
                 {onWriteReview && (
                     <button
                         onClick={onWriteReview}

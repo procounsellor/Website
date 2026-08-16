@@ -33,11 +33,17 @@ export default function Admissions() {
 
     navigate(path);
   };
+  // Each card needs its own headline. All three used to share the hard-coded
+  // line "It was a very good experience", which published the same sentence six
+  // times on the home page — half of the duplicate content the AdSense review
+  // flagged. Headlines summarise that student's own quote; nothing new is
+  // claimed on their behalf.
   const admissionsStories = [
     {
       name: "Ashutosh",
       role: "Student",
       rating: 4,
+      headline: "Weekly targets kept my prep on track",
       text: "The course planning was clear and easy to follow. Weekly targets and mock tests kept me focused and helped me prepare with confidence.",
       image: "/review1.webp",
     },
@@ -45,6 +51,7 @@ export default function Admissions() {
       name: "Ananya",
       role: "Student",
       rating: 5,
+      headline: "Doubt sessions made every topic click",
       text: "Topic-wise lessons and regular doubt sessions made preparation smooth. The structure helped me stay disciplined and improve consistently.",
       image: "/review2.webp",
     },
@@ -52,6 +59,7 @@ export default function Admissions() {
       name: "Shubham",
       role: "Student",
       rating: 4.5,
+      headline: "Better speed and accuracy in Maths",
       text: "Math and Chemistry sessions were practical and exam-focused. Shortcuts plus regular practice improved my speed, accuracy, and confidence.",
       image: "/review3.webp",
     },

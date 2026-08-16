@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { useBlogDetail, useBlogsList } from "@/hooks/useBlogs";
 import { formatPublishedHeading } from "@/api/blogs";
 import { getAuthorImageWithFallback, getAuthorProfileByName } from "@/lib/blogAuthors";
+import { demoteBodyHeadings, dropRedundantLeadingHeading } from "@/lib/blogHtml";
 
 function escapeHtml(text: string): string {
   return text
@@ -15,10 +16,10 @@ function escapeHtml(text: string): string {
 }
 
 function sanitizeHtml(html: string): string {
-  if (typeof window === "undefined") return html;
+  if (typeof window === "undefined") return demoteBodyHeadings(html);
 
   const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
+  const doc = parser.parseFromString(demoteBodyHeadings(html), "text/html");
 
   doc.querySelectorAll("script, style, iframe, object, embed").forEach((node) => node.remove());
 
@@ -39,12 +40,12 @@ function sanitizeHtml(html: string): string {
   return doc.body.innerHTML;
 }
 
-function normalizeDescriptionToHtml(text: string): string {
+function normalizeDescriptionToHtml(text: string, title = ""): string {
   const trimmed = text.trim();
   if (!trimmed) return "";
 
   const hasHtml = /<\/?[a-z][\s\S]*>/i.test(trimmed);
-  if (hasHtml) return sanitizeHtml(trimmed);
+  if (hasHtml) return dropRedundantLeadingHeading(sanitizeHtml(trimmed), title);
 
   const paragraphs = trimmed
     .split(/\n\s*\n/)
@@ -117,8 +118,8 @@ export default function BlogDetailPage() {
   }, [blog?.slug, id, navigate]);
 
   const descriptionHtml = useMemo(
-    () => (blog?.description ? normalizeDescriptionToHtml(blog.description) : ""),
-    [blog?.description]
+    () => (blog?.description ? normalizeDescriptionToHtml(blog.description, blog.title) : ""),
+    [blog?.description, blog?.title]
   );
 
   const blogSeo = useMemo(() => {
