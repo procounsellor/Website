@@ -213,6 +213,44 @@ describe("Mettle — brand-new user journey", () => {
   });
 });
 
+describe("Mettle — coupons", () => {
+  it("DISCOUNT20 takes 20% off and the wallet is debited the discounted amount", async () => {
+    const user = userEvent.setup();
+    render(<MettleAssessment />);
+
+    await user.click(screen.getByRole("button", { name: /Sign in & Start/ }));
+    await user.click(await screen.findByText("fake-verify-otp"));
+    store.setState({ user: { ...NEW_USER, firstName: "Ananya", lastName: "Sharma" } });
+
+    // Full price before the code is applied.
+    expect(screen.getByRole("button", { name: /Pay ₹2,000/ })).toBeInTheDocument();
+
+    await user.type(screen.getByPlaceholderText(/Coupon code/i), "discount20");
+    await user.click(screen.getByRole("button", { name: "Apply" }));
+
+    expect(await screen.findByText(/DISCOUNT20 applied · 20% off/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Pay ₹1,600/ }));
+
+    expect(await assessmentHeading()).toBeInTheDocument();
+    expect(payOptionFormFromWallet).toHaveBeenCalledWith("9876543210", 1600);
+  });
+
+  it("rejects a code that does not exist", async () => {
+    const user = userEvent.setup();
+    render(<MettleAssessment />);
+
+    await user.click(screen.getByRole("button", { name: /Sign in & Start/ }));
+    await user.click(await screen.findByText("fake-verify-otp"));
+    store.setState({ user: { ...NEW_USER, firstName: "Ananya", lastName: "Sharma" } });
+
+    await user.type(screen.getByPlaceholderText(/Coupon code/i), "NOTACODE");
+    await user.click(screen.getByRole("button", { name: "Apply" }));
+
+    expect(await screen.findByText(/isn't valid/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Pay ₹2,000/ })).toBeInTheDocument();
+  });
+});
+
 describe("Mettle — payment routing", () => {
   it("skips Razorpay entirely when the wallet already covers the price", async () => {
     const user = userEvent.setup();

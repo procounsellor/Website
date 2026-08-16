@@ -31,6 +31,7 @@ const METTLE_PRICE = 2000;
 const METTLE_COUPONS: Record<string, number> = {
   PC50: 50,
   PC100: 100,
+  DISCOUNT20: 20,
 };
 
 /*
