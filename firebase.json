@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site":"procounsel-c",
+    "site": "procounsel-c",
     "public": "dist",
     "trailingSlash": false,
     "ignore": [
@@ -9,10 +9,16 @@
       "**/node_modules/**"
     ],
     "redirects": [
-      { "source": "/colleges/:id", "destination": "/college-details/:id", "type": 301 },
-
-      { "source": "/counsellor/:id", "destination": "/counsellor-details/:id", "type": 301 },
-
+      {
+        "source": "/colleges/:id",
+        "destination": "/college-details/:id",
+        "type": 301
+      },
+      {
+        "source": "/counsellor/:id",
+        "destination": "/counsellor-details/:id",
+        "type": 301
+      },
       {
         "source": "/admissions/blogs/slug/how-to-start-a-career-in-data-analytics",
         "destination": "/admissions/blogs/slug/career-in-data-analytics",
@@ -38,7 +44,6 @@
         "destination": "/admissions/blogs/slug/learning-language-brain-health-intelligence-benefits",
         "type": 301
       },
-
       {
         "source": "/admissions/deadlines/jee_advanced_2026_registration",
         "destination": "/admissions/deadlines",
@@ -49,12 +54,19 @@
         "destination": "/admissions/deadlines",
         "type": 301
       },
-
-      { "source": "/favicon.ico", "destination": "/favicon.png", "type": 301 }
+      {
+        "source": "/favicon.ico",
+        "destination": "/favicon.png",
+        "type": 301
+      }
     ],
     "rewrites": [
       {
-        "source": "**",
+        "source": "/@(about|add-college|add-question|admissions|cancellation-refund|college-details|community|contact|counselling|counsellor|counsellor-dashboard|counsellor-details|counsellor-listing|counsellor-listing-cards|counselor|counselor-dashboard|courses|create-test|dashboard-student|detail|gurucool|jee-college-predictor|jee-rank-predictor|live-sessions|mbbs-colleges|mettle|mhtcet-college-predictor|mhtcet-option-form-filling|neet-college-predictor|neet-counselling|neet-cutoffs|neet-rank-predictor|notifications|predictors|privacy-policy|privacy1|pro-buddies|profile|promo|revamp-about|revamp-courses|shipping-exchange|sitemap|subscribe|t|take-test|term1|terms|test-group|test-groups|test-info|test-result|testSeries|wallet)",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/@(about|add-college|add-question|admissions|cancellation-refund|college-details|community|contact|counselling|counsellor|counsellor-dashboard|counsellor-details|counsellor-listing|counsellor-listing-cards|counselor|counselor-dashboard|courses|create-test|dashboard-student|detail|gurucool|jee-college-predictor|jee-rank-predictor|live-sessions|mbbs-colleges|mettle|mhtcet-college-predictor|mhtcet-option-form-filling|neet-college-predictor|neet-counselling|neet-cutoffs|neet-rank-predictor|notifications|predictors|privacy-policy|privacy1|pro-buddies|profile|promo|revamp-about|revamp-courses|shipping-exchange|sitemap|subscribe|t|take-test|term1|terms|test-group|test-groups|test-info|test-result|testSeries|wallet)/**",
         "destination": "/index.html"
       }
     ],
@@ -62,17 +74,35 @@
       {
         "source": "**",
         "headers": [
-          { "key": "X-Content-Type-Options", "value": "nosniff" },
-          { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-          { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" },
-          { "key": "Permissions-Policy", "value": "browsing-topics=()" }
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "X-Frame-Options",
+            "value": "SAMEORIGIN"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "strict-origin-when-cross-origin"
+          },
+          {
+            "key": "Strict-Transport-Security",
+            "value": "max-age=31536000; includeSubDomains"
+          },
+          {
+            "key": "Permissions-Policy",
+            "value": "browsing-topics=()"
+          }
         ]
       },
       {
         "source": "**/*.@(js|css|webp|png|jpg|jpeg|svg|woff2)",
         "headers": [
-          { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000, immutable"
+          }
         ]
       }
     ]

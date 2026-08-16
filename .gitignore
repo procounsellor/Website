@@ -41,3 +41,6 @@ dist.env.production
 .env.production
 .codex
 .claude
+# Firebase CLI debug output
+firebase-debug.log
+firebase-debug.*.log
