@@ -36,6 +36,13 @@ const TOOL_LINKS: { name: string; to: string }[] = [
 ];
 
 const EXPLORE_LINKS: { name: string; to: string }[] = [
+  // Category landing pages — the commercial-intent entry points. Linked from
+  // every page so they accumulate internal link equity.
+  { name: "Engineering Counselling", to: "/engineering-counselling" },
+  { name: "Medical Counselling", to: "/medical-counselling" },
+  { name: "MBA Counselling", to: "/mba-counselling" },
+  { name: "Law Counselling", to: "/law-counselling" },
+  { name: "Academic Counselling", to: "/academic-counselling" },
   { name: "Admission Counselling", to: "/admissions" },
   { name: "Courses & Test Series", to: "/courses" },
   { name: "Student Community", to: "/community" },

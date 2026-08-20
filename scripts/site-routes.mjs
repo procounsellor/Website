@@ -40,9 +40,20 @@ const COUNSELLING_CITY_SLUGS = [
   "ranchi", "raipur", "ludhiana",
 ];
 
+// Category counselling landing pages. Keep in sync with COUNSELLING_CATEGORIES
+// in src/lib/counsellingCategories.ts (plain .mjs, cannot import the .ts).
+export const COUNSELLING_CATEGORY_SLUGS = [
+  "engineering-counselling",
+  "medical-counselling",
+  "mba-counselling",
+  "law-counselling",
+  "academic-counselling",
+];
+
 export const STATIC_ROUTES = [
   // Core pages — highest priority (target sitelinks)
   "/",
+  ...COUNSELLING_CATEGORY_SLUGS.map((s) => `/${s}`),
   "/admissions",
   "/courses",
   "/community",

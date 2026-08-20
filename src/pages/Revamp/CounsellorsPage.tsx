@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { Link, useSearchParams } from "react-router-dom";
 import { academicApi } from "@/api/academic";
 import { useAuthStore } from "@/store/AuthStore";
 import type { AllCounselor } from "@/types/academic";
@@ -72,6 +73,7 @@ const CounsellorsPage: React.FC = () => {
     // --- API & Pagination States ---
     const ITEMS_PER_PAGE = 9;
 
+    const [searchParams] = useSearchParams();
     const observer = useRef<IntersectionObserver | null>(null);
 
     // --- FAVOURITES & PROFILE STATES ---
@@ -220,7 +222,34 @@ const CounsellorsPage: React.FC = () => {
         placeholderData: (prev) => prev,
     });
 
+    // Deep link from a category landing page: /counsellor-listing?expertise=MBA,BBA&from=mba-counselling
+    const expertiseParam = searchParams.get("expertise") || "";
+    const fromParam = searchParams.get("from") || "";
+    const wantedExpertise = useMemo(
+        () => expertiseParam.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean),
+        [expertiseParam],
+    );
+
+    const expertiseMatches = useMemo(() => {
+        if (!wantedExpertise.length) return null;
+        const want = new Set(wantedExpertise);
+        return COUNSELLORS_SNAPSHOT_LIST.filter((c) =>
+            (c.expertise || []).some((e) => want.has((e || "").toLowerCase())),
+        );
+    }, [wantedExpertise]);
+
+    /** True when the specialisation has no counsellors yet and we fell back to everyone. */
+    const showingGenericFallback = Boolean(expertiseMatches && expertiseMatches.length === 0);
+
     const counselors = useMemo(() => {
+        // The search endpoint has no expertise parameter, and the grid loads 9 at
+        // a time, so filtering only the pages fetched so far would usually return
+        // nothing. With ~120 counsellors in total the complete snapshot is small
+        // enough to filter directly, which also makes the filtered view correct
+        // on first paint instead of after a round trip.
+        if (expertiseMatches) {
+            return expertiseMatches.length ? expertiseMatches : COUNSELLORS_SNAPSHOT_LIST;
+        }
         const merged = (data?.pages ?? []).flatMap((pageData) => pageData.counsellors || []);
         const byId = new Map<string, AllCounselor>();
 
@@ -231,7 +260,7 @@ const CounsellorsPage: React.FC = () => {
         });
 
         return Array.from(byId.values());
-    }, [data]);
+    }, [data, expertiseMatches]);
 
     const lastCounselorRef = useCallback((node: HTMLDivElement | null) => {
         if (isLoading || isFetchingNextPage) return;
@@ -354,6 +383,10 @@ const CounsellorsPage: React.FC = () => {
             title="Best Career Consultant & Certified Career Coach | ProCounsel"
             description="Connect with a professional career coach and personal career counselor at ProCounsel. Get expert career guidance from certified career consultants you can trust."
             canonical="/counsellor-listing"
+            // A filtered view is faceted navigation: same counsellors, different
+            // slice. The category landing pages are the indexable entry points
+            // for this intent, so these URLs stay out of the index.
+            noIndex={wantedExpertise.length > 0}
             keywords="best career consultant, professional career coach, personal career counselor, career consultant, certified career coach, top career coaches"
           />
         <div className="bg-[#C6DDF040] w-full py-6 md:py-8">
@@ -428,6 +461,37 @@ const CounsellorsPage: React.FC = () => {
 
                 {/* Main Grid */}
                 <div className="grow w-full lg:min-w-0">
+                    {wantedExpertise.length > 0 && (
+                      <div className="mb-4 rounded-xl border border-[#2F43F2]/20 bg-[#2F43F2]/5 px-4 py-3">
+                        <p className="text-[13.5px] text-gray-700">
+                          {showingGenericFallback ? (
+                            <>
+                              We do not have counsellors listed under{" "}
+                              <strong>{expertiseParam.split(",")[0]}</strong> yet, so these are all
+                              our admission counsellors. Many cover more than one specialisation.
+                            </>
+                          ) : (
+                            <>
+                              Showing <strong>{cardData.length}</strong> counsellor
+                              {cardData.length === 1 ? "" : "s"} who specialise in{" "}
+                              <strong>{expertiseParam.split(",").join(", ")}</strong>.
+                            </>
+                          )}{" "}
+                          <Link to="/counsellor-listing" className="font-semibold text-[#2F43F2] hover:underline">
+                            Show all counsellors
+                          </Link>
+                          {fromParam ? (
+                            <>
+                              {" · "}
+                              <Link to={`/${fromParam}`} className="font-semibold text-[#2F43F2] hover:underline">
+                                Back to {fromParam.replace(/-/g, " ")}
+                              </Link>
+                            </>
+                          ) : null}
+                        </p>
+                      </div>
+                    )}
+
                     <CounsellorListingCards
                         counsellors={cardData}
                         isLoading={isLoading}
