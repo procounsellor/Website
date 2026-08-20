@@ -108,10 +108,17 @@ const CollegeDetailsPageNew = () => {
     }
   }, [activeTab, collegeTabStorageKey, id]);
 
-  const renderTabContent = () => {
+  // Every panel is rendered into the DOM and inactive ones are hidden with CSS,
+  // rather than switching on activeTab and rendering only one. Only the "Info"
+  // tab was ever in the prerendered HTML, so the alumni, events, scholarships,
+  // courses, exams, important dates and infrastructure this college already has
+  // in the snapshot were invisible to Google — the page measured 154 unique
+  // words against ~300 available, which is what "thin content" means in an
+  // AdSense review. Google does index display:none tab panels.
+  const renderPanel = (tab: string) => {
     if (!collegeData) return null;
 
-    switch (activeTab) {
+    switch (tab) {
       case 'Info':
         return <InfoTab data={collegeData} />;
       case 'Courses':
@@ -251,7 +258,11 @@ const CollegeDetailsPageNew = () => {
             </div>
 
             <div className="mt-4 md:mt-6">
-               {renderTabContent()}
+               {availableTabs.map((tab) => (
+                 <div key={tab} hidden={activeTab !== tab}>
+                   {renderPanel(tab)}
+                 </div>
+               ))}
             </div>
           </div>
 
