@@ -3,6 +3,7 @@ import { MapPin, ArrowRight, Users, Stethoscope, GraduationCap } from "lucide-re
 import PageSEO from "@/components/SEO/PageSEO";
 import SeoArticle from "@/components/SEO/SeoArticle";
 import { COUNSELLING_CITIES } from "@/lib/counsellingCities";
+import { COUNSELLING_CATEGORIES } from "@/lib/counsellingCategories";
 
 const ACCENT = "#2F43F2";
 
@@ -92,6 +93,39 @@ export default function CounsellingHub() {
         </div>
 
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 mt-10 space-y-8">
+          {/* Counselling by stream. These are the commercial-intent pages —
+              someone looking for "MBA counselling" should land on one of these,
+              not have to guess which city page covers it. Placed above the city
+              grid because the stream is the stronger intent signal. */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="h-5 w-1 rounded-full" style={{ backgroundColor: ACCENT }} />
+              <h2 className="font-bold text-[18px] md:text-[22px] text-[#0E1629]">
+                Counselling by stream
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {COUNSELLING_CATEGORIES.map((cat) => (
+                <Link
+                  key={cat.slug}
+                  to={`/${cat.slug}`}
+                  className="group flex items-start justify-between gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3.5 hover:border-[#2F43F2]/30 hover:shadow-md transition-all"
+                >
+                  <span className="min-w-0">
+                    <span className="flex items-center gap-1.5 font-semibold text-gray-800">
+                      <GraduationCap className="h-3.5 w-3.5 shrink-0 text-[#2F43F2]" />
+                      {cat.name}
+                    </span>
+                    <span className="mt-0.5 block text-xs text-gray-400">
+                      {cat.exams.slice(0, 4).map((e) => e.name).join(" · ")}
+                    </span>
+                  </span>
+                  <ArrowRight className="h-4 w-4 shrink-0 mt-0.5 text-gray-300 group-hover:text-[#2F43F2] group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              ))}
+            </div>
+          </div>
+
           {byRegion.map(({ region, cities }) => (
             <div key={region}>
               <div className="flex items-center gap-2 mb-4">

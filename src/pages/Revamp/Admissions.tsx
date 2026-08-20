@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import CounsellorSection from "@/components/Revamp/admissions/counsellor/CounsellorSection";
+import CounsellingCategories from "@/components/Revamp/admissions/CounsellingCategories";
 import PageSEO from "@/components/SEO/PageSEO";
 import SeoArticle from "@/components/SEO/SeoArticle";
 import { homeContent } from "@/components/SEO/seoContent";
@@ -651,6 +652,7 @@ export default function Admissions() {
       </section>
       
       <CounsellorSection />
+      <CounsellingCategories />
       <Suspense fallback={<div className="min-h-[400px]" />}>
         <div className="hidden md:block">
           <Timeline />
