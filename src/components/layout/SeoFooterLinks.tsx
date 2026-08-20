@@ -44,6 +44,11 @@ const EXPLORE_LINKS: { name: string; to: string }[] = [
   { name: "Admission Blogs", to: "/admissions/blogs" },
   { name: "Exam Deadlines", to: "/admissions/deadlines" },
   { name: "All Predictors", to: "/predictors" },
+  // These three are in the sitemap but were only ever reached through a
+  // navigate() button or a signed-in dashboard, so no crawler could find them.
+  { name: "Mettle Career Test", to: "/mettle" },
+  { name: "All Courses", to: "/courses/course-listing" },
+  { name: "All Test Series", to: "/courses/test-listing" },
 ];
 
 const linkClass =

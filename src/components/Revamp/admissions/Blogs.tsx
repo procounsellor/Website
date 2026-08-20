@@ -44,6 +44,14 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
   const { data: blogItems = [], isLoading, isError, error, refetch } =
     useBlogsList();
 
+  // useBlogsList seeds this query from the build-time snapshot, so `blogItems`
+  // is already populated when the live refetch fails — which it always does
+  // during the prerender, where the API is deliberately blocked. Gating the
+  // list on `isError` meant Googlebot was served "Failed to fetch" and zero
+  // blog links, leaving every post an orphan URL. Only show the error when
+  // there is genuinely nothing to render.
+  const showError = isError && blogItems.length === 0;
+
   const categories = FIXED_CATEGORIES;
 
   const [activeCategory, setActiveCategory] = useState<FixedBlogCategory>("All");
@@ -97,7 +105,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
               ))}
             </div>
           )}
-          {isError && (
+          {showError && (
             <div className="text-center py-12 space-y-3">
               <p className="text-red-600 text-[0.875rem]">
                 {(error as Error)?.message ?? "Could not load blogs."}
@@ -111,14 +119,14 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
               </button>
             </div>
           )}
-          {!isLoading && !isError && filteredBlogs.length === 0 && (
+          {!isLoading && !showError && filteredBlogs.length === 0 && (
             <p className="text-center text-(--text-muted) py-12 text-[0.875rem]">
               No blogs in this category yet.
             </p>
           )}
           <div className="grid grid-cols-[repeat(auto-fit,minmax(308px,308px))] justify-center gap-5">
             {!isLoading &&
-              !isError &&
+              !showError &&
               filteredBlogs.map((blog) => (
                 <BlogsPageCard
                   key={blog.id}
@@ -166,7 +174,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
               </div>
             )}
             
-            {isError && (
+            {showError && (
               <p className="text-red-600 text-[0.875rem] w-full">
                 {(error as Error)?.message ?? "Could not load blogs."}
               </p>
@@ -174,7 +182,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
 
             {/* Dynamic Map (From Current) + Layout Wrapper (From Incoming) */}
             {!isLoading &&
-              !isError &&
+              !showError &&
               sectionBlogs.map((blog) => (
                 <div key={blog.id} className="shrink-0">
                   <BlogCard
@@ -189,7 +197,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
               ))}
 
             {/* Empty State (From Current) */}
-            {!isLoading && !isError && sectionBlogs.length === 0 && (
+            {!isLoading && !showError && sectionBlogs.length === 0 && (
               <p className="text-(--text-muted) text-[0.875rem]">
                 No blogs yet.
               </p>

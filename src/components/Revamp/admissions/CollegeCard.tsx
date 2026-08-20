@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface CollegeCardProps {
   id: string;
@@ -31,7 +31,17 @@ export default function CollegeCard({ id, name, description, logoUrl }: CollegeC
         <h3
           className="absolute md:static top-[4px] left-[92px] w-[217px] h-[42px] md:w-[20rem] md:shrink-0 md:h-auto font-[Poppins] font-medium text-[14px] leading-[1.2] md:leading-normal text-[#0E1629] md:text-[1.125rem] md:text-(--text-main) md:overflow-clip line-clamp-2 md:line-clamp-none"
         >
-          {name}
+          {/* A real <a href>, not just the card's onClick: Googlebot does not
+              run click handlers, so without this the college detail pages have
+              no inbound internal link at all. stopPropagation keeps the card's
+              own navigate() from firing a second time on top of the link. */}
+          <Link
+            to={`/college-details/${id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="hover:underline"
+          >
+            {name}
+          </Link>
         </h3>
 
         {/* Lowered mobile top offset slightly (top-[48px]) to adjust for the name moving down */}

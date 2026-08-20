@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import CollegeCard from "./CollegeCard";
+import CrawlableIndex from "@/components/SEO/CrawlableIndex";
 import { academicApi } from "@/api/academic";
 import type { CollegeApiResponse } from "@/types/academic";
 import { COLLEGES_SNAPSHOT } from "@/data/contentSnapshot";
@@ -61,6 +62,17 @@ export default function College() {
               ))}
             </div>
         )}
+
+        {/* Only the first four colleges get a card, so the rest had no inbound
+            internal link at all. Every college in the snapshot is listed here. */}
+        <CrawlableIndex
+          title="All colleges on ProCounsel"
+          ariaLabel="All colleges"
+          links={allColleges.map((c: CollegeApiResponse) => ({
+            to: `/college-details/${c.collegeId}`,
+            label: `${c.collegeName}${c.collegesLocationCity ? ` — ${c.collegesLocationCity}` : ""}`,
+          }))}
+        />
       </div>
     </div>
   );

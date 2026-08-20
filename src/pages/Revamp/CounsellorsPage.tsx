@@ -10,6 +10,8 @@ import toast from "react-hot-toast";
 import { addFav } from "@/api/counsellor";
 import PageSEO from "@/components/SEO/PageSEO";
 import SeoArticle from "@/components/SEO/SeoArticle";
+import CounsellorIndexLinks from "@/components/SEO/CounsellorIndexLinks";
+import { COUNSELLORS_SNAPSHOT_LIST } from "@/hooks/useCounselors";
 import { counsellorsContent } from "@/components/SEO/seoContent";
 import EditProfileModal from "@/components/student-dashboard/EditProfileModal";
 import { updateUserProfile } from "@/api/user";
@@ -151,6 +153,16 @@ const CounsellorsPage: React.FC = () => {
         [selectedCities, selectedLanguages, apiDays, apiExperience, minPrice, maxPrice, searchTerm, sortConfig]
     );
 
+    // Only the untouched listing is safe to seed from the build-time snapshot.
+    const isUnfilteredView =
+        !commonFilters.city &&
+        !commonFilters.languagesKnow &&
+        !commonFilters.workingDays &&
+        !commonFilters.experience &&
+        commonFilters.minPrice === "" &&
+        commonFilters.maxPrice === "" &&
+        !commonFilters.search;
+
     const {
         data,
         isLoading,
@@ -189,6 +201,20 @@ const CounsellorsPage: React.FC = () => {
         gcTime: 10 * 60 * 1000,
         refetchOnWindowFocus: false,
         initialPageParam: 0,
+        // The prerendered /counsellor-listing is this unfiltered default view,
+        // and the API is blocked at build time — so without a seed Googlebot
+        // received an empty grid. Seed only when no filter is active; a filtered
+        // view must always come from the live API or it would show wrong results.
+        initialData: isUnfilteredView && COUNSELLORS_SNAPSHOT_LIST.length
+            ? {
+                pages: [{
+                    counsellors: COUNSELLORS_SNAPSHOT_LIST.slice(0, ITEMS_PER_PAGE),
+                    total: COUNSELLORS_SNAPSHOT_LIST.length,
+                }],
+                pageParams: [0],
+            }
+            : undefined,
+        initialDataUpdatedAt: 0,
         // Keep showing previous page data while a new query (e.g. userId just loaded) is fetching,
         // preventing the blank flash when navigating from the Admissions page.
         placeholderData: (prev) => prev,
@@ -427,6 +453,7 @@ const CounsellorsPage: React.FC = () => {
                 />
             )}
             </div>
+            <CounsellorIndexLinks />
             <SeoArticle {...counsellorsContent} />
         </div>
         </>

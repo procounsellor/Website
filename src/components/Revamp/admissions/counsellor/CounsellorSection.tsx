@@ -3,9 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import FancyCard from "./counsellorCard";
 import { SeeAllButton } from "../../components/LeftRightButton";
-import { academicApi } from "@/api/academic";
 import type { AllCounselor } from "@/types/academic";
-import { useQuery } from "@tanstack/react-query";
+import { useCounsellorsList } from "@/hooks/useCounselors";
 import { addFav } from "@/api/counsellor";
 import { useAuthStore } from "@/store/AuthStore";
 import toast from "react-hot-toast";
@@ -55,12 +54,13 @@ export default function CounsellorSection() {
         "Upskilling"
     ];
 
-    const { data: counsellors = [], isLoading, isError, isFetching } = useQuery({
-        queryKey: ['revamp-counsellors'],
-        queryFn: () => academicApi.getLoggedOutCounsellors(),
-        staleTime: 5 * 60 * 1000,
-        gcTime: 10 * 60 * 1000,
-    });
+    const { data: counsellors = [], isLoading, isError, isFetching } = useCounsellorsList();
+
+    // The snapshot seeds this list, so `counsellors` is populated even when the
+    // live refetch fails. Only surface the error when there is nothing to show —
+    // otherwise the prerender (API blocked) serves Googlebot an error state and
+    // no counsellor links at all.
+    const showError = isError && counsellors.length === 0;
 
     const isFromCache = !isLoading && !isFetching && counsellors.length > 0;
     if (isFromCache && !hasAnimated.current) {
@@ -157,7 +157,7 @@ export default function CounsellorSection() {
                                 />
                             ))}
                         </motion.div>
-                    ) : isError ? (
+                    ) : showError ? (
                         <motion.div
                             key="error"
                             initial={{ opacity: 0 }}

@@ -1,6 +1,6 @@
 import { Bookmark, Star, Briefcase, MapPin, User2 } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { encodeCounselorId } from "@/lib/utils";
 
 interface FancyCardProps {
@@ -37,8 +37,10 @@ export default function FancyCard({
   const [imgError, setImgError] = useState(false);
   const navigate = useNavigate();
 
+  const href = navigateTo ?? `/counsellor-details/${encodeCounselorId(counsellorId)}`;
+
   const handleClick = () => {
-    navigate(navigateTo ?? `/counsellor-details/${encodeCounselorId(counsellorId)}`);
+    navigate(href);
   };
 
   return (
@@ -104,7 +106,11 @@ export default function FancyCard({
         {/* Counsellor Name */}
         <div className="mt-2">
           <p className="font-[Poppins] font-medium text-[16px] md:text-[18px] text-[#0E1629] leading-normal truncate">
-            {name}
+            {/* Real anchor. The card's onClick is invisible to Googlebot, which
+                left all 102 indexable profiles without a single inbound link. */}
+            <Link to={href} onClick={(e) => e.stopPropagation()} className="hover:underline">
+              {name}
+            </Link>
           </p>
         </div>
 

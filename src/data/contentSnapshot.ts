@@ -99,7 +99,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1887",
     "accreditation": "AICTE, NBA, NAAC",
     "collegeType": "Govt",
-    "popularityCount": 816,
+    "popularityCount": 823,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -136,7 +136,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1999",
     "accreditation": "NAAC, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 598,
+    "popularityCount": 605,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -181,7 +181,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1854",
     "accreditation": "AICTE, NBA, NAAC, UGC",
     "collegeType": "Govt",
-    "popularityCount": 589,
+    "popularityCount": 593,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -213,7 +213,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1981",
     "accreditation": "AACSB, AMBA, EQUIS",
     "collegeType": "Pvt",
-    "popularityCount": 191,
+    "popularityCount": 196,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -254,7 +254,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1960",
     "accreditation": "AICTE, UGC, NBA, NIRF",
     "collegeType": "Govt",
-    "popularityCount": 150,
+    "popularityCount": 154,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -291,7 +291,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2021",
     "accreditation": "AICTE, NAAC, NBA",
     "collegeType": "Pvt",
-    "popularityCount": 144,
+    "popularityCount": 148,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -324,7 +324,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1991",
     "accreditation": "NAAC (A), NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 100,
+    "popularityCount": 110,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -360,7 +360,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2005",
     "accreditation": "AICTE, NAAC, NBA",
     "collegeType": "Pvt",
-    "popularityCount": 95,
+    "popularityCount": 100,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -389,6 +389,47 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
+    "collegeId": "RAIT_NAVI_MUMBAI",
+    "collegeName": "Ramrao Adik Institute of Technology",
+    "collegesLocationCity": "Navi Mumbai",
+    "collegesLocationState": "Maharashtra",
+    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/RAIT_NAVI_MUMBAI/logo/RAIT_NAVI_MUMBAI_logo_20250830_101613_images.jpeg",
+    "establishedYear": "1983",
+    "accreditation": "NAAC (A), NBA, AICTE",
+    "collegeType": "Pvt",
+    "popularityCount": 97,
+    "coursesOffered": [
+      {
+        "courseId": "ENGINEERING",
+        "courseName": "Engineering",
+        "courseLevel": "UG",
+        "duration": "4 Years",
+        "examsAccepted": [
+          {
+            "examId": "JEE_MAIN",
+            "examName": "JEE Main"
+          },
+          {
+            "examId": "MHT_CET",
+            "examName": "MHT CET"
+          }
+        ]
+      },
+      {
+        "courseId": "MTECH",
+        "courseName": "Mtech",
+        "courseLevel": "PG",
+        "duration": "2 Years",
+        "examsAccepted": [
+          {
+            "examId": "GATE",
+            "examName": "GATE"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "collegeId": "DJSCE_MUMBAI",
     "collegeName": "D. J. Sanghvi College of Engineering",
     "collegesLocationCity": "Mumbai",
@@ -397,7 +438,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1994",
     "accreditation": "NAAC (A+), NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 92,
+    "popularityCount": 96,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -417,7 +458,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1994",
     "accreditation": "NA",
     "collegeType": "Pvt",
-    "popularityCount": 91,
+    "popularityCount": 95,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -454,47 +495,6 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
-    "collegeId": "RAIT_NAVI_MUMBAI",
-    "collegeName": "Ramrao Adik Institute of Technology",
-    "collegesLocationCity": "Navi Mumbai",
-    "collegesLocationState": "Maharashtra",
-    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/RAIT_NAVI_MUMBAI/logo/RAIT_NAVI_MUMBAI_logo_20250830_101613_images.jpeg",
-    "establishedYear": "1983",
-    "accreditation": "NAAC (A), NBA, AICTE",
-    "collegeType": "Pvt",
-    "popularityCount": 90,
-    "coursesOffered": [
-      {
-        "courseId": "ENGINEERING",
-        "courseName": "Engineering",
-        "courseLevel": "UG",
-        "duration": "4 Years",
-        "examsAccepted": [
-          {
-            "examId": "JEE_MAIN",
-            "examName": "JEE Main"
-          },
-          {
-            "examId": "MHT_CET",
-            "examName": "MHT CET"
-          }
-        ]
-      },
-      {
-        "courseId": "MTECH",
-        "courseName": "Mtech",
-        "courseLevel": "PG",
-        "duration": "2 Years",
-        "examsAccepted": [
-          {
-            "examId": "GATE",
-            "examName": "GATE"
-          }
-        ]
-      }
-    ]
-  },
-  {
     "collegeId": "SIBM_PUNE",
     "collegeName": "Symbiosis Institute of Business Management",
     "collegesLocationCity": "Pune",
@@ -503,7 +503,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1978",
     "accreditation": "NAAC, NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 90,
+    "popularityCount": 94,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -528,7 +528,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1996",
     "accreditation": "NBA, NAAC (A+), AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 86,
+    "popularityCount": 90,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -564,7 +564,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1965",
     "accreditation": "AICTE, NAAC",
     "collegeType": "Govt",
-    "popularityCount": 81,
+    "popularityCount": 86,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -597,31 +597,6 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
-    "collegeId": "AIT_PUNE",
-    "collegeName": "Army Institute of Technology",
-    "collegesLocationCity": "Pune",
-    "collegesLocationState": "Maharashtra",
-    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/AIT_PUNE/logo/AIT_PUNE_logo_20250829_134130_army_institute_of_technology_ait_pune_logo.jpeg",
-    "establishedYear": "1994",
-    "accreditation": "AICTE, NAAC, NBA",
-    "collegeType": "Pvt",
-    "popularityCount": 73,
-    "coursesOffered": [
-      {
-        "courseId": "ENGINEERING",
-        "courseName": "Engineering",
-        "courseLevel": "UG",
-        "duration": "4 Years",
-        "examsAccepted": [
-          {
-            "examId": "JEE_MAIN",
-            "examName": "JEE Main"
-          }
-        ]
-      }
-    ]
-  },
-  {
     "collegeId": "MPSTME_MUMBAI",
     "collegeName": "Mukesh Patel School of Technology Management and Engineering",
     "collegesLocationCity": "Mumbai",
@@ -630,7 +605,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2006",
     "accreditation": "NAAC (A+), AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 70,
+    "popularityCount": 84,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -663,6 +638,31 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
+    "collegeId": "AIT_PUNE",
+    "collegeName": "Army Institute of Technology",
+    "collegesLocationCity": "Pune",
+    "collegesLocationState": "Maharashtra",
+    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/AIT_PUNE/logo/AIT_PUNE_logo_20250829_134130_army_institute_of_technology_ait_pune_logo.jpeg",
+    "establishedYear": "1994",
+    "accreditation": "AICTE, NAAC, NBA",
+    "collegeType": "Pvt",
+    "popularityCount": 77,
+    "coursesOffered": [
+      {
+        "courseId": "ENGINEERING",
+        "courseName": "Engineering",
+        "courseLevel": "UG",
+        "duration": "4 Years",
+        "examsAccepted": [
+          {
+            "examId": "JEE_MAIN",
+            "examName": "JEE Main"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "collegeId": "SJMSM_MUMBAI",
     "collegeName": "Shailesh J. Mehta School of Management",
     "collegesLocationCity": "Mumbai",
@@ -671,7 +671,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1995",
     "accreditation": "AMBA, AACSB, NBA",
     "collegeType": "Govt",
-    "popularityCount": 70,
+    "popularityCount": 74,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -696,7 +696,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1993",
     "accreditation": "NAAC, NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 65,
+    "popularityCount": 70,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -713,31 +713,6 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
-    "collegeId": "IIMN_MUMBAI",
-    "collegeName": "Indian Institute of Management Nagpur",
-    "collegesLocationCity": "Mumbai",
-    "collegesLocationState": "Maharashtra",
-    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/IIMN_MUMBAI/logo/IIMN_MUMBAI_logo_20250828_105610_Indian%20Institute%20of%20Management%20Nagpur%20logo.png",
-    "establishedYear": "1963",
-    "accreditation": "NAAC, AICTE",
-    "collegeType": "Govt",
-    "popularityCount": 63,
-    "coursesOffered": [
-      {
-        "courseId": "MANAGEMENT",
-        "courseName": "Management",
-        "courseLevel": "PG",
-        "duration": "2 Years",
-        "examsAccepted": [
-          {
-            "examId": "CAT",
-            "examName": "CAT"
-          }
-        ]
-      }
-    ]
-  },
-  {
     "collegeId": "MUICT_MUMBAI",
     "collegeName": "Institute of Chemical Technology",
     "collegesLocationCity": "Mumbai",
@@ -746,7 +721,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1933",
     "accreditation": "UGC, AICTE, NBA, NAAC",
     "collegeType": "Govt",
-    "popularityCount": 63,
+    "popularityCount": 68,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -787,7 +762,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2017",
     "accreditation": "AICTE, NBA",
     "collegeType": "Pvt",
-    "popularityCount": 63,
+    "popularityCount": 68,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -804,6 +779,31 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
+    "collegeId": "IIMN_MUMBAI",
+    "collegeName": "Indian Institute of Management Nagpur",
+    "collegesLocationCity": "Mumbai",
+    "collegesLocationState": "Maharashtra",
+    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/IIMN_MUMBAI/logo/IIMN_MUMBAI_logo_20250828_105610_Indian%20Institute%20of%20Management%20Nagpur%20logo.png",
+    "establishedYear": "1963",
+    "accreditation": "NAAC, AICTE",
+    "collegeType": "Govt",
+    "popularityCount": 67,
+    "coursesOffered": [
+      {
+        "courseId": "MANAGEMENT",
+        "courseName": "Management",
+        "courseLevel": "PG",
+        "duration": "2 Years",
+        "examsAccepted": [
+          {
+            "examId": "CAT",
+            "examName": "CAT"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "collegeId": "TISS_MUMBAI",
     "collegeName": "Tata Institute of Social Sciences",
     "collegesLocationCity": "Mumbai",
@@ -812,7 +812,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1936",
     "accreditation": "NAAC, UGC",
     "collegeType": "Deemed",
-    "popularityCount": 63,
+    "popularityCount": 67,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -829,47 +829,6 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
-    "collegeId": "KSIMSR_MUMBAI",
-    "collegeName": "K.J. Somaiya Institute of Management Studies and Research",
-    "collegesLocationCity": "Mumbai",
-    "collegesLocationState": "Maharashtra",
-    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/KSIMSR_MUMBAI/logo/KSIMSR_MUMBAI_logo_20250830_181356_K.J.%20Somaiya%20Institute%20of%20Management%20Studies%20and%20Research%20logo.png",
-    "establishedYear": "1981",
-    "accreditation": "NBA, NAAC, AACSB (Member), AICTE",
-    "collegeType": "Pvt",
-    "popularityCount": 61,
-    "coursesOffered": [
-      {
-        "courseId": "MANAGEMENT",
-        "courseName": "Management",
-        "courseLevel": "PG",
-        "duration": "2 Years",
-        "examsAccepted": [
-          {
-            "examId": "CAT",
-            "examName": "CAT"
-          },
-          {
-            "examId": "XAT",
-            "examName": "XAT"
-          },
-          {
-            "examId": "CMAT",
-            "examName": "CMAT"
-          },
-          {
-            "examId": "GMAT",
-            "examName": "GMAT"
-          },
-          {
-            "examId": "NMAT",
-            "examName": "NMAT"
-          }
-        ]
-      }
-    ]
-  },
-  {
     "collegeId": "WIMDR_MUMBAI",
     "collegeName": "Welingkar Institute of Management Development & Research",
     "collegesLocationCity": "Mumbai",
@@ -878,7 +837,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1977",
     "accreditation": "NBA, NAAC, AACSB (Membership), AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 61,
+    "popularityCount": 66,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -915,6 +874,47 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
+    "collegeId": "KSIMSR_MUMBAI",
+    "collegeName": "K.J. Somaiya Institute of Management Studies and Research",
+    "collegesLocationCity": "Mumbai",
+    "collegesLocationState": "Maharashtra",
+    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/KSIMSR_MUMBAI/logo/KSIMSR_MUMBAI_logo_20250830_181356_K.J.%20Somaiya%20Institute%20of%20Management%20Studies%20and%20Research%20logo.png",
+    "establishedYear": "1981",
+    "accreditation": "NBA, NAAC, AACSB (Member), AICTE",
+    "collegeType": "Pvt",
+    "popularityCount": 65,
+    "coursesOffered": [
+      {
+        "courseId": "MANAGEMENT",
+        "courseName": "Management",
+        "courseLevel": "PG",
+        "duration": "2 Years",
+        "examsAccepted": [
+          {
+            "examId": "CAT",
+            "examName": "CAT"
+          },
+          {
+            "examId": "XAT",
+            "examName": "XAT"
+          },
+          {
+            "examId": "CMAT",
+            "examName": "CMAT"
+          },
+          {
+            "examId": "GMAT",
+            "examName": "GMAT"
+          },
+          {
+            "examId": "NMAT",
+            "examName": "NMAT"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "collegeId": "ISBM_PUNE",
     "collegeName": "International School of Business & Media",
     "collegesLocationCity": "Pune",
@@ -923,7 +923,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2000",
     "accreditation": "AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 57,
+    "popularityCount": 61,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -968,7 +968,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1971",
     "accreditation": "AICTE, NAAC, UGC, NBA",
     "collegeType": "Govt",
-    "popularityCount": 54,
+    "popularityCount": 58,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -1151,7 +1151,7 @@ export const TEST_GROUPS_SNAPSHOT: TestGroupSnapshotItem[] = [
     "priceType": "FREE",
     "price": 0,
     "rating": 4.726027397260274,
-    "soldCount": 455,
+    "soldCount": 456,
     "attachedTestCount": 1
   },
   {
@@ -6196,6 +6196,6 @@ export const CONTENT_COUNTS = {
   testGroups: 10,
   tests: 109,
   courseEnrolments: 2,
-  testEnrolments: 1977,
+  testEnrolments: 1978,
   deadlines: 18,
 } as const;

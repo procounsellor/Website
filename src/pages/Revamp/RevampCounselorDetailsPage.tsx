@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useLocation, useSearchParams, useNavigate } from 'react-router-dom';
-import { useCounselorById } from '@/hooks/useCounselors';
+import { useCounselorById, THIN_PROFILE_BIO_CHARS } from '@/hooks/useCounselors';
 import { useAuthStore } from '@/store/AuthStore';
 import {
   getSubscribedCounsellors,
@@ -355,7 +355,7 @@ export default function RevampCounselorDetailsPage() {
   // A profile with no bio is a name, a photo and a price — nothing worth
   // indexing, and 14 such pages drag the whole site's content quality down.
   // It stays fully visible and shareable; it just isn't submitted to Google.
-  const isThinProfile = (counselor.description || '').trim().length < 120;
+  const isThinProfile = (counselor.description || '').trim().length < THIN_PROFILE_BIO_CHARS;
   const seoDescription = (counselor.description || '').trim()
     ? `${counselor.description!.trim().slice(0, 155)}`
     : `${counsellorName} is a verified admission counsellor on ProCounsel${
