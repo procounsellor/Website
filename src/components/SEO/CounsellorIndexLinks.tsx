@@ -1,9 +1,9 @@
 import CrawlableIndex from "./CrawlableIndex";
-import { INDEXABLE_COUNSELLORS } from "@/hooks/useCounselors";
+import { LISTED_COUNSELLORS } from "@/hooks/useCounselors";
 
 /** Crawl path to every indexable counsellor profile. See CrawlableIndex. */
 export default function CounsellorIndexLinks() {
-  const links = INDEXABLE_COUNSELLORS.map((c) => {
+  const links = LISTED_COUNSELLORS.map((c) => {
     const name = `${c.firstName ?? ""} ${c.lastName ?? ""}`.trim() || "Counsellor";
     return {
       to: `/counsellor-details/${c.encodedId}`,

@@ -4,6 +4,17 @@ import path from "node:path";
 
 export const SITE_URL = process.env.SITE_URL || "https://procounsel.co.in";
 
+// Shared with the app (src/hooks/useCounselors.ts reads the same file) so the
+// sitemap and each page's robots tag can never disagree about whether
+// counsellor profiles are indexed. See src/config/seo.json for the reasoning.
+const SEO_CONFIG = (() => {
+  try {
+    return JSON.parse(readFileSync(path.resolve(process.cwd(), "src/config/seo.json"), "utf8"));
+  } catch {
+    return { counsellorProfilesIndexable: true };
+  }
+})();
+
 // Blog slug routes to PRERENDER — read from the build-time snapshot written by
 // scripts/generate-blog-snapshot.mjs (which runs first in `prebuild`). This is
 // what makes blog article pages prerender with real content; the sitemap fetches
@@ -335,10 +346,15 @@ export async function getDynamicRoutes() {
   // the snapshot is missing entirely.
   const colleges = snapshot.colleges?.length ? snapshot.colleges : collegeIds;
   const deadlines = snapshot.deadlines?.length ? snapshot.deadlines : deadlineIds;
+  // Profiles are still PRERENDERED (see getPrerenderRoutes) so the URLs serve
+  // real HTML and stay useful to anyone who follows a link — they are simply not
+  // submitted to Google while counsellorProfilesIndexable is off.
   const thinCounsellors = new Set(snapshot.counsellorsThin || []);
-  const counsellors = (snapshot.counsellors?.length ? snapshot.counsellors : counsellorIds).filter(
-    (id) => !thinCounsellors.has(id),
-  );
+  const counsellors = !SEO_CONFIG.counsellorProfilesIndexable
+    ? []
+    : (snapshot.counsellors?.length ? snapshot.counsellors : counsellorIds).filter(
+        (id) => !thinCounsellors.has(id),
+      );
 
   return [
     ...blogSlugs.map((slug) => `/admissions/blogs/slug/${slug}`),

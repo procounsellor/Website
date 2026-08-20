@@ -3,6 +3,7 @@ import { academicApi } from '@/api/academic';
 import type { Counselor, AllCounselor, CounsellorApiResponse } from '@/types/academic';
 import { useAuthStore } from '@/store/AuthStore';
 import { COUNSELLORS_SNAPSHOT } from '@/data/contentSnapshot';
+import seoConfig from '@/config/seo.json';
 
 // Build-time snapshot of every published counsellor, mapped onto the shape the
 // live API returns. Blogs and deadlines already seed their lists this way
@@ -42,12 +43,20 @@ export const COUNSELLORS_SNAPSHOT_LIST: AllCounselor[] = COUNSELLORS_SNAPSHOT.ma
 export const THIN_PROFILE_BIO_CHARS = 120;
 
 /**
- * Every profile that is in the sitemap and marked indexable. The listing grid
- * is paginated (9 at a time behind infinite scroll) and Googlebot does not
- * scroll, so this list is what actually gives the remaining profiles an inbound
- * internal link instead of leaving them orphaned.
+ * Whether counsellor profiles are submitted to Google at all. Read from
+ * src/config/seo.json so the page's robots tag and the sitemap (built by
+ * scripts/site-routes.mjs) always agree. See that file for why it is off.
  */
-export const INDEXABLE_COUNSELLORS = COUNSELLORS_SNAPSHOT.filter(
+export const COUNSELLOR_PROFILES_INDEXABLE = seoConfig.counsellorProfilesIndexable;
+
+/**
+ * Profiles with a real bio, used for the browse-all list on /counsellor-listing.
+ * This is a *navigation* decision, not an indexing one: the grid paginates 9 at
+ * a time behind infinite scroll, so without this list the rest of the profiles
+ * are unreachable by link. It stays useful to readers (and keeps the pages
+ * discoverable if they are re-indexed later) even while they are noindexed.
+ */
+export const LISTED_COUNSELLORS = COUNSELLORS_SNAPSHOT.filter(
   (c) => Boolean(c.encodedId) && (c.description || "").trim().length >= THIN_PROFILE_BIO_CHARS,
 );
 
