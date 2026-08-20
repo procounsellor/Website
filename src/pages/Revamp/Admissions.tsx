@@ -651,8 +651,8 @@ export default function Admissions() {
         </div>
       </section>
       
-      <CounsellorSection />
       <CounsellingCategories />
+      <CounsellorSection />
       <Suspense fallback={<div className="min-h-[400px]" />}>
         <div className="hidden md:block">
           <Timeline />

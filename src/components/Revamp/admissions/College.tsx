@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import CollegeCard from "./CollegeCard";
-import CrawlableIndex from "@/components/SEO/CrawlableIndex";
+import { ChevronDown } from "lucide-react";
 import { academicApi } from "@/api/academic";
 import type { CollegeApiResponse } from "@/types/academic";
 import { COLLEGES_SNAPSHOT } from "@/data/contentSnapshot";
@@ -23,6 +23,7 @@ export default function College() {
   });
 
   const displayColleges = allColleges.slice(0, 4);
+  const remainingColleges = allColleges.slice(4);
 
   // Nothing to show and nothing on the way — render no section at all rather
   // than an empty band. An empty placeholder reads as thin content to crawlers.
@@ -63,16 +64,31 @@ export default function College() {
             </div>
         )}
 
-        {/* Only the first four colleges get a card, so the rest had no inbound
-            internal link at all. Every college in the snapshot is listed here. */}
-        <CrawlableIndex
-          title="All colleges on ProCounsel"
-          ariaLabel="All colleges"
-          links={allColleges.map((c: CollegeApiResponse) => ({
-            to: `/college-details/${c.collegeId}`,
-            label: `${c.collegeName}${c.collegesLocationCity ? ` — ${c.collegesLocationCity}` : ""}`,
-          }))}
-        />
+        {/* "See all" reveals the remaining colleges as the same CollegeCard,
+            rather than a separate list in a different visual language.
+            <details> keeps every card in the DOM while collapsed, so all the
+            college URLs still have an inbound internal link — without it only
+            the first four did, and the rest sat in "Discovered - not indexed". */}
+        {!isLoading && remainingColleges.length > 0 && (
+          <details className="group mt-4 md:mt-6">
+            <summary className="flex cursor-pointer list-none items-center justify-center gap-2 rounded-[8px] bg-[#0E1629] px-6 py-3 font-[Poppins] text-[13px] md:text-[14px] font-medium text-white transition-opacity hover:opacity-90 w-fit mx-auto md:mx-0 [&::-webkit-details-marker]:hidden">
+              <span className="group-open:hidden">See all {allColleges.length} colleges</span>
+              <span className="hidden group-open:inline">Show fewer colleges</span>
+              <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="flex flex-col gap-4 md:gap-6 items-center md:items-stretch w-full mt-4 md:mt-6">
+              {remainingColleges.map((college: CollegeApiResponse) => (
+                <CollegeCard
+                  key={college.collegeId}
+                  id={college.collegeId}
+                  name={college.collegeName}
+                  description={`${college.collegeType || 'Institution'} • ${college.collegesLocationCity || 'City'}, ${college.collegesLocationState || 'State'}`}
+                  logoUrl={college.logoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(college.collegeName)}&background=F3F4F6&color=374151&size=400`}
+                />
+              ))}
+            </div>
+          </details>
+        )}
       </div>
     </div>
   );

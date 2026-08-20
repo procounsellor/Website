@@ -60,6 +60,35 @@ export default function CounsellingCategoryPage({ slug: slugProp }: { slug?: str
   const url = `${SITE}/${category.slug}`;
   const listingUrl = categoryListingUrl(category);
 
+  /**
+   * Opening a counsellor from a category page is a strong buying signal, so it
+   * goes through the same login gate as the main CTA — a visitor who gets that
+   * far is worth being able to call back.
+   *
+   * These stay real <a href> links rather than becoming click handlers: the
+   * markup remains crawlable, shareable and middle-clickable, and the gate is
+   * applied by intercepting the click only while signed out.
+   */
+  const handleCounsellorClick = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+    counsellorName: string,
+    counsellorId: string,
+  ) => {
+    if (!category) return;
+    persistCounsellingIntent({
+      slug: category.slug,
+      name: category.name,
+      expertise: category.expertise,
+      fromPath: `/${category.slug}`,
+      counsellorName,
+      counsellorId,
+    });
+    if (isAuthenticated) return; // let the link navigate normally
+    event.preventDefault();
+    toggleLogin(() => navigate(href));
+  };
+
   const handleGetCounselling = () => {
     // Persist BEFORE the login gate: the lead capture that runs on successful
     // sign-in reads this to record what they asked for and where from.
@@ -214,18 +243,35 @@ export default function CounsellingCategoryPage({ slug: slugProp }: { slug?: str
               {matched.map((c) => {
                 const name = `${c.firstName ?? ""} ${c.lastName ?? ""}`.trim() || "Counsellor";
                 const exp = c.experience ? `${c.experience} yrs experience` : null;
+                const encodedId = encodeCounselorId(c.counsellorId);
+                const href = `/counsellor-details/${encodedId}`;
+                const photo =
+                  c.photoUrlSmall ||
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2F43F2&color=fff&size=200`;
                 return (
                   <Link
                     key={c.counsellorId}
-                    to={`/counsellor-details/${encodeCounselorId(c.counsellorId)}`}
+                    to={href}
+                    onClick={(e) => handleCounsellorClick(e, href, name, encodedId)}
                     className="block rounded-xl border border-gray-100 bg-white p-4 hover:border-[#2F43F2]/30 hover:shadow-md transition-all"
                   >
-                    <p className="font-semibold text-gray-800 leading-snug">{name}</p>
-                    <p className="mt-1 flex items-center gap-1 text-xs text-gray-500">
-                      <MapPin className="h-3 w-3" />
-                      {c.city || "India"}
-                    </p>
-                    <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs text-gray-600">
+                    <div className="flex items-center gap-3">
+                      <img
+                        loading="lazy"
+                        decoding="async"
+                        src={photo}
+                        alt={name}
+                        className="h-14 w-14 shrink-0 rounded-full object-cover border border-gray-100"
+                      />
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-800 leading-snug truncate">{name}</p>
+                        <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-500">
+                          <MapPin className="h-3 w-3 shrink-0" />
+                          {c.city || "India"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-600">
                       {(c.rating || 0) > 0 && (
                         <span className="inline-flex items-center gap-1 font-semibold text-amber-600">
                           <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />

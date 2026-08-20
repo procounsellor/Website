@@ -17,6 +17,10 @@ export interface CounsellingIntent {
   expertise: string[];
   /** The page the request came from, e.g. "/mba-counselling". */
   fromPath: string;
+  /** Set when they clicked a specific counsellor rather than the generic CTA. */
+  counsellorName?: string;
+  /** Encoded id of that counsellor, so the caller can open the same profile. */
+  counsellorId?: string;
 }
 
 export function persistCounsellingIntent(intent: CounsellingIntent) {
@@ -41,5 +45,10 @@ export function getCounsellingIntent(): CounsellingIntent | null {
 
 /** Compact one-liner for the lead's remarks field. */
 export function formatCounsellingRemark(intent: CounsellingIntent): string {
-  return `Requested ${intent.name} from ${intent.fromPath}`;
+  const base = `Requested ${intent.name} from ${intent.fromPath}`;
+  // Naming the counsellor they clicked makes the follow-up call specific:
+  // "you were looking at <name>" converts better than a generic callback.
+  return intent.counsellorName
+    ? `${base} — opened ${intent.counsellorName}'s profile`
+    : base;
 }
