@@ -66,7 +66,7 @@ const headingClass =
 export default function SeoFooterLinks() {
   return (
     <section className="w-full bg-[#F6F8FE] border-t border-gray-100" aria-label="Explore ProCounsel">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 md:px-16 lg:px-[125px] py-10 md:py-12">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 md:py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-8">
           {/* Cities */}
           <div>

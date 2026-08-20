@@ -75,7 +75,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
   if (variant === "full") {
     return (
       <div className="bg-[#F3F7FF] w-full">
-        <div className="max-w-7xl mx-auto px-5  py-6 sm:py-10">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 sm:py-10">
           <div className="flex gap-3 sm:gap-6 md:gap-6 justify-start sm:justify-evenly mb-6 sm:mb-8 overflow-x-auto pb-1">
             {categories.map((category) => {
               const isActive = safeCategory === category;
@@ -147,7 +147,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
 
   return (
     <div className="bg-[#C6DDF040] w-full h-full">
-      <div className="max-w-7xl grid grid-cols-1 lg:grid-cols-[45%_auto] md:gap-6 mx-auto px-4 md:px-6 py-6 md:py-10 gap-y-6 md:gap-y-8">
+      <div className="max-w-7xl grid grid-cols-1 lg:grid-cols-[45%_auto] md:gap-6 mx-auto px-4 md:px-8 py-6 md:py-10 gap-y-6 md:gap-y-8">
         <div>
           <div className="flex items-center justify-start gap-[8px] md:gap-2 bg-white px-[12px] md:px-3 py-[4px] md:py-1 rounded-[4px] md:rounded-[6px] w-[125px] md:w-fit shrink-0">
             <div className="w-[16px] h-[16px] min-w-[16px] min-h-[16px] md:w-4 md:h-4 bg-[#0E1629] shrink-0" />

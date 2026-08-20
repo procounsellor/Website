@@ -183,7 +183,7 @@ export default function Timeline() {
 
   return (
     <div ref={sectionRef} className="relative w-full bg-[#C6DDF040] pt-[80px] pb-2 overflow-hidden">
-      <div className="mx-auto w-full max-w-7xl px-4">
+      <div className="mx-auto w-full max-w-7xl px-4 md:px-8">
         {/* Section Heading */}
         <h2 className="text-[#0E1629] text-[24px] font-bold text-center mb-14 break-words" style={{ fontFamily: 'Poppins' }}>
           Procounsel Role in your Journey

@@ -39,7 +39,7 @@ export default function CrawlableIndex({
   return (
     <nav
       aria-label={ariaLabel}
-      className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-10 xl:px-12 py-6 border-t border-[#E3E8F4]"
+      className="max-w-7xl mx-auto px-4 md:px-8 py-6 border-t border-[#E3E8F4]"
     >
       <details open={defaultOpen} className="group">
         <summary className="flex cursor-pointer list-none items-center gap-2 text-[0.875rem] font-medium text-(--text-muted) hover:text-[#2F43F2] transition-colors [&::-webkit-details-marker]:hidden">
