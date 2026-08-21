@@ -99,7 +99,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1887",
     "accreditation": "AICTE, NBA, NAAC",
     "collegeType": "Govt",
-    "popularityCount": 833,
+    "popularityCount": 834,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -136,7 +136,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1999",
     "accreditation": "NAAC, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 615,
+    "popularityCount": 616,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -181,7 +181,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1854",
     "accreditation": "AICTE, NBA, NAAC, UGC",
     "collegeType": "Govt",
-    "popularityCount": 604,
+    "popularityCount": 605,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -213,7 +213,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1981",
     "accreditation": "AACSB, AMBA, EQUIS",
     "collegeType": "Pvt",
-    "popularityCount": 206,
+    "popularityCount": 207,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -254,7 +254,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1960",
     "accreditation": "AICTE, UGC, NBA, NIRF",
     "collegeType": "Govt",
-    "popularityCount": 164,
+    "popularityCount": 165,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -291,7 +291,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2021",
     "accreditation": "AICTE, NAAC, NBA",
     "collegeType": "Pvt",
-    "popularityCount": 158,
+    "popularityCount": 159,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -324,7 +324,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1991",
     "accreditation": "NAAC (A), NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 120,
+    "popularityCount": 121,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -360,7 +360,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2005",
     "accreditation": "AICTE, NAAC, NBA",
     "collegeType": "Pvt",
-    "popularityCount": 110,
+    "popularityCount": 111,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -397,7 +397,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1983",
     "accreditation": "NAAC (A), NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 109,
+    "popularityCount": 110,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -438,7 +438,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1994",
     "accreditation": "NAAC (A+), NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 106,
+    "popularityCount": 107,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -458,7 +458,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1994",
     "accreditation": "NA",
     "collegeType": "Pvt",
-    "popularityCount": 105,
+    "popularityCount": 106,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -503,7 +503,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1978",
     "accreditation": "NAAC, NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 104,
+    "popularityCount": 105,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -528,7 +528,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1996",
     "accreditation": "NBA, NAAC (A+), AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 100,
+    "popularityCount": 101,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -564,7 +564,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1965",
     "accreditation": "AICTE, NAAC",
     "collegeType": "Govt",
-    "popularityCount": 96,
+    "popularityCount": 98,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -605,7 +605,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2006",
     "accreditation": "NAAC (A+), AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 94,
+    "popularityCount": 95,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -646,7 +646,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1994",
     "accreditation": "AICTE, NAAC, NBA",
     "collegeType": "Pvt",
-    "popularityCount": 87,
+    "popularityCount": 88,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -671,7 +671,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1995",
     "accreditation": "AMBA, AACSB, NBA",
     "collegeType": "Govt",
-    "popularityCount": 84,
+    "popularityCount": 85,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -696,7 +696,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1993",
     "accreditation": "NAAC, NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 80,
+    "popularityCount": 81,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -713,6 +713,31 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
+    "collegeId": "IIMN_MUMBAI",
+    "collegeName": "Indian Institute of Management Nagpur",
+    "collegesLocationCity": "Mumbai",
+    "collegesLocationState": "Maharashtra",
+    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/IIMN_MUMBAI/logo/IIMN_MUMBAI_logo_20250828_105610_Indian%20Institute%20of%20Management%20Nagpur%20logo.png",
+    "establishedYear": "1963",
+    "accreditation": "NAAC, AICTE",
+    "collegeType": "Govt",
+    "popularityCount": 79,
+    "coursesOffered": [
+      {
+        "courseId": "MANAGEMENT",
+        "courseName": "Management",
+        "courseLevel": "PG",
+        "duration": "2 Years",
+        "examsAccepted": [
+          {
+            "examId": "CAT",
+            "examName": "CAT"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "collegeId": "MUICT_MUMBAI",
     "collegeName": "Institute of Chemical Technology",
     "collegesLocationCity": "Mumbai",
@@ -721,7 +746,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1933",
     "accreditation": "UGC, AICTE, NBA, NAAC",
     "collegeType": "Govt",
-    "popularityCount": 78,
+    "popularityCount": 79,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -762,7 +787,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2017",
     "accreditation": "AICTE, NBA",
     "collegeType": "Pvt",
-    "popularityCount": 78,
+    "popularityCount": 79,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -779,56 +804,6 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
-    "collegeId": "IIMN_MUMBAI",
-    "collegeName": "Indian Institute of Management Nagpur",
-    "collegesLocationCity": "Mumbai",
-    "collegesLocationState": "Maharashtra",
-    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/IIMN_MUMBAI/logo/IIMN_MUMBAI_logo_20250828_105610_Indian%20Institute%20of%20Management%20Nagpur%20logo.png",
-    "establishedYear": "1963",
-    "accreditation": "NAAC, AICTE",
-    "collegeType": "Govt",
-    "popularityCount": 77,
-    "coursesOffered": [
-      {
-        "courseId": "MANAGEMENT",
-        "courseName": "Management",
-        "courseLevel": "PG",
-        "duration": "2 Years",
-        "examsAccepted": [
-          {
-            "examId": "CAT",
-            "examName": "CAT"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "collegeId": "TISS_MUMBAI",
-    "collegeName": "Tata Institute of Social Sciences",
-    "collegesLocationCity": "Mumbai",
-    "collegesLocationState": "Maharashtra",
-    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/TISS_MUMBAI/logo/TISS_MUMBAI_logo_20250828_112403_Tata%20Institute%20of%20Social%20Sciences%20logo.png",
-    "establishedYear": "1936",
-    "accreditation": "NAAC, UGC",
-    "collegeType": "Deemed",
-    "popularityCount": 77,
-    "coursesOffered": [
-      {
-        "courseId": "MANAGEMENT",
-        "courseName": "Management",
-        "courseLevel": "PG",
-        "duration": "2 Years",
-        "examsAccepted": [
-          {
-            "examId": "TISSNET_MBA",
-            "examName": "TISS NET – MBA"
-          }
-        ]
-      }
-    ]
-  },
-  {
     "collegeId": "WIMDR_MUMBAI",
     "collegeName": "Welingkar Institute of Management Development & Research",
     "collegesLocationCity": "Mumbai",
@@ -837,7 +812,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1977",
     "accreditation": "NBA, NAAC, AACSB (Membership), AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 77,
+    "popularityCount": 79,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -874,6 +849,31 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
+    "collegeId": "TISS_MUMBAI",
+    "collegeName": "Tata Institute of Social Sciences",
+    "collegesLocationCity": "Mumbai",
+    "collegesLocationState": "Maharashtra",
+    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/TISS_MUMBAI/logo/TISS_MUMBAI_logo_20250828_112403_Tata%20Institute%20of%20Social%20Sciences%20logo.png",
+    "establishedYear": "1936",
+    "accreditation": "NAAC, UGC",
+    "collegeType": "Deemed",
+    "popularityCount": 78,
+    "coursesOffered": [
+      {
+        "courseId": "MANAGEMENT",
+        "courseName": "Management",
+        "courseLevel": "PG",
+        "duration": "2 Years",
+        "examsAccepted": [
+          {
+            "examId": "TISSNET_MBA",
+            "examName": "TISS NET – MBA"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "collegeId": "KSIMSR_MUMBAI",
     "collegeName": "K.J. Somaiya Institute of Management Studies and Research",
     "collegesLocationCity": "Mumbai",
@@ -882,7 +882,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1981",
     "accreditation": "NBA, NAAC, AACSB (Member), AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 75,
+    "popularityCount": 76,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -923,7 +923,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2000",
     "accreditation": "AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 71,
+    "popularityCount": 72,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -968,7 +968,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1971",
     "accreditation": "AICTE, NAAC, UGC, NBA",
     "collegeType": "Govt",
-    "popularityCount": 68,
+    "popularityCount": 69,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",

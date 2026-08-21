@@ -47,7 +47,7 @@ export const COUNSELLING_CATEGORY_SLUGS = [
   "medical-counselling",
   "mba-counselling",
   "law-counselling",
-  "academic-counselling",
+  "career-counselling",
 ];
 
 export const STATIC_ROUTES = [
