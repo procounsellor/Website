@@ -92,7 +92,7 @@ const MHTCETCollegePredictorPage = lazy(() => import('@/pages/MHTCETCollegePredi
 // pages built on the new API — the primary URLs keep their SEO equity while
 // visitors immediately get the upgraded experience.
 const NEETRankPredictorPage = lazy(() => import('@/pages/neet/NEETRankPredictorV2'));
-const NEETCollegePredictorPage = lazy(() => import('@/pages/neet/NEETCollegePredictorV2'));
+const NEETPredictorPage = lazy(() => import('@/pages/neet/NEETPredictor'));
 const NEETCutoffAnalyzerPage = lazy(() => import('@/pages/neet/NEETCutoffAnalyzer'));
 // NEET directory pages (state-wise counselling authorities + MBBS college list)
 const NEETStateCounsellingPage = lazy(() => import('@/pages/neet/NEETStateCounselling'));
@@ -195,7 +195,9 @@ export default function AppRoutes() {
                         <Route path='/jee-college-predictor' element={<JEECollegePredictorPage />} />
                         <Route path='/mhtcet-college-predictor' element={<MHTCETCollegePredictorPage />} />
                         <Route path='/neet-rank-predictor' element={<NEETRankPredictorPage />} />
-                        <Route path='/neet-college-predictor' element={<NEETCollegePredictorPage />} />
+                        {/* Rebuilt on the v1 counselling API. Same URL as before:
+                            it is indexed and linked, so the page changed, not the path. */}
+                        <Route path='/neet-college-predictor' element={<NEETPredictorPage />} />
                         {/* Round-wise cutoff analyzer (separate, permanent) */}
                         <Route path='/neet-cutoffs' element={<NEETCutoffAnalyzerPage />} />
                         {/* NEET directory: state-wise counselling authorities + MBBS college list */}

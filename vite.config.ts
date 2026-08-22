@@ -41,6 +41,16 @@ export default defineConfig({
         secure: true,
         rewrite: (p) => p.replace(/^\/neet-api/, ''),
       },
+      // The v1 counselling API behind the new /neet-predictor page.
+      // Target comes from VITE_NEET_COUNSELLING_API_URL so dev and prod agree.
+      '/neet-v1': {
+        target:
+          process.env.VITE_NEET_COUNSELLING_API_URL ||
+          'https://procounsellor-procounsel-neet-api.vercel.app',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (p) => p.replace(/^\/neet-v1/, ''),
+      },
     },
   },
   build: {
