@@ -110,21 +110,23 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
   return (
     <>
       {/*mobile view*/}
-      <div className="sm:hidden bg-white p-3 rounded-xl border border-[#EFEFEF] flex items-center justify-between h-[74px]">
-        <div className="flex items-center gap-3 overflow-hidden">
+      <div className="sm:hidden w-full max-w-full overflow-hidden bg-white p-3 rounded-xl border border-[#EFEFEF] flex items-center justify-between gap-2 h-[74px]">
+        {/* min-w-0 on both the row and the text column — without it the flex
+            children refuse to shrink and `truncate` never kicks in. */}
+        <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden">
           {icon}
-          <div>
-            <p className="font-medium text-xs text-[#718EBF]">{mobileLine1}</p>
+          <div className="min-w-0">
+            <p className="font-medium text-xs text-[#718EBF] truncate">{mobileLine1}</p>
             <p className="font-medium text-sm text-[#232323] truncate">
               {mobileLine2}
             </p>
-            <p className="font-medium text-xs text-[#718EBF] mt-1">
+            <p className="font-medium text-xs text-[#718EBF] mt-1 truncate">
               Transaction ID: {truncateText(transaction.paymentId, 8)}
             </p>
           </div>
         </div>
 
-        <div className="flex flex-col items-end shrink-0">
+        <div className="flex flex-col items-end shrink-0 whitespace-nowrap">
           <p
             className={`font-medium text-base ${amountColor} flex items-center gap-1`}
           >

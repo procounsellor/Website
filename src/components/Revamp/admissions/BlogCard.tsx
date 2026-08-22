@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getAuthorImageWithFallback, getAuthorProfileByName } from "@/lib/blogAuthors";
 
 interface BlogCardProps {
@@ -14,6 +14,9 @@ interface BlogCardProps {
 export default function BlogCard({ id, slug, title, author, readTime, imageUrl }: BlogCardProps) {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
+  const blogHref = slug?.trim()
+    ? `/admissions/blogs/slug/${encodeURIComponent(slug.trim())}`
+    : `/admissions/blogs/${id}`;
   const hasImage = Boolean(imageUrl?.trim());
   const [isImageLoading, setIsImageLoading] = useState(hasImage);
   const imageRef = useRef<HTMLImageElement | null>(null);
@@ -88,7 +91,12 @@ export default function BlogCard({ id, slug, title, author, readTime, imageUrl }
             <span className="text-[11px] md:text-[12px] text-[#5D6B82] font-medium">No image available</span>
           </div>
         )}
-        <h3 className={`font-[Poppins] font-medium text-[14px] md:text-[1rem] text-[#0E1629] md:text-(--text-main) line-clamp-2 leading-[1.3] md:leading-normal ${hasImage ? "mt-2.5" : "mt-0"}`}>{title}</h3>
+        <h3 className={`font-[Poppins] font-medium text-[14px] md:text-[1rem] text-[#0E1629] md:text-(--text-main) line-clamp-2 leading-[1.3] md:leading-normal ${hasImage ? "mt-2.5" : "mt-0"}`}>
+          {/* Real anchor so blog posts are reachable by a crawler. */}
+          <Link to={blogHref} onClick={(e) => e.stopPropagation()} className="hover:underline">
+            {title}
+          </Link>
+        </h3>
         <div className="mt-auto mb-[6px] md:mb-[6px]">
           <button
             type="button"

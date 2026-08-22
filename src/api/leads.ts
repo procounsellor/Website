@@ -2,6 +2,7 @@ import type { User } from '@/types/user'
 import { API_CONFIG } from './config'
 import { getTrackedSource, isLeadCaptured, markLeadCaptured } from '@/lib/leadSource'
 import { formatPredictorRemark, getPredictorSearch } from '@/lib/predictorIntent'
+import { formatCounsellingRemark, getCounsellingIntent } from '@/lib/counsellingIntent'
 
 const baseUrl = API_CONFIG.baseUrl
 
@@ -72,6 +73,10 @@ export function captureLeadFromUser(
 
         const { source, landingPage } = getTrackedSource()
         const predictorSearch = getPredictorSearch()
+        // Which category counselling page they clicked "Get counselling" on, if
+        // any. This is the strongest statement of intent we have — they told us
+        // what they want help with — so it leads the remark.
+        const counsellingIntent = getCounsellingIntent()
 
         const payload: CaptureLeadPayload = {
             phoneNumber: phone,
@@ -81,9 +86,19 @@ export function captureLeadFromUser(
             source,
             interestedCourseName: user?.interestedCourse || '',
             interestedStates: user?.userInterestedStateOfCounsellors || [],
-            remarks: predictorSearch
-                ? `Website login. Landing page: ${landingPage}. ${formatPredictorRemark(predictorSearch)}`
-                : `Website login. Landing page: ${landingPage}`
+            remarks: [
+                counsellingIntent ? formatCounsellingRemark(counsellingIntent) : 'Website login',
+                `Landing page: ${landingPage}`,
+                predictorSearch ? formatPredictorRemark(predictorSearch) : '',
+            ]
+                .filter(Boolean)
+                .join('. ')
+        }
+
+        // A stated counselling category is a better course signal than anything
+        // on the user record, but opts.extra below still wins.
+        if (counsellingIntent) {
+            payload.interestedCourseName = counsellingIntent.name
         }
 
         // The exam they last ran a predictor for is a stronger signal of intent

@@ -37,7 +37,7 @@ export default function BlogAuthorProfilePage() {
           "linear-gradient(0deg, rgba(198, 221, 240, 0.25), rgba(198, 221, 240, 0.25))",
       }}
     >
-      <PageSEO title={`${profile.name} — Author at ProCounsel`} description={`Read career and admissions articles by ${profile.name} on ProCounsel.`} canonical={`/admissions/blog-authors/${authorId}`} />
+      <PageSEO title={`${profile.name} — Author at ProCounsel`} description={`Read career and admissions articles by ${profile.name} on ProCounsel.`} canonical={`/admissions/blog-authors/${authorId}`} noIndex />
       <div className="w-full border-b border-[#E3E8F4] bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-10 xl:px-12 pt-3 pb-3">
           <p className="text-[0.875rem] text-(--text-muted) font-medium">

@@ -159,8 +159,8 @@ export default function NEETCutoffAnalyzer() {
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Home", item: "https://www.procounsel.co.in/" },
-          { "@type": "ListItem", position: 2, name: "NEET 2026 Cutoff", item: "https://www.procounsel.co.in/neet-cutoffs" },
+          { "@type": "ListItem", position: 1, name: "Home", item: "https://procounsel.co.in/" },
+          { "@type": "ListItem", position: 2, name: "NEET 2026 Cutoff", item: "https://procounsel.co.in/neet-cutoffs" },
         ],
       },
     ],

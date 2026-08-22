@@ -27,12 +27,12 @@ const CollegeBannerCard: React.FC<CollegeBannerProps> = ({
 
       <div className="flex flex-row justify-between items-end w-full px-1 mt-3 md:mt-4">
         <div className="flex flex-col gap-1">
-          <h1 
+          <h2 
             className="text-[#343C6A] font-semibold text-[18px] leading-[120%] md:text-[24px] md:leading-[125%]"
             style={{ fontFamily: 'Poppins' }}
           >
             {name}
-          </h1>
+          </h2>
           
           <p 
             className="text-[#718EBF] font-normal text-[13px] leading-tight md:text-[16px] md:leading-3"

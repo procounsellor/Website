@@ -12,6 +12,13 @@ import {
   getAllTestGroupsForLoggedInUser,
   getUserBoughtTestGroups,
 } from "@/api/testGroup";
+import { TEST_COUNT_BY_GROUP, TEST_GROUPS_SNAPSHOT } from "@/data/contentSnapshot";
+
+// Build-time seed so /courses prerenders real test series instead of the
+// "No tests found" empty state (the API is unreachable during the prerender).
+const TESTS_SEED = TEST_GROUPS_SNAPSHOT.length
+  ? ({ status: "snapshot", data: TEST_GROUPS_SNAPSHOT } as any)
+  : undefined;
 
 type TestTab = "my-tests" | "trending" | "all-tests";
 
@@ -75,11 +82,19 @@ const normalizeTestGroups = (response: any): TestWithMeta[] => {
   return rawList.map((item: any, index: number) => {
     const tg = item?.testGroup ?? item;
     const soldCount = Number(tg?.soldCount ?? item?.soldCount ?? 0);
+    // The list endpoint returns neither `attachedTests` nor a usable count, so
+    // this used to fall through to the "1 test" default. Prefer resolved rows,
+    // then the build-time resolved count; `attachedTestIds` is only a last
+    // resort because it still names deleted tests and overstates the total.
+    const groupId = String(tg?.testGroupId ?? item?.testGroupId ?? item?.id ?? "");
     const totalTests = Number(
       item?.attachedTests?.length ??
       tg?.attachedTests?.length ??
+      TEST_COUNT_BY_GROUP[groupId] ??
       item?.totalTests ??
       item?.testSeriesCount ??
+      tg?.attachedTestIds?.length ??
+      item?.attachedTestIds?.length ??
       0
     );
 
@@ -138,6 +153,8 @@ export default function TestSection() {
         ? getAllTestGroupsForLoggedInUser(userId)
         : getAllTestGroupsForGuest(),
     enabled: !isUserLoggedIn || Boolean(userId),
+    initialData: TESTS_SEED,
+    initialDataUpdatedAt: 0,
   });
 
   const { data: myTestsResponse, isLoading: isLoadingMyTests } = useQuery({
@@ -236,163 +253,80 @@ export default function TestSection() {
   const shouldShowInlineTestUpsell =
     isUserLoggedIn && activeTab === "my-tests" && filteredTests.length <= 1 && !isLoadingTests;
 
-  return (
-    <div>
-      {/* phone view */}
+  // Signed-out visitor with nothing to show gets no section at all, rather than
+  // a "No tests found" placeholder baked into the crawlable HTML.
+  if (!isUserLoggedIn && !isLoadingTests && testsData.length === 0) return null;
 
-      <div className="block py-[15px] pl-5 bg-[#F5F5F7] md:hidden">
-        <div className="flex flex-col  justify-start items-start gap-3 pr-0">
-          <div className="flex items-center gap-2 bg-white px-3 py-1 ">
-            <div className="w-4 h-4 bg-[#0E1629]" />
-            <p className="font-[Poppins] font-semibold text-xs text-[#0E1629] uppercase tracking-wider">
+  // One responsive tree. This used to be a `md:hidden` phone block and a
+  // `hidden md:block` desktop block, each rendering the full test list, so
+  // every test title shipped twice in the HTML — and Banner mounted this
+  // component twice on top of that. The embla carousel is touch-first, so both
+  // breakpoints share it; mobile also picks up the real progress indicator that
+  // replaces the hard-coded 78% bar it used to show.
+  return (
+    <div className="w-full bg-[#F5F5F7] py-[15px] md:py-10">
+      <div className="pl-5 md:pl-0 md:mx-auto md:h-full md:max-w-[1440px] md:px-[60px]">
+        <div className="flex flex-col items-start gap-3 pr-0 md:mb-10 md:flex-row md:items-start md:justify-between md:gap-6">
+          <div className="flex shrink-0 items-center gap-2 bg-white px-3 py-1 md:rounded-md">
+            <div className="h-4 w-4 bg-[#0E1629]" />
+            <p className="font-[Poppins] text-xs font-semibold uppercase tracking-wider text-[#0E1629] md:text-[14px]">
               Tests
             </p>
           </div>
 
-          <p className="font-[Poppins] font-medium  text-xs text-start text-[#0E1629] max-w-[682px] leading-normal">
+          <p className="max-w-[682px] text-start font-[Poppins] text-xs font-medium leading-normal text-[#0E1629] md:text-[24px]">
             Discover curated tests across mental wellness, assessments,
             admissions, and upskilling led by experienced professionals, built
             around your needs.
           </p>
-
-          {isUserLoggedIn && visibleTabOptions.length > 0 && (
-            <div className="flex gap-2.5 pt-2">
-              {visibleTabOptions.map((tab) => (
-                <div
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`border border-(--text-main) py-1.5 px-3 rounded-[5px] text-xs font-medium cursor-pointer ${activeTab === tab.id ? "bg-(--text-main) text-white" : "text-(--text-main) bg-none"}`}
-                >
-                  {tab.label}
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="w-full">
-            <div
-              className="flex gap-3 overflow-x-auto scrollbar-hide pb-2"
-            >
-              {filteredTests.map((test) => (
-                <div key={test.id} className="shrink-0">
-                  <TestGroupCard
-                    testGroupId={test.id}
-                    image={test.image}
-                    rating={test.rating ?? "0.0"}
-                    price={test.price}
-                    title={test.name}
-                    description={test.description}
-                    totalTests={test.totalTests || 1}
-                    totalStudents={test.totalStudents || 0}
-                    isBaught={isUserLoggedIn ? (activeTab === "trending" ? false : true) : true}
-                    isMyTestsCard={isUserLoggedIn ? activeTab === "my-tests" : false}
-                  />
-                </div>
-              ))}
-
-              {shouldShowInlineTestUpsell && (
-                <div className="self-center shrink-0 w-[250px] h-[150px] rounded-2xl p-3 flex items-center justify-center text-center">
-                  <div className="w-full flex flex-col items-center gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-[#0E1629]">Grow your test library</p>
-                      <p className="mt-2 text-xs text-[#6B7280] leading-relaxed">
-                        Add more test series to practice consistently and track better progress.
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleTabChange("trending")}
-                      className="w-full hover:cursor-pointer rounded-lg bg-[#0E1629] px-3 py-2 text-xs font-semibold text-white hover:opacity-90"
-                    >
-                      Explore Trending
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="mt-2 h-1 w-20 bg-[#EDEDED] rounded-[48px] overflow-hidden">
-              <div
-                className="h-full bg-[#0E1629] rounded-[48px] transition-all duration-200"
-                style={{ width: `${78}%` }}
-              />
-            </div>
-          </div>
         </div>
-      </div>
 
-      {/* laptopp desktop view */}
-      <div className="hidden md:block w-full py-10">
-        <div className="max-w-[1440px] h-full mx-auto px-[60px]">
-          <div className="flex justify-between items-start mb-10">
-            <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-md">
-              <div className="w-4 h-4 bg-[#0E1629]" />
-              <p className="font-[Poppins] font-semibold text-[14px] text-[#0E1629] uppercase tracking-wider">
-                TESTS
-              </p>
-            </div>
-
-            <p className="font-[Poppins] font-medium text-[24px] text-[#0E1629] max-w-[682px] leading-normal">
-              Discover curated tests across mental wellness, assessments,
-              admissions, and upskilling led by experienced professionals, built
-              around your needs.
-            </p>
-          </div>
-
-          {isUserLoggedIn && visibleTabOptions.length > 0 && (
-            <div className="flex justify-center gap-[60px] mb-10">
-              {visibleTabOptions.map((tab) => (
-                <motion.button
-                  key={tab.id}
-                  onClick={() => handleTabChange(tab.id)}
-                  whileHover={{ scale: 1.03, y: -2 }}
-                  whileTap={{ scale: 0.96 }}
-                  transition={{
-                    type: "spring" as const,
-                    stiffness: 300,
-                    damping: 20,
-                  }}
-                  className={`px-5 py-2.5 rounded-[5px] w-[200px] hover:cursor-pointer font-[Poppins] font-medium text-[14px] capitalize transition-all duration-300 ${
-                    activeTab === tab.id
-                      ? "bg-[#0E1629] text-white shadow-lg"
-                      : "border border-[rgba(14,22,41,0.25)] text-[#0E1629] hover:border-[#0E1629] hover:shadow-md"
-                  }`}
-                >
-                  {tab.label}
-                </motion.button>
-              ))}
-            </div>
-          )}
-
-          {isLoadingTests ? (
-              <motion.div
-                key="loading"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ type: "spring" as const, damping: 20 }}
-                className="flex gap-[25px] justify-center mb-6 min-h-[451px] items-start"
+        {isUserLoggedIn && visibleTabOptions.length > 0 && (
+          <div className="flex gap-2.5 pt-2 md:mb-10 md:justify-center md:gap-[60px] md:pt-0">
+            {visibleTabOptions.map((tab) => (
+              <motion.button
+                key={tab.id}
+                onClick={() => handleTabChange(tab.id)}
+                whileHover={{ scale: 1.03, y: -2 }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}
+                className={`cursor-pointer rounded-[5px] px-3 py-1.5 font-[Poppins] text-xs font-medium capitalize transition-all duration-300 md:w-[200px] md:px-5 md:py-2.5 md:text-[14px] ${
+                  activeTab === tab.id
+                    ? "bg-[#0E1629] text-white md:shadow-lg"
+                    : "border border-[rgba(14,22,41,0.25)] text-[#0E1629] hover:border-[#0E1629] md:hover:shadow-md"
+                }`}
               >
-                {Array.from({ length: 4 }).map((_, idx) => (
-                  <motion.div
-                    key={`skeleton-${idx}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      type: "spring" as const,
-                      stiffness: 100,
-                      damping: 12,
-                      delay: idx * 0.1,
-                    }}
-                    className="w-[312px] h-[420px] rounded-2xl bg-[#F3F4F6] animate-pulse"
-                  />
-                ))}
-              </motion.div>
-            ) : filteredTests.length > 0 || shouldShowInlineTestUpsell ? (
-              <div className="relative mt-2 lg:mt-8">
-                <div className="overflow-x-hidden px-0.5 py-4" ref={emblaRef}>
-                  <div className="flex gap-[25px] px-3 lg:px-6">
-                    {filteredTests.map((test) => (
-                      <div key={test.id} className="shrink-0">
+                {tab.label}
+              </motion.button>
+            ))}
+          </div>
+        )}
+
+        {isLoadingTests ? (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: "spring" as const, damping: 20 }}
+            className="flex items-start gap-3 overflow-x-auto scrollbar-hide pb-2 md:mb-6 md:min-h-[451px] md:justify-center md:gap-[25px] md:pb-0"
+          >
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <motion.div
+                key={`skeleton-${idx}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: "spring" as const, stiffness: 100, damping: 12, delay: idx * 0.1 }}
+                className="h-[220px] w-[250px] shrink-0 animate-pulse rounded-2xl bg-[#F3F4F6] md:h-[420px] md:w-[312px]"
+              />
+            ))}
+          </motion.div>
+        ) : filteredTests.length > 0 || shouldShowInlineTestUpsell ? (
+          <div className="relative mt-2 lg:mt-8">
+            <div className="overflow-x-hidden py-2 md:px-0.5 md:py-4" ref={emblaRef}>
+              <div className="flex gap-3 md:gap-[25px] md:px-3 lg:px-6">
+                {filteredTests.map((test) => (
+                  <div key={test.id} className="shrink-0">
                     <TestGroupCard
                       testGroupId={test.id}
                       image={test.image}
@@ -405,70 +339,73 @@ export default function TestSection() {
                       isBaught={isUserLoggedIn ? (activeTab === "trending" ? false : true) : true}
                       isMyTestsCard={isUserLoggedIn ? activeTab === "my-tests" : false}
                     />
-                      </div>
-                    ))}
-
-                    {shouldShowInlineTestUpsell && (
-                      <div className="self-center shrink-0 w-[24rem] h-[12.5rem] rounded-2xl p-5 flex items-center justify-center text-center">
-                        <div className="w-full flex flex-col items-center gap-4">
-                          <div>
-                            <p className="text-lg font-semibold text-[#0E1629]">Build stronger preparation</p>
-                            <p className="mt-2 text-sm text-[#6B7280] leading-relaxed max-w-[20rem] mx-auto">
-                              Add more test groups to practice across topics and improve your outcomes.
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => handleTabChange("trending")}
-                            className="rounded-xl hover:cursor-pointer bg-[#0E1629] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
-                          >
-                            Explore Trending
-                          </button>
-                        </div>
-                      </div>
-                    )}
                   </div>
-                </div>
+                ))}
 
-              </div>
-            ) : (
-              <motion.div
-                key="empty"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ type: "spring" as const, damping: 20 }}
-                className="flex justify-center mb-6 min-h-[451px] items-center"
-              >
-                {isUserLoggedIn && activeTab === "my-tests" ? (
-                  <div className="flex flex-col items-center gap-4 text-center">
-                    <p className="text-xl font-semibold text-[#0E1629]">Keep Learning</p>
-                    <p className="text-sm text-[#6B7280] leading-relaxed max-w-[20rem] mx-auto">
-                      You haven't purchased any test series yet. Explore trending tests and start practising.
-                    </p>
-                    <button
-                      onClick={() => handleTabChange("trending")}
-                      className="rounded-xl hover:cursor-pointer bg-[#0E1629] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90"
-                    >
-                      Explore Trending
-                    </button>
+                {shouldShowInlineTestUpsell && (
+                  <div className="flex h-[150px] w-[250px] shrink-0 items-center justify-center self-center rounded-2xl p-3 text-center md:h-[12.5rem] md:w-[24rem] md:p-5">
+                    <div className="flex w-full flex-col items-center gap-3 md:gap-4">
+                      <div>
+                        <p className="text-sm font-semibold text-[#0E1629] md:text-lg">
+                          Build stronger preparation
+                        </p>
+                        <p className="mx-auto mt-2 max-w-[20rem] text-xs leading-relaxed text-[#6B7280] md:text-sm">
+                          Add more test groups to practice across topics and improve your outcomes.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleTabChange("trending")}
+                        className="w-full cursor-pointer rounded-lg bg-[#0E1629] px-3 py-2 text-xs font-semibold text-white hover:opacity-90 md:w-auto md:rounded-xl md:px-4 md:text-sm"
+                      >
+                        Explore Trending
+                      </button>
+                    </div>
                   </div>
-                ) : (
-                  <p className="font-[Poppins] text-[14px] text-[#6B7280] self-center">No tests found.</p>
                 )}
-              </motion.div>
-            )}
-
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <div className="w-[262px] h-1 bg-[#EDEDED] rounded-[48px] overflow-hidden">
-                <div
-                  className="h-full bg-[#0E1629] rounded-[48px] transition-all duration-300"
-                  style={{
-                    width: snapCount > 1 ? `${((selectedIndex + 1) / snapCount) * 100}%` : "100%",
-                  }}
-                />
               </div>
             </div>
+          </div>
+        ) : (
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring" as const, damping: 20 }}
+            className="flex items-center justify-center py-10 md:mb-6 md:min-h-[451px] md:py-0"
+          >
+            {isUserLoggedIn && activeTab === "my-tests" ? (
+              <div className="flex flex-col items-center gap-4 text-center">
+                <p className="text-lg font-semibold text-[#0E1629] md:text-xl">Keep Learning</p>
+                <p className="mx-auto max-w-[20rem] text-sm leading-relaxed text-[#6B7280]">
+                  You haven't purchased any test series yet. Explore trending tests and start practising.
+                </p>
+                <button
+                  onClick={() => handleTabChange("trending")}
+                  className="cursor-pointer rounded-xl bg-[#0E1629] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                >
+                  Explore Trending
+                </button>
+              </div>
+            ) : (
+              <p className="self-center font-[Poppins] text-[14px] text-[#6B7280]">No tests found.</p>
+            )}
+          </motion.div>
+        )}
 
+        <div className="mt-2 flex items-center justify-between md:mt-0">
+          <div className="flex items-center gap-4">
+            <div className="h-1 w-20 overflow-hidden rounded-[48px] bg-[#EDEDED] md:w-[262px]">
+              <div
+                className="h-full rounded-[48px] bg-[#0E1629] transition-all duration-300"
+                style={{
+                  width: snapCount > 1 ? `${((selectedIndex + 1) / snapCount) * 100}%` : "100%",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* "See all" stays desktop-only, as it was before the merge. */}
+          <div className="hidden md:block">
             <SeeAllButton
               text="See all"
               onClick={() => {

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface DeadlinePageCardProps {
   id: string | number;
@@ -71,7 +71,10 @@ export default function DeadlinePageCard({
 
           <div className="flex min-w-0 flex-1 flex-col justify-start pt-1">
             <h3 className="text-(--text-main) font-medium text-[16px] line-clamp-2">
-              {title}
+              {/* Real anchor: the card's onClick is invisible to crawlers. */}
+              <Link to={`/admissions/deadlines/${id}`} onClick={(e) => e.stopPropagation()} className="hover:underline">
+                {title}
+              </Link>
             </h3>
             <p className="mt-2 text-(--text-muted) text-[12px] font-normal line-clamp-3">
               {description}
@@ -135,7 +138,9 @@ export default function DeadlinePageCard({
           </div>
 
           <h2 className="mt-1.5 text-[16px] font-medium text-[#0E1629] leading-snug line-clamp-2">
-            {title}
+            <Link to={`/admissions/deadlines/${id}`} onClick={(e) => e.stopPropagation()} className="hover:underline">
+              {title}
+            </Link>
           </h2>
 
           <p className="text-(--text-muted) text-[13px] font-normal mt-2 line-clamp-2">

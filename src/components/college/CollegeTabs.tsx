@@ -1,15 +1,17 @@
 import React from 'react';
 
-const TABS = [
-  "Info", "Counsellors"
-];
+const DEFAULT_TABS = ["Info", "Counsellors"];
 
 interface CollegeTabsProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  // Only the tabs that have real data for this college — the page computes it.
+  tabs?: string[];
 }
 
-const CollegeTabs: React.FC<CollegeTabsProps> = ({ activeTab, onTabChange }) => {
+const CollegeTabs: React.FC<CollegeTabsProps> = ({ activeTab, onTabChange, tabs }) => {
+  const TABS = tabs && tabs.length ? tabs : DEFAULT_TABS;
+
   return (
     <div className="w-full border-b border-[#E0E0E0] mt-6 md:mt-8 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       <div className="flex gap-4 md:gap-6 min-w-max px-1">

@@ -43,10 +43,10 @@ export default function CounsellingCityPage() {
       "@context": "https://schema.org",
       "@type": "Service",
       serviceType: "College admission & career counselling",
-      provider: { "@type": "Organization", name: "ProCounsel", url: "https://www.procounsel.co.in" },
+      provider: { "@type": "Organization", name: "ProCounsel", url: "https://procounsel.co.in" },
       areaServed: { "@type": "City", name: cityData.city, containedInPlace: { "@type": "State", name: cityData.state } },
       description: content.metaDescription,
-      url: `https://www.procounsel.co.in/counselling/${cityData.slug}`,
+      url: `https://procounsel.co.in/counselling/${cityData.slug}`,
     },
     {
       "@context": "https://schema.org",
@@ -61,9 +61,9 @@ export default function CounsellingCityPage() {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: "https://www.procounsel.co.in/" },
-        { "@type": "ListItem", position: 2, name: "Counselling", item: "https://www.procounsel.co.in/counselling" },
-        { "@type": "ListItem", position: 3, name: `Counselling in ${cityData.city}`, item: `https://www.procounsel.co.in/counselling/${cityData.slug}` },
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://procounsel.co.in/" },
+        { "@type": "ListItem", position: 2, name: "Counselling", item: "https://procounsel.co.in/counselling" },
+        { "@type": "ListItem", position: 3, name: `Counselling in ${cityData.city}`, item: `https://procounsel.co.in/counselling/${cityData.slug}` },
       ],
     },
   ];
@@ -139,7 +139,7 @@ export default function CounsellingCityPage() {
             {localCounsellors.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {localCounsellors.map((c) => (
-                  <CounsellorCard key={c.counsellorId} c={c} onClick={() => navigate(`/counsellor-details/${encodeCounselorId(c.counsellorId)}`)} />
+                  <CounsellorCard key={c.counsellorId} c={c} href={`/counsellor-details/${encodeCounselorId(c.counsellorId)}`} />
                 ))}
               </div>
             ) : (
@@ -178,15 +178,17 @@ export default function CounsellingCityPage() {
   );
 }
 
-function CounsellorCard({ c, onClick }: { c: AllCounselor; onClick: () => void }) {
+// Renders as a real <a href>, not a <button onClick>: these city pages are the
+// local-SEO landing pages, and a crawler that cannot follow the card learns
+// nothing about the profiles they link to.
+function CounsellorCard({ c, href }: { c: AllCounselor; href: string }) {
   const name = `${c.firstName} ${c.lastName}`.trim();
   const img = c.photoUrlSmall || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2F43F2&color=fff&size=200`;
   const exp = c.experience ? (c.experience.includes("year") ? c.experience : `${c.experience} yrs`) : null;
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="text-left rounded-xl border border-gray-100 bg-white hover:border-[#2F43F2]/30 hover:shadow-md transition-all p-4 cursor-pointer"
+    <Link
+      to={href}
+      className="block text-left rounded-xl border border-gray-100 bg-white hover:border-[#2F43F2]/30 hover:shadow-md transition-all p-4 cursor-pointer"
     >
       <div className="flex items-center gap-3">
         <img loading="lazy" src={img} alt={name} className="h-14 w-14 rounded-full object-cover border border-gray-100" />
@@ -212,7 +214,7 @@ function CounsellorCard({ c, onClick }: { c: AllCounselor; onClick: () => void }
           </span>
         )}
       </div>
-    </button>
+    </Link>
   );
 }
 

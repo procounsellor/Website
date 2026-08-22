@@ -102,7 +102,10 @@ export function buildCityContent(c: CounsellingCity): CityContent {
 
   const sections: CityContent["sections"] = [
     {
-      heading: `College Admission Counselling in ${city}`,
+      // Deliberately not the same string as `h1` below — repeating the page's
+      // H1 verbatim as a section heading published the identical sentence twice
+      // on every city page.
+      heading: `How Admission Counselling Works in ${city}`,
       paragraphs: [
         `Our counsellors help students in ${city} build a college shortlist that fits their marks, budget and goals — not a copy-pasted ranking list. Whether you're targeting engineering, medical (MBBS/BDS), management, law, design or studying abroad, you get a plan grounded in real cut-off data and this year's admission timeline.`,
         `${examLine}. A ProCounsel counsellor walks you through eligibility, choice-filling order, quotas and seat matrices step by step, so you don't lose a deserved seat to a filling mistake.`,

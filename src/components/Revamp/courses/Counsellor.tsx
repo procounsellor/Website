@@ -1,21 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import FancyCard from "../admissions/counsellor/counsellorCard";
 import { SeeAllButton } from "../components/LeftRightButton";
-import { academicApi } from "@/api/academic";
 import type { AllCounselor } from "@/types/academic";
 import { Loader2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useCounsellorsList } from "@/hooks/useCounselors";
 
 export default function CounsellorSection() {
     const navigate = useNavigate();
 
     // Reuse the same cached query as the Admissions CounsellorSection
-    const { data: counsellors = [], isLoading, isError } = useQuery({
-        queryKey: ['revamp-counsellors'],
-        queryFn: () => academicApi.getLoggedOutCounsellors(),
-        staleTime: 5 * 60 * 1000,
-        gcTime: 10 * 60 * 1000,
-    });
+    const { data: counsellors = [], isLoading, isError } = useCounsellorsList();
+
+    // Seeded from the snapshot: keep the cards (and their crawlable links)
+    // visible when only the live refetch failed. See useCounsellors.ts.
+    const showError = isError && counsellors.length === 0;
 
     const displayCounsellors = counsellors.slice(0, 5);
 
@@ -53,7 +51,7 @@ export default function CounsellorSection() {
                             <Loader2 className="animate-spin h-8 w-8 text-[#0E1629]" />
                             <p className="font-[Poppins] text-[14px] text-[#6B7280]">Loading counsellors...</p>
                         </div>
-                    ) : isError ? (
+                    ) : showError ? (
                         <p className="font-[Poppins] text-[14px] text-red-500 self-center">Failed to load counsellors</p>
                     ) : displayCounsellors.length === 0 ? (
                         <p className="font-[Poppins] text-[14px] text-[#6B7280] self-center">No counsellors found</p>

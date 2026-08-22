@@ -1,26 +1,43 @@
 import { useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getEventById, getDeadlines, type EventItem } from "@/api/deadlines";
 import DeadlinesCard from "@/components/Revamp/admissions/DeadlinesCard";
 import { SeeAllButton } from "@/components/Revamp/components/LeftRightButton";
+import PageSEO from "@/components/SEO/PageSEO";
+import { DEADLINES_SNAPSHOT } from "@/data/contentSnapshot";
+import { deadlineStaticPath, withStaticFallback } from "@/lib/staticContent";
+
+const DEADLINES_SEED = DEADLINES_SNAPSHOT as unknown as EventItem[];
 
 export default function DeadlineDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-
-  const { data: event, isLoading, isError } = useQuery({
+  // Live API first, then the build-time static copy. Retries cover Cloud Run
+  // cold starts — an API hiccup used to render a bare "Could not load this
+  // deadline" with no content at all.
+  const { data: event, isLoading, isFetched } = useQuery({
     queryKey: ['revamp-deadline-detail', id],
-    queryFn: () => getEventById(id as string),
+    queryFn: () =>
+      withStaticFallback<EventItem>(
+        () => getEventById(id as string),
+        deadlineStaticPath(id as string),
+      ),
     enabled: !!id,
+    retry: 2,
+    retryDelay: (attempt) => 800 * (attempt + 1),
     staleTime: 5 * 60 * 1000,
+    initialData: () => DEADLINES_SEED.find((deadline) => deadline.id === id),
+    initialDataUpdatedAt: 0,
   });
 
   const { data: allEvents = [] } = useQuery({
     queryKey: ['revamp-deadlines'],
     queryFn: () => getDeadlines(),
     staleTime: 5 * 60 * 1000,
+    initialData: DEADLINES_SEED.length ? DEADLINES_SEED : undefined,
+    initialDataUpdatedAt: 0,
   });
 
   const otherDeadlines = useMemo(() => {
@@ -65,7 +82,7 @@ export default function DeadlineDetailPage() {
     });
   };
 
-  if (isLoading) {
+  if (isLoading || !isFetched) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F3F7FF]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0E1629]"></div>
@@ -73,13 +90,39 @@ export default function DeadlineDetailPage() {
     );
   }
 
-  if (isError || !event) {
+  // A deadline that has genuinely been removed. Serve a real page with onward
+  // links and mark it noindex so it is never indexed as a soft 404.
+  if (!event || event.isDeleted) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F3F7FF] gap-4">
-        <p className="text-red-600 font-[Poppins] font-medium">Could not load this deadline.</p>
-        <button onClick={() => navigate(-1)} className="text-[#0E1629] font-[Poppins] underline font-semibold cursor-pointer hover:opacity-80">
-          Go Back
-        </button>
+      <div className="min-h-screen bg-[#F3F7FF] px-5 py-20 font-[Poppins]">
+        <PageSEO
+          title="Deadline no longer available"
+          description="This admission deadline has been removed or has passed. Track every live exam and counselling deadline on ProCounsel."
+          noIndex
+        />
+        <div className="max-w-2xl mx-auto text-center flex flex-col gap-4">
+          <h1 className="text-2xl md:text-3xl font-semibold text-[#0E1629]">
+            This deadline is no longer available
+          </h1>
+          <p className="text-[#6B7280]">
+            The exam or counselling deadline you were looking for has passed or been removed.
+            Browse every live admission deadline below.
+          </p>
+          <div className="flex flex-wrap gap-3 justify-center mt-2">
+            <Link
+              to="/admissions/deadlines"
+              className="rounded-xl bg-[#0E1629] px-5 py-2.5 text-sm font-semibold text-white"
+            >
+              All admission deadlines
+            </Link>
+            <Link
+              to="/admissions"
+              className="rounded-xl border border-[#0E1629] px-5 py-2.5 text-sm font-semibold text-[#0E1629]"
+            >
+              Admissions home
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
@@ -89,6 +132,37 @@ export default function DeadlineDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#F3F7FF] font-[Poppins] pb-20">
+      <PageSEO
+        title={`${event.title} — Dates, Eligibility & How to Apply`}
+        description={
+          (event.description || '').trim().slice(0, 155) ||
+          `${event.title}: important dates${startSchedule.datePart ? ` from ${startSchedule.datePart}` : ''}${endSchedule.datePart ? ` to ${endSchedule.datePart}` : ''}, application link and eligibility. Track every admission deadline on ProCounsel.`
+        }
+        canonical={`/admissions/deadlines/${event.id}`}
+        image={event.photoUrl || undefined}
+        type="article"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Event',
+          name: event.title,
+          description: event.description || undefined,
+          startDate: event.startDate
+            ? `${event.startDate}${event.startTime ? `T${event.startTime}` : ''}`
+            : undefined,
+          endDate: event.endDate
+            ? `${event.endDate}${event.endTime ? `T${event.endTime}` : ''}`
+            : undefined,
+          eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
+          eventStatus: 'https://schema.org/EventScheduled',
+          image: event.photoUrl || undefined,
+          url: `https://procounsel.co.in/admissions/deadlines/${event.id}`,
+          location: {
+            '@type': 'VirtualLocation',
+            url: event.applicationUrl || `https://procounsel.co.in/admissions/deadlines/${event.id}`,
+          },
+          organizer: { '@type': 'Organization', name: 'ProCounsel', url: 'https://procounsel.co.in' },
+        }}
+      />
       {/* Breadcrumb */}
       <div className="w-full bg-white border-b border-[#E3E8F4]">
         <div className="max-w-[1440px] mx-auto px-[20px] md:px-[60px] py-4 text-[0.875rem] text-[#6B7280] font-medium flex items-center overflow-x-auto whitespace-nowrap [&::-webkit-scrollbar]:hidden">
@@ -106,72 +180,51 @@ export default function DeadlineDetailPage() {
 
       <div className="max-w-[1440px] mx-auto px-[20px] md:px-[60px] pt-[24px] md:pt-[40px]">
         
-        {/* Main Details Section */}
-        <div className="flex flex-col md:flex-row gap-[16px] md:gap-[24px] mb-[32px] md:mb-[40px]">
-          
-          {/* Mobile Top Row: Image + Title + Badges */}
-          <div className="flex flex-row md:contents gap-[10px] md:gap-0">
-            {/* Image */}
-            {event.photoUrl ? (
-              <img loading="lazy" decoding="async" 
-                src={event.photoUrl} 
-                alt={event.title} 
-                className="w-[100px] h-[100px] md:w-[320px] md:h-[320px] object-cover rounded-[8px] md:rounded-[16px] shrink-0"
-              />
-            ) : (
-              <div className="w-[100px] h-[100px] md:w-[320px] md:h-[320px] bg-[#E3E8F4] rounded-[8px] md:rounded-[16px] shrink-0 flex items-center justify-center">
-                 <span className="text-gray-400 font-medium text-[10px] md:text-base">No Image</span>
-              </div>
-            )}
+        {/* Main Details Section
+            The title and the badges each render exactly once. They used to be
+            duplicated — a `md:hidden` mobile copy and a `hidden md:block`
+            desktop copy — which put two <h1>s and two copies of every badge in
+            the served HTML. Mobile keeps its image-beside-title layout via
+            explicit grid placement; desktop falls back to the original flex row
+            (the grid-* utilities are inert once the container is `display:flex`). */}
+        <div className="grid grid-cols-[100px_1fr] gap-x-[10px] gap-y-[8px] md:flex md:flex-row md:gap-[24px] mb-[32px] md:mb-[40px]">
 
-            {/* Mobile Title & Badges (Hidden on Desktop) */}
-            <div className="flex flex-col justify-start md:hidden w-full gap-[8px]">
-              <h1 className="text-[16px] font-semibold text-[#0E1629] font-[Poppins] leading-none capitalize">
-                {event.title}
-              </h1>
-              <div className="flex flex-wrap gap-[6px]">
-                {event.typeOfEvent && (
-                  <div className="bg-[#FA660F14] px-[12px] py-[4px] rounded-[24px] flex items-center justify-center">
-                    <span className="text-[#FA660F] text-[10px] font-medium font-[Poppins] leading-none capitalize">
-                      {event.typeOfEvent.toLowerCase()}
-                    </span>
-                  </div>
-                )}
-                {event.associatedCourseId?.map((course) => (
-                  <div key={course} className="bg-[#6B728040] px-[12px] py-[4px] rounded-[24px] flex items-center justify-center">
-                    <span className="text-[#0E1629] text-[10px] font-medium font-[Poppins] leading-none capitalize">
-                      {course.replace(/_/g, ' ')}
-                    </span>
-                  </div>
-                ))}
-              </div>
+          {/* Image — spans the title and badge rows on mobile */}
+          {event.photoUrl ? (
+            <img loading="lazy" decoding="async"
+              src={event.photoUrl}
+              alt={event.title}
+              className="col-start-1 row-start-1 row-span-2 self-start w-[100px] h-[100px] md:w-[320px] md:h-[320px] object-cover rounded-[8px] md:rounded-[16px] shrink-0"
+            />
+          ) : (
+            <div className="col-start-1 row-start-1 row-span-2 self-start w-[100px] h-[100px] md:w-[320px] md:h-[320px] bg-[#E3E8F4] rounded-[8px] md:rounded-[16px] shrink-0 flex items-center justify-center">
+               <span className="text-gray-400 font-medium text-[10px] md:text-base">No Image</span>
             </div>
-          </div>
+          )}
 
-          {/* Details Column */}
-          <div className="flex flex-col justify-start w-full">
-            {/* Desktop Title (Hidden on Mobile) */}
-            <h1 className="hidden md:block text-[40px] font-semibold text-[#0E1629] font-[Poppins] leading-none capitalize mb-[12px] max-w-[976px]">
+          {/* Details column. `contents` on mobile so the three children below
+              become grid items of the container above and can be placed
+              independently; a normal flex column from md up. */}
+          <div className="contents md:flex md:flex-col md:justify-start md:w-full">
+            <h1 className="col-start-2 row-start-1 text-[16px] md:text-[40px] font-semibold text-[#0E1629] font-[Poppins] leading-none capitalize md:mb-[12px] md:max-w-[976px]">
               {event.title}
             </h1>
-            
-            {/* Description (Shared, scales font size) */}
-            <p className="text-[12px] md:text-[18px] font-medium text-[#6B7280] font-[Poppins] leading-[1.3] md:leading-none capitalize mb-[0px] md:mb-[24px] max-w-[976px]">
+
+            <p className="col-start-1 col-span-2 row-start-3 mt-[8px] md:mt-0 text-[12px] md:text-[18px] font-medium text-[#6B7280] font-[Poppins] leading-[1.3] md:leading-none capitalize mb-[0px] md:mb-[24px] md:max-w-[976px]">
               {event.description}
             </p>
 
-            {/* Desktop Badges (Hidden on Mobile) */}
-            <div className="hidden md:flex flex-wrap gap-[10px]">
+            <div className="col-start-2 row-start-2 flex flex-wrap gap-[6px] md:gap-[10px]">
               {event.typeOfEvent && (
-                <div className="bg-[#FA660F14] px-[20px] py-[8px] rounded-[24px] flex items-center justify-center">
-                  <span className="text-[#FA660F] text-[20px] font-medium font-[Poppins] leading-none capitalize">
+                <div className="bg-[#FA660F14] px-[12px] md:px-[20px] py-[4px] md:py-[8px] rounded-[24px] flex items-center justify-center">
+                  <span className="text-[#FA660F] text-[10px] md:text-[20px] font-medium font-[Poppins] leading-none capitalize">
                     {event.typeOfEvent.toLowerCase()}
                   </span>
                 </div>
               )}
               {event.associatedCourseId?.map((course) => (
-                <div key={course} className="bg-[#6B728040] px-[20px] py-[8px] rounded-[24px] flex items-center justify-center">
-                  <span className="text-[#0E1629] text-[20px] font-medium font-[Poppins] leading-none capitalize">
+                <div key={course} className="bg-[#6B728040] px-[12px] md:px-[20px] py-[4px] md:py-[8px] rounded-[24px] flex items-center justify-center">
+                  <span className="text-[#0E1629] text-[10px] md:text-[20px] font-medium font-[Poppins] leading-none capitalize">
                     {course.replace(/_/g, ' ')}
                   </span>
                 </div>

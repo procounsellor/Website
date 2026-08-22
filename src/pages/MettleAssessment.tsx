@@ -2,12 +2,37 @@ import { useState, useEffect, useRef } from "react";
 import PageSEO from "@/components/SEO/PageSEO";
 import { useAuthStore } from "@/store/AuthStore";
 import { LoginCard } from "@/components/cards/LoginCard";
+import startRecharge from "@/api/wallet";
+import { getLoggedInPhone, formatPhoneForRazorpay } from "@/lib/phone";
+import { getToken } from "@/lib/tokenManager";
+import { registerOptionForm, payOptionFormFromWallet } from "@/api/optionForm";
+import { uploadPsychometricReport, downloadReport } from "@/api/psychometric";
+import { updateUserProfile } from "@/api/user";
+import { buildReportPdf, type Report } from "@/lib/mettleReportPdf";
+
+type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 
 const API = "https://college-search-api.vercel.app";
 
 // Price of the Mettle career assessment (INR). Payment is NOT wired yet —
 // see the backend API contract in METTLE_PAYMENT_TODO below.
+// Price of the Mettle career assessment (INR). The start card, the "You pay"
+// row, the button label, the cost FAQ and the Service schema all read from
+// here. MettleBanner.tsx carries its own copy of this figure — keep them in sync.
 const METTLE_PRICE = 2000;
+
+/**
+ * Discount codes, as percentages off METTLE_PRICE.
+ *
+ * ⚠️ These ship inside the JavaScript bundle — anyone who opens devtools can
+ * read them, so treat PC100 as public the moment it is used in front of an
+ * audience. Move validation to the backend before relying on them commercially.
+ */
+const METTLE_COUPONS: Record<string, number> = {
+  PC50: 50,
+  PC100: 100,
+  DISCOUNT20: 20,
+};
 
 /*
  * ─── PAYMENT TO BE WIRED LATER (backend endpoints required) ──────────────────
@@ -32,9 +57,10 @@ const METTLE_PRICE = 2000;
  */
 
 // SEO structured data so /mettle can rank for career-test queries.
-const METTLE_SEO_TITLE = "Mettle — AI Career Assessment Test for Students";
+const METTLE_SEO_TITLE =
+  "Career Test for Students — AI Career Assessment & Report | Mettle by ProCounsel";
 const METTLE_SEO_DESC =
-  "Take ProCounsel's Mettle career assessment: 50 questions across 9 skill areas, scored by AI into your top career matches, strengths and a personalised roadmap. Get a downloadable career report.";
+  "Take ProCounsel's Mettle career assessment: 100 questions across 9 skill areas, scored by AI into your top career matches, strengths and a personalised roadmap. Get a downloadable career report.";
 const METTLE_JSONLD = [
   {
     // Modelled as a Service (a paid online career assessment), NOT a retail
@@ -49,18 +75,18 @@ const METTLE_JSONLD = [
     provider: {
       "@type": "Organization",
       name: "ProCounsel",
-      url: "https://www.procounsel.co.in",
+      url: "https://procounsel.co.in",
     },
     areaServed: { "@type": "Country", name: "India" },
     description: METTLE_SEO_DESC,
     category: "Career Assessment",
-    url: "https://www.procounsel.co.in/mettle",
+    url: "https://procounsel.co.in/mettle",
     offers: {
       "@type": "Offer",
       price: String(METTLE_PRICE),
       priceCurrency: "INR",
       availability: "https://schema.org/InStock",
-      url: "https://www.procounsel.co.in/mettle",
+      url: "https://procounsel.co.in/mettle",
     },
   },
   {
@@ -72,7 +98,7 @@ const METTLE_JSONLD = [
         name: "What is the Mettle career assessment?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Mettle is ProCounsel's AI-powered career assessment. You answer 50 statements across 9 skill areas, and AI maps your natural strengths to the careers best suited to you, with fit-scores and a step-by-step roadmap.",
+          text: "Mettle is ProCounsel's AI-powered career assessment. You answer 100 statements across 9 skill areas, and AI maps your natural strengths to the careers best suited to you, with fit-scores and a step-by-step roadmap.",
         },
       },
       {
@@ -80,7 +106,7 @@ const METTLE_JSONLD = [
         name: "How long does the Mettle test take?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "About 10 minutes. There are 50 short statements you rate on a 5-point scale, after which your personalised career report is generated instantly.",
+          text: "About 20 minutes. There are 100 short statements you rate on a 5-point scale, after which your personalised career report is generated instantly.",
         },
       },
       {
@@ -96,10 +122,64 @@ const METTLE_JSONLD = [
         name: "How much does the Mettle assessment cost?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "The Mettle career assessment is a one-time ₹2,000 and includes your complete AI-generated career report.",
+          text: `The Mettle career assessment is a one-time ₹${METTLE_PRICE.toLocaleString("en-IN")} and includes your complete AI-generated career report.`,
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Which career test is best for students after 10th or 12th?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "The most useful career test is one that measures several distinct abilities rather than sorting you into a single label. Mettle scores you across 9 areas — analytical thinking, creative expression, social and empathy, leadership, technical aptitude, nature and environment, organisation, communication and social impact — so a student choosing a stream after 10th or a degree after 12th can see which fields genuinely match their strengths.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Is an online career test accurate?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "A career test is a mirror, not a verdict. Mettle's accuracy comes from breadth — 100 statements across 9 skill areas, rated on a 5-point scale — and from answering honestly rather than as the person you think you should be. Use the report to narrow your options and then talk it through with a counsellor before deciding.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Do I need to create an account to take the career test?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes. You sign in with your phone number and a one-time OTP so your report is saved against your name and you can return to it. Your name is taken from your ProCounsel profile; if you are new and have not added one yet, you enter it once before the test starts.",
         },
       },
     ],
+  },
+];
+
+// Shown on the start screen, before anyone pays. Deliberately answers the
+// awkward questions (what exactly do I get, is it accurate, can I get a refund)
+// rather than only the flattering ones.
+const START_FAQS: { q: string; a: string }[] = [
+  {
+    q: "What exactly do I get at the end?",
+    a: "A full career report: your personality profile, your top 3 career matches with AI fit-scores, all 9 skill areas scored out of 100, your development areas with practical tips, and a step-by-step roadmap for each recommended career. You can download the whole thing as a PDF.",
+  },
+  {
+    q: "How long does it take?",
+    a: "About 20 minutes. There are 100 short statements, grouped into 9 sections, and you rate each one from Strongly Disagree to Strongly Agree. Your report is generated straight after the last question.",
+  },
+  {
+    q: "How is this different from the free career quizzes online?",
+    a: "Most free quizzes ask 10–20 questions and hand you a personality label. Mettle rates you on 100 statements across 9 distinct skill areas and uses AI to turn that profile into specific careers with fit-scores, required skills and a roadmap — and you can take the result to a counsellor who works in that field.",
+  },
+  {
+    q: "Is the result accurate?",
+    a: "It reflects how you answer, so answer as the person you are rather than the person you think you should be. It is a mirror, not a verdict — treat the report as a shortlist to discuss with a counsellor, not a final decision.",
+  },
+  {
+    q: "Do I have to pay before taking it?",
+    a: "Yes, it is a one-time payment that includes your complete AI-generated report. You can pay from your ProCounsel wallet, or by UPI, card or netbanking if your wallet is short.",
+  },
+  {
+    q: "What if I want to discuss my report with someone?",
+    a: "That's the point of it. Once you know which fields fit you, book a session with a ProCounsel counsellor who specialises in that domain — they can turn the report into an actual plan for exams, colleges and admissions.",
   },
 ];
 
@@ -167,6 +247,69 @@ const QUESTIONS: { text: string; category: string }[] = [
   { text: "I am motivated by the idea of making a meaningful difference in society.", category: "Social Impact" },
   { text: "Presenting ideas to an audience, large or small, does not make me nervous.", category: "Communication" },
   { text: "I find work that serves communities or the public sector genuinely fulfilling.", category: "Social Impact" },
+
+  // ── Second half ────────────────────────────────────────────────────────────
+  // Added to deepen the signal per skill area. The original set was lopsided —
+  // Social Impact had only 2 statements against Analytical's 7, so a whole
+  // category was being scored off almost nothing. This levels every area to 11+.
+  { text: "I like to test my assumptions before I accept a conclusion.", category: "Analytical" },
+  { text: "Breaking a large problem into smaller parts is how I naturally start.", category: "Analytical" },
+  { text: "I enjoy working out why something failed, not just fixing it.", category: "Analytical" },
+  { text: "I trust decisions backed by evidence more than decisions backed by instinct.", category: "Analytical" },
+
+  { text: "I often improve things that already work, simply because I can picture them better.", category: "Creative" },
+  { text: "Unconventional approaches appeal to me more than proven ones.", category: "Creative" },
+  { text: "I collect ideas I want to try someday, even with no plan for them yet.", category: "Creative" },
+  { text: "Being told exactly how to do something takes the enjoyment out of it for me.", category: "Creative" },
+
+  { text: "People tend to come to me when they need someone to listen.", category: "Social" },
+  { text: "I adjust how I explain something depending on who I am talking to.", category: "Social" },
+  { text: "I am good at settling a disagreement between two people.", category: "Social" },
+  { text: "I notice when someone in a group has been left out.", category: "Social" },
+
+  { text: "I would rather be responsible for an outcome than be told what to do.", category: "Leadership" },
+  { text: "I can give someone honest feedback they may not want to hear.", category: "Leadership" },
+  { text: "When a plan falls apart, I am usually the one who suggests what to do next.", category: "Leadership" },
+  { text: "Setting goals for a team and keeping everyone on track energises me.", category: "Leadership" },
+
+  { text: "I would rather understand how a system works than simply use it.", category: "Technical" },
+  { text: "Troubleshooting something stubborn is satisfying rather than frustrating.", category: "Technical" },
+  { text: "I enjoy learning the precise vocabulary of a technical field.", category: "Technical" },
+  { text: "Given instructions and time, I am confident I could assemble or repair most things.", category: "Technical" },
+
+  { text: "Working indoors all day would slowly wear me down.", category: "Nature" },
+  { text: "I think about how my everyday choices affect the environment.", category: "Nature" },
+  { text: "Learning about animals, plants or ecosystems holds my attention.", category: "Nature" },
+  { text: "I would enjoy fieldwork more than desk work.", category: "Nature" },
+  { text: "Physical activity outdoors clears my head better than resting does.", category: "Nature" },
+  { text: "I notice changes in the weather, seasons and landscape around me.", category: "Nature" },
+  { text: "A career connected to agriculture, wildlife or the environment appeals to me.", category: "Nature" },
+
+  { text: "I make lists, and I genuinely use them.", category: "Organized" },
+  { text: "Clear deadlines help me more than they pressure me.", category: "Organized" },
+  { text: "I dislike leaving a task unfinished at the end of the day.", category: "Organized" },
+  { text: "I keep my notes and belongings in a system that makes sense to me.", category: "Organized" },
+  { text: "Following a well-defined process gives me confidence rather than boredom.", category: "Organized" },
+  { text: "I plan my week rather than take it as it comes.", category: "Organized" },
+  { text: "Spotting an error others missed gives me quiet satisfaction.", category: "Organized" },
+
+  { text: "I enjoy explaining a complicated idea until someone finally gets it.", category: "Communication" },
+  { text: "Writing helps me think, not just record what I already thought.", category: "Communication" },
+  { text: "I am comfortable speaking on behalf of a group.", category: "Communication" },
+  { text: "I read the room and adjust my tone accordingly.", category: "Communication" },
+  { text: "Debating an idea with someone who disagrees is enjoyable rather than stressful.", category: "Communication" },
+  { text: "I would enjoy teaching, training or mentoring as part of my work.", category: "Communication" },
+
+  { text: "I would accept a smaller salary for work that clearly helps people.", category: "Social Impact" },
+  { text: "Unfairness bothers me even when it does not affect me personally.", category: "Social Impact" },
+  { text: "I have volunteered for a cause I believe in, or I want to.", category: "Social Impact" },
+  { text: "I follow social issues closely enough to form my own view.", category: "Social Impact" },
+  { text: "I would rather solve a problem for many people than for one client.", category: "Social Impact" },
+  { text: "Working for a government body, NGO or public institution appeals to me.", category: "Social Impact" },
+  { text: "I believe my work should leave things better than I found them.", category: "Social Impact" },
+  { text: "Problems like education, health or poverty draw my attention.", category: "Social Impact" },
+  { text: "Seeing someone's life improve through my work would matter more to me than recognition.", category: "Social Impact" },
+  { text: "I would speak up about something wrong at work even if it were uncomfortable.", category: "Social Impact" },
 ];
 
 const CAT_QS = CATS.map(c => ({ ...c, qs: QUESTIONS.filter(q => q.category === c.key) }));
@@ -177,10 +320,6 @@ function gIdx(ci: number, qi: number) {
 
 const SCALE_LABELS = ["", "Strongly\nDisagree", "Disagree", "Neutral", "Agree", "Strongly\nAgree"];
 
-interface CareerPath { title: string; field: string; fitScore: number; description: string; whyYouFit: string; keySkills: string[]; steps: string[]; }
-interface Strength    { name: string; score: number; description: string; }
-interface DevArea     { name: string; tip: string; }
-interface Report      { personalityType: string; personalityTagline: string; overallProfile: string; topCareers: CareerPath[]; strengths: Strength[]; developmentAreas: DevArea[]; nextSteps: string[]; }
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 const F   = "'Inter','Poppins',system-ui,sans-serif";
@@ -246,6 +385,16 @@ function Dots({ ci }: { ci: number }) {
 
 type Screen = "start" | "cat-intro" | "quiz" | "loading" | "report" | "error";
 
+const cleanName = (raw: string) => raw.trim().replace(/\s+/g, " ");
+
+/** The report is titled with this, so a blank or junk name is not accepted. */
+function validateName(raw: string): string | null {
+  const n = cleanName(raw);
+  if (n.length < 2) return "Please enter your full name.";
+  if (!/^[\p{L}][\p{L}\s.'-]*$/u.test(n)) return "Please use letters only — no numbers or symbols.";
+  return null;
+}
+
 export default function MettleAssessment() {
   const [screen, setScreen] = useState<Screen>("start");
   const [name, setName]     = useState("");
@@ -253,15 +402,38 @@ export default function MettleAssessment() {
   const [qi, setQi]         = useState(0);
   const [ans, setAns]       = useState<Record<number, number>>({});
   const [report, setReport] = useState<Report | null>(null);
+  const [coupon, setCoupon] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [payBusy, setPayBusy] = useState(false);
+  const [payErr, setPayErr] = useState("");
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "failed" | "skipped">("idle");
+  // Filled in on the start card by students whose profile carries no name.
+  const [nameInput, setNameInput] = useState("");
+  const [nameErr, setNameErr] = useState("");
+  const [nameBusy, setNameBusy] = useState(false);
+  const savedRef = useRef(false);
   const [err, setErr]       = useState("");
   const top = useRef<HTMLDivElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
 
-  // Login is mandatory: we use the logged-in user's profile name, so there is
-  // no name field — they fill their name during login/onboarding.
+  // Login is mandatory and the report is titled with the student's name. That
+  // normally comes from their profile — but a brand-new account can reach this
+  // page with nothing but a phone number, so when the profile has no name we
+  // ask for one here and it is required before the test can start.
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isLoginToggle = useAuthStore((s) => s.isLoginToggle);
   const profileName = `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim();
+  const needsName = isAuthenticated && !!user && !profileName;
+
+  // Login persists for months, so the stored profile can be from long before the
+  // report existed. Ask the profile API once on arrival — the answer decides
+  // whether they are offered a download or the test, and whether they get
+  // charged, so it is never read from a cached copy.
+  const refreshUser = useAuthStore((s) => s.refreshUser);
+  useEffect(() => {
+    if (isAuthenticated) void refreshUser(true);
+  }, [isAuthenticated, refreshUser]);
 
   useEffect(() => {
     const el = document.createElement("style"); el.textContent = CSS; document.head.appendChild(el);
@@ -270,24 +442,214 @@ export default function MettleAssessment() {
 
   useEffect(() => { top.current?.scrollIntoView({ behavior: "smooth" }); }, [screen, ci, qi]);
 
+  const discount = appliedCoupon ? METTLE_COUPONS[appliedCoupon] ?? 0 : 0;
+  const payable = Math.max(0, Math.round((METTLE_PRICE * (100 - discount)) / 100));
+  const walletBalance = user?.walletAmount ?? 0;
+  // Came in with the login/profile response — a link here means they already
+  // own a report and should not be charged for another.
+  const savedReportLink = user?.pyschometricReportPdfLink;
+
   const cat  = CAT_QS[ci];
   const date = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
 
   function beginAssessment() {
     const u = useAuthStore.getState().user;
-    const n = `${u?.firstName ?? ""} ${u?.lastName ?? ""}`.trim() || u?.userName || "Student";
+    // Profile name first; the name typed on the start card is the fallback for
+    // accounts that have none (and for the rare case the profile write failed).
+    const n = `${u?.firstName ?? ""} ${u?.lastName ?? ""}`.trim() || cleanName(nameInput) || "Student";
     setName(n);
     setCi(0); setQi(0); setAns({}); setScreen("cat-intro");
   }
 
-  function start() {
+  /**
+   * Finishes the student's signup before a rupee is touched: a real name on the
+   * profile, and the account out of the half-created onboarding state.
+   *
+   * /mettle is a standalone route — it sits outside RevampLayout, so the
+   * OnboardingCard that normally closes out a new signup never renders here. A
+   * user who signs up on this page would otherwise stay mid-onboarding for the
+   * whole session, with their JWT held in memory only, and every authenticated
+   * call after that (payment included) made on a half-built account.
+   *
+   * Returns false when the student still has to type a name — the field is on
+   * the start card and the error is shown there.
+   */
+  async function ensureSignupComplete(): Promise<boolean> {
+    const s = useAuthStore.getState();
+    const u = s.user;
+    const hasName = !!`${u?.firstName ?? ""} ${u?.lastName ?? ""}`.trim();
+
+    if (!hasName) {
+      const problem = validateName(nameInput);
+      if (problem) { setNameErr(problem); return false; }
+    }
+
+    setNameBusy(true); setNameErr("");
+    try {
+      if (!hasName) {
+        const full = cleanName(nameInput);
+        const [firstName, ...rest] = full.split(" ");
+        const lastName = rest.join(" ");
+        // getToken(), not localStorage — a just-signed-up user's JWT is still
+        // in-memory only, and reading localStorage here would skip the save.
+        const uid = getLoggedInPhone() || s.userId;
+        const token = getToken();
+        if (uid && token) {
+          await updateUserProfile(uid, { firstName, lastName }, token);
+        }
+      }
+
+      // Promotes the in-memory JWT to storage and clears needsOnboarding, so
+      // from here on this is an ordinary signed-in account. No-op once done.
+      if (s.needsOnboarding || s.tempJwt) s.completeOnboarding();
+
+      await useAuthStore.getState().refreshUser(true);
+    } catch (e) {
+      // The name still titles this report even if the profile write failed.
+      console.error("Could not finish the signup:", e instanceof Error ? e.message : String(e));
+    } finally {
+      setNameBusy(false);
+    }
+    return true;
+  }
+
+  function applyCoupon() {
+    const code = coupon.trim().toUpperCase();
+    if (!code) return;
+    if (!(code in METTLE_COUPONS)) { setPayErr("That code isn't valid."); return; }
+    setAppliedCoupon(code); setPayErr("");
+  }
+
+  /** Charges the shortfall on Razorpay and waits for the wallet to show it. */
+  async function topUpWallet(walletId: string, amount: number, target: number) {
+    const order = await startRecharge(walletId, amount);
+    // startRecharge answers with a bare string when it refuses (e.g. no auth
+    // token) — that used to surface as a flat "try again" with no clue why.
+    if (typeof order === "string") {
+      throw /token|auth/i.test(order)
+        ? openLogin("We couldn't read your login on this device. Log in again and press Start.")
+        : new Error(order);
+    }
+    if (!order || !order.orderId) {
+      throw new Error("Could not start the payment. Please try again.");
+    }
+    if (typeof (window as unknown as { Razorpay?: unknown }).Razorpay !== "function") {
+      throw new Error("The payment window could not load. Check your connection or any ad-blocker, then press Start again.");
+    }
+    await new Promise<void>((resolve, reject) => {
+      const u = useAuthStore.getState().user;
+      const options = {
+        key: order.keyId, amount: order.amount, currency: order.currency, order_id: order.orderId,
+        name: "ProCounsel", description: "Mettle career assessment",
+        prefill: {
+          contact: formatPhoneForRazorpay(getLoggedInPhone()),
+          email: u?.email || "",
+          name: `${u?.firstName || ""} ${u?.lastName || ""}`.trim(),
+        },
+        notes: { userId: walletId, service: "mettle" },
+        handler: () => {
+          void (async () => {
+            // The wallet is credited by the payment webhook, so poll rather than
+            // failing on the first read.
+            for (let i = 0; i < 8; i += 1) {
+              const fresh = await useAuthStore.getState().refreshUser(true);
+              if (!fresh) { reject(openLogin("Payment went through but we lost your login on this device. Log in again — the money is in your wallet, you won't be charged twice.")); return; }
+              if ((fresh.walletAmount ?? 0) >= target) { resolve(); return; }
+              await new Promise(r => setTimeout(r, 1200));
+            }
+            reject(new Error("Payment went through but your balance hasn't updated yet. Give it a minute and press Start again — you won't be charged twice."));
+          })();
+        },
+        modal: { ondismiss: () => reject(new Error("Payment cancelled.")) },
+        theme: { color: "#4f46e5" },
+      };
+      const RZ = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
+      new RZ(options).open();
+    });
+  }
+
+  async function payAndBegin() {
+    // A 100% coupon skips money entirely — no wallet call, no Razorpay.
+    if (payable === 0) { beginAssessment(); return; }
+
+    const s = useAuthStore.getState();
+    const walletId = getLoggedInPhone() || s.userId;
+    if (!walletId) { setPayErr(openLogin("We couldn't read your account. Log in again to continue.").message); return; }
+
+    setPayBusy(true); setPayErr("");
+    try {
+      // Mettle rides the option-form registration + transfer pair — the only
+      // wallet-debit endpoint available. The call is idempotent: once the row
+      // exists for this phone it makes no request, so a retry after a cancelled
+      // payment goes straight to the debit instead of re-registering.
+      const u = s.user;
+      await registerOptionForm({
+        name: `${u?.firstName ?? ""} ${u?.lastName ?? ""}`.trim() || cleanName(nameInput) || "Student",
+        marks: 0,
+        stateDomicile: "-",
+        phoneNumber: walletId,
+        optionFormRequirement: "METTLE",
+      });
+
+      const fresh = await s.refreshUser(true);
+      if (!fresh) throw openLogin("We couldn't read your account just now. Log in again and press Start.");
+
+      // Razorpay only opens if the wallet can't cover it.
+      const shortfall = payable - (fresh.walletAmount ?? 0);
+      if (shortfall > 0) await topUpWallet(walletId, shortfall, payable);
+
+      await payOptionFormFromWallet(walletId, payable);
+      await s.refreshUser(true);
+      beginAssessment();
+    } catch (e) {
+      setPayErr(e instanceof Error ? e.message : "Payment failed. Please try again.");
+    } finally {
+      setPayBusy(false);
+    }
+  }
+
+  /**
+   * Opens the login card rather than leaving the student reading "please log in
+   * again" with no way to do it. Returns the error to throw, so the caller reads
+   * `throw openLogin("…")` and the reason still lands on the start card behind
+   * the login sheet.
+   */
+  function openLogin(reason: string): Error {
+    const s = useAuthStore.getState();
+    if (!s.isLoginToggle) s.toggleLogin(() => { void afterLogin(); });
+    return new Error(reason);
+  }
+
+  async function start() {
     const s = useAuthStore.getState();
     // Mandatory login — open the login flow and resume once signed in.
     if (!s.isAuthenticated || !s.user) {
-      s.toggleLogin(() => beginAssessment());
+      s.toggleLogin(() => { void afterLogin(); });
       return;
     }
-    beginAssessment();
+    if (!(await ensureSignupComplete())) return;
+    await payAndBegin();
+  }
+
+  /**
+   * Resumes after the login card closes. A freshly created account often has
+   * nothing but a phone number, so we stop at the start card with the name
+   * field waiting rather than charging them for a report titled "Student".
+   *
+   * Note this only fires for accounts the store considers complete — AuthStore
+   * holds the callback back for users who still need onboarding and hands it to
+   * RevampLayout, which /mettle does not sit under. That is fine: the start card
+   * re-renders signed-in either way, so a new user simply presses Start again
+   * after typing their name.
+   */
+  async function afterLogin() {
+    const fresh = await useAuthStore.getState().refreshUser(true);
+    if (!`${fresh?.firstName ?? ""} ${fresh?.lastName ?? ""}`.trim()) {
+      setNameErr("");
+      setTimeout(() => nameRef.current?.focus(), 150);
+      return;
+    }
+    await payAndBegin();
   }
 
   function pick(s: number) { setAns(a => ({ ...a, [gIdx(ci, qi)]: s })); }
@@ -306,7 +668,12 @@ export default function MettleAssessment() {
 
   async function submit() {
     setScreen("loading");
-    const payload = QUESTIONS.map((q, i) => ({
+    // Answers are keyed by gIdx(), which indexes the CATEGORY-GROUPED order the
+    // quiz walks through — NOT the interleaved order of QUESTIONS. Mapping over
+    // QUESTIONS here attached every answer to the wrong statement, so the AI was
+    // scoring a scrambled test. Build the payload from the same grouped order.
+    const asked = CAT_QS.flatMap((c) => c.qs);
+    const payload = asked.map((q, i) => ({
       question: q.text, category: q.category,
       answer: SCALE_LABELS[ans[i] ?? 3].replace("\n", " "),
       score: ans[i] ?? 3,
@@ -327,6 +694,58 @@ export default function MettleAssessment() {
 
   function retake() { setName(""); setAns({}); setCi(0); setQi(0); setReport(null); setErr(""); setScreen("start"); }
 
+  /**
+   * Renders the finished report to a PDF and saves it against the student, so a
+   * paid report is not lost the moment they close the tab. The PDF libraries are
+   * imported on demand — they are large, and only this one screen needs them.
+   */
+  async function saveReportPdf() {
+    const uid = getLoggedInPhone() || useAuthStore.getState().userId;
+    if (!uid) { setSaveState("skipped"); return; }
+    if (!report) { setSaveState("failed"); return; }
+
+    setSaveState("saving");
+    try {
+      const { jsPDF } = await import("jspdf");
+      const pdf = buildReportPdf(new jsPDF({ unit: "pt", format: "a4" }), report, name);
+      const blob = pdf.output("blob");
+      const file = new File([blob], `mettle-report-${uid}.pdf`, { type: "application/pdf" });
+      await uploadPsychometricReport(uid, file);
+      setSaveState("saved");
+      // Pull the profile again so the store carries the new link — that is what
+      // the dashboard and profile read to offer the download.
+      void useAuthStore.getState().refreshUser(true);
+    } catch (e) {
+      console.error("Could not save the report PDF:", e instanceof Error ? `${e.name}: ${e.message}` : String(e));
+      setSaveState("failed");
+    }
+  }
+
+  /**
+   * Downloads the exact same document that gets saved to their profile.
+   *
+   * This used to be window.print(), which printed the styled page — so the copy
+   * they downloaded and the copy on their profile were two different-looking
+   * files. One generator now, one look.
+   */
+  async function downloadReportPdf() {
+    if (!report) return;
+    const { jsPDF } = await import("jspdf");
+    const pdf = buildReportPdf(new jsPDF({ unit: "pt", format: "a4" }), report, name);
+    pdf.save(`Mettle-Career-Report-${(name || "Student").replace(/\s+/g, "-")}.pdf`);
+  }
+
+  // Fires once, after the report screen has painted.
+  useEffect(() => {
+    if (screen !== "report" || !report || savedRef.current) return;
+    savedRef.current = true;
+    const timer = setTimeout(() => { void saveReportPdf(); }, 1200);
+    return () => clearTimeout(timer);
+    // saveReportPdf is deliberately not a dependency — savedRef makes this
+    // run exactly once per report, and re-running it would upload twice.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [screen, report]);
+
   async function devSkip() {
     const n = name.trim() || "Test User"; setName(n); setScreen("loading");
     try {
@@ -345,7 +764,7 @@ export default function MettleAssessment() {
         title={METTLE_SEO_TITLE}
         description={METTLE_SEO_DESC}
         canonical="/mettle"
-        keywords="career assessment, AI career test, career test for students, psychometric test India, career counselling, find my career, ProCounsel Mettle"
+        keywords="career test, online career test, free career test, career assessment test, AI career test, career test for students, career test after 10th, career test after 12th, psychometric test India, aptitude test for career, which career is right for me, career guidance test, personality and career test, career counselling online, ProCounsel Mettle"
         jsonLd={METTLE_JSONLD}
       />
       {/* Soft orbs */}
@@ -381,12 +800,12 @@ export default function MettleAssessment() {
             </h1>
 
             <p style={{ fontSize: 14.5, color: "#64748b", lineHeight: 1.7, margin: "0 0 20px", fontFamily: F }}>
-              50 thoughtful statements across 9 skill areas. Answer honestly — our AI maps your natural strengths to careers built for you.
+              100 thoughtful statements across 9 skill areas. Answer honestly — our AI maps your natural strengths to careers built for you.
             </p>
 
             {/* Stats */}
             <div style={{ display: "flex", ...GLASS(0.65, 16), borderRadius: 16, overflow: "hidden", marginBottom: 18 }}>
-              {[["9", "Sections"], ["50", "Questions"], ["~10m", "Duration"]].map(([v, l], i) => (
+              {[["9", "Sections"], [String(QUESTIONS.length), "Questions"], ["~20m", "Duration"]].map(([v, l], i) => (
                 <div key={l} style={{ flex: 1, padding: "12px 8px", borderRight: i < 2 ? "1px solid rgba(0,0,0,.05)" : "none", textAlign: "center" }}>
                   <div style={{ fontSize: 19, fontWeight: 800, color: "#1e1b4b", fontFamily: F }}>{v}</div>
                   <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: .8, fontFamily: F }}>{l}</div>
@@ -431,27 +850,155 @@ export default function MettleAssessment() {
               ))}
             </div>
 
-            {/* Start card — login mandatory; TODO: gate behind ₹2000 payment (see METTLE_PAYMENT_TODO). */}
+            {/* Start card — login mandatory, then payment (skipped by a 100% coupon). */}
             <div style={{ ...GLASS(0.75, 20), borderRadius: 20, padding: "20px 22px 18px" }}>
               {isAuthenticated && user ? (
                 <>
-                  <div style={{ fontSize: 13, color: "#475569", marginBottom: 14, fontFamily: F }}>
-                    Signed in as{" "}
-                    <strong style={{ color: "#1e1b4b" }}>{profileName || user.userName}</strong>. Your report will be generated under this name.
+                  {needsName ? (
+                    <div style={{ marginBottom: 14 }}>
+                      <label htmlFor="mettle-name" style={{ display: "block", fontSize: 13, color: "#475569", marginBottom: 7, fontFamily: F }}>
+                        Your full name <span style={{ color: "#dc2626" }}>*</span>
+                        <span style={{ display: "block", fontSize: 11.5, color: "#94a3b8", marginTop: 2 }}>
+                          Required — your report is generated and saved under this name.
+                        </span>
+                      </label>
+                      <input
+                        id="mettle-name"
+                        ref={nameRef}
+                        value={nameInput}
+                        onChange={e => { setNameInput(e.target.value); if (nameErr) setNameErr(""); }}
+                        onKeyDown={e => { if (e.key === "Enter") void start(); }}
+                        placeholder="e.g. Ananya Sharma"
+                        autoComplete="name"
+                        aria-required="true"
+                        aria-invalid={!!nameErr}
+                        style={{
+                          width: "100%", height: 44, borderRadius: 10, background: "white",
+                          border: `1px solid ${nameErr ? "#fca5a5" : "rgba(0,0,0,.1)"}`,
+                          padding: "0 12px", fontSize: 14, fontFamily: F, color: "#1e1b4b", outline: "none",
+                        }}
+                      />
+                      {nameErr && (
+                        <div style={{ fontSize: 12, color: "#b91c1c", marginTop: 6, fontFamily: F }}>{nameErr}</div>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: 13, color: "#475569", marginBottom: 14, fontFamily: F }}>
+                      Signed in as{" "}
+                      <strong style={{ color: "#1e1b4b" }}>{profileName}</strong>. Your report will be generated under this name.
+                    </div>
+                  )}
+
+                  {/* Already taken it — their paid report is one tap away, and
+                      a retake is a fresh purchase. */}
+                  {savedReportLink && (
+                    <div style={{ background: "#ecfdf5", border: "1px solid #a7f3d0", borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: "#065f46", fontFamily: F }}>
+                        You already have a report on your profile
+                      </div>
+                      <div style={{ fontSize: 11.5, color: "#047857", lineHeight: 1.6, margin: "4px 0 10px", fontFamily: F }}>
+                        Open it any time from your profile — no need to take the test again. Starting over is a fresh assessment and a new payment.
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                        <button
+                          type="button"
+                          onClick={() => void downloadReport(savedReportLink)}
+                          style={{ background: "#059669", color: "white", border: "none", borderRadius: 9, padding: "8px 14px", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: F }}
+                        >
+                          ↓ Download my report
+                        </button>
+                        <a
+                          href={savedReportLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ display: "inline-block", background: "white", color: "#047857", border: "1px solid #a7f3d0", borderRadius: 9, padding: "8px 14px", fontSize: 12.5, fontWeight: 700, textDecoration: "none", fontFamily: F }}
+                        >
+                          View ↗
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Coupon */}
+                  {appliedCoupon ? (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, background: "#ecfdf5", border: "1px solid #a7f3d0", borderRadius: 10, padding: "8px 12px", marginBottom: 12 }}>
+                      <span style={{ fontSize: 12, color: "#065f46", fontWeight: 700, fontFamily: F }}>
+                        {appliedCoupon} applied · {discount}% off
+                      </span>
+                      <button
+                        onClick={() => { setAppliedCoupon(null); setCoupon(""); }}
+                        style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "#047857", textDecoration: "underline", fontFamily: F }}
+                      >Remove</button>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                      <input
+                        value={coupon}
+                        onChange={e => { setCoupon(e.target.value.toUpperCase()); setPayErr(""); }}
+                        onKeyDown={e => { if (e.key === "Enter") applyCoupon(); }}
+                        placeholder="Coupon code (optional)"
+                        style={{ flex: 1, minWidth: 0, height: 40, borderRadius: 10, border: "1px solid rgba(0,0,0,.1)", background: "white", padding: "0 12px", fontSize: 13, fontFamily: F, color: "#1e1b4b", outline: "none" }}
+                      />
+                      <button
+                        onClick={applyCoupon}
+                        disabled={!coupon.trim()}
+                        style={{ height: 40, padding: "0 16px", borderRadius: 10, border: "1px solid #c7d2fe", background: "#eef2ff", color: "#4f46e5", fontSize: 13, fontWeight: 700, cursor: coupon.trim() ? "pointer" : "not-allowed", opacity: coupon.trim() ? 1 : .5, fontFamily: F }}
+                      >Apply</button>
+                    </div>
+                  )}
+
+                  {/* What they'll actually be charged */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13, color: "#475569", marginBottom: 4, fontFamily: F }}>
+                    <span>You pay</span>
+                    <span style={{ fontWeight: 800, color: "#1e1b4b" }}>
+                      {discount > 0 && (
+                        <span style={{ textDecoration: "line-through", color: "#94a3b8", fontWeight: 600, marginRight: 6 }}>
+                          ₹{METTLE_PRICE.toLocaleString("en-IN")}
+                        </span>
+                      )}
+                      {payable === 0 ? "Free" : `₹${payable.toLocaleString("en-IN")}`}
+                    </span>
                   </div>
-                  <button onClick={start} className="ma-btn" style={{
-                    width: "100%", padding: "14px", fontSize: 15, fontWeight: 700, fontFamily: F,
-                    background: "linear-gradient(135deg, #4f46e5, #7c3aed)", color: "white",
-                    border: "none", borderRadius: 12, cursor: "pointer",
-                    boxShadow: "0 4px 20px rgba(79,70,229,.35), inset 0 1px 0 rgba(255,255,255,.15)",
-                  }}>Start Assessment →</button>
+                  {payable > 0 && (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 11.5, color: "#94a3b8", marginBottom: 12, fontFamily: F }}>
+                      <span>Wallet balance</span>
+                      <span style={{ color: walletBalance >= payable ? "#059669" : "#d97706", fontWeight: 700 }}>
+                        ₹{walletBalance.toLocaleString("en-IN")}
+                        {walletBalance >= payable ? " · covers it" : " · you'll pay the rest online"}
+                      </span>
+                    </div>
+                  )}
+
+                  {payErr && (
+                    <div style={{ fontSize: 12, color: "#b91c1c", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: "8px 10px", marginBottom: 10, fontFamily: F }}>
+                      {payErr}
+                    </div>
+                  )}
+
+                  {(() => {
+                    // No name, no test — the button stays locked until the
+                    // required field holds something usable.
+                    const blocked = needsName && !!validateName(nameInput);
+                    const busy = payBusy || nameBusy;
+                    return (
+                      <button onClick={() => void start()} disabled={busy || blocked} className="ma-btn" style={{
+                        width: "100%", padding: "14px", fontSize: 15, fontWeight: 700, fontFamily: F,
+                        background: busy ? "#a5b4fc" : "linear-gradient(135deg, #4f46e5, #7c3aed)", color: "white",
+                        border: "none", borderRadius: 12, cursor: busy || blocked ? "not-allowed" : "pointer",
+                        opacity: blocked ? .55 : 1,
+                        boxShadow: "0 4px 20px rgba(79,70,229,.35), inset 0 1px 0 rgba(255,255,255,.15)",
+                      }}>
+                        {busy ? "Processing…" : payable === 0 ? "Start Assessment →" : `Pay ₹${payable.toLocaleString("en-IN")} & Start →`}
+                      </button>
+                    );
+                  })()}
                 </>
               ) : (
                 <>
                   <div style={{ fontSize: 13, color: "#475569", marginBottom: 14, fontFamily: F }}>
-                    Sign in to begin — we'll use your profile name, so there's nothing to type.
+                    Sign in to begin. We'll use the name on your profile — if you're new, we'll ask for it here.
                   </div>
-                  <button onClick={start} className="ma-btn" style={{
+                  <button onClick={() => void start()} className="ma-btn" style={{
                     width: "100%", padding: "14px", fontSize: 15, fontWeight: 700, fontFamily: F,
                     background: "linear-gradient(135deg, #4f46e5, #7c3aed)", color: "white",
                     border: "none", borderRadius: 12, cursor: "pointer",
@@ -461,6 +1008,56 @@ export default function MettleAssessment() {
               )}
               <p style={{ fontSize: 11, color: "#94a3b8", margin: "10px 0 0", textAlign: "center", fontFamily: F }}>Personalised AI report · Instant results · Downloadable PDF</p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Everything below stacks down the page — it sits OUTSIDE the centring
+          flex row above, which would otherwise lay these out as extra columns
+          beside the hero. */}
+      <div style={{ padding: "0 20px 56px" }}>
+        {/* ── What happens after the report ─────────────────────────────────
+            A report on its own doesn't change anything. This says plainly what
+            the next step is, before they pay. */}
+        <div style={{ maxWidth: 980, margin: "40px auto 0", padding: "0 4px" }}>
+          <h2 style={{ fontSize: "clamp(20px,3vw,26px)", fontWeight: 800, color: "#1e1b4b", letterSpacing: "-0.5px", margin: "0 0 6px", fontFamily: F }}>
+            What happens after your report
+          </h2>
+          <p style={{ fontSize: 13.5, color: "#64748b", lineHeight: 1.7, margin: "0 0 18px", maxWidth: 640, fontFamily: F }}>
+            The report tells you which fields fit you. The harder question is what to do about it — which
+            exam, which college, which branch. That's the part a counsellor answers, and your results tell
+            you which kind of counsellor you actually need.
+          </p>
+          <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))" }}>
+            {[
+              ["🎯", "You learn where you fit", "Nine skill areas scored out of 100, so you can see your strengths ranked instead of guessing."],
+              ["🧭", "You get three real options", "Top career matches with fit-scores and a step-by-step roadmap for each — not a one-word label."],
+              ["👤", "You talk to the right expert", "Take your report to a ProCounsel counsellor who works in that field — engineering, medical, design, management — instead of starting the conversation from scratch."],
+            ].map(([icon, title, body]) => (
+              <div key={title} style={{ ...GLASS(0.7, 18), borderRadius: 16, padding: "16px 18px" }}>
+                <div style={{ fontSize: 20, marginBottom: 8 }}>{icon}</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: "#1e1b4b", marginBottom: 6, fontFamily: F }}>{title}</div>
+                <div style={{ fontSize: 12.5, color: "#64748b", lineHeight: 1.6, fontFamily: F }}>{body}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── FAQ ───────────────────────────────────────────────────────── */}
+        <div style={{ maxWidth: 980, margin: "36px auto 8px", padding: "0 4px" }}>
+          <h2 style={{ fontSize: "clamp(20px,3vw,26px)", fontWeight: 800, color: "#1e1b4b", letterSpacing: "-0.5px", margin: "0 0 16px", fontFamily: F }}>
+            Before you start
+          </h2>
+          <div style={{ ...GLASS(0.7, 18), borderRadius: 16, padding: "4px 18px" }}>
+            {START_FAQS.map((f, i) => (
+              <details key={f.q} style={{ borderTop: i === 0 ? "none" : "1px solid rgba(0,0,0,.06)", padding: "14px 0" }}>
+                <summary style={{ cursor: "pointer", listStyle: "none", fontSize: 13.5, fontWeight: 700, color: "#1e1b4b", display: "flex", justifyContent: "space-between", gap: 16, fontFamily: F }}>
+                  {f.q}
+                  <span style={{ color: "#7c3aed", flexShrink: 0 }}>+</span>
+                </summary>
+                <p style={{ fontSize: 12.5, color: "#64748b", lineHeight: 1.7, margin: "10px 0 0", fontFamily: F }}>{f.a}</p>
+              </details>
+            ))}
           </div>
         </div>
       </div>
@@ -581,8 +1178,6 @@ export default function MettleAssessment() {
                 </div>
               </div>
 
-              {!sel && <p style={{ textAlign: "center", fontSize: 12, color: "#94a3b8", marginTop: 18, fontFamily: F }}>Tap a number to answer</p>}
-
               <div style={{ display: "flex", gap: 10, marginTop: 26 }}>
                 <button onClick={goPrev} disabled={first} className="ma-btn" style={{
                   padding: "12px 20px", borderRadius: 12, fontFamily: F, fontSize: 14, fontWeight: 600,
@@ -620,7 +1215,7 @@ export default function MettleAssessment() {
         <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26 }}>🧠</span>
       </div>
       <h2 style={{ color: "#1e1b4b", fontSize: 22, fontWeight: 800, margin: "0 0 10px", fontFamily: F, textAlign: "center" }}>Analyzing your profile…</h2>
-      <p className="ma-pop" style={{ color: "#64748b", fontSize: 14, maxWidth: 320, lineHeight: 1.8, fontFamily: F, textAlign: "center" }}>GPT-4o is mapping your 50 responses to career paths tailored just for you.</p>
+      <p className="ma-pop" style={{ color: "#64748b", fontSize: 14, maxWidth: 320, lineHeight: 1.8, fontFamily: F, textAlign: "center" }}>We're reviewing your {QUESTIONS.length} answers and matching them to career paths built around your strengths.</p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginTop: 24 }}>
         {["Mapping aptitudes", "Matching careers", "Writing report"].map((s, i) => (
           <div key={i} style={{ ...GLASS(0.65, 12), borderRadius: 99, padding: "6px 14px", fontSize: 11, color: "#64748b", fontFamily: F }}>{s}</div>
@@ -647,14 +1242,14 @@ export default function MettleAssessment() {
     const fc = (f: string) => FC[f] || "#475569";
 
     return (
-      <div ref={top} className="ma" style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f0f4ff 0%,#fdf4ff 45%,#fff8f0 100%)" }}>
+      <div id="mettle-report" ref={top} className="ma" style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f0f4ff 0%,#fdf4ff 45%,#fff8f0 100%)" }}>
         {/* Nav */}
         <div style={{ padding: "14px 24px", display: "flex", alignItems: "center", gap: 10, ...GLASS(0.8, 16), borderBottom: "1px solid rgba(0,0,0,.06)", position: "sticky", top: 0, zIndex: 10 }} className="ma-np">
           <img loading="lazy" decoding="async" src="/logo.svg" alt="" style={{ width: 26, height: 26 }} />
           <span style={{ color: "#1e1b4b", fontWeight: 700, fontSize: 15, fontFamily: F }}>ProCounsel</span>
           <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
             <button onClick={retake} className="ma-btn" style={{ ...GLASS(0.6, 12), borderRadius: 9, padding: "7px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: F, color: "#64748b", border: "1.5px solid rgba(0,0,0,.08)" }}>Retake</button>
-            <button onClick={() => window.print()} className="ma-btn" style={{ background: "linear-gradient(135deg,#4f46e5,#7c3aed)", color: "white", border: "none", borderRadius: 9, padding: "7px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: F, boxShadow: "0 4px 14px rgba(79,70,229,.35)" }}>↓ Download PDF</button>
+            <button onClick={() => void downloadReportPdf()} className="ma-btn" style={{ background: "linear-gradient(135deg,#4f46e5,#7c3aed)", color: "white", border: "none", borderRadius: 9, padding: "7px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: F, boxShadow: "0 4px 14px rgba(79,70,229,.35)" }}>↓ Download PDF</button>
           </div>
         </div>
 
@@ -668,7 +1263,7 @@ export default function MettleAssessment() {
               <div>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: "#94a3b8", textTransform: "uppercase", marginBottom: 2, fontFamily: F }}>ProCounsel · Mettle Assessment</div>
                 <h1 style={{ color: "#1e1b4b", fontSize: 20, fontWeight: 800, margin: 0, fontFamily: F }}>{name}</h1>
-                <div style={{ color: "#94a3b8", fontSize: 11, marginTop: 2, fontFamily: F }}>{date} · 50 questions · procounsel.co.in</div>
+                <div style={{ color: "#94a3b8", fontSize: 11, marginTop: 2, fontFamily: F }}>{date} · {QUESTIONS.length} questions · procounsel.co.in</div>
               </div>
             </div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "9px 16px", marginBottom: 12 }}>
@@ -769,10 +1364,20 @@ export default function MettleAssessment() {
           </div>
 
           <div className="ma-np" style={{ ...GLASS(0.75, 16), borderRadius: 16, padding: "15px 22px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
-            <span style={{ fontSize: 11, color: "#94a3b8", fontFamily: F }}><strong style={{ color: "#1e1b4b" }}>ProCounsel</strong> · Powered by GPT-4o · procounsel.co.in</span>
+            <span style={{ fontSize: 11, color: "#94a3b8", fontFamily: F }}><strong style={{ color: "#1e1b4b" }}>ProCounsel</strong> · AI-generated career report · procounsel.co.in
+              {saveState !== "idle" && (
+                <span style={{ marginLeft: 8, color: saveState === "saved" ? "#059669" : saveState === "failed" ? "#b91c1c" : "#94a3b8" }} data-html2canvas-ignore="true">
+                  ·{" "}
+                  {saveState === "saving" ? "Saving your report…"
+                    : saveState === "saved" ? "Saved to your profile"
+                    : saveState === "skipped" ? "Sign in to save this report"
+                    : "Couldn't save — you can still download it"}
+                </span>
+              )}
+            </span>
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={retake} className="ma-btn" style={{ ...GLASS(0.6, 12), borderRadius: 9, padding: "8px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: F, color: "#64748b", border: "1.5px solid rgba(0,0,0,.08)" }}>Retake</button>
-              <button onClick={() => window.print()} className="ma-btn" style={{ background: "linear-gradient(135deg,#4f46e5,#7c3aed)", color: "white", border: "none", borderRadius: 9, padding: "8px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: F, boxShadow: "0 4px 12px rgba(79,70,229,.35)" }}>↓ Download PDF</button>
+              <button onClick={() => void downloadReportPdf()} className="ma-btn" style={{ background: "linear-gradient(135deg,#4f46e5,#7c3aed)", color: "white", border: "none", borderRadius: 9, padding: "8px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: F, boxShadow: "0 4px 12px rgba(79,70,229,.35)" }}>↓ Download PDF</button>
             </div>
           </div>
         </div>

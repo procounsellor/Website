@@ -191,6 +191,13 @@ function resolvePublishedOnMillis(raw: BlogRaw): number | undefined {
   return toEpochMillis(raw.publishedOnMillis) ?? toEpochMillis(raw.publishedOn);
 }
 
+// Editors have pasted absolute URLs into the relative-link field, producing
+// href="/https://procounsel.co.in/..." — broken for readers, and the prerender
+// crawler followed it into a bogus /https:/... route.
+function sanitizeBlogBody(html?: string): string {
+  return (html ?? "").trim().replace(/(href|src)=(["'])\/(https?:\/\/)/gi, "$1=$2$3");
+}
+
 function estimateReadTime(description?: string): string {
   if (!description?.trim()) return "Article";
   const words = description.trim().split(/\s+/).length;
@@ -284,7 +291,7 @@ export function normalizeBlog(raw: BlogRaw, fallbackId?: string): BlogListItem |
     tag,
     imageUrl: resolveBlogImageUrl(resolveBlogRawImage(raw)),
     readTime: estimateReadTime(raw.description),
-    description: raw.description?.trim() ?? "",
+    description: sanitizeBlogBody(raw.description),
     category,
     keywords,
     keyphrase,

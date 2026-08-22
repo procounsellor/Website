@@ -1,17 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
 import FancyCard from "./DeadlinesCard";
 import { SeeAllButton } from "../components/LeftRightButton";
-import { getDeadlines, type EventItem } from "@/api/deadlines";
+import { type EventItem } from "@/api/deadlines";
+import { useDeadlinesList } from "@/hooks/useDeadlines";
 import { useNavigate } from "react-router-dom";
 
 export default function CollegeSection() {
   const navigate = useNavigate();
-  const { data: allEvents = [], isLoading, isError } = useQuery({
-    queryKey: ['revamp-deadlines'],
-    queryFn: () => getDeadlines(),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-  });
+  const { data: allEvents = [], isLoading } = useDeadlinesList();
 
   // Dedup by id, then filter active, then sort by soonest end date first
   const activeEvents = (() => {
@@ -32,6 +27,10 @@ export default function CollegeSection() {
   })();
 
   const displayEvents = activeEvents.slice(0, 4);
+
+  // No live deadlines and nothing loading — drop the whole band rather than
+  // shipping an empty "No active deadlines found" section to crawlers.
+  if (!isLoading && displayEvents.length === 0) return null;
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
@@ -82,14 +81,6 @@ export default function CollegeSection() {
                 className="shrink-0 snap-start w-[165px] min-[400px]:w-[185px] sm:w-[200px] md:w-[312px] h-[210px] md:h-[322px] rounded-[20px] bg-white/80"
               />
             ))}
-          </div>
-        ) : isError ? (
-          <div className="flex justify-center min-h-[300px] items-center">
-            <p className="font-[Poppins] text-[14px] text-red-500">Failed to load deadlines</p>
-          </div>
-        ) : displayEvents.length === 0 ? (
-          <div className="flex justify-center min-h-[300px] items-center">
-            <p className="font-[Poppins] text-[14px] text-[#6B7280]">No active deadlines found</p>
           </div>
         ) : (
           /* Dynamic Data Render */

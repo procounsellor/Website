@@ -12,6 +12,12 @@ export default function UserProfile(){
     const { user, userId, setUser, refreshUser } = useAuthStore();
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
+    // The store rehydrates from localStorage, so without this the page shows the
+    // profile as it looked at login — stale wallet, stale Mettle report link.
+    useEffect(() => {
+        void refreshUser(true);
+    }, [refreshUser]);
+
     useEffect(() => {
         const handleResize = () => {
             if (window.innerWidth < 768) {

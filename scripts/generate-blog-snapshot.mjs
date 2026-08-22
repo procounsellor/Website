@@ -108,6 +108,15 @@ function slugify(raw, title, id) {
   const base = (raw.slug ?? "").trim() || title || id;
   return base.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 }
+// Editors have pasted absolute URLs into the relative-link field, producing
+// href="/https://procounsel.co.in/..." — a broken link for readers and a bogus
+// route for the prerender crawler (it created a dist/https: directory).
+function sanitizeBody(html) {
+  return (html || "")
+    .trim()
+    .replace(/(href|src)=(["'])\/(https?:\/\/)/gi, "$1=$2$3");
+}
+
 function normalize(raw, baseUrl) {
   const id = String(raw.id ?? raw.blogId ?? raw._id ?? "");
   if (!id) return null;
@@ -124,7 +133,7 @@ function normalize(raw, baseUrl) {
     tag: category.replace(/_/g, " "),
     imageUrl: resolveImage(raw, baseUrl),
     readTime: readTime(raw.description),
-    description: (raw.description || "").trim(),
+    description: sanitizeBody(raw.description),
     category,
     keywords: parseList(raw),
     keyphrase: typeof raw.keyphrase === "string"

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getAuthorImageWithFallback, getAuthorProfileByName } from "@/lib/blogAuthors";
 
 interface BlogsPageCardProps {
@@ -44,6 +44,10 @@ export default function BlogsPageCard({
       setIsImageLoading(false);
     }
   };
+
+  const blogHref = slug?.trim()
+    ? `/admissions/blogs/slug/${encodeURIComponent(slug.trim())}`
+    : `/admissions/blogs/${id}`;
 
   const handleNavigate = () => {
     if (!canNavigate) return;
@@ -121,7 +125,10 @@ export default function BlogsPageCard({
     <div className=" flex min-w-0 flex-1 flex-col justify-between">
       <div className="flex flex-col min-w-0">
         <h3 className="text-(--text-main) font-medium text-[16px] line-clamp-2">
-          {title}
+          {/* Real anchor: crawlers cannot follow the card's onClick. */}
+          <Link to={blogHref} onClick={(e) => e.stopPropagation()} className="hover:underline">
+            {title}
+          </Link>
         </h3>
         <p className="mt-2 text-(--text-muted) text-[10px] font-normal">{publishedOn}</p>
       </div>
@@ -255,7 +262,9 @@ export default function BlogsPageCard({
           </div>
 
           <h2 className="mt-1.5 text-[16px] font-medium text-[#0E1629] leading-snug line-clamp-2">
-            {title}
+            <Link to={blogHref} onClick={(e) => e.stopPropagation()} className="hover:underline">
+              {title}
+            </Link>
           </h2>
 
           <button

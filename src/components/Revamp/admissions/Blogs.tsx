@@ -44,6 +44,14 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
   const { data: blogItems = [], isLoading, isError, error, refetch } =
     useBlogsList();
 
+  // useBlogsList seeds this query from the build-time snapshot, so `blogItems`
+  // is already populated when the live refetch fails — which it always does
+  // during the prerender, where the API is deliberately blocked. Gating the
+  // list on `isError` meant Googlebot was served "Failed to fetch" and zero
+  // blog links, leaving every post an orphan URL. Only show the error when
+  // there is genuinely nothing to render.
+  const showError = isError && blogItems.length === 0;
+
   const categories = FIXED_CATEGORIES;
 
   const [activeCategory, setActiveCategory] = useState<FixedBlogCategory>("All");
@@ -59,10 +67,15 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
   const sectionBlogs = useMemo(() => blogItems.slice(0, 2), [blogItems]);
   const showSectionSeeAll = sectionBlogs.length > 0;
 
+  // On the home page, no blogs means no section — an empty "No blogs yet"
+  // band is thin content in the crawlable HTML. The full /admissions/blogs
+  // page keeps its empty state, since that page is *about* the blog list.
+  if (variant === "section" && !isLoading && sectionBlogs.length === 0) return null;
+
   if (variant === "full") {
     return (
       <div className="bg-[#F3F7FF] w-full">
-        <div className="max-w-7xl mx-auto px-5  py-6 sm:py-10">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 sm:py-10">
           <div className="flex gap-3 sm:gap-6 md:gap-6 justify-start sm:justify-evenly mb-6 sm:mb-8 overflow-x-auto pb-1">
             {categories.map((category) => {
               const isActive = safeCategory === category;
@@ -92,7 +105,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
               ))}
             </div>
           )}
-          {isError && (
+          {showError && (
             <div className="text-center py-12 space-y-3">
               <p className="text-red-600 text-[0.875rem]">
                 {(error as Error)?.message ?? "Could not load blogs."}
@@ -106,14 +119,14 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
               </button>
             </div>
           )}
-          {!isLoading && !isError && filteredBlogs.length === 0 && (
+          {!isLoading && !showError && filteredBlogs.length === 0 && (
             <p className="text-center text-(--text-muted) py-12 text-[0.875rem]">
               No blogs in this category yet.
             </p>
           )}
           <div className="grid grid-cols-[repeat(auto-fit,minmax(308px,308px))] justify-center gap-5">
             {!isLoading &&
-              !isError &&
+              !showError &&
               filteredBlogs.map((blog) => (
                 <BlogsPageCard
                   key={blog.id}
@@ -134,7 +147,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
 
   return (
     <div className="bg-[#C6DDF040] w-full h-full">
-      <div className="max-w-7xl grid grid-cols-1 lg:grid-cols-[45%_auto] md:gap-6 mx-auto px-4 md:px-6 py-6 md:py-10 gap-y-6 md:gap-y-8">
+      <div className="max-w-7xl grid grid-cols-1 lg:grid-cols-[45%_auto] md:gap-6 mx-auto px-4 md:px-8 py-6 md:py-10 gap-y-6 md:gap-y-8">
         <div>
           <div className="flex items-center justify-start gap-[8px] md:gap-2 bg-white px-[12px] md:px-3 py-[4px] md:py-1 rounded-[4px] md:rounded-[6px] w-[125px] md:w-fit shrink-0">
             <div className="w-[16px] h-[16px] min-w-[16px] min-h-[16px] md:w-4 md:h-4 bg-[#0E1629] shrink-0" />
@@ -161,7 +174,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
               </div>
             )}
             
-            {isError && (
+            {showError && (
               <p className="text-red-600 text-[0.875rem] w-full">
                 {(error as Error)?.message ?? "Could not load blogs."}
               </p>
@@ -169,7 +182,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
 
             {/* Dynamic Map (From Current) + Layout Wrapper (From Incoming) */}
             {!isLoading &&
-              !isError &&
+              !showError &&
               sectionBlogs.map((blog) => (
                 <div key={blog.id} className="shrink-0">
                   <BlogCard
@@ -184,7 +197,7 @@ export default function Blogs({ variant = "section" }: BlogsProps) {
               ))}
 
             {/* Empty State (From Current) */}
-            {!isLoading && !isError && sectionBlogs.length === 0 && (
+            {!isLoading && !showError && sectionBlogs.length === 0 && (
               <p className="text-(--text-muted) text-[0.875rem]">
                 No blogs yet.
               </p>

@@ -1,43 +1,46 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import type { ImportantDate } from '@/types/academic';
 
-const DATES_DATA = [
-  {
-    title: "JEE Advanced 2026 Registration Starts",
-    description: "Online registration for JEE (Advanced) 2026 begins. Candidates who have qualified JEE (Main) 2026 and meet the eligibility criteria can apply through the official portal."
-  },
-  {
-    title: "JEE Advanced 2026 Admit Card Release",
-    description: "Admit cards will be available for download from the official website. Candidates must carry a printed copy of the admit card along with a valid photo ID to the examination center."
-  },
-  {
-    title: "JEE Advanced 2026 Examination Date",
-    description: "The examination consists of two papers (Paper 1 and Paper 2) of three hours duration each. Both papers are compulsory. The exam will be held in computer-based test (CBT) mode."
-  },
-  {
-    title: "Declaration of Results",
-    description: "Results will be declared on the official website. Category-wise All India Ranks (AIR) will be available, and text messages will be sent to the registered mobile numbers of candidates."
-  },
-  {
-    title: "JoSAA 2026 Counselling Begins",
-    description: "Joint Seat Allocation Authority (JoSAA) counselling process starts. Candidates must fill their choices of courses and institutes in order of preference."
-  }
-];
+interface ImportantDatesTabProps {
+  importantDates?: ImportantDate[];
+}
 
-const ImportantDatesTab = () => {
+// Real admission timeline for this college. Previously a hard-coded JEE
+// Advanced schedule that was shown on every college page regardless of exam.
+const ImportantDatesTab = ({ importantDates = [] }: ImportantDatesTabProps) => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const handleToggle = (index: number) => {
     setOpenIndex(prevIndex => (prevIndex === index ? null : index));
   };
 
+  const items = importantDates
+    .map((entry) => ({
+      title: entry.event?.trim() || '',
+      details: (entry.details || []).filter((d) => d?.stage?.trim() || d?.date?.trim()),
+    }))
+    .filter((item) => item.title && item.details.length > 0);
+
+  if (items.length === 0) {
+    return (
+      <div className="p-4 min-h-[200px] rounded-lg flex items-center justify-center text-center text-[#718EBF] font-medium">
+        Admission dates for this college have not been announced yet. Check the
+        <span className="px-1" />
+        <a href="/admissions/deadlines" className="underline">exam deadline tracker</a>
+        <span className="px-1" />
+        for the latest schedule.
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4 md:gap-6 w-full">
-      {DATES_DATA.map((item, index) => {
+      {items.map((item, index) => {
         const isOpen = openIndex === index;
 
         return (
-          <div 
+          <div
             key={index}
             className="bg-white rounded-2xl border border-[#EFEFEF] shadow-[0px_0px_4px_0px_#23232326] overflow-hidden transition-all duration-300"
           >
@@ -45,7 +48,7 @@ const ImportantDatesTab = () => {
               onClick={() => handleToggle(index)}
               className="w-full flex justify-between items-center p-3 md:p-4 bg-white text-left cursor-pointer"
             >
-              <span 
+              <span
                 className="text-[#343C6A] font-semibold text-[16px] md:text-[20px] leading-[125%] pr-4"
                 style={{ fontFamily: 'Poppins' }}
               >
@@ -59,13 +62,23 @@ const ImportantDatesTab = () => {
             </button>
 
             {isOpen && (
-              <div className="px-3 pb-4 md:px-4 md:pb-6 border-t border-transparent">
-                <p 
-                  className="text-[#718EBF] font-medium text-[14px] md:text-[16px] leading-[150%]"
-                  style={{ fontFamily: 'Poppins' }}
-                >
-                  {item.description}
-                </p>
+              <div className="px-3 pb-4 md:px-4 md:pb-6 flex flex-col gap-2 md:gap-3">
+                {item.details.map((detail, detailIndex) => (
+                  <div key={detailIndex} className="flex items-baseline gap-3">
+                    <span
+                      className="text-[#343C6A] font-semibold text-[14px] md:text-[16px] leading-[150%] min-w-[110px] md:min-w-[150px] shrink-0"
+                      style={{ fontFamily: 'Poppins' }}
+                    >
+                      {detail.date}
+                    </span>
+                    <p
+                      className="text-[#718EBF] font-medium text-[14px] md:text-[16px] leading-[150%]"
+                      style={{ fontFamily: 'Poppins' }}
+                    >
+                      {detail.stage}
+                    </p>
+                  </div>
+                ))}
               </div>
             )}
           </div>

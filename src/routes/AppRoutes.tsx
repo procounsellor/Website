@@ -101,6 +101,8 @@ const PredictorsHubPage = lazy(() => import('@/pages/PredictorsHub'));
 const OptionFormFillingPage = lazy(() => import('@/pages/OptionFormFilling'));
 const CounsellingHubPage = lazy(() => import('@/pages/counselling/CounsellingHub'));
 const CounsellingCityPage = lazy(() => import('@/pages/counselling/CounsellingCityPage'));
+const CounsellingCategoryPage = lazy(() => import('@/pages/counselling/CounsellingCategoryPage'));
+import { COUNSELLING_CATEGORY_SLUGS } from '@/lib/counsellingCategories';
 
 export default function AppRoutes() {
     return (
@@ -210,6 +212,17 @@ export default function AppRoutes() {
                         {/* Programmatic city counselling landing pages (SEO) */}
                         <Route path='/counselling' element={<CounsellingHubPage />} />
                         <Route path='/counselling/:city' element={<CounsellingCityPage />} />
+
+                        {/* Category counselling landing pages (SEO commercial intent).
+                            Registered one route per known slug rather than a catch-all
+                            `/:category`, so unknown top-level paths still 404. */}
+                        {COUNSELLING_CATEGORY_SLUGS.map((slug) => (
+                          <Route
+                            key={slug}
+                            path={`/${slug}`}
+                            element={<CounsellingCategoryPage slug={slug} />}
+                          />
+                        ))}
 
 
                         {/* Info / Static Pages */}

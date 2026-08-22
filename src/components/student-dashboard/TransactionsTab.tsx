@@ -39,12 +39,14 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, offline
 
   return (
     <div>
-      <div className="flex items-center gap-1 mb-6">
+      {/* Four pills do not fit a phone width — scroll them sideways inside this
+          row instead of letting them push the page out. */}
+      <div className="flex items-center gap-1 mb-6 overflow-x-auto scrollbar-hide -mx-1 px-1">
         {TABS.map(tab => (
           <button
             key={tab}
             onClick={() => setActiveFilter(tab)}
-            className={`hover:cursor-pointer px-4 py-2.5 text-[1rem] font-normal rounded-full transition-colors duration-200 ${
+            className={`hover:cursor-pointer shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-[1rem] font-normal rounded-full transition-colors duration-200 ${
               activeFilter === tab 
               ? 'bg-[rgba(14,22,41,0.10)] text-(--text-main)' 
               : 'bg-transparent text-(--text-muted)'

@@ -6,12 +6,15 @@
   "scripts": {
     "dev": "vite --host",
     "generate:blogs": "node scripts/generate-blog-snapshot.mjs",
+    "generate:content": "node scripts/generate-content-snapshot.mjs",
     "generate:sitemap": "node scripts/generate-sitemap.mjs",
-    "prebuild": "npm run generate:blogs && npm run generate:sitemap",
-    "postbuild": "node scripts/prerender-public-pages.mjs",
+    "prebuild": "npm run generate:blogs && npm run generate:content && npm run generate:sitemap",
+    "postbuild": "node scripts/prerender-public-pages.mjs && node scripts/tag-prerendered-seo.mjs && node scripts/verify-crawlability.mjs",
     "build": "tsc -b && vite build",
     "analyze": "ANALYZE=true npm run build",
     "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -44,8 +47,10 @@
     "embla-carousel-react": "^8.6.0",
     "firebase": "^12.6.0",
     "framer-motion": "^12.23.22",
+    "html2canvas": "^1.4.1",
     "idb-keyval": "^6.2.2",
     "input-otp": "^1.4.2",
+    "jspdf": "^4.2.1",
     "katex": "^0.16.28",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.542.0",
@@ -72,6 +77,9 @@
   "devDependencies": {
     "@eslint/js": "^9.33.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.4",
     "@types/node": "^24.3.0",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.1.7",
@@ -83,12 +91,14 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "figma-developer-mcp": "^0.8.0",
     "globals": "^16.3.0",
+    "jsdom": "^29.1.1",
     "react-snap": "^1.23.0",
     "rollup-plugin-visualizer": "^7.0.1",
     "tw-animate-css": "^1.4.0",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.1",
     "vite": "^7.1.2",
-    "vite-tsconfig-paths": "^6.1.1"
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^3.2.7"
   }
 }

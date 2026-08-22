@@ -1,5 +1,7 @@
 import { useAuthStore } from "@/store/AuthStore";
-import { User2Icon } from "lucide-react";
+import { ArrowRight, Download, User2Icon } from "lucide-react";
+import { Link } from "react-router-dom";
+import { downloadReport } from "@/api/psychometric";
 
 interface UserDetailsProps {
     onEditClick: () => void;
@@ -7,6 +9,8 @@ interface UserDetailsProps {
 
 export default function UserDetails({ onEditClick }: UserDetailsProps) {
     const { user } = useAuthStore();
+    // Comes in on the login/profile response — no extra call.
+    const reportLink = user?.pyschometricReportPdfLink;
 
     const displayName = user?.firstName
         ? `${user.firstName} ${user.lastName || ''}`.trim()
@@ -96,6 +100,60 @@ export default function UserDetails({ onEditClick }: UserDetailsProps) {
                         </span>
                     </h3>
                 ))}
+
+                {/* Mettle career test — the saved report if they own one, the
+                    test itself if they don't. */}
+                <div className="pt-[0.94rem] border-t border-[#E5E5E5]">
+                    {reportLink ? (
+                        <div
+                            className="rounded-2xl p-4 text-left"
+                            style={{ background: 'linear-gradient(140deg, #241A5E 0%, #4F46E5 55%, #7C3AED 100%)' }}
+                        >
+                            <p className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-white/70">
+                                Mettle
+                            </p>
+                            <p className="mt-1.5 text-[0.95rem] font-semibold leading-snug text-white">
+                                Your career report is ready
+                            </p>
+
+                            <button
+                                type="button"
+                                onClick={() => void downloadReport(reportLink)}
+                                className="mt-3.5 flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[0.85rem] font-bold text-[#3730A3] shadow-sm transition-transform hover:-translate-y-px hover:cursor-pointer"
+                            >
+                                <Download className="h-4 w-4" strokeWidth={2.5} />
+                                Download PDF
+                            </button>
+                            <a
+                                href={reportLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-2 block text-center text-[0.78rem] font-medium text-white/75 underline-offset-4 transition-colors hover:text-white hover:underline"
+                            >
+                                or view it in the browser
+                            </a>
+                        </div>
+                    ) : (
+                        <div className="rounded-2xl border border-[#E5E5E5] p-4 text-left">
+                            <p className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-(--text-muted)">
+                                Mettle
+                            </p>
+                            <p className="mt-1.5 text-[0.95rem] font-semibold leading-snug text-(--text-main)">
+                                AI career report
+                            </p>
+                            <p className="mt-1 text-[0.78rem] font-medium text-(--text-muted)">
+                                100 questions, scored into your top career matches.
+                            </p>
+                            <Link
+                                to="/mettle"
+                                className="mt-3.5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#0E1629] px-4 py-2.5 text-[0.85rem] font-bold text-white transition-colors hover:bg-[#2f43f2]"
+                            >
+                                Take the test
+                                <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
+                            </Link>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div></div>

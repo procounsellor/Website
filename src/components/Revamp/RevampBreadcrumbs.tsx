@@ -213,7 +213,7 @@ export default function RevampBreadcrumbs() {
     );
   }
 
-  const SITE_URL = 'https://www.procounsel.co.in';
+  const SITE_URL = 'https://procounsel.co.in';
   const breadcrumbSchema = breadcrumbs.length > 0 ? {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",

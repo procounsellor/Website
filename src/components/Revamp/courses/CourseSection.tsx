@@ -10,6 +10,11 @@ import {
   getBoughtCourses,
 } from "@/api/course";
 import { useNavigate } from "react-router-dom";
+import { COURSES_SNAPSHOT } from "@/data/contentSnapshot";
+
+const COURSES_SEED = COURSES_SNAPSHOT.length
+  ? ({ data: COURSES_SNAPSHOT, message: "snapshot" } as any)
+  : undefined;
 
 type CourseTab = "my-courses" | "trending" | "all-courses";
 
@@ -65,6 +70,10 @@ export default function CourseSection() {
         ? getAllCounsellorCoursesForUser(userId)
         : getAllCounsellorCoursesForGuest(),
     enabled: !isUserLoggedIn || Boolean(userId),
+    // Seeded from the build-time snapshot so /courses prerenders with real
+    // courses instead of "No courses found for this tab."
+    initialData: COURSES_SEED,
+    initialDataUpdatedAt: 0,
   });
 
   const { data: myCoursesResponse, isLoading: isLoadingMyCourses } = useQuery({
@@ -121,6 +130,10 @@ export default function CourseSection() {
     setActiveTab(tab);
   };
 
+  // A signed-out visitor with no courses at all gets no section, rather than a
+  // "No courses found" placeholder — that empty block is what crawlers saw.
+  if (!isUserLoggedIn && !isLoadingCourses && allCoursesData.length === 0) return null;
+
   const shouldShowInlineCourseUpsell =
     isUserLoggedIn && activeTab === "my-courses" && filteredCourses.length <= 1 && !isLoadingCourses;
 
@@ -175,233 +188,158 @@ export default function CourseSection() {
     },
   };
 
+  // One responsive tree, not a `md:hidden` mobile copy plus a `hidden md:block`
+  // desktop copy. Both copies used to render the full course list, so every
+  // course title was served twice — and Banner mounted this component twice on
+  // top of that, putting each title in the HTML up to eight times. React also
+  // mounted, hooked and re-rendered the invisible copy on every state change;
+  // `display:none` hides pixels, not component lifecycles.
   return (
-    <div>
-      <div className="block py-[15px] pl-5 bg-[#F5F5F7] md:hidden">
-        <div className="flex flex-col  justify-start items-start gap-3 pr-0">
-          <div className="flex items-center gap-2 bg-white px-3 py-1 ">
-            <div className="w-4 h-4 bg-[#0E1629]" />
-            <p className="font-[Poppins] font-semibold text-xs text-[#0E1629] uppercase tracking-wider">
+    <div className="w-full bg-[#F5F5F7] py-[15px] md:py-10">
+      <div className="pl-5 md:pl-0 md:mx-auto md:h-full md:max-w-[90rem] md:px-[3.75rem]">
+        <div className="flex flex-col items-start gap-3 pr-0 md:mb-10 md:flex-row md:items-start md:justify-between md:gap-6">
+          <div className="flex shrink-0 items-center gap-2 bg-white px-3 py-1 md:rounded-md">
+            <div className="h-4 w-4 bg-[#0E1629]" />
+            <p className="font-[Poppins] text-xs font-semibold uppercase tracking-wider text-[#0E1629] md:text-[14px]">
               COURSES
             </p>
           </div>
 
-          <p className="font-[Poppins] font-medium  text-xs text-start text-[#0E1629] max-w-[682px] leading-normal">
+          <p className="max-w-[682px] text-start font-[Poppins] text-xs font-medium leading-normal text-[#0E1629] md:text-[24px]">
             Discover curated programs across mental wellness, assessments,
             admissions, and upskilling led by experienced professionals, built
             around your needs.
           </p>
+        </div>
 
-          {isUserLoggedIn && visibleTabOptions.length > 0 && (
-            <div className="flex gap-2.5 pt-2">
-              {visibleTabOptions.map((tab) => (
-                <div
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`border border-(--text-main) py-1.5 px-3 rounded-[5px] text-xs font-medium cursor-pointer ${activeTab === tab.id ? "bg-(--text-main) text-white" : "text-(--text-main) bg-none"}`}
+        {isUserLoggedIn && visibleTabOptions.length > 0 && (
+          <div className="flex gap-2.5 pt-2 md:mb-10 md:justify-center md:gap-[60px] md:pt-0">
+            {visibleTabOptions.map((tab) => (
+              <motion.button
+                key={tab.id}
+                onClick={() => handleTabChange(tab.id)}
+                whileHover={{ scale: 1.03, y: -2 }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}
+                className={`cursor-pointer rounded-[5px] px-3 py-1.5 font-[Poppins] text-xs font-medium capitalize transition-all duration-300 md:w-[200px] md:px-5 md:py-2.5 md:text-[14px] ${
+                  activeTab === tab.id
+                    ? "bg-[#0E1629] text-white md:shadow-lg"
+                    : "border border-[rgba(14,22,41,0.25)] text-[#0E1629] hover:border-[#0E1629] md:hover:shadow-md"
+                }`}
+              >
+                {tab.label}
+              </motion.button>
+            ))}
+          </div>
+        )}
+
+        <AnimatePresence mode="wait">
+          {isLoadingCourses ? (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ type: "spring" as const, damping: 20 }}
+              className="flex items-start gap-3 overflow-x-auto scrollbar-hide pb-2 md:mb-6 md:min-h-[451px] md:justify-center md:gap-[25px] md:pb-0"
+            >
+              {Array.from({ length: 4 }).map((_, idx) => (
+                <motion.div
+                  key={`skeleton-${idx}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: "spring" as const, stiffness: 100, damping: 12, delay: idx * 0.1 }}
+                  className="shrink-0"
                 >
-                  {tab.label}
-                </div>
+                  <CourseCard isBaught={false} isLoading={true} />
+                </motion.div>
               ))}
-            </div>
-          )}
-
-          <div className="w-full">
-            <div
-              className="flex justify-start gap-3 overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory scroll-smooth [touch-action:pan-x]"
+            </motion.div>
+          ) : filteredCourses.length > 0 || shouldShowInlineCourseUpsell ? (
+            <motion.div
+              key={activeTab}
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="flex snap-x snap-mandatory items-start justify-start gap-3 overflow-x-auto scroll-smooth scrollbar-hide pb-2 [touch-action:pan-x] md:mb-6 md:min-h-[451px] md:gap-[25px] md:pb-0"
             >
               {filteredCourses.map((course) => (
-                <div key={course.id} className="shrink-0 snap-start">
-                  <CourseCard
-                    course={course}
-                    isBaught={course.isPurchased}
-                    isLoading={false}
-                  />
-                </div>
+                <motion.div key={course.id} variants={cardVariants} className="shrink-0 snap-start">
+                  <CourseCard course={course} isBaught={course.isPurchased} isLoading={false} />
+                </motion.div>
               ))}
 
               {shouldShowInlineCourseUpsell && (
-                <div className="self-center shrink-0 snap-start w-[250px] h-[150px] rounded-2xl p-3 flex items-center justify-center text-center">
-                  <div className="w-full flex flex-col items-center gap-3">
+                <motion.div
+                  variants={cardVariants}
+                  className="flex h-[150px] w-[250px] shrink-0 snap-start items-center justify-center self-center rounded-2xl p-3 text-center md:h-[12.5rem] md:w-[24rem] md:p-5"
+                >
+                  <div className="flex w-full flex-col items-center gap-3 md:gap-4">
                     <div>
-                      <p className="text-sm font-semibold text-[#0E1629]">Keep the momentum going</p>
-                      <p className="mt-2 text-xs text-[#6B7280]">
-                        Add more courses to build consistency and better outcomes.
+                      <p className="text-sm font-semibold text-[#0E1629] md:text-lg">
+                        Keep your streak active
+                      </p>
+                      <p className="mx-auto mt-2 max-w-[20rem] text-xs leading-relaxed text-[#6B7280] md:text-sm">
+                        You are off to a great start. Add more courses to unlock better outcomes.
                       </p>
                     </div>
                     <button
                       onClick={handleSingleCardCta}
-                      className="w-full hover:cursor-pointer rounded-lg bg-[#0E1629] px-3 py-2 text-xs font-semibold text-white hover:opacity-90"
+                      className="w-full cursor-pointer rounded-lg bg-[#0E1629] px-3 py-2 text-xs font-semibold text-white hover:opacity-90 md:w-auto md:rounded-xl md:px-4 md:text-sm"
                     >
                       Explore Trending
                     </button>
                   </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="hidden md:block w-full py-10">
-        <div className="max-w-[90rem] h-full mx-auto px-[3.75rem]">
-          <div className="flex justify-between items-start mb-10">
-            <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-md">
-              <div className="w-4 h-4 bg-[#0E1629]" />
-              <p className="font-[Poppins] font-semibold text-xs md:text-[14px] text-[#0E1629] uppercase tracking-wider">
-                COURSES
-              </p>
-            </div>
-
-            <p className="font-[Poppins] font-medium  text-xs md:text-[24px] text-[#0E1629] max-w-[682px] leading-normal">
-              Discover curated programs across mental wellness, assessments,
-              admissions, and upskilling led by experienced professionals, built
-              around your needs.
-            </p>
-          </div>
-
-          {isUserLoggedIn && visibleTabOptions.length > 0 && (
-            <div className="flex justify-center gap-[60px] mb-10">
-              {visibleTabOptions.map((tab) => (
-                <motion.button
-                  key={tab.id}
-                  onClick={() => handleTabChange(tab.id)}
-                  whileHover={{ scale: 1.03, y: -2 }}
-                  whileTap={{ scale: 0.96 }}
-                  transition={{
-                    type: "spring" as const,
-                    stiffness: 300,
-                    damping: 20,
-                  }}
-                  className={`px-5 py-2.5 rounded-[5px] w-[200px] hover:cursor-pointer font-[Poppins] font-medium text-[14px] capitalize transition-all duration-300 ${
-                    activeTab === tab.id
-                      ? "bg-[#0E1629] text-white shadow-lg"
-                      : "border border-[rgba(14,22,41,0.25)] text-[#0E1629] hover:border-[#0E1629] hover:shadow-md"
-                  }`}
-                >
-                  {tab.label}
-                </motion.button>
-              ))}
-            </div>
-          )}
-
-          <AnimatePresence mode="wait">
-            {isLoadingCourses ? (
-              <motion.div
-                key="loading"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ type: "spring" as const, damping: 20 }}
-                className="flex gap-[25px] justify-center mb-6 min-h-[451px] items-start"
-              >
-                {Array.from({ length: 4 }).map((_, idx) => (
-                  <motion.div
-                    key={`skeleton-${idx}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      type: "spring" as const,
-                      stiffness: 100,
-                      damping: 12,
-                      delay: idx * 0.1,
-                    }}
-                  >
-                    <CourseCard isBaught={false} isLoading={true} />
-                  </motion.div>
-                ))}
-              </motion.div>
-            ) : filteredCourses.length > 0 || shouldShowInlineCourseUpsell ? (
-              <>
-                <motion.div
-                  key={activeTab}
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  className="flex justify-start gap-[25px] mb-6 min-h-[451px] items-start overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth [touch-action:pan-x]"
-                >
-                  {filteredCourses.map((course) => (
-                    <motion.div key={course.id} variants={cardVariants} className="shrink-0 snap-start">
-                      <CourseCard
-                        course={course}
-                        isBaught={course.isPurchased}
-                        isLoading={false}
-                      />
-                    </motion.div>
-                  ))}
-
-                  {shouldShowInlineCourseUpsell && (
-                    <motion.div
-                      className="self-center shrink-0 snap-start w-[24rem] h-[12.5rem] rounded-2xl p-5 flex items-center justify-center text-center"
-                      variants={cardVariants}
-                    >
-                      <div className="w-full flex flex-col items-center gap-4">
-                        <div>
-                          <p className="text-lg font-semibold text-[#0E1629]">Keep your streak active</p>
-                          <p className="mt-2 text-sm text-[#6B7280] leading-relaxed max-w-[20rem] mx-auto">
-                            You are off to a great start. Add more courses to unlock better outcomes.
-                          </p>
-                        </div>
-                        <button
-                          onClick={handleSingleCardCta}
-                          className="rounded-xl hover:cursor-pointer bg-[#0E1629] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
-                        >
-                          Explore Trending
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
                 </motion.div>
-              </>
-            ) : (
-              <motion.div
-                key="empty"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ type: "spring" as const, damping: 20 }}
-                className="flex justify-center mb-6 min-h-[451px] items-center"
-              >
-                {isUserLoggedIn && activeTab === "my-courses" ? (
-                  <div className="flex flex-col items-center gap-4 text-center">
-                    <p className="text-xl font-semibold text-[#0E1629]">Keep Learning</p>
-                    <p className="text-sm text-[#6B7280] leading-relaxed max-w-[20rem] mx-auto">
-                      You haven't purchased any courses yet. Explore trending courses and start your learning journey.
-                    </p>
-                    <button
-                      onClick={() => handleTabChange("trending")}
-                      className="rounded-xl hover:cursor-pointer bg-[#0E1629] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90"
-                    >
-                      Explore Trending
-                    </button>
-                  </div>
-                ) : (
-                  <p className="font-[Poppins] text-[14px] text-[#6B7280] self-center">
-                    No courses found for this tab.
+              )}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ type: "spring" as const, damping: 20 }}
+              className="flex items-center justify-center py-10 md:mb-6 md:min-h-[451px] md:py-0"
+            >
+              {isUserLoggedIn && activeTab === "my-courses" ? (
+                <div className="flex flex-col items-center gap-4 text-center">
+                  <p className="text-lg font-semibold text-[#0E1629] md:text-xl">Keep Learning</p>
+                  <p className="mx-auto max-w-[20rem] text-sm leading-relaxed text-[#6B7280]">
+                    You haven't purchased any courses yet. Explore trending courses and start your learning journey.
                   </p>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  <button
+                    onClick={() => handleTabChange("trending")}
+                    className="cursor-pointer rounded-xl bg-[#0E1629] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                  >
+                    Explore Trending
+                  </button>
+                </div>
+              ) : (
+                <p className="self-center font-[Poppins] text-[14px] text-[#6B7280]">
+                  No courses found for this tab.
+                </p>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          <div className="flex justify-between items-center">
-            <div />
-
-            <SeeAllButton
-              text="See all"
-              onClick={() => {
-                if (isUserLoggedIn && activeTab === "my-courses") {
-                  navigate(window.innerWidth < 768
-                    ? "/dashboard-student?activeTab=My Courses"
-                    : "/profile?activeTab=My Courses"
-                  );
-                } else {
-                  navigate("/courses/course-listing");
-                }
-              }}
-            />
-          </div>
+        {/* "See all" stays desktop-only, as it was before the merge. */}
+        <div className="hidden items-center justify-end md:flex">
+          <SeeAllButton
+            text="See all"
+            onClick={() => {
+              if (isUserLoggedIn && activeTab === "my-courses") {
+                navigate(window.innerWidth < 768
+                  ? "/dashboard-student?activeTab=My Courses"
+                  : "/profile?activeTab=My Courses"
+                );
+              } else {
+                navigate("/courses/course-listing");
+              }
+            }}
+          />
         </div>
       </div>
     </div>

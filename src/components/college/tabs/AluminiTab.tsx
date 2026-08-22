@@ -1,48 +1,41 @@
 import AlumniCard from './AlumniCard';
+import type { Alumni } from '@/types/academic';
 
-const ALUMNI_DATA = [
-  {
-    id: 1,
-    name: "Vinod Khosla",
-    batch: "B.Tech, Class of 1976",
-    position: "Co-founder, Sun Microsystems",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkLmRPj1RJ41GmktRg949JgN-tiaKwLFZ2BWWhlKBmILucG0w65heA11Q10M_ECsqZQWZUNeQ7yp--Zjw-4F8D2f_gk59W-snLwEHzqDIwMA&s=10"
-  },
-  {
-    id: 2,
-    name: "Sachin Bansal",
-    batch: "B.Tech, Class of 2005",
-    position: "Co-founder, Flipkart",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQV7b3UdIQSl-feXiZGz-Z1OK9cziCy7G2CzZQUApO48EEYdra8dslrnZO_TfjmwLAXt7b3sKXFu8QiKDR9gk0ciAsJHPVQo0KDZ8f9BNKA&s=10"
-  },
-  {
-    id: 3,
-    name: "Raghuram Rajan",
-    batch: "B.Tech, Class of 1985",
-    position: "Ex-Governor, RBI",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXp0Okz0Sx1gvKnxx2HZwyD-UnAaVRQNgjlB8tnoXObucCD2XWLXKFoNUQ7yvj_k5HOX5kWkIzUBpA7h6LHson_vxsixagzKY34DbUXvRr4g&s=10"
-  },
-  {
-    id: 4,
-    name: "Deepinder Goyal",
-    batch: "M.Tech, Class of 2005",
-    position: "Founder & CEO, Zomato",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQq-Y6jlVcJBjaoMLX_ZMlABZrlds2DzcHUFUkoHm5EomMa7UdHT650IQJgY11PVGHrqj-efkP72WO4-ULZFhBJd5F-DqeYWKT_D8SmM3Lbzg&s=10"
+interface AluminiTabProps {
+  alumni?: Alumni[];
+}
+
+// Real notable alumni for this college. Previously a hard-coded list of four
+// famous founders shown identically on every college page.
+const AluminiTab = ({ alumni = [] }: AluminiTabProps) => {
+  const items = alumni.filter((person) => person?.name?.trim());
+
+  if (items.length === 0) {
+    return (
+      <div className="p-4 min-h-[200px] rounded-lg flex items-center justify-center text-center text-[#718EBF] font-medium">
+        Notable alumni for this college have not been published yet.
+      </div>
+    );
   }
-];
 
-const AluminiTab = () => {
   return (
     <div className="w-full grid grid-cols-2 gap-3 md:flex md:flex-wrap md:gap-[23px] md:justify-start">
-      {ALUMNI_DATA.map((alumni) => (
-        <AlumniCard
-          key={alumni.id}
-          name={alumni.name}
-          batch={alumni.batch}
-          position={alumni.position}
-          imageUrl={alumni.image}
-        />
-      ))}
+      {items.map((person, index) => {
+        const batch = [person.branch, person.graduationYear && `Class of ${person.graduationYear}`]
+          .filter(Boolean)
+          .join(', ');
+        const position = [person.jobTitle, person.company].filter(Boolean).join(', ');
+
+        return (
+          <AlumniCard
+            key={person.alumniId ?? `${person.name}-${index}`}
+            name={person.name}
+            batch={batch}
+            position={position}
+            imageUrl={`https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=F3F4F6&color=374151&size=400`}
+          />
+        );
+      })}
     </div>
   );
 };

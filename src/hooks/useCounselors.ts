@@ -2,6 +2,80 @@ import { useQuery } from "@tanstack/react-query";
 import { academicApi } from '@/api/academic';
 import type { Counselor, AllCounselor, CounsellorApiResponse } from '@/types/academic';
 import { useAuthStore } from '@/store/AuthStore';
+import { COUNSELLORS_SNAPSHOT } from '@/data/contentSnapshot';
+import seoConfig from '@/config/seo.json';
+
+// Build-time snapshot of every published counsellor, mapped onto the shape the
+// live API returns. Blogs and deadlines already seed their lists this way
+// (useBlogs / useDeadlines); counsellors did not, so during the prerender —
+// where the Cloud Run API is deliberately blocked — every counsellor list
+// rendered its error state. Googlebot saw "Failed to load counsellors" and not
+// one link to the 102 profiles in the sitemap, leaving them all orphan URLs
+// that Search Console reports as "Discovered - currently not indexed".
+export const COUNSELLORS_SNAPSHOT_LIST: AllCounselor[] = COUNSELLORS_SNAPSHOT.map((c) => ({
+  counsellorId: c.counsellorId,
+  firstName: c.firstName,
+  lastName: c.lastName,
+  photoUrlSmall: c.photoUrl || null,
+  rating: c.rating,
+  ratePerYear: c.ratePerYear,
+  experience: c.experience ? String(c.experience) : null,
+  languagesKnow: c.languagesKnow,
+  city: c.city,
+  states: c.states,
+  numberOfRatings: String(c.numberOfRatings ?? 0),
+  plusAmount: c.plusAmount,
+  proAmount: c.proAmount,
+  eliteAmount: c.eliteAmount,
+  expertise: c.expertise,
+  description: c.description,
+  organisationName: c.organisationName,
+}));
+
+/**
+ * The one rule for whether a counsellor profile is worth indexing. It is
+ * mirrored by scripts/generate-content-snapshot.mjs (which writes
+ * `counsellorsThin`, driving what the sitemap includes) and by the `noIndex`
+ * on RevampCounselorDetailsPage. All three must agree — the sitemap, the page's
+ * robots tag, and the crawlable index that links to it — or Google receives
+ * contradictory signals about the same URL.
+ */
+export const THIN_PROFILE_BIO_CHARS = 120;
+
+/**
+ * Whether counsellor profiles are submitted to Google at all. Read from
+ * src/config/seo.json so the page's robots tag and the sitemap (built by
+ * scripts/site-routes.mjs) always agree. See that file for why it is off.
+ */
+export const COUNSELLOR_PROFILES_INDEXABLE = seoConfig.counsellorProfilesIndexable;
+
+/**
+ * Profiles with a real bio, used for the browse-all list on /counsellor-listing.
+ * This is a *navigation* decision, not an indexing one: the grid paginates 9 at
+ * a time behind infinite scroll, so without this list the rest of the profiles
+ * are unreachable by link. It stays useful to readers (and keeps the pages
+ * discoverable if they are re-indexed later) even while they are noindexed.
+ */
+export const LISTED_COUNSELLORS = COUNSELLORS_SNAPSHOT.filter(
+  (c) => Boolean(c.encodedId) && (c.description || "").trim().length >= THIN_PROFILE_BIO_CHARS,
+);
+
+/**
+ * The shared `['revamp-counsellors']` list used by the Admissions and Courses
+ * counsellor carousels. Seeded from the snapshot so it renders real, linked
+ * cards during the prerender; `initialDataUpdatedAt: 0` marks that data stale
+ * so the client still refetches live results on mount.
+ */
+export function useCounsellorsList() {
+  return useQuery({
+    queryKey: ["revamp-counsellors"],
+    queryFn: () => academicApi.getLoggedOutCounsellors(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    initialData: COUNSELLORS_SNAPSHOT_LIST.length ? COUNSELLORS_SNAPSHOT_LIST : undefined,
+    initialDataUpdatedAt: 0,
+  });
+}
 
 
 function transformCounselorData(apiData: CounsellorApiResponse): Counselor {
@@ -106,6 +180,12 @@ export function useAllCounselors(limit?: number) {
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     enabled: !authLoading,
+    // Seeded from the build-time snapshot: the /counselling/[city] pages read
+    // this list, and with the API blocked during the prerender they otherwise
+    // rendered "no counsellors here yet" with no profile links for Googlebot.
+    // Logged-in users still get their personalised list on refetch.
+    initialData: COUNSELLORS_SNAPSHOT_LIST.length ? COUNSELLORS_SNAPSHOT_LIST : undefined,
+    initialDataUpdatedAt: 0,
     select: (apiData) => {
       let transformedData = apiData.map(transformAllCounselorData);
       if (role === "counselor" && userId) {

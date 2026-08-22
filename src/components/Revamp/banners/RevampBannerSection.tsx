@@ -3,6 +3,7 @@ import GyanDhanBanner from './GyanDhanBanner';
 import MettleBanner from './MettleBanner';
 import PredictorBanner from './PredictorBanner';
 import ScalerBanner from './ScalerBanner';
+import OptionFormBanner from './OptionFormBanner';
 
 const RevampBannerSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -11,52 +12,40 @@ const RevampBannerSection = () => {
   const desktopTrackRef = useRef<HTMLDivElement | null>(null);
   const mobileTrackRef = useRef<HTMLDivElement | null>(null);
 
-  const desktopSlides = useMemo(
+  // One ordered list drives both layouts. Previously the desktop and mobile
+  // slide sets were written out separately, which repeated the NEET college
+  // predictor banner and — because both tracks were mounted at once — put every
+  // banner heading in the document twice.
+  const banners = useMemo(
     () => [
-      {
-        id: 'desktop-1',
-        left: <MettleBanner />,
-        right: <GyanDhanBanner />,
-      },
-      {
-        id: 'desktop-2',
-        left: <PredictorBanner variant="option-form" />,
-        right: <PredictorBanner variant="mhtcet" />,
-      },
-      {
-        id: 'desktop-3',
-        left: <PredictorBanner variant="neet-rank" />,
-        right: <PredictorBanner variant="neet-college" />,
-      },
-      {
-        id: 'desktop-4',
-        left: <PredictorBanner variant="college" />,
-        right: <PredictorBanner variant="rank" />,
-      },
-      {
-        id: 'desktop-5',
-        left: <ScalerBanner />,
-        right: <PredictorBanner variant="neet-college" />,
-      },
+      // Our two paid services lead the carousel.
+      { id: 'option-form', content: <OptionFormBanner /> },
+      { id: 'mettle', content: <MettleBanner /> },
+      { id: 'gyandhan', content: <GyanDhanBanner /> },
+      { id: 'scaler', content: <ScalerBanner /> },
+      { id: 'neet-rank', content: <PredictorBanner variant="neet-rank" /> },
+      { id: 'neet-college', content: <PredictorBanner variant="neet-college" /> },
+      { id: 'jee-college', content: <PredictorBanner variant="college" /> },
+      { id: 'jee-rank', content: <PredictorBanner variant="rank" /> },
+      { id: 'mhtcet', content: <PredictorBanner variant="mhtcet" /> },
     ],
     []
   );
 
-  const mobileSlides = useMemo(
-    () => [
-      // Option form leads on mobile: the hero grid that promotes it is
-      // desktop-only, so this carousel is where phone users first meet it.
-      { id: 'mobile-1', content: <PredictorBanner variant="option-form" /> },
-      { id: 'mobile-2', content: <MettleBanner /> },
-      { id: 'mobile-3', content: <GyanDhanBanner /> },
-      { id: 'mobile-4', content: <ScalerBanner /> },
-      { id: 'mobile-5', content: <PredictorBanner variant="neet-rank" /> },
-      { id: 'mobile-6', content: <PredictorBanner variant="neet-college" /> },
-      { id: 'mobile-7', content: <PredictorBanner variant="college" /> },
-      { id: 'mobile-8', content: <PredictorBanner variant="mhtcet" /> },
-    ],
-    []
-  );
+  const mobileSlides = banners;
+
+  // Desktop shows two banners per slide, paired off the same list.
+  const desktopSlides = useMemo(() => {
+    const slides: { id: string; left: React.ReactNode; right: React.ReactNode | null }[] = [];
+    for (let i = 0; i < banners.length; i += 2) {
+      slides.push({
+        id: `desktop-${banners[i].id}`,
+        left: banners[i].content,
+        right: banners[i + 1]?.content ?? null,
+      });
+    }
+    return slides;
+  }, [banners]);
 
   const totalSlides = isMobile ? mobileSlides.length : desktopSlides.length;
 
@@ -125,44 +114,49 @@ const RevampBannerSection = () => {
             </span>
           </div>
 
-          <div className="hidden md:block w-full">
-            <div
-              className="relative w-full max-w-[1320px] mx-auto overflow-hidden rounded-2xl"
-              onMouseEnter={() => setIsPaused(true)}
-              onMouseLeave={() => setIsPaused(false)}
-            >
+          {/* Only the active track is mounted. Rendering both (one hidden with
+              `md:hidden`, one with `hidden md:block`) put every banner in the
+              DOM twice, which reads as duplicated sections to crawlers. */}
+          {!isMobile ? (
+            <div className="w-full">
               <div
-                ref={desktopTrackRef}
-                className="flex w-full overflow-x-auto snap-x snap-mandatory scroll-smooth gap-0 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
+                className="relative w-full max-w-[1320px] mx-auto overflow-hidden rounded-2xl"
+                onMouseEnter={() => setIsPaused(true)}
+                onMouseLeave={() => setIsPaused(false)}
               >
-                {desktopSlides.map((slide) => (
-                  <div key={slide.id} className="w-full shrink-0 snap-start grid grid-cols-2 gap-4 lg:gap-6">
-                    <div className="w-full min-w-0">{slide.left}</div>
-                    <div className="w-full min-w-0">{slide.right}</div>
-                  </div>
-                ))}
+                <div
+                  ref={desktopTrackRef}
+                  className="flex w-full overflow-x-auto snap-x snap-mandatory scroll-smooth gap-0 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
+                >
+                  {desktopSlides.map((slide) => (
+                    <div key={slide.id} className="w-full shrink-0 snap-start grid grid-cols-2 gap-4 lg:gap-6">
+                      <div className="w-full min-w-0">{slide.left}</div>
+                      <div className="w-full min-w-0">{slide.right}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="md:hidden w-full">
-            <div
-              className="relative w-full overflow-hidden"
-              onMouseEnter={() => setIsPaused(true)}
-              onMouseLeave={() => setIsPaused(false)}
-            >
+          ) : (
+            <div className="w-full">
               <div
-                ref={mobileTrackRef}
-                className="flex w-full overflow-x-auto snap-x snap-mandatory scroll-smooth [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
+                className="relative w-full overflow-hidden"
+                onMouseEnter={() => setIsPaused(true)}
+                onMouseLeave={() => setIsPaused(false)}
               >
-                {mobileSlides.map((slide) => (
-                  <div key={slide.id} className="w-full shrink-0 snap-center">
-                    {slide.content}
-                  </div>
-                ))}
+                <div
+                  ref={mobileTrackRef}
+                  className="flex w-full overflow-x-auto snap-x snap-mandatory scroll-smooth [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
+                >
+                  {mobileSlides.map((slide) => (
+                    <div key={slide.id} className="w-full shrink-0 snap-center">
+                      {slide.content}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="w-full flex justify-start mt-2">
             <div className="flex gap-2">

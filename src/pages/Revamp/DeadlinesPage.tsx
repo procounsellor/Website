@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { getDeadlines, type EventItem } from "@/api/deadlines";
+import { type EventItem } from "@/api/deadlines";
+import { useDeadlinesList } from "@/hooks/useDeadlines";
+import CrawlableIndex from "@/components/SEO/CrawlableIndex";
 import { useNavigate } from "react-router-dom";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import {
@@ -26,13 +27,14 @@ export default function DeadlinesPage() {
   const [feesRange, setFeesRange] = useState<number>(0);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  const { data: allEvents = [], isLoading, isError, error, refetch } = useQuery({
-    queryKey: ['revamp-deadlines'],
-    queryFn: () => getDeadlines(),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
+  const { data: allEvents = [], isLoading, isError, error, refetch } = useDeadlinesList();
+
+  // useDeadlinesList seeds from DEADLINES_SNAPSHOT, so `allEvents` is populated
+  // even when the live refetch fails. It always fails during the prerender (the
+  // API is blocked there), and gating the list on `isError` hid every deadline
+  // card from Googlebot — orphaning all 19 detail URLs. Only show the error when
+  // there is nothing to render.
+  const showError = isError && allEvents.length === 0;
 
   // Dedup by id/title, remove deleted
   const activeEvents = (() => {
@@ -194,7 +196,7 @@ export default function DeadlinesPage() {
               </div>
             )}
             
-            {isError && (
+            {showError && (
               <div className="text-center py-12 space-y-3 bg-white rounded-[8px] border border-[#E3E8F4]">
                 <p className="text-red-600 text-[14px] font-medium">
                   {(error as Error)?.message ?? "Could not load deadlines."}
@@ -209,7 +211,7 @@ export default function DeadlinesPage() {
               </div>
             )}
             
-            {!isLoading && !isError && filteredEvents.length === 0 && (
+            {!isLoading && !showError && filteredEvents.length === 0 && (
               <div className="text-center py-12 bg-white rounded-[8px] border border-[#E3E8F4]">
                  <p className="text-[#6B7280] text-[14px] font-medium">
                    No active deadlines found at the moment.
@@ -218,7 +220,7 @@ export default function DeadlinesPage() {
             )}
 
             {/* Grid of Cards (Exactly 3 columns on large screens, 2 on mobile) */}
-            {!isLoading && !isError && filteredEvents.length > 0 && (
+            {!isLoading && !showError && filteredEvents.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6 w-full">
                 {filteredEvents.map((event: EventItem, index: number) => (
                   <div key={event.id} className="w-full flex justify-center">
@@ -272,6 +274,18 @@ export default function DeadlinesPage() {
             </div>
         </div>
       )}
+
+      {/* The grid above ships with selectedTypes=["exam"] pre-applied, so the
+          non-exam deadlines in the sitemap were never linked from anywhere.
+          This lists every live deadline regardless of the UI filter. */}
+      <CrawlableIndex
+        title="All exam dates & application deadlines"
+        ariaLabel="All exam deadlines"
+        links={activeEvents.map((e: EventItem) => ({
+          to: `/admissions/deadlines/${e.id}`,
+          label: e.title,
+        }))}
+      />
     </div>
     </>
   );

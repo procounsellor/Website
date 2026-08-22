@@ -20,33 +20,30 @@ const { baseUrl } = API_CONFIG;
 /**
  * Price in ProCoins (₹1 = 1 ProCoin).
  *
- * ⚠️ TEMPORARY TEST PRICING — ₹2 / ₹1 so the wallet flow can be run end to end
- * with real money. Restore the live prices before launch:
- *     NEW: 1999, REVISED: 1499
- * Every price shown on the page reads from here, so changing these two numbers
- * is the only edit needed. Keep REQUIREMENT_PRICE in the admin panel
- * (Admin/src/lib/optionFormApi.ts) in sync — it drives the collected total.
+ * Every price shown on the page reads from here, so these two numbers are the
+ * only edit needed to change what students pay. Keep REQUIREMENT_PRICE in the
+ * admin panel (Admin/src/lib/optionFormApi.ts) in sync — it drives the
+ * collected total on the registrations page.
  */
 export const OPTION_FORM_PRICE = {
-  NEW: 2,
-  REVISED: 1,
+  NEW: 1999,
+  REVISED: 1499,
 } as const;
 
 export type OptionFormRequirement = keyof typeof OPTION_FORM_PRICE;
-
-/**
- * ProCounsel's own counsellor account that receives option-form payments.
- * The transfer endpoint moves ProCoins user → counsellor, so the service fee
- * lands in the house account registered with the support number.
- */
-export const OPTION_FORM_RECEIVER_ID = "7004789484";
 
 export interface OptionFormRegistrationPayload {
   name: string;
   marks: number;
   stateDomicile: string;
   phoneNumber: string;
-  optionFormRequirement: OptionFormRequirement;
+  /**
+   * "METTLE" is not an option-form product. The Mettle career test is paid for
+   * through this same registration + transferProCoinsToProCounsel pair because
+   * that is the only wallet-debit endpoint available, so its payments land in
+   * this table too — the requirement is what tells them apart in the admin list.
+   */
+  optionFormRequirement: OptionFormRequirement | "METTLE";
 }
 
 const authHeaders = (): Record<string, string> => {
@@ -87,8 +84,68 @@ const messageOf = (body: unknown): string => {
   return "";
 };
 
-/** Creates (or updates) the student's option-form registration. */
+/**
+ * True when register was refused only because this phone is already registered.
+ * That is not a payment failure — the row the payment needs already exists.
+ */
+const isDuplicateRegistration = (message: string) =>
+  /already|exist|duplicate|registered/i.test(message);
+
+/**
+ * Phones this browser has already registered, kept as `{ "9876543210": "NEW" }`.
+ *
+ * The backend keeps ONE row per phone and refuses a second create, so once a row
+ * exists every retry must go straight to paying. Stored rather than held in
+ * state so it survives a reload or a browser restart mid-payment.
+ */
+const REGISTERED_KEY = "optionForm:registered";
+
+const readRegistered = (): Record<string, string> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(REGISTERED_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : {};
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, string>) : {};
+  } catch {
+    return {};
+  }
+};
+
+const rememberRegistered = (phone: string, requirement: string) => {
+  if (typeof window === "undefined" || !phone) return;
+  try {
+    const all = readRegistered();
+    all[phone] = requirement;
+    window.localStorage.setItem(REGISTERED_KEY, JSON.stringify(all));
+  } catch {
+    // Private mode / quota — the duplicate-tolerant branch below covers us.
+  }
+};
+
+/** True when this browser has already created the row for this phone + product. */
+export const isOptionFormRegistered = (phone: string, requirement: OptionFormRequirement | "METTLE") =>
+  !!phone && readRegistered()[phone] === requirement;
+
+/**
+ * Creates the student's option-form registration — once.
+ *
+ * Two guards, because the row must exist exactly once per phone:
+ *
+ *  1. Already registered from this browser → no request at all. A retry after a
+ *     cancelled or failed payment resumes at the payment step, which is where
+ *     it belongs; asking the backend to reject the create was pointless noise.
+ *  2. The backend says "already exists" anyway (retry from another device, or
+ *     after clearing site data) → treated as success and remembered, so the
+ *     next attempt takes guard 1. The row is present, which is all the payment
+ *     needs.
+ */
 export async function registerOptionForm(payload: OptionFormRegistrationPayload) {
+  const { phoneNumber, optionFormRequirement } = payload;
+
+  if (isOptionFormRegistered(phoneNumber, optionFormRequirement)) {
+    return { success: true, message: "Registration already exists for this phone number.", skipped: true };
+  }
+
   const response = await fetch(`${baseUrl}/api/optionFormRegistration/register`, {
     method: "POST",
     headers: authHeaders(),
@@ -97,30 +154,35 @@ export async function registerOptionForm(payload: OptionFormRegistrationPayload)
 
   const body = await readBody(response);
   if (!response.ok || failedOf(body)) {
-    throw new Error(messageOf(body) || "Could not save your registration. Please try again.");
+    const message = messageOf(body);
+    if (isDuplicateRegistration(message)) { rememberRegistered(phoneNumber, optionFormRequirement); return body; }
+    throw new Error(message || "Could not save your registration. Please try again.");
   }
+  rememberRegistered(phoneNumber, optionFormRequirement);
   return body;
 }
 
 /**
- * Moves the fee out of the student's wallet into the ProCounsel account.
+ * Takes the fee out of the student's wallet and marks the registration paid —
+ * both in one backend call, so a payment can no longer half-succeed.
  *
- * The transfer endpoint can answer 200 with a failure message (e.g. insufficient
+ * `userId` is the same id the registration was created under, because the
+ * backend uses it to find both the wallet and the registration row.
+ *
+ * The endpoint can answer 200 with a failure message (e.g. insufficient
  * balance), so a bare `response.ok` is not proof of payment — anything that
- * looks like a failure throws, which stops the caller before it marks the
- * registration paid.
+ * looks like a failure throws.
  */
-export async function debitWalletForOptionForm(userId: string, amount: number) {
-  const query = new URLSearchParams({
-    userId,
-    counsellorId: OPTION_FORM_RECEIVER_ID,
-    amount: String(amount),
-  });
+export async function payOptionFormFromWallet(userId: string, amount: number) {
+  const query = new URLSearchParams({ userId, amount: String(amount) });
 
-  const response = await fetch(`${baseUrl}/api/proCoins/transferProCoins?${query}`, {
-    method: "POST",
-    headers: authHeaders(),
-  });
+  const response = await fetch(
+    `${baseUrl}/api/optionFormRegistration/transferProCoinsToProCounsel?${query}`,
+    {
+      method: "POST",
+      headers: authHeaders(),
+    }
+  );
 
   const body = await readBody(response);
   const message = messageOf(body);
@@ -133,23 +195,6 @@ export async function debitWalletForOptionForm(userId: string, amount: number) {
   }
   if (/insufficient|not enough|fail|error|invalid/i.test(message)) {
     throw new Error(message);
-  }
-  return body;
-}
-
-/** Marks the registration paid. Call this only after the wallet debit succeeds. */
-export async function markOptionFormPaymentCompleted(userId: string) {
-  const response = await fetch(
-    `${baseUrl}/api/optionFormRegistration/markPaymentCompleted?userId=${encodeURIComponent(userId)}`,
-    {
-      method: "PATCH",
-      headers: authHeaders(),
-    }
-  );
-
-  const body = await readBody(response);
-  if (!response.ok || failedOf(body)) {
-    throw new Error(messageOf(body) || "Payment went through but we could not confirm it. Contact support.");
   }
   return body;
 }

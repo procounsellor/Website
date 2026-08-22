@@ -6,10 +6,17 @@ export default function NotFound() {
 
   return (
     <>
+      {/* noIndex matters more than it looks. Firebase rewrites `**` to
+          index.html, so an unknown URL answers 200 — Google can only tell it is
+          a dead end from the rendered page. Without this, every typo'd or stale
+          URL was a 200 that said "index,follow", which is what fills the
+          Soft 404 bucket in Search Console. The canonical is dropped too: a
+          noindex page pointing at /404 asked Google to index a URL that does
+          not exist as a document. */}
       <PageSEO
         title="Page Not Found – ProCounsel"
         description="The page you're looking for doesn't exist. Return to ProCounsel home."
-        canonical="/404"
+        noIndex
       />
       <div className="w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5F7FA] to-[#E8ECF1] px-4">
         <div className="text-center max-w-md">

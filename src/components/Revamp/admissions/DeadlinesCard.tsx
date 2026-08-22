@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface DeadlinesCardProps {
   id: string | number;
@@ -51,7 +51,15 @@ export default function DeadlinesCard({ id, examName, deadline, details, isWhite
               <div className="bg-[#0E1629] h-2 w-2 sm:h-3 sm:w-3 md:h-4 md:w-4 shrink-0"></div>
               {/* UPDATED: Scaled down mobile font slightly to prevent breaking */}
               <p className={`text-[#0E1629] md:text-(--text-main) font-[Poppins] font-semibold text-[9px] sm:text-[10px] md:text-[0.875rem] whitespace-nowrap`}>
-                {shortExamName}{hasMoreWords ? "..." : ""}
+                {/* Real anchor so the deadline detail page is reachable by a
+                    crawler; the card's onClick stays for the rest of the tile. */}
+                <Link
+                  to={`/admissions/deadlines/${id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="hover:underline"
+                >
+                  {shortExamName}{hasMoreWords ? "..." : ""}
+                </Link>
               </p>
             </div>
 

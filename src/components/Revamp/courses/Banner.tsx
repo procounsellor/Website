@@ -1,14 +1,61 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import CourseSection from "./CourseSection";
 import TestSection from "./TestSection";
 import { listenToLiveSessionsStatus } from "@/lib/firebase";
 import { useAuthStore } from "@/store/AuthStore";
+import { getAllCounsellorCoursesForGuest } from "@/api/course";
+import { getAllTestGroupsForGuest } from "@/api/testGroup";
+import { COURSES_SNAPSHOT, TEST_GROUPS_SNAPSHOT } from "@/data/contentSnapshot";
+
+const formatCount = (value: number) => value.toLocaleString("en-IN");
 
 export default function Banner() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoginToggle, toggleLogin } = useAuthStore();
-  const [liveSessionsCount, setLiveSessionsCount] = useState(10);
+  // Real count from Firebase — this used to be floored at a fake `Math.max(n, 10)`.
+  const [liveSessionsCount, setLiveSessionsCount] = useState(0);
+
+  // Same query keys as CourseSection/TestSection, so these read from cache
+  // rather than firing extra requests. Seeded from the build-time snapshot so
+  // the prerendered hero shows real totals instead of "100+" / "1260+".
+  const { data: coursesResponse } = useQuery({
+    queryKey: ["revamp-all-courses", "guest"],
+    queryFn: () => getAllCounsellorCoursesForGuest(),
+    staleTime: 5 * 60 * 1000,
+    initialData: COURSES_SNAPSHOT.length
+      ? ({ data: COURSES_SNAPSHOT, message: "snapshot" } as any)
+      : undefined,
+    initialDataUpdatedAt: 0,
+  });
+
+  const { data: testsResponse } = useQuery({
+    queryKey: ["revamp-all-tests", "guest"],
+    queryFn: () => getAllTestGroupsForGuest(),
+    staleTime: 5 * 60 * 1000,
+    initialData: TEST_GROUPS_SNAPSHOT.length
+      ? ({ status: "snapshot", data: TEST_GROUPS_SNAPSHOT } as any)
+      : undefined,
+    initialDataUpdatedAt: 0,
+  });
+
+  const courseRows: any[] = Array.isArray(coursesResponse?.data) ? coursesResponse.data : [];
+  const testGroupRows: any[] = Array.isArray(testsResponse?.data) ? testsResponse.data : [];
+
+  const courseCount = courseRows.length;
+  // Deliberately the number of test *series*, not the individual tests inside
+  // them: a visitor can count the series cards further down this page, so the
+  // hero stays verifiable. Each card shows its own resolved test count.
+  const testSeriesCount = testGroupRows.length;
+
+  // Enrolments actually recorded against courses and test series.
+  const learnerCount =
+    courseRows.reduce((total, row) => total + Number(row?.soldCount ?? 0), 0) +
+    testGroupRows.reduce((total, row) => {
+      const group = row?.testGroup ?? row;
+      return total + Number(group?.soldCount ?? row?.soldCount ?? 0);
+    }, 0);
 
   const handleLiveSessionsAccess = () => {
     if (isAuthenticated) {
@@ -26,7 +73,7 @@ export default function Banner() {
       const count = Object.values(allLives || {}).filter(
         (session: any) => Boolean(session?.isLive)
       ).length;
-      setLiveSessionsCount(Math.max(count, 10));
+      setLiveSessionsCount(count);
     });
 
     return () => unsubscribe();
@@ -51,43 +98,48 @@ export default function Banner() {
                 <div className="flex items-center gap-1.5">
                   <img loading="lazy" decoding="async" src="/onne.svg" alt="courses" className="w-5 h-5" />
                   <div className="flex flex-col">
-                    <span className="text-sm font-semibold">100+</span>
+                    <span className="text-sm font-semibold">{formatCount(courseCount)}</span>
                     <span className="text-[10px] text-white/75">Courses</span>
                   </div>
                 </div>
 
                 <div className="h-7 w-px bg-white/30" />
 
-              <div
-                className="flex items-center gap-1.5 cursor-pointer"
-                onClick={handleLiveSessionsAccess}
-              >
-                  <div className="relative">
-                    <img loading="lazy" decoding="async" src="/twoo.svg" alt="live sessions" className="w-5 h-5" />
+                {liveSessionsCount > 0 ? (
+                  <div
+                    className="flex items-center gap-1.5 cursor-pointer"
+                    onClick={handleLiveSessionsAccess}
+                  >
+                    <div className="relative">
+                      <img loading="lazy" decoding="async" src="/twoo.svg" alt="live sessions" className="w-5 h-5" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold">{liveSessionsCount} Live</span>
+                      <span className="text-[10px] text-white/75">Sessions now</span>
+                    </div>
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-semibold">{liveSessionsCount} Live</span>
-                    <span className="text-[10px] text-white/75">Sessions now</span>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <img loading="lazy" decoding="async" src="/twoo.svg" alt="test series" className="w-5 h-5" />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold">{formatCount(testSeriesCount)}</span>
+                      <span className="text-[10px] text-white/75">Test series</span>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="h-7 w-px bg-white/30" />
 
                 <div className="flex items-center gap-1.5">
                   <img loading="lazy" decoding="async" src="/threee.svg" alt="students" className="w-5 h-5" />
                   <div className="flex flex-col">
-                    <span className="text-sm font-semibold">1260+</span>
-                    <span className="text-[10px] text-white/75">Students</span>
+                    <span className="text-sm font-semibold">{formatCount(learnerCount)}</span>
+                    <span className="text-[10px] text-white/75">Enrolments</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-
-        <div>
-          <CourseSection/>
-          <TestSection/>
         </div>
 
       </div>
@@ -112,40 +164,57 @@ export default function Banner() {
             <div className="flex w-[200px] h-[58px] gap-2  border-r border-(--text-muted) justify-start items-center">
               <img loading="lazy" decoding="async" src="/onne.svg" alt="firstone" />
               <p className="flex flex-col text-[#FFC107] leading-8 font-medium text-[1.5rem]">
-                100+<span className="leading-[22px] text-[1rem]">courses</span>
+                {formatCount(courseCount)}<span className="leading-[22px] text-[1rem]">courses</span>
               </p>
             </div>
 
-            <div className="flex w-[200px] h-[58px] gap-2  border-r border-(--text-muted) justify-start items-center relative" onClick={handleLiveSessionsAccess} style={{ cursor: "pointer" }}>
-              <div className="relative">
-                <img loading="lazy" decoding="async" src="/twoo.svg" alt="firstone" />
-                <div className="absolute w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" style={{ top: "-4px", right: "-4px" }} />
+            {liveSessionsCount > 0 ? (
+              <div className="flex w-[200px] h-[58px] gap-2  border-r border-(--text-muted) justify-start items-center relative" onClick={handleLiveSessionsAccess} style={{ cursor: "pointer" }}>
+                <div className="relative">
+                  <img loading="lazy" decoding="async" src="/twoo.svg" alt="firstone" />
+                  <div className="absolute w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" style={{ top: "-4px", right: "-4px" }} />
+                </div>
+                <p className="flex flex-col text-[#DC3545] leading-8 font-medium text-[1.5rem]">
+                  {liveSessionsCount}
+                  <span className="leading-[22px] text-[1rem]">
+                    Live Sessions
+                  </span>
+                </p>
               </div>
-              <p className="flex flex-col text-[#DC3545] leading-8 font-medium text-[1.5rem]">
-                {liveSessionsCount}
-                <span className="leading-[22px] text-[1rem]">
-                  Live Sessions
-                </span>
-              </p>
-            </div>
+            ) : (
+              <div className="flex w-[200px] h-[58px] gap-2  border-r border-(--text-muted) justify-start items-center">
+                <img loading="lazy" decoding="async" src="/twoo.svg" alt="test series" />
+                <p className="flex flex-col text-[#DC3545] leading-8 font-medium text-[1.5rem]">
+                  {formatCount(testSeriesCount)}
+                  <span className="leading-[22px] text-[1rem]">Test series</span>
+                </p>
+              </div>
+            )}
 
             <div className="flex w-[200px] h-[58px] gap-2  justify-start items-center">
               <img loading="lazy" decoding="async" src="/threee.svg" alt="firstone" />
               <p className="flex flex-col text-[#198754] leading-8 font-medium text-[1.5rem]">
-                1260+
-                <span className="leading-[22px] text-[1rem]">Students</span>
+                {formatCount(learnerCount)}
+                <span className="leading-[22px] text-[1rem]">Enrolments</span>
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-[#F5F5F7] flex flex-col pb-20">
+      </div>
+
+      {/* Course and test lists render ONCE for both breakpoints. They used to be
+          mounted inside the mobile hero *and* again inside the desktop hero, so
+          every course and test title was served twice over — on top of the
+          mobile/desktop split inside each section, that put the same titles in
+          the HTML up to eight times. Both sections are already responsive. */}
+      <div className="md:bg-[#F5F5F7] flex flex-col md:pb-20">
         <CourseSection />
         <TestSection />
-        
-        {/* Live Sessions Section */}
-        <div className="w-full pt-16 pb-16">
+
+        {/* Live Sessions Section (desktop only, as before) */}
+        <div className="hidden md:block w-full pt-16 pb-16">
           <div className="max-w-[1440px] h-full mx-auto px-[60px]">
             <div className="flex flex-col items-center justify-center text-center gap-6 min-h-[220px]">
               <p className="font-[Poppins] font-medium text-[24px] text-[#0E1629] max-w-[760px] leading-normal">
@@ -161,7 +230,6 @@ export default function Banner() {
           </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }
