@@ -19,9 +19,10 @@ import type { SeoSection, SeoFaqItem } from "@/components/SEO/SeoArticle";
  * match the counsellor records' `expertise` array exactly, because the "Get
  * counselling" CTA deep-links to /counsellor-listing with that filter applied.
  *
- * Copy in `sections`/`faqs` is a working draft for the SEO team to replace.
- * Keep it specific and honest — no invented fees, cut-offs, rankings or
- * success-rate claims. Inaccurate content is punished harder than thin content.
+ * Copy in `sections`/`faqs` is the SEO team's final content for all five
+ * categories. Keep it specific and honest — no invented fees, cut-offs,
+ * rankings or success-rate claims. Inaccurate content is punished harder
+ * than thin content.
  */
 
 export interface CategoryExam {
@@ -484,19 +485,22 @@ export const COUNSELLING_CATEGORIES: CounsellingCategory[] = [
     slug: "mba-counselling",
     name: "MBA Counselling",
     primaryIntent:
-      "Find and talk to an MBA admission counsellor about profile, percentile and B-school shortlist",
+      "Find and talk to an MBA admission counsellor about profile, entrance score, specialization and college shortlist",
     expertise: ["MBA", "BBA", "Banking and Finance"],
     supportKeywords: [
-      "MBA admission counselling",
-      "MBA college selection",
-      "MBA admission guidance",
-      "MBA college comparison",
-      "B-school shortlisting",
+      "mba admission counselling",
+      "mba admission guidance",
+      "mba career counselling",
+      "mba counselling",
+      "best mba admissions consultants",
+      "top mba admissions consultants",
+      "admission consultants for mba",
     ],
     exams: [
       { name: "CAT", full: "Common Admission Test" },
       { name: "XAT", full: "Xavier Aptitude Test" },
       { name: "MAT", full: "Management Aptitude Test" },
+      { name: "CMAT", full: "Common Management Admission Test" },
       { name: "SNAP", full: "Symbiosis National Aptitude Test" },
       { name: "NMAT", full: "NMAT by GMAC" },
       { name: "GMAT", full: "Graduate Management Admission Test" },
@@ -505,66 +509,165 @@ export const COUNSELLING_CATEGORIES: CounsellingCategory[] = [
     tools: [],
     cities: ["pune", "mumbai"],
     priority: "growth",
-    title: "MBA Counselling — Profile Evaluation & B-School Shortlist | ProCounsel",
+    title: "MBA Counselling & Admission Guidance | ProCounsel",
     description:
-      "Talk to verified MBA admission counsellors about your CAT, XAT, MAT, SNAP, NMAT or GMAT profile, realistic B-school shortlists, and the interview stage.",
-    h1: "MBA Counselling — Profile Evaluation and College Shortlisting",
+      "Get expert MBA counselling and admission guidance to choose the right MBA college, specialization and course based on your profile, entrance score and career goals.",
+    h1: "MBA Counselling & Admission Guidance",
     intro:
-      "An MBA application is judged on more than a percentile. Academic consistency, work experience, the story behind a career switch and interview performance all feed into a call. MBA counselling is about reading your profile the way an admissions committee will, then building a shortlist that has ambitious, realistic and safe options in it rather than only the first.",
+      "\u201cSo\u2026 should I do an MBA?\u201d It sounds like a simple question. Until you actually have to answer it. You have finished graduation, and suddenly everyone seems to have an opinion. Your friend is preparing for CAT. Your cousin says XAT is better. Someone at home says, \u201cJust get into a good MBA college and you will be sorted.\u201d Then you start looking at colleges and see hundreds of options.",
     sections: [
       {
-        heading: "What a profile evaluation looks at",
+        heading: "Where the questions start piling up",
         paragraphs: [
-          "A percentile decides which calls you are eligible for. Your profile decides what happens after that. Most B-schools weight academics, work experience, diversity and the final interview alongside the test score.",
+          "Which exam should I take? Which colleges should I apply to? Should I do an MBA immediately or work for a couple of years first? Which specialization should I choose? Is the college worth the fees?",
+          "And perhaps the biggest one: \u201cWill this MBA actually help me get where I want to go?\u201d",
+          "If you are asking these questions, you are not behind. You probably just need to slow down and look at the decision properly. An MBA can take two years of your life and a significant amount of money, so choosing one just because everyone around you is doing it is not necessarily a good enough reason.",
+          "ProCounsel helps students and graduates look at their MBA options more clearly \u2014 from choosing colleges and courses to understanding admissions and thinking about career direction. The idea is not to tell everyone the same thing. It is to first understand where you are coming from and where you want to go.",
+        ],
+      },
+      {
+        heading: "Education, admission & career counselling",
+        paragraphs: [
+          "An MBA decision is actually a combination of three questions. What should I study? Where should I study? What do I want to do after I graduate?",
+          "These questions are connected. Suppose you find a well-known college. Great. But then you realise the fees are much higher than you expected. Or maybe the college is affordable, but it does not offer the specialization you are interested in. Or perhaps you have a good entrance score but are not sure whether you should choose a college with a better reputation or a course that is closer to the career you want.",
+          "This is why MBA counselling should be about more than simply finding a college. Sometimes you need someone to ask, \u201cWhy this college?\u201d And sometimes an even better question is: \u201cWhy MBA?\u201d There is nothing wrong with changing your mind after thinking about it properly.",
+        ],
+      },
+      {
+        heading: "Education counselling services",
+        paragraphs: [
+          "There is no shortage of MBA information online. That is actually part of the problem. You can search for MBA colleges at 11 p.m. and still be comparing them at 1 a.m. One website talks about rankings. Another talks about placements. A video says one specialization is booming. Someone on a forum says something completely different.",
+          "After a point, you are not lacking information. You are lacking clarity. Education counselling can help bring that clarity by looking at your graduation background, entrance exam score or expected score, work experience, interests, strengths, career goals, budget, location preferences and specialization preferences.",
+          "It can also help you decide whether doing an MBA right now makes sense. For one graduate, going straight into an MBA may be a good move. For another, gaining work experience first may make more sense. There is not a universal answer, which is why MBA counselling needs to begin with the student, not with a pre-decided college list.",
+        ],
+      },
+      {
+        heading: "Admission counselling services",
+        paragraphs: [
+          "Getting your entrance exam score can feel like the finish line. It is not. Sometimes that is when the real confusion starts. You have your CAT, XAT, CMAT, MAT, GMAT or another entrance score, and now you are asking: where can I actually apply? Which colleges are realistic? Should I apply to more colleges? What happens after I apply?",
+          "This is where MBA admission counselling can be useful. It can help you understand what each stage of the process asks of you:",
         ],
         bullets: [
-          "Percentile and sectional cut-offs, which are separate hurdles",
-          "Academic record across class 10, 12 and graduation, where consistency matters more than any single number",
-          "Work experience — how long, in what, and whether it supports the story you are telling",
-          "Diversity factors that some schools weight explicitly in their selection criteria",
-          "Where your profile is genuinely weak, and what can still be done about it this cycle",
+          "College shortlisting and eligibility for each institute",
+          "Entrance exam requirements and which scores a college accepts",
+          "Application deadlines and admission rounds",
+          "Interviews, group discussions or written assessments, where applicable",
+          "Comparing admission offers, backup options and final college selection",
         ],
       },
       {
-        heading: "Building a shortlist instead of a wishlist",
+        heading: "Not every college follows the same process",
         paragraphs: [
-          "The most common MBA shortlisting mistake is a list made entirely of ambitious calls, with nothing to fall back on. A workable shortlist has a spread: schools where your profile is above the typical admit, schools where it is around the middle, and schools where it is comfortably above the bar.",
-          "Comparing schools sensibly means looking past the headline ranking — at specialisation strength, fees against likely outcomes, location, and which recruiters actually visit the campus for the role you want.",
+          "There is one thing worth remembering: a college accepting CAT does not automatically mean it follows the same selection process as another CAT-accepting college. So do not assume that one entrance score tells you everything.",
+          "Good MBA admission guidance should help you understand your actual options instead of simply giving you a giant list of colleges. And no honest counsellor should promise you admission. The purpose is to help you prepare better and choose more carefully.",
         ],
       },
       {
-        heading: "Which exams this covers",
+        heading: "Career counselling services",
         paragraphs: [
-          "CAT is the largest but far from the only route. XAT, SNAP, NMAT and MAT open different sets of schools, and GMAT opens both Indian and international options. Taking more than one is often the difference between a call and no call, and the calendar for these overlaps in ways worth planning around early.",
+          "Imagine someone asks you, \u201cWhich MBA specialization do you want?\u201d And you say, \u201cI do not know. Which one pays the most?\u201d That is a very common answer, but probably not the best way to choose.",
+          "Finance, Marketing, HR, Business Analytics, Operations, International Business, IT, Supply Chain, Entrepreneurship and Healthcare Management can all lead in different directions. Instead of asking which one is best, ask what you actually enjoy doing. Do you like numbers? Do you enjoy talking to people? Do you like understanding customers? Would you enjoy managing teams? Are you comfortable working with data? Do you want to build your own business someday?",
+          "Your answers will not magically tell you which specialization to choose, but they will give you a much better starting point. That is where MBA career counselling can help. It can also be useful if you are questioning whether an MBA is right for you in the first place.",
+          "And let us keep expectations realistic. An MBA does not automatically lead to a high salary or a particular job. Your college, skills, experience, performance, industry and the opportunities you pursue all matter.",
         ],
       },
       {
-        heading: "After the call: WAT, GD and personal interview",
+        heading: "College & university selection",
         paragraphs: [
-          "For many candidates the interview stage, not the written test, is where the outcome is decided. Preparation here is specific and practisable: knowing your own CV well enough to defend every line of it, having a coherent answer for why an MBA and why now, and being current on the sectors you claim to care about.",
+          "Let us say you have shortlisted five colleges. How do you choose? Most students immediately check two things: ranking and placement package. Both are worth looking at, but they should not be the only things you look at.",
+        ],
+        bullets: [
+          "Curriculum, faculty and the specializations actually offered",
+          "Industry exposure, internships and placement support",
+          "Alumni network and corporate exposure",
+          "Fees, location, campus culture and return on investment",
+          "Entrepreneurship opportunities, if that is a direction you are considering",
+        ],
+      },
+      {
+        heading: "Ask which college suits you, not which is best",
+        paragraphs: [
+          "Think about your own situation. Maybe you are comfortable spending more for a college with stronger opportunities. Maybe you are not. Maybe you want to stay in your city. Maybe you are happy to move. Maybe you are interested in Finance and do not care much about other specializations. Maybe you have not figured that part out yet.",
+          "So instead of asking which MBA college is the best, try asking which MBA college makes the most sense for you. That is a much more useful question.",
+        ],
+      },
+      {
+        heading: "Course selection guidance",
+        paragraphs: [
+          "One thing students often forget is that an MBA is not just an MBA. There are different formats and types of management programmes, including regular MBA programmes, specialised programmes, PGDM, Executive MBA, and online and part-time options. They are not automatically interchangeable.",
+          "Your eligibility, work experience, learning preferences, budget and career plans can all affect which option makes sense. Then comes specialization. Do not choose Finance because your friend chose it. Do not choose Marketing because somebody said it is easy. And do not choose Business Analytics simply because you heard it has a lot of jobs.",
+          "Instead, ask yourself what kind of work you would actually enjoy doing. That is a much better place to begin.",
+        ],
+      },
+      {
+        heading: "A personalised counselling process",
+        paragraphs: [
+          "Good counselling should not feel like someone is reading questions from a form. It should feel like a conversation.",
+          "It starts with your situation \u2014 your graduation, entrance score, work experience, interests and concerns. Then it moves to your career plans. Maybe you have a clear goal, maybe you do not. Both are completely fine.",
+          "From there you look at MBA options that actually fit your profile, build a practical shortlist rather than fifty random colleges, and compare them properly on fees, curriculum, location, specialization, industry exposure and career opportunities. You then work through the admission process so you know what applications, deadlines and interviews you will need to deal with.",
+          "The counsellor should not make the decision for you. You should leave the conversation understanding why you are choosing your MBA.",
+        ],
+      },
+      {
+        heading: "Why choose ProCounsel",
+        paragraphs: [
+          "Search for the best MBA admissions consultants and you will find plenty of people making big promises. Search for top MBA admissions consultants and you will find even more. But best is not really the question you should be asking.",
+          "Ask instead: will they understand my profile? Will they explain why a college may or may not suit me? Will they tell me honestly when something is not a good option? Will they help me compare choices instead of pushing one? Those things matter much more.",
+          "ProCounsel focuses on personalised counselling, admission guidance, college exploration and helping students understand their education choices. The platform also provides college-related information and admission resources to support students during the decision-making process.",
+          "If you are looking for admission consultants for MBA programmes, the important thing is not simply finding someone who promises results. It is finding guidance that helps you understand your own options. There are no guarantees of a particular college, placement or salary, and that is important to say clearly. A counsellor cannot control an institute's admission decision. What they can do is help you prepare, compare and think through the decision properly.",
         ],
       },
     ],
     faqs: [
       {
-        question: "What percentile do I need for a good MBA college?",
+        question: "What is MBA admission counselling?",
         answer:
-          "It depends entirely on the school and your category, and sectional cut-offs matter as much as the overall figure. Rather than a single target number, it is more useful to work backwards from a specific shortlist and see what each school on it has historically called.",
+          "MBA admission counselling helps students understand entrance scores, college options, eligibility, applications, admission processes and final college selection.",
       },
       {
-        question: "Does work experience matter for an MBA in India?",
+        question: "What does MBA admission guidance include?",
         answer:
-          "It varies by school. Some weight it explicitly in their selection criteria, others admit large fresher cohorts. What matters more than the length is whether it is consistent with the reason you give for wanting the degree.",
+          "It can include college shortlisting, understanding admission requirements, comparing colleges, tracking deadlines and preparing for interviews or other selection stages.",
       },
       {
-        question: "Should I take CAT only, or other exams too?",
+        question: "When should I take MBA counselling?",
         answer:
-          "Most candidates benefit from more than one. XAT, SNAP, NMAT and MAT open different schools, and one weak test day does not then end the cycle. The trade-off is preparation time, which is why the decision is worth making early.",
+          "You can seek guidance before preparing for entrance exams, after getting your score, or while deciding whether an MBA is the right next step.",
       },
       {
-        question: "Is it worth taking a drop year to improve my percentile?",
+        question: "Can MBA counselling help me choose the right college?",
         answer:
-          "Sometimes, but it should be a considered decision rather than a default reaction to one result. It is worth comparing what a realistically improved percentile would change about your shortlist against the cost of another year.",
+          "Yes. It can help you compare colleges based on your profile, score, budget, specialization preference, career goals and other priorities.",
+      },
+      {
+        question: "How do I choose the right MBA specialization?",
+        answer:
+          "Think about the kind of subjects and work you enjoy, your strengths, previous experience and the type of career you want to explore. Do not choose purely based on salary claims.",
+      },
+      {
+        question: "Can MBA career counselling help me decide whether an MBA is right for me?",
+        answer:
+          "Yes. It can help you look at your current situation, career goals and alternatives before committing to an MBA.",
+      },
+      {
+        question: "What should I look for in the best MBA admissions consultants?",
+        answer:
+          "Look for personalised guidance, transparency, relevant experience and someone who explains your options honestly rather than making unrealistic promises.",
+      },
+      {
+        question: "How do admission consultants for MBA programmes help students?",
+        answer:
+          "They can help with college shortlisting, admission requirements, applications, deadlines, interviews and comparing different options.",
+      },
+      {
+        question: "Can online counselling help with MBA admissions?",
+        answer:
+          "Yes. Many counselling conversations can happen online, allowing students to discuss their profile, college choices and admission questions remotely.",
+      },
+      {
+        question: "Can ProCounsel help me shortlist MBA colleges?",
+        answer:
+          "ProCounsel provides college information and admission guidance that can help students research, compare and shortlist MBA options.",
       },
     ],
   },
@@ -573,66 +676,188 @@ export const COUNSELLING_CATEGORIES: CounsellingCategory[] = [
     slug: "law-counselling",
     name: "Law Counselling",
     primaryIntent:
-      "Find and talk to a law admission counsellor about CLAT, NLU choice and law college selection",
+      "Find and talk to a law admission counsellor about LLB course choice, entrance scores and law college selection",
     expertise: ["Law"],
     supportKeywords: [
-      "CLAT counselling",
+      "counselling for law",
+      "llb counselling",
+      "online law counselling",
       "law admission counselling",
-      "NLU admission guidance",
-      "law college selection",
-      "law admission guidance",
+      "law counselling",
+      "career counselling for law students",
     ],
     exams: [
       { name: "CLAT", full: "Common Law Admission Test" },
       { name: "AILET", full: "All India Law Entrance Test" },
-      { name: "LSAT India", full: "Law School Admission Test — India" },
+      { name: "LSAT India", full: "Law School Admission Test \u2014 India" },
       { name: "MH CET Law", full: "Maharashtra Common Entrance Test for Law" },
+      { name: "CUET", full: "Common University Entrance Test" },
     ],
     leadOffer: "Free law college shortlist based on your rank and category",
     tools: [],
     cities: ["delhi", "mumbai", "bangalore", "pune"],
     priority: "growth",
-    title: "Law Counselling — CLAT, NLU & Law College Guidance | ProCounsel",
+    title: "Law Counselling & Admission Guidance | ProCounsel",
     description:
-      "Talk to verified law admission counsellors about CLAT and AILET ranks, NLU preferences, five-year versus three-year LLB, and law college choice filling.",
-    h1: "Law Counselling — CLAT Rank, NLU Choice and Law College Selection",
+      "Get expert law counselling and admission guidance to choose the right LLB college, course and career path. Get personalised guidance for law admissions.",
+    h1: "Law Counselling & Admission Guidance",
     intro:
-      "Law admissions in India run through a small number of competitive entrance tests feeding a very wide range of institutions, from the National Law Universities to private and state colleges. The decisions that matter are which test to target, whether a five-year integrated course or a three-year LLB fits your situation, and how to order NLU preferences in the common counselling process.",
+      "\u201cI want to study law. But I have no idea where to start.\u201d If that sounds familiar, you are in good company. Law is one of those fields almost everyone has an opinion about and very few people can explain properly. You have probably heard that you need to crack CLAT. You may have heard that only the National Law Universities are worth attending. Someone has probably told you that law means standing in a courtroom arguing cases. Some of that is partly true. Most of it is incomplete.",
     sections: [
       {
-        heading: "Five-year integrated LLB or three-year LLB",
+        heading: "Where the real confusion begins",
         paragraphs: [
-          "The five-year integrated route is taken directly after class 12 and combines a bachelor's degree with law. The three-year LLB is taken after graduation. Neither is inherently better — they suit different starting points, and the choice mostly follows from where you are now rather than from any ranking of the two.",
+          "Should you take the five-year integrated course after class 12 or finish a bachelor's degree first? Which entrance exam should you prepare for? Is CLAT the only option? What happens if your rank is not high enough for a National Law University? Which private or state law colleges are actually worth considering? And what kind of career does a law degree even lead to?",
+          "These questions do not have one correct answer. They have an answer that depends on you \u2014 where you are in your education right now, what you can realistically prepare for, what your family can manage, and what kind of work you would like to do afterwards.",
+          "That is what counselling for law is for. Not to hand you a ranked list of colleges, but to help you understand the choices in front of you before you commit five years and a significant amount of money to one of them.",
+          "ProCounsel helps students and parents explore law courses, understand admission routes, compare colleges and think about career direction \u2014 based on the student's own situation rather than a standard recommendation.",
         ],
       },
       {
-        heading: "How CLAT counselling preferences work",
+        heading: "Education, admission & career counselling",
         paragraphs: [
-          "CLAT feeds a common counselling process across participating NLUs, where your preference order interacts with your rank and category to decide allotment. As with engineering, the order you submit matters as much as the rank itself, and the same discipline applies: fill genuinely, fill completely, and understand what each round can and cannot change.",
+          "A law admission decision is really three decisions sitting together. What course should I take? Which college should I take it at? And what do I want to do with the degree afterwards?",
+          "Students often focus on only the middle one. They chase a college name without checking whether the course structure, the specialisations offered or the practical exposure suit what they actually want. Others go the opposite way and pick a course without thinking about whether the institution will give them moot courts, internships and a peer group that pushes them.",
+          "None of these questions mean you are confused. They are normal questions, and they are much easier to answer before an admission deadline than during one.",
         ],
       },
       {
-        heading: "Beyond the NLUs",
+        heading: "Education counselling services",
         paragraphs: [
-          "A CLAT rank outside NLU range is not the end of a law career. Several private universities and state law colleges have strong practice-oriented programmes and their own admission routes, some through LSAT India or state-level tests. A counsellor who knows the landscape can point out options that a rank-first view of the process misses entirely.",
+          "A lot of students assume law counselling means someone looks at your entrance rank and tells you which college to take. It should be more than that. Your rank is important, but it does not tell the whole story.",
+          "Maybe you are certain about law. Maybe you are considering it alongside other options and want to understand it properly first. Maybe you want to stay in your home state. Maybe your family has a specific budget. Maybe you are interested in corporate practice rather than litigation and want a college with the right exposure for that.",
+          "Good LLB counselling starts with understanding the student. The conversation can cover your academic background, entrance preparation, interests, location preferences, budget, eligibility and what you actually want from a law degree. Sometimes the most useful thing a counsellor can do is ask a question you had not thought about yet.",
+        ],
+      },
+      {
+        heading: "Admission counselling services",
+        paragraphs: [
+          "This is usually where students and parents start feeling overwhelmed. Different law colleges run different admission routes, and the calendar for them does not line up neatly. Law admission counselling can help you keep track of what each route actually asks for:",
+        ],
+        bullets: [
+          "Which entrance exams to target \u2014 CLAT, AILET, LSAT India, state-level tests such as MH CET Law, or CUET for some universities",
+          "Eligibility for the five-year integrated LLB and the three-year LLB",
+          "Registration, application deadlines and admission rounds for each college",
+          "How preference or choice filling works in the counselling processes that use it",
+          "Seat allotment, upgradation rounds, documents and reporting",
+          "Backup options if the first round does not go the way you hoped",
+        ],
+      },
+      {
+        heading: "Preference order deserves real thought",
+        paragraphs: [
+          "In the counselling processes that use a preference list, the order you submit interacts with your rank and category to decide where you are allotted. It should not be treated like filling in a random form, and it should not be copied from a friend or a message forwarded in a group.",
+          "Understand why you are putting each option where it is. You do not want to look back later and think, \u201cI wish I had understood this before submitting my choices.\u201d",
+          "And be careful with promises. No honest counsellor can guarantee you a particular college or seat. Your actual options depend on your rank, category, eligibility, available seats and the rules of the relevant admission process.",
+        ],
+      },
+      {
+        heading: "Career counselling services",
+        paragraphs: [
+          "Here is a question worth asking early: what do you actually want to do with a law degree?",
+          "Many students picture litigation \u2014 courtrooms, arguments, cross-examination. That is one path, and for some people it is the right one. But a law degree also leads to corporate and transactional practice, in-house legal teams, the judiciary, civil services, compliance and regulatory work, policy and research, intellectual property, legal journalism, academia and postgraduate study.",
+          "These are genuinely different working lives, with different daily routines, different skills and different starting points. Career counselling for law students is about understanding those differences before you specialise, not after.",
+          "It is also useful in the other direction. If you are not sure law is right for you, that is worth talking through honestly rather than discovering it in your third year.",
+        ],
+      },
+      {
+        heading: "College & university selection",
+        paragraphs: [
+          "When students compare law colleges, the first question is usually which one is better. A more useful question is which one is better for you.",
+        ],
+        bullets: [
+          "Recognition, approval and the college's standing with the profession",
+          "Faculty, curriculum and the specialisations actually taught",
+          "Moot court culture, legal aid clinics and practical training",
+          "Internship support and the firms, chambers and organisations students actually reach",
+          "Alumni network, peer group and academic environment",
+          "Fees, hostel, location and what your family can realistically manage",
+        ],
+      },
+      {
+        heading: "Look past the name of the college",
+        paragraphs: [
+          "Do not ignore the financial side. Families sometimes stretch for an expensive college on the assumption that any law degree from a well-known name will pay for itself. Your family's financial comfort matters too, and a five-year course is a long commitment.",
+          "Similarly, one student may prefer staying close to home while another is perfectly comfortable moving to another state. There is not one perfect law college for every student. The right choice depends on the person making it.",
+        ],
+      },
+      {
+        heading: "Course selection guidance",
+        paragraphs: [
+          "The first real fork is the five-year integrated LLB against the three-year LLB. The integrated route is taken directly after class 12 and combines a bachelor's degree \u2014 BA, BBA, BCom or BSc, depending on the college \u2014 with law. The three-year LLB is taken after graduation.",
+          "Neither is inherently better. They suit different starting points. If you are certain about law at the end of class 12, the integrated route gets you there sooner. If you are not certain, or you want a different bachelor's subject first, the three-year LLB after graduation is a perfectly normal path into the profession.",
+          "Beyond that, colleges differ in the honours streams and electives they offer \u2014 constitutional law, corporate law, criminal law, international law, intellectual property and others. Those choices shape your internships and, often, your first job. They are worth understanding before you pick a college, not after.",
+        ],
+      },
+      {
+        heading: "A personalised counselling process",
+        paragraphs: [
+          "Counselling should feel like a conversation, not an interview where someone ticks boxes.",
+          "It starts with you \u2014 your class 12 or graduation background, your entrance preparation or score, your preferences, budget and concerns. From there you look at the courses and colleges that are genuinely relevant to your situation, and build a sensible shortlist rather than a screen full of a hundred names.",
+          "Then you compare them properly on fees, practical exposure, location, faculty and academic environment, and work through the admission and preference process so you understand why each option sits where it does on your list.",
+          "The final decision belongs to you and your family. A counsellor's job is not to make it for you. It is to help you make it with your eyes open.",
+        ],
+      },
+      {
+        heading: "Why choose ProCounsel",
+        paragraphs: [
+          "Once results are out, advice seems to come from everywhere. A friend has a college suggestion. A relative knows someone who studied there. A group chat has a predicted cut-off. Someone online says something completely different. And after listening to everyone, you still do not know what applies to your situation.",
+          "That is where having one place for college information, admission resources and counselling support can be useful. ProCounsel focuses on personalised counselling, admission guidance and college exploration so students can compare their options properly instead of collecting opinions.",
+          "Online law counselling also makes this easier to access. Most of these conversations do not need to happen in person, so students outside the big cities can still talk to a counsellor about their profile, college choices and admission questions.",
+          "There should not be promises like \u201cwe will get you this college.\u201d Nobody can honestly promise that. What good counselling can do is help you understand your choices, spot things you may have missed, and avoid making an important decision simply because everyone around you is saying something different.",
         ],
       },
     ],
     faqs: [
       {
-        question: "What rank do I need for an NLU?",
+        question: "What is law counselling?",
         answer:
-          "It varies widely between the NLUs and by category, and shifts each year with the candidate pool. Previous-year closing ranks per university and category are the right reference point, read as a guide to relative ordering rather than as a fixed threshold.",
+          "Law counselling helps students understand law courses, colleges and admission options based on their entrance result, eligibility, preferences and career goals.",
+      },
+      {
+        question: "What is LLB counselling?",
+        answer:
+          "LLB counselling is guidance around choosing and applying to an LLB programme \u2014 including whether the five-year integrated course or the three-year LLB suits you, which colleges to consider, and how each admission process works.",
+      },
+      {
+        question: "What does law admission counselling include?",
+        answer:
+          "It can include entrance exam selection, eligibility checks, college shortlisting, application deadlines, preference or choice filling, seat allotment, documents and reporting.",
+      },
+      {
+        question: "When should I take counselling for law?",
+        answer:
+          "You can seek guidance while deciding whether to study law, while choosing which entrance exam to prepare for, or once your result is out and you need to compare colleges. Earlier usually means fewer rushed decisions later.",
+      },
+      {
+        question: "Can counselling help me choose a law college?",
+        answer:
+          "Yes. It can help you compare colleges on your rank and category, fees, practical exposure, internships, location, faculty and academic environment rather than on reputation alone.",
+      },
+      {
+        question: "Should I take the five-year integrated LLB or a three-year LLB?",
+        answer:
+          "If you are certain about law at the end of class 12, the five-year integrated route gets you there sooner. If you are not certain, or you want a different bachelor's subject first, the three-year LLB after graduation is a perfectly normal path into the profession.",
       },
       {
         question: "Is CLAT the only way into law?",
         answer:
-          "No. AILET is a separate test for NLU Delhi, LSAT India is accepted by a number of private universities, and several states run their own law entrance tests. Which ones are worth taking depends on where you are willing to study.",
+          "No. AILET is a separate test for NLU Delhi, LSAT India is accepted by a number of private universities, several states run their own law entrance tests such as MH CET Law, and some universities admit through CUET. Which ones are worth taking depends on where you are willing to study.",
       },
       {
-        question: "Should I take a five-year course or graduate first?",
+        question: "Is online law counselling useful?",
         answer:
-          "If you are certain about law at the end of class 12, the five-year integrated route gets you there sooner. If you are not certain, or want a different bachelor's subject first, the three-year LLB after graduation is a perfectly normal path into the profession.",
+          "Yes. Most counselling conversations can happen online, which means students outside the larger cities can still discuss their profile, college options and admission questions with a counsellor.",
+      },
+      {
+        question: "How can career counselling for law students help?",
+        answer:
+          "A law degree can lead to litigation, corporate practice, in-house legal roles, the judiciary, civil services, policy, intellectual property, academia and postgraduate study. Career counselling helps you understand those paths before you choose your specialisation and internships.",
+      },
+      {
+        question: "Can ProCounsel help with law admission guidance?",
+        answer:
+          "ProCounsel provides college information, admission resources and counselling support for students exploring law courses and law college options.",
       },
     ],
   },

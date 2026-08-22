@@ -11,6 +11,7 @@ import {
   COUNSELLING_CATEGORIES,
   categoryListingUrl,
   getCategoryBySlug,
+  type CounsellingCategory,
 } from "@/lib/counsellingCategories";
 import { getCityBySlug } from "@/lib/counsellingCities";
 
@@ -30,6 +31,24 @@ const SITE = "https://procounsel.co.in";
  * gate so the lead captured on sign-in carries the category and the page it
  * came from (see src/lib/counsellingIntent.ts).
  */
+/**
+ * Head keyword first, then the support keywords, with case-insensitive
+ * duplicates dropped — several categories name themselves in their own keyword
+ * list ("Law Counselling" / "law counselling") and repeating it reads as
+ * keyword stuffing.
+ */
+function categoryKeywords(category: CounsellingCategory): string {
+  const seen = new Set<string>();
+  return [category.name, ...category.supportKeywords]
+    .filter((k) => {
+      const key = k.trim().toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .join(", ");
+}
+
 export default function CounsellingCategoryPage({ slug: slugProp }: { slug?: string } = {}) {
   // The route is registered per known slug (see AppRoutes) rather than as a
   // catch-all `/:category`, so an unknown top-level path still falls through to
@@ -141,7 +160,7 @@ export default function CounsellingCategoryPage({ slug: slugProp }: { slug?: str
         title={category.title}
         description={category.description}
         canonical={`/${category.slug}`}
-        keywords={[category.name, ...category.supportKeywords].join(", ")}
+        keywords={categoryKeywords(category)}
         jsonLd={jsonLd}
       />
 
