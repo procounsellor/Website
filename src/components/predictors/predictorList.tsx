@@ -25,11 +25,11 @@ export const PREDICTORS: PredictorItem[] = [
     title: "NEET College Predictor",
     exam: "NEET UG",
     description:
-      "Find the MBBS and medical colleges you can target by rank, category, quota and state.",
+      "Browse medical colleges state by state, then predict the ones your NEET rank can target \u2014 with round-wise cutoffs, seats and fees.",
     path: "/neet-college-predictor",
     icon: <Stethoscope className="h-6 w-6" />,
-    accent: "#0D9488",
-    tint: "linear-gradient(135deg, #ECFEFF 0%, #FFFFFF 100%)",
+    accent: "#059669",
+    tint: "linear-gradient(135deg, #ECFDF5 0%, #FFFFFF 100%)",
   },
   {
     title: "NEET Round-wise Cutoff Analyzer",

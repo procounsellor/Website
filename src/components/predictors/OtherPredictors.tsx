@@ -7,13 +7,19 @@ interface OtherPredictorsProps {
   currentPath: string;
   /** Accent for the section heading marker. */
   accent?: string;
+  /** Width cap; match the host page's cards. Defaults to 1100px. */
+  containerClass?: string;
 }
 
 /**
  * "Explore other predictors" cross-link section shown at the bottom of every
  * predictor page so users can hop between rank/college tools for each exam.
  */
-export default function OtherPredictors({ currentPath, accent = "#2F43F2" }: OtherPredictorsProps) {
+export default function OtherPredictors({
+  currentPath,
+  accent = "#2F43F2",
+  containerClass = "max-w-[1100px]",
+}: OtherPredictorsProps) {
   const navigate = useNavigate();
   const others = PREDICTORS.filter((p) => p.path !== currentPath);
 
@@ -21,7 +27,7 @@ export default function OtherPredictors({ currentPath, accent = "#2F43F2" }: Oth
 
   return (
     <section className="w-full">
-      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-10">
+      <div className={`${containerClass} mx-auto px-4 sm:px-6 py-10`}>
         <div className="flex items-center gap-2 mb-5">
           <span className="h-5 w-1 rounded-full" style={{ backgroundColor: accent }} />
           <h2 className="font-poppins font-bold text-[20px] md:text-[24px] text-[#0E1629]">

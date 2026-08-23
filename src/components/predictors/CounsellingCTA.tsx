@@ -6,6 +6,12 @@ interface CounsellingCTAProps {
   accent?: string;
   /** Exam/context word used in the copy, e.g. "NEET", "JEE", "MHT-CET". */
   exam?: string;
+  /**
+   * Width cap for the band. Defaults to the 1100px every other predictor page
+   * uses; pass a wider one where the host page's cards are wider, so the band
+   * does not read as a narrower card floating in the middle.
+   */
+  containerClass?: string;
 }
 
 /**
@@ -16,13 +22,17 @@ interface CounsellingCTAProps {
  * instead of dead-ending on "other predictors". Plain internal <button>s that
  * navigate client-side; the surrounding OtherPredictors handles cross-links.
  */
-export default function CounsellingCTA({ accent = "#2F43F2", exam }: CounsellingCTAProps) {
+export default function CounsellingCTA({
+  accent = "#2F43F2",
+  exam,
+  containerClass = "max-w-[1100px]",
+}: CounsellingCTAProps) {
   const navigate = useNavigate();
   const examLabel = exam ? `${exam} ` : "";
 
   return (
     <section className="w-full">
-      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-8">
+      <div className={`${containerClass} mx-auto px-4 sm:px-6 py-8`}>
         <div className="rounded-2xl overflow-hidden">
           <div className="relative px-6 py-8 sm:px-10 sm:py-9 text-white" style={{ background: accent }}>
             <div className="absolute -right-12 -top-16 h-52 w-52 rounded-full bg-white/10 blur-2xl" />
