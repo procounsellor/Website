@@ -419,7 +419,7 @@ export default function NEETPredictor() {
                   marked <span aria-hidden>*</span> are required.
                 </p>
 
-                <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <Field label="NEET AIR *" hint="More accurate when available">
                     <input
                       type="number"
@@ -554,9 +554,18 @@ export default function NEETPredictor() {
                     </span>
                   </div>
 
-                  {/* Sits in the grid right after Budget, aligned with the
-                      inputs rather than the labels. */}
-                  <div className="flex items-end">
+                  {/* Pinned to the last column so the row ends on the action
+                      instead of on empty space. The invisible label spacer
+                      matches the real labels' metrics, so the button's top
+                      edge lines up with every input on the row — `items-end`
+                      used to drop it level with Target college's hint text. */}
+                  <div className="flex flex-col sm:col-start-2 lg:col-start-4">
+                    <span
+                      aria-hidden
+                      className="mb-1.5 block text-[13px] font-medium leading-normal"
+                    >
+                      &nbsp;
+                    </span>
                     <Button
                       onClick={runPrediction}
                       disabled={predict.isPending}
