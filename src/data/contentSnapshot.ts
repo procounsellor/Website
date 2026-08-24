@@ -99,7 +99,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1887",
     "accreditation": "AICTE, NBA, NAAC",
     "collegeType": "Govt",
-    "popularityCount": 840,
+    "popularityCount": 846,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -136,7 +136,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1999",
     "accreditation": "NAAC, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 621,
+    "popularityCount": 625,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -181,7 +181,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1854",
     "accreditation": "AICTE, NBA, NAAC, UGC",
     "collegeType": "Govt",
-    "popularityCount": 610,
+    "popularityCount": 616,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -213,7 +213,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1981",
     "accreditation": "AACSB, AMBA, EQUIS",
     "collegeType": "Pvt",
-    "popularityCount": 212,
+    "popularityCount": 217,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -254,7 +254,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1960",
     "accreditation": "AICTE, UGC, NBA, NIRF",
     "collegeType": "Govt",
-    "popularityCount": 170,
+    "popularityCount": 174,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -291,7 +291,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2021",
     "accreditation": "AICTE, NAAC, NBA",
     "collegeType": "Pvt",
-    "popularityCount": 165,
+    "popularityCount": 169,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -324,7 +324,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1991",
     "accreditation": "NAAC (A), NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 126,
+    "popularityCount": 130,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -360,7 +360,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1983",
     "accreditation": "NAAC (A), NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 122,
+    "popularityCount": 127,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -401,7 +401,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2005",
     "accreditation": "AICTE, NAAC, NBA",
     "collegeType": "Pvt",
-    "popularityCount": 117,
+    "popularityCount": 122,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -438,7 +438,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1994",
     "accreditation": "NAAC (A+), NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 114,
+    "popularityCount": 119,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -458,7 +458,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1994",
     "accreditation": "NA",
     "collegeType": "Pvt",
-    "popularityCount": 112,
+    "popularityCount": 116,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -503,7 +503,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1978",
     "accreditation": "NAAC, NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 110,
+    "popularityCount": 115,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -528,7 +528,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1996",
     "accreditation": "NBA, NAAC (A+), AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 107,
+    "popularityCount": 111,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -564,7 +564,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1965",
     "accreditation": "AICTE, NAAC",
     "collegeType": "Govt",
-    "popularityCount": 104,
+    "popularityCount": 108,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -605,7 +605,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2006",
     "accreditation": "NAAC (A+), AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 100,
+    "popularityCount": 105,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -646,7 +646,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1994",
     "accreditation": "AICTE, NAAC, NBA",
     "collegeType": "Pvt",
-    "popularityCount": 94,
+    "popularityCount": 98,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -671,7 +671,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1995",
     "accreditation": "AMBA, AACSB, NBA",
     "collegeType": "Govt",
-    "popularityCount": 90,
+    "popularityCount": 95,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -696,7 +696,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1993",
     "accreditation": "NAAC, NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 86,
+    "popularityCount": 90,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -713,56 +713,6 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
-    "collegeId": "IIMN_MUMBAI",
-    "collegeName": "Indian Institute of Management Nagpur",
-    "collegesLocationCity": "Mumbai",
-    "collegesLocationState": "Maharashtra",
-    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/IIMN_MUMBAI/logo/IIMN_MUMBAI_logo_20250828_105610_Indian%20Institute%20of%20Management%20Nagpur%20logo.png",
-    "establishedYear": "1963",
-    "accreditation": "NAAC, AICTE",
-    "collegeType": "Govt",
-    "popularityCount": 85,
-    "coursesOffered": [
-      {
-        "courseId": "MANAGEMENT",
-        "courseName": "Management",
-        "courseLevel": "PG",
-        "duration": "2 Years",
-        "examsAccepted": [
-          {
-            "examId": "CAT",
-            "examName": "CAT"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "collegeId": "NMIMS_MUMBAI",
-    "collegeName": "Narsee Monjee Institute of Management Studies",
-    "collegesLocationCity": "Navi Mumbai",
-    "collegesLocationState": "Maharashtra",
-    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/NMIMS_MUMBAI/logo/NMIMS_MUMBAI_logo_20250828_125251_Narsee%20Monjee%20Institute%20of%20Management%20Studies%20logo.jpg",
-    "establishedYear": "2017",
-    "accreditation": "AICTE, NBA",
-    "collegeType": "Pvt",
-    "popularityCount": 85,
-    "coursesOffered": [
-      {
-        "courseId": "MANAGEMENT",
-        "courseName": "Management",
-        "courseLevel": "PG",
-        "duration": "2 Years",
-        "examsAccepted": [
-          {
-            "examId": "NMAT",
-            "examName": "NMAT"
-          }
-        ]
-      }
-    ]
-  },
-  {
     "collegeId": "WIMDR_MUMBAI",
     "collegeName": "Welingkar Institute of Management Development & Research",
     "collegesLocationCity": "Mumbai",
@@ -771,7 +721,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1977",
     "accreditation": "NBA, NAAC, AACSB (Membership), AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 85,
+    "popularityCount": 90,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -808,6 +758,56 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
+    "collegeId": "IIMN_MUMBAI",
+    "collegeName": "Indian Institute of Management Nagpur",
+    "collegesLocationCity": "Mumbai",
+    "collegesLocationState": "Maharashtra",
+    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/IIMN_MUMBAI/logo/IIMN_MUMBAI_logo_20250828_105610_Indian%20Institute%20of%20Management%20Nagpur%20logo.png",
+    "establishedYear": "1963",
+    "accreditation": "NAAC, AICTE",
+    "collegeType": "Govt",
+    "popularityCount": 89,
+    "coursesOffered": [
+      {
+        "courseId": "MANAGEMENT",
+        "courseName": "Management",
+        "courseLevel": "PG",
+        "duration": "2 Years",
+        "examsAccepted": [
+          {
+            "examId": "CAT",
+            "examName": "CAT"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "collegeId": "NMIMS_MUMBAI",
+    "collegeName": "Narsee Monjee Institute of Management Studies",
+    "collegesLocationCity": "Navi Mumbai",
+    "collegesLocationState": "Maharashtra",
+    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/NMIMS_MUMBAI/logo/NMIMS_MUMBAI_logo_20250828_125251_Narsee%20Monjee%20Institute%20of%20Management%20Studies%20logo.jpg",
+    "establishedYear": "2017",
+    "accreditation": "AICTE, NBA",
+    "collegeType": "Pvt",
+    "popularityCount": 89,
+    "coursesOffered": [
+      {
+        "courseId": "MANAGEMENT",
+        "courseName": "Management",
+        "courseLevel": "PG",
+        "duration": "2 Years",
+        "examsAccepted": [
+          {
+            "examId": "NMAT",
+            "examName": "NMAT"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "collegeId": "MUICT_MUMBAI",
     "collegeName": "Institute of Chemical Technology",
     "collegesLocationCity": "Mumbai",
@@ -816,7 +816,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1933",
     "accreditation": "UGC, AICTE, NBA, NAAC",
     "collegeType": "Govt",
-    "popularityCount": 84,
+    "popularityCount": 88,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -857,7 +857,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1936",
     "accreditation": "NAAC, UGC",
     "collegeType": "Deemed",
-    "popularityCount": 83,
+    "popularityCount": 88,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -882,7 +882,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1981",
     "accreditation": "NBA, NAAC, AACSB (Member), AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 81,
+    "popularityCount": 85,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -923,7 +923,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2000",
     "accreditation": "AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 78,
+    "popularityCount": 82,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -968,7 +968,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1971",
     "accreditation": "AICTE, NAAC, UGC, NBA",
     "collegeType": "Govt",
-    "popularityCount": 74,
+    "popularityCount": 79,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -2011,6 +2011,39 @@ export const COUNSELLORS_SNAPSHOT: CounsellorSnapshotItem[] = [
     "eliteAmount": 100000
   },
   {
+    "counsellorId": "9470988669",
+    "encodedId": "OTQ3MDk4ODY2OQ",
+    "firstName": "Ashutosh",
+    "lastName": "Kumar",
+    "city": "Bangalore",
+    "states": [
+      "Maharashtra",
+      "Karnataka",
+      "Delhi",
+      "Tamil Nadu"
+    ],
+    "expertise": [
+      "Engineering",
+      "MBA",
+      "Law",
+      "Medical"
+    ],
+    "languagesKnow": [
+      "Hindi",
+      "English"
+    ],
+    "experience": 5,
+    "rating": 4,
+    "numberOfRatings": 1,
+    "photoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/counsellors/9470988669/1787559832646photo.jpg",
+    "organisationName": "Aspire Consultants",
+    "description": "As an Education Counsellor, I help students make confident and informed decisions about their academic and career paths. I take the time to understand each student’s interests, strengths, and goals, and guide them toward courses, colleges, and careers that truly fit their potential. My approach combines up-to-date knowledge of educational trends, entrance exams, and admission processes with a deep commitment to mentorship. I believe counselling is not just about giving advice — it’s about empowering students to discover their path with clarity, purpose, and confidence.",
+    "ratePerYear": 5000,
+    "plusAmount": 5000,
+    "proAmount": 25000,
+    "eliteAmount": 100000
+  },
+  {
     "counsellorId": "9967503759",
     "encodedId": "OTk2NzUwMzc1OQ",
     "firstName": "Manjitkaur",
@@ -2274,43 +2307,6 @@ export const COUNSELLORS_SNAPSHOT: CounsellorSnapshotItem[] = [
     "photoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/counsellors/9724933750/1762610100040photo.jpg",
     "organisationName": "CONCEPT SIMPLIFIED",
     "description": "Concept Simplified is a trusted counselling platform that helps students and parents make confident career and college decisions. Our expert counsellors provide personalised guidance, data-driven insights, and a clear roadmap to ensure every child secures the best-fit college and course. In the vast pool of counselling options, we stand out for our individual attention, transparency, and proven success stories — turning confusion into clarity and dreams into direction.",
-    "ratePerYear": 5000,
-    "plusAmount": 5000,
-    "proAmount": 25000,
-    "eliteAmount": 100000
-  },
-  {
-    "counsellorId": "9470988669",
-    "encodedId": "OTQ3MDk4ODY2OQ",
-    "firstName": "Ashutosh",
-    "lastName": "Kumar",
-    "city": "Bangalore",
-    "states": [
-      "Maharashtra",
-      "Karnataka",
-      "Delhi",
-      "Tamil Nadu"
-    ],
-    "expertise": [
-      "Engineering",
-      "MBA",
-      "Law",
-      "Medical"
-    ],
-    "languagesKnow": [
-      "Tamil",
-      "Marathi",
-      "Hindi",
-      "Kannada",
-      "Telugu",
-      "English"
-    ],
-    "experience": 5,
-    "rating": 4,
-    "numberOfRatings": 1,
-    "photoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/counsellors/9470988669/1760549273285photo.jpg",
-    "organisationName": "Aspire Consultants",
-    "description": "As an Education Counsellor, I help students make confident and informed decisions about their academic and career paths. I take the time to understand each student’s interests, strengths, and goals, and guide them toward courses, colleges, and careers that truly fit their potential. My approach combines up-to-date knowledge of educational trends, entrance exams, and admission processes with a deep commitment to mentorship. I believe counselling is not just about giving advice — it’s about empowering students to discover their path with clarity, purpose, and confidence.",
     "ratePerYear": 5000,
     "plusAmount": 5000,
     "proAmount": 25000,
