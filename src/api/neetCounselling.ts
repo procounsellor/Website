@@ -147,7 +147,6 @@ export interface NEETPredictRequest {
   neet_score?: number | null;
   domicile?: string;
   category?: string;
-  gender?: NEETGender;
   /** Free text the API parses, e.g. "60L", "80 lakh", "1 Cr". */
   budget?: string | null;
   counselling?: NEETCounsellingType;
@@ -258,14 +257,16 @@ export async function getEstimatedAIR(score: number): Promise<NEETScoreRankRespo
 export async function predictNEETColleges(
   body: NEETPredictRequest,
 ): Promise<NEETPredictResponse> {
+  // `gender` is deliberately not sent. The predictor stopped asking for it, and
+  // defaulting it here would silently filter on a value the student never gave.
+  // The endpoint treats it as optional and returns the same list without it.
   const { data } = await client.post<NEETPredictResponse>("/predict", {
     neet_air: body.neet_air ?? null,
     neet_score: body.neet_score ?? null,
     domicile: body.domicile || "All India",
     category: body.category || "General",
-    gender: body.gender || "Female",
     budget: body.budget || null,
-    counselling: body.counselling || "State quota",
+    counselling: body.counselling || "All types",
     target_type: body.target_type || "All types",
     limit: body.limit ?? 24,
   });
