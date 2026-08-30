@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { checkUrl, sendOtp, verifyOtp as apiVerifyOtp } from "@/api/auth";
+import type { SchoolStudentSignupPayload, SchoolStudentSignupResponse } from "@/api/auth";
 import { getUserProfile } from "@/api/user";
 import { getCounselorProfileById } from "@/api/counselor-Dashboard";
 import type { User } from "@/types/user";
@@ -30,10 +31,49 @@ const mapCounselorToUser = (counselorData: CounselorProfileData): User => {
   };
 };
 
+/**
+ * The backend spells the fifth role "schoolStudent". Compare case-insensitively
+ * and trimmed — the OTP response and the signup response are produced by
+ * different services and one of them has historically padded role strings.
+ */
+export const isSchoolStudentRole = (role: unknown): boolean =>
+  typeof role === "string" && role.trim().toLowerCase() === "schoolstudent";
+
+export type SchoolStudentProfile = {
+  phoneNumber: string;
+  firstName: string;
+  lastName: string;
+  school: string;
+  className: string;
+};
+
+/**
+ * School students live in their own Firestore collection, so /api/user/:id does
+ * NOT serve them — there is no profile endpoint for this role yet. The shape the
+ * app renders is therefore built from what signup told us (persisted), exactly
+ * like the proBuddy placeholder below it.
+ */
+const mapSchoolStudentToUser = (profile: SchoolStudentProfile | null, phone: string): User =>
+  ({
+    userName: phone,
+    firstName: profile?.firstName ?? "School",
+    lastName: profile?.lastName ?? "Student",
+    phoneNumber: phone,
+    email: "",
+    role: "schoolStudent",
+    verified: false,
+    walletAmount: 0,
+    transactions: [],
+    offlineTransactions: [],
+    activityLog: [],
+    userInterestedStateOfCounsellors: null,
+    interestedCourse: null,
+  } as unknown as User);
+
 type AuthState = {
   user: User | null;
   userId: string | null;
-  role: "student" | "counselor" | "user" | "proBuddy" | null;
+  role: "student" | "counselor" | "user" | "proBuddy" | "schoolStudent" | null;
   isAuthenticated: boolean;
   isLoginToggle: boolean;
   userExist: boolean;
@@ -48,6 +88,11 @@ type AuthState = {
   isCounselorSignupFlow: boolean;
   tempJwt: string | null;
   tempPhone: string | null;
+  schoolStudent: SchoolStudentProfile | null;
+  completeSchoolStudentSignup: (
+    profile: SchoolStudentSignupPayload,
+    response: SchoolStudentSignupResponse
+  ) => void;
   toggleLogin: (onSuccess?: () => void) => void;
   closeCounsellorSignup: () => void;
   toggleCounselorSignup: () => void;
@@ -99,6 +144,7 @@ export const useAuthStore = create<AuthState>()(
       isCounselorSignupFlow: false,
       tempJwt: null,
       tempPhone: null,
+      schoolStudent: null,
       setPendingAction: (fn) => set({ pendingAction: fn }),
       bookingTriggered: false,
       setBookingTriggered: (value) => set({ bookingTriggered: value }),
@@ -120,6 +166,54 @@ export const useAuthStore = create<AuthState>()(
         if (tempJwt && tempPhone) {
           setToken(tempJwt, tempPhone);
           set({ tempJwt: null, tempPhone: null, needsOnboarding: false });
+        }
+      },
+
+      /**
+       * Finishes the school-student signup started from the onboarding card.
+       *
+       * The phone is already OTP-verified at this point, so the JWT goes
+       * straight to localStorage (no tempJwt limbo — there is no second step
+       * left to complete), and the profile is persisted because no backend
+       * endpoint can hand it back to us on the next page load.
+       */
+      completeSchoolStudentSignup: (profile, response) => {
+        const phone = response.userId?.trim() || profile.phoneNumber;
+        const stored: SchoolStudentProfile = {
+          phoneNumber: phone,
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          school: profile.school,
+          className: profile.className,
+        };
+
+        if (response.jwtToken) setToken(response.jwtToken, phone);
+        try {
+          localStorage.setItem("role", "schoolStudent");
+        } catch {
+          // localStorage may be unavailable (private mode); store state still holds the role.
+        }
+
+        set({
+          schoolStudent: stored,
+          user: mapSchoolStudentToUser(stored, phone),
+          userId: phone,
+          role: "schoolStudent",
+          isAuthenticated: true,
+          loading: false,
+          tempJwt: null,
+          tempPhone: null,
+          userExist: false,
+          needsOnboarding: false,
+          needsProfileCompletion: false,
+          isProfileCompletionOpen: false,
+          isLoginToggle: false,
+        });
+
+        const { onLoginSuccess } = get();
+        if (onLoginSuccess) {
+          onLoginSuccess();
+          set({ onLoginSuccess: null });
         }
       },
 
@@ -227,6 +321,13 @@ export const useAuthStore = create<AuthState>()(
         }
 
         try {
+          if (role === "schoolStudent") {
+            // No /api/user/:id for this role — rebuild from what signup persisted.
+            const mapped = mapSchoolStudentToUser(state.schoolStudent, uid);
+            set({ user: mapped, role: "schoolStudent" });
+            return mapped;
+          }
+
           if (role === "proBuddy") {
             const mapped = {
               userName: uid,
@@ -271,6 +372,54 @@ export const useAuthStore = create<AuthState>()(
         set({ loading: true });
 
         const data = await apiVerifyOtp(phone, otp);
+
+        // Fifth role. Checked FIRST because the fallback below reads "not a
+        // user" as "counsellor" — a school student would otherwise be sent to
+        // the counsellor profile fetch and end up mislabelled.
+        if (isSchoolStudentRole(data?.role)) {
+          if (data?.jwtToken) setToken(data.jwtToken, phone);
+          try {
+            localStorage.setItem("role", "schoolStudent");
+          } catch {
+            // localStorage may be unavailable; store state still holds the role.
+          }
+
+          // Keep the persisted details only if this is the same student coming
+          // back — a different phone on this device must not inherit them.
+          const persisted = get().schoolStudent;
+          const profile =
+            persisted && persisted.phoneNumber === phone ? persisted : null;
+
+          set({
+            schoolStudent: profile,
+            user: mapSchoolStudentToUser(profile, phone),
+            userId: phone,
+            role: "schoolStudent",
+            isAuthenticated: true,
+            loading: false,
+            userExist: false,
+            needsOnboarding: false,
+            needsProfileCompletion: false,
+            isProfileCompletionOpen: false,
+            isCounselorSignupFlow: false,
+            tempJwt: null,
+            tempPhone: null,
+            isLoginToggle: false,
+          });
+
+          const { onLoginSuccess, pendingAction, setBookingTriggered } = get();
+          if (onLoginSuccess) {
+            onLoginSuccess();
+            set({ onLoginSuccess: null });
+          }
+          if (pendingAction) {
+            setTimeout(() => {
+              setBookingTriggered(true);
+              set({ pendingAction: null });
+            }, 400);
+          }
+          return;
+        }
 
         const isUser = data?.isUser === true || data?.isUser === "true";
         const role = data?.role === "proBuddy" ? "proBuddy" : (isUser ? "student" : "counselor");
@@ -495,6 +644,7 @@ export const useAuthStore = create<AuthState>()(
           isCounselorSignupFlow: false,
           tempJwt: null,
           tempPhone: null,
+          schoolStudent: null,
         });
       },
     }),
@@ -512,6 +662,7 @@ export const useAuthStore = create<AuthState>()(
               "userExist",
               "needsOnboarding",
               "needsProfileCompletion",
+              "schoolStudent",
             ].includes(key)
           )
         ),

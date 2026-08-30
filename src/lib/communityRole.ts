@@ -8,5 +8,9 @@
 export function getCommunityRole(user: { role?: string | null; verified?: boolean } | null | undefined): string {
   if (!user) return 'user';
   if (user.role === 'proBuddy' && user.verified === false) return 'user';
+  // The community service knows four roles. `schoolStudent` is a front-of-house
+  // identity only — sending it would be rejected the same way an unverified
+  // proBuddy is, and community is one of the two sections school students keep.
+  if (user.role === 'schoolStudent') return 'user';
   return user.role || 'user';
 }

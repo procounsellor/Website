@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuthStore } from '@/store/AuthStore';
 import { getCommunityRole } from '@/lib/communityRole';
-import { getAllAnswersForSpecificQuestion } from '@/api/community';
+import { getAllAnswersForSpecificQuestion, QuestionNotFoundError } from '@/api/community';
+import ErrorState from '@/components/common/ErrorState';
 import type { QuestionDetailData, CommunityQuestion } from '@/types/community';
 import QuestionCard from '@/components/community/QuestionCard';
 import AnswerCard from '@/components/community/AnswerCard';
@@ -13,6 +14,7 @@ import AnswerCard from '@/components/community/AnswerCard';
 
 export default function QuestionDetailPage() {
   const { questionId } = useParams<{ questionId: string }>();
+  const navigate = useNavigate();
   const { userId, user } = useAuthStore();
   const token = localStorage.getItem('jwt');
 
@@ -21,11 +23,12 @@ export default function QuestionDetailPage() {
 
   const [details, setDetails] = useState<QuestionDetailData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchDetails = async () => {
     if (!questionId) {
-      setError('Missing question ID.');
+      setNotFound(true);
       setIsLoading(false);
       return;
     }
@@ -33,6 +36,9 @@ export default function QuestionDetailPage() {
     try {
       setIsLoading(true);
       setError(null);
+      setNotFound(false);
+      // No token → the API layer sends this to the unauthenticated twin of the
+      // endpoint, so a logged-out visitor can read the thread.
       const response = await getAllAnswersForSpecificQuestion(
         questionId,
         userId ?? undefined,
@@ -40,14 +46,14 @@ export default function QuestionDetailPage() {
         communityRole
       );
 
-      if (response.status === 'Success') {
-        setDetails(response.data);
-      } else {
-        setError('Failed to load question details.');
-      }
+      setDetails(response.data);
     } catch (err) {
       console.error(err);
-      setError('An error occurred while fetching question details.');
+      if (err instanceof QuestionNotFoundError) {
+        setNotFound(true);
+      } else {
+        setError('An error occurred while fetching question details.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -99,8 +105,25 @@ export default function QuestionDetailPage() {
               <div className="p-20 text-center">Loading details...</div>
             )}
 
+            {notFound && (
+              <ErrorState
+                variant="inline"
+                title="Question not found"
+                message="This question may have been deleted by the person who asked it."
+                backLabel="Back to community"
+                onBack={() => navigate('/community')}
+              />
+            )}
+
             {error && (
-              <div className="p-20 text-center text-red-500">{error}</div>
+              <ErrorState
+                variant="inline"
+                title="Couldn't load this question"
+                message="Something went wrong while loading the discussion. Please try again in a moment."
+                onRetry={fetchDetails}
+                onBack={() => navigate('/community')}
+                backLabel="Back to community"
+              />
             )}
 
             {details && questionForCard && (

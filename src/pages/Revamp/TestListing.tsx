@@ -10,6 +10,7 @@ import {
   getAllTestGroupsForLoggedInUser,
 } from "@/api/testGroup";
 import { TEST_COUNT_BY_GROUP, TEST_GROUPS_SNAPSHOT } from "@/data/contentSnapshot";
+import ErrorState from "@/components/common/ErrorState";
 
 type TestListItem = {
   id: string;
@@ -98,7 +99,7 @@ export default function TestListing() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [openSection, setOpenSection] = useState<"priceType" | "price" | "rating" | "students" | null>("priceType");
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["test-listing", isUserLoggedIn ? userId : "guest"],
     queryFn: () =>
       isUserLoggedIn ? getAllTestGroupsForLoggedInUser(userId) : getAllTestGroupsForGuest(),
@@ -321,7 +322,17 @@ export default function TestListing() {
     </div>
   );
 
-  const content = isLoading ? (
+  const content = isError && tests.length === 0 ? (
+    // The snapshot seed normally keeps this page populated, so reaching here
+    // means both the API and the seed are empty — an error, not a filter miss.
+    <ErrorState
+      variant="inline"
+      title="Couldn't load test series"
+      message="We couldn't reach the test catalogue. Please try again in a moment."
+      onRetry={() => refetch()}
+      showBack={false}
+    />
+  ) : isLoading ? (
     <div className="flex flex-col md:flex-row md:flex-wrap gap-4">
       {Array.from({ length: 6 }).map((_, idx) => (
         <div key={`test-skeleton-${idx}`} className="w-full md:w-auto">

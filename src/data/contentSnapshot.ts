@@ -99,7 +99,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1887",
     "accreditation": "AICTE, NBA, NAAC",
     "collegeType": "Govt",
-    "popularityCount": 851,
+    "popularityCount": 879,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -136,7 +136,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1999",
     "accreditation": "NAAC, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 629,
+    "popularityCount": 660,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -181,7 +181,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1854",
     "accreditation": "AICTE, NBA, NAAC, UGC",
     "collegeType": "Govt",
-    "popularityCount": 618,
+    "popularityCount": 645,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -213,7 +213,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1981",
     "accreditation": "AACSB, AMBA, EQUIS",
     "collegeType": "Pvt",
-    "popularityCount": 219,
+    "popularityCount": 246,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -254,7 +254,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1960",
     "accreditation": "AICTE, UGC, NBA, NIRF",
     "collegeType": "Govt",
-    "popularityCount": 176,
+    "popularityCount": 203,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -291,7 +291,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2021",
     "accreditation": "AICTE, NAAC, NBA",
     "collegeType": "Pvt",
-    "popularityCount": 171,
+    "popularityCount": 198,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -316,6 +316,26 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
+    "collegeId": "DJSCE_MUMBAI",
+    "collegeName": "D. J. Sanghvi College of Engineering",
+    "collegesLocationCity": "Mumbai",
+    "collegesLocationState": "Maharashtra",
+    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/DJSCE_MUMBAI/logo/DJSCE_MUMBAI_logo_20250830_120708_DJSCE_Logo.png",
+    "establishedYear": "1994",
+    "accreditation": "NAAC (A+), NBA, AICTE",
+    "collegeType": "Pvt",
+    "popularityCount": 160,
+    "coursesOffered": [
+      {
+        "courseId": "ENGINEERING",
+        "courseName": "Engineering",
+        "courseLevel": "UG",
+        "duration": "4 Years",
+        "examsAccepted": []
+      }
+    ]
+  },
+  {
     "collegeId": "CCEFW_PUNE",
     "collegeName": "Cummins College of Engineering for Women",
     "collegesLocationCity": "Pune",
@@ -324,7 +344,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1991",
     "accreditation": "NAAC (A), NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 132,
+    "popularityCount": 159,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -360,7 +380,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1983",
     "accreditation": "NAAC (A), NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 130,
+    "popularityCount": 159,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -393,26 +413,6 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
-    "collegeId": "DJSCE_MUMBAI",
-    "collegeName": "D. J. Sanghvi College of Engineering",
-    "collegesLocationCity": "Mumbai",
-    "collegesLocationState": "Maharashtra",
-    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/DJSCE_MUMBAI/logo/DJSCE_MUMBAI_logo_20250830_120708_DJSCE_Logo.png",
-    "establishedYear": "1994",
-    "accreditation": "NAAC (A+), NBA, AICTE",
-    "collegeType": "Pvt",
-    "popularityCount": 125,
-    "coursesOffered": [
-      {
-        "courseId": "ENGINEERING",
-        "courseName": "Engineering",
-        "courseLevel": "UG",
-        "duration": "4 Years",
-        "examsAccepted": []
-      }
-    ]
-  },
-  {
     "collegeId": "SPIT_MUMBAI",
     "collegeName": "Sardar Patel Institute of Technology",
     "collegesLocationCity": "Mumbai",
@@ -421,7 +421,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2005",
     "accreditation": "AICTE, NAAC, NBA",
     "collegeType": "Pvt",
-    "popularityCount": 124,
+    "popularityCount": 154,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -450,6 +450,47 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
+    "collegeId": "MPSTME_MUMBAI",
+    "collegeName": "Mukesh Patel School of Technology Management and Engineering",
+    "collegesLocationCity": "Mumbai",
+    "collegesLocationState": "Maharashtra",
+    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/MPSTME_MUMBAI/logo/MPSTME_MUMBAI_logo_20250830_122930_Narsee_Monjee_Institute_of_Management_Studies_Logo.png",
+    "establishedYear": "2006",
+    "accreditation": "NAAC (A+), AICTE",
+    "collegeType": "Pvt",
+    "popularityCount": 147,
+    "coursesOffered": [
+      {
+        "courseId": "ENGINEERING",
+        "courseName": "Engineering",
+        "courseLevel": "UG",
+        "duration": "4 Years",
+        "examsAccepted": [
+          {
+            "examId": "NMIMS_NPAT",
+            "examName": "NMIMS NPAT"
+          },
+          {
+            "examId": "JEE_MAIN",
+            "examName": "JEE Main"
+          }
+        ]
+      },
+      {
+        "courseId": "MTECH",
+        "courseName": "Mtech",
+        "courseLevel": "PG",
+        "duration": "2 Years",
+        "examsAccepted": [
+          {
+            "examId": "GATE",
+            "examName": "GATE"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "collegeId": "IIM_PUNE",
     "collegeName": "Indira Institute of Management",
     "collegesLocationCity": "Pune",
@@ -458,7 +499,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1994",
     "accreditation": "NA",
     "collegeType": "Pvt",
-    "popularityCount": 118,
+    "popularityCount": 144,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -495,47 +536,6 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
-    "collegeId": "MPSTME_MUMBAI",
-    "collegeName": "Mukesh Patel School of Technology Management and Engineering",
-    "collegesLocationCity": "Mumbai",
-    "collegesLocationState": "Maharashtra",
-    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/MPSTME_MUMBAI/logo/MPSTME_MUMBAI_logo_20250830_122930_Narsee_Monjee_Institute_of_Management_Studies_Logo.png",
-    "establishedYear": "2006",
-    "accreditation": "NAAC (A+), AICTE",
-    "collegeType": "Pvt",
-    "popularityCount": 117,
-    "coursesOffered": [
-      {
-        "courseId": "ENGINEERING",
-        "courseName": "Engineering",
-        "courseLevel": "UG",
-        "duration": "4 Years",
-        "examsAccepted": [
-          {
-            "examId": "NMIMS_NPAT",
-            "examName": "NMIMS NPAT"
-          },
-          {
-            "examId": "JEE_MAIN",
-            "examName": "JEE Main"
-          }
-        ]
-      },
-      {
-        "courseId": "MTECH",
-        "courseName": "Mtech",
-        "courseLevel": "PG",
-        "duration": "2 Years",
-        "examsAccepted": [
-          {
-            "examId": "GATE",
-            "examName": "GATE"
-          }
-        ]
-      }
-    ]
-  },
-  {
     "collegeId": "SIBM_PUNE",
     "collegeName": "Symbiosis Institute of Business Management",
     "collegesLocationCity": "Pune",
@@ -544,7 +544,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1978",
     "accreditation": "NAAC, NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 117,
+    "popularityCount": 144,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -569,7 +569,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1996",
     "accreditation": "NBA, NAAC (A+), AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 113,
+    "popularityCount": 140,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -605,7 +605,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1965",
     "accreditation": "AICTE, NAAC",
     "collegeType": "Govt",
-    "popularityCount": 110,
+    "popularityCount": 137,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -646,7 +646,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1994",
     "accreditation": "AICTE, NAAC, NBA",
     "collegeType": "Pvt",
-    "popularityCount": 101,
+    "popularityCount": 128,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -671,7 +671,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1995",
     "accreditation": "AMBA, AACSB, NBA",
     "collegeType": "Govt",
-    "popularityCount": 97,
+    "popularityCount": 124,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -696,7 +696,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1977",
     "accreditation": "NBA, NAAC, AACSB (Membership), AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 94,
+    "popularityCount": 122,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -741,7 +741,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1993",
     "accreditation": "NAAC, NBA, AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 92,
+    "popularityCount": 119,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -766,7 +766,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1963",
     "accreditation": "NAAC, AICTE",
     "collegeType": "Govt",
-    "popularityCount": 91,
+    "popularityCount": 118,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -791,7 +791,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2017",
     "accreditation": "AICTE, NBA",
     "collegeType": "Pvt",
-    "popularityCount": 91,
+    "popularityCount": 117,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -808,6 +808,31 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
+    "collegeId": "TISS_MUMBAI",
+    "collegeName": "Tata Institute of Social Sciences",
+    "collegesLocationCity": "Mumbai",
+    "collegesLocationState": "Maharashtra",
+    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/TISS_MUMBAI/logo/TISS_MUMBAI_logo_20250828_112403_Tata%20Institute%20of%20Social%20Sciences%20logo.png",
+    "establishedYear": "1936",
+    "accreditation": "NAAC, UGC",
+    "collegeType": "Deemed",
+    "popularityCount": 117,
+    "coursesOffered": [
+      {
+        "courseId": "MANAGEMENT",
+        "courseName": "Management",
+        "courseLevel": "PG",
+        "duration": "2 Years",
+        "examsAccepted": [
+          {
+            "examId": "TISSNET_MBA",
+            "examName": "TISS NET – MBA"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "collegeId": "MUICT_MUMBAI",
     "collegeName": "Institute of Chemical Technology",
     "collegesLocationCity": "Mumbai",
@@ -816,7 +841,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1933",
     "accreditation": "UGC, AICTE, NBA, NAAC",
     "collegeType": "Govt",
-    "popularityCount": 90,
+    "popularityCount": 116,
     "coursesOffered": [
       {
         "courseId": "ENGINEERING",
@@ -849,31 +874,6 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     ]
   },
   {
-    "collegeId": "TISS_MUMBAI",
-    "collegeName": "Tata Institute of Social Sciences",
-    "collegesLocationCity": "Mumbai",
-    "collegesLocationState": "Maharashtra",
-    "logoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/college/TISS_MUMBAI/logo/TISS_MUMBAI_logo_20250828_112403_Tata%20Institute%20of%20Social%20Sciences%20logo.png",
-    "establishedYear": "1936",
-    "accreditation": "NAAC, UGC",
-    "collegeType": "Deemed",
-    "popularityCount": 90,
-    "coursesOffered": [
-      {
-        "courseId": "MANAGEMENT",
-        "courseName": "Management",
-        "courseLevel": "PG",
-        "duration": "2 Years",
-        "examsAccepted": [
-          {
-            "examId": "TISSNET_MBA",
-            "examName": "TISS NET – MBA"
-          }
-        ]
-      }
-    ]
-  },
-  {
     "collegeId": "KSIMSR_MUMBAI",
     "collegeName": "K.J. Somaiya Institute of Management Studies and Research",
     "collegesLocationCity": "Mumbai",
@@ -882,7 +882,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1981",
     "accreditation": "NBA, NAAC, AACSB (Member), AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 87,
+    "popularityCount": 113,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -923,7 +923,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "2000",
     "accreditation": "AICTE",
     "collegeType": "Pvt",
-    "popularityCount": 84,
+    "popularityCount": 111,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -968,7 +968,7 @@ export const COLLEGES_SNAPSHOT: CollegeSnapshotItem[] = [
     "establishedYear": "1971",
     "accreditation": "AICTE, NAAC, UGC, NBA",
     "collegeType": "Govt",
-    "popularityCount": 81,
+    "popularityCount": 107,
     "coursesOffered": [
       {
         "courseId": "MANAGEMENT",
@@ -2136,78 +2136,6 @@ export const COUNSELLORS_SNAPSHOT: CounsellorSnapshotItem[] = [
     "eliteAmount": 100000
   },
   {
-    "counsellorId": "7499330756",
-    "encodedId": "NzQ5OTMzMDc1Ng",
-    "firstName": "Krishna",
-    "lastName": "Sapkal",
-    "city": "Pune",
-    "states": [
-      "Maharashtra",
-      "Delhi",
-      "Rajasthan",
-      "Punjab",
-      "Goa",
-      "Out of India"
-    ],
-    "expertise": [
-      "Engineering",
-      "HSC",
-      "Medical",
-      "B.Sc",
-      "Diploma in Engineering",
-      "Others",
-      "Architecture",
-      "Design",
-      "Social Work"
-    ],
-    "languagesKnow": [
-      "Hindi",
-      "Marathi",
-      "English"
-    ],
-    "experience": 3,
-    "rating": 5,
-    "numberOfRatings": 0,
-    "photoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/counsellors/7499330756/1766824138030photo.jpg",
-    "organisationName": "AdityaCOEP",
-    "description": "I’m Krishna, a career counsellor dedicated to helping students make thoughtful and confident decisions about their academic future.\nI provide detailed guidance for Engineering, Medical, B.Sc, Diploma in Engineering, Architecture, Design, Social Work, HSC streams, and other career paths.\nMy counselling focuses on understanding a student’s interests, aptitude, academic background, and long-term goals.\nI help students compare courses, colleges, and future scope so they can choose a path that truly fits them.\nMy approach is practical, honest, and student-focused, with an emphasis on clarity rather than pressure.",
-    "ratePerYear": 3000,
-    "plusAmount": 3000,
-    "proAmount": 10000,
-    "eliteAmount": 50000
-  },
-  {
-    "counsellorId": "8459532526",
-    "encodedId": "ODQ1OTUzMjUyNg",
-    "firstName": "Chaitanya",
-    "lastName": "Gautam",
-    "city": "Pune",
-    "states": [
-      "Maharashtra"
-    ],
-    "expertise": [
-      "Engineering",
-      "MBA",
-      "Law",
-      "Medical"
-    ],
-    "languagesKnow": [
-      "Hindi",
-      "Marathi",
-      "English"
-    ],
-    "experience": 2,
-    "rating": 5,
-    "numberOfRatings": 0,
-    "photoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/counsellors/8459532526/1762451345840photo.jpg",
-    "organisationName": "Aditya COEP",
-    "description": "I’m a Career Counsellor specializing in Engineering Admissions across Maharashtra. I’ve guided 1000+ students in finding the right college and branch that truly match their potential.\n\nWhat makes my counselling different is the personal connection I build with every student. I believe guidance isn’t just about numbers or ranks, it’s about understanding dreams, emotions, and aspirations. With a data-driven yet empathetic approach, I help students make confident, informed, and stress-free decisions for their future.\n\nIn collaboration with Aditya COEP, I focus on giving honest, practical, and experience-based guidance helping students not just choose a college, but the right direction for their career.",
-    "ratePerYear": 3000,
-    "plusAmount": 3000,
-    "proAmount": 10000,
-    "eliteAmount": 50000
-  },
-  {
     "counsellorId": "9226416939",
     "encodedId": "OTIyNjQxNjkzOQ",
     "firstName": "Arjun",
@@ -2465,8 +2393,8 @@ export const COUNSELLORS_SNAPSHOT: CounsellorSnapshotItem[] = [
   {
     "counsellorId": "7030450321",
     "encodedId": "NzAzMDQ1MDMyMQ",
-    "firstName": "Ramnik",
-    "lastName": "Sourav",
+    "firstName": "RAMNIK",
+    "lastName": "SOURAV",
     "city": "Pune",
     "states": [
       "Maharashtra",
@@ -2499,7 +2427,7 @@ export const COUNSELLORS_SNAPSHOT: CounsellorSnapshotItem[] = [
     "numberOfRatings": 0,
     "photoUrl": "",
     "organisationName": "ASPIRE EDUTECH",
-    "description": "My name is Ramnik Sourav and i am an Engineering & Career Counsellor with 5 years of experience guiding students through JEE Main, MHT CET, NEET, MSE, ITI, and Polytechnic admissions. He helps students make informed academic and career decisions by providing personalized counselling, college guidance, and admission support.",
+    "description": "My name is Ramnik Sourav and i am an Engineering  ,MEDICAL& Career Counsellor with 5 years of experience guiding students through JEE Main, MHT CET, NEET, MSE, ITI, and Polytechnic admissions. I help  students make informed academic and career decisions by providing personalized counselling, college guidance, and admission support.",
     "ratePerYear": 10000,
     "plusAmount": 10000,
     "proAmount": 25000,
@@ -4268,35 +4196,6 @@ export const COUNSELLORS_SNAPSHOT: CounsellorSnapshotItem[] = [
     "ratePerYear": 5000,
     "plusAmount": 5000,
     "proAmount": 15000,
-    "eliteAmount": 50000
-  },
-  {
-    "counsellorId": "8830657167",
-    "encodedId": "ODgzMDY1NzE2Nw",
-    "firstName": "Prasanna",
-    "lastName": "Lad",
-    "city": "Mumbai",
-    "states": [
-      "Maharashtra"
-    ],
-    "expertise": [
-      "Engineering",
-      "HSC"
-    ],
-    "languagesKnow": [
-      "Hindi",
-      "Marathi",
-      "English"
-    ],
-    "experience": 1,
-    "rating": 4,
-    "numberOfRatings": 0,
-    "photoUrl": "https://storage.googleapis.com/procounsellor-71824.firebasestorage.app/counsellors/8830657167/1768569628732photo.jpg",
-    "organisationName": "Aditya COEP",
-    "description": "I’m Prasanna, an Engineering Admission and Career Counsellor dedicated to helping students navigate this important phase with clarity and confidence.\nI guide students in selecting the right college and branch across Maharashtra, keeping their rank, interests, and goals in mind.\nI provide step-by-step support during CAP rounds, including detailed cutoff analysis and accurate option filling.\nMy counselling style is simple, honest, and student-friendly, so students feel comfortable asking questions.\nI focus on reducing stress by explaining every option clearly and practically.\nMy aim is to help students make well-informed decisions they feel confident about in the long run.",
-    "ratePerYear": 3000,
-    "plusAmount": 3000,
-    "proAmount": 10000,
     "eliteAmount": 50000
   },
   {

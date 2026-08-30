@@ -422,6 +422,7 @@ export default function MettleAssessment() {
   // ask for one here and it is required before the test can start.
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const role = useAuthStore((s) => s.role);
   const isLoginToggle = useAuthStore((s) => s.isLoginToggle);
   const profileName = `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim();
   const needsName = isAuthenticated && !!user && !profileName;
@@ -443,7 +444,15 @@ export default function MettleAssessment() {
   useEffect(() => { top.current?.scrollIntoView({ behavior: "smooth" }); }, [screen, ci, qi]);
 
   const discount = appliedCoupon ? METTLE_COUPONS[appliedCoupon] ?? 0 : 0;
-  const payable = Math.max(0, Math.round((METTLE_PRICE * (100 - discount)) / 100));
+  // School students are never charged for the assessment: they have no wallet
+  // (their role has no /api/user/:id record, so walletAmount is always 0) and
+  // the test is the free hook into the school programme. `payable === 0` is the
+  // path the existing 100%-off coupon already takes, so nothing else changes —
+  // "Start Assessment →" runs beginAssessment() straight away.
+  const isFreeForRole = role === "schoolStudent";
+  const payable = isFreeForRole
+    ? 0
+    : Math.max(0, Math.round((METTLE_PRICE * (100 - discount)) / 100));
   const walletBalance = user?.walletAmount ?? 0;
   // Came in with the login/profile response — a link here means they already
   // own a report and should not be charged for another.
@@ -919,8 +928,8 @@ export default function MettleAssessment() {
                     </div>
                   )}
 
-                  {/* Coupon */}
-                  {appliedCoupon ? (
+                  {/* Coupon — never shown to a role the test is free for. */}
+                  {isFreeForRole ? null : appliedCoupon ? (
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, background: "#ecfdf5", border: "1px solid #a7f3d0", borderRadius: 10, padding: "8px 12px", marginBottom: 12 }}>
                       <span style={{ fontSize: 12, color: "#065f46", fontWeight: 700, fontFamily: F }}>
                         {appliedCoupon} applied · {discount}% off
@@ -948,6 +957,12 @@ export default function MettleAssessment() {
                   )}
 
                   {/* What they'll actually be charged */}
+                  {isFreeForRole ? (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13, color: "#475569", marginBottom: 12, fontFamily: F }}>
+                      <span>Your school plan</span>
+                      <span style={{ fontWeight: 800, color: "#047857" }}>Included — free</span>
+                    </div>
+                  ) : (
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13, color: "#475569", marginBottom: 4, fontFamily: F }}>
                     <span>You pay</span>
                     <span style={{ fontWeight: 800, color: "#1e1b4b" }}>
@@ -959,6 +974,7 @@ export default function MettleAssessment() {
                       {payable === 0 ? "Free" : `₹${payable.toLocaleString("en-IN")}`}
                     </span>
                   </div>
+                  )}
                   {payable > 0 && (
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 11.5, color: "#94a3b8", marginBottom: 12, fontFamily: F }}>
                       <span>Wallet balance</span>
