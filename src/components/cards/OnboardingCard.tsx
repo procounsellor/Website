@@ -1,14 +1,76 @@
 import { useState, useEffect } from "react";
 import { Search, Check, ChevronLeft, Loader2, X } from "lucide-react";
-import { getSates, getCoursesOnborading, updateUser } from "@/api/auth";
+import { getSates, getCoursesOnborading, updateUser, schoolStudentSignup } from "@/api/auth";
+import type { SchoolStudentSignupPayload } from "@/api/auth";
+import { SchoolStudentDetailsStep } from "@/components/cards/SchoolStudentSteps";
 import toast from "react-hot-toast";
 import type { CousrseApiLogin, StatesApiResponse } from "@/types";
 import { useAuthStore } from "@/store/AuthStore";
 import { captureLeadFromUser } from "@/api/leads";
+import { isSchoolCourse } from "@/lib/schoolCourse";
+
+/**
+ * A course tile's artwork.
+ *
+ * The backend does not have an image for every course — `ssc_ththth` ships
+ * `imageStorage: null` today — and a bare `<img>` with a null src renders as a
+ * broken-image glyph, which looks like a bug rather than a missing asset. This
+ * draws a mark instead, and it also catches URLs that 404 later via `onError`,
+ * so one dead file in storage can never put a broken icon in the grid.
+ *
+ * School courses get the satchel; everything else gets a book.
+ */
+const CourseIcon = ({ course }: { course: CousrseApiLogin }) => {
+  const [failed, setFailed] = useState(false);
+  const school = isSchoolCourse(course);
+
+  if (course.imageStorage && !failed) {
+    return (
+      <img
+        loading="lazy"
+        decoding="async"
+        src={course.imageStorage}
+        alt=""
+        onError={() => setFailed(true)}
+        className="mb-2 md:mb-4 h-16 w-16 md:h-24 md:w-24 object-contain mx-auto"
+      />
+    );
+  }
+
+  return (
+    <span
+      aria-hidden
+      className="mb-2 md:mb-4 mx-auto flex h-16 w-16 md:h-24 md:w-24 items-center justify-center rounded-2xl"
+      style={{ background: school ? "#EFEAFF" : "#F1F3F8" }}
+    >
+      <svg viewBox="0 0 64 64" className="h-10 w-10 md:h-14 md:w-14" fill="none">
+        {school ? (
+          <>
+            {/* A school building. The satchel this replaced read as a padlock at
+                40px — a roof, a door and two windows is unambiguous at any size. */}
+            <path d="M32 6v6" stroke="#4C2FD3" strokeWidth="3" strokeLinecap="round" />
+            <path d="M32 6l10 3-10 3z" fill="#FA660F" />
+            <path d="M32 14 8 28h48z" fill="#4C2FD3" />
+            <rect x="12" y="28" width="40" height="26" rx="3" fill="#6C4CF1" />
+            <rect x="27" y="38" width="10" height="16" rx="2" fill="#EFEAFF" />
+            <rect x="17" y="34" width="7" height="7" rx="1.5" fill="#EFEAFF" />
+            <rect x="40" y="34" width="7" height="7" rx="1.5" fill="#EFEAFF" />
+          </>
+        ) : (
+          <>
+            <rect x="12" y="14" width="40" height="36" rx="5" fill="#8A93AC" />
+            <rect x="12" y="14" width="14" height="36" rx="5" fill="#6C7690" />
+            <path d="M32 24h14M32 32h14M32 40h10" stroke="#EEF1F7" strokeWidth="3" strokeLinecap="round" />
+          </>
+        )}
+      </svg>
+    </span>
+  );
+};
 
 interface SelectCourseStepProps {
   selectedCourseName: string | null;
-  onCourseSelect: (name: string) => void;
+  onCourseSelect: (course: CousrseApiLogin) => void;
   setNeedsOnboarding: (value: boolean) => void;
   cancelOnboarding: () => void;
 }
@@ -27,7 +89,6 @@ const SelectCourseStep = ({
   const filteredCourses = courses.filter((course) =>
     course.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -106,18 +167,14 @@ const SelectCourseStep = ({
             return (
               <button
                 key={course.courseId}
-                onClick={() => onCourseSelect(course.name)}
+                onClick={() => onCourseSelect(course)}
                 className={`relative transform rounded-xl border p-3 md:p-5 text-center transition-all duration-200 cursor-pointer ${
                   isSelected
                     ? "border-[#FA660F] bg-orange-50 shadow-lg ring-2 ring-[#FA660F] ring-offset-0"
                     : "bg-white hover:shadow-lg border-gray-200"
                 }`}
               >
-                <img loading="lazy" decoding="async"
-                  src={course.imageStorage}
-                  alt={`${course.name} icon`}
-                  className="mb-2 md:mb-4 h-16 w-16 md:h-24 md:w-24 object-contain mx-auto"
-                />
+                <CourseIcon course={course} />
                 <h3
                   className={`text-sm md:text-lg font-bold ${
                     isSelected ? "text-[#FA660F]" : "text-gray-800"
@@ -320,8 +377,18 @@ const SelectStatesStep = ({
   );
 };
 
-const OnboardingCard = ({ onComplete }: { onComplete?: () => void }) => {
-  const [step, setStep] = useState(1);
+type OnboardingStep = "course" | "states" | "schoolStudent";
+
+const OnboardingCard = ({
+  onComplete,
+  onSchoolStudentComplete,
+}: {
+  onComplete?: () => void;
+  onSchoolStudentComplete?: () => void;
+}) => {
+  // Opens straight on the course grid, exactly as it did before the school
+  // student role existed. Picking the SSC tile forks to the school path.
+  const [step, setStep] = useState<OnboardingStep>("course");
   const [selectedCourseName, setSelectedCourseName] = useState<string | null>(
     null
   );
@@ -330,8 +397,10 @@ const OnboardingCard = ({ onComplete }: { onComplete?: () => void }) => {
     userId,
     setNeedsOnboarding,
     tempJwt,
+    tempPhone,
     completeOnboarding,
     cancelOnboarding,
+    completeSchoolStudentSignup,
   } = useAuthStore();
   const token = tempJwt || localStorage.getItem("jwt");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -345,9 +414,21 @@ const OnboardingCard = ({ onComplete }: { onComplete?: () => void }) => {
     };
   }, []);
 
-  const handleCourseSelect = (name: string) => {
-    setSelectedCourseName(name);
-    setTimeout(() => setStep(2), 300);
+  /**
+   * The fork.
+   *
+   * A school course opens the school-student signup and NEVER touches
+   * `selectedCourseName`: that value is the payload for `updateUser`, and a
+   * school student has no `users` row to update — signup deletes it. Leaving it
+   * unset keeps the two paths from sharing any state.
+   */
+  const handleCourseSelect = (course: CousrseApiLogin) => {
+    if (isSchoolCourse(course)) {
+      setStep("schoolStudent");
+      return;
+    }
+    setSelectedCourseName(course.name);
+    setTimeout(() => setStep("states"), 300);
   };
 
   const handleStateSelect = (stateName: string) => {
@@ -359,8 +440,37 @@ const OnboardingCard = ({ onComplete }: { onComplete?: () => void }) => {
   };
 
   const handleGoBack = () => {
-    if (step > 1) {
-      setStep(step - 1);
+    if (step === "states") setStep("course");
+    if (step === "schoolStudent") setStep("course");
+  };
+
+  const handleClose = () => {
+    cancelOnboarding();
+    setNeedsOnboarding(false);
+  };
+
+  /**
+   * The whole school-student path: one call, then the store swaps the temporary
+   * `users` row for the schoolStudent identity. The card unmounts as soon as the
+   * role changes, so navigation is handed back to the layout right after.
+   */
+  const handleSchoolStudentSubmit = async (payload: SchoolStudentSignupPayload) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const response = await schoolStudentSignup(payload);
+      completeSchoolStudentSignup(payload, response);
+      toast.success("Welcome to ProCounsel!");
+      if (onSchoolStudentComplete) {
+        onSchoolStudentComplete();
+      }
+    } catch (err) {
+      console.error("School student signup error:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Failed to create your account"
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -411,11 +521,32 @@ const OnboardingCard = ({ onComplete }: { onComplete?: () => void }) => {
     }
   };
 
+  // The course and states steps are long scrolling grids and want the tallest
+  // dialog they can get. The role question and the school-student form are
+  // short — stretching them to 90vh is what made the role card read as a
+  // near-fullscreen panel holding two buttons, so those size to their content.
+  const isCompactStep = step === "schoolStudent";
+
   return (
     <>
       <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center p-2 md:p-4 z-80">
-        <div className="w-full max-w-4xl rounded-2xl bg-[#F5F7FA] p-4 md:p-8 shadow-lg flex flex-col max-h-[95vh] md:max-h-[90vh] h-full relative">
-          {step === 1 && (
+        <div
+          className={`w-full rounded-2xl bg-[#F5F7FA] shadow-lg flex flex-col relative ${
+            isCompactStep
+              ? "max-w-lg p-5 md:p-7 max-h-[92vh] overflow-y-auto"
+              : "max-w-4xl p-4 md:p-8 max-h-[95vh] md:max-h-[90vh] h-full"
+          }`}
+        >
+          {step === "schoolStudent" && (
+            <SchoolStudentDetailsStep
+              phoneNumber={userId || tempPhone || ""}
+              onBack={handleGoBack}
+              onClose={handleClose}
+              onSubmit={handleSchoolStudentSubmit}
+              isSubmitting={isSubmitting}
+            />
+          )}
+          {step === "course" && (
             <SelectCourseStep
               selectedCourseName={selectedCourseName}
               onCourseSelect={handleCourseSelect}
@@ -423,7 +554,7 @@ const OnboardingCard = ({ onComplete }: { onComplete?: () => void }) => {
               cancelOnboarding={cancelOnboarding}
             />
           )}
-          {step === 2 && (
+          {step === "states" && (
             <SelectStatesStep
               selectedStates={selectedStates}
               onStateSelect={handleStateSelect}

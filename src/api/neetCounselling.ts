@@ -56,10 +56,45 @@ export interface NEETCollege {
   closing_rank: number | null;
   fees: string;
   fee_tracks: NEETFeeTrack[];
-  /** Round-wise closing ranks, e.g. { R1: 37586, R2: 39178 }. */
+  /**
+   * Legacy round-wise closing ranks, e.g. { R1: 37586, R2: 39178 }. Kept by the
+   * API for backward compatibility only — it flattens every year into one map,
+   * so a college with 2025 and 2026 data loses the distinction. Read
+   * `year_wise_rounds` instead; use `yearWiseRounds()` below, which falls back
+   * to these three legacy fields when the new map is absent.
+   */
   rounds: Record<string, number> | null;
+  /** Legacy: round -> year. Superseded by `year_wise_rounds`. */
+  round_years?: Record<string, number> | null;
+  /** Legacy: round -> source slug. Superseded by `year_wise_rounds`. */
+  round_sources?: Record<string, string> | null;
+  /**
+   * The current shape: year -> round -> cutoff, carrying its own provenance.
+   * Values are normally `NEETRoundCutoff`; a bare number is tolerated because
+   * the API has shipped that shorthand too.
+   */
+  year_wise_rounds?: Record<string, Record<string, NEETRoundCutoff | number>> | null;
+  /** The year `closing_rank` came from. */
+  cutoff_year?: number | null;
+  /** Official state/AIQ allotment rows behind the verified cutoffs, if any. */
+  official_cutoffs?: NEETOfficialCutoff[];
   /** Free-text provenance — always ends with the source. Always display it. */
   detail: string;
+}
+
+/** One round's closing rank plus where it came from and how trustworthy it is. */
+export interface NEETRoundCutoff {
+  closing_rank: number | null;
+  /** Slug, e.g. "official_state_cutoff" | "directory_reference". */
+  source?: string;
+  /** Human-readable source, e.g. "State Common Entrance Test Cell, Maharashtra". */
+  source_label?: string;
+  /** true only when parsed from an official counselling document. */
+  verified?: boolean;
+  quota?: string;
+  category?: string;
+  source_url?: string;
+  verification_status?: string;
 }
 
 export interface NEETOfficialCutoff {
@@ -112,7 +147,6 @@ export interface NEETPredictRequest {
   neet_score?: number | null;
   domicile?: string;
   category?: string;
-  gender?: NEETGender;
   /** Free text the API parses, e.g. "60L", "80 lakh", "1 Cr". */
   budget?: string | null;
   counselling?: NEETCounsellingType;
@@ -179,6 +213,38 @@ export async function getNEETColleges(params: {
   };
 }
 
+/**
+ * The whole directory for a filter, paged out.
+ *
+ * `/colleges` validates `limit` as <= 500 and 422s above it, so "give me every
+ * college in India" (822 of them today) is several requests, not one big one.
+ * Used by the PDF download, where a truncated list would be wrong rather than
+ * merely short.
+ */
+export const NEET_COLLEGES_MAX_LIMIT = 500;
+
+export async function getAllNEETColleges(
+  params: { state?: string; college_type?: string; q?: string },
+  hardCap = 5000,
+): Promise<NEETCollegesResponse> {
+  const items: NEETCollege[] = [];
+  let total = 0;
+
+  // Bounded loop — a bad `total` from the API must not spin this forever.
+  for (let page = 0; page < 40; page += 1) {
+    const res = await getNEETColleges({
+      ...params,
+      limit: NEET_COLLEGES_MAX_LIMIT,
+      offset: items.length,
+    });
+    total = res.total;
+    items.push(...res.items);
+    if (!res.items.length || items.length >= total || items.length >= hardCap) break;
+  }
+
+  return { total, limit: items.length, offset: 0, items };
+}
+
 /** Score -> estimated All India Rank. Approximate; the response says so. */
 export async function getEstimatedAIR(score: number): Promise<NEETScoreRankResponse> {
   const { data } = await client.get<NEETScoreRankResponse>("/score-rank", {
@@ -191,14 +257,16 @@ export async function getEstimatedAIR(score: number): Promise<NEETScoreRankRespo
 export async function predictNEETColleges(
   body: NEETPredictRequest,
 ): Promise<NEETPredictResponse> {
+  // `gender` is deliberately not sent. The predictor stopped asking for it, and
+  // defaulting it here would silently filter on a value the student never gave.
+  // The endpoint treats it as optional and returns the same list without it.
   const { data } = await client.post<NEETPredictResponse>("/predict", {
     neet_air: body.neet_air ?? null,
     neet_score: body.neet_score ?? null,
     domicile: body.domicile || "All India",
     category: body.category || "General",
-    gender: body.gender || "Female",
     budget: body.budget || null,
-    counselling: body.counselling || "State quota",
+    counselling: body.counselling || "All types",
     target_type: body.target_type || "All types",
     limit: body.limit ?? 24,
   });
@@ -323,6 +391,104 @@ export function cheapestFee(college: NEETCollege | NEETPredictedCollege): NEETFe
   const withTotals = college.fee_tracks.filter((t) => typeof t.total === "number");
   if (!withTotals.length) return null;
   return withTotals.reduce((a, b) => ((a.total ?? 0) <= (b.total ?? 0) ? a : b));
+}
+
+/* ------------------------------------------------------------------ */
+/*  Year-wise round cutoffs                                            */
+/* ------------------------------------------------------------------ */
+
+/** One round inside one year, normalised for rendering. */
+export interface NEETRoundEntry {
+  /** "R1", "R2", ... exactly as the API labels it. */
+  round: string;
+  closingRank: number | null;
+  /** The full source name, for a tooltip or the source line. */
+  sourceLabel: string | null;
+  verified: boolean;
+  sourceUrl: string | null;
+}
+
+export interface NEETYearCutoffs {
+  year: string;
+  rounds: NEETRoundEntry[];
+}
+
+/** R1 < R2 < ... < R7, with anything unparseable sorted last, alphabetically. */
+function roundOrder(round: string): number {
+  const n = Number(round.replace(/[^0-9]/g, ""));
+  return Number.isFinite(n) && n > 0 ? n : 999;
+}
+
+/** Only an authority's own document counts as verified. */
+const isOfficial = (verified: boolean | undefined, source?: string): boolean =>
+  verified === true || source === "official_state_cutoff" || source === "official_aiq_cutoff";
+
+/**
+ * The one place that reads round-wise cutoffs.
+ *
+ * Prefers `year_wise_rounds`, which is the only field that says *which year* a
+ * round belongs to and whether it came from an official document. Falls back to
+ * the legacy `rounds` / `round_years` / `round_sources` trio for records the API
+ * has not backfilled, and tolerates a bare number where a `NEETRoundCutoff` is
+ * expected — the API ships both shapes.
+ *
+ * Returns newest year first, rounds in order, and skips rounds with no rank at
+ * all rather than printing an em-dash nobody can act on.
+ */
+export function yearWiseRounds(college: NEETCollege): NEETYearCutoffs[] {
+  const out: NEETYearCutoffs[] = [];
+  const yw = college.year_wise_rounds;
+
+  if (yw && Object.keys(yw).length) {
+    for (const [year, byRound] of Object.entries(yw)) {
+      if (!byRound) continue;
+      const rounds: NEETRoundEntry[] = [];
+      for (const [round, raw] of Object.entries(byRound)) {
+        const cut: NEETRoundCutoff =
+          typeof raw === "number" ? { closing_rank: raw } : raw ?? { closing_rank: null };
+        if (typeof cut.closing_rank !== "number") continue;
+        rounds.push({
+          round,
+          closingRank: cut.closing_rank,
+          sourceLabel: cut.source_label ?? null,
+          verified: isOfficial(cut.verified, cut.source),
+          sourceUrl: cut.source_url ?? null,
+        });
+      }
+      if (rounds.length) {
+        rounds.sort((a, b) => roundOrder(a.round) - roundOrder(b.round));
+        out.push({ year, rounds });
+      }
+    }
+    out.sort((a, b) => Number(b.year) - Number(a.year));
+    return out;
+  }
+
+  // Legacy fallback — one flat round map, with the year (if any) alongside.
+  if (!college.rounds) return [];
+  const byYear = new Map<string, NEETRoundEntry[]>();
+  for (const [round, rank] of Object.entries(college.rounds)) {
+    if (typeof rank !== "number") continue;
+    const year = String(
+      college.round_years?.[round] ?? college.cutoff_year ?? "",
+    );
+    const list = byYear.get(year) ?? [];
+    list.push({
+      round,
+      closingRank: rank,
+      sourceLabel: null,
+      verified: isOfficial(undefined, college.round_sources?.[round]),
+      sourceUrl: null,
+    });
+    byYear.set(year, list);
+  }
+
+  for (const [year, rounds] of byYear) {
+    rounds.sort((a, b) => roundOrder(a.round) - roundOrder(b.round));
+    out.push({ year, rounds });
+  }
+  out.sort((a, b) => Number(b.year || 0) - Number(a.year || 0));
+  return out;
 }
 
 /**

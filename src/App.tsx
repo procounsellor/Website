@@ -26,6 +26,34 @@ const queryClient = new QueryClient({
 
 const ANALYTICS_API = "https://college-search-api.vercel.app";
 
+// Hostnames whose traffic is real. Anything else — localhost, a LAN IP from
+// `vite --host`, a *.vercel.app preview — is us, not a visitor.
+const TRACKED_HOSTS = ["procounsel.co.in", "www.procounsel.co.in"];
+
+/**
+ * Should this page view reach the referrer analytics?
+ *
+ * Three ways the numbers used to be inflated, all of them by us:
+ *   - `npm run dev` / `npm run preview`, every reload counting as a visit;
+ *   - Vercel preview deployments on *.vercel.app;
+ *   - the build-time prerender, which loads all ~240 pages in a headless
+ *     Chrome (react-snap blocks third-party requests today, so this one is
+ *     belt-and-braces — but it would come straight back if that flag changed).
+ *
+ * Local first-touch attribution still runs everywhere: it only writes to this
+ * browser's storage, so it cannot skew a dashboard, and keeping it on means the
+ * lead-source flow is testable in dev.
+ */
+function isRealVisit(): boolean {
+  if (!import.meta.env.PROD) return false;
+  if (typeof window === "undefined" || typeof navigator === "undefined") return false;
+  if (!TRACKED_HOSTS.includes(window.location.hostname)) return false;
+  // Puppeteer (react-snap) and other automation set this.
+  if (navigator.webdriver) return false;
+  if (/HeadlessChrome|ReactSnap|Prerender/i.test(navigator.userAgent)) return false;
+  return true;
+}
+
 function useVisitorTracking() {
   useEffect(() => {
     const referrer = document.referrer;
@@ -58,11 +86,22 @@ function useVisitorTracking() {
     }
 
     const utms = Object.fromEntries(new URLSearchParams(window.location.search));
-    console.log("[ProCounsel] Visitor source:", source, detail ? `(${detail})` : "");
-    console.log("[ProCounsel] Landing page:", window.location.pathname);
 
-    // Persist first-touch source so captureLead can use it after login
+    // Persist first-touch source so captureLead can use it after login.
+    // Local-only, so it runs on every environment.
     persistVisitSource(source, utms["utm_source"] || "", window.location.pathname);
+
+    if (!isRealVisit()) {
+      if (import.meta.env.DEV) {
+        console.log(
+          "[ProCounsel] Visitor source:",
+          source,
+          detail ? `(${detail})` : "",
+          "— not reported (development)",
+        );
+      }
+      return;
+    }
 
     // Fire-and-forget — never blocks the page
     fetch(`${ANALYTICS_API}/track-referrer`, {

@@ -586,9 +586,9 @@ export default function Admissions() {
                 </div>
               </motion.div>
 
-              {/* Rank Predictor Card */}
+              {/* NEET College Predictor Card */}
               <motion.div
-                onClick={() => navigate('/neet-rank-predictor')}
+                onClick={() => navigate('/neet-college-predictor')}
                 initial={{ opacity: 0, y: 10, scale: 0.98 }}
                 animate={cardAnimate}
                 transition={{ ...cardTransition, delay: 0.38 }}
@@ -602,13 +602,13 @@ export default function Admissions() {
                   loading="lazy"
                   decoding="async"
                   src="/ranking-1.png"
-                  alt="NEET Rank Predictor"
+                  alt="NEET College Predictor"
                   className="absolute -bottom-4 -right-4 w-28 h-28 object-contain opacity-20 pointer-events-none"
                 />
                 <div className="absolute top-6 left-1/2 -translate-x-1/2 text-center text-white w-[195px]">
                   <p className="text-[24px] font-semibold font-['Poppins'] mb-2">NEET Predictor</p>
                   <p className="text-[14px] font-['Poppins']">
-                    Estimate your NEET rank and discover the colleges within your reach.
+                    Find the MBBS colleges your NEET rank can actually get, with round-wise cutoffs.
                   </p>
                 </div>
               </motion.div>

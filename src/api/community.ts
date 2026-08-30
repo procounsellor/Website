@@ -87,43 +87,78 @@ export async function getCommunityDashboard(
   }
 }
 
+/** Thrown when the backend says the question itself does not exist. */
+export class QuestionNotFoundError extends Error {
+  constructor(message = 'Question not found') {
+    super(message);
+    this.name = 'QuestionNotFoundError';
+  }
+}
+
+/**
+ * Question detail — the one community view a logged-out visitor can reach.
+ *
+ * Every /api/community/** route is behind the JWT filter and answers 401 to an
+ * anonymous request, which is why opening a question while logged out (or with
+ * a token the backend will not accept) failed. `/api/shared/` carries an
+ * unauthenticated twin of exactly this one endpoint, so the caller is routed by
+ * whether it actually has a token.
+ *
+ * Both twins answer HTTP 500 for "Question not found" with the verdict in the
+ * body, so success is decided by `status`, never by `response.ok`.
+ */
 export async function getAllAnswersForSpecificQuestion(
   questionId: string,
   loggedInUserId?: string,
   token?: string,
   role: string = 'user'
 ): Promise<GetAllAnswersResponse> {
+  const hasToken = Boolean(token && token.trim());
+  const endpoint = hasToken
+    ? API_CONFIG.endpoints.getAllAnswersForQuestion
+    : API_CONFIG.endpoints.getAllAnswersForQuestionPublic;
+
   try {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
+    if (hasToken) headers['Authorization'] = `Bearer ${token}`;
 
     const body: Record<string, string> = {
       questionId,
       role,
     };
-    if (loggedInUserId) body.loggedInUserId = loggedInUserId;
+    // A guest has no id to personalise "did I bookmark this" with, and sending
+    // one without a token is what the shared endpoint rejects.
+    if (hasToken && loggedInUserId) body.loggedInUserId = loggedInUserId;
 
-    const response = await fetch(
-      `${baseUrl}${API_CONFIG.endpoints.getAllAnswersForQuestion}`,
-      {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(body),
-      }
-    );
+    const response = await fetch(`${baseUrl}${endpoint}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
 
-    if (!response.ok) {
-      const errorBody = await response.text();
-      throw new Error(
-        `HTTP ${response.status}: Failed to fetch answers. Details: ${errorBody}`
-      );
+    const raw = await response.text();
+    let data: GetAllAnswersResponse | null = null;
+    try {
+      data = JSON.parse(raw) as GetAllAnswersResponse;
+    } catch {
+      data = null;
     }
 
-    const data = await response.json();
-    return data;
+    if (data && String(data.status).toLowerCase() === 'success') {
+      return data;
+    }
+
+    const message = (data as { message?: string } | null)?.message?.trim();
+    if (message && /not found/i.test(message)) {
+      throw new QuestionNotFoundError(message);
+    }
+
+    throw new Error(
+      message || `HTTP ${response.status}: Failed to fetch answers.`
+    );
   } catch (error) {
     console.error('Get All Answers Error:', error);
     throw error;

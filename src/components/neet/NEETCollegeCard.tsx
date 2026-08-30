@@ -1,9 +1,8 @@
 import { Building2, MapPin, Users, CalendarDays, IndianRupee } from "lucide-react";
+import NEETRoundCutoffs from "@/components/neet/NEETRoundCutoffs";
 import {
   chanceToneClasses,
   cheapestFee,
-  formatRank,
-  splitDetail,
   type NEETCollege,
   type NEETPredictedCollege,
 } from "@/api/neetCounselling";
@@ -14,9 +13,9 @@ import {
  * bar and the "why" line; everything else renders identically so the two
  * lists read as one product.
  *
- * The `detail` string always ends with the data's source and is always shown.
- * These are scraped cutoffs the API itself labels "verify before use", so
- * presenting them without provenance would overstate what we know.
+ * Provenance is not repeated per card — it crowded out the numbers. The source
+ * of a verified round is on hover, and the page carries the standing "compiled
+ * from public sources, verify before acting" note under the list.
  */
 
 const TYPE_STYLES: Record<string, string> = {
@@ -36,8 +35,6 @@ export default function NEETCollegeCard({
 }) {
   const predicted = isPredicted(college) ? college : null;
   const fee = cheapestFee(college);
-  const { body, source } = splitDetail(college.detail || "");
-  const rounds = college.rounds ? Object.entries(college.rounds) : [];
   const typeClass = TYPE_STYLES[college.type] ?? "bg-slate-100 text-slate-600 ring-slate-200";
 
   return (
@@ -133,31 +130,7 @@ export default function NEETCollegeCard({
         )}
       </dl>
 
-      {/* Cutoffs */}
-      {(college.closing_rank !== null || rounds.length > 0) && (
-        <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          {college.closing_rank !== null && (
-            <p className="text-[12px] text-slate-700">
-              Closing rank{" "}
-              <span className="font-semibold tabular-nums">
-                {formatRank(college.closing_rank)}
-              </span>
-            </p>
-          )}
-          {rounds.length > 0 && (
-            <ul className="flex flex-wrap gap-x-2.5 gap-y-1">
-              {rounds.map(([round, rank]) => (
-                <li key={round} className="text-[11.5px] text-slate-500">
-                  {round}{" "}
-                  <span className="font-medium tabular-nums text-slate-700">
-                    {formatRank(rank)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+      <NEETRoundCutoffs college={college} className="mt-2.5" />
 
       {/* Why this came up */}
       {predicted?.why && (
@@ -169,29 +142,6 @@ export default function NEETCollegeCard({
         <p className="mt-2 text-[12px] text-slate-600">{college.fees}</p>
       )}
 
-      {/* Provenance — always present, deliberately quiet */}
-      <details className="group mt-2">
-        <summary className="cursor-pointer list-none text-[11px] text-slate-400 hover:text-slate-600">
-          Source &amp; details
-        </summary>
-        {body && <p className="mt-1 text-[11px] leading-relaxed text-slate-500">{body}</p>}
-        {source && (
-          <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
-            {predicted?.official_cutoff?.sourceUrl ? (
-              <a
-                href={predicted.official_cutoff.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-                className="underline decoration-slate-300 underline-offset-2 hover:text-slate-600"
-              >
-                {source}
-              </a>
-            ) : (
-              source
-            )}
-          </p>
-        )}
-      </details>
     </article>
   );
 }

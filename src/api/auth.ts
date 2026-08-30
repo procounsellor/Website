@@ -248,3 +248,70 @@ export async function checkUrl(phone:string , token:string){
         throw(error)
     }
 }
+/**
+ * School-student signup (the fifth role, alongside user / counsellor /
+ * proBuddy / admin).
+ *
+ * Call this ONLY after `verifyOtp` succeeded for a phone that has not finished
+ * normal user onboarding — the backend refuses to convert a completed user, a
+ * counsellor or a ProBuddy. Later logins go back through `verifyOtp`, which
+ * then answers `role: "schoolStudent"`; this endpoint is never called twice.
+ *
+ * Like proBuddySignup, the backend answers HTTP 200 even for business errors
+ * (a thrown exception is a 400), and puts the verdict in the body — so success
+ * is decided by `role` + `jwtToken`, never by `response.ok`.
+ */
+export type SchoolStudentSignupPayload = {
+  phoneNumber: string;
+  firstName: string;
+  lastName: string;
+  school: string;
+  className: string;
+};
+
+export type SchoolStudentSignupResponse = {
+  role?: string;
+  isUser?: boolean | string;
+  userId?: string;
+  jwtToken?: string;
+  firebaseCustomToken?: string;
+  message?: string;
+  statusCode?: string;
+};
+
+export async function schoolStudentSignup(
+  payload: SchoolStudentSignupPayload
+): Promise<SchoolStudentSignupResponse> {
+  try {
+    const response = await fetch(`${baseUrl}/api/auth/schoolStudentSignup`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const raw = await response.text();
+    let data: SchoolStudentSignupResponse | null = null;
+    try {
+      data = JSON.parse(raw) as SchoolStudentSignupResponse;
+    } catch {
+      data = null;
+    }
+
+    if (!data || typeof data !== 'object') {
+      throw new Error(raw?.trim() || `HTTP ${response.status}: School student signup failed`);
+    }
+
+    const isSchoolStudent = String(data.role ?? '').trim().toLowerCase() === 'schoolstudent';
+    if (!isSchoolStudent || !data.jwtToken) {
+      throw new Error(data.message?.trim() || `HTTP ${response.status}: School student signup failed`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error('School Student Signup Error:', error);
+    throw error;
+  }
+}

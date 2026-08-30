@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Loader2, Lock, Search, Sparkles, Stethoscope } from "lucide-react";
+import { Download, Loader2, Lock, Search, Sparkles, Stethoscope } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
@@ -15,43 +15,47 @@ import {
 import PageSEO from "@/components/SEO/PageSEO";
 import IndiaStateMap from "@/components/neet/IndiaStateMap";
 import NEETCollegeCard from "@/components/neet/NEETCollegeCard";
-import NEETCollegePicker from "@/components/neet/NEETCollegePicker";
 import OtherPredictors from "@/components/predictors/OtherPredictors";
 import CounsellingCTA from "@/components/predictors/CounsellingCTA";
 import { useAuthStore } from "@/store/AuthStore";
 import { persistPredictorSearch } from "@/lib/predictorIntent";
 import {
+  buildCollegeListPdf,
+  collegeListFileName,
+  predictionFileName,
+} from "@/lib/neetCollegePdf";
+import {
+  getAllNEETColleges,
   getNEETColleges,
   getNEETStates,
   predictNEETColleges,
-  checkTargetCollege,
-  chanceToneClasses,
   formatRank,
   NEET_CATEGORIES,
   NEET_COLLEGE_TYPES,
-  NEET_COUNSELLING_TYPES,
-  NEET_GENDERS,
   NEET_TARGET_TYPES,
-  type NEETCollege,
-  type NEETCounsellingType,
-  type NEETGender,
   type NEETTargetType,
 } from "@/api/neetCounselling";
 
 /**
  * NEET predictor — /neet-college-predictor
  *
- * Two tabs, gated differently:
+ * Two tabs. The predictor leads, because it is what the page is for and what
+ * inbound traffic arrives wanting; the directory sits behind it as the browse
+ * option. Both are gated the same way — the result loads for everyone and part
+ * of it renders behind a lock, because leads are the point of the page:
  *
- *   1. "Colleges by state" is PUBLIC. Someone who just got their result should
- *      be able to browse a state's medical colleges without an account.
- *   2. The prediction RUNS for everyone, but the results render behind a lock
- *      for signed-out visitors. Refusing to compute until login loses people at
- *      the worst moment; computing first and locking the result means the
- *      answer is already sitting there when they sign in. The search is
- *      persisted before the gate (predictorIntent.ts), so the lead created at
- *      login carries what they were looking for, and nothing re-runs after —
- *      the mutation's data survives the auth change.
+ *   1. The prediction RUNS for everyone, and the first few matches render in
+ *      the clear. Refusing to compute until login loses people at the worst
+ *      moment, and a wholly blurred list reads as a paywall over nothing —
+ *      showing real colleges first proves the answer exists, and the rest is
+ *      what signing in buys. The search is persisted before the gate
+ *      (predictorIntent.ts), so the lead created at login carries what they
+ *      were looking for, and nothing re-runs after — the mutation's data
+ *      survives the auth change.
+ *   2. "Colleges by state" fetches the directory (a state's, or all of India
+ *      when no state is picked) and blurs it for signed-out visitors, so they
+ *      can see a real result is sitting there. The whole list, unblurred and as
+ *      a branded PDF, is what logging in buys.
  *
  * All three endpoints go through React Query, so the state list and each
  * state's directory are cached and deduped instead of refetched per tab switch.
@@ -63,14 +67,23 @@ import {
 
 const ACCENT = "#059669";
 const RESULTS_PAGE_SIZE = 8;
-const DEFAULT_STATE = "Maharashtra";
+/**
+ * Matches shown in the clear to a signed-out visitor before the lock. Enough to
+ * prove the list is real and specific to their rank; few enough that the rest
+ * is still worth signing in for.
+ */
+const FREE_PREVIEW = 3;
+/** Rows rendered in the on-page list. The PDF fetches the lot separately. */
+const DIRECTORY_LIMIT = 300;
+/** Sentinel for the state <Select>; the query treats it as "no state filter". */
+const ALL_INDIA = "__all_india__";
 const SITE = "https://procounsel.co.in";
 const SHELL_MAX = "max-w-[1400px]";
 const SHELL = `mx-auto w-full ${SHELL_MAX} px-4 md:px-8`;
 
 export default function NEETPredictor() {
   const { isAuthenticated, toggleLogin } = useAuthStore();
-  const [tab, setTab] = useState<"colleges" | "predict">("colleges");
+  const [tab, setTab] = useState<"predict" | "colleges">("predict");
 
   /* ---------------- state directory (public) ---------------- */
 
@@ -84,11 +97,6 @@ export default function NEETPredictor() {
     queryFn: getNEETStates,
     staleTime: Infinity,
   });
-
-  useEffect(() => {
-    if (selectedState || !states.length) return;
-    setSelectedState(states.includes(DEFAULT_STATE) ? DEFAULT_STATE : states[0]);
-  }, [states, selectedState]);
 
   // Debounced so typing does not fire a request per keystroke.
   useEffect(() => {
@@ -107,13 +115,18 @@ export default function NEETPredictor() {
         state: selectedState ?? undefined,
         college_type: typeFilter === "All types" ? undefined : typeFilter,
         q: debouncedQuery || undefined,
-        limit: 200,
+        limit: DIRECTORY_LIMIT,
       }),
-    enabled: Boolean(selectedState),
     staleTime: 5 * 60 * 1000,
   });
 
   const colleges = directory?.items ?? [];
+
+  /** Directory rows held back behind the lock for a signed-out visitor. */
+  const lockedDirectoryCount = Math.max(
+    (directory?.total ?? colleges.length) - FREE_PREVIEW,
+    0,
+  );
 
   const handleSelectState = useCallback((state: string) => {
     setSelectedState(state);
@@ -127,28 +140,147 @@ export default function NEETPredictor() {
     [selectedState, directory],
   );
 
+  /* ---------------- college-list PDF (login-gated) ---------------- */
+
+  const [pdfBusy, setPdfBusy] = useState(false);
+
+  /**
+   * Refetches the list with the cap lifted — the on-page list is capped at
+   * DIRECTORY_LIMIT rows for render cost, but the download is meant to be the
+   * complete thing, all of India included.
+   */
+  const downloadCollegeList = useCallback(async () => {
+    setPdfBusy(true);
+    try {
+      // Paged internally — the API caps `limit` at 500 and 422s above it, so
+      // "every college in India" is several requests.
+      const full = await getAllNEETColleges({
+        state: selectedState ?? undefined,
+        college_type: typeFilter === "All types" ? undefined : typeFilter,
+        q: debouncedQuery || undefined,
+      });
+
+      if (!full.items.length) {
+        toast.error("Nothing to download for these filters.");
+        return;
+      }
+
+      // jsPDF is heavy and only this one button needs it.
+      const { jsPDF } = await import("jspdf");
+      const pdf = buildCollegeListPdf(
+        new jsPDF({ unit: "pt", format: "a4", orientation: "landscape" }),
+        full.items,
+        {
+          state: selectedState,
+          collegeType: typeFilter,
+          query: debouncedQuery,
+          total: full.total,
+        },
+      );
+      pdf.save(collegeListFileName(selectedState, typeFilter));
+      toast.success("Your college list PDF is downloading.");
+    } catch {
+      toast.error("Could not build the PDF just now. Please try again.");
+    } finally {
+      setPdfBusy(false);
+    }
+  }, [selectedState, typeFilter, debouncedQuery]);
+
+  /**
+   * The gate. The search is persisted first so the lead captured at login
+   * carries what they were looking at, and the download is handed to
+   * `toggleLogin` as its success callback — so signing in delivers the file
+   * without the student having to find the button again.
+   */
+  const handleDownloadClick = () => {
+    persistPredictorSearch({
+      exam: "NEET",
+      tool: "College List PDF",
+      summary: [
+        selectedState ?? "All India",
+        typeFilter !== "All types" ? typeFilter : null,
+        debouncedQuery || null,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+    });
+
+    if (!isAuthenticated) {
+      toast("Log in and the PDF downloads straight away.", { icon: "🔒" });
+      toggleLogin(() => {
+        void downloadCollegeList();
+      });
+      return;
+    }
+    void downloadCollegeList();
+  };
+
   /* ---------------- prediction ---------------- */
 
   const [air, setAir] = useState("");
   const [score, setScore] = useState("");
   const [domicile, setDomicile] = useState("All India");
   const [category, setCategory] = useState<string>("General");
-  const [gender, setGender] = useState<NEETGender>("Female");
-  const [counselling, setCounselling] = useState<NEETCounsellingType>("State quota");
   const [targetType, setTargetType] = useState<NEETTargetType>("All types");
-  const [budget, setBudget] = useState("");
   const [shownResults, setShownResults] = useState(RESULTS_PAGE_SIZE);
 
-  const [target, setTarget] = useState<NEETCollege | null>(null);
+  /**
+   * Scrolled to the moment a prediction is requested, so the student sees the
+   * skeleton rather than a page that looks unchanged.
+   */
+  const resultsRef = useRef<HTMLElement | null>(null);
+  /**
+   * Scrolled to again once the matches actually render. The card grows when the
+   * results land, so a scroll fired at submit time leaves the colleges below
+   * the fold — this one puts the cards themselves on screen.
+   */
+  const matchesRef = useRef<HTMLDivElement | null>(null);
 
   const predict = useMutation({ mutationFn: predictNEETColleges });
   const prediction = predict.data ?? null;
 
-  // The dream-college check. Separate from the main prediction because it
-  // answers a different question ("can I get into THIS one?") and a student
-  // often wants only that.
-  const targetCheck = useMutation({ mutationFn: checkTargetCollege });
-  const targetResult = targetCheck.data ?? null;
+  /** Matches held back behind the lock for a signed-out visitor. */
+  const lockedCount = Math.max((prediction?.items.length ?? 0) - FREE_PREVIEW, 0);
+
+  /**
+   * The matched list as a PDF. Nothing is refetched — the prediction already
+   * sits in the mutation, so this is the same result they are looking at.
+   */
+  const downloadPrediction = useCallback(async () => {
+    if (!prediction?.items.length) return;
+    setPdfBusy(true);
+    try {
+      const { jsPDF } = await import("jspdf");
+      const pdf = buildCollegeListPdf(
+        new jsPDF({ unit: "pt", format: "a4", orientation: "landscape" }),
+        prediction.items,
+        {
+          state: null,
+          mode: "prediction",
+          subtitle: `${prediction.rank_label} ${formatRank(prediction.rank_used)}`,
+          collegeType: targetType,
+          total: prediction.items.length,
+        },
+      );
+      pdf.save(predictionFileName(prediction.rank_label, prediction.rank_used));
+      toast.success("Your prediction PDF is downloading.");
+    } catch {
+      toast.error("Could not build the PDF just now. Please try again.");
+    } finally {
+      setPdfBusy(false);
+    }
+  }, [prediction, targetType]);
+
+  const handlePredictionDownload = () => {
+    if (!isAuthenticated) {
+      toast("Log in and the PDF downloads straight away.", { icon: "🔒" });
+      toggleLogin(() => {
+        void downloadPrediction();
+      });
+      return;
+    }
+    void downloadPrediction();
+  };
 
   const domicileOptions = useMemo(() => ["All India", ...states], [states]);
 
@@ -181,9 +313,7 @@ export default function NEETPredictor() {
         airValue !== null ? `AIR ${airValue}` : `${scoreValue}/720 marks`,
         category,
         domicile,
-        counselling,
         targetType !== "All types" ? targetType : null,
-        budget.trim() ? `budget ${budget.trim()}` : null,
       ]
         .filter(Boolean)
         .join(" · "),
@@ -191,22 +321,12 @@ export default function NEETPredictor() {
 
     setShownResults(RESULTS_PAGE_SIZE);
 
-    if (target) {
-      targetCheck.mutate({
-        college_name: target.name,
-        target_state: target.state || null,
-        neet_air: airValue,
-        neet_score: airValue === null ? scoreValue : null,
-        domicile,
-        category,
-        gender,
-        budget: budget.trim() || null,
-        counselling,
-        target_type: targetType,
-      });
-    } else {
-      targetCheck.reset();
-    }
+    // Move to the results card now rather than on success: the skeleton is
+    // already rendering there, so the student watches the answer arrive instead
+    // of wondering whether the button did anything.
+    requestAnimationFrame(() => {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
 
     predict.mutate(
       {
@@ -214,16 +334,24 @@ export default function NEETPredictor() {
         neet_score: airValue === null ? scoreValue : null,
         domicile,
         category,
-        gender,
-        budget: budget.trim() || null,
-        counselling,
+        // Counselling is no longer asked for — the widest option is the honest
+        // default, since narrowing it silently drops colleges the student
+        // never chose to exclude.
+        counselling: "All types",
         target_type: targetType,
         limit: 40,
       },
       {
         onSuccess: (res) => {
+          // After paint, so the grown card is measured before we scroll to it.
+          requestAnimationFrame(() => {
+            (matchesRef.current ?? resultsRef.current)?.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          });
           if (!res.items.length) {
-            toast("No colleges matched. Try a wider counselling type or target.", {
+            toast("No colleges matched. Try a different college type or domicile.", {
               icon: "🔍",
             });
           }
@@ -294,8 +422,8 @@ export default function NEETPredictor() {
           >
             {(
               [
-                { id: "colleges", label: "Colleges by state" },
                 { id: "predict", label: "Predict my colleges" },
+                { id: "colleges", label: "Colleges by state" },
               ] as const
             ).map((t) => (
               <button
@@ -318,13 +446,41 @@ export default function NEETPredictor() {
         {tab === "colleges" && (
           <section className={`${SHELL} mt-6`}>
             <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 md:p-8">
-              <div>
-                <h2 className="font-[Poppins] text-[20px] font-semibold text-[#0E1629] md:text-[26px]">
-                  Explore colleges by state
-                </h2>
-                <p className="mt-1.5 max-w-2xl text-[14px] text-slate-600">
-                  Click any state to open its medical college directory. No login needed.
-                </p>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h2 className="font-[Poppins] text-[20px] font-semibold text-[#0E1629] md:text-[26px]">
+                    Explore colleges by state
+                  </h2>
+                  <p className="mt-1.5 max-w-2xl text-[14px] text-slate-600">
+                    Click any state to open its medical college directory, or leave the state
+                    blank to browse every MBBS &amp; BDS college in India — then download the whole
+                    list as a PDF.
+                  </p>
+                </div>
+
+                {/* The download is the reason to sign in, so it sits at the top
+                    of the card rather than under a 300-row scroller. */}
+                <Button
+                  onClick={handleDownloadClick}
+                  disabled={pdfBusy}
+                  className="h-11 shrink-0 cursor-pointer rounded-xl px-5 text-[14px] font-semibold text-white hover:opacity-95"
+                  style={{ backgroundColor: ACCENT }}
+                >
+                  {pdfBusy ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden /> Building PDF…
+                    </>
+                  ) : (
+                    <>
+                      {isAuthenticated ? (
+                        <Download className="mr-2 h-4 w-4" aria-hidden />
+                      ) : (
+                        <Lock className="mr-2 h-4 w-4" aria-hidden />
+                      )}
+                      Download {selectedState ?? "all-India"} list (PDF)
+                    </>
+                  )}
+                </Button>
               </div>
 
               <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,.95fr)_minmax(0,1.05fr)] lg:items-stretch">
@@ -353,6 +509,24 @@ export default function NEETPredictor() {
                         className={`${inputClass} pl-9`}
                       />
                     </div>
+                    {/* Blank state = All India. The map cannot express "no
+                        state", so the select is the only way back out of one. */}
+                    <Select
+                      value={selectedState ?? ALL_INDIA}
+                      onValueChange={(v) => setSelectedState(v === ALL_INDIA ? null : v)}
+                    >
+                      <SelectTrigger className={`${selectClass} sm:w-[170px]`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        <SelectItem value={ALL_INDIA}>All India</SelectItem>
+                        {states.map((st) => (
+                          <SelectItem key={st} value={st}>
+                            {st}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <Select value={typeFilter} onValueChange={setTypeFilter}>
                       <SelectTrigger className={`${selectClass} sm:w-[150px]`}>
                         <SelectValue />
@@ -386,20 +560,91 @@ export default function NEETPredictor() {
                         </div>
                       </div>
                     ) : (
-                      <div className="max-h-[calc(100vh-320px)] min-h-[320px] overflow-y-auto rounded-2xl border border-slate-100 bg-slate-50/60 p-3 [scrollbar-width:thin]">
+                      <div
+                        className={`min-h-[320px] rounded-2xl border border-slate-100 bg-slate-50/60 p-3 ${
+                          isAuthenticated
+                            ? "max-h-[calc(100vh-320px)] overflow-y-auto [scrollbar-width:thin]"
+                            : ""
+                        }`}
+                      >
+                        {/* The first few read in the clear, same as the
+                            predictor's results: real college names prove the
+                            directory is there, and the lock then sits on
+                            something the visitor can already see the value of.
+                            A wholly blurred list reads as a paywall over
+                            nothing. */}
                         <div className="flex flex-col gap-3">
-                          {colleges.map((c, i) => (
-                            <NEETCollegeCard key={`${c.name}-${i}`} college={c} />
-                          ))}
+                          {colleges
+                            .slice(0, isAuthenticated ? colleges.length : FREE_PREVIEW)
+                            .map((c, i) => (
+                              <NEETCollegeCard key={`${c.name}-${i}`} college={c} />
+                            ))}
                         </div>
-                        {colleges.length > 6 && (
-                          <p className="pt-3 text-center text-[12px] text-slate-400">
-                            {colleges.length} colleges · scroll for more
-                          </p>
-                        )}
+
+                        {isAuthenticated ? (
+                          colleges.length > 6 && (
+                            <p className="pt-3 text-center text-[12px] text-slate-400">
+                              Showing {colleges.length} of {directory?.total ?? colleges.length}{" "}
+                              colleges · scroll for more
+                            </p>
+                          )
+                        ) : lockedDirectoryCount > 0 ? (
+                          <div className="relative mt-3">
+                            <div
+                              className="pointer-events-none select-none blur-[6px]"
+                              aria-hidden
+                            >
+                              <div className="flex flex-col gap-3">
+                                {colleges.slice(FREE_PREVIEW, FREE_PREVIEW + 4).map((c, i) => (
+                                  <NEETCollegeCard key={`locked-${c.name}-${i}`} college={c} />
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-white/70 px-6 text-center backdrop-blur-[1px]">
+                              <Lock className="h-9 w-9" style={{ color: ACCENT }} aria-hidden />
+                              <p className="mt-3 text-[16px] font-semibold text-slate-800">
+                                {lockedDirectoryCount} more{" "}
+                                {selectedState ? `in ${selectedState}` : "across India"}
+                              </p>
+                              <p className="mt-1 max-w-sm text-[13px] text-slate-600">
+                                You are seeing the first {FREE_PREVIEW}. Log in to read the whole
+                                list — seats, fees and closing ranks on every college — and to
+                                download it as a ProCounsel PDF.
+                              </p>
+                              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                                <Button
+                                  onClick={() => toggleLogin()}
+                                  className="cursor-pointer rounded-xl px-7 py-2.5 font-semibold text-white hover:opacity-95"
+                                  style={{ backgroundColor: ACCENT }}
+                                >
+                                  Log in to view
+                                </Button>
+                                <Button
+                                  onClick={handleDownloadClick}
+                                  variant="outline"
+                                  className="cursor-pointer rounded-xl border-emerald-200 px-5 py-2.5 font-semibold text-emerald-700 hover:bg-emerald-50"
+                                >
+                                  <Download className="mr-2 h-4 w-4" aria-hidden />
+                                  Get the PDF
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ) : null}
                       </div>
                     )}
                   </div>
+
+                  {/* Standing provenance note. The per-card source line was
+                      removed because it buried the numbers, so the caveat lives
+                      here instead — it must not disappear entirely. */}
+                  <p className="mt-4 text-[12px] leading-relaxed text-slate-500">
+                    Seats, fees and round-wise closing ranks are compiled from public counselling
+                    sources and are indicative only. Ranks shown in green are parsed from a
+                    counselling authority&rsquo;s own document; hover any rank to see its source.
+                    Verify every figure against the official authority before acting on it.
+                  </p>
                 </div>
               </div>
             </div>
@@ -419,7 +664,7 @@ export default function NEETPredictor() {
                   marked <span aria-hidden>*</span> are required.
                 </p>
 
-                <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <Field label="NEET AIR *" hint="More accurate when available">
                     <input
                       type="number"
@@ -476,39 +721,6 @@ export default function NEETPredictor() {
                     </Select>
                   </Field>
 
-                  <Field label="Gender" hint="Some seats are reserved by gender">
-                    <Select value={gender} onValueChange={(v) => setGender(v as NEETGender)}>
-                      <SelectTrigger className={selectClass}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {NEET_GENDERS.map((g) => (
-                          <SelectItem key={g} value={g}>
-                            {g}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-
-                  <Field label="Counselling">
-                    <Select
-                      value={counselling}
-                      onValueChange={(v) => setCounselling(v as NEETCounsellingType)}
-                    >
-                      <SelectTrigger className={selectClass}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {NEET_COUNSELLING_TYPES.map((c) => (
-                          <SelectItem key={c} value={c}>
-                            {c}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-
                   <Field label="College type">
                     <Select
                       value={targetType}
@@ -527,36 +739,17 @@ export default function NEETPredictor() {
                     </Select>
                   </Field>
 
-                  <Field label="Budget" hint="Total, e.g. 60L or 1 Cr">
-                    <input
-                      type="text"
-                      value={budget}
-                      onChange={(e) => setBudget(e.target.value)}
-                      placeholder="Optional"
-                      className={inputClass}
-                    />
-                  </Field>
-
-                  {/* Two columns wide — college names are long and a picker
-                      squeezed into one column truncates every option. */}
-                  <div className="sm:col-span-2">
-                    <span className="mb-1.5 block text-[13px] font-medium text-slate-700">
-                      Target college
+                  {/* The invisible label spacer matches the real labels'
+                      metrics, so the button's top edge lines up with every
+                      input on the row rather than sitting a label's height
+                      low. */}
+                  <div className="flex flex-col">
+                    <span
+                      aria-hidden
+                      className="mb-1.5 block text-[13px] font-medium leading-normal"
+                    >
+                      &nbsp;
                     </span>
-                    <NEETCollegePicker
-                      value={target}
-                      onChange={setTarget}
-                      state={domicile}
-                      placeholder="Optional — pick a dream college to check reach"
-                    />
-                    <span className="mt-1 block text-[11.5px] text-slate-400">
-                      Checked against your rank alongside the full list
-                    </span>
-                  </div>
-
-                  {/* Sits in the grid right after Budget, aligned with the
-                      inputs rather than the labels. */}
-                  <div className="flex items-end">
                     <Button
                       onClick={runPrediction}
                       disabled={predict.isPending}
@@ -578,60 +771,37 @@ export default function NEETPredictor() {
               </div>
             </section>
 
-            <section className={`${SHELL} mt-5`}>
+            <section ref={resultsRef} className={`${SHELL} mt-5 scroll-mt-[76px] md:scroll-mt-[120px]`}>
               <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 md:p-8">
-                <h2 className="font-[Poppins] text-[18px] font-semibold text-[#0E1629] md:text-[22px]">
-                  Matched colleges
-                </h2>
-
-                {/* Dream-college verdict. Shown above the list because it is
-                    usually the question the student actually came with. */}
-                {targetCheck.isPending ? (
-                  <div className="mt-4 flex items-center gap-2 rounded-2xl bg-slate-50 px-4 py-3 text-[13px] text-slate-500">
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                    Checking {target?.name}…
-                  </div>
-                ) : targetResult ? (
-                  targetResult.matched ? (
-                    <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <span className="block text-[11px] uppercase tracking-wide text-slate-400">
-                            Target college
-                          </span>
-                          <span className="block text-[15px] font-semibold text-slate-900">
-                            {targetResult.name}
-                          </span>
-                          <span className="block text-[12px] text-slate-500">
-                            {[targetResult.city, targetResult.state, targetResult.type]
-                              .filter(Boolean)
-                              .join(" · ")}
-                          </span>
-                        </div>
-                        <span
-                          className={`shrink-0 rounded-full px-3 py-1 text-[12px] font-semibold ring-1 ${chanceToneClasses(
-                            targetResult.tone ?? "",
-                          )}`}
-                        >
-                          {targetResult.verdict}
-                        </span>
-                      </div>
-                      <p className="mt-2 text-[13px] text-slate-700">{targetResult.message}</p>
-                      {targetResult.closing_rank !== null && (
-                        <p className="mt-1 text-[12px] text-slate-500">
-                          Imported closing rank{" "}
-                          <span className="font-semibold tabular-nums">
-                            {formatRank(targetResult.closing_rank)}
-                          </span>
-                        </p>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h2 className="font-[Poppins] text-[18px] font-semibold text-[#0E1629] md:text-[22px]">
+                    Matched colleges
+                  </h2>
+                  {prediction && prediction.items.length > 0 && (
+                    <Button
+                      onClick={handlePredictionDownload}
+                      disabled={pdfBusy}
+                      className="h-10 cursor-pointer rounded-xl px-5 text-[13.5px] font-semibold text-white hover:opacity-95"
+                      style={{ backgroundColor: ACCENT }}
+                    >
+                      {pdfBusy ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden /> Building
+                          PDF…
+                        </>
+                      ) : (
+                        <>
+                          {isAuthenticated ? (
+                            <Download className="mr-2 h-4 w-4" aria-hidden />
+                          ) : (
+                            <Lock className="mr-2 h-4 w-4" aria-hidden />
+                          )}
+                          Download my list (PDF)
+                        </>
                       )}
-                    </div>
-                  ) : (
-                    <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-[13px] text-amber-900">
-                      {targetResult.message}
-                    </div>
-                  )
-                ) : null}
+                    </Button>
+                  )}
+                </div>
 
                 {predict.isPending ? (
                   <div className="mt-5">
@@ -641,7 +811,7 @@ export default function NEETPredictor() {
                   <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-[14px] text-amber-900">
                     The predictor is not responding right now. Please try again in a moment.
                   </div>
-                ) : !prediction && !targetResult && !targetCheck.isPending ? (
+                ) : !prediction ? (
                   <p className="mt-3 flex items-center gap-2 text-[13px] text-slate-500">
                     <Stethoscope className="h-4 w-4 shrink-0 text-slate-300" aria-hidden />
                     Your matched colleges appear here once you enter a rank or score.
@@ -652,9 +822,6 @@ export default function NEETPredictor() {
                       <Stat label={prediction.rank_label} value={formatRank(prediction.rank_used)} />
                       <Stat label="Matches" value={String(prediction.items.length)} />
                       <Stat label="Ranked pool" value={String(prediction.ranked_pool)} />
-                      {prediction.excluded_by_budget > 0 && (
-                        <Stat label="Over budget" value={String(prediction.excluded_by_budget)} />
-                      )}
                     </div>
 
                     {prediction.category_warning && (
@@ -669,28 +836,26 @@ export default function NEETPredictor() {
                           No recommendation to show yet
                         </p>
                         <p className="mt-1 text-[13px] text-slate-500">
-                          Try “All types” counselling, a different college type, or raise the
-                          budget.
+                          Try a different college type, or widen the domicile to All India.
                         </p>
                       </div>
                     ) : (
-                      <div className="relative mt-5">
-                        {/* The result is already computed. Signed-out visitors
-                            see its shape through the blur, which converts far
-                            better than refusing to run it at all. */}
-                        <div
-                          className={
-                            isAuthenticated ? "" : "pointer-events-none select-none blur-[6px]"
-                          }
-                          aria-hidden={!isAuthenticated}
-                        >
-                          <div className="grid gap-3 lg:grid-cols-2">
-                            {prediction.items.slice(0, shownResults).map((c, i) => (
+                      <div ref={matchesRef} className={`mt-5 scroll-mt-[76px] md:scroll-mt-[120px]`}>
+                        {/* The result is already computed, so a signed-out
+                            visitor reads the first few matches in full. Real
+                            college names against their own rank prove the
+                            answer exists; a wholly blurred list reads as a
+                            paywall over nothing and converts worse. */}
+                        <div className="grid gap-3 lg:grid-cols-2">
+                          {prediction.items
+                            .slice(0, isAuthenticated ? shownResults : FREE_PREVIEW)
+                            .map((c, i) => (
                               <NEETCollegeCard key={`${c.name}-${i}`} college={c} />
                             ))}
-                          </div>
+                        </div>
 
-                          {shownResults < prediction.items.length && (
+                        {isAuthenticated ? (
+                          shownResults < prediction.items.length && (
                             <div className="mt-4 text-center">
                               <button
                                 type="button"
@@ -700,28 +865,46 @@ export default function NEETPredictor() {
                                 See more ({prediction.items.length - shownResults} left)
                               </button>
                             </div>
-                          )}
-                        </div>
-
-                        {!isAuthenticated && (
-                          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-white/70 px-6 text-center backdrop-blur-[1px]">
-                            <Lock className="h-10 w-10" style={{ color: ACCENT }} aria-hidden />
-                            <p className="mt-3 text-[16px] font-semibold text-slate-800">
-                              {prediction.items.length} colleges matched your rank
-                            </p>
-                            <p className="mt-1 max-w-sm text-[13px] text-slate-600">
-                              Log in to see the list. Your result is ready — signing in reveals it
-                              straight away, nothing is re-run.
-                            </p>
-                            <Button
-                              onClick={() => toggleLogin()}
-                              className="mt-4 cursor-pointer rounded-xl px-8 py-2.5 font-semibold text-white hover:opacity-95"
-                              style={{ backgroundColor: ACCENT }}
+                          )
+                        ) : lockedCount > 0 ? (
+                          <div className="relative mt-3">
+                            {/* A couple of blurred rows under the free ones, so
+                                the lock sits on visible substance rather than
+                                on empty space. */}
+                            <div
+                              className="pointer-events-none select-none blur-[6px]"
+                              aria-hidden
                             >
-                              Log in to view
-                            </Button>
+                              <div className="grid gap-3 lg:grid-cols-2">
+                                {prediction.items
+                                  .slice(FREE_PREVIEW, FREE_PREVIEW + 4)
+                                  .map((c, i) => (
+                                    <NEETCollegeCard key={`locked-${c.name}-${i}`} college={c} />
+                                  ))}
+                              </div>
+                            </div>
+
+                            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-white/70 px-6 text-center backdrop-blur-[1px]">
+                              <Lock className="h-10 w-10" style={{ color: ACCENT }} aria-hidden />
+                              <p className="mt-3 text-[16px] font-semibold text-slate-800">
+                                {lockedCount} more {lockedCount === 1 ? "college" : "colleges"}{" "}
+                                matched your rank
+                              </p>
+                              <p className="mt-1 max-w-sm text-[13px] text-slate-600">
+                                You are seeing the top {FREE_PREVIEW}. Log in to open the full
+                                list — your result is ready, signing in reveals it straight away
+                                and nothing is re-run.
+                              </p>
+                              <Button
+                                onClick={() => toggleLogin()}
+                                className="mt-4 cursor-pointer rounded-xl px-8 py-2.5 font-semibold text-white hover:opacity-95"
+                                style={{ backgroundColor: ACCENT }}
+                              >
+                                Log in to see all {prediction.items.length}
+                              </Button>
+                            </div>
                           </div>
-                        )}
+                        ) : null}
                       </div>
                     )}
 
@@ -729,7 +912,7 @@ export default function NEETPredictor() {
                       Predictions are based on previous-year closing ranks compiled from public
                       sources and are indicative only. Actual allotment depends on the counselling
                       authority, seat matrix and the current year's candidate pool. Verify every
-                      figure against the official source linked on each card before acting on it.
+                      figure against the official counselling authority before acting on it.
                     </p>
                   </>
                 ) : null}

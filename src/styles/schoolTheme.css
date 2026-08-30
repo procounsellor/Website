@@ -1,0 +1,617 @@
+/**
+ * The ProCounsel quiz design system — ProCounsel_Quiz_Visual_Tokens, adopted
+ * verbatim and scoped to `.school-shell`.
+ *
+ * Two rules for this file:
+ *   1. The token values are the design's, not ours. Do not hand-pick a hex in a
+ *      component when a ramp step already exists — that is what made the first
+ *      pass look flat.
+ *   2. Everything is scoped. The class names in here (.btn-primary, .tab,
+ *      .quiz-card) are generic enough to collide with the main site, so every
+ *      selector is nested under .school-shell.
+ *
+ * Local additions are at the foot of the file and marked as derived.
+ */
+/* ProCounsel Quiz UI — Design Tokens */
+.school-shell {
+  --brand-purple-900: #3D23B8;
+  --brand-purple-800: #4C2FD3;
+  --brand-purple-700: #5A38E8;
+  --brand-purple-600: #6C4CF1;
+  --brand-purple-500: #7A5AF5;
+  --brand-purple-400: #8B6CF8;
+  --brand-purple-300: #A78BFA;
+  --brand-purple-200: #C4B5FD;
+  --brand-purple-100: #E9E3FF;
+  --brand-purple-50: #F6F3FF;
+  --blue-500: #3B82F6;
+  --blue-400: #60A5FA;
+  --blue-100: #DBEAFE;
+  --blue-50: #EFF6FF;
+  --green-600: #16A34A;
+  --green-500: #22C55E;
+  --green-400: #4ADE80;
+  --green-200: #BBF7D0;
+  --green-100: #DCFCE7;
+  --green-50: #F0FDF4;
+  --gold-600: #D97706;
+  --gold-500: #F59E0B;
+  --gold-400: #FBBF24;
+  --gold-300: #FCD34D;
+  --gold-200: #FDE68A;
+  --gold-100: #FEF3C7;
+  --gold-50: #FFFBEB;
+  --orange-500: #F97316;
+  --orange-300: #FDBA74;
+  --orange-100: #FFEDD5;
+  --red-500: #EF4444;
+  --red-100: #FEE2E2;
+  --neutral-950: #0F172A;
+  --neutral-900: #111827;
+  --neutral-800: #1F2937;
+  --neutral-700: #374151;
+  --neutral-600: #4B5563;
+  --neutral-500: #6B7280;
+  --neutral-400: #9CA3AF;
+  --neutral-300: #D1D5DB;
+  --neutral-200: #E5E7EB;
+  --neutral-100: #F3F4F6;
+  --neutral-50: #F9FAFB;
+  --neutral-white: #FFFFFF;
+  --surfaces-page: #FBFAFF;
+  --surfaces-card: #FFFFFF;
+  --surfaces-card-soft: #FCFBFF;
+  --surfaces-card-purple: #F7F3FF;
+  --surfaces-card-blue: #F4F8FF;
+  --surfaces-card-green: #F4FFF8;
+  --surfaces-card-gold: #FFF9EB;
+  --gradients-primary-button: linear-gradient(90deg, #4C2FD3 0%, #6C4CF1 55%, #7A5AF5 100%);
+  --gradients-primary-button-hover: linear-gradient(90deg, #3D23B8 0%, #5A38E8 55%, #6C4CF1 100%);
+  --gradients-quiz-hero: linear-gradient(135deg, #FFFFFF 0%, #F8F5FF 50%, #EEE8FF 100%);
+  --gradients-mobile-stats: linear-gradient(135deg, #4C2FD3 0%, #6C4CF1 55%, #7A5AF5 100%);
+  --gradients-daily-tab: linear-gradient(90deg, #5A38E8 0%, #7A5AF5 100%);
+  --gradients-progress-arc: linear-gradient(180deg, #8B6CF8 0%, #6C4CF1 100%);
+  --gradients-reward-card: linear-gradient(135deg, #FFFDF6 0%, #FFF5D6 100%);
+  --gradients-soft-purple-panel: linear-gradient(135deg, #FAF8FF 0%, #F1ECFF 100%);
+  --borders-default: #E8E5F2;
+  --borders-purple-soft: #DED6FF;
+  --borders-green-soft: #CFF4DC;
+  --borders-gold-soft: #F8E3A3;
+  --shadows-card: 0 8px 24px rgba(76, 47, 211, 0.08);
+  --shadows-card-hover: 0 14px 34px rgba(76, 47, 211, 0.14);
+  --shadows-hero-art: 0 18px 35px rgba(76, 47, 211, 0.18);
+  --shadows-button: 0 8px 18px rgba(76, 47, 211, 0.22);
+  --shadows-button-hover: 0 12px 24px rgba(76, 47, 211, 0.30);
+  --motion-fast: 160ms;
+  --motion-normal: 220ms;
+  --motion-slow: 320ms;
+  --motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+
+/* Card system */
+.school-shell .quiz-card {
+  background: var(--surfaces-card);
+  border: 1px solid var(--borders-default);
+  border-radius: 18px;
+  box-shadow: var(--shadows-card);
+  transition:
+    transform var(--motion-normal) var(--motion-ease),
+    box-shadow var(--motion-normal) var(--motion-ease),
+    border-color var(--motion-normal) var(--motion-ease);
+}
+
+.school-shell .quiz-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadows-card-hover);
+  border-color: var(--borders-purple-soft);
+}
+
+.school-shell .quiz-hero-card {
+  background: var(--gradients-quiz-hero);
+  border: 1px solid var(--borders-purple-soft);
+  border-radius: 20px;
+  box-shadow: var(--shadows-card);
+}
+
+/* Primary CTA */
+.school-shell .btn-primary {
+  color: #fff;
+  background: var(--gradients-primary-button);
+  border: 0;
+  border-radius: 12px;
+  box-shadow: var(--shadows-button);
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-normal) var(--motion-ease),
+    filter var(--motion-fast) var(--motion-ease);
+}
+
+.school-shell .btn-primary:hover {
+  background: var(--gradients-primary-button-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadows-button-hover);
+}
+
+.school-shell .btn-primary:active {
+  transform: translateY(0) scale(.985);
+}
+
+/* Secondary CTA */
+.school-shell .btn-secondary {
+  color: #4C2FD3;
+  background: #FFFFFF;
+  border: 1px solid #DED6FF;
+  border-radius: 12px;
+  transition:
+    background var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    color var(--motion-fast) var(--motion-ease);
+}
+
+.school-shell .btn-secondary:hover {
+  background: #F6F3FF;
+  border-color: #C4B5FD;
+}
+
+/* Purple stats strip */
+.school-shell .stats-strip {
+  background: var(--gradients-mobile-stats);
+  color: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 26px rgba(76,47,211,.22);
+}
+
+/* Tabs */
+.school-shell .tab {
+  background: #FFFFFF;
+  color: #4B5563;
+  border: 1px solid #E8E5F2;
+  border-radius: 12px;
+  transition: all var(--motion-fast) var(--motion-ease);
+}
+
+.school-shell .tab:hover {
+  background: #F6F3FF;
+  color: #4C2FD3;
+}
+
+.school-shell .tab.active {
+  color: white;
+  background: var(--gradients-daily-tab);
+  border-color: transparent;
+  box-shadow: 0 6px 14px rgba(76,47,211,.18);
+}
+
+/* Soft status cards */
+.school-shell .card-purple { background: #F7F3FF; border-color: #DED6FF; }
+.school-shell .card-green  { background: #F4FFF8; border-color: #CFF4DC; }
+.school-shell .card-blue   { background: #F4F8FF; border-color: #D8E7FF; }
+.school-shell .card-gold   { background: #FFF9EB; border-color: #F8E3A3; }
+
+/* Progress bars */
+.school-shell .progress-track {
+  background: #ECEAF4;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.school-shell .progress-fill-purple {
+  background: linear-gradient(90deg, #8B6CF8 0%, #6C4CF1 100%);
+}
+
+.school-shell .progress-fill-green {
+  background: linear-gradient(90deg, #4ADE80 0%, #22C55E 100%);
+}
+
+/* Reward chip */
+.school-shell .reward-chip {
+  color: #7A5A00;
+  background: #FFF4B8;
+  border: 1px solid #F8E06B;
+  border-radius: 999px;
+}
+
+/* Small purple chip */
+.school-shell .purple-chip {
+  color: #4C2FD3;
+  background: #F3F0FF;
+  border: 1px solid #DDD6FE;
+  border-radius: 999px;
+}
+
+
+/* ── Derived, not in the source token file ────────────────────────────────────
+ * The system ships one CTA gradient (purple). The dashboard's quests each wear
+ * their own accent, so these follow the exact same three-stop shape built from
+ * the green/blue/gold ramps already defined above.
+ */
+.school-shell {
+  --gradients-green-button: linear-gradient(90deg, #16A34A 0%, #22C55E 55%, #4ADE80 100%);
+  --gradients-green-button-hover: linear-gradient(90deg, #15803D 0%, #16A34A 55%, #22C55E 100%);
+  --gradients-blue-button: linear-gradient(90deg, #2563EB 0%, #3B82F6 55%, #60A5FA 100%);
+  --gradients-blue-button-hover: linear-gradient(90deg, #1D4ED8 0%, #2563EB 55%, #3B82F6 100%);
+  --gradients-gold-button: linear-gradient(90deg, #D97706 0%, #F59E0B 55%, #FBBF24 100%);
+  --gradients-gold-button-hover: linear-gradient(90deg, #B45309 0%, #D97706 55%, #F59E0B 100%);
+  --shadows-button-green: 0 8px 18px rgba(22, 163, 74, 0.24);
+  --shadows-button-blue: 0 8px 18px rgba(37, 99, 235, 0.24);
+  --shadows-button-gold: 0 8px 18px rgba(217, 119, 6, 0.24);
+  --progress-fill-blue: linear-gradient(90deg, #60A5FA 0%, #3B82F6 100%);
+  --progress-fill-gold: linear-gradient(90deg, #FBBF24 0%, #F59E0B 100%);
+  /* The rail. The system has no dark surface; these are neutral-950 blended
+     toward brand-purple-900 so the rail belongs to the same family. */
+  --rail-top: #1B1147;
+  --rail-mid: #120C31;
+  --rail-bottom: #0B0722;
+}
+
+/* A plain surface: the card's background, border, radius and shadow WITHOUT the
+ * hover lift. Chrome that merely sits on the page — the top-bar stat pills, the
+ * account menu, the mobile menu button — is a surface, not a card. Using
+ * .quiz-card for those made them bob on hover.
+ */
+.school-shell .ss-surface {
+  background: var(--surfaces-card);
+  border: 1px solid var(--borders-default);
+  border-radius: 14px;
+  box-shadow: var(--shadows-card);
+}
+
+/* Accent CTAs — same anatomy as .btn-primary, one per quest accent. */
+.school-shell .btn-green { background: var(--gradients-green-button); box-shadow: var(--shadows-button-green); }
+.school-shell .btn-green:hover { background: var(--gradients-green-button-hover); }
+.school-shell .btn-blue { background: var(--gradients-blue-button); box-shadow: var(--shadows-button-blue); }
+.school-shell .btn-blue:hover { background: var(--gradients-blue-button-hover); }
+.school-shell .btn-gold { background: var(--gradients-gold-button); box-shadow: var(--shadows-button-gold); }
+.school-shell .btn-gold:hover { background: var(--gradients-gold-button-hover); }
+
+.school-shell .progress-fill-blue { background: var(--progress-fill-blue); }
+.school-shell .progress-fill-gold { background: var(--progress-fill-gold); }
+
+/* ── Vibrant layer ────────────────────────────────────────────────────────────
+ * The token file's surfaces are very pale (#F4FFF8, #F7F3FF) — correct for a
+ * dense quiz page, too washed out for a dashboard shown to a 14-year-old. These
+ * are the same hues one step up in chroma, plus the saturated fills and glows
+ * the cards use. Nothing here overrides a token; it adds a brighter register on
+ * top of one.
+ */
+.school-shell {
+  --vivid-green: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+  --vivid-purple: linear-gradient(135deg, #7A5AF5 0%, #4C2FD3 100%);
+  --vivid-blue: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+  --vivid-gold: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+
+  --tint-green: linear-gradient(160deg, #E4FBEC 0%, #FFFFFF 62%);
+  --tint-purple: linear-gradient(160deg, #EFE9FF 0%, #FFFFFF 62%);
+  --tint-blue: linear-gradient(160deg, #E3EEFF 0%, #FFFFFF 62%);
+  --tint-gold: linear-gradient(160deg, #FFF3D6 0%, #FFFFFF 62%);
+
+  --glow-green: 0 14px 30px -14px rgba(22, 163, 74, 0.55);
+  --glow-purple: 0 14px 30px -14px rgba(76, 47, 211, 0.55);
+  --glow-blue: 0 14px 30px -14px rgba(37, 99, 235, 0.55);
+  --glow-gold: 0 14px 30px -14px rgba(217, 119, 6, 0.5);
+
+  /* A locked card is dimmed, never invisible: a real border, a real surface,
+     and a slate lock badge that reads at a glance. */
+  --locked-surface: linear-gradient(160deg, #EEF0F6 0%, #F8F9FC 70%);
+  --locked-border: #D3D8E4;
+  --locked-badge: linear-gradient(135deg, #94A3B8 0%, #64748B 100%);
+  --locked-ink: #64748B;
+}
+
+/* ── The Climb ────────────────────────────────────────────────────────────────
+ * The dashboard's own layer. Two rules it holds to:
+ *
+ *   1. Colour is rare. The ground is ink or paper; the four quarter hues appear
+ *      only as markers on the spine and on the one action a student can take
+ *      today. Filling whole cards with pastel tints is what made the earlier
+ *      pass read as washed out.
+ *   2. Locked is solid, never faint. A locked stop gets a real slate surface and
+ *      a filled badge, so its state is legible across a classroom rather than
+ *      inferred from low contrast.
+ */
+.school-shell {
+  --ink: #140B33;
+  --ink-soft: #241559;
+  --paper: #F7F6FC;
+
+  --q1: #22C55E;
+  --q2: #3B82F6;
+  --q3: #F59E0B;
+  --q4: #EC4899;
+
+  --slate-ink: #64748B;
+  --slate-surface: #EEF0F6;
+  --slate-border: #D8DDE9;
+
+  --card-border: #E8E5F2;
+  --card-shadow: 0 6px 20px -10px rgba(20, 11, 51, 0.18);
+  --card-shadow-lift: 0 16px 34px -14px rgba(20, 11, 51, 0.3);
+}
+
+/* The spine's live node breathes, so the eye lands on "you are here" first. */
+@keyframes ss-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--pulse-color); }
+  50% { box-shadow: 0 0 0 10px transparent; }
+}
+.school-shell .ss-node-live {
+  animation: ss-pulse 2.4s var(--motion-ease) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .school-shell .ss-node-live { animation: none; }
+  .school-shell .ss-lift:hover { transform: none; }
+}
+
+.school-shell .ss-lift {
+  transition: transform var(--motion-normal) var(--motion-ease),
+              box-shadow var(--motion-normal) var(--motion-ease);
+}
+.school-shell .ss-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--card-shadow-lift);
+}
+
+/* ── The Ascent ───────────────────────────────────────────────────────────────
+ * The layer that makes this shell look like one place instead of a dashboard
+ * template with a mountain sticker on it.
+ *
+ * The premise: a school student's four quarters are a climb, and the page says
+ * so literally. The hero is a dawn ridge; the quarters are camps pinned to the
+ * trail; points are altitude. Everything below the ridge is daylight — white
+ * panels, ink type — so the one dark, saturated surface on the page is the sky,
+ * and the eye goes there first every time.
+ *
+ * Three rules:
+ *   1. Only the sky is dark. Fill more surfaces with gradient and the hero
+ *      stops being the hero.
+ *   2. Quarter hue appears on markers, rules and one CTA — never as a card fill.
+ *      Pastel-tinted cards are what read as cheap in the previous pass.
+ *   3. Numbers a student can compare (points, altitude, timers, scores) are set
+ *      in the mono face. It is the instrument voice: an altimeter, not prose.
+ */
+.school-shell {
+  /* Type roles. Display carries personality, Poppins carries sentences, mono
+     carries anything with a unit after it. */
+  --font-display: 'Bricolage Grotesque', 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  --font-data: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Dawn, top of frame down to the ridge line. */
+  --sky-zenith: #180F45;
+  --sky-high: #2E1C7A;
+  --sky-mid: #6B4BD6;
+  --sky-low: #B48CE8;
+  --sky-haze: #F7B267;
+
+  /* Rock, far to near. Distance reads as lower contrast, not smaller. */
+  --rock-far: #7C63C4;
+  --rock-mid: #4A2F9E;
+  --rock-near: #2A1866;
+  --rock-face: #1C0F4A;
+  --snow: #FFFFFF;
+  --snow-shade: #D9CFFA;
+
+  --trail: #FFD8A8;
+  --trail-done: #FBBF24;
+}
+
+.school-shell .ss-display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.school-shell .ss-data {
+  font-family: var(--font-data);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Small caps label. Used for section eyebrows and instrument legends only —
+   never for anything a student has to read as a sentence. */
+.school-shell .ss-eyebrow {
+  font-family: var(--font-data);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* A panel: the daylight surface everything below the ridge sits on. Flatter
+   than .quiz-card on purpose — the hero owns the depth budget. */
+.school-shell .ss-panel {
+  background: #FFFFFF;
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+}
+
+/* ── Hero atmosphere ─────────────────────────────────────────────────────── */
+
+.school-shell .ss-sky {
+  border-radius: 26px;
+  overflow: hidden;
+  background: linear-gradient(
+    177deg,
+    var(--sky-zenith) 0%,
+    var(--sky-high) 34%,
+    var(--sky-mid) 66%,
+    var(--sky-low) 88%,
+    var(--sky-haze) 100%
+  );
+  box-shadow: 0 24px 60px -28px rgba(24, 15, 69, 0.75);
+}
+
+/* Clouds drift in view-box units, not percentages: a percentage transform on an
+   SVG group resolves against that group's own bounding box, so a 300-unit cloud
+   would travel 300 units and stop. `transform-box: view-box` plus absolute
+   offsets is what makes it cross the whole sky. */
+@keyframes ss-drift {
+  from { transform: translateX(-320px); }
+  to   { transform: translateX(1360px); }
+}
+@keyframes ss-twinkle {
+  0%, 100% { opacity: 0.15; }
+  50%      { opacity: 0.9; }
+}
+@keyframes ss-draw {
+  from { stroke-dashoffset: var(--dash-from); }
+  to   { stroke-dashoffset: var(--dash-to); }
+}
+/* The climber's marker breathes so "you are here" is findable on a busy ridge. */
+@keyframes ss-beacon {
+  0%, 100% { transform: scale(1);   opacity: 0.55; }
+  50%      { transform: scale(1.9); opacity: 0;    }
+}
+
+.school-shell .ss-cloud {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  animation: ss-drift linear infinite;
+}
+.school-shell .ss-star  { animation: ss-twinkle ease-in-out infinite; }
+.school-shell .ss-trail-progress { animation: ss-draw 1.4s var(--motion-ease) both; }
+/* `transform-box` defaults to view-box on SVG elements, so `transform-origin:
+   center` would scale the ring about the middle of the whole scene and slide it
+   off its marker. fill-box pins it to the circle's own centre. */
+.school-shell .ss-beacon {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ss-beacon 2.6s var(--motion-ease) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .school-shell .ss-cloud,
+  .school-shell .ss-star,
+  .school-shell .ss-trail-progress,
+  .school-shell .ss-beacon { animation: none; }
+  .school-shell .ss-trail-progress { stroke-dashoffset: var(--dash-to); }
+}
+
+/* ── Camps ───────────────────────────────────────────────────────────────────
+ * A camp card is white and quiet; its state lives in the marker above it and in
+ * a 3px rule across its top. That rule is the only place the quarter hue is
+ * allowed to run at full strength on a light surface.
+ */
+.school-shell .ss-camp {
+  position: relative;
+  background: #FFFFFF;
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform var(--motion-normal) var(--motion-ease),
+              box-shadow var(--motion-normal) var(--motion-ease),
+              border-color var(--motion-normal) var(--motion-ease);
+}
+.school-shell .ss-camp::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--camp-accent, var(--slate-border));
+}
+.school-shell .ss-camp:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--card-shadow-lift);
+  border-color: color-mix(in srgb, var(--camp-accent, #CBD5E1) 45%, #FFFFFF);
+}
+.school-shell .ss-camp[data-state='locked'] {
+  background: var(--slate-surface);
+  border-color: var(--slate-border);
+  box-shadow: none;
+}
+.school-shell .ss-camp[data-state='locked']:hover { transform: none; }
+.school-shell .ss-camp[data-state='current'] {
+  border-color: color-mix(in srgb, var(--camp-accent) 40%, #FFFFFF);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--camp-accent) 14%, transparent),
+              var(--card-shadow);
+}
+
+/* ── Play button ─────────────────────────────────────────────────────────────
+ * One shape for every "start something" action in the shell, so a student
+ * learns it once. Ink, not purple: the purple is spent on the sky.
+ */
+.school-shell .ss-go {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2E1C7A 0%, #4C2FD3 100%);
+  color: #FFFFFF;
+  font-family: var(--font-body);
+  font-weight: 700;
+  box-shadow: 0 10px 22px -12px rgba(46, 28, 122, 0.9);
+  transition: transform var(--motion-fast) var(--motion-ease),
+              box-shadow var(--motion-normal) var(--motion-ease),
+              filter var(--motion-fast) var(--motion-ease);
+}
+.school-shell .ss-go:hover { transform: translateY(-1px); filter: brightness(1.08); }
+.school-shell .ss-go:active { transform: translateY(0) scale(0.99); }
+.school-shell .ss-go[data-tone='summit'] {
+  background: linear-gradient(135deg, #F59E0B 0%, #EA580C 100%);
+  box-shadow: 0 10px 22px -12px rgba(234, 88, 12, 0.9);
+  color: #2A1400;
+}
+.school-shell .ss-go:disabled,
+.school-shell .ss-go[aria-disabled='true'] {
+  background: var(--slate-surface);
+  color: var(--slate-ink);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
+
+/* Keyboard focus is never removed, only restyled to the shell's ink. */
+.school-shell a:focus-visible,
+.school-shell button:focus-visible {
+  outline: 2px solid var(--brand-purple-600);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+/* ── Instrument rows ─────────────────────────────────────────────────────── */
+.school-shell .ss-readout {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px dashed var(--card-border);
+}
+.school-shell .ss-readout:last-child { border-bottom: 0; }
+
+/* ── The star map ─────────────────────────────────────────────────────────────
+ * One shooting star, on a long cycle. It is visible for about three seconds in
+ * every forty, which is the point: a student notices it once and it feels like
+ * luck rather than like a loop.
+ */
+@keyframes ss-shoot {
+  0%      { transform: translate(180px, -40px); opacity: 0; }
+  2%      { opacity: 1; }
+  8%      { transform: translate(560px, 130px); opacity: 0; }
+  100%    { transform: translate(560px, 130px); opacity: 0; }
+}
+.school-shell .ss-shoot {
+  transform-box: view-box;
+  animation: ss-shoot 40s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .school-shell .ss-shoot { animation: none; opacity: 0; }
+}
+
+/* Route changes inside the shell fade in rather than snapping. Keyed on the
+   pathname, so it replays on every navigation — short enough not to feel like
+   waiting, long enough to read as a transition. */
+@keyframes ss-page-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.school-shell .ss-page {
+  animation: ss-page-in var(--motion-slow) var(--motion-ease) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .school-shell .ss-page { animation: none; }
+}

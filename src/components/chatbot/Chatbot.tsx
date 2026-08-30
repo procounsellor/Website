@@ -333,14 +333,20 @@ export default function Chatbot() {
                     >
                       <button
                         onClick={() => {
-                          navigate(role === "counselor" ? "/counsellor-dashboard" : "/dashboard-student");
+                          navigate(
+                            role === "counselor"
+                              ? "/counsellor-dashboard"
+                              : role === "schoolStudent"
+                                ? "/school-student/dashboard"
+                                : "/dashboard-student",
+                          );
                           setIsDropdownOpen(false);
                           toggleChatbot();
                         }}
                         className="w-full flex items-center gap-3 px-4 py-2 cursor-pointer text-sm text-white hover:bg-gray-700"
                       >
                         <LayoutDashboard size={16} />
-                        <span>{role === "counselor" ? "Dashboard" : "Profile"}</span>
+                        <span>{role === "counselor" || role === "schoolStudent" ? "Dashboard" : "Profile"}</span>
                       </button>
                       <button
                         onClick={handleLogout}
