@@ -4,14 +4,20 @@ import { cleanup } from "@testing-library/react";
 
 /**
  * Every test starts from a cold browser: empty localStorage, no in-memory
- * token, no Razorpay. The in-memory JWT cache in tokenManager is module state,
- * so it MUST be reset between tests or a token cached by one test silently
- * makes the next one pass.
+ * token, no Razorpay, no cached API answers.
+ *
+ * Anything held in module state MUST be reset between tests or one test
+ * silently decides the next one's result. Two live here: the JWT cache in
+ * tokenManager, and the request cache in schoolStudentApi — the latter dedupes
+ * and caches by path, so without this a stubbed response from one test is
+ * served to the test after it.
  */
 beforeEach(async () => {
   localStorage.clear();
   const { clearToken } = await import("@/lib/tokenManager");
   clearToken();
+  const { invalidateSchoolCache } = await import("@/api/schoolStudentApi");
+  invalidateSchoolCache();
   delete (window as unknown as { Razorpay?: unknown }).Razorpay;
 });
 

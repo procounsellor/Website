@@ -15,6 +15,7 @@ import {
   ArrowRight,
   Users,
   Info,
+  Download,
 } from "lucide-react";
 import PageSEO from "@/components/SEO/PageSEO";
 import SeoArticle from "@/components/SEO/SeoArticle";
@@ -208,6 +209,14 @@ export default function NEETCutoffAnalyzer() {
               round — for All India Quota and state quota, in every category. Based on the latest
               NEET 2025 counselling data to help you plan your NEET 2026 college choices.
             </p>
+            <Link
+              to="/neet-college-predictor"
+              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-emerald-700 shadow-sm hover:opacity-95"
+            >
+              <Download className="h-4 w-4" />
+              New: college-wise cutoffs, year by year — and a free PDF
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
 
@@ -515,6 +524,73 @@ export default function NEETCutoffAnalyzer() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Cross-link to the college predictor. This page answers "what closed
+            at what rank"; that one answers "which of those can I get" — and it
+            is the only place with the year-wise, source-labelled cutoffs and the
+            downloadable list, so it is worth saying so plainly. */}
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 mt-8">
+          <div className="rounded-2xl border border-emerald-200 bg-white p-5 sm:p-7 shadow-sm">
+            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-200">
+              New
+            </span>
+            <h2 className="mt-3 text-xl sm:text-2xl font-bold text-gray-900">
+              College-wise NEET cutoffs — every year, every round, in one card
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm sm:text-[15px] leading-relaxed text-gray-600">
+              Our NEET College Predictor now shows each college&rsquo;s closing rank broken
+              out year by year and round by round — 2025 R1, R2, R3 and onwards — with every
+              figure labelled <span className="font-semibold text-emerald-700">Official</span>{" "}
+              when it is parsed from the counselling authority&rsquo;s own document, or{" "}
+              <span className="font-semibold text-gray-700">Reference</span> when it comes from
+              public directories. You can see exactly which round a seat closed in instead of
+              guessing from a single number.
+            </p>
+
+            <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+              {[
+                {
+                  icon: TableProperties,
+                  title: "Year-wise round cutoffs",
+                  body: "R1 to R3 closing ranks for every year we hold data for, per college.",
+                },
+                {
+                  icon: Info,
+                  title: "Source on every rank",
+                  body: "Official state PDFs are marked apart from scraped directory figures.",
+                },
+                {
+                  icon: Download,
+                  title: "Download the full list",
+                  body: "A branded PDF of every MBBS/BDS college with seats, fees and cutoffs.",
+                },
+              ].map((f) => (
+                <li key={f.title} className="rounded-xl bg-[#F4FBF8] p-4">
+                  <f.icon className="h-5 w-5 text-emerald-600" />
+                  <p className="mt-2 text-sm font-semibold text-gray-900">{f.title}</p>
+                  <p className="mt-1 text-[13px] leading-relaxed text-gray-600">{f.body}</p>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link
+                to="/neet-college-predictor"
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
+              >
+                <Building2 className="h-4 w-4" />
+                Open the College Predictor
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                to="/mbbs-colleges"
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-50"
+              >
+                Browse all MBBS colleges
+              </Link>
             </div>
           </div>
         </div>

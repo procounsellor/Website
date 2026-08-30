@@ -13,6 +13,11 @@ export const API_CONFIG = {
     getQuestionsList: '/api/community/dashboard/getQuestionsList',
     getCommunityDashboard: '/api/community/dashboard/getCommunityDashboard',
     getAllAnswersForQuestion: '/api/community/dashboard/getAllAnswersForSpecificQuestion',
+    // Same payload, no JWT required. Verified against the live backend: a
+    // missing route answers "No endpoint POST ...", this one answers
+    // {"status":"Failure","message":"Question not found"} — so it exists and
+    // is the only community endpoint open to logged-out visitors.
+    getAllAnswersForQuestionPublic: '/api/shared/getAllAnswersForSpecificQuestion',
     askQuestion: '/api/community/questions/askQuestion',
     postAnswer: '/api/community/answers/postAnswer',
     getComments: '/api/community/dashboard/getAllCommentsOfAnAnswer',

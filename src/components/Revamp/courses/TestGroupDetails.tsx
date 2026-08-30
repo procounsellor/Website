@@ -16,6 +16,7 @@ import {
   getAllTestGroupsForLoggedInUser,
   getTestGroupByIdForUser,
 } from "@/api/testGroup";
+import ErrorState from "@/components/common/ErrorState";
 
 interface TestWithMeta extends CourseType {
   description: string;
@@ -221,6 +222,11 @@ export default function TestGroupCardDetails() {
   const [recommendedLoading, setRecommendedLoading] = useState(false);
   const [testGroupDetails, setTestGroupDetails] = useState<TestGroupDetailView | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(true);
+  // `detailsLoading` going false with `testGroupDetails` still null used to
+  // leave the skeleton on screen forever, which reads as "still loading" when
+  // the request actually failed. This flag is what tells the two apart.
+  const [detailsError, setDetailsError] = useState(false);
+  const [recommendedSettled, setRecommendedSettled] = useState(false);
   const [buyLoading, setBuyLoading] = useState(false);
   const [visibleAttachedTestsCount, setVisibleAttachedTestsCount] = useState(2);
 
@@ -236,6 +242,7 @@ export default function TestGroupCardDetails() {
       setRecommendedTests([]);
     } finally {
       setRecommendedLoading(false);
+      setRecommendedSettled(true);
     }
   };
 
@@ -247,6 +254,7 @@ export default function TestGroupCardDetails() {
     if (!testGroupId) return;
 
     setDetailsLoading(true);
+    setDetailsError(false);
 
     if (!isUserLoggedIn) {
       const fallback = recommendedTests.find((item) => item.id === testGroupId);
@@ -271,6 +279,11 @@ export default function TestGroupCardDetails() {
             totalQuestions: 0,
           })),
         });
+      } else if (recommendedSettled) {
+        // A logged-out visitor's details come out of the recommended list. Once
+        // that list has settled and still has no entry for this id, waiting any
+        // longer just shows a skeleton that will never fill in.
+        setDetailsError(true);
       }
 
       setDetailsLoading(false);
@@ -280,24 +293,31 @@ export default function TestGroupCardDetails() {
     try {
       setDetailsLoading(true);
       const response = await getTestGroupByIdForUser(userId, testGroupId);
-      if (response?.status && response?.data) {
-        const normalizedDetails = normalizeTestGroupDetails(response.data);
-        if (normalizedDetails) {
-          setTestGroupDetails(normalizedDetails);
-        }
+      const normalizedDetails =
+        response?.status && response?.data
+          ? normalizeTestGroupDetails(response.data)
+          : null;
 
-        const nextReviews = Array.isArray(response.data.reviews)
-          ? response.data.reviews
-          : [];
-        setReviewsData({
-          reviews: nextReviews,
-          bought: Boolean(response.data.bought),
-          rating: response.data?.testGroup?.rating ?? null,
-        });
+      if (!normalizedDetails) {
+        // A 200 with an unusable body is a failure too — treat it as one
+        // instead of falling through to a permanent skeleton.
+        setDetailsError(true);
+        return;
       }
+
+      setTestGroupDetails(normalizedDetails);
+
+      const nextReviews = Array.isArray(response.data.reviews)
+        ? response.data.reviews
+        : [];
+      setReviewsData({
+        reviews: nextReviews,
+        bought: Boolean(response.data.bought),
+        rating: response.data?.testGroup?.rating ?? null,
+      });
     } catch (error) {
       console.error("Failed to fetch test group details:", error);
-      toast.error("Failed to load test group details");
+      setDetailsError(true);
     } finally {
       setDetailsLoading(false);
     }
@@ -305,7 +325,7 @@ export default function TestGroupCardDetails() {
 
   useEffect(() => {
     fetchTestGroupDetails();
-  }, [testGroupId, userId, isUserLoggedIn, recommendedTests]);
+  }, [testGroupId, userId, isUserLoggedIn, recommendedTests, recommendedSettled]);
 
   useEffect(() => {
     setVisibleAttachedTestsCount(2);
@@ -372,6 +392,26 @@ export default function TestGroupCardDetails() {
 
     navigate(`/test-info/${testId}`, { state: { testGroupId } });
   };
+
+  // One error surface for both breakpoints, ahead of the two skeleton blocks
+  // below — those only ever mean "still loading" now.
+  if (detailsError && !testGroupDetails) {
+    return (
+      <div className="bg-[#F5F5F7] min-h-screen">
+        <ErrorState
+          title="Couldn't load this test series"
+          message="The test details didn't come through. This is usually a temporary connection problem."
+          onRetry={() => {
+            setRecommendedSettled(false);
+            fetchRecommendedTests();
+            fetchTestGroupDetails();
+          }}
+          onBack={() => navigate("/courses/test-listing")}
+          backLabel="All test series"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#F5F5F7] min-h-screen">

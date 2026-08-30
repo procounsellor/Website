@@ -772,12 +772,52 @@ export const connectInstantCall = async (payload: ConnectCallPayload) => {
   return data;
 };
 
+/**
+ * The listing, forced onto the public route.
+ *
+ * `getAllProBudddiesUser` upgrades itself to `/api/user/getAllProBuddies`
+ * whenever a token and a stored user id are present — which is exactly the
+ * situation a signed-in school student is in. That route is scoped to a `users`
+ * row, and school-student signup deletes theirs, so it is the wrong endpoint
+ * for this role even though the call looks like it should work.
+ *
+ * This asks for `/api/shared/getAllProBuddies` and cannot be talked out of it.
+ * Used by the school shell, which is browse-only: nothing there books, calls or
+ * pays, so nothing there needs a user-scoped response.
+ */
+export const getAllProBuddiesPublic = async (
+  filters: ProBuddyListingFilters = {}
+): Promise<ListingProBudddy[]> => {
+  const queryParams = new URLSearchParams();
+  appendQueryParam(queryParams, "collegeName", filters.collegeName);
+  appendQueryParam(queryParams, "state", filters.state);
+  appendQueryParam(queryParams, "city", filters.city);
+  appendQueryParam(queryParams, "course", filters.course);
+  appendQueryParam(queryParams, "languagesKnow", filters.languagesKnow);
+  appendQueryParam(queryParams, "workingDays", filters.workingDays);
+
+  const query = queryParams.toString();
+  const response = await fetch(
+    `${API_CONFIG.baseUrl}/api/shared/getAllProBuddies${query ? `?${query}` : ""}`,
+    { headers: { Accept: "application/json" } }
+  );
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: Failed to load ProBuddies`);
+  }
+
+  const data = await response.json();
+  return Array.isArray(data) ? data : [];
+};
+
 export const probuddiesApi = {
   uploadPhoto: (proBuddyId: string, photo: File) => uploadProBuddyPhoto(proBuddyId, photo),
   uploadIdCard: (proBuddyId: string, photo: File) => uploadProBuddyIdCardPhoto(proBuddyId, photo),
   registerWithUploads: (payload: any, photo?: File | null, idCard?: File | null) =>
     registerProBuddyWithUploads(payload, photo, idCard),
   listing: (userId: string | null, filters?: ProBuddyListingFilters) => getAllProBudddiesUser(userId, filters),
+  /** Browse-only listing that never uses the user-scoped route. */
+  listingPublic: (filters?: ProBuddyListingFilters) => getAllProBuddiesPublic(filters),
   profileUser: (userId: string | null, proBudddyId: string) => getProBuddyForUser(userId, proBudddyId),
   reviewsForUser: (proBuddyId: string) => getAllReviewsReceivedByAProBuddyForUser(proBuddyId),
   postReview: (params: PostReview) => postReview(params),

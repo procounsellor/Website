@@ -83,6 +83,9 @@ export const STATIC_ROUTES = [
   // Counsellors
   "/counsellor-listing",
 
+  // College directory — the crawl path to every /college-details/:id
+  "/colleges",
+
   // Programmatic city counselling pages
   "/counselling",
   ...COUNSELLING_CITY_SLUGS.map((slug) => `/counselling/${slug}`),

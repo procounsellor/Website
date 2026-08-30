@@ -74,6 +74,15 @@ const SessionListing = lazy(() => import('@/pages/Revamp/SessionListing'));
 const ProBuddyListing = lazy(() => import('@/pages/Revamp/ProBuddyListing'));
 const ProBuddyProfilePage = lazy(() => import('@/pages/Revamp/ProBuddyProfilePage'));
 const CollegeListing = lazy(() => import('@/pages/Revamp/CollegeListing'));
+const CollegesPage = lazy(() => import('@/pages/Revamp/CollegesPage'));
+const SchoolStudentLayout = lazy(() => import('@/layouts/SchoolStudentLayout'));
+const SchoolStudentDashboard = lazy(() => import('@/pages/SchoolStudentDashboard'));
+const SchoolProBuddies = lazy(() => import('@/pages/school/SchoolProBuddies'));
+const SchoolGames = lazy(() => import('@/pages/school/SchoolGames'));
+const SchoolLeaderboard = lazy(() => import('@/pages/school/SchoolLeaderboard'));
+const SchoolProfile = lazy(() => import('@/pages/school/SchoolProfile'));
+const SchoolPlay = lazy(() => import('@/pages/school/SchoolPlay'));
+const SchoolProBuddyProfile = lazy(() => import('@/pages/school/SchoolProBuddyProfile'));
 const ProBuddiesRegistration = lazy(() => import('@/pages/Revamp/ProBuddiesRegistration'));
 const ProBuddiesDashboard = lazy(() => import('@/pages/Revamp/ProBuddiesDashboard'));
 const DeadlinesPage = lazy(() => import('@/pages/Revamp/DeadlinesPage'));
@@ -142,6 +151,27 @@ export default function AppRoutes() {
                     <Route path='/take-test/:testId' element={<TakeTest />} />
                     <Route path='/t/analysis/:testId/:attemptId' element={<TestAnalysisPage />} />
 
+                    {/* School students (the fifth role) get their own shell, not the
+                        site layout with things hidden: no site header, no footer, no
+                        chatbot. Deliberately OUTSIDE the RevampLayout subtree — the
+                        two are separate apps that happen to share a bundle. */}
+                    <Route path="/school-student" element={<SchoolStudentLayout />}>
+                        <Route index element={<Navigate to="/school-student/dashboard" replace />} />
+                        <Route path="dashboard" element={<SchoolStudentDashboard />} />
+                        <Route path="probuddies" element={<SchoolProBuddies />} />
+                        {/* Read-only: public endpoints, no booking or calling. */}
+                        <Route path="probuddies/:proBuddyId" element={<SchoolProBuddyProfile />} />
+                        <Route path="games" element={<SchoolGames />} />
+                        <Route path="leaderboard" element={<SchoolLeaderboard />} />
+                        <Route path="profile" element={<SchoolProfile />} />
+                        {/* Today's game only — a daily game whose future days
+                            are reachable is not a daily game. */}
+                        <Route path="play" element={<SchoolPlay />} />
+                        {/* Anything not built yet returns to the dashboard rather
+                            than falling through to the site's 404 shell. */}
+                        <Route path="*" element={<Navigate to="/school-student/dashboard" replace />} />
+                    </Route>
+
                     {/* All pages under RevampLayout */}
                     <Route element={<RevampLayout />}>
                         {/* Core Revamp Pages */}
@@ -188,6 +218,9 @@ export default function AppRoutes() {
 
 
                         {/* Courses & Colleges */}
+                        {/* Public college directory. This is the crawl path to every
+                            /college-details/:id — the home page only links the first four. */}
+                        <Route path="/colleges" element={<CollegesPage />} />
                         <Route path="/college-details/:id" element={<CollegeDetailsPageNew />} />
                         <Route path='/courses/detail/:courseId/:role' element={<CoursePage />} />
                         <Route path='/detail/:courseId/:role' element={<CoursePage />} />

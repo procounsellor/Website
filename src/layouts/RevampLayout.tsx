@@ -3,7 +3,7 @@ import Footer from "@/components/layout/Footer";
 import SeoFooterLinks from "@/components/layout/SeoFooterLinks";
 import RevampHeader from "@/components/Revamp/RevampHeader";
 import RevampBreadcrumbs from "@/components/Revamp/RevampBreadcrumbs";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Navigate, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuthStore } from "@/store/AuthStore";
 import { useChatStore } from "@/store/ChatStore";
@@ -107,6 +107,19 @@ export default function RevampLayout() {
         }
     };
 
+    // A finished school-student signup resumes exactly like a finished course/
+    // states onboarding: whatever the visitor was trying to do before the login
+    // card interrupted them. `completeSchoolStudentSignup` has already fired and
+    // cleared `onLoginSuccess`, so this only has to cover the returnToPath case.
+    const handleSchoolStudentComplete = () => {
+        setNeedsOnboarding(false);
+        // Unlike a normal signup there is nothing to resume: whatever the
+        // visitor was doing on the main site is not part of this role's app.
+        clearOnLoginSuccess();
+        setReturnToPath(null);
+        navigate('/school-student/dashboard', { replace: true });
+    };
+
     const handleProfileUpdate = async (updatedData: { firstName: string; lastName: string; email: string }) => {
         try {
             const token = typeof window !== "undefined" ? localStorage.getItem("jwt") : null;
@@ -150,6 +163,17 @@ export default function RevampLayout() {
 
         const justLoggedIn = !prevAuthenticatedRef.current;
         prevAuthenticatedRef.current = true;
+
+        // School students browse the app freely — they are not forced onto a
+        // landing page the way a ProBuddy is. The exception is the handful of
+        // pages served by /api/user/:id, which has no row for this role: those
+        // would render an error state, so they land on the school-student
+        // dashboard instead.
+        if (role === 'schoolStudent') {
+            // Handled by the render-time redirect below, which sends them to
+            // their own shell without ever painting the site header.
+            return;
+        }
 
         if (role === 'proBuddy') {
             if (justLoggedIn) {
@@ -203,6 +227,17 @@ export default function RevampLayout() {
 
     const shouldShowFooter = !isPromoPage && (!isRestrictedRole || isRestrictedDashboardRoute);
 
+    // School students do not live in this layout at all — they get their own
+    // shell (SchoolStudentLayout), mounted on a sibling route. Redirecting at
+    // render time rather than in an effect means the site header and footer are
+    // never painted for them, not even for a frame.
+    //
+    // /mettle sits outside this layout, so the psychometric test — the one live
+    // quest on their dashboard — stays reachable.
+    if (isAuthenticated && role === 'schoolStudent') {
+        return <Navigate to="/school-student/dashboard" replace />;
+    }
+
     return <div className="flex flex-col min-h-screen relative">
         {!shouldHideBanner && <AppInstallBanner />}
         <RevampHeader />
@@ -228,7 +263,10 @@ export default function RevampLayout() {
         <CounselorSignupModal />
 
         {shouldShowOnboarding && (
-            <OnboardingCard onComplete={handleOnboardingComplete} />
+            <OnboardingCard
+                onComplete={handleOnboardingComplete}
+                onSchoolStudentComplete={handleSchoolStudentComplete}
+            />
         )}
 
         {isProfileCompletionOpen && user && (

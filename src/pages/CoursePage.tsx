@@ -1,9 +1,10 @@
 import PageSEO from "@/components/SEO/PageSEO";
+import ErrorState from "@/components/common/ErrorState";
 import ContentCard from "@/components/course-cards/ContentCard";
 import CourseReviewsCard from "@/components/course-cards/CourseReviewsCard";
 import DetailsCard from "@/components/course-cards/DetailsCard";
 import RecommendedCoursesSection from "@/components/course-cards/RecommendedCoursesSection";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getCounsellorCourseByCourseId,
@@ -34,7 +35,6 @@ type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 export default function CoursePage() {
   const { courseId, role: roleParam } = useParams();
   const { userId, user, role: userRole, toggleLogin } = useAuthStore();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [currentPath, setCurrentPath] = useState<string[]>(['root']);
   const [addFundsOpen, setAddFundsOpen] = useState(false);
@@ -49,7 +49,7 @@ export default function CoursePage() {
   const isCounselor = role === 'counselor';
   const isUserOrStudent = role === 'user' || role === 'student';
 
-  const { data: courseDetails, isLoading, error } = useQuery({
+  const { data: courseDetails, isLoading, error, refetch } = useQuery({
     queryKey: ["courseDetails", courseId, userId, role],
     queryFn: async () => {
       console.log('Fetching course details:', { courseId, userId, role, isCounselor, isUserOrStudent });
@@ -57,11 +57,12 @@ export default function CoursePage() {
         return getCounsellorCourseByCourseId(userId as string, courseId as string);
       } else if (isUserOrStudent && userId) {
         return getCounsellorCourseForUserByCourseId(userId, courseId as string);
-      } else if (isUserOrStudent && !userId) {
-        // Use public API for non-logged-in users
-        return getPublicCourseDetailsByCourseId(courseId as string);
       }
-      throw new Error('Unauthorized access');
+      // Everyone else — logged out, or a role with no personalised course
+      // endpoint (schoolStudent, proBuddy) — reads the public course details.
+      // This used to throw "Unauthorized access", which locked those roles out
+      // of every course page even though the content is public.
+      return getPublicCourseDetailsByCourseId(courseId as string);
     },
     enabled: !!courseId,
     retry: 1,
@@ -225,33 +226,26 @@ export default function CoursePage() {
     );
   }
 
+  // The identifiers that used to be printed here (courseId / userId / role) are
+  // debug output — they stay in the console, not on the page.
   if (error) {
-    console.error('Course details error:', error);
+    console.error('Course details error:', { error, courseId, userId, role });
     return (
-      <div className="flex flex-col justify-center items-center h-screen gap-4 p-8">
-        <p className="text-red-500 text-lg font-semibold">
-          {(error as Error).message || 'Failed to load course details'}
-        </p>
-        <div className="text-sm text-gray-600">
-          <p>CourseId: {courseId}</p>
-          <p>UserId: {userId || 'Not logged in'}</p>
-          <p>Role: {role}</p>
-        </div>
-        <button
-          onClick={() => navigate(-1)}
-          className="px-4 py-2 bg-[#13097D] text-white rounded-lg cursor-pointer"
-        >
-          Go Back
-        </button>
-      </div>
+      <ErrorState
+        title="Couldn't load this course"
+        message="Something went wrong while loading the course details. Please try again in a moment."
+        onRetry={() => refetch()}
+      />
     );
   }
 
   if (!courseDetails) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-gray-500 text-lg">Course not found</p>
-      </div>
+      <ErrorState
+        title="Course not found"
+        message="This course may have been unpublished or removed by the counsellor."
+        onRetry={() => refetch()}
+      />
     );
   }
 
