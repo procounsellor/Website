@@ -3,6 +3,7 @@ import GameMark from '@/components/school-student/GameMark';
 import { TONE, toneFor } from '@/components/school-student/gameTones';
 import { duration, scoringLabel } from '@/api/schoolGames';
 import { useLongDate } from '@/lib/useSchoolGames';
+import { getDemoPlay } from '@/lib/demoMode';
 import type { TodayDrop } from '@/lib/useSchoolGames';
 
 /**
@@ -89,7 +90,15 @@ export default function TodaysDrop({
   const tone = TONE[toneFor(drop.gameId)];
   const game = drop.game;
   const set = drop.set;
-  const played = Boolean(drop.session);
+  /*
+   * "Have they played?" has two possible sources and only one of them works.
+   * `drop.session` is the real one and is always null — getGameSession 500s
+   * because nothing can create a session yet. The local record fills that gap
+   * so this card, the daily goal and the dashboard's quiz count cannot
+   * disagree. DEMO ONLY; see lib/demoMode.
+   */
+  const localPlay = getDemoPlay(drop.date);
+  const played = Boolean(drop.session) || Boolean(localPlay);
   const title = set?.title || drop.title || game?.name || 'Today’s game';
   const when = useLongDate(drop.date);
 
@@ -134,7 +143,13 @@ export default function TodaysDrop({
                 : { background: tone.tint, color: tone.ink }
           }
         >
-          {!drop.isToday ? when : played ? 'Played today' : 'Not played yet'}
+          {!drop.isToday
+            ? when
+            : played
+              ? localPlay?.total
+                ? `Played · ${localPlay.correct}/${localPlay.total}`
+                : 'Played today'
+              : 'Not played yet'}
         </span>
       </div>
 
@@ -176,14 +191,14 @@ export default function TodaysDrop({
             to={drop.isToday ? '/school-student/play' : '/school-student/games'}
             className="ss-go px-5 py-2.5 text-[13.5px]"
           >
-            {drop.isToday ? 'Play now' : 'See what is coming'}
+            {drop.isToday ? (played ? 'Play again' : 'Play now') : 'See what is coming'}
             <span aria-hidden>→</span>
           </Link>
         ) : (
           <>
             {drop.isToday ? (
               <Link to="/school-student/play" className="ss-go px-5 py-2.5 text-[13.5px]">
-                Play now
+                {played ? 'Play again' : 'Play now'}
                 <span aria-hidden>→</span>
               </Link>
             ) : (

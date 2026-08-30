@@ -9,8 +9,16 @@ import SudokuBoard from '@/components/school-student/boards/SudokuBoard';
 import WordBoard from '@/components/school-student/boards/WordBoard';
 import { getGame, getSet, getTodayGameByGrade, getSchedule, type Game, type GameSet } from '@/api/schoolGames';
 import { parseGrade, today as isoToday } from '@/api/schoolStudentApi';
+import {
+  DEMO_ANSWER_KEY,
+  DEMO_MODE,
+  demoToday,
+  recordDemoPlay,
+  scoreWithDemoKey,
+} from '@/lib/demoMode';
 import { getItem, loadItems, noteOf, promptOf, type GameItem } from '@/lib/gameItems';
 import { useSchoolShell } from '@/lib/schoolShellContext';
+import { isoDate } from '@/lib/schoolStudentProgress';
 import { useAuthStore } from '@/store/AuthStore';
 
 /**
@@ -44,9 +52,9 @@ type Outcome =
 export default function SchoolPlay() {
   const navigate = useNavigate();
   const { schoolStudent } = useAuthStore();
-  const { record } = useSchoolShell();
+  const { record, progress, update } = useSchoolShell();
 
-  const date = isoToday();
+  const date = demoToday(isoToday());
   const grade = parseGrade(record?.className ?? schoolStudent?.className);
 
   const [data, setData] = useState<Loaded | null>(null);
@@ -115,20 +123,70 @@ export default function SchoolPlay() {
     };
   }, [date, grade, nonce]);
 
+  /**
+   * Bank what the run earned.
+   *
+   * DEMO ONLY. In the real product `submitGameSession` awards the points and
+   * the totals come back from the server; the client adding to its own score is
+   * exactly the thing an attempt endpoint exists to prevent. Behind the demo
+   * flag it is what makes the dashboard's tasks, points and daily goal actually
+   * move during the presentation.
+   */
+  const award = useCallback(
+    (points: number) => {
+      if (!DEMO_MODE) return;
+      const today = isoDate();
+      const daily = [...progress.daily];
+      const todayRow = daily.find((d) => d.date === today);
+      if (todayRow) {
+        todayRow.points += points;
+        todayRow.activities += 1;
+      } else {
+        daily.push({ date: today, points, activities: 1 });
+      }
+
+      // Finishing the day's game completes the "Daily Games & Quizzes" quest,
+      // which is what moves the quarter's progress bar and the route ring —
+      // otherwise points climb while every bar stays at zero.
+      const done = new Set(progress.completedQuests);
+      done.add('games');
+
+      update({
+        ...progress,
+        points: progress.points + points,
+        quizzesPlayed: progress.quizzesPlayed + 1,
+        completedQuests: [...done],
+        questProgress: { ...progress.questProgress, games: 100 },
+        daily: daily.slice(-7),
+      });
+    },
+    [progress, update],
+  );
+
   const finishMcq = useCallback(
-    (r: { answers: Record<string, string>; hintsUsed: number; seconds: number }) =>
-      setOutcome({ kind: 'mcq', ...r }),
-    [],
+    (r: { answers: Record<string, string>; hintsUsed: number; seconds: number }) => {
+      setOutcome({ kind: 'mcq', ...r });
+      const marked = scoreWithDemoKey(r.answers, Object.keys(r.answers));
+      award(marked ? marked.correct : 0);
+      recordDemoPlay(date, marked?.correct ?? null, marked?.total ?? null);
+    },
+    [award],
   );
   const finishSudoku = useCallback(
-    (r: { solved: boolean; seconds: number; hints: number }) =>
-      setOutcome({ kind: 'sudoku', ...r }),
-    [],
+    (r: { solved: boolean; seconds: number; hints: number }) => {
+      setOutcome({ kind: 'sudoku', ...r });
+      award(r.solved ? Math.max(0, 5 - r.hints) : 0);
+      recordDemoPlay(date, null, null);
+    },
+    [award, date],
   );
   const finishWord = useCallback(
-    (r: { guess: string; hintsUsed: number; seconds: number }) =>
-      setOutcome({ kind: 'word', ...r }),
-    [],
+    (r: { guess: string; hintsUsed: number; seconds: number }) => {
+      setOutcome({ kind: 'word', ...r });
+      award(0);
+      recordDemoPlay(date, null, null);
+    },
+    [award, date],
   );
 
   /*
@@ -262,16 +320,59 @@ function Summary({
 
   const solved = outcome.kind === 'sudoku' && outcome.solved;
 
+  /* DEMO ONLY. Null in the real product, where marking is the server's job. */
+  const score =
+    outcome.kind === 'mcq'
+      ? scoreWithDemoKey(outcome.answers, data.items.map((i) => i.itemId))
+      : null;
+
   return (
     <div className="ss-panel overflow-hidden">
-      <div className="p-6 text-center" style={{ background: solved ? '#DCFCE7' : tone.tint }}>
+      <div
+        className="p-6 text-center"
+        style={{
+          background: solved || (score && score.correct === score.total) ? '#DCFCE7' : tone.tint,
+        }}
+      >
         <p className="text-[42px]" aria-hidden>
-          {solved ? '🎉' : '✅'}
+          {solved || (score && score.correct >= score.total * 0.6) ? '🎉' : '✅'}
         </p>
-        <h2 className="ss-display mt-2 text-[22px] text-[var(--ink)]">
-          {solved ? 'Solved it!' : 'Run finished'}
-        </h2>
-        <p className="mt-1.5 font-[Poppins] text-[13px] text-[var(--neutral-600)]">
+
+        {score ? (
+          <>
+            {/* The headline number, because "how did I do" is the only question
+                anyone has at the end of a quiz. */}
+            <p className="ss-data mt-2 text-[40px] leading-none text-[var(--ink)]">
+              {score.correct}
+              <span className="text-[20px] text-[var(--neutral-400)]">/{score.total}</span>
+            </p>
+            <h2 className="ss-display mt-1 text-[19px] text-[var(--ink)]">
+              {score.correct === score.total
+                ? 'Perfect run!'
+                : score.correct >= score.total * 0.6
+                  ? 'Nice work!'
+                  : 'Good try'}
+            </h2>
+            <div className="mx-auto mt-3 flex max-w-[240px] items-center gap-2">
+              <span className="ss-data text-[11px] text-[#16A34A]">{score.correct} right</span>
+              <span className="h-2 flex-1 overflow-hidden rounded-full bg-[#FEE2E2]">
+                <span
+                  className="block h-full rounded-full bg-[#22C55E]"
+                  style={{ width: `${(score.correct / score.total) * 100}%` }}
+                />
+              </span>
+              <span className="ss-data text-[11px] text-[#B91C1C]">
+                {score.total - score.correct} wrong
+              </span>
+            </div>
+          </>
+        ) : (
+          <h2 className="ss-display mt-2 text-[22px] text-[var(--ink)]">
+            {solved ? 'Solved it!' : 'Run finished'}
+          </h2>
+        )}
+
+        <p className="mt-2.5 font-[Poppins] text-[13px] text-[var(--neutral-600)]">
           {data.set?.title ?? data.game?.name} · {clock}
         </p>
       </div>
@@ -307,10 +408,14 @@ function Summary({
         <p className="mt-4 rounded-[12px] border border-[var(--card-border)] bg-[#F7F8FC] px-4 py-3 font-[Poppins] text-[12.5px] leading-relaxed text-[var(--neutral-600)]">
           {outcome.kind === 'sudoku'
             ? 'A grid marks itself, so this result is real. Your points land on the leaderboard once the scoring endpoint is live.'
-            : 'Your answers are held here. Marking happens on the server — the endpoint that scores an attempt and awards points is not live yet, so no score is shown rather than a guessed one.'}
+            : score
+              ? 'Marked on this device for the demo. In the real product the server marks the attempt and awards the points.'
+              : 'Your answers are held here. Marking happens on the server — the endpoint that scores an attempt and awards points is not live yet, so no score is shown rather than a guessed one.'}
         </p>
 
-        {outcome.kind === 'mcq' && <Review items={data.items} answers={outcome.answers} />}
+        {outcome.kind === 'mcq' && (
+          <Review items={data.items} answers={outcome.answers} correct={DEMO_ANSWER_KEY} />
+        )}
 
         <div className="mt-4 flex flex-wrap gap-2.5">
           <Link to="/school-student/games" className="ss-go px-5 py-2.5 text-[13.5px]">

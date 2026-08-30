@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { demoToday } from '@/lib/demoMode';
 import {
   getGame,
   getSchedule,
@@ -110,7 +111,7 @@ export function useTodayGame(
 
   // The date is read once per mount: recomputing it in the effect body would
   // re-run the whole chain at midnight for anyone with the tab left open.
-  const date = useRef(isoToday()).current;
+  const date = useRef(demoToday(isoToday())).current;
 
   useEffect(() => {
     let ignore = false;
@@ -223,7 +224,7 @@ export type ScheduledDay = {
 export function useWeekSchedule(grade: number | null, days = 7) {
   const [data, setData] = useState<ScheduledDay[]>([]);
   const [loading, setLoading] = useState(true);
-  const from = useRef(isoToday()).current;
+  const from = useRef(demoToday(isoToday())).current;
 
   useEffect(() => {
     let ignore = false;

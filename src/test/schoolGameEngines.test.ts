@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { conflicts, givenMask, isSolved, parsePuzzle, solve } from "@/lib/sudoku";
 import { hintOf, imageOf, noteOf, promptOf, type GameItem } from "@/lib/gameItems";
+import { DEMO_ANSWER_KEY, scoreWithDemoKey } from "@/lib/demoMode";
 
 /**
  * The two things about the game engines that are easy to break silently.
@@ -127,5 +128,53 @@ describe("the three engines name their fields differently", () => {
     );
     expect(imageOf(quiz)).toBeNull();
     expect(imageOf(mythFact)).toBeNull();
+  });
+});
+
+/**
+ * The demo answer key.
+ *
+ * Temporary — it goes when `submitGameSession` ships — but while it is here it
+ * decides whether a fourteen-year-old is told they got something wrong, so it
+ * gets the same scrutiny as anything else. These pin its shape and its scoring
+ * behaviour; the entries themselves were transcribed from the live payloads.
+ */
+describe("demo scoring", () => {
+  it("marks only the items it actually has a key for", () => {
+    const scored = scoreWithDemoKey(
+      { itm_q1_01: "b", itm_q1_02: "c", unknown_item: "a" },
+      ["itm_q1_01", "itm_q1_02", "unknown_item"],
+    );
+
+    // Two known, one not — the unknown one is excluded rather than guessed.
+    expect(scored).not.toBeNull();
+    expect(scored!.total).toBe(2);
+    expect(scored!.correct).toBe(1);
+    expect(scored!.byItem.itm_q1_01).toBe(true);
+    expect(scored!.byItem.itm_q1_02).toBe(false);
+    expect(scored!.byItem.unknown_item).toBeUndefined();
+  });
+
+  it("returns null when it knows none of them, so no score is shown", () => {
+    // Career Word has no key and never will: the API does not send the word.
+    expect(scoreWithDemoKey({ itm_wg_01: "ARCHITECT" }, ["itm_wg_01"])).toBeNull();
+  });
+
+  it("only ever points at an option the item actually offers", () => {
+    // A key entry naming an option id that does not exist would mark every
+    // student wrong forever, and would do it silently.
+    const ids = new Set(["a", "b", "c", "d", "myth", "fact"]);
+    for (const [itemId, optionId] of Object.entries(DEMO_ANSWER_KEY)) {
+      expect(ids.has(optionId), `${itemId} → ${optionId}`).toBe(true);
+    }
+  });
+
+  it("covers whole sets, not a scattering of items", () => {
+    const setSize = (prefix: string) =>
+      Object.keys(DEMO_ANSWER_KEY).filter((id) => id.startsWith(prefix)).length;
+
+    expect(setSize("itm_q1_")).toBe(10);
+    expect(setSize("itm_mf_")).toBe(10);
+    expect(setSize("itm_fg_")).toBe(10);
   });
 });

@@ -1,4 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { DEMO_MODE } from '@/lib/demoMode';
+
+/**
+ * Where a run is kept.
+ *
+ * sessionStorage is correct for the real product: a daily game is one sitting,
+ * so the scratch copy should die with the tab. The demo needs the opposite —
+ * progress has to survive to the next morning — so it uses localStorage.
+ * DEMO ONLY; see lib/demoMode.
+ */
+const store = (): Storage => (DEMO_MODE ? localStorage : sessionStorage);
 
 /**
  * State that survives a reload, but not the tab.
@@ -19,7 +30,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 export function useSessionState<T>(key: string, initial: T) {
   const [value, setValue] = useState<T>(() => {
     try {
-      const raw = sessionStorage.getItem(key);
+      const raw = store().getItem(key);
       return raw ? (JSON.parse(raw) as T) : initial;
     } catch {
       return initial;
@@ -34,7 +45,7 @@ export function useSessionState<T>(key: string, initial: T) {
     if (lastKey.current === key) return;
     lastKey.current = key;
     try {
-      const raw = sessionStorage.getItem(key);
+      const raw = store().getItem(key);
       setValue(raw ? (JSON.parse(raw) as T) : initial);
     } catch {
       setValue(initial);
@@ -45,7 +56,7 @@ export function useSessionState<T>(key: string, initial: T) {
 
   useEffect(() => {
     try {
-      sessionStorage.setItem(key, JSON.stringify(value));
+      store().setItem(key, JSON.stringify(value));
     } catch {
       // Storage unavailable. The run continues from memory.
     }
@@ -53,7 +64,7 @@ export function useSessionState<T>(key: string, initial: T) {
 
   const clear = useCallback(() => {
     try {
-      sessionStorage.removeItem(key);
+      store().removeItem(key);
     } catch {
       // Nothing to do; the value is dropped from memory either way.
     }

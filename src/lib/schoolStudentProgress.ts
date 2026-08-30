@@ -21,6 +21,7 @@
  */
 
 import type { SchoolStudent } from '@/api/schoolStudentApi';
+import { DEMO_MODE } from '@/lib/demoMode';
 import type { SchoolIcon } from '@/components/school-student/icons';
 
 export type QuarterId = 1 | 2 | 3 | 4;
@@ -283,6 +284,19 @@ export function withServerRecord(
   record: SchoolStudent | null | undefined,
 ): Progress {
   if (!record) return progress;
+
+  /*
+   * DEMO ONLY. The server holds 0 points for everyone because nothing can award
+   * any yet, so letting it win would reset the dashboard to zero the instant a
+   * student finished a game — the exact opposite of what the demo needs to
+   * show. Points and quizzes stay local; the class, name and report link still
+   * come from the record. Remove with lib/demoMode.
+   */
+  if (DEMO_MODE) {
+    const demoDone = new Set(progress.completedQuests);
+    if (record.pyschometricReportPdfLink) demoDone.add('mettle');
+    return { ...progress, completedQuests: [...demoDone] };
+  }
 
   // The psychometric report link is the only reliable signal that the test is
   // finished — there is no per-quest completion endpoint.

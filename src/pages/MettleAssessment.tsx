@@ -7,6 +7,7 @@ import { getLoggedInPhone, formatPhoneForRazorpay } from "@/lib/phone";
 import { getToken } from "@/lib/tokenManager";
 import { registerOptionForm, payOptionFormFromWallet } from "@/api/optionForm";
 import { uploadPsychometricReport, downloadReport } from "@/api/psychometric";
+import { postPsychometricReport } from "@/api/schoolStudentApi";
 import { updateUserProfile } from "@/api/user";
 import { buildReportPdf, type Report } from "@/lib/mettleReportPdf";
 
@@ -719,11 +720,27 @@ export default function MettleAssessment() {
       const pdf = buildReportPdf(new jsPDF({ unit: "pt", format: "a4" }), report, name);
       const blob = pdf.output("blob");
       const file = new File([blob], `mettle-report-${uid}.pdf`, { type: "application/pdf" });
-      await uploadPsychometricReport(uid, file);
+      /*
+       * School students save to a different endpoint.
+       *
+       * `/api/shared/postPsychometricReport` takes `userId` and writes the link
+       * onto the `users` row — which school-student signup deletes. So for this
+       * role it saves nowhere the app can read it back, and their psychometric
+       * quest would never complete no matter how many times they took the test.
+       * `/api/schoolStudent/postPsychometricReport` takes `schoolStudentId` and
+       * writes it onto the record the school shell actually reads.
+       */
+      if (role === "schoolStudent") {
+        await postPsychometricReport(uid, file, getToken() ?? "");
+      } else {
+        await uploadPsychometricReport(uid, file);
+      }
       setSaveState("saved");
       // Pull the profile again so the store carries the new link — that is what
-      // the dashboard and profile read to offer the download.
-      void useAuthStore.getState().refreshUser(true);
+      // the dashboard and profile read to offer the download. School students
+      // have no /api/user record; their shell re-reads the school record on its
+      // next mount, which is the navigation straight after this screen.
+      if (role !== "schoolStudent") void useAuthStore.getState().refreshUser(true);
     } catch (e) {
       console.error("Could not save the report PDF:", e instanceof Error ? `${e.name}: ${e.message}` : String(e));
       setSaveState("failed");
