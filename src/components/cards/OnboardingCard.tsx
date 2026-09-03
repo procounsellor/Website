@@ -6,7 +6,7 @@ import { SchoolStudentDetailsStep } from "@/components/cards/SchoolStudentSteps"
 import toast from "react-hot-toast";
 import type { CousrseApiLogin, StatesApiResponse } from "@/types";
 import { useAuthStore } from "@/store/AuthStore";
-import { captureLeadFromUser } from "@/api/leads";
+import { captureLeadFromUser, captureSchoolStudentLead } from "@/api/leads";
 import { isSchoolCourse } from "@/lib/schoolCourse";
 
 /**
@@ -460,6 +460,18 @@ const OnboardingCard = ({
     try {
       const response = await schoolStudentSignup(payload);
       completeSchoolStudentSignup(payload, response);
+
+      // The only point in the SSC path where school and class exist together,
+      // so the lead is captured here rather than at login. The backend upserts
+      // by phone, so a later login re-sending a thinner version is harmless.
+      captureSchoolStudentLead({
+        phoneNumber: response.userId?.trim() || payload.phoneNumber,
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        school: payload.school,
+        className: payload.className,
+      });
+
       toast.success("Welcome to ProCounsel!");
       if (onSchoolStudentComplete) {
         onSchoolStudentComplete();

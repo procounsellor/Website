@@ -12,6 +12,10 @@
  * school student stays logged in for months, so anything read only from
  * localStorage goes stale and starts lying to them.
  *
+ * A completed game is persisted through `createGameSession`, but the local
+ * ledger still bridges the request and protects progress when the network is
+ * unavailable. Points are therefore reconciled — see `withServerRecord`.
+ *
  * localStorage still holds what the server has no field for (quizzes played,
  * the per-day log) and stands in when the profile call fails, so the page never
  * blanks out over a flaky network.
@@ -21,7 +25,7 @@
  */
 
 import type { SchoolStudent } from '@/api/schoolStudentApi';
-import { DEMO_MODE } from '@/lib/demoMode';
+import { localPoints, playCount } from '@/lib/schoolPlays';
 import type { SchoolIcon } from '@/components/school-student/icons';
 
 export type QuarterId = 1 | 2 | 3 | 4;
@@ -282,21 +286,9 @@ export function recordVisit(progress: Progress, today = isoDate()): Progress {
 export function withServerRecord(
   progress: Progress,
   record: SchoolStudent | null | undefined,
+  studentId?: string | null,
 ): Progress {
   if (!record) return progress;
-
-  /*
-   * DEMO ONLY. The server holds 0 points for everyone because nothing can award
-   * any yet, so letting it win would reset the dashboard to zero the instant a
-   * student finished a game — the exact opposite of what the demo needs to
-   * show. Points and quizzes stay local; the class, name and report link still
-   * come from the record. Remove with lib/demoMode.
-   */
-  if (DEMO_MODE) {
-    const demoDone = new Set(progress.completedQuests);
-    if (record.pyschometricReportPdfLink) demoDone.add('mettle');
-    return { ...progress, completedQuests: [...demoDone] };
-  }
 
   // The psychometric report link is the only reliable signal that the test is
   // finished — there is no per-quest completion endpoint.
@@ -304,11 +296,32 @@ export function withServerRecord(
   if (record.pyschometricReportPdfLink) done.add('mettle');
   else done.delete('mettle');
 
+  /*
+   * Points are reconciled, not overwritten, and this is the one place in the
+   * app that knowingly does not just take the server's word.
+   *
+   * The server is authoritative the moment it can award anything. Today it
+   * cannot — /api/schoolStudent has no endpoint that adds a point, so
+   * `totalPoints` reads 0 for every student on the programme. Taking that 0
+   * meant a student finished a game, watched their score appear, and watched
+   * the next profile refresh set it back to zero a second later.
+   *
+   * Taking the larger of the two fixes that without ever hiding a real number:
+   * a server total only exceeds the local ledger once the backend starts
+   * awarding, and from that day on the server wins every comparison and this
+   * branch quietly stops mattering. A deliberate reset to zero is the one case
+   * it gets wrong, and that is worth far less than a dashboard that works.
+   */
+  const server = Number.isFinite(record.totalPoints) ? record.totalPoints : 0;
+  const local = studentId ? localPoints(studentId) : progress.points;
+
   return {
     ...progress,
-    points: Number.isFinite(record.totalPoints) ? record.totalPoints : progress.points,
-    streakDays: Number.isFinite(record.currentStreak) ? record.currentStreak : progress.streakDays,
-    lastActiveOn: record.lastActiveDate ?? progress.lastActiveOn,
+    points: Math.max(server, local),
+    streakDays: Number.isFinite(record.currentStreak)
+      ? Math.max(record.currentStreak, progress.streakDays)
+      : progress.streakDays,
+    quizzesPlayed: studentId ? Math.max(playCount(studentId), progress.quizzesPlayed) : progress.quizzesPlayed,
     completedQuests: [...done],
   };
 }
@@ -458,5 +471,3 @@ export function buildDashboardView(progress: Progress, today = isoDate()): Dashb
       : null,
   };
 }
-
-

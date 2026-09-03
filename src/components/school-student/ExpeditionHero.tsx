@@ -109,9 +109,18 @@ function phaseForHour(hour: number): SkyPhase {
   return PHASES.night;
 }
 
-/** Quarter hue, matching the accent each quarter already carries. */
+/**
+ * Quarter hue, matching the accent each quarter already carries — one step up
+ * the ramp from the card version, because these sit on dark rock rather than on
+ * white.
+ *
+ * Green was the one that never got that step: it stayed at the card's `#22C55E`
+ * while purple, blue and gold all moved to their 400s, so Q1's ring read as the
+ * dullest thing on a ridge where it is the first station the eye lands on. It
+ * is `--green-400` now, like its neighbours.
+ */
 const HUE: Record<string, string> = {
-  green: '#22C55E',
+  green: '#4ADE80',
   purple: '#A78BFA',
   blue: '#60A5FA',
   gold: '#FBBF24',
@@ -264,13 +273,28 @@ export default function ExpeditionHero({
   /** The student's class, shown as the expedition's label. Null when unknown. */
   grade: string | null;
 }) {
-  // The sky follows the clock, and re-checks every few minutes so a tab left
-  // open through sunset actually gets dark.
-  const [phase, setPhase] = useState(() => phaseForHour(new Date().getHours()));
+  /*
+   * The clock the sky follows.
+   *
+   * The phase used to re-check on a five-minute interval, so dusk could arrive
+   * up to five minutes late on a tab left open through sunset. Ticking on the
+   * minute boundary instead means the sky turns over with the hour itself.
+   */
+  const [now, setNow] = useState(() => new Date());
   useEffect(() => {
-    const tick = setInterval(() => setPhase(phaseForHour(new Date().getHours())), 5 * 60_000);
-    return () => clearInterval(tick);
+    let interval: ReturnType<typeof setInterval>;
+    const align = setTimeout(() => {
+      setNow(new Date());
+      interval = setInterval(() => setNow(new Date()), 60_000);
+    }, 60_000 - (Date.now() % 60_000));
+
+    return () => {
+      clearTimeout(align);
+      clearInterval(interval);
+    };
   }, []);
+
+  const phase = phaseForHour(now.getHours());
 
   const percent = Math.max(0, Math.min(100, view.overallPercent));
   const nextCamp = view.quarters.find((q) => q.status !== 'complete');
@@ -422,59 +446,80 @@ export default function ExpeditionHero({
           return (
             <g key={quarter.id} transform={`translate(${point[0]} ${point[1]})`}>
               {/*
-               * The stations were 10px dots in the quarter's own hue, sitting on
-               * dark rock — a green dot on a navy mountain is not a legible
-               * marker, and the locked ones were near-invisible. So: every
-               * station is a WHITE disc with the hue as a ring, which reads
-               * against any phase of the sky, and the code is spelled out rather
-               * than abbreviated to a bare digit.
+               * The lift lives on an inner group. The outer <g> carries this
+               * station's translate as an ATTRIBUTE, and a CSS transform
+               * replaces the attribute rather than composing with it — putting
+               * the hover scale on the same element flings the pin to the top
+               * left of the frame.
                */}
-              {live && <circle className="ss-beacon" r="19" fill={hue} />}
-              <circle r="16" fill="#0B0628" fillOpacity="0.55" />
-              <circle
-                r="15"
-                fill={locked ? '#E7EAF3' : '#FFFFFF'}
-                stroke={locked ? '#94A3B8' : hue}
-                strokeWidth={live ? 4 : 3}
-              />
-              <text
-                textAnchor="middle"
-                y="4.5"
-                fontSize="12.5"
-                fill={locked ? '#64748B' : '#141033'}
-                style={{ fontFamily: 'var(--font-data)', fontWeight: 700 }}
+              <g
+                className="ss-camp-pin"
+                data-state={quarter.status}
+                style={{ ['--pin-hue' as string]: locked ? '#94A3B8' : hue }}
               >
-                {quarter.code}
-              </text>
+                {/* Names the station on hover. The svg is aria-hidden and the
+                    camp cards below carry the real detail, so this is a mouse
+                    affordance, not the accessible name. */}
+                <title>{`${quarter.code} — ${quarter.title}`}</title>
+                {/* The hit area. The disc is 15px and the badge hangs off its
+                    shoulder; without this the pointer falls through the gaps
+                    between them and the pin flickers as you cross it. */}
+                <circle r="23" fill="transparent" />
+                {/*
+                 * The stations were 10px dots in the quarter's own hue, sitting on
+                 * dark rock — a green dot on a navy mountain is not a legible
+                 * marker, and the locked ones were near-invisible. So: every
+                 * station is a WHITE disc with the hue as a ring, which reads
+                 * against any phase of the sky, and the code is spelled out rather
+                 * than abbreviated to a bare digit.
+                 */}
+                {live && <circle className="ss-beacon" r="19" fill={hue} />}
+                <circle r="16" fill="#0B0628" fillOpacity="0.55" />
+                <circle
+                  r="15"
+                  fill={locked ? '#E7EAF3' : '#FFFFFF'}
+                  stroke={locked ? '#94A3B8' : hue}
+                  strokeWidth={live ? 4 : 3}
+                />
+                <text
+                  textAnchor="middle"
+                  y="4.5"
+                  fontSize="12.5"
+                  fill={locked ? '#64748B' : '#141033'}
+                  style={{ fontFamily: 'var(--font-data)', fontWeight: 700 }}
+                >
+                  {quarter.code}
+                </text>
 
-              {/* State, as a badge on the shoulder — a tick when it is behind
-                  you, a padlock when it is not open yet. */}
-              {(done || locked) && (
-                <g transform="translate(11 -11)">
-                  <circle r="7" fill={done ? '#16A34A' : '#64748B'} stroke="#FFFFFF" strokeWidth="2" />
-                  {done ? (
-                    <path
-                      d="M-3 0.2 L-0.8 2.5 L3.2 -2.2"
-                      fill="none"
-                      stroke="#FFFFFF"
-                      strokeWidth="1.9"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  ) : (
-                    <>
+                {/* State, as a badge on the shoulder — a tick when it is behind
+                    you, a padlock when it is not open yet. */}
+                {(done || locked) && (
+                  <g transform="translate(11 -11)">
+                    <circle r="7" fill={done ? '#16A34A' : '#64748B'} stroke="#FFFFFF" strokeWidth="2" />
+                    {done ? (
                       <path
-                        d="M-2.2 -0.9 v-1.3 a2.2 2.2 0 0 1 4.4 0 v1.3"
+                        d="M-3 0.2 L-0.8 2.5 L3.2 -2.2"
                         fill="none"
                         stroke="#FFFFFF"
-                        strokeWidth="1.3"
+                        strokeWidth="1.9"
                         strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
-                      <rect x="-2.9" y="-0.9" width="5.8" height="4.4" rx="1.2" fill="#FFFFFF" />
-                    </>
-                  )}
-                </g>
-              )}
+                    ) : (
+                      <>
+                        <path
+                          d="M-2.2 -0.9 v-1.3 a2.2 2.2 0 0 1 4.4 0 v1.3"
+                          fill="none"
+                          stroke="#FFFFFF"
+                          strokeWidth="1.3"
+                          strokeLinecap="round"
+                        />
+                        <rect x="-2.9" y="-0.9" width="5.8" height="4.4" rx="1.2" fill="#FFFFFF" />
+                      </>
+                    )}
+                  </g>
+                )}
+              </g>
             </g>
           );
         })}
@@ -495,8 +540,18 @@ export default function ExpeditionHero({
         }}
       />
 
-      <div className="relative flex flex-wrap items-start justify-between gap-6 p-5 sm:p-7">
-        <div className="max-w-[23rem]">
+      {/*
+       * The copy sits ON TOP of the scene, so its box — including the empty gap
+       * between the two blocks, which is exactly where the ridge shows — would
+       * swallow every pointer before it reached the camp pins. The container
+       * therefore passes pointers through and each block takes them back, which
+       * keeps text selectable inside the blocks and leaves the gap live.
+       */}
+      <div className="pointer-events-none relative flex flex-wrap items-start justify-between gap-6 p-5 sm:p-7">
+        <div className="pointer-events-auto max-w-[23rem]">
+          {/* No date here. It was tried and it lost to the sky behind it — the
+              clock lives in the shell header now, where it is on every page and
+              legible at a glance. See ShellClock. */}
           <p className="ss-eyebrow text-white/60">
             {grade ? `Class ${grade} expedition` : 'Your expedition'}
           </p>
@@ -535,7 +590,7 @@ export default function ExpeditionHero({
 
         {/* The altimeter, on the far side of the peak. */}
         <div
-          className="w-full min-w-[16.5rem] max-w-[20rem] rounded-2xl border border-white/20 p-4.5 backdrop-blur-md sm:w-auto"
+          className="pointer-events-auto w-full min-w-[16.5rem] max-w-[20rem] rounded-2xl border border-white/20 p-4.5 backdrop-blur-md sm:w-auto"
           style={{ background: 'rgba(10, 5, 30, 0.55)' }}
         >
           <p className="ss-eyebrow text-white/55">Altitude</p>

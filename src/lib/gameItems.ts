@@ -3,16 +3,17 @@ import { schoolGet } from '@/api/schoolStudentApi';
 /**
  * Fetching the questions for a day's game.
  *
- * The correct call is `getItemsBySetId`, and it is tried first. It currently
- * answers HTTP 500 with a Firestore error — the `gameItems` collection group is
- * missing a composite index on (setId ASC, order ASC) — so until that index is
- * created there is a development fallback that walks `itm_<prefix>_NN` one id at
- * a time through `getGameItemById`, which does work.
+ * `getItemsBySetId` is the correct call and, since the `gameItems` composite
+ * index on (setId ASC, order ASC) was created, it works: verified 2026-09-03
+ * against every published set, including the ten sudoku puzzles and eleven
+ * words that used to be reachable only one id at a time.
  *
- * The fallback is deliberately loud about itself: callers get `source: 'probe'`
- * and surface it, because guessing ids by convention is a stopgap for checking
- * the flow, not a way to ship. The moment the index exists the first call
- * succeeds and this path is never taken again.
+ * The id-walking fallback below is kept anyway, and it is not dead code. It is
+ * what stands between a dropped index — or a set published before its index
+ * catches up — and a student staring at "the question pack isn't available".
+ * Callers get `source: 'probe'` when it fires, which the play page surfaces,
+ * because ids guessed by convention are a safety net and should be visible as
+ * one rather than passing silently for the real thing.
  */
 
 export type ItemOption = { id: string; text: string };
@@ -166,15 +167,32 @@ export const noteOf = (item: GameItem): string | null =>
 export const hintOf = (item: GameItem): string | null => item.content.hint ?? null;
 
 /**
- * Google Cloud Storage paths are not browser URLs.
+ * Google Cloud Storage paths are not browser URLs — and one of these buckets
+ * does not exist.
  *
- * Items carry `gs://bucket/path`, which an `<img>` cannot load. This rewrites
- * it to the public HTTPS form. Note that the flag bucket currently 404s even
- * when rewritten — the assets are not uploaded or not public — so callers must
- * still handle a failed image.
+ * Items carry `gs://bucket/path`, which an `<img>` cannot load. The general
+ * rewrite to the public HTTPS form is at the bottom of this function.
+ *
+ * `gs://procounsel-games/flags/*` is special-cased ahead of it because that
+ * bucket is not merely private — `storage.googleapis.com/storage/v1/b/
+ * procounsel-games` answers "The specified bucket does not exist". Every flag
+ * in Flag Dash therefore 404s, and a flag quiz with no flag is ten unanswerable
+ * questions: the board cannot even show what it is asking about.
+ *
+ * So the ten flags the set uses are served from our own `public/` folder, by
+ * the same filename the item already names. Same origin, no third party at
+ * runtime, and it costs 96KB in the build. The instant the bucket exists,
+ * deleting this branch is the whole change — the items are already correct.
  */
+const LOCAL_FLAGS = 'gs://procounsel-games/flags/';
+
 export function imageUrlFor(raw: string | null | undefined): string | null {
   if (!raw) return null;
+
+  if (raw.startsWith(LOCAL_FLAGS)) {
+    return `/school-games/flags/${raw.slice(LOCAL_FLAGS.length)}`;
+  }
+
   const gs = raw.match(/^gs:\/\/([^/]+)\/(.+)$/);
   if (!gs) return raw;
   return `https://storage.googleapis.com/${gs[1]}/${gs[2]}`;

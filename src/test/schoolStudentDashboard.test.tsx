@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import SchoolStudentDashboard from "@/pages/SchoolStudentDashboard";
 import SchoolStudentLayout from "@/layouts/SchoolStudentLayout";
+import DashboardSidebar from "@/components/school-student/DashboardSidebar";
 import {
   buildDashboardView,
   emptyProgress,
@@ -225,6 +226,17 @@ describe("dashboard — nothing dead-ends", () => {
     expect(screen.getByText("Daily Goal")).toBeInTheDocument();
     expect(screen.getByText("Complete 1 activity")).toBeInTheDocument();
     expect(screen.getByText("0 / 1")).toBeInTheDocument();
+  });
+
+  it("caps completed activities at the daily target", () => {
+    render(
+      <MemoryRouter>
+        <DashboardSidebar dailyGoalDone={3} dailyGoalTarget={1} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("1 / 1")).toBeInTheDocument();
+    expect(screen.queryByText("3 / 1")).not.toBeInTheDocument();
   });
 
   it("does not offer the sections that were cut from the rail", () => {

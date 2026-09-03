@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { create } from "zustand";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { cacheTokenInMemory, getToken, setToken } from "@/lib/tokenManager";
 
 /**
@@ -33,6 +34,7 @@ const makeStore = () =>
     user: null as FakeUser | null,
     userId: null as string | null,
     isAuthenticated: false,
+    role: null as string | null,
     isLoginToggle: false,
     needsOnboarding: false,
     tempJwt: null as string | null,
@@ -58,6 +60,8 @@ let store: ReturnType<typeof makeStore>;
 
 vi.mock("@/store/AuthStore", () => ({
   get useAuthStore() { return store; },
+  isSchoolStudentRole: (role: unknown) =>
+    typeof role === "string" && role.trim().toLowerCase() === "schoolstudent",
 }));
 
 // ── Fake login card: one button that "verifies the OTP" for a NEW number ──────
@@ -70,12 +74,21 @@ vi.mock("@/components/cards/LoginCard", () => ({
         cacheTokenInMemory("new-user-jwt");
         store.setState({
           user: { ...NEW_USER }, userId: "9876543210", isAuthenticated: true,
+          role: "user",
           isLoginToggle: false, needsOnboarding: true,
           tempJwt: "new-user-jwt", tempPhone: "9876543210",
         });
       }}
     >
       fake-verify-otp
+    </button>
+  ),
+}));
+
+vi.mock("@/components/cards/OnboardingCard", () => ({
+  default: () => (
+    <button onClick={() => (store.getState().completeOnboarding as () => void)()}>
+      fake-complete-course-state-onboarding
     </button>
   ),
 }));
@@ -93,9 +106,14 @@ vi.mock("@/api/optionForm", () => ({
 }));
 vi.mock("@/api/wallet", () => ({ default: (...a: unknown[]) => startRecharge(...(a as [])) }));
 vi.mock("@/api/psychometric", () => ({ uploadPsychometricReport: vi.fn(), downloadReport: vi.fn() }));
+vi.mock("@/api/schoolStudentApi", () => ({
+  postPsychometricReport: vi.fn(),
+  invalidateSchoolCache: vi.fn(),
+  getSchoolStudent: vi.fn(async () => ({ firstName: "Asha", lastName: "Kumar" })),
+}));
 vi.mock("@/components/SEO/PageSEO", () => ({ default: () => null }));
 
-import MettleAssessment from "@/pages/MettleAssessment";
+import MettleRoute from "@/pages/MettleRoute";
 
 // ── Razorpay double ───────────────────────────────────────────────────────────
 type RzOpts = { amount: number; handler: () => void; modal: { ondismiss: () => void } };
@@ -140,7 +158,7 @@ const assessmentHeading = () => screen.findByRole("heading", { name: "Analytical
 describe("Mettle — brand-new user journey", () => {
   it("signs in, forces a name, finishes the signup, pays, and starts the test", async () => {
     const user = userEvent.setup();
-    render(<MettleAssessment />);
+    render(<MettleRoute />);
 
     // 1. Logged out.
     await user.click(screen.getByRole("button", { name: /Sign in & Start/ }));
@@ -148,24 +166,30 @@ describe("Mettle — brand-new user journey", () => {
     // 2. OTP verified for a new number.
     await user.click(await screen.findByText("fake-verify-otp"));
 
-    // 3. The account has no name, so the required field is shown and the
-    //    payment button is locked.
+    // 3. Course/state onboarding is mandatory before name or payment.
+    expect(await screen.findByText("fake-complete-course-state-onboarding")).toBeInTheDocument();
+    expect(updateUserProfile).not.toHaveBeenCalled();
+    expect(registerOptionForm).not.toHaveBeenCalled();
+    await user.click(screen.getByText("fake-complete-course-state-onboarding"));
+
+    // 4. The account has no name, so the required field is shown and the
+    // payment button is locked.
     const nameField = await screen.findByLabelText(/Your full name/i);
     expect(nameField).toBeRequired();
     expect(startCardButton()).toBeDisabled();
 
-    // 4. A junk name does not unlock it.
+    // 5. A junk name does not unlock it.
     await user.type(nameField, "A");
     expect(startCardButton()).toBeDisabled();
 
-    // 5. A real name does.
+    // 6. A real name does.
     await user.clear(nameField);
     await user.type(nameField, "Ananya Sharma");
     expect(startCardButton()).toBeEnabled();
 
     await user.click(startCardButton());
 
-    // 6. The assessment started — so the whole chain ran.
+    // 7. The assessment started — so the whole chain ran.
     expect(await assessmentHeading()).toBeInTheDocument();
 
     // The name reached the profile, split into first + last.
@@ -193,10 +217,11 @@ describe("Mettle — brand-new user journey", () => {
   it("never charges twice: a cancelled payment leaves nothing debited and is resumable", async () => {
     installRazorpay("dismiss");
     const user = userEvent.setup();
-    render(<MettleAssessment />);
+    render(<MettleRoute />);
 
     await user.click(screen.getByRole("button", { name: /Sign in & Start/ }));
     await user.click(await screen.findByText("fake-verify-otp"));
+    await user.click(await screen.findByText("fake-complete-course-state-onboarding"));
     await user.type(await screen.findByLabelText(/Your full name/i), "Ananya Sharma");
     await user.click(startCardButton());
 
@@ -216,10 +241,11 @@ describe("Mettle — brand-new user journey", () => {
 describe("Mettle — coupons", () => {
   it("DISCOUNT20 takes 20% off and the wallet is debited the discounted amount", async () => {
     const user = userEvent.setup();
-    render(<MettleAssessment />);
+    render(<MettleRoute />);
 
     await user.click(screen.getByRole("button", { name: /Sign in & Start/ }));
     await user.click(await screen.findByText("fake-verify-otp"));
+    await user.click(await screen.findByText("fake-complete-course-state-onboarding"));
     store.setState({ user: { ...NEW_USER, firstName: "Ananya", lastName: "Sharma" } });
 
     // Full price before the code is applied.
@@ -237,10 +263,11 @@ describe("Mettle — coupons", () => {
 
   it("rejects a code that does not exist", async () => {
     const user = userEvent.setup();
-    render(<MettleAssessment />);
+    render(<MettleRoute />);
 
     await user.click(screen.getByRole("button", { name: /Sign in & Start/ }));
     await user.click(await screen.findByText("fake-verify-otp"));
+    await user.click(await screen.findByText("fake-complete-course-state-onboarding"));
     store.setState({ user: { ...NEW_USER, firstName: "Ananya", lastName: "Sharma" } });
 
     await user.type(screen.getByPlaceholderText(/Coupon code/i), "NOTACODE");
@@ -254,10 +281,11 @@ describe("Mettle — coupons", () => {
 describe("Mettle — payment routing", () => {
   it("skips Razorpay entirely when the wallet already covers the price", async () => {
     const user = userEvent.setup();
-    render(<MettleAssessment />);
+    render(<MettleRoute />);
 
     await user.click(screen.getByRole("button", { name: /Sign in & Start/ }));
     await user.click(await screen.findByText("fake-verify-otp"));
+    await user.click(await screen.findByText("fake-complete-course-state-onboarding"));
     // Funded wallet + a name already on the profile.
     store.setState({ user: { ...NEW_USER, firstName: "Ananya", lastName: "Sharma", walletAmount: 5000 } });
 
@@ -270,10 +298,11 @@ describe("Mettle — payment routing", () => {
 
   it("tops up only the shortfall, not the whole price", async () => {
     const user = userEvent.setup();
-    render(<MettleAssessment />);
+    render(<MettleRoute />);
 
     await user.click(screen.getByRole("button", { name: /Sign in & Start/ }));
     await user.click(await screen.findByText("fake-verify-otp"));
+    await user.click(await screen.findByText("fake-complete-course-state-onboarding"));
     store.setState({ user: { ...NEW_USER, firstName: "Ananya", lastName: "Sharma", walletAmount: 1500 } });
 
     await user.click(startCardButton());
@@ -285,10 +314,11 @@ describe("Mettle — payment routing", () => {
   it("opens the login card instead of a dead-end message when the token is unreadable", async () => {
     startRecharge.mockResolvedValueOnce("auth token not found." as never);
     const user = userEvent.setup();
-    render(<MettleAssessment />);
+    render(<MettleRoute />);
 
     await user.click(screen.getByRole("button", { name: /Sign in & Start/ }));
     await user.click(await screen.findByText("fake-verify-otp"));
+    await user.click(await screen.findByText("fake-complete-course-state-onboarding"));
     store.setState({ user: { ...NEW_USER, firstName: "Ananya", lastName: "Sharma" } });
 
     await user.click(startCardButton());
@@ -304,5 +334,62 @@ describe("token plumbing the payment depends on", () => {
     cacheTokenInMemory("new-user-jwt");
     expect(localStorage.getItem("jwt")).toBeNull();
     expect(getToken()).toBe("new-user-jwt");
+  });
+});
+
+describe("Mettle — school student routing", () => {
+  it("keeps a direct school login on free Mettle with a dashboard return", async () => {
+    store.setState({
+      user: { ...NEW_USER, firstName: "Asha", lastName: "Kumar" },
+      userId: "9876543210",
+      role: "schoolStudent",
+      isAuthenticated: true,
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/mettle"]}>
+        <Routes>
+          <Route path="/mettle" element={<MettleRoute />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText("Asha Kumar")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Back to dashboard/i })).toHaveAttribute("href", "/school-student/dashboard");
+    expect(screen.getByText("school plan")).toBeInTheDocument();
+  });
+
+  it("opens free Mettle from the school dashboard and uses the real profile name", async () => {
+    store.setState({
+      user: { ...NEW_USER, firstName: "Asha", lastName: "Kumar" },
+      userId: "9876543210",
+      role: "schoolStudent",
+      isAuthenticated: true,
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/mettle?school=1"]}>
+        <Routes>
+          <Route path="/mettle" element={<MettleRoute />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText("Asha Kumar")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Start Assessment/i })).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/Coupon code/i)).not.toBeInTheDocument();
+  });
+
+  it("returns a regular user to Admissions", () => {
+    store.setState({
+      user: { ...NEW_USER, firstName: "Riya", lastName: "Patel" },
+      userId: "9876543210",
+      role: "user",
+      isAuthenticated: true,
+    });
+
+    render(<MettleRoute />);
+
+    expect(screen.getByRole("link", { name: /Back to Admissions/i })).toHaveAttribute("href", "/");
   });
 });

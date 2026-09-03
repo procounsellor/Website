@@ -40,6 +40,19 @@ const COUNSELLING_CITY_SLUGS = [
   "ranchi", "raipur", "ludhiana",
 ];
 
+// Exam counselling landing pages. Keep in sync with COUNSELLING_EXAMS in
+// src/lib/counsellingExams.ts (plain .mjs, cannot import the .ts).
+export const COUNSELLING_EXAM_SLUGS = [
+  "mht-cet-counselling",
+  "comedk-counselling",
+  "jee-counselling",
+  "wbjee-counselling",
+  "srmjeee-counselling",
+  "met-counselling",
+  "cat-counselling",
+  "xat-counselling",
+];
+
 // Category counselling landing pages. Keep in sync with COUNSELLING_CATEGORIES
 // in src/lib/counsellingCategories.ts (plain .mjs, cannot import the .ts).
 export const COUNSELLING_CATEGORY_SLUGS = [
@@ -54,6 +67,7 @@ export const STATIC_ROUTES = [
   // Core pages — highest priority (target sitelinks)
   "/",
   ...COUNSELLING_CATEGORY_SLUGS.map((s) => `/${s}`),
+  ...COUNSELLING_EXAM_SLUGS.map((s) => `/${s}`),
   "/admissions",
   "/courses",
   "/community",

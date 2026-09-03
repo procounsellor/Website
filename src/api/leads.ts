@@ -132,3 +132,65 @@ export function captureLeadFromUser(
         console.error('[ProCounsel] Lead capture error:', err)
     }
 }
+
+/**
+ * The course an SSC (school) student is filed under in the CRM.
+ *
+ * The backend's own course list already ships this tile as
+ * `SSC (8th/9th/10th)`; the lead desk filters on short names, so the lead
+ * carries the short one and the class goes in the remark.
+ */
+export const SSC_COURSE_NAME = 'SSC'
+
+export interface SchoolStudentLead {
+    phoneNumber: string
+    firstName?: string
+    lastName?: string
+    school?: string
+    className?: string
+}
+
+/**
+ * Capture an SSC student as a lead.
+ *
+ * School students never reach the normal login capture: `verifyOtp` answers
+ * `role: "schoolStudent"` and returns before it, and signup deletes their
+ * `users` row, so there is no profile for `captureLeadFromUser` to read. They
+ * were therefore the one role the CRM never saw — which is the opposite of what
+ * they are worth, since an 8th/9th/10th student is a multi-year relationship.
+ *
+ * Everything the normal path gives a lead (first-touch source, landing page,
+ * per-phone dedupe) still applies; only the course and the remark differ.
+ */
+export function captureSchoolStudentLead(
+    lead: SchoolStudentLead,
+    opts?: { update?: boolean }
+) {
+    const phone = lead.phoneNumber?.trim()
+    if (!phone) {
+        console.warn('[ProCounsel] SSC lead capture skipped: no phone number')
+        return
+    }
+
+    const { landingPage } = getTrackedSource()
+    const remarks = [
+        `${SSC_COURSE_NAME} student`,
+        lead.className ? `Class: ${lead.className}` : '',
+        lead.school ? `School: ${lead.school}` : '',
+        `Landing page: ${landingPage}`,
+    ]
+        .filter(Boolean)
+        .join('. ')
+
+    captureLeadFromUser(
+        { firstName: lead.firstName, lastName: lead.lastName } as Partial<User>,
+        phone,
+        {
+            update: opts?.update,
+            extra: {
+                interestedCourseName: SSC_COURSE_NAME,
+                remarks,
+            },
+        }
+    )
+}

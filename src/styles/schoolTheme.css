@@ -489,6 +489,42 @@
   .school-shell .ss-trail-progress { stroke-dashoffset: var(--dash-to); }
 }
 
+/* ── Ridge stations ──────────────────────────────────────────────────────────
+ * The Q1–Q4 markers pinned to the ridge in the hero.
+ *
+ * The scene is decorative and the whole svg is `pointer-events: none`, so the
+ * pins opt back in one at a time: they are the only part of the drawing worth
+ * pointing at, and each carries a native <title>, which names the quarter on
+ * hover without a tooltip component.
+ *
+ * No cursor change and no click: the camp card below is the thing you act on.
+ * The lift is there to say "this marker is the quarter you are reading about",
+ * which is why the glow is the quarter's own hue rather than a generic white.
+ */
+.school-shell .ss-camp-pin {
+  pointer-events: auto;
+  transform-box: fill-box;
+  transform-origin: center;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--pin-hue, #A78BFA) 40%, transparent));
+  transition: transform var(--motion-normal) var(--motion-ease),
+              filter var(--motion-normal) var(--motion-ease);
+}
+/* A locked camp does not glow. Half the point of the padlock is that it looks
+   inert next to the ones that are open. */
+.school-shell .ss-camp-pin[data-state='locked'] {
+  filter: none;
+}
+.school-shell .ss-camp-pin:hover {
+  transform: scale(1.16);
+  filter: drop-shadow(0 0 13px color-mix(in srgb, var(--pin-hue, #A78BFA) 85%, transparent));
+}
+.school-shell .ss-camp-pin[data-state='locked']:hover {
+  filter: drop-shadow(0 0 9px rgba(255, 255, 255, 0.45));
+}
+@media (prefers-reduced-motion: reduce) {
+  .school-shell .ss-camp-pin:hover { transform: none; }
+}
+
 /* ── Camps ───────────────────────────────────────────────────────────────────
  * A camp card is white and quiet; its state lives in the marker above it and in
  * a 3px rule across its top. That rule is the only place the quarter hue is

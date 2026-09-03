@@ -3,7 +3,8 @@ import GameMark from '@/components/school-student/GameMark';
 import { TONE, toneFor } from '@/components/school-student/gameTones';
 import { duration, scoringLabel } from '@/api/schoolGames';
 import { useLongDate } from '@/lib/useSchoolGames';
-import { getDemoPlay } from '@/lib/demoMode';
+import { gameActivityCount } from '@/components/school-student/gameShape';
+import { getPlay } from '@/lib/schoolPlays';
 import type { TodayDrop } from '@/lib/useSchoolGames';
 
 /**
@@ -14,11 +15,10 @@ import type { TodayDrop } from '@/lib/useSchoolGames';
  * plausible-looking default: no schedule means the empty state, not a made-up
  * quiz.
  *
- * The action is deliberately "Read the rules" rather than "Play". The boards
- * are not on the web yet — the backend keeps the answer key server-side and
- * exposes no endpoint to submit an attempt, so a Play button here could only
- * ever lead somewhere that cannot score. Rules are a real destination; a dead
- * Play button is not.
+ * The action is "Play" for a day that is open and "Opens <date>" for one that
+ * is not, and the two are different elements rather than one styled button —
+ * a disabled-looking control that is actually a link, or vice versa, is the
+ * kind of thing you only find out about by tapping it.
  */
 
 const Chip = ({ label, value, ink }: { label: string; value: string; ink: string }) => (
@@ -42,8 +42,8 @@ export const DropSkeleton = ({ compact = false }: { compact?: boolean }) => (
       </div>
     </div>
     {!compact && (
-      <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        {[0, 1, 2, 3].map((i) => (
+      <div className="mt-5 grid grid-cols-3 gap-2.5">
+        {[0, 1, 2].map((i) => (
           <div key={i} className="h-[58px] animate-pulse rounded-[12px] bg-[#F3F5F9]" />
         ))}
       </div>
@@ -78,10 +78,13 @@ export const NoDropToday = ({ compact = false }: { compact?: boolean }) => (
 
 export default function TodaysDrop({
   drop,
+  studentId,
   compact = false,
   onShowRules,
 }: {
   drop: TodayDrop;
+  /** Whose play history to read. Null simply means "no local record". */
+  studentId?: string | null;
   /** The dashboard's version: the headline facts and a way through, nothing else. */
   compact?: boolean;
   /** Scroll to this game's card in the rack and open its rules. */
@@ -91,14 +94,16 @@ export default function TodaysDrop({
   const game = drop.game;
   const set = drop.set;
   /*
-   * "Have they played?" has two possible sources and only one of them works.
-   * `drop.session` is the real one and is always null — getGameSession 500s
-   * because nothing can create a session yet. The local record fills that gap
-   * so this card, the daily goal and the dashboard's quiz count cannot
-   * disagree. DEMO ONLY; see lib/demoMode.
+   * "Have they played?" has two possible sources and only one of them answers.
+   * `drop.session` is the real one and is always null — getGameSession has no
+   * session to find, because nothing creates one. The local ledger fills that
+   * gap so this card, the daily goal and the dashboard's quiz count cannot
+   * disagree about the same fact. See lib/schoolPlays.
    */
-  const localPlay = getDemoPlay(drop.date);
+  const localPlay = getPlay(studentId, drop.date);
   const played = Boolean(drop.session) || Boolean(localPlay);
+  const savedScore = drop.session?.score ?? localPlay?.points;
+  const activityCount = gameActivityCount(game?.engine, set?.itemCount);
   const title = set?.title || drop.title || game?.name || 'Today’s game';
   const when = useLongDate(drop.date);
 
@@ -146,18 +151,22 @@ export default function TodaysDrop({
           {!drop.isToday
             ? when
             : played
-              ? localPlay?.total
+              ? drop.session
+                ? `Played · ${savedScore ?? 0} pts`
+                : localPlay?.total
                 ? `Played · ${localPlay.correct}/${localPlay.total}`
-                : 'Played today'
+                : localPlay?.solved === true
+                  ? 'Played · solved'
+                  : 'Played today'
               : 'Not played yet'}
         </span>
       </div>
 
       {!compact && (
-        <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        <div className="mt-5 grid grid-cols-3 gap-2.5">
           <Chip
-            label="Questions"
-            value={set?.itemCount ? String(set.itemCount) : '—'}
+            label={activityCount === 1 ? 'Activity' : 'Questions'}
+            value={activityCount ? String(activityCount) : '—'}
             ink={tone.ink}
           />
           <Chip
@@ -168,11 +177,6 @@ export default function TodaysDrop({
           <Chip
             label="Clock"
             value={duration(set?.timeLimitSecs ?? game?.defaultTimeLimitSecs)}
-            ink={tone.ink}
-          />
-          <Chip
-            label="Entry"
-            value={set?.passTier === 'free' ? 'Free' : (set?.passTier ?? '—')}
             ink={tone.ink}
           />
         </div>
@@ -191,14 +195,14 @@ export default function TodaysDrop({
             to={drop.isToday ? '/school-student/play' : '/school-student/games'}
             className="ss-go px-5 py-2.5 text-[13.5px]"
           >
-            {drop.isToday ? (played ? 'Play again' : 'Play now') : 'See what is coming'}
+            {drop.isToday ? (played ? 'View result' : 'Play now') : 'See what is coming'}
             <span aria-hidden>→</span>
           </Link>
         ) : (
           <>
             {drop.isToday ? (
               <Link to="/school-student/play" className="ss-go px-5 py-2.5 text-[13.5px]">
-                {played ? 'Play again' : 'Play now'}
+                {played ? 'View result' : 'Play now'}
                 <span aria-hidden>→</span>
               </Link>
             ) : (

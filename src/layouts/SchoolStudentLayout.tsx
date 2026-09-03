@@ -2,6 +2,7 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { ChevronDown, LogOut, Menu } from 'lucide-react';
 import { Icon } from '@/components/school-student/assets';
+import ShellClock from '@/components/school-student/ShellClock';
 import '@/styles/schoolTheme.css';
 import DashboardSidebar from '@/components/school-student/DashboardSidebar';
 import { useAuthStore } from '@/store/AuthStore';
@@ -98,10 +99,11 @@ export default function SchoolStudentLayout() {
 
   const { record, reload: refreshRecord } = useSchoolStudentRecord(phone);
 
-  // The server wins on the three fields it owns; local storage keeps the rest.
+  // The server wins on the fields it owns; local storage keeps the rest, and
+  // points are reconciled because nothing on the backend can award one yet.
   const merged = useMemo(
-    () => (progress ? withServerRecord(progress, record) : null),
-    [progress, record],
+    () => (progress ? withServerRecord(progress, record, phone) : null),
+    [progress, record, phone],
   );
 
   const view = useMemo(() => (merged ? buildDashboardView(merged) : null), [merged]);
@@ -148,6 +150,11 @@ export default function SchoolStudentLayout() {
           >
             <Menu className="h-5 w-5" />
           </button>
+
+          {/* The left of this bar was empty on every page. The clock takes it,
+              so the date is the first thing in the header rather than a line of
+              eyebrow text lost against the hero's sky. */}
+          <ShellClock />
 
           <div className="ml-auto flex items-center gap-2 md:gap-3">
             {view && (

@@ -71,7 +71,11 @@ const fakeFetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => 
   if (url.includes("/all-states")) {
     return json([{ name: "Maharashtra", imageStorage: "" }]);
   }
-  // Leads capture, chatbot animation, anything else — harmless 200.
+  if (url.includes("/api/leads/captureLead")) {
+    lastLeadBody = init?.body ? JSON.parse(String(init.body)) : null;
+    return json({});
+  }
+  // Chatbot animation, anything else — harmless 200.
   return json({});
 });
 
@@ -93,6 +97,7 @@ const LIVE_COURSES = [
 ];
 
 let lastSignupBody: Record<string, unknown> | null = null;
+let lastLeadBody: Record<string, unknown> | null = null;
 
 const SCHOOL_STUDENT_LOGIN = {
   role: "schoolStudent",
@@ -140,6 +145,10 @@ const resetStore = () =>
 beforeEach(() => {
   calls = [];
   lastSignupBody = null;
+  lastLeadBody = null;
+  // captureLeadFromUser dedupes per phone in localStorage, so one test's lead
+  // would silence the next one's.
+  localStorage.removeItem("pc_lead_captured");
   server = {
     verifyOtp: {},
     isUserDetailsNull: false,
@@ -266,6 +275,30 @@ describe("school student login", () => {
     const state = useAuthStore.getState();
     expect(state.schoolStudent?.school).toBe("Delhi Public School");
     expect(state.user?.firstName).toBe("Asha");
+  });
+
+  /*
+   * SSC students were the one role the CRM never saw: verifyOtp returns inside
+   * the schoolStudent branch, before the capture at the foot of the function.
+   */
+  it("captures the returning student as an SSC lead", async () => {
+    useAuthStore.setState({
+      schoolStudent: {
+        phoneNumber: "7004675426", firstName: "Asha", lastName: "Kumar",
+        school: "Delhi Public School", className: "10",
+      },
+    });
+    server.verifyOtp = SCHOOL_STUDENT_LOGIN;
+
+    await useAuthStore.getState().verifyOtp("7004675426", "1234");
+
+    await waitFor(() => expect(lastLeadBody).not.toBeNull());
+    expect(lastLeadBody).toMatchObject({
+      phoneNumber: "7004675426",
+      firstName: "Asha",
+      interestedCourseName: "SSC",
+    });
+    expect(String(lastLeadBody?.remarks)).toContain("Class: 10");
   });
 
   it("does not hand a different phone the previous student's details", async () => {
@@ -423,6 +456,47 @@ describe("onboarding fork", () => {
     expect(state.tempJwt).toBeNull();
     expect(localStorage.getItem("jwt")).toBe("new-school-jwt");
     expect(localStorage.getItem("role")).toBe("schoolStudent");
+  });
+
+  it("files the finished signup as an SSC lead, with the school and class", async () => {
+    asNewUser();
+    render(<OnboardingCard onSchoolStudentComplete={vi.fn()} />);
+
+    await userEvent.click(await screen.findByText("SSC (8th/9th/10th)"));
+    await userEvent.type(screen.getByLabelText("First name"), "Asha");
+    await userEvent.type(screen.getByLabelText("Last name"), "Kumar");
+    await userEvent.type(screen.getByLabelText("School name"), "Delhi Public School");
+    await userEvent.click(screen.getByRole("button", { name: "10" }));
+    await userEvent.click(screen.getByRole("button", { name: "Start my journey →" }));
+
+    await waitFor(() => expect(lastLeadBody).not.toBeNull());
+    expect(lastLeadBody).toMatchObject({
+      phoneNumber: "8105163484",
+      firstName: "Asha",
+      lastName: "Kumar",
+      interestedCourseName: "SSC",
+    });
+    const remarks = String(lastLeadBody?.remarks);
+    expect(remarks).toContain("Class: 10");
+    expect(remarks).toContain("School: Delhi Public School");
+  });
+
+  it("does not capture a lead when the signup itself fails", async () => {
+    asNewUser();
+    server.schoolSignup = { status: 200, body: { message: "Already a counsellor." } };
+    render(<OnboardingCard onSchoolStudentComplete={vi.fn()} />);
+
+    await userEvent.click(await screen.findByText("SSC (8th/9th/10th)"));
+    await userEvent.type(screen.getByLabelText("First name"), "Asha");
+    await userEvent.type(screen.getByLabelText("Last name"), "Kumar");
+    await userEvent.type(screen.getByLabelText("School name"), "DPS");
+    await userEvent.click(screen.getByRole("button", { name: "10" }));
+    await userEvent.click(screen.getByRole("button", { name: "Start my journey →" }));
+
+    await waitFor(() =>
+      expect(calls.some((u) => u.includes("schoolStudentSignup"))).toBe(true),
+    );
+    expect(lastLeadBody).toBeNull();
   });
 
   it("keeps the student on the form and unchanged when the backend refuses", async () => {

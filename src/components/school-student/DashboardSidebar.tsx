@@ -50,7 +50,9 @@ export default function DashboardSidebar({
   onClose?: () => void;
 }) {
   const { pathname } = useLocation();
-  const goalMet = dailyGoalDone >= dailyGoalTarget;
+  const safeTarget = Math.max(1, dailyGoalTarget);
+  const displayedDone = Math.min(Math.max(0, dailyGoalDone), safeTarget);
+  const goalMet = displayedDone >= safeTarget;
 
   const row = (
     { key, label, icon, to, owns }: Item,
@@ -170,14 +172,14 @@ export default function DashboardSidebar({
               className="shrink-0 font-[Poppins] text-[15px] font-extrabold"
               style={{ color: goalMet ? '#4ADE80' : '#FFFFFF' }}
             >
-              {dailyGoalDone} / {dailyGoalTarget}
+              {displayedDone} / {safeTarget}
             </span>
           </div>
           <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-black/30">
             <div
               className="h-full rounded-full"
               style={{
-                width: `${Math.min(100, (dailyGoalDone / dailyGoalTarget) * 100)}%`,
+                width: `${(displayedDone / safeTarget) * 100}%`,
                 background: 'linear-gradient(90deg,#4ADE80 0%,#22C55E 100%)',
                 transition: 'width var(--motion-slow) var(--motion-ease)',
               }}

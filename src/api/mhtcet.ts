@@ -1,6 +1,24 @@
 import axios from "axios";
 
-const PREDICTOR_BASE_URL = "https://mht-cet-predictor-beige.vercel.app";
+/**
+ * MHT CET predictor API.
+ *
+ * Backend: https://neet-rank-predictor-two.vercel.app — the same host the NEET
+ * predictor uses (see api/neetV2.ts). Set on request. Dev goes through the
+ * Vite proxy (`/mhtcet-api`, see vite.config.ts) so requests stay same-origin.
+ *
+ * ⚠️ VERIFIED 2026-09-02: this host does NOT serve the paths below. `/predict`,
+ * `/predict/by-percentile` and `/predict/by-marks` all answer
+ * 404 {"detail":"Not Found"}. Its OpenAPI lists only NEET routes:
+ * /api/predict-colleges, /api/predict-rank, /api/admission-probability,
+ * /api/round-cutoffs, /api/colleges, /api/institutes, /api/options,
+ * /api/state-counselling — different paths and NEET-shaped parameters.
+ *
+ * So MHT CET predictions will fail here until this host also serves the MHT CET
+ * routes over the MHT CET dataset. The previous working host was
+ * https://mht-cet-predictor-beige.vercel.app.
+ */
+const PREDICTOR_BASE_URL = "https://procounsellor-procounsel-neet-api.vercel.app/api/v1/mht-cet";
 
 export interface MHTCETCollegePredictionRequest {
   marks?: number;
