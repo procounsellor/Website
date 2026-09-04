@@ -3,8 +3,7 @@ name: Deploy React App to Cloudflare Pages
 on:
   push:
     branches:
-      - main  
-
+      - main 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -19,7 +18,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
 
       - name: Install Dependencies
@@ -50,5 +49,5 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=your-cloudflare-project-name
+          command: pages deploy dist --project-name=website-bcg --commit-dirty=true
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
