@@ -2,37 +2,22 @@ import { useState, useEffect, useRef } from "react";
 import PageSEO from "@/components/SEO/PageSEO";
 import { useAuthStore } from "@/store/AuthStore";
 import { LoginCard } from "@/components/cards/LoginCard";
-import startRecharge from "@/api/wallet";
-import { getLoggedInPhone, formatPhoneForRazorpay } from "@/lib/phone";
+import OnboardingCard from "@/components/cards/OnboardingCard";
+import { getLoggedInPhone } from "@/lib/phone";
 import { getToken } from "@/lib/tokenManager";
-import { registerOptionForm, payOptionFormFromWallet } from "@/api/optionForm";
-import { uploadPsychometricReport, downloadReport } from "@/api/psychometric";
-import { updateUserProfile } from "@/api/user";
+import { downloadReport } from "@/api/psychometric";
 import { buildReportPdf, type Report } from "@/lib/mettleReportPdf";
+import { METTLE_COUPONS, METTLE_PRICE, type MettleFlow } from "@/lib/mettleFlow";
 
-type RazorpayConstructor = new (opts: unknown) => { open: () => void };
 
 const API = "https://college-search-api.vercel.app";
 
-// Price of the Mettle career assessment (INR). Payment is NOT wired yet —
-// see the backend API contract in METTLE_PAYMENT_TODO below.
-// Price of the Mettle career assessment (INR). The start card, the "You pay"
-// row, the button label, the cost FAQ and the Service schema all read from
-// here. MettleBanner.tsx carries its own copy of this figure — keep them in sync.
-const METTLE_PRICE = 2000;
-
-/**
- * Discount codes, as percentages off METTLE_PRICE.
- *
- * ⚠️ These ship inside the JavaScript bundle — anyone who opens devtools can
- * read them, so treat PC100 as public the moment it is used in front of an
- * audience. Move validation to the backend before relying on them commercially.
- */
-const METTLE_COUPONS: Record<string, number> = {
-  PC50: 50,
-  PC100: 100,
-  DISCOUNT20: 20,
-};
+// METTLE_PRICE and METTLE_COUPONS now live in lib/mettleFlow, because the price
+// is a property of the flow rather than of the page — a school student opens
+// this same page at zero. What is still read from the constant here is the
+// public marketing copy: the cost FAQ and the Service schema quote the list
+// price to everyone, logged in or not. MettleBanner.tsx carries its own copy of
+// that figure — keep them in sync.
 
 /*
  * ─── PAYMENT TO BE WIRED LATER (backend endpoints required) ──────────────────
@@ -395,7 +380,16 @@ function validateName(raw: string): string | null {
   return null;
 }
 
-export default function MettleAssessment() {
+/**
+ * The Mettle page, for whichever flow it was handed.
+ *
+ * It renders the same layout for a school student and a paying one — the same
+ * marketing, the same hundred questions, the same report. What it does NOT do
+ * any more is decide between them: `flow` arrives already chosen by MettleRoute
+ * and carries the price, the identity, the payment and the storage. There is no
+ * `isSchoolStudentRole` in this file, and adding one back would be the bug.
+ */
+export default function MettleAssessment({ flow }: { flow: MettleFlow }) {
   const [screen, setScreen] = useState<Screen>("start");
   const [name, setName]     = useState("");
   const [ci, setCi]         = useState(0);
@@ -422,9 +416,11 @@ export default function MettleAssessment() {
   // ask for one here and it is required before the test can start.
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const role = useAuthStore((s) => s.role);
+  const needsOnboarding = useAuthStore((s) => s.needsOnboarding);
   const isLoginToggle = useAuthStore((s) => s.isLoginToggle);
-  const profileName = `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim();
+  // Whoever this flow says the student is. The school flow reads the school
+  // record, the paid flow reads the users row; neither is this file's business.
+  const profileName = flow.profileName;
   const needsName = isAuthenticated && !!user && !profileName;
 
   // Login persists for months, so the stored profile can be from long before the
@@ -443,20 +439,14 @@ export default function MettleAssessment() {
 
   useEffect(() => { top.current?.scrollIntoView({ behavior: "smooth" }); }, [screen, ci, qi]);
 
-  const discount = appliedCoupon ? METTLE_COUPONS[appliedCoupon] ?? 0 : 0;
-  // School students are never charged for the assessment: they have no wallet
-  // (their role has no /api/user/:id record, so walletAmount is always 0) and
-  // the test is the free hook into the school programme. `payable === 0` is the
-  // path the existing 100%-off coupon already takes, so nothing else changes —
-  // "Start Assessment →" runs beginAssessment() straight away.
-  const isFreeForRole = role === "schoolStudent";
-  const payable = isFreeForRole
-    ? 0
-    : Math.max(0, Math.round((METTLE_PRICE * (100 - discount)) / 100));
-  const walletBalance = user?.walletAmount ?? 0;
-  // Came in with the login/profile response — a link here means they already
-  // own a report and should not be charged for another.
-  const savedReportLink = user?.pyschometricReportPdfLink;
+  // A coupon only exists on a flow that charges; a free flow ignores the code
+  // entirely rather than computing 20% off zero.
+  const discount = flow.couponsAllowed && appliedCoupon ? METTLE_COUPONS[appliedCoupon] ?? 0 : 0;
+  const payable = Math.max(0, Math.round((flow.price * (100 - discount)) / 100));
+  const walletBalance = flow.walletBalance;
+  // A link here means they already own a report and must not be charged for
+  // another. Which record that link lives on is the flow's business.
+  const savedReportLink = flow.savedReportLink;
 
   const cat  = CAT_QS[ci];
   const date = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
@@ -465,61 +455,27 @@ export default function MettleAssessment() {
     const u = useAuthStore.getState().user;
     // Profile name first; the name typed on the start card is the fallback for
     // accounts that have none (and for the rare case the profile write failed).
-    const n = `${u?.firstName ?? ""} ${u?.lastName ?? ""}`.trim() || cleanName(nameInput) || "Student";
+    const n = profileName || `${u?.firstName ?? ""} ${u?.lastName ?? ""}`.trim() || cleanName(nameInput) || "Student";
     setName(n);
     setCi(0); setQi(0); setAns({}); setScreen("cat-intro");
   }
 
   /**
-   * Finishes the student's signup before a rupee is touched: a real name on the
-   * profile, and the account out of the half-created onboarding state.
+   * Everything that must be true before the test starts.
    *
-   * /mettle is a standalone route — it sits outside RevampLayout, so the
-   * OnboardingCard that normally closes out a new signup never renders here. A
-   * user who signs up on this page would otherwise stay mid-onboarding for the
-   * whole session, with their JWT held in memory only, and every authenticated
-   * call after that (payment included) made on a half-built account.
-   *
-   * Returns false when the student still has to type a name — the field is on
-   * the start card and the error is shown there.
+   * What that means is the flow's to say — a name written to the profile and
+   * onboarding finished on the paid flow, simply knowing who the report is for
+   * on the school one. The name field and its error live here because they are
+   * on the start card; the decision about whether they are needed does not.
    */
   async function ensureSignupComplete(): Promise<boolean> {
-    const s = useAuthStore.getState();
-    const u = s.user;
-    const hasName = !!`${u?.firstName ?? ""} ${u?.lastName ?? ""}`.trim();
-
-    if (!hasName) {
+    // The typed name is validated here, before the flow is asked to save it:
+    // this is where the field and its error message are.
+    if (needsName) {
       const problem = validateName(nameInput);
       if (problem) { setNameErr(problem); return false; }
     }
-
-    setNameBusy(true); setNameErr("");
-    try {
-      if (!hasName) {
-        const full = cleanName(nameInput);
-        const [firstName, ...rest] = full.split(" ");
-        const lastName = rest.join(" ");
-        // getToken(), not localStorage — a just-signed-up user's JWT is still
-        // in-memory only, and reading localStorage here would skip the save.
-        const uid = getLoggedInPhone() || s.userId;
-        const token = getToken();
-        if (uid && token) {
-          await updateUserProfile(uid, { firstName, lastName }, token);
-        }
-      }
-
-      // Promotes the in-memory JWT to storage and clears needsOnboarding, so
-      // from here on this is an ordinary signed-in account. No-op once done.
-      if (s.needsOnboarding || s.tempJwt) s.completeOnboarding();
-
-      await useAuthStore.getState().refreshUser(true);
-    } catch (e) {
-      // The name still titles this report even if the profile write failed.
-      console.error("Could not finish the signup:", e instanceof Error ? e.message : String(e));
-    } finally {
-      setNameBusy(false);
-    }
-    return true;
+    return flow.prepare({ nameInput, setNameErr, setNameBusy });
   }
 
   function applyCoupon() {
@@ -529,56 +485,15 @@ export default function MettleAssessment() {
     setAppliedCoupon(code); setPayErr("");
   }
 
-  /** Charges the shortfall on Razorpay and waits for the wallet to show it. */
-  async function topUpWallet(walletId: string, amount: number, target: number) {
-    const order = await startRecharge(walletId, amount);
-    // startRecharge answers with a bare string when it refuses (e.g. no auth
-    // token) — that used to surface as a flat "try again" with no clue why.
-    if (typeof order === "string") {
-      throw /token|auth/i.test(order)
-        ? openLogin("We couldn't read your login on this device. Log in again and press Start.")
-        : new Error(order);
-    }
-    if (!order || !order.orderId) {
-      throw new Error("Could not start the payment. Please try again.");
-    }
-    if (typeof (window as unknown as { Razorpay?: unknown }).Razorpay !== "function") {
-      throw new Error("The payment window could not load. Check your connection or any ad-blocker, then press Start again.");
-    }
-    await new Promise<void>((resolve, reject) => {
-      const u = useAuthStore.getState().user;
-      const options = {
-        key: order.keyId, amount: order.amount, currency: order.currency, order_id: order.orderId,
-        name: "ProCounsel", description: "Mettle career assessment",
-        prefill: {
-          contact: formatPhoneForRazorpay(getLoggedInPhone()),
-          email: u?.email || "",
-          name: `${u?.firstName || ""} ${u?.lastName || ""}`.trim(),
-        },
-        notes: { userId: walletId, service: "mettle" },
-        handler: () => {
-          void (async () => {
-            // The wallet is credited by the payment webhook, so poll rather than
-            // failing on the first read.
-            for (let i = 0; i < 8; i += 1) {
-              const fresh = await useAuthStore.getState().refreshUser(true);
-              if (!fresh) { reject(openLogin("Payment went through but we lost your login on this device. Log in again — the money is in your wallet, you won't be charged twice.")); return; }
-              if ((fresh.walletAmount ?? 0) >= target) { resolve(); return; }
-              await new Promise(r => setTimeout(r, 1200));
-            }
-            reject(new Error("Payment went through but your balance hasn't updated yet. Give it a minute and press Start again — you won't be charged twice."));
-          })();
-        },
-        modal: { ondismiss: () => reject(new Error("Payment cancelled.")) },
-        theme: { color: "#4f46e5" },
-      };
-      const RZ = (window as unknown as { Razorpay: RazorpayConstructor }).Razorpay;
-      new RZ(options).open();
-    });
-  }
-
+  /**
+   * Charge for the test, then start it.
+   *
+   * The zero case is first and covers both ways of getting there — a free flow
+   * and a 100% coupon on a paying one — so neither this function nor the flow
+   * has to know which. Below it, `flow.pay` is called unconditionally: the
+   * school flow's is a no-op, which is why there is no branch here.
+   */
   async function payAndBegin() {
-    // A 100% coupon skips money entirely — no wallet call, no Razorpay.
     if (payable === 0) { beginAssessment(); return; }
 
     const s = useAuthStore.getState();
@@ -587,28 +502,12 @@ export default function MettleAssessment() {
 
     setPayBusy(true); setPayErr("");
     try {
-      // Mettle rides the option-form registration + transfer pair — the only
-      // wallet-debit endpoint available. The call is idempotent: once the row
-      // exists for this phone it makes no request, so a retry after a cancelled
-      // payment goes straight to the debit instead of re-registering.
-      const u = s.user;
-      await registerOptionForm({
-        name: `${u?.firstName ?? ""} ${u?.lastName ?? ""}`.trim() || cleanName(nameInput) || "Student",
-        marks: 0,
-        stateDomicile: "-",
-        phoneNumber: walletId,
-        optionFormRequirement: "METTLE",
+      await flow.pay({
+        amount: payable,
+        walletId,
+        name: profileName || cleanName(nameInput) || "Student",
+        onNeedLogin: openLogin,
       });
-
-      const fresh = await s.refreshUser(true);
-      if (!fresh) throw openLogin("We couldn't read your account just now. Log in again and press Start.");
-
-      // Razorpay only opens if the wallet can't cover it.
-      const shortfall = payable - (fresh.walletAmount ?? 0);
-      if (shortfall > 0) await topUpWallet(walletId, shortfall, payable);
-
-      await payOptionFormFromWallet(walletId, payable);
-      await s.refreshUser(true);
       beginAssessment();
     } catch (e) {
       setPayErr(e instanceof Error ? e.message : "Payment failed. Please try again.");
@@ -636,6 +535,7 @@ export default function MettleAssessment() {
       s.toggleLogin(() => { void afterLogin(); });
       return;
     }
+    if (s.needsOnboarding || s.tempJwt) return;
     if (!(await ensureSignupComplete())) return;
     await payAndBegin();
   }
@@ -646,13 +546,19 @@ export default function MettleAssessment() {
    * field waiting rather than charging them for a report titled "Student".
    *
    * Note this only fires for accounts the store considers complete — AuthStore
-   * holds the callback back for users who still need onboarding and hands it to
-   * RevampLayout, which /mettle does not sit under. That is fine: the start card
-   * re-renders signed-in either way, so a new user simply presses Start again
-   * after typing their name.
+   * holds the callback back for users who still need onboarding. That used to
+   * be a dead end here: /mettle sits outside RevampLayout, so the OnboardingCard
+   * that normally collects course and state never rendered, and a student who
+   * signed up on this page got an account with a phone number and nothing else
+   * — no course, no state, and `completeOnboarding()` called anyway, which
+   * cleared the flag that would have asked them later. This page renders the
+   * card itself now, and both this function and `start()` refuse to reach
+   * payment while `needsOnboarding` is set.
    */
   async function afterLogin() {
-    const fresh = await useAuthStore.getState().refreshUser(true);
+    const state = useAuthStore.getState();
+    if (state.needsOnboarding || state.tempJwt) return;
+    const fresh = await state.refreshUser(true);
     if (!`${fresh?.firstName ?? ""} ${fresh?.lastName ?? ""}`.trim()) {
       setNameErr("");
       setTimeout(() => nameRef.current?.focus(), 150);
@@ -719,11 +625,17 @@ export default function MettleAssessment() {
       const pdf = buildReportPdf(new jsPDF({ unit: "pt", format: "a4" }), report, name);
       const blob = pdf.output("blob");
       const file = new File([blob], `mettle-report-${uid}.pdf`, { type: "application/pdf" });
-      await uploadPsychometricReport(uid, file);
+      // Which endpoint, and therefore which record the link lands on, is the
+      // flow's decision — see lib/mettleFlow. Getting it wrong is silent: the
+      // shared endpoint answers 200 for a school student and writes onto a
+      // `users` row that signup already deleted.
+      await flow.save(uid, file, getToken() ?? "");
       setSaveState("saved");
       // Pull the profile again so the store carries the new link — that is what
-      // the dashboard and profile read to offer the download.
-      void useAuthStore.getState().refreshUser(true);
+      // the dashboard and profile read to offer the download. A flow with no
+      // /api/user record skips it; its own shell re-reads on the next mount,
+      // which is the navigation straight after this screen.
+      if (flow.refreshAfterSave) void useAuthStore.getState().refreshUser(true);
     } catch (e) {
       console.error("Could not save the report PDF:", e instanceof Error ? `${e.name}: ${e.message}` : String(e));
       setSaveState("failed");
@@ -784,6 +696,9 @@ export default function MettleAssessment() {
       <nav style={{ padding: "18px 28px", display: "flex", alignItems: "center", gap: 10 }} className="ma-np">
         <img loading="lazy" decoding="async" src="/logo.svg" alt="" style={{ width: 30, height: 30 }} />
         <span style={{ color: "#1e1b4b", fontWeight: 700, fontSize: 16, fontFamily: F }}>ProCounsel</span>
+        <a href={flow.homeHref} style={{ marginLeft: "auto", color: "#4f46e5", fontSize: 13, fontWeight: 700, fontFamily: F, textDecoration: "none" }}>
+          ← Back to {flow.homeLabel}
+        </a>
       </nav>
 
       {DEV && (
@@ -840,8 +755,8 @@ export default function MettleAssessment() {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 14 }}>
                 <span style={{ fontSize: 12, fontWeight: 800, color: "#1e1b4b", textTransform: "uppercase", letterSpacing: 1, fontFamily: F }}>What you'll get</span>
                 <span style={{ display: "inline-flex", alignItems: "baseline", gap: 5, background: "linear-gradient(135deg,#4f46e5,#7c3aed)", color: "white", borderRadius: 99, padding: "5px 13px", boxShadow: "0 4px 14px rgba(79,70,229,.35)" }}>
-                  <span style={{ fontSize: 15, fontWeight: 900, fontFamily: F }}>₹{METTLE_PRICE.toLocaleString("en-IN")}</span>
-                  <span style={{ fontSize: 9, fontWeight: 600, opacity: .85, fontFamily: F }}>one-time</span>
+                  <span style={{ fontSize: 15, fontWeight: 900, fontFamily: F }}>{flow.priceLabel}</span>
+                  <span style={{ fontSize: 9, fontWeight: 600, opacity: .85, fontFamily: F }}>{flow.priceNote}</span>
                 </span>
               </div>
               {[
@@ -863,7 +778,22 @@ export default function MettleAssessment() {
             <div style={{ ...GLASS(0.75, 20), borderRadius: 20, padding: "20px 22px 18px" }}>
               {isAuthenticated && user ? (
                 <>
-                  {needsName ? (
+                  {flow.loadingProfile ? (
+                    <div style={{ fontSize: 13, color: "#64748b", marginBottom: 14, fontFamily: F }}>
+                      Loading your student profile…
+                    </div>
+                  ) : needsName && !flow.collectsName ? (
+                    /* A flow that cannot take a name must not show a box for
+                       one. Nothing this student types here would reach their
+                       school record, and the button stays disabled either way —
+                       so say what is actually wrong and where to fix it. */
+                    <div style={{ marginBottom: 14, fontSize: 12.5, color: "#b45309", background: "rgba(255,251,235,.9)", border: "1px solid #fde68a", borderRadius: 10, padding: "10px 12px", lineHeight: 1.5, fontFamily: F }}>
+                      We don&apos;t have your name on your school record yet, so we can&apos;t title
+                      your report. Add it on your{" "}
+                      <a href="/school-student/profile" style={{ color: "#b45309", fontWeight: 700 }}>profile</a>{" "}
+                      and come back.
+                    </div>
+                  ) : needsName ? (
                     <div style={{ marginBottom: 14 }}>
                       <label htmlFor="mettle-name" style={{ display: "block", fontSize: 13, color: "#475569", marginBottom: 7, fontFamily: F }}>
                         Your full name <span style={{ color: "#dc2626" }}>*</span>
@@ -928,8 +858,7 @@ export default function MettleAssessment() {
                     </div>
                   )}
 
-                  {/* Coupon — never shown to a role the test is free for. */}
-                  {isFreeForRole ? null : appliedCoupon ? (
+                  {!flow.couponsAllowed ? null : appliedCoupon ? (
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, background: "#ecfdf5", border: "1px solid #a7f3d0", borderRadius: 10, padding: "8px 12px", marginBottom: 12 }}>
                       <span style={{ fontSize: 12, color: "#065f46", fontWeight: 700, fontFamily: F }}>
                         {appliedCoupon} applied · {discount}% off
@@ -957,12 +886,6 @@ export default function MettleAssessment() {
                   )}
 
                   {/* What they'll actually be charged */}
-                  {isFreeForRole ? (
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13, color: "#475569", marginBottom: 12, fontFamily: F }}>
-                      <span>Your school plan</span>
-                      <span style={{ fontWeight: 800, color: "#047857" }}>Included — free</span>
-                    </div>
-                  ) : (
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13, color: "#475569", marginBottom: 4, fontFamily: F }}>
                     <span>You pay</span>
                     <span style={{ fontWeight: 800, color: "#1e1b4b" }}>
@@ -974,7 +897,6 @@ export default function MettleAssessment() {
                       {payable === 0 ? "Free" : `₹${payable.toLocaleString("en-IN")}`}
                     </span>
                   </div>
-                  )}
                   {payable > 0 && (
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 11.5, color: "#94a3b8", marginBottom: 12, fontFamily: F }}>
                       <span>Wallet balance</span>
@@ -994,7 +916,11 @@ export default function MettleAssessment() {
                   {(() => {
                     // No name, no test — the button stays locked until the
                     // required field holds something usable.
-                    const blocked = needsName && !!validateName(nameInput);
+                    // Blocked while the profile is in flight, and while a name
+                    // is still missing — either because the flow cannot collect
+                    // one, or because what has been typed is not usable yet.
+                    const blocked = flow.loadingProfile
+                      || (needsName && (!flow.collectsName || !!validateName(nameInput)));
                     const busy = payBusy || nameBusy;
                     return (
                       <button onClick={() => void start()} disabled={busy || blocked} className="ma-btn" style={{
@@ -1078,6 +1004,9 @@ export default function MettleAssessment() {
         </div>
       </div>
       {isLoginToggle && <LoginCard />}
+      {isAuthenticated && needsOnboarding && flow.usesOnboarding && (
+        <OnboardingCard />
+      )}
     </div>
   );
 
@@ -1264,6 +1193,9 @@ export default function MettleAssessment() {
           <img loading="lazy" decoding="async" src="/logo.svg" alt="" style={{ width: 26, height: 26 }} />
           <span style={{ color: "#1e1b4b", fontWeight: 700, fontSize: 15, fontFamily: F }}>ProCounsel</span>
           <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+            <a href={flow.homeHref} style={{ ...GLASS(0.6, 12), borderRadius: 9, padding: "7px 16px", fontSize: 12, fontWeight: 600, fontFamily: F, color: "#64748b", border: "1.5px solid rgba(0,0,0,.08)", textDecoration: "none" }}>
+              ← {flow.homeLabel}
+            </a>
             <button onClick={retake} className="ma-btn" style={{ ...GLASS(0.6, 12), borderRadius: 9, padding: "7px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: F, color: "#64748b", border: "1.5px solid rgba(0,0,0,.08)" }}>Retake</button>
             <button onClick={() => void downloadReportPdf()} className="ma-btn" style={{ background: "linear-gradient(135deg,#4f46e5,#7c3aed)", color: "white", border: "none", borderRadius: 9, padding: "7px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: F, boxShadow: "0 4px 14px rgba(79,70,229,.35)" }}>↓ Download PDF</button>
           </div>

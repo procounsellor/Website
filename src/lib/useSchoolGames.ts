@@ -209,40 +209,73 @@ export type ScheduledDay = {
   gameId: string | null;
   setId: string | null;
   title: string | null;
+  /** Where this day sits relative to the student's own clock. */
+  when: 'past' | 'today' | 'future';
+  session: GameSession | null;
 };
 
+/** One schedule read, narrowed to a grade where we have one. */
+async function dayFor(
+  date: string,
+  grade: number | null,
+  today: string,
+  studentId: string | null,
+): Promise<ScheduledDay> {
+  const scheduled = grade
+    ? await getTodayGameByGrade(date, grade).catch(() => null)
+    : await getSchedule(date).catch(() => null);
+
+  const setId = scheduled
+    ? 'setId' in scheduled
+      ? scheduled.setId
+      : (scheduled.byGrade && grade ? scheduled.byGrade[String(grade)]?.setId : null) ?? null
+    : null;
+
+  const session =
+    scheduled?.gameId && studentId && date <= today
+      ? await getSession(studentId, date).catch(() => null)
+      : null;
+
+  return {
+    date,
+    gameId: scheduled?.gameId ?? null,
+    setId,
+    title: scheduled?.title ?? null,
+    when: date === today ? 'today' : date < today ? 'past' : 'future',
+    session,
+  } satisfies ScheduledDay;
+}
+
 /**
- * The week ahead.
+ * The strip of days around today.
  *
- * One call per day, fired together — the transport dedupes and caches them, so
- * the strip costs one round trip rather than seven. Days with nothing scheduled
- * come back with `gameId: null` and are shown as rest days rather than hidden:
- * a gap the student can see is information, a gap that is silently skipped is
- * confusing.
+ * It used to run today → today+6, which made the whole of a student's history
+ * unreachable: miss Tuesday and Tuesday was simply gone. Days behind today are
+ * as much a part of a daily game as days ahead — one is a catch-up, the other a
+ * preview — so the window now straddles today and `WeekStrip` renders the two
+ * halves differently.
+ *
+ * All the reads fire together; the transport dedupes and caches them, so the
+ * strip still costs about one round trip. Days with nothing scheduled come back
+ * with `gameId: null` and are shown as rest days rather than hidden: a gap the
+ * student can see is information, a gap silently skipped is confusing.
  */
-export function useWeekSchedule(grade: number | null, days = 7) {
+export function useWeekSchedule(
+  grade: number | null,
+  studentId: string | null,
+  past = 3,
+  future = 3,
+) {
   const [data, setData] = useState<ScheduledDay[]>([]);
   const [loading, setLoading] = useState(true);
-  const from = useRef(isoToday()).current;
+  const today = useRef(isoToday()).current;
 
   useEffect(() => {
     let ignore = false;
     setLoading(true);
 
-    const dates = Array.from({ length: days }, (_, i) => addDays(from, i));
-    Promise.all(
-      dates.map(async (date) => {
-        const scheduled = grade
-          ? await getTodayGameByGrade(date, grade).catch(() => null)
-          : await getSchedule(date).catch(() => null);
-        return {
-          date,
-          gameId: scheduled?.gameId ?? null,
-          setId: scheduled && 'setId' in scheduled ? scheduled.setId : null,
-          title: scheduled?.title ?? null,
-        } satisfies ScheduledDay;
-      }),
-    ).then((rows) => {
+    const dates = Array.from({ length: past + future + 1 }, (_, i) => addDays(today, i - past));
+    Promise.all(dates.map((date) => dayFor(date, grade, today, studentId))).then((rows) => {
       if (ignore) return;
       setData(rows);
       setLoading(false);
@@ -251,7 +284,56 @@ export function useWeekSchedule(grade: number | null, days = 7) {
     return () => {
       ignore = true;
     };
-  }, [from, grade, days]);
+  }, [today, grade, studentId, past, future]);
+
+  return { data, loading };
+}
+
+/**
+ * Days already played, or missed — the archive behind "today".
+ *
+ * Looks back `days` from yesterday and keeps only the dates that actually had a
+ * game scheduled for this grade. Rest days are dropped here (unlike the week
+ * strip) because a list of past days is a list of things you can still do, and
+ * a row saying "nothing happened on the 4th" is not one of them.
+ *
+ * Fired as one batch of small GETs. Three weeks is 21 of them, every one cached
+ * by the transport for the next mount, which is cheaper than it looks and much
+ * cheaper than paging.
+ */
+export function useGameHistory(
+  grade: number | null,
+  studentId: string | null,
+  days = 21,
+) {
+  const [data, setData] = useState<ScheduledDay[]>([]);
+  const [loading, setLoading] = useState(true);
+  const today = useRef(isoToday()).current;
+
+  useEffect(() => {
+    let ignore = false;
+    setLoading(true);
+
+    // i + 1 so the window ends yesterday: today belongs to the drop above it,
+    // and listing it twice makes the page look like it has two of them.
+    const dates = Array.from({ length: days }, (_, i) => addDays(today, -(i + 1)));
+
+    Promise.all(dates.map((date) => dayFor(date, grade, today, studentId)))
+      .then((rows) => {
+        if (ignore) return;
+        setData(rows.filter((row) => row.gameId));
+        setLoading(false);
+      })
+      .catch(() => {
+        if (ignore) return;
+        setData([]);
+        setLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [today, grade, studentId, days]);
 
   return { data, loading };
 }

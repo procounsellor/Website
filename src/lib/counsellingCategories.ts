@@ -1,4 +1,5 @@
 import type { SeoSection, SeoFaqItem } from "@/components/SEO/SeoArticle";
+import { COUNSELLING_EXAMS } from "@/lib/counsellingExams";
 
 /**
  * Data + copy for the category counselling landing pages
@@ -874,6 +875,11 @@ export const COUNSELLING_CATEGORIES: CounsellingCategory[] = [
       "college admissions counselor",
       "career guidance service",
       "higher education counseling",
+      "career counselling after 12th",
+      "best choice after 12th",
+      "choosing a career path",
+      "career options based on interests",
+      "how to choose a right career for yourself",
     ],
     exams: [
       { name: "CUET", full: "Common University Entrance Test" },
@@ -996,6 +1002,51 @@ export const COUNSELLING_CATEGORIES: CounsellingCategory[] = [
         ],
       },
       {
+        heading: "When parents want IIT or MBBS and you want something else",
+        paragraphs: [
+          "\u201cBeta, IIT ka try karo.\u201d \u201cMBBS kar lo, life set ho jayegi.\u201d For a lot of Indian students that conversation starts long before the Class 12 results do. You may be curious about design, psychology, computers, finance, research or law. And then someone asks how your JEE preparation is going, and suddenly choosing a career stops feeling like your decision.",
+          "Parents are usually not trying to control anyone. Most of the time they are worried. Many of them grew up when the list of understandable careers was much shorter \u2014 engineering, medicine, government service, teaching, CA \u2014 so they recommend what they know, and they associate those paths with security. The career world today is much wider: analytics, cybersecurity, UX design, biotechnology, clinical research, product management, sustainability. The problem is rarely that parents do not care. Often they simply have less information about the alternatives.",
+          "So who should decide? Honestly, neither side alone. Choosing a career path works best when parents guide, students participate, and the final choice belongs to the person who will actually live that career for the next twenty years.",
+        ],
+      },
+      {
+        heading: "Career counselling after 12th starts with you, not a college",
+        paragraphs: [
+          "One of the biggest mistakes students make is starting with colleges. Which IIT should I target? Which medical college can I get? Those questions matter eventually, but they are not the first ones. The first question is what kind of career suits you \u2014 and that is what career counselling after 12th is actually for.",
+          "Ask which subjects genuinely make you curious, not which subjects give you the highest marks. There is a difference. You might score well in mathematics and still hate spending hours on it. You might get average marks in biology and still spend your evenings watching things about anatomy and medical research. Marks give you information. Interest gives you direction.",
+          "And you do not need your whole life mapped at 17. Not knowing yet does not mean you are behind; it means you need time to explore properly rather than guessing under pressure.",
+        ],
+      },
+      {
+        heading: "Career options based on interests, not just labels",
+        paragraphs: [
+          "This is where the conversation gets more interesting, because most interests open several doors rather than one.",
+          "If you like technology but not coding all day, there is UX and UI design, product management, technology consulting, digital marketing, business analytics and technical writing. If you like biology but do not want to be a doctor, there is biotechnology, clinical research, nutrition, pharmaceutical sciences, microbiology and genetics. If you enjoy numbers and business, look at finance, accounting, economics, investment analysis and data analytics. If you like talking to people and solving their problems, consider psychology, human resources, counselling, public relations, teaching or customer success.",
+          "Looking at career options based on interests is usually far more useful than picking whichever course is popular this year. The goal is not to find one magical career. It is to find a few paths worth exploring seriously.",
+        ],
+      },
+      {
+        heading: "How to choose a right career for yourself",
+        bullets: [
+          "Interest \u2014 what actually holds your attention when nobody is marking you.",
+          "Ability \u2014 what you are good at, or could realistically become good at.",
+          "Personality \u2014 whether you prefer people, numbers, technology, ideas, machines or creative work.",
+          "Reality \u2014 what the job actually involves day to day, what it requires, and what the opportunities and difficulties are.",
+        ],
+        paragraphs: [
+          "That last one gets skipped most often. Do not choose a career because social media made it look exciting. Talk to people doing the work, read real job descriptions, look at the skills employers ask for and try a small project. That is a much better way to work out how to choose a right career for yourself than any single aptitude score.",
+          "And remember that a good career and a good career for you are not the same thing. Engineering is an excellent career. It is not the right career for every student. A \u20b910,000 pair of shoes is not useful if it does not fit your feet, and prestige works the same way.",
+        ],
+      },
+      {
+        heading: "The best choice after 12th is not the same for everyone",
+        paragraphs: [
+          "For one student it is IIT. For another, MBBS. For someone else it is computer science, design, psychology or biotechnology. There is no universal best choice after 12th \u2014 the best choice is the one where your interests, abilities, opportunities, finances and long-term goals make sense together.",
+          "That is why copying someone else\u2019s path rarely works. Your friend getting into IIT does not mean you should. Your cousin becoming a doctor does not mean you should. And your first degree matters, but it is not a life sentence: people move from engineering into finance, from biology into management, from IT into starting something of their own. Instead of asking what you will do for the rest of your life, ask what the best next direction is right now. That question is much easier to answer.",
+          "If you and your parents disagree, do not turn it into \u201cyou don\u2019t understand me\u201d. Come prepared. Research the course, the entrance requirements, the job roles, the earnings and the growth. Then explain your reasoning calmly. \u201cI have explored these options and here is why this path fits me\u201d is a very different conversation from \u201cI don\u2019t want IIT\u201d \u2014 and it is far more likely to work.",
+        ],
+      },
+      {
         heading: "Why choose ProCounsel",
         paragraphs: [
           "There are plenty of websites where you can search for colleges. So why consider a counselling platform? One reason is that education decisions rarely happen in isolation. You may need to understand a course, compare colleges, check your admission possibilities, follow deadlines and decide how to arrange your choices — all around the same time.",
@@ -1062,10 +1113,22 @@ export const COUNSELLING_CATEGORIES: CounsellingCategory[] = [
 
 export const COUNSELLING_CATEGORY_SLUGS = COUNSELLING_CATEGORIES.map((c) => c.slug);
 
+/**
+ * Resolves a slug to its page record.
+ *
+ * Looks through the exam pages too (`/jee-counselling`, `/cat-counselling`, …),
+ * which share this shape so that one page component, one schema block and one
+ * CTA path serve both tiers. Imported lazily-by-reference rather than at the
+ * top of the file to keep the dependency one-way: exams know about categories,
+ * not the other way round.
+ */
 export function getCategoryBySlug(slug?: string): CounsellingCategory | undefined {
   if (!slug) return undefined;
   const s = slug.toLowerCase();
-  return COUNSELLING_CATEGORIES.find((c) => c.slug === s);
+  return (
+    COUNSELLING_CATEGORIES.find((c) => c.slug === s) ??
+    COUNSELLING_EXAMS.find((c) => c.slug === s)
+  );
 }
 
 /**

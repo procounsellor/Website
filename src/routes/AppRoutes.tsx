@@ -90,7 +90,7 @@ const DeadlineDetailPage = lazy(() => import('@/pages/Revamp/DeadlineDetailPage'
 
 
 const RevampCounselorDetailsPage = lazy(() => import('@/pages/Revamp/RevampCounselorDetailsPage'));
-const MettleAssessment = lazy(() => import('@/pages/MettleAssessment'));
+const MettleRoute = lazy(() => import('@/pages/MettleRoute'));
 const StudentDashboardPage = lazy(() => import('@/pages/StudentDashboardPage'));
 const LiveSessionsPage = lazy(() => import('@/pages/LiveSessionsPage'));
 const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
@@ -112,6 +112,7 @@ const CounsellingHubPage = lazy(() => import('@/pages/counselling/CounsellingHub
 const CounsellingCityPage = lazy(() => import('@/pages/counselling/CounsellingCityPage'));
 const CounsellingCategoryPage = lazy(() => import('@/pages/counselling/CounsellingCategoryPage'));
 import { COUNSELLING_CATEGORY_SLUGS } from '@/lib/counsellingCategories';
+import { COUNSELLING_EXAM_SLUGS } from '@/lib/counsellingExams';
 
 export default function AppRoutes() {
     return (
@@ -147,7 +148,7 @@ export default function AppRoutes() {
                     {/* Standalone pages (no layout) */}
                     <Route path="/privacy1" element={<ExternalPrivacyPage />} />
                     <Route path="/term1" element={<ExternalTermsPage />} />
-                    <Route path="/mettle" element={<MettleAssessment />} />
+                    <Route path="/mettle" element={<MettleRoute />} />
                     <Route path='/take-test/:testId' element={<TakeTest />} />
                     <Route path='/t/analysis/:testId/:attemptId' element={<TestAnalysisPage />} />
 
@@ -167,6 +168,7 @@ export default function AppRoutes() {
                         {/* Today's game only — a daily game whose future days
                             are reachable is not a daily game. */}
                         <Route path="play" element={<SchoolPlay />} />
+                        <Route path="play/:date" element={<SchoolPlay />} />
                         {/* Anything not built yet returns to the dashboard rather
                             than falling through to the site's 404 shell. */}
                         <Route path="*" element={<Navigate to="/school-student/dashboard" replace />} />
@@ -252,6 +254,17 @@ export default function AppRoutes() {
                             Registered one route per known slug rather than a catch-all
                             `/:category`, so unknown top-level paths still 404. */}
                         {COUNSELLING_CATEGORY_SLUGS.map((slug) => (
+                          <Route
+                            key={slug}
+                            path={`/${slug}`}
+                            element={<CounsellingCategoryPage slug={slug} />}
+                          />
+                        ))}
+
+                        {/* Exam counselling landing pages — the later-stage
+                            intent ("I have a rank, what now") that sits under
+                            the category pages. Same component, same contract. */}
+                        {COUNSELLING_EXAM_SLUGS.map((slug) => (
                           <Route
                             key={slug}
                             path={`/${slug}`}

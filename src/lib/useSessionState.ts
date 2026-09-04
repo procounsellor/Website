@@ -1,25 +1,54 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
- * State that survives a reload, but not the tab.
+ * Where a half-finished run is kept.
  *
- * A half-finished game is exactly this kind of state. Losing eight answers to a
- * mis-tapped back button is infuriating; carrying them across to tomorrow would
- * be wrong, because the whole point of a daily game is that it is one sitting.
- * `sessionStorage` draws that line for us — it clears when the tab closes.
+ * `localStorage`, not `sessionStorage`, and the difference is the whole point.
+ * The Number Grid is scheduled with a thirty-minute clock; a student plays it
+ * on a phone, between other things, and closing the tab is not a decision to
+ * throw the grid away. sessionStorage dies with the tab and did exactly that.
  *
- * Deliberately not `localStorage`: that is where the programme's own progress
- * lives (see `schoolStudentProgress`), and mixing a scratch pad for one run in
- * with it invites a stale board coming back weeks later.
+ * Two things make localStorage safe here where it would otherwise leak:
  *
- * Every access is guarded. Private mode, disabled storage and a quota-full tab
- * all throw on read or write, and a game must keep working through any of them
- * — it just stops remembering.
+ *  - The key carries the date and the set (see `runKey` in SchoolPlay), so a
+ *    resumed run can only ever belong to the game it came from.
+ *  - `pruneRuns` drops every run key that is not for the day being played, on
+ *    every mount. Yesterday's abandoned board cannot come back weeks later,
+ *    which is the failure mode that made sessionStorage look like the safer
+ *    choice in the first place.
+ *
+ * Every access is guarded. Private mode, disabled storage and a full quota all
+ * throw on read or write, and a game must keep working through any of them — it
+ * just stops remembering.
  */
+
+const RUN_PREFIX = 'procounsel:school-run:';
+
+/**
+ * Drop scratch copies of runs for any other day.
+ *
+ * Called by the play page on mount. Runs are keyed
+ * `procounsel:school-run:<date>:<setId>`, so keeping only `keepDate` leaves the
+ * board being played and nothing else.
+ */
+export function pruneRuns(keepDate: string): void {
+  try {
+    const doomed: string[] = [];
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (!key?.startsWith(RUN_PREFIX)) continue;
+      if (!key.startsWith(`${RUN_PREFIX}${keepDate}:`)) doomed.push(key);
+    }
+    doomed.forEach((key) => localStorage.removeItem(key));
+  } catch {
+    // Storage unavailable. Nothing was stored either, so nothing to prune.
+  }
+}
+
 export function useSessionState<T>(key: string, initial: T) {
   const [value, setValue] = useState<T>(() => {
     try {
-      const raw = sessionStorage.getItem(key);
+      const raw = localStorage.getItem(key);
       return raw ? (JSON.parse(raw) as T) : initial;
     } catch {
       return initial;
@@ -34,7 +63,7 @@ export function useSessionState<T>(key: string, initial: T) {
     if (lastKey.current === key) return;
     lastKey.current = key;
     try {
-      const raw = sessionStorage.getItem(key);
+      const raw = localStorage.getItem(key);
       setValue(raw ? (JSON.parse(raw) as T) : initial);
     } catch {
       setValue(initial);
@@ -45,7 +74,7 @@ export function useSessionState<T>(key: string, initial: T) {
 
   useEffect(() => {
     try {
-      sessionStorage.setItem(key, JSON.stringify(value));
+      localStorage.setItem(key, JSON.stringify(value));
     } catch {
       // Storage unavailable. The run continues from memory.
     }
@@ -53,7 +82,7 @@ export function useSessionState<T>(key: string, initial: T) {
 
   const clear = useCallback(() => {
     try {
-      sessionStorage.removeItem(key);
+      localStorage.removeItem(key);
     } catch {
       // Nothing to do; the value is dropped from memory either way.
     }

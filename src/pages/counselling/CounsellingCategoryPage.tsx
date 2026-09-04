@@ -14,6 +14,7 @@ import {
   type CounsellingCategory,
 } from "@/lib/counsellingCategories";
 import { getCityBySlug } from "@/lib/counsellingCities";
+import { CATEGORY_FOR_EXAM, relatedPages } from "@/lib/counsellingExams";
 
 const ACCENT = "#2F43F2";
 const SITE = "https://procounsel.co.in";
@@ -59,6 +60,13 @@ export default function CounsellingCategoryPage({ slug: slugProp }: { slug?: str
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const toggleLogin = useAuthStore((s) => s.toggleLogin);
   const category = getCategoryBySlug(slug);
+
+  // Exam pages linked from this one, and the category an exam page sits under.
+  const related = useMemo(() => (category ? relatedPages(category.slug) : []), [category]);
+  const parentCategory = useMemo(() => {
+    const parentSlug = category ? CATEGORY_FOR_EXAM[category.slug] : undefined;
+    return parentSlug ? getCategoryBySlug(parentSlug) : undefined;
+  }, [category]);
 
   // Counsellors who actually list this specialisation. Rendered from the
   // build-time snapshot so the cards — and their links — are in the
@@ -338,6 +346,44 @@ export default function CounsellingCategoryPage({ slug: slugProp }: { slug?: str
           aria-label="Related counselling"
           className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-10 xl:px-12 py-10 border-t border-gray-100"
         >
+          {/*
+           * Exam pages, up and down.
+           *
+           * On a category page these are its exams; on an exam page they are its
+           * siblings plus a link back to the parent. Beyond the information
+           * architecture this is load-bearing for the build: every URL in the
+           * sitemap has to be reachable from a real anchor, and these are the
+           * only anchors the exam pages get.
+           */}
+          {related.length > 0 && (
+            <>
+              <h2 className="font-[Poppins] text-[16px] font-semibold text-[#0E1629] mb-3">
+                {parentCategory
+                  ? `Other exam counselling`
+                  : `${category.name} by entrance exam`}
+              </h2>
+              <div className="flex flex-wrap gap-2.5 mb-8">
+                {parentCategory && (
+                  <Link
+                    to={`/${parentCategory.slug}`}
+                    className="rounded-lg border border-[#2F43F2]/30 bg-[#2F43F2]/5 px-3.5 py-2 text-[13px] font-medium text-[#2F43F2] hover:border-[#2F43F2] transition-colors"
+                  >
+                    All {parentCategory.name}
+                  </Link>
+                )}
+                {related.map((r) => (
+                  <Link
+                    key={r.to}
+                    to={r.to}
+                    className="rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-[13px] text-gray-700 hover:border-[#2F43F2]/40 hover:text-[#2F43F2] transition-colors"
+                  >
+                    {r.name}
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+
           <h2 className="font-[Poppins] text-[16px] font-semibold text-[#0E1629] mb-3">
             Other counselling we offer
           </h2>

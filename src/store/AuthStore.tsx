@@ -8,7 +8,7 @@ import type { User } from "@/types/user";
 import type { CounselorProfileData } from "@/types/counselorProfile";
 import type { Transaction as UserTransaction } from "@/types/user";
 import { setToken, clearToken, cacheTokenInMemory, getToken } from '@/lib/tokenManager';
-import { captureLeadFromUser } from "@/api/leads";
+import { captureLeadFromUser, captureSchoolStudentLead } from "@/api/leads";
 
 const mapCounselorToUser = (counselorData: CounselorProfileData): User => {
   return {
@@ -405,6 +405,18 @@ export const useAuthStore = create<AuthState>()(
             tempJwt: null,
             tempPhone: null,
             isLoginToggle: false,
+          });
+
+          // This role returns before the capture at the foot of verifyOtp, so
+          // it files its own lead. Deduped per phone, so a student who signed up
+          // on this device (where the school and class were already sent) does
+          // not overwrite that richer lead with this thinner one.
+          captureSchoolStudentLead({
+            phoneNumber: phone,
+            firstName: profile?.firstName,
+            lastName: profile?.lastName,
+            school: profile?.school,
+            className: profile?.className,
           });
 
           const { onLoginSuccess, pendingAction, setBookingTriggered } = get();

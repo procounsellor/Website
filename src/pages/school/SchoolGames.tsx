@@ -5,7 +5,14 @@ import SkyBanner from '@/components/school-student/SkyBanner';
 import GameCard from '@/components/school-student/GameCard';
 import TodaysDrop, { DropSkeleton, NoDropToday } from '@/components/school-student/TodaysDrop';
 import WeekStrip from '@/components/school-student/WeekStrip';
-import { useGameCatalogue, useLongDate, useTodayGame, useWeekSchedule } from '@/lib/useSchoolGames';
+import PastGames from '@/components/school-student/PastGames';
+import {
+  useGameCatalogue,
+  useGameHistory,
+  useLongDate,
+  useTodayGame,
+  useWeekSchedule,
+} from '@/lib/useSchoolGames';
 import { parseGrade, today as isoToday } from '@/api/schoolGames';
 import { useAuthStore } from '@/store/AuthStore';
 import { useSchoolShell } from '@/lib/schoolShellContext';
@@ -30,7 +37,8 @@ export default function SchoolGames() {
 
   const todayGame = useTodayGame(grade, studentId);
   const catalogue = useGameCatalogue();
-  const week = useWeekSchedule(grade);
+  const week = useWeekSchedule(grade, studentId);
+  const history = useGameHistory(grade, studentId);
   const longDate = useLongDate(todayGame.data?.date ?? isoToday());
 
   const scheduledId = todayGame.data?.gameId ?? null;
@@ -78,7 +86,7 @@ export default function SchoolGames() {
             </h2>
             <span className="ss-eyebrow text-[var(--neutral-400)]">Tap a day to play</span>
           </div>
-          <WeekStrip days={week.data} loading={week.loading} />
+          <WeekStrip days={week.data} loading={week.loading} studentId={studentId} />
         </section>
 
         {/* ── Today ─────────────────────────────────────────────────────────── */}
@@ -101,7 +109,7 @@ export default function SchoolGames() {
               showBack={false}
             />
           ) : todayGame.data ? (
-            <TodaysDrop drop={todayGame.data} onShowRules={showRules} />
+            <TodaysDrop drop={todayGame.data} studentId={studentId} onShowRules={showRules} />
           ) : (
             <NoDropToday />
           )}
@@ -112,6 +120,17 @@ export default function SchoolGames() {
               may open a different set.
             </p>
           )}
+        </section>
+
+        {/* ── Behind you ────────────────────────────────────────────────────── */}
+        <section aria-labelledby="past-heading">
+          <div className="mb-3 flex items-baseline justify-between gap-4">
+            <h2 id="past-heading" className="ss-display text-[20px] text-[var(--ink)]">
+              Earlier games
+            </h2>
+            <span className="ss-eyebrow text-[var(--neutral-400)]">Still playable</span>
+          </div>
+          <PastGames days={history.data} loading={history.loading} studentId={studentId} />
         </section>
 
         {/* ── The rack ──────────────────────────────────────────────────────── */}

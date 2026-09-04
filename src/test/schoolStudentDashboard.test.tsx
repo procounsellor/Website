@@ -3,14 +3,17 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import SchoolStudentDashboard from "@/pages/SchoolStudentDashboard";
 import SchoolStudentLayout from "@/layouts/SchoolStudentLayout";
+import DashboardSidebar from "@/components/school-student/DashboardSidebar";
 import {
   buildDashboardView,
   emptyProgress,
   readProgress,
   recordVisit,
+  withServerRecord,
   writeProgress,
   QUESTS,
 } from "@/lib/schoolStudentProgress";
+import type { SchoolStudent } from "@/api/schoolStudentApi";
 import { useAuthStore } from "@/store/AuthStore";
 import type { User } from "@/types/user";
 
@@ -225,6 +228,17 @@ describe("dashboard — nothing dead-ends", () => {
     expect(screen.getByText("0 / 1")).toBeInTheDocument();
   });
 
+  it("caps completed activities at the daily target", () => {
+    render(
+      <MemoryRouter>
+        <DashboardSidebar dailyGoalDone={3} dailyGoalTarget={1} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("1 / 1")).toBeInTheDocument();
+    expect(screen.queryByText("3 / 1")).not.toBeInTheDocument();
+  });
+
   it("does not offer the sections that were cut from the rail", () => {
     renderDashboard();
 
@@ -326,6 +340,72 @@ describe("the programme model", () => {
     expect(view.overallPercent).toBe(0);
     expect(view.currentQuarter.percent).toBe(0);
     expect(view.tasksCompleted).toBe(0);
+  });
+});
+
+/**
+ * The psychometric quest has no completion endpoint of its own.
+ *
+ * The only durable signal that a student has taken the test is a non-null
+ * `pyschometricReportPdfLink` on their record — the backend's own spelling. So
+ * the whole quest hangs off that one field, and these pin it: a link means
+ * done, no link means not done, and "done" has to flow all the way through to
+ * the counters the dashboard actually renders.
+ */
+const recordWith = (reportLink: string | null): SchoolStudent =>
+  ({
+    schoolStudentId: PHONE,
+    phoneNumber: PHONE,
+    firstName: "Aarav",
+    lastName: "Kumar",
+    className: "9",
+    schoolName: "Delhi Public School",
+    pyschometricReportPdfLink: reportLink,
+    totalPoints: 0,
+    currentStreak: 0,
+    lastActiveDate: null,
+    deleted: false,
+  }) as unknown as SchoolStudent;
+
+describe("the psychometric quest follows the report link", () => {
+  it("counts as done when the record carries a report link", () => {
+    const merged = withServerRecord(emptyProgress(), recordWith("https://files/report.pdf"));
+    const view = buildDashboardView(merged);
+
+    expect(merged.completedQuests).toContain("mettle");
+    expect(view.tasksCompleted).toBe(1);
+    expect(view.quests.find((q) => q.key === "mettle")?.status).toBe("done");
+  });
+
+  it("moves the quarter's own counter, not just the total", () => {
+    const view = buildDashboardView(
+      withServerRecord(emptyProgress(), recordWith("https://files/report.pdf")),
+    );
+
+    // Q1 holds three quests; the psychometric test is one of them.
+    expect(view.currentQuarter.id).toBe(1);
+    expect(view.currentQuarter.completed).toBe(1);
+    expect(view.currentQuarter.total).toBe(3);
+    expect(view.overallPercent).toBeGreaterThan(0);
+  });
+
+  it("stays not-done while the link is null", () => {
+    const merged = withServerRecord(emptyProgress(), recordWith(null));
+    const view = buildDashboardView(merged);
+
+    expect(merged.completedQuests).not.toContain("mettle");
+    expect(view.tasksCompleted).toBe(0);
+    expect(view.quests.find((q) => q.key === "mettle")?.status).toBe("available");
+  });
+
+  it("leaves the rest of the programme alone", () => {
+    const view = buildDashboardView(
+      withServerRecord(emptyProgress(), recordWith("https://files/report.pdf")),
+    );
+
+    // One task done must not quietly complete the quarter or unlock Q2.
+    expect(view.quarters[0].status).toBe("current");
+    expect(view.quarters[1].status).toBe("locked");
   });
 });
 

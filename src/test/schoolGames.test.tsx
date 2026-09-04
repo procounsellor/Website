@@ -4,6 +4,9 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import SchoolGames from "@/pages/school/SchoolGames";
 import SchoolStudentLayout from "@/layouts/SchoolStudentLayout";
 import { useAuthStore } from "@/store/AuthStore";
+import { createGameSession } from "@/api/schoolGames";
+import { AnswerKey, GameGate, SavedWordAnswer } from "@/pages/school/SchoolPlay";
+import { gameActivityCount } from "@/components/school-student/gameShape";
 
 /**
  * Games & Quests, against the shapes the live backend actually returns.
@@ -204,19 +207,91 @@ describe("the request itself", () => {
       true,
     );
   });
+
+  it("saves the calculated score using the create-session contract", async () => {
+    const spy = vi.fn(async (_url: string | URL, _init?: RequestInit) =>
+      json({ status: "completed", score: 8 }),
+    );
+    vi.stubGlobal("fetch", spy);
+
+    await createGameSession({
+      studentId: PHONE,
+      date: "2026-12-01",
+      gameId: "quiz_postman",
+      setId: "quiz_careers_s1_postman",
+      status: "completed",
+      score: 7.6,
+    });
+
+    expect(spy).toHaveBeenCalledTimes(1);
+    const [url, init] = spy.mock.calls[0];
+    expect(String(url)).toContain("/api/schoolStudent/createGameSession");
+    expect(init).toMatchObject({
+      method: "POST",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+    });
+    expect(JSON.parse(String(init?.body))).toEqual({
+      studentId: PHONE,
+      date: "2026-12-01",
+      gameId: "quiz_postman",
+      setId: "quiz_careers_s1_postman",
+      status: "completed",
+      score: 8,
+    });
+  });
+
+  it("rejects invalid dates before sending a session", async () => {
+    const spy = vi.fn();
+    vi.stubGlobal("fetch", spy);
+
+    await expect(
+      createGameSession({
+        studentId: PHONE,
+        date: "01-12-2026",
+        gameId: "quiz",
+        setId: null,
+        status: "completed",
+        score: 8,
+      }),
+    ).rejects.toThrow("yyyy-mm-dd");
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("surfaces a create-session business error", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => json({ success: false, message: "Already played" })));
+
+    await expect(
+      createGameSession({
+        studentId: PHONE,
+        date: "2026-12-01",
+        gameId: "quiz",
+        setId: null,
+        status: "completed",
+        score: 8,
+      }),
+    ).rejects.toThrow("Already played");
+  });
 });
 
 describe("today's game", () => {
   it("names the set the backend scheduled, not the game's generic name", async () => {
     renderGames();
 
-    const heading = await screen.findByText("Set 1 — Know Your Careers");
+    // The title now appears twice: once on today's drop and once per matching
+    // row in the "Earlier games" archive, which this stub schedules on every
+    // date. The drop is the one wrapped in an <article>; the archive rows are
+    // list items. Scoping by that is what the assertions below already assume.
+    const headings = await screen.findAllByText("Set 1 — Know Your Careers");
+    const heading = headings.find((el) => el.closest("article")) as HTMLElement;
+    expect(heading, "today's drop should render the scheduled set title").toBeTruthy();
     // The set's own numbers, straight off getGameSetById — read from the card
     // that owns the heading, since the rack repeats the game's own clock.
     const drop = heading.closest("article") as HTMLElement;
     // The set's clock, not the game's 600s default — proof the set won.
     expect(within(drop).getByText("8 min")).toBeInTheDocument();
-    expect(within(drop).getByText("Free")).toBeInTheDocument();
+    const questions = within(drop).getByText("Questions").parentElement as HTMLElement;
+    expect(within(questions).getByText("10")).toBeInTheDocument();
+    expect(within(drop).queryByText("Entry")).not.toBeInTheDocument();
   });
 
   it("reports an unplayed day as unplayed rather than inventing a score", async () => {
@@ -224,6 +299,37 @@ describe("today's game", () => {
 
     expect(await screen.findByText("Not played yet")).toBeInTheDocument();
     expect(screen.queryByText("Played today")).not.toBeInTheDocument();
+  });
+
+  it("shows the score returned by the daily game session", async () => {
+    stubApi({
+      getGameSession: {
+        date: "2026-09-03",
+        gameId: "quiz",
+        studentId: PHONE,
+        score: 8,
+        setId: "quiz_careers_s1",
+        sessionId: `${PHONE}_2026-09-03`,
+        status: "completed",
+      },
+    });
+
+    renderGames();
+
+    expect(await screen.findByText("Played · 8 pts")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /play again/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /view result/i })).toHaveAttribute(
+      "href",
+      "/school-student/play",
+    );
+  });
+
+  it("links past dates to their result page but keeps future dates locked", async () => {
+    renderGames();
+    await screen.findAllByText("Career Quiz");
+
+    expect(document.querySelector('a[href="/school-student/play/2026-09-02"]')).not.toBeNull();
+    expect(document.querySelector('a[href="/school-student/play/2026-09-04"]')).toBeNull();
   });
 
   it("treats an empty schedule as a quiet day, not a failure", async () => {
@@ -249,6 +355,88 @@ describe("today's game", () => {
     renderGames();
 
     expect(await screen.findByText("Today's game didn't load")).toBeInTheDocument();
+  });
+});
+
+describe("saved quiz result", () => {
+  it("shows the correct answer and explanation without inventing a past choice", () => {
+    render(
+      <AnswerKey
+        items={[{
+          itemId: "itm_q1_01",
+          gameId: "quiz",
+          setId: "quiz_careers_s1",
+          order: 1,
+          content: {
+            question: "Who designs buildings?",
+            options: [
+              { id: "a", text: "Auditor" },
+              { id: "b", text: "Architect" },
+            ],
+            explanation: "Architects design buildings and plan spaces.",
+          },
+        } as never]}
+      />,
+    );
+
+    expect(screen.getByText("Correct answers and explanations (1)")).toBeInTheDocument();
+    expect(screen.getByText("Correct answers and explanations (1)").closest("details")).toHaveAttribute("open");
+    expect(screen.getByText("Architect")).toBeInTheDocument();
+    expect(screen.getByText("Architects design buildings and plan spaces.")).toBeInTheDocument();
+    expect(screen.queryByText(/You chose/i)).not.toBeInTheDocument();
+  });
+
+  it("shows the answer and explanation for a saved word game", () => {
+    render(
+      <SavedWordAnswer item={{
+        itemId: "itm_wg_01",
+        gameId: "word_guess",
+        setId: "wordguess_daily",
+        order: 1,
+        content: {
+          length: 9,
+          displayPattern: "A_______T",
+          revealedIndices: [0],
+          hints: [],
+          maxWrongGuesses: 5,
+          explanation: "A profession-focused helper.",
+        },
+      } as never} />,
+    );
+
+    expect(screen.getByText("Correct answer")).toBeInTheDocument();
+    expect(screen.getByText("ARCHITECT")).toBeInTheDocument();
+    expect(screen.getByText("A profession-focused helper.")).toBeInTheDocument();
+  });
+
+  it("shows saved points and never offers another attempt", () => {
+    render(
+      <GameGate
+        data={{
+          date: "2026-09-03",
+          game: GAMES[0],
+          set: SET,
+          title: SET.title,
+          items: [],
+          source: "api",
+          session: { date: "2026-09-03", score: 8, status: "completed" },
+        } as never}
+        isToday
+        longDate="3 Sep"
+        tone={{ ink: "#000", tint: "#fff", edge: "#ddd" }}
+        onStart={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("8")).toBeInTheDocument();
+    expect(screen.getByText(/saved score.*final/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /start|play again/i })).not.toBeInTheDocument();
+  });
+
+  it("counts one-board games as one activity and quizzes by question count", () => {
+    expect(gameActivityCount("sudoku_v1", 81)).toBe(1);
+    expect(gameActivityCount("word_guess_v1", 12)).toBe(1);
+    expect(gameActivityCount("quiz_mcq_v1", 10)).toBe(10);
   });
 });
 

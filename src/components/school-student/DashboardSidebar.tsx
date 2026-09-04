@@ -50,7 +50,9 @@ export default function DashboardSidebar({
   onClose?: () => void;
 }) {
   const { pathname } = useLocation();
-  const goalMet = dailyGoalDone >= dailyGoalTarget;
+  const safeTarget = Math.max(1, dailyGoalTarget);
+  const displayedDone = Math.min(Math.max(0, dailyGoalDone), safeTarget);
+  const goalMet = displayedDone >= safeTarget;
 
   const row = (
     { key, label, icon, to, owns }: Item,
@@ -140,13 +142,20 @@ export default function DashboardSidebar({
 
       <div className="relative flex flex-col gap-3 p-3">
         {/* Today's goal — one activity a day, shown as a count. */}
+        {/*
+         * Completed state: a green EDGE, not a green fill.
+         *
+         * Filling the whole card with saturated green and keeping the white
+         * text on top left the label, the count and the bar all fighting the
+         * background — the one state a student most wants to read became the
+         * hardest to. The card keeps the rail's dark surface and signals
+         * completion with a green border, a tick and a green count instead.
+         */}
         <div
           className="rounded-2xl border p-4"
           style={{
-            background: goalMet
-              ? 'linear-gradient(135deg,#22C55E 0%,#16A34A 100%)'
-              : 'rgba(255,255,255,0.07)',
-            borderColor: goalMet ? 'transparent' : 'rgba(255,255,255,0.12)',
+            background: goalMet ? 'rgba(34,197,94,0.14)' : 'rgba(255,255,255,0.07)',
+            borderColor: goalMet ? 'rgba(74,222,128,0.55)' : 'rgba(255,255,255,0.12)',
           }}
         >
           <div className="flex items-center gap-2.5">
@@ -155,18 +164,23 @@ export default function DashboardSidebar({
             </span>
             <div className="min-w-0 flex-1">
               <p className="font-[Poppins] text-[13px] font-bold">Daily Goal</p>
-              <p className="font-[Poppins] text-[11px] text-white/60">Complete 1 activity</p>
+              <p className="font-[Poppins] text-[11px] text-white/60">
+                {goalMet ? 'Done for today — resets tomorrow' : 'Complete 1 activity'}
+              </p>
             </div>
-            <span className="shrink-0 font-[Poppins] text-[15px] font-extrabold">
-              {dailyGoalDone} / {dailyGoalTarget}
+            <span
+              className="shrink-0 font-[Poppins] text-[15px] font-extrabold"
+              style={{ color: goalMet ? '#4ADE80' : '#FFFFFF' }}
+            >
+              {displayedDone} / {safeTarget}
             </span>
           </div>
           <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-black/30">
             <div
               className="h-full rounded-full"
               style={{
-                width: `${Math.min(100, (dailyGoalDone / dailyGoalTarget) * 100)}%`,
-                background: goalMet ? '#FFFFFF' : 'linear-gradient(90deg,#4ADE80 0%,#22C55E 100%)',
+                width: `${(displayedDone / safeTarget) * 100}%`,
+                background: 'linear-gradient(90deg,#4ADE80 0%,#22C55E 100%)',
                 transition: 'width var(--motion-slow) var(--motion-ease)',
               }}
             />

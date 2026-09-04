@@ -5,7 +5,8 @@
  * in schoolStudentApi — read that file's header before touching this one.
  */
 
-import { schoolGet } from '@/api/schoolStudentApi';
+import { invalidateSchoolCache, schoolGet } from '@/api/schoolStudentApi';
+import { API_CONFIG } from '@/api/config';
 
 // ── Shapes, as the live API actually returns them ────────────────────────────
 
@@ -93,6 +94,17 @@ export type GameSession = {
   completedAt?: string;
 };
 
+export type CreateGameSession = {
+  studentId: string;
+  /** Calendar date in the student's timezone. */
+  date: string;
+  gameId: string;
+  setId: string | null;
+  status: 'completed';
+  /** Final points after correct answers, bonuses and hint penalties. */
+  score: number;
+};
+
 // ── Calls ─────────────────────────────────────────────────────────────────────
 
 /** Every game in the catalogue, already ordered the way the backend wants. */
@@ -129,6 +141,50 @@ export const getSession = (studentId: string, date: string, fresh = false) =>
     `/getGameSession?studentId=${encodeURIComponent(studentId)}&date=${encodeURIComponent(date)}`,
     { fresh },
   );
+
+/** Persist a completed attempt and let the backend update student progress. */
+export async function createGameSession(input: CreateGameSession): Promise<GameSession> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) {
+    throw new Error('Game session date must use yyyy-mm-dd.');
+  }
+
+  const payload: CreateGameSession = {
+    ...input,
+    studentId: input.studentId.trim(),
+    gameId: input.gameId.trim(),
+    setId: input.setId?.trim() || null,
+    score: Math.max(0, Math.round(input.score)),
+  };
+  if (!payload.studentId || !payload.gameId) {
+    throw new Error('A student and game are required to save the session.');
+  }
+
+  const response = await fetch(`${API_CONFIG.baseUrl}/api/schoolStudent/createGameSession`, {
+    method: 'POST',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const raw = await response.text();
+  let data: unknown = null;
+  try {
+    data = raw.trim() ? JSON.parse(raw) : null;
+  } catch {
+    throw new Error(`We couldn't save this game (HTTP ${response.status}).`);
+  }
+
+  if (!response.ok || (typeof data === 'object' && data !== null && 'success' in data && data.success === false)) {
+    const message =
+      typeof data === 'object' && data !== null && 'message' in data && typeof data.message === 'string'
+        ? data.message
+        : `We couldn't save this game (HTTP ${response.status}).`;
+    throw new Error(message);
+  }
+
+  invalidateSchoolCache('getGameSession');
+  invalidateSchoolCache('getSchoolStudentById');
+  invalidateSchoolCache('getAllSchoolStudents');
+  return (data ?? payload) as GameSession;
+}
 
 // ── Small helpers the game surfaces share ────────────────────────────────────
 
