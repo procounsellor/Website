@@ -59,8 +59,33 @@ jobs:
       # neither of which is answered in pnpm-workspace.yaml's allowBuilds.
       # `pnpm dlx` runs wrangler from a temp store instead, so the deploy never
       # touches package.json, the lockfile, or the build-script policy.
+      # Both secrets are trimmed before wrangler builds a URL and an auth header
+      # out of them: a run failed with `/accounts/*** /pages/...`, and that space
+      # after the masked id was a stray character in the secret itself, which
+      # Cloudflare answers with 7003 "perhaps your object identifier is invalid".
+      # The preflight only reports — a token scoped oddly could fail to list
+      # projects and still deploy, so it never blocks the deploy step.
       - name: Deploy to Cloudflare Pages
-        run: pnpm dlx wrangler@3.114.17 pages deploy dist --project-name=website --commit-dirty=true
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -uo pipefail
+          export CLOUDFLARE_API_TOKEN="$(printf '%s' "$CF_API_TOKEN" | tr -d '[:space:]')"
+          export CLOUDFLARE_ACCOUNT_ID="$(printf '%s' "$CF_ACCOUNT_ID" | tr -d '[:space:]')"
+
+          echo "account id: ${#CLOUDFLARE_ACCOUNT_ID} chars after trimming (expected 32)"
+          status=$(curl -sS -o /tmp/cf-projects.json -w '%{http_code}' \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects")
+          if [ "$status" = "200" ]; then
+            echo "Pages projects this token can see:"
+            node -e "JSON.parse(require('fs').readFileSync('/tmp/cf-projects.json','utf8')).result.forEach(p => console.log(' -', p.name))"
+          else
+            echo "Pages project list returned HTTP $status - if the deploy below fails too, the"
+            echo "account id or the token's Account > Cloudflare Pages > Edit permission is the cause:"
+            head -c 600 /tmp/cf-projects.json
+            echo
+          fi
+
+          pnpm dlx wrangler@3.114.17 pages deploy dist --project-name=website --commit-dirty=true
