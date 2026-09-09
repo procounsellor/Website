@@ -43,6 +43,7 @@ const EXPLORE_LINKS: { name: string; to: string }[] = [
   { name: "MBA Counselling", to: "/mba-counselling" },
   { name: "Law Counselling", to: "/law-counselling" },
   { name: "Career Counselling", to: "/career-counselling" },
+  { name: "Study Abroad Consultants", to: "/study-abroad" },
   { name: "Admission Counselling", to: "/admissions" },
   { name: "Courses & Test Series", to: "/courses" },
   { name: "Student Community", to: "/community" },

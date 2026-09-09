@@ -115,6 +115,9 @@ export const STATIC_ROUTES = [
   "/jee-college-predictor",
   "/mhtcet-college-predictor",
 
+  // Study abroad landing page (lead generation + paid traffic)
+  "/study-abroad",
+
   // Paid services
   "/mhtcet-option-form-filling",
   "/mettle",
@@ -475,6 +478,7 @@ export function routeToPriority(route) {
   if (route === "/about") return "0.9";
   if (route === "/counsellor-listing") return "0.85";
   if (route === "/counselling") return "0.9";
+  if (route === "/study-abroad") return "0.9";
   if (route.startsWith("/counselling/")) return "0.8";
   if (
     route === "/neet-rank-predictor" ||
