@@ -24,6 +24,11 @@ const captureLead = vi.hoisted(() =>
 );
 vi.mock("@/api/leads", () => ({ captureLead }));
 
+const createForeignStudent = vi.hoisted(() =>
+  vi.fn((payload: Record<string, unknown>) => Promise.resolve({ status: "Success", payload })),
+);
+vi.mock("@/api/foreignStudent", () => ({ createForeignStudent }));
+
 const SITE = "https://procounsel.co.in";
 
 /**
@@ -184,6 +189,7 @@ describe("study abroad — the lead form", () => {
     await fillRequired(user);
     await user.click(screen.getByRole("button", { name: /book my free session/i }));
 
+    expect(createForeignStudent).not.toHaveBeenCalled();
     expect(captureLead).not.toHaveBeenCalled();
     expect(await screen.findByText("Pick at least one country")).toBeInTheDocument();
   });
@@ -206,25 +212,25 @@ describe("study abroad — the lead form", () => {
     await user.selectOptions(screen.getByLabelText("When do you want to start?"), "September 2027");
     await user.click(screen.getByRole("button", { name: /book my free session/i }));
 
-    await waitFor(() => expect(captureLead).toHaveBeenCalledTimes(1));
-    const payload = captureLead.mock.calls[0][0];
-    expect(payload).toMatchObject({
-      phoneNumber: "9876543210",
-      firstName: "Ananya",
-      lastName: "Sharma",
+    await waitFor(() => expect(createForeignStudent).toHaveBeenCalledTimes(1));
+    expect(createForeignStudent.mock.calls[0][0]).toMatchObject({
+      name: "Ananya Sharma",
+      phone: "9876543210",
       email: "ananya@example.com",
-      interestedCourseName: "Study Abroad",
-      interestedStates: ["Canada"],
+      qualification: "12th",
+      interestedCountry: "Canada",
+      startYear: "2027",
     });
-    expect(String(payload.remarks)).toContain("Countries: Canada");
-    expect(String(payload.remarks)).toContain("Intake: September 2027");
 
-    // One submission, one record: the JWT-only foreign-student endpoint is not
-    // called at all, so a signed-in visitor cannot be filed twice.
-    expect(captureLead).toHaveBeenCalledTimes(1);
-    // Everything the Study Abroad Leads page renders has to survive the round
-    // trip through the remark, since that is where the admin reads it back.
-    expect(String(payload.remarks)).toContain("Qualification: 12th");
+    // The answers with no column of their own still travel, so nothing the
+    // visitor typed is thrown away on the way to the desk.
+    const remarks = String(createForeignStudent.mock.calls[0][0].remarks);
+    expect(remarks).toContain("Countries: Canada");
+    expect(remarks).toContain("Intake: September 2027");
+
+    // One submission, one record: the CRM is a fallback for a failed write, not
+    // a second copy of a successful one.
+    expect(captureLead).not.toHaveBeenCalled();
 
     // And the visitor is told what happens next rather than left on the form.
     expect(await screen.findByText(/Session booked, Ananya/)).toBeInTheDocument();
@@ -256,9 +262,28 @@ describe("study abroad — the lead form", () => {
     await waitFor(() => expect(floating()).toBeUndefined());
   });
 
-  it("tells the visitor to resend when the capture fails, rather than pretending", async () => {
-    // The single write is the whole record now: if it fails there is no second
-    // endpoint quietly holding the lead, so the form must not claim success.
+  it("parks the lead in the CRM when the study abroad write is rejected", async () => {
+    // The window before the backend drops auth on that endpoint: a rejected
+    // write must not cost a lead, so the public capture takes it instead.
+    createForeignStudent.mockRejectedValueOnce(new Error("HTTP 401"));
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(screen.getByRole("checkbox", { name: /United Kingdom/ }));
+    await fillRequired(user);
+    await user.click(screen.getByRole("button", { name: /book my free session/i }));
+
+    await waitFor(() => expect(captureLead).toHaveBeenCalledTimes(1));
+    expect(captureLead.mock.calls[0][0]).toMatchObject({
+      phoneNumber: "9876543210",
+      interestedCourseName: "Study Abroad",
+      interestedStates: ["United Kingdom"],
+    });
+    expect(await screen.findByText(/Session booked, Ananya/)).toBeInTheDocument();
+  });
+
+  it("tells the visitor to resend when both writes fail, rather than pretending", async () => {
+    createForeignStudent.mockRejectedValueOnce(new Error("HTTP 401"));
     captureLead.mockRejectedValueOnce(new Error("HTTP 500"));
     const user = userEvent.setup();
     renderPage();

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Check, ChevronDown, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
+import { createForeignStudent } from "@/api/foreignStudent";
 import { captureLead } from "@/api/leads";
 import { getTrackedSource, markLeadCaptured } from "@/lib/leadSource";
 import { getLoggedInPhone } from "@/lib/phone";
@@ -14,6 +15,7 @@ import {
   QUALIFICATIONS,
   STUDY_LEVELS,
   TEST_STATUS,
+  startYearOf,
 } from "@/lib/studyAbroad";
 
 const ACCENT = "#2F43F2";
@@ -46,8 +48,9 @@ const selectClass = `${fieldClass} cursor-pointer appearance-none pr-10`;
  *
  * The country chips and the comparison board write into the same selection, so
  * a visitor who has been ticking countries finds them already in the form.
- * Submission goes to the CRM through POST /api/leads/captureLead — the same
- * endpoint login capture uses — filed under the "Study Abroad" course.
+ * Submission writes one record through POST /api/foreignStudent/createForeignStudent
+ * — the table the admin panel's Study Abroad Leads page reads — with no token,
+ * so nobody has to log in to ask for a call back.
  */
 export default function StudyAbroadLeadForm({ selected, onToggle, onBooked, id, className = "" }: Props) {
   const user = useAuthStore((s) => s.user);
@@ -121,42 +124,58 @@ export default function StudyAbroadLeadForm({ selected, onToggle, onBooked, id, 
       .join(". ");
 
     /**
-     * One submission, one record.
+     * One submission, one record, in the table the admin panel's Study Abroad
+     * Leads page reads. Sent with no token: this page exists to turn a click
+     * into a lead, and a login wall in front of the form costs more enquiries
+     * than it could ever protect.
      *
-     * It goes to `captureLead` because that is the only endpoint an anonymous
-     * visitor can reach: POST /api/foreignStudent/createForeignStudent — the
-     * table this page's name comes from — answers 401 without a JWT, and paid
-     * traffic is logged out by definition, so writing there would drop the
-     * majority of enquiries and duplicate the rest.
-     *
-     * The admin panel's Study Abroad Leads page reads these back by filtering
-     * the CRM on `interestedCourseName === "Study Abroad"`, so every enquiry
-     * lands on that page whether or not the visitor was signed in. The
-     * qualification and intake are parsed out of the remark there — keep the
-     * `Label: value` shape below in step with Admin's foreignStudentsApi.ts.
+     * The fallback is not a second copy — it only runs when the first write
+     * failed. The endpoint rejected anonymous posts until the backend's auth
+     * filter was opened for it, and a lead lost in that window is a lead lost
+     * for good, so a failure is parked in the public CRM under the "Study
+     * Abroad" course, which the same admin page also reads. Once the backend
+     * change is live this branch stops being reached; delete it then.
      */
+    let landed = true;
     try {
-      await captureLead({
-        phoneNumber: digits,
-        firstName,
-        lastName: rest.join(" "),
+      await createForeignStudent({
+        name: name.trim(),
+        phone: digits,
         email: email.trim(),
-        source,
-        // The desk filters on short course names, so the qualifiers go in the
-        // remark rather than into the course field.
-        interestedCourseName: "Study Abroad",
-        interestedStates: selectedNames,
-        interestedExamName: testStatus.includes("done") ? testStatus.replace(" done", "") : "",
+        qualification,
+        interestedCountry: selectedNames.join(", "),
+        startYear: startYearOf(intake),
         remarks,
       });
     } catch (error) {
-      setSubmitting(false);
-      console.error("[ProCounsel] Study abroad lead failed:", error);
-      toast.error("That did not go through. Check your connection and send it again.");
-      return;
+      landed = false;
+      console.warn("[ProCounsel] Study abroad write rejected, falling back to CRM:", error);
+      try {
+        await captureLead({
+          phoneNumber: digits,
+          firstName,
+          lastName: rest.join(" "),
+          email: email.trim(),
+          source,
+          // The desk filters on short course names, so the qualifiers go in the
+          // remark rather than into the course field.
+          interestedCourseName: "Study Abroad",
+          interestedStates: selectedNames,
+          interestedExamName: testStatus.includes("done") ? testStatus.replace(" done", "") : "",
+          remarks,
+        });
+        landed = true;
+      } catch (fallbackError) {
+        console.error("[ProCounsel] Study abroad lead failed:", error, fallbackError);
+      }
     }
 
     setSubmitting(false);
+
+    if (!landed) {
+      toast.error("That did not go through. Check your connection and send it again.");
+      return;
+    }
 
     markLeadCaptured(digits);
     setSubmitted(true);
