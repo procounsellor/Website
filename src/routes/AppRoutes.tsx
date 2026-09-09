@@ -108,6 +108,7 @@ const NEETStateCounsellingPage = lazy(() => import('@/pages/neet/NEETStateCounse
 const NEETMedicalCollegesPage = lazy(() => import('@/pages/neet/NEETMedicalColleges'));
 const PredictorsHubPage = lazy(() => import('@/pages/PredictorsHub'));
 const OptionFormFillingPage = lazy(() => import('@/pages/OptionFormFilling'));
+const StudyAbroadPage = lazy(() => import('@/pages/StudyAbroad'));
 const CounsellingHubPage = lazy(() => import('@/pages/counselling/CounsellingHub'));
 const CounsellingCityPage = lazy(() => import('@/pages/counselling/CounsellingCityPage'));
 const CounsellingCategoryPage = lazy(() => import('@/pages/counselling/CounsellingCategoryPage'));
@@ -243,6 +244,9 @@ export default function AppRoutes() {
                         <Route path='/neet/rank-predictor' element={<Navigate to="/neet-rank-predictor" replace />} />
                         <Route path='/neet/college-predictor' element={<Navigate to="/neet-college-predictor" replace />} />
                         <Route path='/predictors' element={<PredictorsHubPage />} />
+
+                        {/* Study abroad — lead-generation landing page (SEO + paid traffic) */}
+                        <Route path='/study-abroad' element={<StudyAbroadPage />} />
 
                         {/* Paid service: MHT-CET CAP round option form filling */}
                         <Route path='/mhtcet-option-form-filling' element={<OptionFormFillingPage />} />

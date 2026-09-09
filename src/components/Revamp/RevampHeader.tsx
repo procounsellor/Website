@@ -13,11 +13,19 @@ import { useSearchStore } from "@/store/SearchStore";
 import { SearchResults } from "@/components/layout/SearchResults";
 import toast from "react-hot-toast";
 
-const tabs = [
+interface NavTab {
+    id: number;
+    name: string;
+    iconPath: string;
+    path: string;
+}
+
+const tabs: NavTab[] = [
     { id: 1, name: 'Admission', iconPath: '/Admissions.webp', path: '/admissions' },
     { id: 2, name: 'Courses', iconPath: '/Courses.svg', path: '/courses' },
     { id: 3, name: 'Community', iconPath: '/Community.webp', path: '/community' },
     { id: 4, name: 'ProBuddies', iconPath: '/ProBuddy.webp', path: '/pro-buddies' },
+    { id: 6, name: 'Study Abroad', iconPath: '/study-abroad.webp', path: '/study-abroad' },
     //{ id: 5, name: 'About us', iconPath: '/Admissions.webp', path: '/revamp-about' }
 ];
 
@@ -28,7 +36,7 @@ export default function RevampHeader() {
     const isProBuddy = role === 'proBuddy';
     const isCounselor = role === 'counselor';
     const isRestrictedRole = isProBuddy || isCounselor;
-    const visibleTabs = useMemo(() => {
+    const visibleTabs = useMemo<NavTab[]>(() => {
         if (isCounselor) {
             return [
                 { id: 5, name: 'Dashboard', iconPath: '/ProBuddy.webp', path: '/counsellor-dashboard' },
@@ -71,6 +79,10 @@ export default function RevampHeader() {
 
         if (path === '/pro-buddies') {
             void import('@/pages/Revamp/ProBuddies');
+        }
+
+        if (path === '/study-abroad') {
+            void import('@/pages/StudyAbroad');
         }
     };
 
@@ -326,7 +338,7 @@ export default function RevampHeader() {
         ? "flex w-full justify-center items-center gap-6"
         : "flex w-full justify-between items-center";
 
-    const mobileHeaderHeight = isRestrictedRole ? 52 : 98;
+    const mobileHeaderHeight = isRestrictedRole ? 52 : 116;
     const mobileScrolledHeaderHeight = isRestrictedRole ? 32 : 56;
     const desktopHeaderHeight = isRestrictedRole ? 96 : 184;
     const desktopScrolledHeaderHeight = isRestrictedRole ? 56 : 100;
@@ -525,7 +537,7 @@ export default function RevampHeader() {
                     {!isScrolled && (
                         <motion.div
                             initial={{ opacity: 0, height: 0, y: -10, marginBottom: 0 }}
-                            animate={{ opacity: 1, height: '22px', y: 0, marginBottom: '12px' }}
+                            animate={{ opacity: 1, height: '40px', y: 0, marginBottom: '12px' }}
                             exit={{ opacity: 0, height: 0, y: -10, marginBottom: 0 }}
                             transition={{ duration: 0.2 }}
                             className={mobileTabsClassName}
@@ -540,18 +552,19 @@ export default function RevampHeader() {
                                     whileHover={{ y: -1 }}
                                     whileTap={{ scale: 0.98 }}
                                     transition={buttonTransition}
-                                    className={`flex flex-row items-center justify-center gap-[2px] h-[22px] pb-[2px] cursor-pointer transition-all ${
+                                    className={`flex flex-col items-center justify-end gap-[3px] h-[40px] pb-[3px] cursor-pointer transition-all ${
                                         activeTab === tab.id ? 'border-b-[1.5px] border-[#000000]' : 'border-b-[1.5px] border-transparent'
                                     }`}
                                 >
                                     {tab.iconPath && (
                                         <img
                                             src={tab.iconPath}
-                                            alt={tab.name}
-                                            className="w-[16px] h-[16px] object-contain shrink-0"
+                                            alt=""
+                                            aria-hidden="true"
+                                            className="w-[20px] h-[20px] max-[360px]:w-[17px] max-[360px]:h-[17px] object-contain shrink-0"
                                         />
                                     )}
-                                    <span className="font-poppins font-medium text-[11px] sm:text-[12px] leading-[100%] text-[#232323] whitespace-nowrap">
+                                    <span className="font-poppins font-medium text-[10.5px] max-[360px]:text-[9.5px] sm:text-[11.5px] leading-[100%] text-[#232323] whitespace-nowrap">
                                         {tab.name}
                                     </span>
                                 </MotionLink>
