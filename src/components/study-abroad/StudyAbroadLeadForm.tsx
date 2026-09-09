@@ -3,8 +3,7 @@ import { Check, ChevronDown, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import { createForeignStudent } from "@/api/foreignStudent";
-import { captureLead } from "@/api/leads";
-import { getTrackedSource, markLeadCaptured } from "@/lib/leadSource";
+import { getTrackedSource } from "@/lib/leadSource";
 import { getLoggedInPhone } from "@/lib/phone";
 import { useAuthStore } from "@/store/AuthStore";
 import {
@@ -104,13 +103,13 @@ export default function StudyAbroadLeadForm({ selected, onToggle, onBooked, id, 
     }
 
     const digits = phone.replace(/\D/g, "").slice(-10);
-    const [firstName, ...rest] = name.trim().split(/\s+/);
     const { source, landingPage } = getTrackedSource();
 
     setSubmitting(true);
 
     const remarks = [
       `Study abroad enquiry from ${landingPage || "/study-abroad"}`,
+      source ? `Source: ${source}` : "",
       `Countries: ${selectedNames.join(", ")}`,
       `Qualification: ${qualification}`,
       `Applying for: ${level}`,
@@ -125,18 +124,15 @@ export default function StudyAbroadLeadForm({ selected, onToggle, onBooked, id, 
 
     /**
      * One submission, one record, in the table the admin panel's Study Abroad
-     * Leads page reads. Sent with no token: this page exists to turn a click
-     * into a lead, and a login wall in front of the form costs more enquiries
-     * than it could ever protect.
+     * Leads page reads — and nowhere else. Sent with no token: this page exists
+     * to turn a click into a lead, and a login wall in front of the form costs
+     * more enquiries than it could ever protect.
      *
-     * The fallback is not a second copy — it only runs when the first write
-     * failed. The endpoint rejected anonymous posts until the backend's auth
-     * filter was opened for it, and a lead lost in that window is a lead lost
-     * for good, so a failure is parked in the public CRM under the "Study
-     * Abroad" course, which the same admin page also reads. Once the backend
-     * change is live this branch stops being reached; delete it then.
+     * Study abroad is a separate desk from the counselling CRM, so a failure
+     * here is never quietly filed as a CRM lead: it would land in another
+     * team's queue and be worked by people who cannot help this student. The
+     * visitor is asked to send it again instead.
      */
-    let landed = true;
     try {
       await createForeignStudent({
         name: name.trim(),
@@ -148,36 +144,14 @@ export default function StudyAbroadLeadForm({ selected, onToggle, onBooked, id, 
         remarks,
       });
     } catch (error) {
-      landed = false;
-      console.warn("[ProCounsel] Study abroad write rejected, falling back to CRM:", error);
-      try {
-        await captureLead({
-          phoneNumber: digits,
-          firstName,
-          lastName: rest.join(" "),
-          email: email.trim(),
-          source,
-          // The desk filters on short course names, so the qualifiers go in the
-          // remark rather than into the course field.
-          interestedCourseName: "Study Abroad",
-          interestedStates: selectedNames,
-          interestedExamName: testStatus.includes("done") ? testStatus.replace(" done", "") : "",
-          remarks,
-        });
-        landed = true;
-      } catch (fallbackError) {
-        console.error("[ProCounsel] Study abroad lead failed:", error, fallbackError);
-      }
-    }
-
-    setSubmitting(false);
-
-    if (!landed) {
+      setSubmitting(false);
+      console.error("[ProCounsel] Study abroad lead failed:", error);
       toast.error("That did not go through. Check your connection and send it again.");
       return;
     }
 
-    markLeadCaptured(digits);
+    setSubmitting(false);
+
     setSubmitted(true);
     onBooked?.();
   };

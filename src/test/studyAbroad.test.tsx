@@ -190,7 +190,6 @@ describe("study abroad — the lead form", () => {
     await user.click(screen.getByRole("button", { name: /book my free session/i }));
 
     expect(createForeignStudent).not.toHaveBeenCalled();
-    expect(captureLead).not.toHaveBeenCalled();
     expect(await screen.findByText("Pick at least one country")).toBeInTheDocument();
   });
 
@@ -228,8 +227,8 @@ describe("study abroad — the lead form", () => {
     expect(remarks).toContain("Countries: Canada");
     expect(remarks).toContain("Intake: September 2027");
 
-    // One submission, one record: the CRM is a fallback for a failed write, not
-    // a second copy of a successful one.
+    // Study abroad and the counselling CRM are worked by different desks, so a
+    // lead from this page never reaches the other queue.
     expect(captureLead).not.toHaveBeenCalled();
 
     // And the visitor is told what happens next rather than left on the form.
@@ -262,9 +261,10 @@ describe("study abroad — the lead form", () => {
     await waitFor(() => expect(floating()).toBeUndefined());
   });
 
-  it("parks the lead in the CRM when the study abroad write is rejected", async () => {
-    // The window before the backend drops auth on that endpoint: a rejected
-    // write must not cost a lead, so the public capture takes it instead.
+  it("asks the visitor to resend when the write fails, and never files it as a CRM lead", async () => {
+    // A study abroad enquiry belongs to the study abroad desk. Quietly parking
+    // a failed one in the counselling CRM would put it in front of people who
+    // cannot help this student, so the form asks for it again instead.
     createForeignStudent.mockRejectedValueOnce(new Error("HTTP 401"));
     const user = userEvent.setup();
     renderPage();
@@ -273,26 +273,8 @@ describe("study abroad — the lead form", () => {
     await fillRequired(user);
     await user.click(screen.getByRole("button", { name: /book my free session/i }));
 
-    await waitFor(() => expect(captureLead).toHaveBeenCalledTimes(1));
-    expect(captureLead.mock.calls[0][0]).toMatchObject({
-      phoneNumber: "9876543210",
-      interestedCourseName: "Study Abroad",
-      interestedStates: ["United Kingdom"],
-    });
-    expect(await screen.findByText(/Session booked, Ananya/)).toBeInTheDocument();
-  });
-
-  it("tells the visitor to resend when both writes fail, rather than pretending", async () => {
-    createForeignStudent.mockRejectedValueOnce(new Error("HTTP 401"));
-    captureLead.mockRejectedValueOnce(new Error("HTTP 500"));
-    const user = userEvent.setup();
-    renderPage();
-
-    await user.click(screen.getByRole("checkbox", { name: /United Kingdom/ }));
-    await fillRequired(user);
-    await user.click(screen.getByRole("button", { name: /book my free session/i }));
-
-    await waitFor(() => expect(captureLead).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(createForeignStudent).toHaveBeenCalledTimes(1));
+    expect(captureLead).not.toHaveBeenCalled();
     expect(screen.queryByText(/Session booked/)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /book my free session/i })).toBeEnabled();
   });
