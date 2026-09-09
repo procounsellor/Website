@@ -53,10 +53,14 @@ jobs:
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
           VITE_FIREBASE_MEASUREMENT_ID: ${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}
 
+      # wrangler-action is deliberately not used here. It installs wrangler with
+      # `pnpm add` inside this repo, and since pnpm 10 that aborts with
+      # ERR_PNPM_IGNORED_BUILDS because wrangler pulls in sharp and workerd,
+      # neither of which is answered in pnpm-workspace.yaml's allowBuilds.
+      # `pnpm dlx` runs wrangler from a temp store instead, so the deploy never
+      # touches package.json, the lockfile, or the build-script policy.
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=website --commit-dirty=true
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm dlx wrangler@3.114.17 pages deploy dist --project-name=website --commit-dirty=true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
