@@ -22,10 +22,11 @@ import {
 const captureLead = vi.hoisted(() =>
   vi.fn((payload: Record<string, unknown>) => Promise.resolve({ status: "Success", payload })),
 );
+vi.mock("@/api/leads", () => ({ captureLead }));
+
 const createForeignStudent = vi.hoisted(() =>
   vi.fn((payload: Record<string, unknown>) => Promise.resolve({ status: "Success", payload })),
 );
-vi.mock("@/api/leads", () => ({ captureLead }));
 vi.mock("@/api/foreignStudent", () => ({ createForeignStudent }));
 
 const SITE = "https://procounsel.co.in";
@@ -188,7 +189,6 @@ describe("study abroad — the lead form", () => {
     await fillRequired(user);
     await user.click(screen.getByRole("button", { name: /book my free session/i }));
 
-    expect(captureLead).not.toHaveBeenCalled();
     expect(createForeignStudent).not.toHaveBeenCalled();
     expect(await screen.findByText("Pick at least one country")).toBeInTheDocument();
   });
@@ -211,23 +211,8 @@ describe("study abroad — the lead form", () => {
     await user.selectOptions(screen.getByLabelText("When do you want to start?"), "September 2027");
     await user.click(screen.getByRole("button", { name: /book my free session/i }));
 
-    await waitFor(() => expect(captureLead).toHaveBeenCalledTimes(1));
-    const payload = captureLead.mock.calls[0][0];
-    expect(payload).toMatchObject({
-      phoneNumber: "9876543210",
-      firstName: "Ananya",
-      lastName: "Sharma",
-      email: "ananya@example.com",
-      interestedCourseName: "Study Abroad",
-      interestedStates: ["Canada"],
-    });
-    expect(String(payload.remarks)).toContain("Countries: Canada");
-    expect(String(payload.remarks)).toContain("Intake: September 2027");
-
-    // And the same enquiry reaches the study abroad table the admin panel's
-    // "Study Abroad Leads" page reads, with the intake reduced to a year.
-    expect(createForeignStudent).toHaveBeenCalledTimes(1);
-    expect(createForeignStudent.mock.calls[0][0]).toEqual({
+    await waitFor(() => expect(createForeignStudent).toHaveBeenCalledTimes(1));
+    expect(createForeignStudent.mock.calls[0][0]).toMatchObject({
       name: "Ananya Sharma",
       phone: "9876543210",
       email: "ananya@example.com",
@@ -235,6 +220,16 @@ describe("study abroad — the lead form", () => {
       interestedCountry: "Canada",
       startYear: "2027",
     });
+
+    // The answers with no column of their own still travel, so nothing the
+    // visitor typed is thrown away on the way to the desk.
+    const remarks = String(createForeignStudent.mock.calls[0][0].remarks);
+    expect(remarks).toContain("Countries: Canada");
+    expect(remarks).toContain("Intake: September 2027");
+
+    // Study abroad and the counselling CRM are worked by different desks, so a
+    // lead from this page never reaches the other queue.
+    expect(captureLead).not.toHaveBeenCalled();
 
     // And the visitor is told what happens next rather than left on the form.
     expect(await screen.findByText(/Session booked, Ananya/)).toBeInTheDocument();
@@ -266,9 +261,10 @@ describe("study abroad — the lead form", () => {
     await waitFor(() => expect(floating()).toBeUndefined());
   });
 
-  it("still books the session when the study abroad endpoint rejects the lead", async () => {
-    // What an anonymous visitor gets today: the endpoint needs a JWT and
-    // answers 401. The public CRM capture has to carry the lead on its own.
+  it("asks the visitor to resend when the write fails, and never files it as a CRM lead", async () => {
+    // A study abroad enquiry belongs to the study abroad desk. Quietly parking
+    // a failed one in the counselling CRM would put it in front of people who
+    // cannot help this student, so the form asks for it again instead.
     createForeignStudent.mockRejectedValueOnce(new Error("HTTP 401"));
     const user = userEvent.setup();
     renderPage();
@@ -277,7 +273,9 @@ describe("study abroad — the lead form", () => {
     await fillRequired(user);
     await user.click(screen.getByRole("button", { name: /book my free session/i }));
 
-    await waitFor(() => expect(captureLead).toHaveBeenCalledTimes(1));
-    expect(await screen.findByText(/Session booked, Ananya/)).toBeInTheDocument();
+    await waitFor(() => expect(createForeignStudent).toHaveBeenCalledTimes(1));
+    expect(captureLead).not.toHaveBeenCalled();
+    expect(screen.queryByText(/Session booked/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /book my free session/i })).toBeEnabled();
   });
 });

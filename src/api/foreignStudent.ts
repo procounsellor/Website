@@ -1,5 +1,4 @@
 import { API_CONFIG } from './config'
-import { getToken } from '@/lib/tokenManager'
 
 const baseUrl = API_CONFIG.baseUrl
 
@@ -9,20 +8,19 @@ const baseUrl = API_CONFIG.baseUrl
  *   POST /api/foreignStudent/createForeignStudent
  *
  * This is the table the admin panel's "Study Abroad Leads" page reads
- * (GET /api/admin/getAllForeignStudents), so a lead has to land here to be
- * worked by the calling desk.
+ * (GET /api/admin/getAllForeignStudents), and it is the only place a
+ * /study-abroad enquiry is written — one submission, one record.
  *
- * IMPORTANT: the endpoint sits outside the backend's public `/api/shared/**`
- * namespace and answers 401 without a JWT — verified against the live API,
- * where an unauthenticated POST is rejected and `/api/shared/createForeignStudent`
- * does not exist. A logged-out visitor on /study-abroad therefore cannot reach
- * it, which is why the page ALSO posts the same enquiry to the public
- * /api/leads/captureLead: that one always records the lead, so nothing is lost
- * while this endpoint is closed.
+ * **Deliberately sent with no Authorization header.** The whole point of the
+ * landing page is that a visitor fills the form and leaves; asking them to log
+ * in first costs far more leads than it saves. Sending a token when we happen
+ * to have one would be worse than sending none: signed-in enquiries would land
+ * here and everyone else's somewhere else, which is the split this replaced.
  *
- * Once the backend allows an anonymous POST (or exposes a `/api/shared` twin),
- * nothing here needs to change — the call already runs on every submission and
- * will simply start succeeding.
+ * The endpoint answered 401 to an anonymous POST until the backend's auth
+ * filter was opened for it (a GET to the path returned 401 too, so it was the
+ * filter and not the handler). Until that ships, the caller falls back to the
+ * public CRM capture so no enquiry is lost — see StudyAbroadLeadForm.
  */
 export interface ForeignStudentPayload {
   name: string
@@ -35,17 +33,21 @@ export interface ForeignStudentPayload {
   interestedCountry: string
   /** Four-digit year they want to start, e.g. "2027". */
   startYear: string
+  /**
+   * Everything the form asks that has no column of its own — intake, level,
+   * field, budget, city, test status. Unknown properties are ignored by the
+   * backend's deserializer today, so this is free to send and starts showing
+   * up the moment a column exists for it.
+   */
+  remarks?: string
 }
 
 export async function createForeignStudent(payload: ForeignStudentPayload) {
-  const token = getToken()
-
   const response = await fetch(`${baseUrl}/api/foreignStudent/createForeignStudent`, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify(payload),
   })
