@@ -22,11 +22,7 @@ import {
 const captureLead = vi.hoisted(() =>
   vi.fn((payload: Record<string, unknown>) => Promise.resolve({ status: "Success", payload })),
 );
-const createForeignStudent = vi.hoisted(() =>
-  vi.fn((payload: Record<string, unknown>) => Promise.resolve({ status: "Success", payload })),
-);
 vi.mock("@/api/leads", () => ({ captureLead }));
-vi.mock("@/api/foreignStudent", () => ({ createForeignStudent }));
 
 const SITE = "https://procounsel.co.in";
 
@@ -189,7 +185,6 @@ describe("study abroad — the lead form", () => {
     await user.click(screen.getByRole("button", { name: /book my free session/i }));
 
     expect(captureLead).not.toHaveBeenCalled();
-    expect(createForeignStudent).not.toHaveBeenCalled();
     expect(await screen.findByText("Pick at least one country")).toBeInTheDocument();
   });
 
@@ -224,17 +219,12 @@ describe("study abroad — the lead form", () => {
     expect(String(payload.remarks)).toContain("Countries: Canada");
     expect(String(payload.remarks)).toContain("Intake: September 2027");
 
-    // And the same enquiry reaches the study abroad table the admin panel's
-    // "Study Abroad Leads" page reads, with the intake reduced to a year.
-    expect(createForeignStudent).toHaveBeenCalledTimes(1);
-    expect(createForeignStudent.mock.calls[0][0]).toEqual({
-      name: "Ananya Sharma",
-      phone: "9876543210",
-      email: "ananya@example.com",
-      qualification: "12th",
-      interestedCountry: "Canada",
-      startYear: "2027",
-    });
+    // One submission, one record: the JWT-only foreign-student endpoint is not
+    // called at all, so a signed-in visitor cannot be filed twice.
+    expect(captureLead).toHaveBeenCalledTimes(1);
+    // Everything the Study Abroad Leads page renders has to survive the round
+    // trip through the remark, since that is where the admin reads it back.
+    expect(String(payload.remarks)).toContain("Qualification: 12th");
 
     // And the visitor is told what happens next rather than left on the form.
     expect(await screen.findByText(/Session booked, Ananya/)).toBeInTheDocument();
@@ -266,10 +256,10 @@ describe("study abroad — the lead form", () => {
     await waitFor(() => expect(floating()).toBeUndefined());
   });
 
-  it("still books the session when the study abroad endpoint rejects the lead", async () => {
-    // What an anonymous visitor gets today: the endpoint needs a JWT and
-    // answers 401. The public CRM capture has to carry the lead on its own.
-    createForeignStudent.mockRejectedValueOnce(new Error("HTTP 401"));
+  it("tells the visitor to resend when the capture fails, rather than pretending", async () => {
+    // The single write is the whole record now: if it fails there is no second
+    // endpoint quietly holding the lead, so the form must not claim success.
+    captureLead.mockRejectedValueOnce(new Error("HTTP 500"));
     const user = userEvent.setup();
     renderPage();
 
@@ -278,6 +268,7 @@ describe("study abroad — the lead form", () => {
     await user.click(screen.getByRole("button", { name: /book my free session/i }));
 
     await waitFor(() => expect(captureLead).toHaveBeenCalledTimes(1));
-    expect(await screen.findByText(/Session booked, Ananya/)).toBeInTheDocument();
+    expect(screen.queryByText(/Session booked/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /book my free session/i })).toBeEnabled();
   });
 });

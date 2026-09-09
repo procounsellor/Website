@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Check, ChevronDown, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
-import { createForeignStudent } from "@/api/foreignStudent";
 import { captureLead } from "@/api/leads";
 import { getTrackedSource, markLeadCaptured } from "@/lib/leadSource";
 import { getLoggedInPhone } from "@/lib/phone";
@@ -15,7 +14,6 @@ import {
   QUALIFICATIONS,
   STUDY_LEVELS,
   TEST_STATUS,
-  startYearOf,
 } from "@/lib/studyAbroad";
 
 const ACCENT = "#2F43F2";
@@ -123,27 +121,22 @@ export default function StudyAbroadLeadForm({ selected, onToggle, onBooked, id, 
       .join(". ");
 
     /**
-     * Two records, on purpose.
+     * One submission, one record.
      *
-     * `createForeignStudent` is the table the admin panel's Study Abroad Leads
-     * page reads, and it is where these belong — but it needs a JWT, so it only
-     * succeeds for a signed-in visitor until the backend opens it up (see
-     * src/api/foreignStudent.ts).
+     * It goes to `captureLead` because that is the only endpoint an anonymous
+     * visitor can reach: POST /api/foreignStudent/createForeignStudent — the
+     * table this page's name comes from — answers 401 without a JWT, and paid
+     * traffic is logged out by definition, so writing there would drop the
+     * majority of enquiries and duplicate the rest.
      *
-     * `captureLead` is public and always works, so it is the guarantee that no
-     * lead is dropped. Whichever succeeds, the enquiry is recorded; only if
-     * both fail does the visitor get an error and a chance to resend.
+     * The admin panel's Study Abroad Leads page reads these back by filtering
+     * the CRM on `interestedCourseName === "Study Abroad"`, so every enquiry
+     * lands on that page whether or not the visitor was signed in. The
+     * qualification and intake are parsed out of the remark there — keep the
+     * `Label: value` shape below in step with Admin's foreignStudentsApi.ts.
      */
-    const [abroad, crm] = await Promise.allSettled([
-      createForeignStudent({
-        name: name.trim(),
-        phone: digits,
-        email: email.trim(),
-        qualification,
-        interestedCountry: selectedNames.join(", "),
-        startYear: startYearOf(intake),
-      }),
-      captureLead({
+    try {
+      await captureLead({
         phoneNumber: digits,
         firstName,
         lastName: rest.join(" "),
@@ -155,20 +148,15 @@ export default function StudyAbroadLeadForm({ selected, onToggle, onBooked, id, 
         interestedStates: selectedNames,
         interestedExamName: testStatus.includes("done") ? testStatus.replace(" done", "") : "",
         remarks,
-      }),
-    ]);
-
-    setSubmitting(false);
-
-    if (abroad.status === "rejected" && crm.status === "rejected") {
-      console.error("[ProCounsel] Study abroad lead failed:", abroad.reason, crm.reason);
+      });
+    } catch (error) {
+      setSubmitting(false);
+      console.error("[ProCounsel] Study abroad lead failed:", error);
       toast.error("That did not go through. Check your connection and send it again.");
       return;
     }
-    if (abroad.status === "rejected") {
-      // Expected while the endpoint requires a token; the CRM still has the lead.
-      console.warn("[ProCounsel] Foreign-student record not created:", abroad.reason);
-    }
+
+    setSubmitting(false);
 
     markLeadCaptured(digits);
     setSubmitted(true);
