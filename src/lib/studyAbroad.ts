@@ -67,7 +67,7 @@ export const DESTINATIONS: Destination[] = [
     workRights: "Twelve months of OPT after you graduate, extended to 36 months for STEM degrees.",
     tests: "IELTS or TOEFL, plus GRE or GMAT for many master's programmes",
     popular: ["MS Computer Science", "Data Science", "MS Engineering", "MBA", "Business Analytics"],
-    watchOut: "Applications close 8–11 months before the intake, and the F-1 visa interview is a real filter — funding documents have to be clean and consistent.",
+    watchOut: "Applications close 8–11 months before the intake. The F-1 visa interview is a real filter, so funding documents have to be clean and consistent.",
   },
   {
     slug: "uk",
@@ -84,7 +84,7 @@ export const DESTINATIONS: Destination[] = [
     workRights: "The Graduate Route currently allows two years of work after your degree, three after a PhD.",
     tests: "IELTS Academic or UKVI; GMAT for some MBA programmes",
     popular: ["MSc Management", "MSc Finance", "MSc Computer Science", "Law (LLM)", "Public Health"],
-    watchOut: "The one-year format is intense and gives you a short window to find a job — plan the internship search before you land, not after.",
+    watchOut: "The one-year format is intense and gives you a short window to find a job. Plan the internship search before you land, not after.",
   },
   {
     slug: "canada",
@@ -98,7 +98,7 @@ export const DESTINATIONS: Destination[] = [
     intakes: ["Sep", "Jan", "May"],
     stayBack: "Up to 3 years",
     stayBackNote: "Eligible programmes only",
-    workRights: "A Post-Graduation Work Permit of up to three years — but only for programmes on the eligible list.",
+    workRights: "A Post-Graduation Work Permit of up to three years, but only for programmes on the eligible list.",
     tests: "IELTS or PTE; some programmes accept Duolingo",
     popular: ["Business", "Computer Science", "Nursing", "Supply Chain", "Civil Engineering"],
     watchOut: "Since 2024 the study permit needs a provincial attestation letter, and college programmes only earn a work permit if the field of study is on the eligible list. Confirm both before you pay a deposit.",
@@ -118,14 +118,14 @@ export const DESTINATIONS: Destination[] = [
     workRights: "A Temporary Graduate visa of two to three years, depending on your qualification and where you studied.",
     tests: "IELTS, PTE or TOEFL",
     popular: ["Nursing", "IT", "Accounting", "Construction Management", "Data Science"],
-    watchOut: "The Genuine Student requirement means your statement of purpose is assessed as evidence — a generic one is the most common reason a good profile gets refused.",
+    watchOut: "The Genuine Student requirement means your statement of purpose is assessed as evidence. A generic one is the most common reason a good profile gets refused.",
   },
   {
     slug: "germany",
     name: "Germany",
     short: "Germany",
     flag: "\u{1F1E9}\u{1F1EA}",
-    headline: "No tuition at public universities — the budget is living costs.",
+    headline: "No tuition at public universities. Your main expense is living costs.",
     tuition: "No tuition fee",
     tuitionNote: "At public universities",
     living: "€11,900 in a blocked account, plus €150–400 a semester",
@@ -135,7 +135,7 @@ export const DESTINATIONS: Destination[] = [
     workRights: "An 18-month residence permit to look for work, which converts to an EU Blue Card once you are hired.",
     tests: "IELTS or TOEFL; German at B1–B2 for many courses and for most jobs",
     popular: ["Mechanical Engineering", "Automotive", "Computer Science", "Renewable Energy", "Data Engineering"],
-    watchOut: "Admission is decided almost entirely on your bachelor's marks and subject match — Uni-Assist rejects on curriculum gaps, not on essays.",
+    watchOut: "Admission is decided almost entirely on your bachelor's marks and subject match. Uni-Assist rejects on curriculum gaps, not on essays.",
   },
   {
     slug: "ireland",
@@ -186,7 +186,7 @@ export const DESTINATIONS: Destination[] = [
     workRights: "No automatic post-study visa: you move to an employer-sponsored residence visa, or a Green visa if you qualify.",
     tests: "IELTS often waived if your schooling was in English",
     popular: ["Business", "Engineering", "Hospitality", "Media", "Computer Science"],
-    watchOut: "Check that the branch campus degree is the parent university's own award and is recognised in India — that is the difference between a degree and a certificate.",
+    watchOut: "Check that the branch campus degree is the parent university's own award and is recognised in India. This is the difference between a degree and a certificate.",
   },
 ];
 
@@ -357,14 +357,14 @@ export const STUDY_ABROAD_SECTIONS: SeoSection[] = [
   {
     heading: "What studying abroad actually costs an Indian student",
     paragraphs: [
-      "The number that matters is not the tuition fee on a university website, it is the total for the whole degree: tuition, living costs, one-time expenses like the visa fee, health insurance and airfare, and the money you have to show a consulate before any of it is approved. A one-year master's in the UK typically lands between ₹28 and ₹45 lakh all in. A two-year master's in the United States runs from ₹35 lakh to well past ₹70 lakh. Canada and Australia sit in the middle. Germany is the outlier — public universities charge no tuition, so the total is mostly the ₹11–13 lakh you must park in a blocked account for living costs.",
+      "The number that matters is the total for the whole degree, not just the tuition fee on a university website. Include living costs, visa fees, health insurance, airfare and the funds you must show a consulate. A one-year master's in the UK typically costs ₹28–45 lakh in total. A two-year master's in the United States can cost ₹35–70 lakh or more. Canada and Australia sit in the middle. Germany is different because public universities charge no tuition. Most of the cost is the ₹11–13 lakh blocked account for living expenses.",
       "Most families fund this with a mix: savings, an education loan, and a scholarship or fee waiver from the university itself. Loans up to ₹7.5 lakh generally need no collateral; above that, banks usually ask for property or a fixed deposit, while some non-banking lenders will lend against a strong admit and a co-applicant's income. The interest clock and the moratorium period differ enough between lenders that comparing two offers is worth a full conversation.",
     ],
     bullets: [
       "Tuition is between 50% and 70% of the total for most destinations",
       "Budget for one-time costs of ₹3–5 lakh: visa, insurance, tickets, deposits, forex",
       "University scholarships are usually awarded from the application itself, so applying early matters more than applying to more places",
-      "Show funds for the first year plus tuition, in the format your destination specifies — a GIC in Canada, a blocked account in Germany, bank statements and loan sanction letters elsewhere",
+      "Show funds for the first year plus tuition in the required format: a GIC in Canada, a blocked account in Germany, or bank statements and loan sanction letters elsewhere",
     ],
   },
   {
@@ -377,14 +377,14 @@ export const STUDY_ABROAD_SECTIONS: SeoSection[] = [
   {
     heading: "Intakes and the deadlines that decide them",
     paragraphs: [
-      "Every destination runs on a calendar you cannot negotiate with. The main intake is Fall or September in the US, UK, Canada and Ireland; February in Australia and New Zealand; and Winter, starting in October, in Germany. Applications open eight to twelve months ahead, and the good scholarship deadlines close first — often several months before the general application deadline.",
+      "Every destination follows a fixed calendar. The main intake is Fall or September in the US, UK, Canada and Ireland; February in Australia and New Zealand; and Winter, starting in October, in Germany. Applications open eight to twelve months ahead. The best scholarship deadlines often close several months before general applications.",
       "In practice that means the work starts a year before you fly. A student targeting September 2027 should have a test score by December 2026, applications in by January 2027, an offer accepted by April, and a visa filed by June. Miss that chain at one link and the realistic answer becomes the next intake, which is a full year, not a month.",
     ],
     bullets: [
-      "Book the language test early — slots in metro cities fill weeks ahead",
+      "Book the language test early because slots in metro cities fill weeks ahead",
       "Transcripts, degree certificates and bank documents take longer to collect than students expect",
       "Scholarship deadlines are usually earlier than admission deadlines",
-      "A visa appointment is a queue, not a formality — leave eight to ten weeks for it",
+      "A visa appointment is a queue, not a formality. Leave eight to ten weeks for it",
     ],
   },
   {
@@ -404,14 +404,14 @@ export const STUDY_ABROAD_SECTIONS: SeoSection[] = [
   {
     heading: "Working during and after your degree",
     paragraphs: [
-      "Part-time work is capped in most destinations — commonly around twenty hours a week during term — and it covers a share of living costs, not tuition. Treat it as relief, not as a funding plan.",
+      "Most destinations limit part-time work to around twenty hours a week during term. It can cover some living costs, but not tuition. Treat it as extra help, not as a funding plan.",
       "Post-study work rights are the part worth optimising for. The US gives twelve months of OPT, extended to three years for STEM degrees. The UK's Graduate Route currently runs two years. Canada's post-graduation permit runs up to three years but only for eligible programmes. Australia and New Zealand offer two to three years. Germany gives an eighteen-month job-seeker permit. Ireland gives two years after a master's. These rules change with each government, which is exactly why the shortlist should be built on the rules in force for your intake.",
     ],
   },
   {
     heading: "How ProCounsel works",
     paragraphs: [
-      "ProCounsel is a counselling platform, not an agency selling one university's seats. You are matched with a counsellor who has worked on your destination, and you can also talk to ProBuddies — students already studying at colleges abroad and in India, who answer the questions no brochure covers, from what the campus is like in February to whether the part-time work claim holds up.",
+      "ProCounsel is a counselling platform, not an agency selling one university's seats. You are matched with a counsellor who knows your destination. You can also talk to ProBuddies, current students who answer practical questions that brochures often miss.",
       "The first profile review call is free. If you go ahead, the counsellor stays with you through tests, applications, funding, the visa and departure, and you can see their profile, experience and reviews before you commit to anything.",
     ],
   },
@@ -421,7 +421,7 @@ export const STUDY_ABROAD_FAQS: SeoFaqItem[] = [
   {
     question: "Is the first counselling call really free?",
     answer:
-      "Yes. The profile review call — your marks, budget, target intake and a realistic country shortlist — costs nothing and does not commit you to anything. Paid help starts only if you choose to work with a counsellor on the full application.",
+      "Yes. The profile review call covers your marks, budget, target intake and a realistic country shortlist. It costs nothing and does not commit you to anything. Paid help starts only if you choose support for the full application.",
   },
   {
     question: "How much does it cost to study abroad from India?",
@@ -466,7 +466,7 @@ export const STUDY_ABROAD_FAQS: SeoFaqItem[] = [
   {
     question: "Do you help after I get the visa?",
     answer:
-      "Yes. Accommodation, forex, insurance, a pre-departure briefing and the first weeks after you land — bank account, SIM, registration — are part of the same engagement, and your counsellor stays reachable once you are there.",
+      "Yes. We help with accommodation, forex, insurance and a pre-departure briefing. We also guide you through essentials after you land, such as your bank account, SIM and registration. Your counsellor stays reachable once you are there.",
   },
 ];
 

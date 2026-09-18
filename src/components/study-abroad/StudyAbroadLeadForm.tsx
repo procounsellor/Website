@@ -18,6 +18,7 @@ import {
 } from "@/lib/studyAbroad";
 
 const ACCENT = "#2F43F2";
+const ORANGE = "#FA660F";
 const INK = "#0E1629";
 
 interface Props {
@@ -193,10 +194,11 @@ export default function StudyAbroadLeadForm({ selected, onToggle, onBooked, id, 
     >
       <div className="px-6 pt-6 pb-5" style={{ backgroundColor: INK }}>
         <h2 className="font-[Poppins] text-[20px] font-semibold leading-snug text-white">
-          Book a free counselling session
+          Book a <span className="study-free-highlight">free</span> counselling session
         </h2>
         <p className="mt-2 text-[13.5px] leading-relaxed text-white/65">
-          Fill this in and a counsellor calls you back. No charge, and no obligation to sign up.
+          Share a few details. A counsellor will call to discuss the countries and courses that fit
+          your profile. There is no charge or obligation.
         </p>
       </div>
 
@@ -204,12 +206,14 @@ export default function StudyAbroadLeadForm({ selected, onToggle, onBooked, id, 
         <div className="space-y-4">
           <div>
             <label className={labelClass} htmlFor="sa-name">
-              Full name
+              Full name <span style={{ color: ORANGE }} aria-hidden="true">*</span>
             </label>
             <input
               id="sa-name"
               name="name"
+              aria-label="Full name"
               type="text"
+              required
               autoComplete="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -222,7 +226,7 @@ export default function StudyAbroadLeadForm({ selected, onToggle, onBooked, id, 
 
           <div>
             <label className={labelClass} htmlFor="sa-phone">
-              Mobile number
+              Mobile number <span style={{ color: ORANGE }} aria-hidden="true">*</span>
             </label>
             <div className="flex items-center gap-2">
               <span className="flex h-11 shrink-0 items-center rounded-xl border border-gray-200 bg-gray-50 px-3 text-[14px] text-gray-500">
@@ -231,7 +235,9 @@ export default function StudyAbroadLeadForm({ selected, onToggle, onBooked, id, 
               <input
                 id="sa-phone"
                 name="phone"
+                aria-label="Mobile number"
                 type="tel"
+                required
                 inputMode="numeric"
                 autoComplete="tel"
                 value={phone}
@@ -394,6 +400,10 @@ export default function StudyAbroadLeadForm({ selected, onToggle, onBooked, id, 
             "Book my free session"
           )}
         </button>
+
+        <p className="mt-2.5 text-center text-[12px] font-medium text-gray-500">
+          Free profile review. No payment needed.
+        </p>
 
         <p className="mt-3.5 text-[11.5px] leading-relaxed text-gray-400">
           By submitting you agree to be contacted by ProCounsel about studying abroad. Read our{" "}

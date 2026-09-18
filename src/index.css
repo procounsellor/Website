@@ -1,6 +1,16 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+.study-free-highlight {
+  color: #fa660f;
+  background: linear-gradient(90deg, #fa660f 0%, #ff8a32 55%, #f1490d 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 1.06em;
+  font-weight: 700;
+}
+
 html,
 body {
   -ms-overflow-style: none;

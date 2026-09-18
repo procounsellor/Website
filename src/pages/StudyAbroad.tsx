@@ -23,7 +23,7 @@ const SITE = "https://procounsel.co.in";
 
 const TITLE = "Study Abroad Consultants in India";
 const DESCRIPTION =
-  "Free counselling for studying abroad — USA, UK, Canada, Australia, Germany, Ireland, New Zealand and Dubai. Course shortlist, funding, visa and departure, in one place.";
+  "Free counselling for studying abroad in the USA, UK, Canada, Australia, Germany, Ireland, New Zealand and Dubai. Get help with course shortlisting, funding, visas and departure.";
 
 /**
  * /study-abroad — the lead-generation landing page for the overseas education
@@ -143,12 +143,13 @@ export default function StudyAbroad() {
               className="max-w-xl font-[Poppins] text-[27px] font-semibold leading-[1.2] tracking-[-0.015em] md:text-[36px]"
               style={{ color: INK }}
             >
-              Study abroad from India, with free 1:1 counselling
+              Study abroad from India with{" "}
+              <span className="study-free-highlight">free 1:1 counselling</span>
             </h1>
             <p className="mt-4 max-w-xl text-[15px] leading-[1.7] text-gray-600 md:text-[16px]">
-              University shortlist, applications, scholarships, education loan and the visa file —
-              for the USA, UK, Canada, Australia, Germany, Ireland, New Zealand and Dubai. Book a
-              free session and talk it through before you spend a rupee.
+              Get a realistic country and university shortlist based on your marks, budget and
+              target intake. Your first 1:1 counselling session is{" "}
+              <span className="study-free-highlight">completely free</span>.
             </p>
 
             <dl className="mt-7 grid max-w-xl grid-cols-3 gap-x-4 gap-y-6 border-t border-gray-200/80 pt-6 sm:gap-x-6">
@@ -157,8 +158,8 @@ export default function StudyAbroad() {
                   <dt className="sr-only">{h.label}</dt>
                   <dd>
                     <span
-                      className="block font-[Poppins] text-[22px] font-semibold leading-none tracking-[-0.01em] md:text-[24px]"
-                      style={{ color: INK }}
+                      className={`block font-[Poppins] text-[22px] font-semibold leading-none tracking-[-0.01em] md:text-[24px] ${h.value === "Free" ? "study-free-highlight" : ""}`}
+                      style={{ color: h.value === "Free" ? undefined : INK }}
                     >
                       {h.value}
                     </span>
@@ -543,7 +544,7 @@ function DestinationRow({ destination: d, checked, onCheck, open, onOpen }: RowP
           <div className="md:hidden">
             <dt className="text-[12px] text-gray-400">Stay back after</dt>
             <dd className="mt-0.5 text-[13.5px] text-gray-700">
-              {d.stayBack} — {d.stayBackNote.toLowerCase()}
+              {d.stayBack}. {d.stayBackNote}
             </dd>
           </div>
           <div>
