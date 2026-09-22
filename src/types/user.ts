@@ -73,6 +73,7 @@ export interface User {
   photoSmall: string | null;
   userInterestedStateOfCounsellors: string[] | null;
   interestedCourse: string | null;
+  collegeName?: string | null;
   subscribedCounsellors?: SubscribedCounsellor[] | null;
   followedCounsellorsIds?: string[] | null;
   friendIds?: string[] | null;

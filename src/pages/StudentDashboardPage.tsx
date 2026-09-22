@@ -277,6 +277,7 @@ const StudentDashboardPage: React.FC = () => {
               onEditCourse={() => handleOpenPrefsModal('course')}
               onEditStates={() => handleOpenPrefsModal('states')}
               onAddFunds={() => setIsAddFundsOpen(true)}
+              onAddCollege={() => setIsEditModalOpen(true)}
             />
           )}
           {activeTab === 'Appointments' && <AppointmentsTab />}

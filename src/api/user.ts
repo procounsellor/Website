@@ -103,3 +103,43 @@ export async function uploadUserPhoto(
     throw error;
   }
 }
+
+export interface CollegeSearchResult {
+  id: number;
+  college_name: string;
+  university_name?: string;
+  state?: string;
+  district?: string;
+  college_type?: string | null;
+}
+
+export async function searchColleges(query: string): Promise<CollegeSearchResult[]> {
+  const trimmedQuery = query.trim();
+  if (trimmedQuery.length < 3) return [];
+
+  const response = await fetch(
+    `https://college-search-api.vercel.app/search?q=${encodeURIComponent(trimmedQuery)}&limit=20`
+  );
+  if (!response.ok) throw new Error('Failed to search colleges');
+  const data = await response.json();
+  return Array.isArray(data.results) ? data.results : [];
+}
+
+export async function updateUserCollege(
+  userId: string,
+  collegeName: string,
+  token: string
+): Promise<void> {
+  const params = new URLSearchParams({ userId, collegeName: collegeName.trim() });
+  const response = await fetch(`${baseUrl}/api/user/updateCollege?${params.toString()}`, {
+    method: 'PATCH',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`HTTP ${response.status}: Failed to update college. Details: ${errorBody}`);
+  }
+}
