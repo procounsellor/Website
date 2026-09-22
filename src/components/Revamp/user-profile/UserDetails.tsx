@@ -23,10 +23,11 @@ export default function UserDetails({ onEditClick }: UserDetailsProps) {
     const data = [
         { title: 'Mobile Number', value: user?.phoneNumber || 'Not available' },
         { title: 'Email', value: user?.email || 'Not available' },
+        { title: 'College', value: user?.collegeName || 'Add your college', action: !user?.collegeName },
     ];
 
     return (
-        <div className="relative flex flex-col gap-6 bg-white w-62 h-153.75 p-6 rounded-2xl">
+        <div className="relative flex min-h-153.75 w-62 flex-col gap-6 rounded-2xl bg-white p-6">
             <div className="absolute right-4 top-4">
                 <button
                     type="button"
@@ -95,9 +96,13 @@ export default function UserDetails({ onEditClick }: UserDetailsProps) {
                         className="flex min-w-0 flex-col items-start gap-3 font-medium text-[1rem] text-(--text-main) py-[0.94rem] border-t border-[#E5E5E5]"
                     >
                         {item.title}
-                        <span className="max-w-full break-all text-(--text-muted) font-medium">
-                            {item.value}
-                        </span>
+                        {item.action ? (
+                            <button type="button" className="max-w-full break-all text-left font-medium text-[#2F43F2]" onClick={onEditClick}>
+                                {item.value}
+                            </button>
+                        ) : (
+                            <span className="max-w-full break-all font-medium text-(--text-muted)">{item.value}</span>
+                        )}
                     </h3>
                 ))}
 

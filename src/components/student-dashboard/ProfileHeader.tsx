@@ -7,7 +7,9 @@ interface ProfileHeaderProps {
 }
 
 const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onEditClick }) => {
-  const studentType = user.interestedCourse ? `${user.interestedCourse} Student` : 'Student';
+  const studentType = [user.interestedCourse ? `${user.interestedCourse} Student` : 'Student', user.collegeName]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <DashboardProfileHero

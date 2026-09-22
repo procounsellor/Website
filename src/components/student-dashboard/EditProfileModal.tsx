@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import type { User } from '@/types/user';
 import { X, SquarePen, ChevronLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { uploadUserPhoto } from '@/api/user';
+import { updateUserCollege, uploadUserPhoto } from '@/api/user';
+import CollegeSearchField from './CollegeSearchField';
 
 interface EditProfileModalProps {
   user: User;
@@ -13,7 +14,7 @@ interface EditProfileModalProps {
   requireNameOnly?: boolean; // When true, only name is mandatory (for live sessions/reviews)
 }
 
-const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClose, onUpdate, requireNameOnly = false }) => {
+const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClose, onUpdate, onUploadComplete, requireNameOnly = false }) => {
   const isMandatory = requireNameOnly
 
   // The email is accepted as typed — there is no OTP step on it. Login is
@@ -24,6 +25,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
   const [firstName, setFirstName] = useState(user.firstName);
   const [lastName, setLastName] = useState(user.lastName);
   const [email, setEmail] = useState(user.email);
+  const [collegeName, setCollegeName] = useState(user.collegeName || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const token = localStorage.getItem('jwt');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -42,6 +44,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
       setFirstName(user.firstName);
       setLastName(user.lastName);
       setEmail(user.email);
+      setCollegeName(user.collegeName || '');
       setPhotoPreview(null);
       setSelectedFile(null);
     }
@@ -91,6 +94,10 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
       }
       
       await onUpdate({ firstName, lastName, email: email || user.email || "" });
+      if (!user.collegeName && collegeName && user.userName && token) {
+        await updateUserCollege(user.userName, collegeName, token);
+      }
+      onUploadComplete();
       console.log('✅ Profile updated successfully');
       
       // The parent component (MainLayout) will handle closing the modal
@@ -163,6 +170,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
                 className="w-full h-11 px-4 bg-white border border-[#EFEFEF] rounded-xl text-base text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
               />
             </div>
+            {!user.collegeName && (
+              <div>
+                <label className="block text-[10px] font-semibold text-[#2F303280] mb-1">College</label>
+                <CollegeSearchField value={collegeName} onSelect={setCollegeName} />
+                <p className="mt-1 text-[10px] text-[#8C8CA1]">Select a result, choose “Not admitted yet,” or use “Others” to enter a name.</p>
+              </div>
+            )}
             <div>
               <label className="block text-[10px] font-semibold text-[#2F303280] mb-1">Last Name</label>
               <input 
@@ -254,6 +268,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, isOpen, onClo
                   />
                 </div>
               </div>
+              {!user.collegeName && (
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-semibold text-[#2F303280] mb-2">College</label>
+                  <CollegeSearchField value={collegeName} onSelect={setCollegeName} />
+                  <p className="mt-1 text-xs text-[#8C8CA1]">Select a result, choose “Not admitted yet,” or use “Others” to enter a name.</p>
+                </div>
+              )}
             </div>
             <div className="pt-4 text-center">
                <button 

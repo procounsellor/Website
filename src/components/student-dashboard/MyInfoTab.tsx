@@ -1,16 +1,17 @@
 import type { User } from '@/types/user';
 import InfoCard from './InfoCard';
 import WalletCard from './WalletCard';
-import { GraduationCap, MapPin } from 'lucide-react';
+import { GraduationCap, MapPin, University } from 'lucide-react';
 
 interface MyInfoTabProps {
   user: User;
   onEditCourse: () => void;
   onEditStates: () => void;
   onAddFunds: () => void;
+  onAddCollege: () => void;
 }
 
-const MyInfoTab: React.FC<MyInfoTabProps> = ({ user, onEditCourse, onEditStates, onAddFunds }) => {
+const MyInfoTab: React.FC<MyInfoTabProps> = ({ user, onEditCourse, onEditStates, onAddFunds, onAddCollege }) => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
@@ -29,6 +30,9 @@ const MyInfoTab: React.FC<MyInfoTabProps> = ({ user, onEditCourse, onEditStates,
           ) : (
             <p className="text-sm md:text-base font-medium text-[#8C8CA1]">No preferred states selected.</p>
           )}
+        </InfoCard>
+        <InfoCard icon={<University />} title="College" onEdit={!user.collegeName ? onAddCollege : undefined}>
+          <p className="text-sm md:text-base font-medium text-[#8C8CA1]">{user.collegeName || 'Add your college'}</p>
         </InfoCard>
 
       </div>
