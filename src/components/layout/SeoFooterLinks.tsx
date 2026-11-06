@@ -24,6 +24,7 @@ const CITY_LINKS: { name: string; slug: string }[] = [
 ];
 
 const TOOL_LINKS: { name: string; to: string }[] = [
+  { name: "Study Abroad College Predictor", to: "/study-abroad/university-predictor" },
   { name: "NEET Rank Predictor", to: "/neet-rank-predictor" },
   { name: "NEET College Predictor", to: "/neet-college-predictor" },
   { name: "NEET Cutoffs (Round-wise)", to: "/neet-cutoffs" },
@@ -45,18 +46,15 @@ const EXPLORE_LINKS: { name: string; to: string }[] = [
   { name: "Career Counselling", to: "/career-counselling" },
   { name: "Study Abroad Consultants", to: "/study-abroad" },
   { name: "Admission Counselling", to: "/admissions" },
-  { name: "Courses & Test Series", to: "/courses" },
-  { name: "Student Community", to: "/community" },
+  { name: "Browse Colleges", to: "/colleges" },
   { name: "ProBuddies (College Seniors)", to: "/pro-buddies" },
   { name: "Find a Counsellor", to: "/counsellor-listing" },
   { name: "Admission Blogs", to: "/admissions/blogs" },
   { name: "Exam Deadlines", to: "/admissions/deadlines" },
   { name: "All Predictors", to: "/predictors" },
-  // These three are in the sitemap but were only ever reached through a
+  // This page is in the sitemap but was only ever reached through a
   // navigate() button or a signed-in dashboard, so no crawler could find them.
   { name: "Mettle Career Test", to: "/mettle" },
-  { name: "All Courses", to: "/courses/course-listing" },
-  { name: "All Test Series", to: "/courses/test-listing" },
 ];
 
 const linkClass =
@@ -118,8 +116,8 @@ export default function SeoFooterLinks() {
             <p className="text-[13px] leading-relaxed text-gray-600">
               ProCounsel is India's platform for end-to-end college admission counselling —
               verified counsellors, real college seniors (ProBuddies), NEET &amp; JEE rank and
-              college predictors, cutoff data and choice-filling help, plus a student community
-              for every admission question.
+              college predictors, cutoff data and choice-filling help, plus dedicated study
+              abroad support for every admission journey.
             </p>
             <Link
               to="/counselling"
