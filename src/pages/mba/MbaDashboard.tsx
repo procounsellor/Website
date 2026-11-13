@@ -8,6 +8,10 @@ import RoadToIimHero from '@/components/mba/RoadToIimHero';
 import CampRoute from '@/components/mba/CampRoute';
 import NextCampCard from '@/components/mba/NextCampCard';
 import SectionRings from '@/components/mba/SectionRings';
+import InsightsCard from '@/components/mba/InsightsCard';
+import ScoreEstimateCard from '@/components/mba/ScoreEstimateCard';
+import TodayPlanCard from '@/components/mba/TodayPlanCard';
+import ExamUpdatesCard from '@/components/mba/ExamUpdatesCard';
 import { accuracyOf, formatDate } from '@/components/mba/format';
 import { mbaErrorMessage, useMbaDashboard, type AttemptSummary, type MbaDashboard as Dashboard } from '@/api/mba';
 import { useMbaShell } from '@/lib/mbaShellContext';
@@ -138,6 +142,10 @@ export default function MbaDashboard() {
             <Priorities items={data.priorities} />
           </div>
 
+          <ExamUpdatesCard />
+
+          <TodayPlanCard />
+
           <SectionRings sections={data.sections} />
 
           <RecentAttempts attempts={data.recentAttempts} />
@@ -147,6 +155,10 @@ export default function MbaDashboard() {
           <CampRoute climb={climb} />
 
           <StreakStrip streakDays={data.streak.current} lastActiveDate={data.streak.lastActiveDate} />
+
+          <ScoreEstimateCard />
+
+          <InsightsCard />
 
           <section aria-labelledby="numbers-heading" className="ss-panel p-5">
             <h2 id="numbers-heading" className="ss-display text-[17px] text-[var(--ink)]">

@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import SkyBanner from '@/components/school-student/SkyBanner';
 import { PracticeQuestionCard, Skeleton, StateBlock } from '@/components/mba/ui';
 import { formatDate } from '@/components/mba/format';
 import { mbaErrorMessage, mbaKeys, useMbaDaily } from '@/api/mba';
+import DailyLeaderboard from '@/components/mba/DailyLeaderboard';
+import { trackOnce } from '@/lib/analytics';
+import { useAuthStore } from '@/store/AuthStore';
 
 /**
  * The daily set — the same 5–10 official questions for everyone, each answered
@@ -14,6 +17,12 @@ export default function MbaDaily() {
   const { data, isPending, isError, error, refetch } = useMbaDaily();
   const [index, setIndex] = useState(0);
   const qc = useQueryClient();
+  const userId = useAuthStore((s) => s.userId);
+  const finished = !!data && data.questions.length > 0 && data.completed >= data.questions.length;
+
+  useEffect(() => {
+    if (finished && data) trackOnce(`${userId ?? 'anon'}_${data.date}`, 'mba_daily_challenge_done', { questions: data.questions.length });
+  }, [finished, data, userId]);
 
   if (isPending) return <Skeleton rows={2} />;
   if (isError)
@@ -63,7 +72,10 @@ export default function MbaDaily() {
             question={data.questions[index]}
             index={index}
             total={total}
-            onAnswered={() => void qc.invalidateQueries({ queryKey: mbaKeys.daily })}
+            onAnswered={() => {
+              void qc.invalidateQueries({ queryKey: mbaKeys.daily });
+              void qc.invalidateQueries({ queryKey: ['mba', 'leaderboard'] });
+            }}
           />
           <div className="flex items-center justify-between gap-3">
             <button
@@ -83,6 +95,7 @@ export default function MbaDaily() {
               Next <ChevronRight className="h-4 w-4" />
             </button>
           </div>
+          <DailyLeaderboard />
         </>
       )}
     </div>

@@ -79,6 +79,7 @@ const MbaOnboarding = lazy(() => import('@/pages/mba/MbaOnboarding'));
 const MbaDashboard = lazy(() => import('@/pages/mba/MbaDashboard'));
 const MbaPractice = lazy(() => import('@/pages/mba/MbaPractice'));
 const MbaMocks = lazy(() => import('@/pages/mba/MbaMocks'));
+const MbaPyq = lazy(() => import('@/pages/mba/MbaPyq'));
 const MbaExam = lazy(() => import('@/pages/mba/MbaExam'));
 const MbaAttemptRedirect = lazy(() => import('@/pages/mba/MbaAttemptRedirect'));
 const MbaResult = lazy(() => import('@/pages/mba/MbaResult'));
@@ -87,6 +88,19 @@ const MbaDaily = lazy(() => import('@/pages/mba/MbaDaily'));
 const MbaProfilePage = lazy(() => import('@/pages/mba/MbaProfile'));
 const MbaColleges = lazy(() => import('@/pages/mba/MbaColleges'));
 const MbaShortlist = lazy(() => import('@/pages/mba/MbaShortlist'));
+const MbaGdpi = lazy(() => import('@/pages/mba/MbaGdpi'));
+const MbaGdpiInterview = lazy(() => import('@/pages/mba/MbaGdpiInterview'));
+const MbaGdpiWat = lazy(() => import('@/pages/mba/MbaGdpiWat'));
+const MbaPlanner = lazy(() => import('@/pages/mba/MbaPlanner'));
+const MbaLearn = lazy(() => import('@/pages/mba/MbaLearn'));
+const MbaCoach = lazy(() => import('@/pages/mba/MbaCoach'));
+const MbaInsights = lazy(() => import('@/pages/mba/MbaInsights'));
+const MbaBuildTest = lazy(() => import('@/pages/mba/MbaBuildTest'));
+const MbaCommunity = lazy(() => import('@/pages/mba/MbaCommunity'));
+const MbaQuestionDoubts = lazy(() => import('@/pages/mba/MbaQuestionDoubts'));
+const MbaDoubt = lazy(() => import('@/pages/mba/MbaDoubt'));
+const MbaHelp = lazy(() => import('@/pages/mba/MbaHelp'));
+const MbaCoursePage = lazy(() => import('@/pages/CoursePage')); // existing course detail/purchase page, inside the MBA shell
 // Public MBA / CAT pages — prerendered from the build-time snapshot (src/data/mbaSnapshot.ts).
 // URL architecture: src/lib/mbaRoutes.mjs and docs/MBA-SEO-BLUEPRINT.md.
 const MbaAdmissionGuidePage = lazy(() => import('@/pages/mba-public/MbaAdmissionGuide'));
@@ -94,6 +108,7 @@ const CatExamPatternPage = lazy(() => import('@/pages/mba-public/CatExamPattern'
 const CatEligibilityToolPage = lazy(() => import('@/pages/mba-public/CatEligibilityTool'));
 const CatScoreCalculatorPage = lazy(() => import('@/pages/mba-public/CatScoreCalculator'));
 const FreeCatMockTestPage = lazy(() => import('@/pages/mba-public/FreeCatMockTest'));
+const CatPreviousYearPapersPage = lazy(() => import('@/pages/mba-public/CatPreviousYearPapers'));
 const IimCutoffsPage = lazy(() => import('@/pages/mba-public/IimCutoffs'));
 const MbaCollegeSlugPage = lazy(() => import('@/pages/mba-public/MbaCollegeSlug'));
 const MbaCollegesHubPage = lazy(() => import('@/pages/mba-public/MbaCollegesHub'));
@@ -219,6 +234,9 @@ export default function AppRoutes() {
                         <Route path="/mba/dashboard" element={<MbaDashboard />} />
                         <Route path="/mba/practice" element={<MbaPractice />} />
                         <Route path="/mba/mocks" element={<MbaMocks />} />
+                        {/* Test builder: timed drills, weak-topic and mixed sets (run in the mock player). */}
+                        <Route path="/mba/mocks/build" element={<MbaBuildTest />} />
+                        <Route path="/mba/pyq" element={<MbaPyq />} />
                         {/* Dashboard priority links: forwards to the player or the result. */}
                         <Route path="/mba/mocks/attempts/:attemptId" element={<MbaAttemptRedirect />} />
                         {/* Full-screen player; POST /attempts resumes on reload. */}
@@ -226,8 +244,20 @@ export default function AppRoutes() {
                         <Route path="/mba/results/:attemptId" element={<MbaResult />} />
                         <Route path="/mba/mistakes" element={<MbaMistakes />} />
                         <Route path="/mba/daily" element={<MbaDaily />} />
+                        <Route path="/mba/insights" element={<MbaInsights />} />
+                        <Route path="/mba/community" element={<MbaCommunity />} />
+                        <Route path="/mba/community/questions/:questionId" element={<MbaQuestionDoubts />} />
+                        <Route path="/mba/community/doubts/:doubtId" element={<MbaDoubt />} />
+                        <Route path="/mba/help" element={<MbaHelp />} />
+                        <Route path="/mba/planner" element={<MbaPlanner />} />
                         <Route path="/mba/colleges" element={<MbaColleges />} />
                         <Route path="/mba/shortlist" element={<MbaShortlist />} />
+                        <Route path="/mba/gdpi" element={<MbaGdpi />} />
+                        <Route path="/mba/gdpi/interview" element={<MbaGdpiInterview />} />
+                        <Route path="/mba/gdpi/wat" element={<MbaGdpiWat />} />
+                        <Route path="/mba/learn" element={<MbaLearn />} />
+                        <Route path="/mba/coach" element={<MbaCoach />} />
+                        <Route path="/mba/learn/:courseId" element={<MbaCoursePage />} />
                         <Route path="/mba/profile" element={<MbaProfilePage />} />
                         <Route path="/mba/*" element={<Navigate to="/mba/dashboard" replace />} />
                     </Route>
@@ -295,6 +325,7 @@ export default function AppRoutes() {
                         <Route path='/cat-college-predictor' element={<CatEligibilityToolPage />} />
                         <Route path='/cat-score-calculator' element={<CatScoreCalculatorPage />} />
                         <Route path='/free-cat-mock-test' element={<FreeCatMockTestPage />} />
+                        <Route path='/cat-previous-year-papers' element={<CatPreviousYearPapersPage />} />
                         <Route path='/mba-colleges' element={<MbaCollegesHubPage />} />
                         <Route path='/mba-colleges/iim-cutoffs' element={<IimCutoffsPage />} />
                         <Route path='/mba-colleges/compare' element={<MbaComparePage />} />
