@@ -90,6 +90,7 @@ const MbaColleges = lazy(() => import('@/pages/mba/MbaColleges'));
 const MbaShortlist = lazy(() => import('@/pages/mba/MbaShortlist'));
 const MbaGdpi = lazy(() => import('@/pages/mba/MbaGdpi'));
 const MbaGdpiInterview = lazy(() => import('@/pages/mba/MbaGdpiInterview'));
+const MbaLiveInterview = lazy(() => import('@/pages/mba/MbaLiveInterview'));
 const MbaGdpiWat = lazy(() => import('@/pages/mba/MbaGdpiWat'));
 const MbaPlanner = lazy(() => import('@/pages/mba/MbaPlanner'));
 const MbaLearn = lazy(() => import('@/pages/mba/MbaLearn'));
@@ -254,6 +255,8 @@ export default function AppRoutes() {
                         <Route path="/mba/shortlist" element={<MbaShortlist />} />
                         <Route path="/mba/gdpi" element={<MbaGdpi />} />
                         <Route path="/mba/gdpi/interview" element={<MbaGdpiInterview />} />
+                        {/* Live AI interview: follow-up questions from an AI panel, report at the end. */}
+                        <Route path="/mba/gdpi/live" element={<MbaLiveInterview />} />
                         <Route path="/mba/gdpi/wat" element={<MbaGdpiWat />} />
                         <Route path="/mba/learn" element={<MbaLearn />} />
                         <Route path="/mba/coach" element={<MbaCoach />} />

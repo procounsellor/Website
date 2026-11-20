@@ -17,7 +17,7 @@ const built = existsSync(DIST);
 
 const REVIEWED_URLS = [
   "college-details/CEP_PUNE",
-  "college-details/SIBM_PUNE",
+  "college-details/BIMM_PUNE",
   "college-details/SPIT_MUMBAI",
   "college-details/VJTI_MUMBAI",
   "college-details/DJSCE_MUMBAI",

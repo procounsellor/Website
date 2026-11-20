@@ -113,10 +113,17 @@ export function VoiceAnswer({
   pending,
   disabled,
   onSend,
+  sendLabel = 'Send for feedback',
+  pendingLabel = 'Transcribing and reviewing…',
+  note = 'Speak as you would to the panel, up to 3 minutes. When you send it, your recording is turned into text and then deleted. We keep only the transcript and the feedback. It uses one of your daily AI feedbacks.',
 }: {
   pending: boolean;
   disabled: boolean;
   onSend: (audio: Blob, seconds: number) => void;
+  /** Wording for other flows (e.g. the live interview, where there is no feedback until the end). */
+  sendLabel?: string;
+  pendingLabel?: string;
+  note?: string;
 }) {
   const { state, elapsed, recording, error, start, stop, reset } = useRecorder(VOICE_MAX_SECONDS);
   const tooShort = !!recording && recording.seconds < VOICE_MIN_SECONDS;
@@ -165,7 +172,7 @@ export function VoiceAnswer({
               onClick={() => onSend(recording.blob, recording.seconds)}
               className="btn-primary cursor-pointer px-5 py-2.5 font-[Poppins] text-[13px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {pending ? 'Transcribing and reviewing…' : 'Send for feedback'}
+              {pending ? pendingLabel : sendLabel}
             </button>
             <button
               type="button"
@@ -192,10 +199,7 @@ export function VoiceAnswer({
           {error}
         </p>
       )}
-      <p className="font-[Poppins] text-[11px] leading-relaxed text-[var(--neutral-500)]">
-        Speak as you would to the panel, up to 3 minutes. When you send it, your recording is turned into text and then
-        deleted. We keep only the transcript and the feedback. It uses one of your daily AI feedbacks.
-      </p>
+      <p className="font-[Poppins] text-[11px] leading-relaxed text-[var(--neutral-500)]">{note}</p>
     </div>
   );
 }

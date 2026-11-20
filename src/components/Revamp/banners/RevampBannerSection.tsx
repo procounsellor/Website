@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import GyanDhanBanner from './GyanDhanBanner';
 import MettleBanner from './MettleBanner';
-import PredictorBanner from './PredictorBanner';
 import ScalerBanner from './ScalerBanner';
 
 const RevampBannerSection = () => {
@@ -17,21 +16,14 @@ const RevampBannerSection = () => {
   // banner heading in the document twice.
   const banners = useMemo(
     () => [
-      // The CAT 2026 college predictor leads now that NEET counselling is
-      // over, paired with Mettle (our paid career test) on the first desktop
-      // slide. The MHT-CET option-form service is no longer promoted on the
-      // home page; its page and route are unchanged. NEET predictors move to
-      // the end (their pages and routes stay).
-      { id: 'cat-college', content: <PredictorBanner variant="cat-college" /> },
+      // Partners only. The free MBA/NEET/JEE tools that used to be slides here
+      // (CAT predictor and mocks, JEE/MHT-CET/NEET predictors) now sit in the
+      // home page's "Free tools for your exam" section, where students see all
+      // of them at once instead of one slide at a time. PredictorBanner and its
+      // pages/routes are unchanged.
       { id: 'mettle', content: <MettleBanner /> },
-      { id: 'cat-practice', content: <PredictorBanner variant="cat-score" /> },
       { id: 'gyandhan', content: <GyanDhanBanner /> },
       { id: 'scaler', content: <ScalerBanner /> },
-      { id: 'jee-college', content: <PredictorBanner variant="college" /> },
-      { id: 'jee-rank', content: <PredictorBanner variant="rank" /> },
-      { id: 'mhtcet', content: <PredictorBanner variant="mhtcet" /> },
-      { id: 'neet-college', content: <PredictorBanner variant="neet-college" /> },
-      { id: 'neet-rank', content: <PredictorBanner variant="neet-rank" /> },
     ],
     []
   );

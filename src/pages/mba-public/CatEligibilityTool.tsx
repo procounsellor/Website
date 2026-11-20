@@ -146,6 +146,10 @@ const FAQS: Faq[] = [
 function eligibilityShareSummary(result: EligibilityResponse): string {
   const { meets_minimum, unknown, below_minimum } = result.counts;
   const total = meets_minimum + unknown + below_minimum;
+  // "0 of 23" reads as a fail to friends (often it means sectional percentiles weren't entered), so share a neutral line instead.
+  if (meets_minimum === 0) {
+    return `I checked my CAT percentile against the official minimum percentiles of ${total} IIM programmes. Check yours against every IIM's official minimum:`;
+  }
   return `My CAT check: I clear the published minimum percentiles at ${meets_minimum} of ${total} IIM programmes checked. Check yours against every IIM's official minimum:`;
 }
 

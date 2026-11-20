@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Link2 } from "lucide-react";
+import { Check, ImageDown, Link2 } from "lucide-react";
 import { buildShareText, buildShareUrl, buildWhatsAppHref } from "@/lib/predictorShare";
 import { trackEvent } from "@/lib/analytics";
 
@@ -15,6 +15,15 @@ interface WhatsAppShareProps {
   className?: string;
 }
 
+type ShareMethod = "whatsapp" | "copy_link" | "whatsapp_parents" | "story_image";
+
+const EVENT_METHOD: Record<string, ShareMethod> = {
+  predictor_share_whatsapp: "whatsapp",
+  predictor_share_copy_link: "copy_link",
+  predictor_share_parents: "whatsapp_parents",
+  predictor_share_story: "story_image",
+};
+
 function track(event: string, predictor: string) {
   try {
     const w = window as AnalyticsWindow;
@@ -24,10 +33,88 @@ function track(event: string, predictor: string) {
     // analytics must never break the page
   }
   trackEvent("share", {
-    method: event === "predictor_share_whatsapp" ? "whatsapp" : "copy_link",
+    method: EVENT_METHOD[event] ?? "copy_link",
     content_type: "predictor_result",
     item_id: predictor,
   });
+}
+
+/**
+ * The result itself, without the "Check yours…" call to action that predictors
+ * append for friends, and without a trailing ":" (several summaries end
+ * "…fit your rank:" because the link normally follows).
+ */
+function resultOnly(summary: string): string {
+  const core = summary.replace(/\s*(?:Check|See) (?:yours|which|your)\b.*$/i, "").replace(/[\s:–-]+$/, "").trim();
+  return core || summary.replace(/[\s:]+$/, "").trim();
+}
+
+/** Wraps text to lines that fit maxWidth on the canvas. */
+function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let line = "";
+  for (const w of words) {
+    const next = line ? `${line} ${w}` : w;
+    if (ctx.measureText(next).width > maxWidth && line) {
+      lines.push(line);
+      line = w;
+    } else {
+      line = next;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+/**
+ * A 1080×1920 image (Instagram/WhatsApp story size) of the result summary.
+ * Drawn locally on a canvas — nothing is uploaded. Only the on-screen summary
+ * goes in, never the student's name or phone.
+ */
+async function makeStoryImage(summary: string, url: string): Promise<Blob | null> {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1920;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  try {
+    await document.fonts?.load?.("700 64px Poppins");
+  } catch {
+    // fall back to the default sans-serif
+  }
+  const bg = ctx.createLinearGradient(0, 0, 1080, 1920);
+  bg.addColorStop(0, "#0E1629");
+  bg.addColorStop(1, "#1A2380");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, 1080, 1920);
+
+  ctx.fillStyle = "#FA660F";
+  ctx.beginPath();
+  // roundRect is missing on older Safari; a square badge is fine there.
+  if (typeof ctx.roundRect === "function") ctx.roundRect(96, 160, 72, 72, 18);
+  else ctx.rect(96, 160, 72, 72);
+  ctx.fill();
+  ctx.fillStyle = "#FFFFFF";
+  ctx.font = "600 52px Poppins, sans-serif";
+  ctx.fillText("ProCounsel", 190, 214);
+
+  ctx.font = "700 76px Poppins, sans-serif";
+  ctx.fillStyle = "#FFFFFF";
+  let y = 620;
+  for (const l of wrapLines(ctx, resultOnly(summary), 888).slice(0, 8)) {
+    ctx.fillText(l, 96, y);
+    y += 100;
+  }
+
+  ctx.font = "500 44px Poppins, sans-serif";
+  ctx.fillStyle = "#FDBA74";
+  ctx.fillText("Check yours, free:", 96, 1560);
+  ctx.fillStyle = "#FFFFFF";
+  const shortUrl = url.replace(/^https?:\/\//, "").replace(/\?.*$/, "");
+  for (const [i, l] of wrapLines(ctx, shortUrl, 888).slice(0, 2).entries()) ctx.fillText(l, 96, 1630 + i * 60);
+
+  return new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/png"));
 }
 
 function WhatsAppIcon({ className = "" }: { className?: string }) {
@@ -51,6 +138,51 @@ export default function WhatsAppShare({ summary, path, predictor, className = ""
   const shareUrl = buildShareUrl(path, predictor);
   const href = buildWhatsAppHref(buildShareText(summary, shareUrl));
   const copyUrl = buildShareUrl(path, predictor, "copy_link");
+  // Students often have to show their parents. Same facts, worded for them.
+  const parentsUrl = buildShareUrl(path, predictor, "whatsapp_parents");
+  const parentsHref = buildWhatsAppHref(
+    // The ask comes first so it survives if a long summary gets trimmed to fit.
+    buildShareText(`Can we talk about my options? ${resultOnly(summary).replace(/([^.!?])$/, "$1.")}`, parentsUrl)
+  );
+  const [storyState, setStoryState] = useState<"idle" | "working" | "failed">("idle");
+
+  const handleStory = async () => {
+    setStoryState("working");
+    try {
+      // Stories are mostly posted to Instagram; the lead-source mapper files "instagram" under INSTAGRAM.
+      const storyUrl = buildShareUrl(path, predictor, "instagram");
+      const blob = await makeStoryImage(summary, storyUrl);
+      if (!blob) throw new Error("no canvas");
+      const file = new File([blob], "procounsel-result.png", { type: "image/png" });
+      const download = () => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "procounsel-result.png";
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      };
+      const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
+      // Phones get the share sheet (straight to Instagram/WhatsApp); computers
+      // just save the file. If the browser refuses the share (e.g. the tap
+      // "expired" while the image was drawing), fall back to saving it.
+      const touch = window.matchMedia?.("(pointer: coarse)").matches;
+      if (touch && nav.share && nav.canShare?.({ files: [file] })) {
+        try {
+          await nav.share({ files: [file], text: storyUrl });
+        } catch (shareErr) {
+          if (shareErr instanceof DOMException && shareErr.name === "AbortError") throw shareErr;
+          download();
+        }
+      } else {
+        download();
+      }
+      track("predictor_share_story", predictor);
+      setStoryState("idle");
+    } catch (err) {
+      // A cancelled share sheet is not an error worth showing.
+      setStoryState(err instanceof DOMException && err.name === "AbortError" ? "idle" : "failed");
+    }
+  };
 
   const handleCopy = async () => {
     let ok = false;
@@ -81,6 +213,28 @@ export default function WhatsAppShare({ summary, path, predictor, className = ""
         <WhatsAppIcon className="h-4 w-4" />
         Share on WhatsApp
       </a>
+      <a
+        href={parentsHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => track("predictor_share_parents", predictor)}
+        className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#25D366] bg-white px-3.5 text-sm font-semibold text-[#146C43] transition-colors hover:bg-[#F0FBF4]"
+      >
+        <WhatsAppIcon className="h-4 w-4" />
+        Send to my parents
+      </a>
+      <button
+        type="button"
+        onClick={handleStory}
+        disabled={storyState === "working"}
+        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 cursor-pointer disabled:opacity-60"
+      >
+        <ImageDown className="h-4 w-4" />
+        {storyState === "working" ? "Making image…" : "Save as story image"}
+      </button>
+      {storyState === "failed" && (
+        <span role="status" className="text-xs text-gray-500">Couldn't make the image on this device.</span>
+      )}
       <button
         type="button"
         onClick={handleCopy}

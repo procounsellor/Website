@@ -20,6 +20,8 @@ import AluminiTab from '@/components/college/tabs/AluminiTab';
 import ExamsTab from '@/components/college/tabs/ExamsTab';
 import ImportantDatesTab from '@/components/college/tabs/ImportantDatesTab';
 import { absoluteUrl } from "@/lib/siteUrl.mjs";
+import { mbaProfilePathFor } from "@/lib/collegeProfileAlias.mjs";
+import { ADMISSION_YEAR } from "@/lib/admissionYear";
 
 const COLLEGES_SEED = COLLEGES_SNAPSHOT as unknown as CollegeApiResponse[];
 
@@ -201,6 +203,10 @@ const CollegeDetailsPageNew = () => {
     .filter(Boolean)
     .join(', ');
   const summary = stripHtml(collegeData.collegeInfo || '').slice(0, 155);
+  // Colleges that also have a verified MBA profile canonicalise to it, so the
+  // two pages stop competing for the same search (see collegeProfileAlias.mjs).
+  const mbaProfilePath = mbaProfilePathFor(id);
+  const canonicalPath = mbaProfilePath ?? `/college-details/${id}`;
 
   return (
     <div className="min-h-screen bg-[#FFFFFF] pb-20">
@@ -210,13 +216,13 @@ const CollegeDetailsPageNew = () => {
           summary ||
           `Explore ${collegeData.collegeName}${location ? ` in ${location}` : ''}: courses, fees, admissions, cutoffs, scholarships, placements and reviews. Get expert admission counselling from ProCounsel.`
         }
-        canonical={`/college-details/${id}`}
+        canonical={canonicalPath}
         image={collegeData.bannerUrl || undefined}
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'CollegeOrUniversity',
           name: collegeData.collegeName,
-          url: absoluteUrl(`/college-details/${id}`),
+          url: absoluteUrl(canonicalPath),
           ...(collegeData.website ? { sameAs: collegeData.website } : {}),
           ...(collegeData.logoUrl ? { logo: collegeData.logoUrl } : {}),
           ...(collegeData.establishedYear ? { foundingDate: collegeData.establishedYear } : {}),
@@ -234,7 +240,7 @@ const CollegeDetailsPageNew = () => {
         <div className="mb-6 md:mb-8">
           <h1 className="font-semibold text-[#0E1629] text-[22px] md:text-[32px] leading-[130%]">
             {collegeData.collegeName}
-            {location ? ` — Admissions ${new Date().getFullYear()}` : ''}
+            {location ? ` — Admissions ${ADMISSION_YEAR}` : ''}
           </h1>
           <p
             className="text-[#8C8CA1] font-medium mt-1 md:mt-2 text-[14px] md:text-[18px] leading-[135%] md:leading-[125%]"
@@ -244,6 +250,14 @@ const CollegeDetailsPageNew = () => {
               ? `Courses, fees, cutoffs, scholarships and placements at ${collegeData.collegeName}, ${location}.`
               : 'Discover their expertise and find the right guidance for your future'}
           </p>
+          {mbaProfilePath && (
+            <Link
+              to={mbaProfilePath}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#EEF2FF] px-3 py-2 text-[13px] md:text-sm font-semibold text-[#13097D] hover:bg-[#E0E7FF]"
+            >
+              See verified cut-offs, fees and placements for {collegeData.collegeName} →
+            </Link>
+          )}
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6 md:gap-8 relative">
