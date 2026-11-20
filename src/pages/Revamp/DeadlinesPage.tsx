@@ -94,10 +94,10 @@ export default function DeadlinesPage() {
   return (
     <>
       <PageSEO
-        title={`Admission Deadlines ${ADMISSION_YEAR} – College Application Important Dates`}
+        title={`Admission Deadlines ${ADMISSION_YEAR - 1}-${String(ADMISSION_YEAR).slice(2)} – Entrance Exam & Application Dates`}
         description="Track all important college admission deadlines, exam dates, and application cutoffs in one place. Stay on top of JEE, NEET, study abroad, and university application timelines."
         canonical="/admissions/deadlines"
-        keywords={`college admission deadlines ${ADMISSION_YEAR}, JEE application dates, NEET deadlines, study abroad deadlines, university application timeline India`}
+        keywords={`college admission deadlines ${ADMISSION_YEAR - 1}, entrance exam dates ${ADMISSION_YEAR}, JEE application dates, NEET deadlines, study abroad deadlines, university application timeline India`}
       />
     <div className="min-h-screen bg-[#F3F7FF] font-[Poppins]">
       {/* Top breadcrumb */}
