@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { academicApi } from "@/api/academic";
 import type { AllCounselor } from "@/types/academic";
+import { matchesSearch } from "@/lib/searchMatch";
 
 export interface SearchResult {
   id: string;
@@ -88,12 +89,15 @@ export const useSearchStore = create<SearchState>()(
           const searchLower = query.toLowerCase();
           const dedupedResults = results.filter((result, index, array) => {
             return array.findIndex((candidate) => candidate.type === result.type && candidate.id === result.id) === index;
-          }).filter((result) => {
-            return (
-              result.name.toLowerCase().includes(searchLower) ||
-              (result.subtitle || "").toLowerCase().includes(searchLower)
-            );
-          });
+          }).filter((result) =>
+            // Colleges also match initials, id and nicknames ("VJTI", "COEP").
+            // Counsellor ids are phone numbers, so they are never matched on.
+            matchesSearch(query, {
+              name: result.name,
+              subtitle: result.subtitle,
+              id: result.type === "college" ? result.id : undefined,
+            }),
+          );
 
           dedupedResults.sort((a, b) => {
              const aExact = a.name.toLowerCase() === searchLower ? 1 : 0;

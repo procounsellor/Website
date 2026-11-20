@@ -120,6 +120,13 @@ type AuthState = {
   bookingTriggered: boolean;
   setBookingTriggered: (value: boolean) => void;
   setReturnToPath: (path: string | null) => void;
+  /**
+   * After a student's course has been saved as MBA (PATCH /api/user), make
+   * this session an MBA one too. The login is what normally labels the role
+   * "mbaStudent"; the API already derives it from interestedCourse, so the
+   * site would otherwise lag until the next login.
+   */
+  becomeMbaStudent: () => void;
   setNeedsOnboarding: (value: boolean) => void;
   setSkipOnboardingForPromo: (value: boolean) => void;
   setNeedsProfileCompletion: (value: boolean) => void;
@@ -157,6 +164,19 @@ export const useAuthStore = create<AuthState>()(
       bookingTriggered: false,
       setBookingTriggered: (value) => set({ bookingTriggered: value }),
       setReturnToPath: (path) => set({ returnToPath: path }),
+
+      becomeMbaStudent: () => {
+        const { user } = get();
+        set({
+          role: "mbaStudent",
+          user: user ? { ...user, role: "mbaStudent", interestedCourse: "MBA" } : user,
+        });
+        try {
+          localStorage.setItem("role", "mbaStudent");
+        } catch {
+          // localStorage may be unavailable; the persisted store still holds the role.
+        }
+      },
       setNeedsOnboarding: (value) => set({ needsOnboarding: value }),
       setSkipOnboardingForPromo: (value) =>
         set({ skipOnboardingForPromo: value }),

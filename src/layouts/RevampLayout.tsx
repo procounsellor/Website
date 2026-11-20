@@ -240,9 +240,13 @@ export default function RevampLayout() {
         return <Navigate to="/school-student/dashboard" replace />;
     }
 
-    // MBA students likewise live in their own shell (MbaStudentLayout).
+    // MBA students likewise live in their own shell (MbaStudentLayout). If they
+    // were on their way to an MBA tool (the home page's "Live AI mock
+    // interview", or a course switch to MBA), take them there instead of the
+    // dashboard; MbaStudentLayout clears returnToPath once it has mounted.
     if (isAuthenticated && role === 'mbaStudent') {
-        return <Navigate to="/mba/dashboard" replace />;
+        const mbaTarget = returnToPath?.startsWith('/mba/') ? returnToPath : '/mba/dashboard';
+        return <Navigate to={mbaTarget} replace />;
     }
 
     return <div className="flex flex-col min-h-screen relative">

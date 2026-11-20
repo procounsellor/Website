@@ -3,6 +3,7 @@ import { useSearchStore } from "@/store/SearchStore";
 import type { SearchResult } from "@/store/SearchStore";
 import { Building2, Loader2, Users } from "lucide-react";
 import { encodeCounselorId } from "@/lib/utils";
+import { mbaProfilePathFor } from "@/lib/collegeProfileAlias.mjs";
 
 interface SearchResultsProps {
   onResultClick?: () => void;
@@ -29,7 +30,8 @@ export function SearchResults({ onResultClick }: SearchResultsProps) {
         break;
       }
       case 'college': {
-        navigate(`/college-details/${result.id}`);
+        // Colleges with a verified MBA profile open that (the canonical page).
+        navigate(mbaProfilePathFor(result.id) ?? `/college-details/${result.id}`);
         break;
       }
       default: {
