@@ -1,25 +1,10 @@
-import { type FormEvent } from "react";
-import toast from "react-hot-toast";
 import PageSEO from "@/components/SEO/PageSEO";
 import SeoArticle from "@/components/SEO/SeoArticle";
 import { aboutContent } from "@/components/SEO/seoContent";
 import { absoluteUrl } from "@/lib/siteUrl.mjs";
+import QuickLeadForm from "@/components/leads/QuickLeadForm";
 
 export default function RevampAbout() {
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const name = String(formData.get("name") || "").trim();
-    const email = String(formData.get("email") || "").trim();
-
-    if (!name || !email) {
-      toast.error("Please fill in your name and email.");
-      return;
-    }
-
-    toast.success("We will contact you soon.");
-    event.currentTarget.reset();
-  };
 
   const organizationSchema = {
     "@context": "https://schema.org",
@@ -51,15 +36,15 @@ export default function RevampAbout() {
       <div className="flex flex-col bg-[#C6DDF040]">
       {/* Hero Section */}
       <div 
-        className="w-full h-[460px] bg-[url('/probuddiesbg.webp')] bg-cover bg-center"
+        className="w-full h-[320px] md:h-[460px] bg-[url('/probuddiesbg.webp')] bg-cover bg-center"
       >
         <div className="w-full h-full bg-[#0E1629]/85 flex items-center justify-center">
           
           <div className="flex flex-col items-center justify-center gap-2.5 w-full max-w-[805px] px-4">
-            <h1 className="text-white font-poppins font-bold text-[60px] leading-20 text-center">
+            <h1 className="text-white font-poppins font-bold text-[40px] md:text-[60px] leading-tight md:leading-20 text-center">
               About Us
             </h1>
-            <p className="max-w-[753px] font-poppins font-medium text-[24px] leading-tight text-center text-white/70">
+            <p className="max-w-[753px] font-poppins font-medium text-[18px] md:text-[24px] leading-tight text-center text-white/70">
               Bridging the gap between ambitious students and expert education counsellors
             </p>
 
@@ -68,7 +53,7 @@ export default function RevampAbout() {
       </div>
 
         {/* Mission Content */}
-        <section className="w-full mx-auto bg-[#C6DDF040] h-[429px] mx-auto py-10 px-[60px] flex flex-col items-center">
+        <section className="w-full mx-auto bg-[#C6DDF040] md:h-[429px] mx-auto py-10 px-4 md:px-[60px] flex flex-col items-center">
         <div className="w-full max-w-[1260px] flex flex-col items-center gap-8">
           <div className="self-start box-border flex items-center w-[113px] h-[29px] gap-2 bg-white border border-gray-100 rounded-[6px] px-3 py-1 shadow-sm">
             <div className="w-4 h-4 bg-[#0E1629] shrink-0" />
@@ -78,13 +63,13 @@ export default function RevampAbout() {
           </div>
 
           <div className="w-full max-w-[1200px] flex flex-col gap-6">
-            <p className="font-poppins font-medium text-[24px] leading-relaxed text-center text-[#0E1629]">
+            <p className="font-poppins font-medium text-[16px] md:text-[24px] leading-relaxed text-center text-[#0E1629]">
               ProCounsel acts as a comprehensive bridge between students and education counsellors, 
               empowering students to make informed decisions about their academic and career journey. 
               We believe every student deserves access to expert guidance when navigating the 
               complex landscape of higher education in India.
             </p>
-            <p className="font-poppins font-medium text-[24px] leading-relaxed text-center text-[#0E1629]">
+            <p className="font-poppins font-medium text-[16px] md:text-[24px] leading-relaxed text-center text-[#0E1629]">
               Our platform democratizes access to quality education counselling, making it easier 
               for students to connect with verified professionals who can guide them through 
               college admissions, course selections, and career planning.
@@ -95,7 +80,7 @@ export default function RevampAbout() {
       </section>
 
       {/* What we do */}
-      <section className="w-full mx-auto bg-[#C6DDF040] pt-10 pb-20 px-[60px] flex flex-col items-center">
+      <section className="w-full mx-auto bg-[#C6DDF040] pt-10 pb-12 md:pb-20 px-4 md:px-[60px] flex flex-col items-center">
         <div className="w-full max-w-[1260px] flex flex-col items-center gap-8">
           <div className="self-start box-border flex items-center w-[149px] h-[29px] gap-2 bg-white border border-gray-100 rounded-[6px] px-3 py-1 shadow-sm">
             <div className="w-4 h-4 bg-[#0E1629] shrink-0" />
@@ -104,13 +89,13 @@ export default function RevampAbout() {
               </span>
           </div>
 
-          <div className="flex flex-row justify-center w-full gap-10">
+          <div className="flex flex-col md:flex-row justify-center w-full gap-4 md:gap-10">
             
-            <div className="w-[580px] h-[450px] bg-white rounded-3xl p-6 shadow-sm flex flex-col gap-6">
-              <h3 className="font-poppins font-semibold text-[28px] leading-[100%] text-[#2F43F2]">
+            <div className="w-full md:w-[580px] md:h-[450px] bg-white rounded-3xl p-5 md:p-6 shadow-sm flex flex-col gap-4 md:gap-6">
+              <h3 className="font-poppins font-semibold text-[22px] md:text-[28px] leading-[100%] text-[#2F43F2]">
                 For Students
               </h3>
-              <ul className="flex flex-col gap-4 list-disc pl-5">
+              <ul className="flex flex-col gap-3 md:gap-4 list-disc pl-5">
                 {[
                   "Explore comprehensive information about colleges, courses, and exams available across India",
                   "Browse detailed counsellor profiles with experience, specializations, and availability",
@@ -118,18 +103,18 @@ export default function RevampAbout() {
                   "Subscribe to counsellors for ongoing support throughout your admission process",
                   "Communicate directly with subscribed counsellors through our secure chat platform"
                 ].map((item, index) => (
-                  <li key={index} className="font-poppins font-medium text-[18px] leading-[150%] text-[#6B7280]">
+                  <li key={index} className="font-poppins font-medium text-[15px] md:text-[18px] leading-[150%] text-[#6B7280]">
                     {item}
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="w-[580px] h-[450px] bg-white rounded-3xl p-6 shadow-sm flex flex-col gap-6">
-              <h3 className="font-poppins font-semibold text-[28px] leading-[100%] text-[#2F43F2]">
+            <div className="w-full md:w-[580px] md:h-[450px] bg-white rounded-3xl p-5 md:p-6 shadow-sm flex flex-col gap-4 md:gap-6">
+              <h3 className="font-poppins font-semibold text-[22px] md:text-[28px] leading-[100%] text-[#2F43F2]">
                 For Counsellors
               </h3>
-              <ul className="flex flex-col gap-4 list-disc pl-5">
+              <ul className="flex flex-col gap-3 md:gap-4 list-disc pl-5">
                 {[
                   "Create comprehensive profiles showcasing expertise and experience",
                   "Manage availability and appointment scheduling efficiently",
@@ -137,7 +122,7 @@ export default function RevampAbout() {
                   "Offer subscription-based ongoing support services",
                   "Build lasting relationships with students throughout their academic journey"
                 ].map((item, index) => (
-                  <li key={index} className="font-poppins font-medium text-[18px] leading-[150%] text-[#6B7280]">
+                  <li key={index} className="font-poppins font-medium text-[15px] md:text-[18px] leading-[150%] text-[#6B7280]">
                     {item}
                   </li>
                 ))}
@@ -210,7 +195,7 @@ export default function RevampAbout() {
       
       {/* Features */}
       <section className="w-full bg-[#C6DDF040] pb-20">
-        <div className="w-full max-w-[1440px] mx-auto px-[60px] py-16">
+        <div className="w-full max-w-[1440px] mx-auto px-4 md:px-[60px] py-10 md:py-16">
           <div className="w-full max-w-[1260px] mx-auto flex flex-col md:flex-row justify-between items-start gap-8">
             <div className="box-border flex items-center w-[123px] h-[29px] gap-2 bg-white border border-gray-100 rounded-[6px] px-3 py-1 shadow-sm shrink-0">
               <div className="w-4 h-4 bg-[#0E1629] shrink-0" />
@@ -219,7 +204,7 @@ export default function RevampAbout() {
               </span>
             </div>
 
-            <h2 className="max-w-[682px] font-poppins font-medium text-[24px] leading-[150%] text-[#0E1629]">
+            <h2 className="max-w-[682px] font-poppins font-medium text-[18px] md:text-[24px] leading-[150%] text-[#0E1629]">
               Discover curated programs across mental wellness, assessments, admissions, and upskilling led by experienced professionals, built around your needs.
             </h2>
           </div>
@@ -227,47 +212,47 @@ export default function RevampAbout() {
 
         <div className="w-full flex flex-col md:flex-row">
           
-          <div className="flex-1 min-h-[380px] bg-[#C6DDF0]/25 p-10 flex flex-col justify-between">
+          <div className="flex-1 md:min-h-[380px] bg-[#C6DDF0]/25 p-6 md:p-10 flex flex-col justify-between">
             <img loading="lazy" decoding="async" 
               src="/feature1.svg" 
               alt="ProCoins" 
               className="w-[60px] h-[60px]" 
             />
-            <div className="flex flex-col gap-3 mt-10">
-              <h3 className="font-poppins font-semibold text-[28px] leading-tight text-[#0E1629]">
+            <div className="flex flex-col gap-3 mt-6 md:mt-10">
+              <h3 className="font-poppins font-semibold text-[22px] md:text-[28px] leading-tight text-[#0E1629]">
                 ProCoins System
               </h3>
-              <p className="max-w-[410px] font-poppins font-medium text-[18px] leading-[150%] text-[#6B7280]">
+              <p className="max-w-[410px] font-poppins font-medium text-[15px] md:text-[18px] leading-[150%] text-[#6B7280]">
                 Secure virtual currency (₹1 = 1 ProCoin) for seamless transactions, powered by Razorpay for safe and reliable payments.
               </p>
             </div>
           </div>
-          <div className="flex-1 min-h-[380px] bg-[#FA660F]/25 p-10 flex flex-col justify-between border-x border-white/10">
+          <div className="flex-1 md:min-h-[380px] bg-[#FA660F]/25 p-6 md:p-10 flex flex-col justify-between border-x border-white/10">
             <img loading="lazy" decoding="async" 
               src="/feature2.svg" 
               alt="Secure Platform" 
               className="w-[60px] h-[60px]" 
             />
-            <div className="flex flex-col gap-3 mt-10">
-              <h3 className="font-poppins font-semibold text-[28px] leading-tight text-[#0E1629]">
+            <div className="flex flex-col gap-3 mt-6 md:mt-10">
+              <h3 className="font-poppins font-semibold text-[22px] md:text-[28px] leading-tight text-[#0E1629]">
                 Secure Platform
               </h3>
-              <p className="max-w-[410px] font-poppins font-medium text-[18px] leading-[150%] text-[#6B7280]">
+              <p className="max-w-[410px] font-poppins font-medium text-[15px] md:text-[18px] leading-[150%] text-[#6B7280]">
                 Your privacy and data security are our top priorities. We maintain strict confidentiality and secure communication channels.
               </p>
             </div>
           </div>
-          <div className="flex-1 min-h-[380px] bg-[#2F43F2]/25 p-10 flex flex-col justify-between">
+          <div className="flex-1 md:min-h-[380px] bg-[#2F43F2]/25 p-6 md:p-10 flex flex-col justify-between">
             <img loading="lazy" decoding="async" 
               src="/feature3.svg" 
               alt="Database" 
               className="w-[60px] h-[60px]" 
             />
-            <div className="flex flex-col gap-3 mt-10">
-              <h3 className="font-poppins font-semibold text-[28px] leading-tight text-[#0E1629]">
+            <div className="flex flex-col gap-3 mt-6 md:mt-10">
+              <h3 className="font-poppins font-semibold text-[22px] md:text-[28px] leading-tight text-[#0E1629]">
                 Comprehensive Database
               </h3>
-              <p className="max-w-[410px] font-poppins font-medium text-[18px] leading-[150%] text-[#6B7280]">
+              <p className="max-w-[410px] font-poppins font-medium text-[15px] md:text-[18px] leading-[150%] text-[#6B7280]">
                 Access detailed information about colleges, courses, exams, and admission processes across India in one centralized platform.
               </p>
             </div>
@@ -276,10 +261,10 @@ export default function RevampAbout() {
         </div>
       </section>
 
-      <section className="w-full mx-auto bg-[#C6DDF040] px-[60px] py-[20px] flex flex-col items-center">
+      <section className="w-full mx-auto bg-[#C6DDF040] px-4 md:px-[60px] py-[20px] pb-12 md:pb-[20px] flex flex-col items-center">
         
-        <div className="flex flex-col items-center gap-[20px] mb-[60px]">
-          <h2 className="font-poppins font-bold text-[28px] leading-[100%] text-center text-[#0E1629]">
+        <div className="flex flex-col items-center gap-[20px] mb-8 md:mb-[60px]">
+          <h2 className="font-poppins font-bold text-[22px] md:text-[28px] leading-tight md:leading-[100%] text-center text-[#0E1629]">
             Reach our <span className="text-[#FA660F]">Help Desk</span> for support
           </h2>
           <p className="w-full max-w-[652px] font-poppins font-semibold text-[16px] leading-[24px] text-center text-[#6B7280]">
@@ -287,9 +272,9 @@ export default function RevampAbout() {
           </p>
         </div>
 
-        <div className="w-full max-w-[1320px] flex flex-row gap-[40px] justify-center items-start">
+        <div className="w-full max-w-[1320px] flex flex-col md:flex-row gap-8 md:gap-[40px] justify-center items-start">
           
-          <div className="w-[568px] flex flex-col">
+          <div className="w-full md:w-[568px] flex flex-col">
             <h3 className="font-poppins font-semibold text-[20px] leading-[100%] text-[#0E1629] mb-[24px]">
               How This Helps
             </h3>
@@ -307,7 +292,7 @@ export default function RevampAbout() {
                     Get in Touch
                   </h4>
                   <p className="font-poppins font-normal text-[14px] leading-[150%] text-[#6B7280]">
-                    Share your details and let us know what you need. We'll connect with you within 24 hours.
+                    Leave your number and tell us what you need. Our team calls you back, usually within a day.
                   </p>
                 </div>
               </div>
@@ -343,53 +328,16 @@ export default function RevampAbout() {
             </div>
           </div>
 
-          <div className="w-[712px] min-h-[359px] bg-white rounded-[16px] py-[30px] px-[20px] flex flex-col">
-            <h3 className="font-poppins font-semibold text-[20px] leading-[100%] text-[#2F43F2] mb-[24px]">
-              Contact US
-            </h3>
-
-            <form onSubmit={handleSubmit} className="w-full flex flex-col gap-[20px] items-center">
-              
-              <div className="flex flex-col gap-[8px] w-full max-w-[673px]">
-                <label className="font-poppins font-medium text-[14px] leading-[100%] text-[#0E1629]">
-                  Name
-                </label>
-                <div className="w-full h-[56px] bg-[#F3F7F6] rounded-[12px] flex items-center px-[18px] py-[14px] gap-[12px]">
-                  <img loading="lazy" decoding="async" src="/round-profile.svg" alt="Profile Icon" className="w-[20px] h-[20px]" />
-                  <input 
-                    type="text" 
-                    name="name"
-                    placeholder="Enter Your Name"
-                    className="w-full bg-transparent outline-none font-poppins font-medium text-[16px] text-[#0E1629] placeholder:text-[#6B7280]"
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-[8px] w-full max-w-[673px]">
-                <label className="font-poppins font-medium text-[14px] leading-[100%] text-[#0E1629]">
-                  Email
-                </label>
-                <div className="w-full h-[56px] bg-[#F3F7F6] rounded-[12px] flex items-center px-[18px] py-[14px] gap-[12px]">
-                  <img loading="lazy" decoding="async" src="/round-email.svg" alt="Email Icon" className="w-[20px] h-[20px]" />
-                  <input 
-                    type="email" 
-                    name="email"
-                    placeholder="Enter Your Email"
-                    className="w-full bg-transparent outline-none font-poppins font-medium text-[16px] text-[#0E1629] placeholder:text-[#6B7280]"
-                  />
-                </div>
-              </div>
-
-              <button 
-                type="submit"
-                className="w-full max-w-[673px] h-[52px] mt-[8px] bg-[#2F43F2] rounded-[12px] flex cursor-pointer items-center justify-center shadow-[-8px_8px_28px_0px_rgba(0,0,0,0.06)] hover:bg-[#2536c9] transition-colors"
-              >
-                <span className="font-manrope font-bold text-[18px] leading-[24px] text-white">
-                  Submit Now
-                </span>
-              </button>
-
-            </form>
+          {/* The old form only showed "We will contact you soon" and sent nothing.
+              QuickLeadForm saves a real lead (/api/leads/captureLead). */}
+          <div className="w-full md:w-[712px] bg-white rounded-[16px] overflow-hidden">
+            <QuickLeadForm
+              heading="Contact us"
+              subheading="Leave your number and our team will call you back, usually within a day."
+              intent="About page: contact us"
+              formId="about_contact"
+              className="border-0 shadow-none"
+            />
           </div>
 
         </div>

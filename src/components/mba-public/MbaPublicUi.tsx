@@ -1,11 +1,11 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowRight, ChevronRight, ExternalLink, ShieldCheck, UserCheck } from "lucide-react";
 import QuickLeadForm from "@/components/leads/QuickLeadForm";
-import toast from "react-hot-toast";
 import type { Cutoff, OfficialSource, Source } from "@/api/mba";
 import { useAuthStore, isMbaStudentRole } from "@/store/AuthStore";
 import { rememberIntendedCourse } from "@/lib/mbaCourse";
+import SwitchToMbaDialog from "@/components/Revamp/home/SwitchToMbaDialog";
 import { trackEvent } from "@/lib/analytics";
 import {
   CAT_PATTERN_PATH,
@@ -278,9 +278,10 @@ export function StartCatPrepButton({
   /** Where a signed-in MBA student goes on click (e.g. "/mba/mocks"); otherwise nowhere. */
   studentTo?: string;
 }) {
-  const { isAuthenticated, role, toggleLogin } = useAuthStore();
+  const { isAuthenticated, role, toggleLogin, setReturnToPath } = useAuthStore();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const [offerSwitch, setOfferSwitch] = useState(false);
   const onClick = () => {
     trackEvent("free_mock_cta_click", { location: pathname, cta: label, logged_in: isAuthenticated });
     if (isAuthenticated && isMbaStudentRole(role)) {
@@ -288,13 +289,26 @@ export function StartCatPrepButton({
       return;
     }
     if (isAuthenticated) {
-      toast("CAT prep is for accounts registered for MBA. Talk to a counsellor to switch your course.");
+      // Signed in, but not for MBA: offer to switch the course (or a call).
+      setOfferSwitch(true);
       return;
     }
     rememberIntendedCourse("MBA");
+    // An MBA login then goes straight to this tool rather than the dashboard.
+    if (studentTo) setReturnToPath(studentTo);
     toggleLogin();
   };
   return (
+    <>
+    {offerSwitch && (
+      <SwitchToMbaDialog
+        to={studentTo ?? "/mba/dashboard"}
+        tool={label}
+        heading="Free CAT prep is for MBA accounts"
+        location={pathname}
+        onClose={() => setOfferSwitch(false)}
+      />
+    )}
     <button
       type="button"
       onClick={onClick}
@@ -303,6 +317,7 @@ export function StartCatPrepButton({
       {label}
       <ArrowRight className="h-4 w-4" aria-hidden />
     </button>
+    </>
   );
 }
 
@@ -342,7 +357,7 @@ export function RelatedMbaPages({ current }: { current: string }) {
 
 export function TableWrap({ children, caption }: { children: ReactNode; caption?: string }) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+    <div className="relative overflow-x-auto rounded-2xl border border-slate-200 bg-white">
       <table className="w-full min-w-[640px] border-collapse text-left text-[13.5px]">
         {caption && <caption className="sr-only">{caption}</caption>}
         {children}

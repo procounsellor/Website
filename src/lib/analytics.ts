@@ -29,6 +29,8 @@ export interface AnalyticsEvents {
   cat_score_calculated: { score_bucket: string };
   mba_college_predictor_used: { tool: string; percentile_bucket?: string; results?: number };
   free_mock_cta_click: { location: string; cta: string; logged_in: boolean };
+  /** A logged-in non-MBA account hit an MBA-only tool: shown / switched / asked for a call. */
+  mba_switch_prompt: { location: string; tool: string; role: string; action: "shown" | "switched" | "counsellor" | "failed" };
   sign_up: { method: string; role: string };
   login: { method: string; role: string };
   mba_onboarding_complete: { current_level: string; weekly_hours: number };

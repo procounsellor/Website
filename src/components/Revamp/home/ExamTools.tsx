@@ -36,8 +36,8 @@ import {
 import { trackEvent } from "@/lib/analytics";
 import { isMbaStudentRole, useAuthStore } from "@/store/AuthStore";
 import { rememberIntendedCourse } from "@/lib/mbaCourse";
-import toast from "react-hot-toast";
 import SectionLabel from "./SectionLabel";
+import SwitchToMbaDialog from "./SwitchToMbaDialog";
 
 interface ExamToolsProps {
   exam: ExamKey;
@@ -93,6 +93,8 @@ export default function ExamTools({ exam, onExamChange }: ExamToolsProps) {
   const [score, setScore] = useState("");
   const [error, setError] = useState("");
   const [recent, setRecent] = useState<RecentTool[]>([]);
+  // A logged-in account that isn't MBA opened a CAT prep tool: offer the switch.
+  const [switchTool, setSwitchTool] = useState<{ to: string; label: string } | null>(null);
   const check = QUICK_CHECK[exam];
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -113,11 +115,11 @@ export default function ExamTools({ exam, onExamChange }: ExamToolsProps) {
 
   // Tools inside the signed-in MBA app: a signed-out visitor would be bounced
   // to "/" by the app layout, so open the login and come back to the tool.
-  const openAppTool = (e: React.MouseEvent, to: string) => {
+  const openAppTool = (e: React.MouseEvent, to: string, label: string) => {
     if (isAuthenticated && isMbaStudentRole(role)) return; // the Link navigates
     e.preventDefault();
     if (isAuthenticated) {
-      toast("This is part of CAT prep, for accounts registered for MBA. Talk to a counsellor to switch your course.");
+      setSwitchTool({ to, label });
       return;
     }
     rememberIntendedCourse("MBA");
@@ -324,7 +326,7 @@ export default function ExamTools({ exam, onExamChange }: ExamToolsProps) {
                       to={t.to}
                       onClick={(e) => {
                         openTool(t.label, t.to, "exam_tools");
-                        if (t.mbaApp) openAppTool(e, t.to);
+                        if (t.mbaApp) openAppTool(e, t.to, t.label);
                       }}
                       className="group relative h-full bg-white/90 backdrop-blur border border-[#E3E7F0] rounded-[18px] p-4 md:p-5 flex flex-col gap-2 transition-all duration-200 hover:-translate-y-1 hover:border-transparent hover:shadow-[0_18px_40px_-14px_rgba(47,67,242,0.35)] hover:ring-2 hover:ring-[#2F43F2]/60 motion-reduce:hover:translate-y-0"
                     >
@@ -370,6 +372,14 @@ export default function ExamTools({ exam, onExamChange }: ExamToolsProps) {
           </motion.div>
         </AnimatePresence>
       </div>
+      {switchTool && (
+        <SwitchToMbaDialog
+          to={switchTool.to}
+          tool={switchTool.label}
+          location="home_exam_tools"
+          onClose={() => setSwitchTool(null)}
+        />
+      )}
     </section>
   );
 }

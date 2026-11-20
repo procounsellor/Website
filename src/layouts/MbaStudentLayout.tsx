@@ -75,7 +75,7 @@ const firstNameOf = (name: string | null | undefined) => {
 };
 
 export default function MbaStudentLayout() {
-  const { role, isAuthenticated, user, userId, logout } = useAuthStore();
+  const { role, isAuthenticated, user, userId, logout, returnToPath, setReturnToPath } = useAuthStore();
   const location = useLocation();
   const allowed = isAuthenticated && isMbaStudentRole(role);
   const [isDrawerOpen, setDrawerOpen] = useState(false);
@@ -93,13 +93,20 @@ export default function MbaStudentLayout() {
     setMenuOpen(false);
   }, [location.pathname]);
 
+  // RevampLayout sent us to returnToPath (an MBA tool the student was heading
+  // for); it has done its job once the shell is up.
+  useEffect(() => {
+    if (allowed && returnToPath?.startsWith('/mba/')) setReturnToPath(null);
+  }, [allowed, returnToPath, setReturnToPath]);
+
   // After every hook, so hook order never changes between renders.
   if (!isAuthenticated) return <Navigate to="/" replace />;
   if (!allowed) return <Navigate to="/" replace />;
 
   const onOnboarding = location.pathname === '/mba/onboarding';
   if (profileQuery.isSuccess && !profile && !onOnboarding) {
-    return <Navigate to="/mba/onboarding" replace />;
+    // Keep where they were going, so onboarding can take them there after.
+    return <Navigate to="/mba/onboarding" replace state={{ from: location.pathname + location.search }} />;
   }
 
   const firstName = firstNameOf(user?.firstName);

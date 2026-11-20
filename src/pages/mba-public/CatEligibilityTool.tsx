@@ -159,6 +159,7 @@ export default function CatEligibilityTool() {
   const [result, setResult] = useState<EligibilityResponse | null>(null);
   const check = useEligibilityCheck();
   const resultRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLHeadingElement>(null);
 
   // Pre-fill from the last check on this device — after mount, so the
   // prerendered HTML is always the empty form.
@@ -167,6 +168,9 @@ export default function CatEligibilityTool() {
     const fromHome = readNumberParam("percentile", { min: 0, max: 100 });
     if (fromHome !== null) {
       setDraft({ ...EMPTY_DRAFT, overall: fromHome });
+      // They came to check a number: skip the introduction and show the form,
+      // with their percentile filled in, so the next step is on screen.
+      requestAnimationFrame(() => formRef.current?.scrollIntoView?.({ behavior: "smooth", block: "start" }));
       return;
     }
     const last = loadLastEligibilityInput();
@@ -235,7 +239,7 @@ export default function CatEligibilityTool() {
 
         <Container className="mt-8 space-y-12">
           <Card>
-            <h2 className="font-[Poppins] text-[18px] font-semibold">Check your percentile</h2>
+            <h2 ref={formRef} className="scroll-mt-28 font-[Poppins] text-[18px] font-semibold">Check your percentile</h2>
             <div className="mt-4">
               <EligibilityForm
                 draft={draft}

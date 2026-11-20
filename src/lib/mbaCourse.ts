@@ -37,3 +37,17 @@ export function forgetIntendedCourse(): void {
     /* storage unavailable */
   }
 }
+
+/**
+ * Where to go after MBA onboarding: the MBA page the student was heading for
+ * (MbaStudentLayout passes it as location state "from"), else the dashboard.
+ */
+export function onboardingNext(state: unknown): string {
+  const from = (state as { from?: unknown } | null)?.from;
+  return typeof from === "string" && from.startsWith("/mba/") && !from.startsWith("/mba/onboarding")
+    ? from
+    : "/mba/dashboard";
+}
+
+/** Logged-in roles that are students on the main site and can switch their course to MBA themselves. */
+export const canSwitchToMba = (role: string | null | undefined): boolean => role === "student" || role === "user";

@@ -1,14 +1,16 @@
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import ProfileForm from '@/components/mba/ProfileForm';
 import { useMbaShell } from '@/lib/mbaShellContext';
 import { trackEvent } from '@/lib/analytics';
+import { onboardingNext } from '@/lib/mbaCourse';
 
 /** Shown when GET /mba/me/profile is 404 — the student has not onboarded. */
 export default function MbaOnboarding() {
   const { profile, firstName } = useMbaShell();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  if (profile) return <Navigate to="/mba/dashboard" replace />;
+  if (profile) return <Navigate to={onboardingNext(location.state)} replace />;
 
   return (
     <div className="mx-auto max-w-[720px] px-4 py-8 md:py-12">
@@ -30,7 +32,7 @@ export default function MbaOnboarding() {
           submitLabel="Start preparing"
           onSaved={(saved) => {
             trackEvent('mba_onboarding_complete', { current_level: saved.currentLevel, weekly_hours: saved.weeklyStudyHours });
-            navigate('/mba/dashboard', { replace: true });
+            navigate(onboardingNext(location.state), { replace: true });
           }}
         />
       </div>
