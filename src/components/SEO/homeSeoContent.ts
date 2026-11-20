@@ -1,4 +1,5 @@
 import type { SeoFaqItem, SeoSection } from "./SeoArticle";
+import { examFaqs } from "@/data/homeExams";
 
 /**
  * The home page's long-form SEO section and FAQ, kept apart from the rest.
@@ -55,7 +56,8 @@ export const homeContent: { title: string; intro: string; sections: SeoSection[]
 };
 
 /** Shown in the home FAQ and published as its FAQPage schema — one source. */
-export const homeFaqs: SeoFaqItem[] = [
+/** Brand questions first, then exam dates and myth-busters (from homeExams, so they stay in sync with the daily cards). */
+const brandFaqs: SeoFaqItem[] = [
   {
     question: "What does ProCounsel help with?",
     answer:
@@ -97,3 +99,5 @@ export const homeFaqs: SeoFaqItem[] = [
       "Browse counsellors on ProCounsel and book a session, or leave your number on any counselling or predictor page and a counsellor will call you back.",
   },
 ];
+
+export const homeFaqs: SeoFaqItem[] = [...brandFaqs, ...examFaqs()];

@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { SITE_ORIGIN, absoluteUrl } from "../src/lib/siteUrl.mjs";
+import { MBA_PROFILE_FOR_COLLEGE } from "../src/lib/collegeProfileAlias.mjs";
 
 export const SITE_URL = process.env.SITE_URL || SITE_ORIGIN;
 
@@ -398,7 +399,10 @@ export async function getDynamicRoutes() {
   return [
     ...blogSlugs.map((slug) => `/admissions/blogs/slug/${slug}`),
     ...counsellors.map((id) => `/counsellor-details/${id}`),
-    ...colleges.map((id) => `/college-details/${id}`),
+    // Colleges with a verified MBA profile canonicalise there — list that URL only.
+    ...colleges
+      .filter((id) => !MBA_PROFILE_FOR_COLLEGE[id])
+      .map((id) => `/college-details/${id}`),
     ...deadlines.map((id) => `/admissions/deadlines/${id}`),
     ...proBuddyIds.map((id) => `/pro-buddies/profile/${id}`),
   ];

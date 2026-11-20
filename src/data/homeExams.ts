@@ -21,18 +21,45 @@ export const NEXT_EXAM: Record<ExamKey, { name: string; date: string | null }> =
   jee: { name: "JEE Main 2027", date: null },
 };
 
+/** When EXAM_DATES was last checked against the official exam websites. */
+export const EXAM_DATES_CHECKED = { iso: "2026-11-14", label: "14 Nov 2026" };
+
+export interface ExamDate {
+  name: string;
+  stream: ExamKey;
+  /** Short form for the hero card ("Sun, 29 Nov"). */
+  short: string;
+  /** Full form for the dates table ("Sunday, 29 November 2026"). */
+  long: string;
+  /** ISO dates. start null = a testing window or not announced yet. */
+  start: string | null;
+  end: string | null;
+  body: string;
+  site: string;
+  to: string;
+}
+
 /**
- * Upcoming MBA entrance tests, from the ProCounsel Admissions 2026–27 brochure
- * (checked against official sources on 14 Nov 2026). `date` (ISO) drives
- * hiding past entries; null = a window or not yet announced.
+ * Entrance exam dates, from the ProCounsel Admissions 2026–27 brochure and the
+ * official exam websites (checked on EXAM_DATES_CHECKED). Drives the hero's
+ * "Upcoming exams" card, the home dates table and its Event structured data,
+ * so a date change is a one-line edit here. Never guess a date: leave start
+ * null and say "awaited" until it is official.
  */
-export const UPCOMING_MBA_EXAMS: { name: string; when: string; date: string | null; to: string }[] = [
-  { name: "CAT 2026", when: "Sun, 29 Nov", date: "2026-11-29", to: "/mba-entrance-exams/cat" },
-  { name: "NMAT", when: "Window till Dec", date: "2026-12-31", to: "/mba-entrance-exams/nmat" },
-  { name: "SNAP 2026", when: "13, 19 & 26 Dec", date: "2026-12-26", to: "/mba-entrance-exams/snap" },
-  { name: "XAT 2027", when: "Sun, 3 Jan", date: "2027-01-03", to: "/mba-entrance-exams/xat" },
-  { name: "CMAT 2027", when: "Dates awaited", date: null, to: "/mba-entrance-exams/cmat" },
+export const EXAM_DATES: ExamDate[] = [
+  { name: "CAT 2026", stream: "mba", short: "Sun, 29 Nov", long: "Sunday, 29 November 2026", start: "2026-11-29", end: "2026-11-29", body: "IIMs (conducted by IIM Indore)", site: "https://iimcat.ac.in", to: "/mba-entrance-exams/cat" },
+  { name: "NMAT", stream: "mba", short: "Window till Dec", long: "Testing window open till December 2026", start: null, end: "2026-12-31", body: "GMAC", site: "https://www.mba.com/exams/nmat", to: "/mba-entrance-exams/nmat" },
+  { name: "SNAP 2026", stream: "mba", short: "13, 19 & 26 Dec", long: "13, 19 and 26 December 2026", start: "2026-12-13", end: "2026-12-26", body: "Symbiosis International University", site: "https://www.snaptest.org/", to: "/mba-entrance-exams/snap" },
+  { name: "XAT 2027", stream: "mba", short: "Sun, 3 Jan", long: "Sunday, 3 January 2027", start: "2027-01-03", end: "2027-01-03", body: "XLRI Jamshedpur", site: "https://xatonline.in/", to: "/mba-entrance-exams/xat" },
+  { name: "CMAT 2027", stream: "mba", short: "Dates awaited", long: "Not announced yet", start: null, end: null, body: "National Testing Agency (NTA)", site: "https://cmat.nta.nic.in/", to: "/mba-entrance-exams/cmat" },
+  { name: "JEE Main 2027", stream: "jee", short: "Dates awaited", long: "Not announced yet", start: null, end: null, body: "National Testing Agency (NTA)", site: "https://jeemain.nta.nic.in/", to: "/jee-rank-predictor" },
+  { name: "NEET UG 2027", stream: "neet", short: "Dates awaited", long: "Not announced yet", start: null, end: null, body: "National Testing Agency (NTA)", site: "https://neet.nta.nic.in/", to: "/neet-counselling" },
 ];
+
+/** Upcoming MBA entrance tests for the hero card. `date` (ISO) drives hiding past entries. */
+export const UPCOMING_MBA_EXAMS: { name: string; when: string; date: string | null; to: string }[] = EXAM_DATES
+  .filter((e) => e.stream === "mba")
+  .map((e) => ({ name: e.name, when: e.short, date: e.end ?? e.start, to: e.to }));
 
 export interface ExamTool {
   label: string;
@@ -142,21 +169,40 @@ export const DAILY_QUESTIONS: Record<ExamKey, DailyQuestion[]> = {
   ],
 };
 
-export const MYTHS: Record<ExamKey, { myth: string; fact: string; to?: string; link?: string }[]> = {
+/** Myth-busters for the daily cards. `question` is the same point asked the way students search it (home FAQ). */
+export const MYTHS: Record<ExamKey, { myth: string; question: string; lead: string; fact: string; to?: string; link?: string }[]> = {
   mba: [
-    { myth: "Only engineers crack CAT.", fact: "CAT is open to any graduate with at least 50% marks or equivalent CGPA (45% for SC, ST and PwD), and final-year students can apply. Students from every stream make it to top B-schools." },
-    { myth: "CAT is the only way into a good MBA.", fact: "XAT, SNAP, NMAT, CMAT and others are accepted by many well-known B-schools.", to: "/mba-without-cat", link: "MBA without CAT" },
-    { myth: "You need 99 percentile for a good MBA.", fact: "Cut-offs vary a lot. Many good B-schools shortlist well below 99 — check each one's published numbers.", to: "/mba-colleges/iim-cutoffs", link: "See IIM cut-offs" },
+    { myth: "Only engineers crack CAT.", question: "Can non-engineers crack CAT?", lead: "Yes.", fact: "CAT is open to any graduate with at least 50% marks or equivalent CGPA (45% for SC, ST and PwD), and final-year students can apply. Students from every stream make it to top B-schools." },
+    { myth: "CAT is the only way into a good MBA.", question: "Is CAT the only way to get into a good MBA college?", lead: "No.", fact: "XAT, SNAP, NMAT, CMAT and others are accepted by many well-known B-schools.", to: "/mba-without-cat", link: "MBA without CAT" },
+    { myth: "You need 99 percentile for a good MBA.", question: "Do you need 99 percentile in CAT for a good MBA college?", lead: "No.", fact: "Cut-offs vary a lot. Many good B-schools shortlist well below 99 — check each one's published numbers.", to: "/mba-colleges/iim-cutoffs", link: "See IIM cut-offs" },
   ],
   neet: [
-    { myth: "You have to choose between MCC and your state counselling.", fact: "You can register for both. MCC fills the 15% All-India Quota and deemed seats; your state fills its state-quota seats.", to: "/neet-counselling", link: "State counselling guide" },
-    { myth: "If you miss Round 1, it's over.", fact: "Later rounds and the stray vacancy round still fill seats. Plan every round in advance.", to: "/neet-cutoffs", link: "Round-wise cut-offs" },
+    { myth: "You have to choose between MCC and your state counselling.", question: "Can I register for both MCC and state NEET counselling?", lead: "Yes.", fact: "You can register for both. MCC fills the 15% All-India Quota and deemed seats; your state fills its state-quota seats.", to: "/neet-counselling", link: "State counselling guide" },
+    { myth: "If you miss Round 1, it's over.", question: "Can I still get a NEET seat if I miss Round 1 of counselling?", lead: "Yes.", fact: "Later rounds and the stray vacancy round still fill seats. Plan every round in advance.", to: "/neet-cutoffs", link: "Round-wise cut-offs" },
   ],
   jee: [
-    { myth: "JEE Main is only for NITs.", fact: "JEE Main also decides who can write JEE Advanced (for IITs), and is used for IIITs and GFTIs through JoSAA." },
-    { myth: "If you write JEE, MHT-CET doesn't matter.", fact: "Most Maharashtra state seats are filled through MHT-CET, so many students write both.", to: "/mhtcet-college-predictor", link: "MHT-CET predictor" },
+    { myth: "JEE Main is only for NITs.", question: "Is JEE Main only for NITs?", lead: "No.", fact: "JEE Main also decides who can write JEE Advanced (for IITs), and is used for IIITs and GFTIs through JoSAA." },
+    { myth: "If you write JEE, MHT-CET doesn't matter.", question: "Should I write MHT-CET if I am already writing JEE Main?", lead: "Yes, if you want a Maharashtra state seat.", fact: "Most Maharashtra state seats are filled through MHT-CET, so many students write both.", to: "/mhtcet-college-predictor", link: "MHT-CET predictor" },
   ],
 };
+
+/** Exam-date and myth-buster questions for the home FAQ (visible list + FAQPage schema). */
+export function examFaqs(): { question: string; answer: string }[] {
+  const mba = EXAM_DATES.filter((e) => e.stream === "mba");
+  const cat = mba[0];
+  const host = cat.site.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  return [
+    {
+      question: `When is ${cat.name}?`,
+      answer: `${cat.name} is on ${cat.long}. It is run by the ${cat.body}; admit cards and slot timings are on ${host}.`,
+    },
+    {
+      question: "What are the MBA entrance exam dates for 2026–27?",
+      answer: `${mba.map((e) => `${e.name}: ${e.long}`).join(". ")}. Dates were last checked on ${EXAM_DATES_CHECKED.label} against the official websites; always confirm on the exam's own site.`,
+    },
+    ...EXAM_KEYS.flatMap((k) => MYTHS[k].map((m) => ({ question: m.question, answer: `${m.lead} ${m.fact}` }))),
+  ];
+}
 
 /** Whole days from today (local) to an ISO date. Negative once the date has passed. */
 export function daysUntil(iso: string, now: Date = new Date()): number {

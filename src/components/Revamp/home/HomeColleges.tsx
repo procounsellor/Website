@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, MapPin } from "lucide-react";
 import { COLLEGES_SNAPSHOT } from "@/data/contentSnapshot";
 import { trackEvent } from "@/lib/analytics";
+import { mbaProfilePathFor } from "@/lib/collegeProfileAlias.mjs";
 import SectionLabel from "./SectionLabel";
 
 type Stream = "all" | "mba" | "engineering";
@@ -85,7 +86,7 @@ export default function HomeColleges() {
           {shown.map((c) => (
             <li key={c.id} className="w-[78%] shrink-0 md:w-auto">
               <Link
-                to={`/college-details/${c.id}`}
+                to={mbaProfilePathFor(c.id) ?? `/college-details/${c.id}`}
                 onClick={() => trackEvent("home_tool_click", { exam: c.stream, tool: c.id, location: "home_colleges" })}
                 className="group flex h-full flex-col rounded-[18px] border border-[#E3E7F0] bg-white p-4 md:p-5 transition-all hover:-translate-y-1 hover:shadow-[0_18px_40px_-16px_rgba(14,22,41,0.25)] motion-reduce:hover:translate-y-0"
               >

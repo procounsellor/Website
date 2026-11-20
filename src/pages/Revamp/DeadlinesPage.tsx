@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ADMISSION_YEAR } from "@/lib/admissionYear";
 import { type EventItem } from "@/api/deadlines";
 import { useDeadlinesList } from "@/hooks/useDeadlines";
 import CrawlableIndex from "@/components/SEO/CrawlableIndex";
@@ -93,10 +94,10 @@ export default function DeadlinesPage() {
   return (
     <>
       <PageSEO
-        title="Admission Deadlines 2025 – College Application Important Dates"
+        title={`Admission Deadlines ${ADMISSION_YEAR} – College Application Important Dates`}
         description="Track all important college admission deadlines, exam dates, and application cutoffs in one place. Stay on top of JEE, NEET, study abroad, and university application timelines."
         canonical="/admissions/deadlines"
-        keywords="college admission deadlines 2025, JEE application dates, NEET deadlines, study abroad deadlines, university application timeline India"
+        keywords={`college admission deadlines ${ADMISSION_YEAR}, JEE application dates, NEET deadlines, study abroad deadlines, university application timeline India`}
       />
     <div className="min-h-screen bg-[#F3F7FF] font-[Poppins]">
       {/* Top breadcrumb */}
