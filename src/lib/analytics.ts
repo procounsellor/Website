@@ -20,7 +20,12 @@ export type EventParams = Record<string, Param>;
 /** Every event the app sends, with its params. Add new ones here so names stay consistent. */
 export interface AnalyticsEvents {
   generate_lead: { form_id: string; page_path: string; course?: string; exam?: string; lead_source?: string };
-  share: { method: "whatsapp" | "copy_link"; content_type: string; item_id: string };
+  share: { method: "whatsapp" | "copy_link" | "whatsapp_parents" | "story_image"; content_type: string; item_id: string };
+  home_exam_selected: { exam: string; location: string };
+  home_tool_click: { exam: string; tool: string; location: string };
+  home_quick_check: { exam: string; has_score: boolean };
+  home_daily_question: { exam: string; correct: boolean };
+  home_readiness_check: { band: string };
   cat_score_calculated: { score_bucket: string };
   mba_college_predictor_used: { tool: string; percentile_bucket?: string; results?: number };
   free_mock_cta_click: { location: string; cta: string; logged_in: boolean };
@@ -54,7 +59,13 @@ type GtagWindow = Window & {
   __pcGa4Configured?: boolean;
 };
 
-const GA4_ID = ((import.meta.env.VITE_GA4_MEASUREMENT_ID as string | undefined) ?? "").trim();
+// VITE_GA4_MEASUREMENT_ID wins. Otherwise use the Firebase project's measurement
+// id: Firebase Analytics is a GA4 property, and the site already ships that id
+// (but never initialised Firebase Analytics), so events had nowhere to land.
+const firebaseGa4 = ((import.meta.env.VITE_FIREBASE_MEASUREMENT_ID as string | undefined) ?? "").trim();
+const GA4_ID =
+  ((import.meta.env.VITE_GA4_MEASUREMENT_ID as string | undefined) ?? "").trim() ||
+  (/^G-[A-Z0-9]+$/.test(firebaseGa4) ? firebaseGa4 : "");
 
 function analyticsWindow(): GtagWindow | null {
   if (typeof window === "undefined" || typeof navigator === "undefined") return null;

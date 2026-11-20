@@ -1,17 +1,21 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import CounsellorSection from "@/components/Revamp/admissions/counsellor/CounsellorSection";
 import PageSEO from "@/components/SEO/PageSEO";
 import SeoArticle from "@/components/SEO/SeoArticle";
 import { homeContent } from "@/components/SEO/homeSeoContent";
+import ExamSeasonStrip from "@/components/Revamp/home/ExamSeasonStrip";
+import ExamTools from "@/components/Revamp/home/ExamTools";
+import HomeHero from "@/components/Revamp/home/HomeHero";
+import HomeColleges from "@/components/Revamp/home/HomeColleges";
+import { loadSavedExam, saveExam, type ExamKey } from "@/data/homeExams";
 
 // Below-the-fold sections: lazy-loaded so they don't bloat the initial JS that
 // must hydrate before the above-the-fold counsellor section (the LCP) renders.
 // react-snap still prerenders their HTML for SEO (chunks resolve during snapshot).
-const Timeline = lazy(() => import("@/components/Revamp/admissions/Timeline"));
+const DailyBoost = lazy(() => import("@/components/Revamp/home/DailyBoost"));
+const ConnectRow = lazy(() => import("@/components/Revamp/home/ConnectRow"));
 const RevampBannerSection = lazy(() => import("@/components/Revamp/banners/RevampBannerSection"));
-const College = lazy(() => import("@/components/Revamp/admissions/College"));
 const Deadlines = lazy(() => import("@/components/Revamp/admissions/Deadlines"));
 const Stories = lazy(() => import("@/components/Revamp/probuddies/Stories"));
 const Blogs = lazy(() => import("@/components/Revamp/admissions/Blogs"));
@@ -20,19 +24,6 @@ const Faq = lazy(() => import("@/components/Revamp/admissions/Faq"));
 export default function Admissions() {
   const navigate = useNavigate();
   const location = useLocation();
-  const isReactSnap = typeof navigator !== 'undefined' && navigator.userAgent === 'ReactSnap';
-  const hasSeenSplash =
-    isReactSnap ||
-    (typeof window !== 'undefined' && window.sessionStorage.getItem('admissions-splash-seen') === 'true');
-
-  const navigateWithTabTransition = (path: string) => {
-    if (location.pathname === path) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-
-    navigate(path);
-  };
   // Each card needs its own headline. All three used to share the hard-coded
   // line "It was a very good experience", which published the same sentence six
   // times on the home page — half of the duplicate content the AdSense review
@@ -65,48 +56,47 @@ export default function Admissions() {
     },
   ];
 
-  const [splashPhase, setSplashPhase] = useState(hasSeenSplash ? 3 : 0);
-  const animationPhase = 4;
-
+  // The exam the student cares about. MBA first by default (CAT season); a
+  // ?exam= link (header MBA/NEET/JEE) wins, then the last choice on this device.
+  // Read after mount so the prerendered HTML is always the MBA view.
+  const [exam, setExam] = useState<ExamKey>("mba");
   useEffect(() => {
-    if (hasSeenSplash) return; // Skip animation if already seen this session or while snapping.
+    const fromUrl = new URLSearchParams(location.search).get("exam");
+    if (fromUrl === "mba" || fromUrl === "neet" || fromUrl === "jee") {
+      setExam(fromUrl);
+      saveExam(fromUrl);
+    } else {
+      const saved = loadSavedExam();
+      if (saved) setExam(saved);
+    }
+  }, [location.search]);
+  const changeExam = (next: ExamKey) => {
+    setExam(next);
+    saveExam(next);
+    // Keep the URL in step so the header's MBA/NEET/JEE highlight matches and a
+    // reload shows the same exam. No hash, so the page doesn't jump.
+    navigate({ search: `?exam=${next}` }, { replace: true, preventScrollReset: true });
+  };
 
-    const timers = [
-      setTimeout(() => setSplashPhase(1), 450),
-      setTimeout(() => setSplashPhase(2), 850),
-      setTimeout(() => setSplashPhase(3), 1650),
-      setTimeout(() => {
-        sessionStorage.setItem('admissions-splash-seen', 'true');
-      }, 2600),
-    ];
-
-    return () => timers.forEach(clearTimeout);
-  }, [hasSeenSplash]);
-
-  const cardAnimate = splashPhase >= 3 && animationPhase >= 4 ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 10, scale: 0.98 };
-  const cardTransition = { duration: 0.55, ease: "easeOut" as const };
-
-  // The MBA card shows the admission journey as a live list: the steps keep
-  // rotating so the card demonstrates the service instead of just naming it.
-  // Paused for react-snap and reduced-motion.
-  const mbaSteps = [
-    { college: "Your CAT percentile", branch: "See where you stand" },
-    { college: "College shortlist", branch: "IIMs & top B-schools" },
-    { college: "WAT · PI prep", branch: "With an MBA counsellor" },
-  ];
-  const [choiceOrder, setChoiceOrder] = useState([0, 1, 2]);
-
+  // In-page links (#exam-tools, #daily-boost): react-router doesn't scroll to a
+  // hash, and the target may be lazy, so retry briefly until it exists.
+  // location.key is a dependency so tapping the same link again (same URL)
+  // still scrolls back to the section.
   useEffect(() => {
-    if (isReactSnap) return;
-    if (typeof window === 'undefined') return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const id = location.hash.replace("#", "");
+    if (!id) return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    let tries = 0;
+    const timer = window.setInterval(() => {
+      const el = document.getElementById(id);
+      if (el || ++tries > 20) {
+        window.clearInterval(timer);
+        el?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+      }
+    }, 100);
+    return () => window.clearInterval(timer);
+  }, [location.key, location.hash, location.search]);
 
-    const interval = setInterval(() => {
-      setChoiceOrder((prev) => [prev[2], prev[0], prev[1]]);
-    }, 2400);
-
-    return () => clearInterval(interval);
-  }, [isReactSnap]);
 
   // SiteNavigationElement tells Google which pages should appear as sitelinks
   const siteNavigationSchema = {
@@ -289,386 +279,23 @@ export default function Admissions() {
         jsonLd={[siteNavigationSchema, websiteSchema, organizationSchema, faqSchema]}
       />
     <div className="min-h-screen">
-      {/* Visually-hidden H1 for SEO (one H1 per page). No visible mobile hero —
-          the mobile LCP is the first counsellor card image, which is now baked
-          into the prerendered HTML (see scripts/prerender-public-pages.mjs), so
-          it paints fast without waiting for the client-side API. */}
-      <h1 className="sr-only">College Admission Counselling &amp; Career Guidance for Students in India — ProCounsel</h1>
+      <ExamSeasonStrip exam={exam} />
 
-      <section className="hidden md:flex relative w-full h-[567px] flex items-center justify-center overflow-hidden">
-        {/* Splash Screen */}
-        <AnimatePresence>
-          {splashPhase < 3 && (
-            <motion.div
-              initial={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
-              className="absolute inset-0 z-20 bg-white flex items-center justify-center"
-            >
-              {/* Both logo and text are stacked in center, then separate */}
-              <div className="relative flex items-center justify-center">
-                {/* Logo - starts centered, then shifts left */}
-                <motion.img
-                  src="/logo.svg"
-                  alt="ProCounsel Logo"
-                  className="w-[118px] h-[120px] relative z-10"
-                  initial={{ scale: 0, opacity: 0, x: 0 }}
-                  animate={
-                    splashPhase === 0
-                      ? { scale: 1.2, opacity: 1, x: 0 }
-                      : splashPhase === 1
-                        ? { scale: 0.75, opacity: 1, x: 0 }
-                        : { scale: 0.75, opacity: 1, x: -175 }
-                  }
-                  transition={
-                    splashPhase === 0
-                      ? { type: "spring", stiffness: 200, damping: 20, delay: 0.2 }
-                      : splashPhase === 1
-                        ? { duration: 0.5, ease: "easeInOut" }
-                        : { duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }
-                  }
-                />
-
-                {/* ProCounsel Text - hidden behind logo, then shifts right */}
-                <motion.span
-                  className="absolute text-[60px] font-semibold font-['Poppins'] leading-none whitespace-nowrap"
-                  initial={{ opacity: 0, x: 0 }}
-                  animate={
-                    splashPhase >= 2
-                      ? { opacity: 1, x: 80 }
-                      : { opacity: 0, x: 0 }
-                  }
-                  transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
-                  style={{
-                    backgroundImage: "linear-gradient(to right, #FA660F, #2F43F2)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                  }}
-                >
-                  ProCounsel
-                </motion.span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Hero Section */}
-        <div
-          className="text-center xl-px-4 w-full h-[567px] bg-[#0e1629] flex items-center justify-center"
-        >
-          <div className="w-7xl h-full relative">
-            {/* Header Text */}
-            <div className="absolute left-1/2 -translate-x-1/2 top-[36px] max-w-[818px] w-full px-4">
-              <motion.h2
-                initial={{ opacity: 0, y: 20 }}
-                animate={splashPhase >= 3 && animationPhase >= 1 ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-                transition={{ duration: 0.7, ease: "easeOut" }}
-                className="text-white text-[40px] font-extrabold font-['Poppins'] mb-4 leading-tight"
-              >
-                Your personal Admission Expert
-              </motion.h2>
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={splashPhase >= 3 && animationPhase >= 2 ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-                className="text-[#f5f5f5] text-[16px] font-medium font-['Poppins'] max-w-[753px] mx-auto"
-              >
-                Find trusted guidance, personalised course matches, and clear admissions support to help you choose the right path.
-              </motion.p>
-            </div>
-
-            {/* CTA Button */}
-            <motion.button
-              onClick={() => navigateWithTabTransition("/counsellor-listing")}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={splashPhase >= 3 && animationPhase >= 3 ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              className="absolute z-30 left-1/2 hover:cursor-pointer -translate-x-1/2 top-[180px] bg-[#2f43f2] hover:bg-[#2437d1] transition-colors text-white px-8 py-3 rounded-[48px] text-[16px] font-medium font-['Poppins']"
-            >
-              Book Admission Counselling
-            </motion.button>
-
-            {/* Grid Cards */}
-            <div className="absolute inset-0">
-              {/* Admissions Card */}
-              <motion.div
-                onClick={() => navigateWithTabTransition('/admissions')}
-                initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                animate={cardAnimate}
-                transition={{ ...cardTransition, delay: 0 }}
-                className="absolute left-16 top-42.75 w-53 h-53.75 bg-[#ffc8af] rounded-[28px] overflow-hidden cursor-pointer"
-              >
-                <img
-                  loading="lazy"
-                  decoding="async"
-                  src="/admissions/admission.svg"
-                  alt="Student"
-                  fetchPriority="high"
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "linear-gradient(179.04deg, rgba(14, 22, 41, 0) 24.07%, rgba(14, 22, 41, 0.7) 69.84%)",
-                  }}
-                />
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center text-white w-[195px]">
-                  <p className="text-[24px] font-semibold font-['Poppins'] mb-2">Admissions</p>
-                  <p className="text-[14px] font-['Poppins']">
-                    <span className="font-semibold">10,000+</span> Students Guided | <span className="font-semibold">95%</span> Success Rate
-                  </p>
-                </div>
-              </motion.div>
-
-              {/* Study Abroad Card */}
-              <motion.div
-                onClick={() => navigateWithTabTransition('/study-abroad')}
-                initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                animate={cardAnimate}
-                transition={{ ...cardTransition, delay: 0.08 }}
-                className="absolute left-16 top-102.5 w-53 h-35.25 bg-[#343C6A] rounded-[28px] cursor-pointer"
-              >
-                <div className="flex h-full flex-col items-center justify-center px-4 py-4 text-center">
-                  <p className="text-[#FFFFFF] text-[20px] leading-tight font-semibold font-['Poppins'] mb-1.5">Study Abroad</p>
-                  <p className="max-w-[180px] text-[#FFFFFF] text-[12px] leading-[1.35] font-['Poppins']">
-                    University selection, applications and visa guidance
-                  </p>
-                </div>
-              </motion.div>
-
-              {/* Colleges Card */}
-              <motion.div
-                onClick={() => navigateWithTabTransition('/colleges')}
-                initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                animate={cardAnimate}
-                transition={{ ...cardTransition, delay: 0.14 }}
-                className="absolute left-74.5 top-66 w-53 h-71.75 rounded-[28px] overflow-hidden bg-gray-700 cursor-pointer"
-              >
-                <img
-                  loading="lazy"
-                  decoding="async"
-                  src="/collegeFallback.webp"
-                  alt="Colleges"
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "linear-gradient(179.04deg, rgba(14, 22, 41, 0) 24.07%, rgba(14, 22, 41, 0.7) 69.84%)",
-                  }}
-                />
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center text-white w-[195px]">
-                  <p className="text-[24px] font-semibold font-['Poppins'] mb-2">Colleges</p>
-                  <p className="mx-auto max-w-[180px] text-[13px] leading-[1.35] font-['Poppins']">
-                    Explore verified profiles and find the right college for you
-                  </p>
-                </div>
-              </motion.div>
-
-              {/* MBA Card — CAT prep, college shortlist and admission counselling */}
-              <motion.div
-                onClick={() => navigate('/mba-admission-2027')}
-                initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                animate={cardAnimate}
-                transition={{ ...cardTransition, delay: 0.22 }}
-                whileHover={{ y: -6 }}
-                className="absolute left-133.5 top-71.75 w-53 h-66 rounded-[28px] overflow-hidden cursor-pointer shadow-[0_18px_40px_-18px_rgba(250,102,15,0.65)]"
-                style={{
-                  background:
-                    "linear-gradient(150deg, #FF9147 0%, #F1490D 34%, #7B1FA2 78%, #3A1178 100%)",
-                }}
-              >
-                {/* Soft light so the gradient reads as depth, not a flat fill */}
-                <div
-                  aria-hidden
-                  className="absolute -top-14 -left-10 w-44 h-44 rounded-full blur-2xl"
-                  style={{ background: "radial-gradient(circle, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 70%)" }}
-                />
-
-                {/* The live preference list — the service, demonstrated */}
-                <div aria-hidden className="absolute inset-x-4 top-4 rounded-2xl border border-white/25 bg-white/12 p-2.5 backdrop-blur-[3px]">
-                  {choiceOrder.map((choiceIndex, position) => {
-                    const choice = mbaSteps[choiceIndex];
-                    const isTop = position === 0;
-                    return (
-                      <motion.div
-                        key={choice.college}
-                        layout
-                        transition={{ type: "spring", stiffness: 320, damping: 32 }}
-                        className={`flex items-center gap-2 rounded-xl px-2 py-1.5 ${position > 0 ? "mt-1.5" : ""} ${
-                          isTop ? "bg-white shadow-sm" : "bg-white/10"
-                        }`}
-                      >
-                        <span
-                          className={`flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full text-[9px] font-bold font-['Poppins'] tabular-nums ${
-                            isTop ? "bg-[#FA660F] text-white" : "bg-white/25 text-white/85"
-                          }`}
-                        >
-                          {position + 1}
-                        </span>
-                        <span className="min-w-0">
-                          <span
-                            className={`block truncate text-[11px] font-semibold font-['Poppins'] leading-tight ${
-                              isTop ? "text-[#0E1629]" : "text-white"
-                            }`}
-                          >
-                            {choice.college}
-                          </span>
-                          <span
-                            className={`block truncate text-[9px] font-['Poppins'] leading-tight ${
-                              isTop ? "text-[#FA660F]" : "text-white/60"
-                            }`}
-                          >
-                            {choice.branch}
-                          </span>
-                        </span>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "linear-gradient(179.04deg, rgba(14, 22, 41, 0) 32%, rgba(14, 22, 41, 0.82) 72%)",
-                  }}
-                />
-
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center text-white w-[195px]">
-                  <span className="inline-block mb-2 rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-semibold font-['Poppins'] uppercase tracking-[0.12em] backdrop-blur-[2px]">
-                    CAT 2026
-                  </span>
-                  <p className="text-[22px] font-semibold font-['Poppins'] mb-1 leading-tight">MBA Admissions</p>
-                  <p className="text-[12.5px] font-['Poppins'] leading-snug text-white/85">
-                    From CAT score to the right B-school
-                  </p>
-                </div>
-              </motion.div>
-
-              {/* ProBuddies Card */}
-              <motion.div
-                onClick={() => navigateWithTabTransition('/pro-buddies')}
-                initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                animate={cardAnimate}
-                transition={{ ...cardTransition, delay: 0.3 }}
-                className="absolute left-192.5 top-66 w-53 h-71.75 rounded-[28px] overflow-hidden bg-gray-700 cursor-pointer"
-              >
-                <img
-                  loading="lazy"
-                  decoding="async"
-                  src="/admissions/pro.webp"
-                  alt="ProBuddies"
-                  className="absolute inset-0 w-full h-full object-fit"
-                />
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "linear-gradient(179.04deg, rgba(14, 22, 41, 0) 24.07%, rgba(14, 22, 41, 0.7) 69.84%)",
-                  }}
-                />
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center text-white w-[195px]">
-                  <p className="text-[24px] font-semibold font-['Poppins'] mb-2">ProBuddies</p>
-                  <p className="text-[14px] font-['Poppins']">
-                    <span className="font-semibold">300+</span> Mentors | <span className="font-semibold">850+</span> Mentees Connected
-                  </p>
-                </div>
-              </motion.div>
-
-              {/* CAT College Predictor Card — held the NEET predictor until NEET
-                  counselling closed; same slot, size and layout. The NEET
-                  predictor pages and routes are unchanged. */}
-              <motion.div
-                onClick={() => navigate('/cat-college-predictor')}
-                initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                animate={cardAnimate}
-                transition={{ ...cardTransition, delay: 0.38 }}
-                className="absolute lg:right-0 xl:right-16 top-42.75 w-53 h-53.75 rounded-[28px] overflow-hidden cursor-pointer"
-                style={{
-                  background:
-                    "linear-gradient(160deg, #2F43F2 0%, #1A2380 100%)",
-                }}
-              >
-                <img
-                  loading="lazy"
-                  decoding="async"
-                  src="/ranking-1.png"
-                  alt=""
-                  className="absolute -bottom-4 -right-4 w-28 h-28 object-contain opacity-20 pointer-events-none"
-                />
-                <div className="absolute top-6 left-1/2 -translate-x-1/2 text-center text-white w-[195px]">
-                  <p className="text-[24px] font-semibold font-['Poppins'] mb-2">CAT Predictor</p>
-                  <p className="text-[14px] font-['Poppins']">
-                    Enter your CAT percentile and see which IIMs' published minimums you clear.
-                  </p>
-                </div>
-                <div className="absolute bottom-5 left-1/2 -translate-x-1/2 w-[195px] text-center text-[12px] font-['Poppins'] text-white/85">
-                  <Link
-                    to="/free-cat-mock-test"
-                    onClick={(e) => e.stopPropagation()}
-                    className="underline underline-offset-2 hover:text-white"
-                  >
-                    Free mocks
-                  </Link>
-                  {" · "}
-                  <Link
-                    to="/cat-previous-year-papers"
-                    onClick={(e) => e.stopPropagation()}
-                    className="underline underline-offset-2 hover:text-white"
-                  >
-                    Past papers
-                  </Link>
-                </div>
-              </motion.div>
-
-              {/* Bottom Right White Card */}
-              <motion.div
-                onClick={() => navigate('/admissions/deadlines')}
-                initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                animate={cardAnimate}
-                transition={{ ...cardTransition, delay: 0.46 }}
-                className="absolute lg:right-0 xl:right-16 top-102.5 w-53 h-35.25 rounded-[28px] overflow-hidden bg-gray-700 cursor-pointer"
-              >
-                <img
-                  loading="lazy"
-                  decoding="async"
-                  src="/admissions/deadline.svg"
-                  alt="Deadlines"
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "linear-gradient(179.04deg, rgba(14, 22, 41, 0) 24.07%, rgba(14, 22, 41, 0.7) 69.84%)",
-                  }}
-                />
-
-                <div className="relative z-10 flex flex-col items-center justify-center h-full px-4">
-                  <p className="text-[#FFFFFF] text-[24px] font-semibold font-['Poppins'] mb-1">
-                    Deadlines
-                  </p>
-                  <p className="text-[#FFFFFF] text-[13px] leading-[1.3] font-['Poppins'] text-center">
-                    Discover their expertise and find the right guidance for your future
-                  </p>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* The hero holds the page's one visible H1, the search, upcoming exams and
+          "explore by stream". It replaces the old desktop-only tile hero (and its
+          logo intro animation); the counsellor cards now sit further down, so their
+          first image no longer needs high fetch priority (priorityImage={false}). */}
+      <HomeHero />
       
-      <CounsellorSection />
+      <ExamTools exam={exam} onExamChange={changeExam} />
+      <HomeColleges />
+      <Suspense fallback={<div className="min-h-[560px]" />}>
+        <DailyBoost exam={exam} />
+      </Suspense>
+      <CounsellorSection priorityImage={false} />
       <Suspense fallback={<div className="min-h-[400px]" />}>
-        <div className="hidden md:block">
-          <Timeline />
-        </div>
+        <ConnectRow />
         <RevampBannerSection />
-        <College />
         <Deadlines />
         <Stories stories={admissionsStories} />
         <Blogs />

@@ -6,7 +6,10 @@ const require = createRequire(import.meta.url);
 
 // react-snap bundles an ancient Chromium (puppeteer 1.20). Prefer a modern
 // system Chrome/Chromium when one is available — far more reliable to launch.
+// The bundled one cannot parse modern JS (e.g. `?.`), so a build that falls back
+// to it prerenders nothing ("SyntaxError: Unexpected token '.'").
 if (!process.env.PUPPETEER_EXECUTABLE_PATH) {
+  const winDirs = [process.env.PROGRAMFILES, process.env["PROGRAMFILES(X86)"], process.env.LOCALAPPDATA].filter(Boolean);
   const candidates = [
     "/usr/bin/google-chrome",
     "/usr/bin/google-chrome-stable",
@@ -14,11 +17,19 @@ if (!process.env.PUPPETEER_EXECUTABLE_PATH) {
     "/usr/bin/chromium-browser",
     "/snap/bin/chromium",
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    // Windows (local builds): Chrome, then Chromium-based Edge.
+    ...winDirs.map((dir) => `${dir}\\Google\\Chrome\\Application\\chrome.exe`),
+    ...winDirs.map((dir) => `${dir}\\Microsoft\\Edge\\Application\\msedge.exe`),
   ];
   const found = candidates.find((p) => existsSync(p));
   if (found) {
     process.env.PUPPETEER_EXECUTABLE_PATH = found;
     console.log(`[react-snap] Using system Chrome: ${found}`);
+  } else {
+    console.warn(
+      "[react-snap] No system Chrome/Chromium found — falling back to the bundled Chromium, which cannot run modern JS. " +
+        "Install Chrome or set PUPPETEER_EXECUTABLE_PATH."
+    );
   }
 }
 

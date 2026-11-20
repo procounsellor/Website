@@ -14,7 +14,7 @@ if (pathname.length > 1 && pathname.endsWith('/')) {
   window.history.replaceState(window.history.state, '', pathname.replace(/\/+$/, '') + search + hash)
 }
 
-// GA4 property on the existing gtag.js loader, only when VITE_GA4_MEASUREMENT_ID is set.
+// GA4 property on the existing gtag.js loader: VITE_GA4_MEASUREMENT_ID, else the Firebase G- measurement id.
 initAnalytics()
 
 const rootElement = document.getElementById('root')!

@@ -9,7 +9,7 @@ import type { SeoFaqItem, SeoSection } from "./SeoArticle";
  * that chunk small.
  *
  * The copy reflects what ProCounsel focuses on: admissions to colleges in
- * India, study abroad, MBA, our partner colleges, and the free predictors.
+ * India, study abroad, MBA, the colleges listed on ProCounsel, and the free predictors.
  * Claims stay factual — no rankings, success rates or student counts that we
  * cannot point to.
  */
@@ -27,9 +27,9 @@ export const homeContent: { title: string; intro: string; sections: SeoSection[]
       ],
     },
     {
-      heading: "Partner colleges",
+      heading: "Colleges on ProCounsel",
       paragraphs: [
-        "Our partner colleges are institutes ProCounsel works with directly. Each has a profile listing its programs, location and admission details. Being a partner is not a ranking, so compare them against the other colleges on your list. A counsellor can help you do that and explain how to apply.",
+        "ProCounsel lists college profiles with programs, location and admission details. A listing is not a ranking and does not mean the college is affiliated with ProCounsel, so compare each one against the other colleges on your list. A counsellor can help you do that and explain how to apply.",
       ],
     },
     {
@@ -72,9 +72,9 @@ export const homeFaqs: SeoFaqItem[] = [
       "They are estimates built on previous years' cut-offs and marks-versus-rank data. Your actual rank and allotment depend on this year's candidates, paper difficulty, seat matrix and counselling rounds, so use the results as a guide and verify them with the official counselling authority.",
   },
   {
-    question: "What are ProCounsel's partner colleges?",
+    question: "Which colleges are listed on ProCounsel?",
     answer:
-      "Partner colleges are institutes ProCounsel works with directly. Their profiles list programs, location and admission details. Partner status is not a ranking, and a counsellor can help you compare them with the other colleges you are considering.",
+      "ProCounsel lists college profiles with programs, location and admission details. A listing is not a ranking and does not imply any affiliation with ProCounsel; admission decisions are made only by the institutes. A counsellor can help you compare them with the other colleges you are considering.",
   },
   {
     question: "Which exams and streams do you cover for admissions in India?",

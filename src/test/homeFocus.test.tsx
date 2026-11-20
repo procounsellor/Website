@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import RevampBannerSection from "@/components/Revamp/banners/RevampBannerSection";
+import HomeHero from "@/components/Revamp/home/HomeHero";
 import { homeFaqs } from "@/components/SEO/homeSeoContent";
 
 function hrefs() {
@@ -22,33 +23,48 @@ describe("home page", () => {
     expect(hrefs()).toContain("/mettle");
   });
 
-  it("puts MBA admissions in the hero card the option-form card used to hold", () => {
-    // The hero is the original design; only that one card changed.
-    const source = readFileSync(resolve(__dirname, "../pages/Revamp/Admissions.tsx"), "utf8");
-    expect(source).toContain("navigate('/mba-admission-2027')");
-    expect(source).toContain("MBA Admissions");
-    expect(source).not.toContain("/mhtcet-option-form-filling");
+  it("hero links MBA admissions, the CAT predictor, mocks and past papers — not the option form", () => {
+    render(
+      <MemoryRouter>
+        <HomeHero />
+      </MemoryRouter>,
+    );
+    const links = hrefs();
+    for (const to of ["/mba-admission-2027", "/cat-college-predictor", "/free-cat-mock-test", "/cat-previous-year-papers"]) {
+      expect(links).toContain(to);
+    }
+    expect(links).not.toContain("/mhtcet-option-form-filling");
+    // "right college" and "for" must stay separate words in the prerendered HTML too (non-breaking space).
+    expect(screen.getByRole("heading", { level: 1 }).textContent?.replace(/ /g, " ")).toMatch(/right college for your MBA/);
   });
 
-  it("leads the partner carousel with the CAT college predictor", () => {
+  it("keeps the carousel for partners; the free exam tools moved to their own section", () => {
     render(
       <MemoryRouter>
         <RevampBannerSection />
       </MemoryRouter>,
     );
-    expect(hrefs()[0]).toBe("/cat-college-predictor");
-    expect(hrefs()).toContain("/free-cat-mock-test");
-    // NEET predictors are demoted, not removed.
-    expect(hrefs().indexOf("/neet-college-predictor")).toBeGreaterThan(hrefs().indexOf("/mettle"));
+    expect(hrefs()[0]).toBe("/mettle");
+    // Predictor slides are gone from the carousel (the pages are unchanged and
+    // linked from the "Free tools for your exam" section instead).
+    expect(hrefs()).not.toContain("/cat-college-predictor");
+    expect(hrefs()).not.toContain("/neet-college-predictor");
   });
 
-  it("puts the CAT predictor in the hero card the NEET predictor used to hold", () => {
+  it("hero keeps the old tile hero's links (colleges, study abroad, ProBuddies, deadlines)", () => {
+    render(
+      <MemoryRouter>
+        <HomeHero />
+      </MemoryRouter>,
+    );
+    for (const to of ["/colleges", "/study-abroad", "/pro-buddies", "/admissions/deadlines"]) expect(hrefs()).toContain(to);
+  });
+
+  it("the home page source no longer contains the old tile hero", () => {
     const source = readFileSync(resolve(__dirname, "../pages/Revamp/Admissions.tsx"), "utf8");
-    expect(source).toContain("navigate('/cat-college-predictor')");
-    expect(source).toContain("CAT Predictor");
-    expect(source).toContain('to="/free-cat-mock-test"');
-    expect(source).toContain('to="/cat-previous-year-papers"');
-    expect(source).not.toContain("/neet-college-predictor");
+    expect(source).toContain("<HomeHero />");
+    expect(source).not.toContain("splashPhase");
+    expect(source).not.toContain("/mhtcet-option-form-filling");
   });
 
   it("states the no-login predictor policy in the FAQ", () => {

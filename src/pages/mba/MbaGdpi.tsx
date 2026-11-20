@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Headset, MessagesSquare, PenLine, Search } from 'lucide-react';
+import { Headset, MessagesSquare, PenLine, Search, Users } from 'lucide-react';
 import SkyBanner from '@/components/school-student/SkyBanner';
 import { Skeleton, StateBlock } from '@/components/mba/ui';
 import { GroupChip, ItemCard, Pill } from '@/components/mba/GdpiFeedback';
@@ -208,6 +208,25 @@ export default function MbaGdpi() {
         title="WAT, GD and PI — get ready for the final round"
         lead="Browse topics and questions with guidance on what panels look for, then practise with AI feedback on your own answers."
       />
+
+      <Link
+        to="/mba/gdpi/live"
+        className="flex items-start gap-3 rounded-[20px] bg-[#0E1629] p-4 text-white hover:opacity-95 md:p-5"
+      >
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#2F43F2] to-[#6D28D9]">
+          <Users className="h-5 w-5" aria-hidden />
+        </span>
+        <span>
+          <span className="flex items-center gap-2">
+            <span className="ss-display block text-[16px]">Live AI interview</span>
+            <span className="rounded-full bg-[#FA660F] px-2 py-0.5 font-[Poppins] text-[10px] font-semibold uppercase tracking-wider">New</span>
+          </span>
+          <span className="mt-1 block font-[Poppins] text-[12px] leading-relaxed text-white/75">
+            The closest thing to a real panel: questions read aloud, follow-ups on what you actually say, no feedback
+            until the end — then a full report.
+          </span>
+        </span>
+      </Link>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Link to="/mba/gdpi/interview" className="ss-panel flex items-start gap-3 p-4 hover:opacity-80 md:p-5">

@@ -18,10 +18,26 @@ interface NavTab {
     name: string;
     iconPath: string;
     path: string;
+    /** Exam tabs open the home page's "Free tools" section on that exam. */
+    exam?: 'mba' | 'neet' | 'jee';
+}
+
+// Line icons for the exam tabs (no image asset needed): briefcase, heartbeat, atom.
+function ExamTabIcon({ exam, className }: { exam: 'mba' | 'neet' | 'jee'; className: string }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="#2F43F2" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className}>
+            {exam === 'mba' && (<><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18" /></>)}
+            {exam === 'neet' && (<><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" /><path d="M3.5 12h4l2-3 3 6 2-3h6" /></>)}
+            {exam === 'jee' && (<><circle cx="12" cy="12" r="1.6" /><ellipse cx="12" cy="12" rx="10" ry="4" /><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)" /><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)" /></>)}
+        </svg>
+    );
 }
 
 const tabs: NavTab[] = [
     { id: 1, name: 'Admission', iconPath: '/Admissions.webp', path: '/admissions' },
+    { id: 7, name: 'MBA', iconPath: '', path: '/?exam=mba#exam-tools', exam: 'mba' },
+    { id: 8, name: 'NEET', iconPath: '', path: '/?exam=neet#exam-tools', exam: 'neet' },
+    { id: 9, name: 'JEE', iconPath: '', path: '/?exam=jee#exam-tools', exam: 'jee' },
     { id: 2, name: 'Colleges', iconPath: '/Courses.svg', path: '/colleges' },
     { id: 4, name: 'ProBuddies', iconPath: '/ProBuddy.webp', path: '/pro-buddies' },
     { id: 6, name: 'Study Abroad', iconPath: '/study-abroad.webp', path: '/study-abroad' },
@@ -92,7 +108,14 @@ export default function RevampHeader() {
     }, [visibleTabs]);
 
     useEffect(() => {
+        const examParam = location.pathname === "/" ? new URLSearchParams(location.search).get("exam") : null;
+        const examTab = examParam ? visibleTabs.find(tab => tab.exam === examParam) : undefined;
+        if (examTab) {
+            setActiveTab(examTab.id);
+            return;
+        }
         const currentTab = visibleTabs.find(tab => {
+            if (tab.exam) return false;
             if (tab.path === "/admissions") {
                 return location.pathname === "/" || location.pathname === tab.path;
             }
@@ -103,7 +126,19 @@ export default function RevampHeader() {
         if (currentTab) {
             setActiveTab(currentTab.id);
         }
-    }, [location.pathname, visibleTabs]);
+    }, [location.pathname, location.search, visibleTabs]);
+
+    // Phones: the tab row scrolls sideways, so bring the active tab into view
+    // (e.g. JEE after following a JEE link). Horizontal only.
+    useEffect(() => {
+        const row = document.querySelector<HTMLElement>('[data-mobile-tab-active="true"]')?.parentElement;
+        const el = row?.querySelector<HTMLElement>('[data-mobile-tab-active="true"]');
+        if (!row || !el) return;
+        const left = el.offsetLeft - row.offsetLeft;
+        if (left < row.scrollLeft || left + el.offsetWidth > row.scrollLeft + row.clientWidth) {
+            row.scrollTo({ left: Math.max(0, left - 16), behavior: 'auto' });
+        }
+    }, [activeTab]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -333,7 +368,9 @@ export default function RevampHeader() {
 
     const mobileTabsClassName = isRestrictedRole
         ? "flex w-full justify-center items-center gap-6"
-        : "flex w-full justify-between items-center";
+        // Seven tabs no longer fit a 360–390px row, so it scrolls sideways
+        // (scrollbar hidden) instead of squeezing the labels.
+        : "flex w-full items-center gap-[18px] overflow-x-auto overflow-y-hidden pr-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [mask-image:linear-gradient(to_right,black_88%,transparent)]";
 
     const mobileHeaderHeight = isRestrictedRole ? 52 : 116;
     const mobileScrolledHeaderHeight = isRestrictedRole ? 32 : 56;
@@ -415,18 +452,21 @@ export default function RevampHeader() {
                                     whileHover={{ y: -1 }}
                                     whileTap={{ scale: 0.98 }}
                                     transition={buttonTransition}
-                                    className={`flex flex-row items-center justify-center gap-1 h-full py-1 cursor-pointer transition-all ${
+                                    className={`${tab.exam ? 'hidden xl:flex' : 'flex'} flex-row items-center justify-center gap-1 h-full py-1 cursor-pointer transition-all ${
                                         activeTab === tab.id ? 'border-b border-[#000000]' : 'border-b border-transparent'
                                     }`}
                                 >
-                                    {tab.iconPath && (
+                                    {tab.exam ? (
+                                        // Icons only on very wide screens; at 1280–1535px seven tabs need the room.
+                                        <ExamTabIcon exam={tab.exam} className="hidden 2xl:block w-7 h-7 mx-1" />
+                                    ) : tab.iconPath && (
                                         <img
                                             src={tab.iconPath}
                                             alt={tab.name}
                                             className="w-9 h-9 object-contain"
                                         />
                                     )}
-                                    <span className="font-poppins font-medium text-[15px] text-[#232323]">
+                                    <span className="font-poppins font-medium text-[15px] text-[#232323] whitespace-nowrap">
                                         {tab.name}
                                     </span>
                                 </MotionLink>
@@ -549,11 +589,14 @@ export default function RevampHeader() {
                                     whileHover={{ y: -1 }}
                                     whileTap={{ scale: 0.98 }}
                                     transition={buttonTransition}
-                                    className={`flex flex-col items-center justify-end gap-[3px] h-[40px] pb-[3px] cursor-pointer transition-all ${
+                                    data-mobile-tab-active={activeTab === tab.id ? "true" : undefined}
+                                    className={`flex shrink-0 flex-col items-center justify-end gap-[3px] h-[40px] pb-[3px] cursor-pointer transition-all ${
                                         activeTab === tab.id ? 'border-b-[1.5px] border-[#000000]' : 'border-b-[1.5px] border-transparent'
                                     }`}
                                 >
-                                    {tab.iconPath && (
+                                    {tab.exam ? (
+                                        <ExamTabIcon exam={tab.exam} className="w-[20px] h-[20px] max-[360px]:w-[17px] max-[360px]:h-[17px] shrink-0" />
+                                    ) : tab.iconPath && (
                                         <img
                                             src={tab.iconPath}
                                             alt=""

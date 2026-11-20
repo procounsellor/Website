@@ -292,12 +292,16 @@ export default function RevampLayout() {
         {!isRestrictedRole && !isPromoPage && !isFocusedPredictorPage && (
             <button
                 onClick={toggleChatbot}
-                className="fixed right-0 md:right-6 bottom-1 md:bottom-6 z-50 flex h-32 w-32 cursor-pointer items-center justify-center transition-transform duration-300 hover:scale-110"
+                // The tap area is just the visible robot (64px). It used to be a
+                // 128px box whose invisible edges caught taps meant for buttons
+                // behind it (e.g. "Check my colleges" on small phones). The
+                // animation is scaled up visually and ignores the pointer.
+                className="fixed right-2 md:right-10 bottom-3 md:bottom-10 z-50 flex h-16 w-16 cursor-pointer items-center justify-center rounded-full transition-transform duration-300 hover:scale-110"
                 aria-label="Toggle Chatbot"
             >
                 {chatbotAnimation ? (
                     <Suspense fallback={<div className="h-16 w-16 rounded-full bg-[#0E1629]" />}>
-                        <Lottie animationData={chatbotAnimation} loop autoplay className="h-full w-full" />
+                        <Lottie animationData={chatbotAnimation} loop autoplay className="pointer-events-none h-full w-full scale-[2]" />
                     </Suspense>
                 ) : (
                     <div className="h-16 w-16 rounded-full bg-[#0E1629]" />
