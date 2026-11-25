@@ -163,7 +163,11 @@ export default function HomeHero() {
         <div className="relative min-w-0">
           <div className="relative overflow-hidden rounded-[24px] ring-1 ring-white/10">
             <img
-              src="/probuddiesbg.webp"
+              src="/probuddiesbg-1024.webp"
+              // Shown at most ~600 px wide: phones get 640/1024 px copies
+              // (32-58 KB) instead of the 1920 px original (164 KB).
+              srcSet="/probuddiesbg-640.webp 640w, /probuddiesbg-1024.webp 1024w"
+              sizes="(min-width: 1024px) 600px, calc(100vw - 32px)"
               alt="Students planning their admissions together"
               width={640}
               height={420}

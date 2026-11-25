@@ -2,41 +2,81 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- Google tag (Google Ads) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18258760142"></script>
+    <!--
+      Third-party tags: queue now, download later.
+      gtag, Meta Pixel and AdSense used to download on every page before anything
+      else ran; on a mid-range phone they cost seconds of main-thread time. The
+      stubs below record every call immediately (the same queues the vendors'
+      own snippets create), and the scripts are added on the visitor's first
+      scroll/tap/key or 3.5 s after load, whichever comes first. Skipped during
+      prerender so the static HTML does not carry the script tags.
+    -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'AW-18258760142');
+      !function(f){if(f.fbq)return;var n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[]}(window);
+      fbq('init', '1742856090043814');
+      fbq('track', 'PageView');
+      (function () {
+        function add(src, cross) {
+          var s = document.createElement('script');
+          s.async = true; s.src = src;
+          if (cross) s.crossOrigin = 'anonymous';
+          document.head.appendChild(s);
+          return s;
+        }
+        // Razorpay (checkout.js, ~135 KB) is only needed to pay. Pages call
+        // new window.Razorpay(options).open(); until the real script is here this
+        // stand-in loads it on open() and hands over. checkout.js replaces
+        // window.Razorpay unconditionally when it runs.
+        var rzp = null;
+        function loadRazorpay() {
+          if (!rzp) rzp = new Promise(function (resolve, reject) {
+            var s = add('https://checkout.razorpay.com/v1/checkout.js');
+            s.onload = resolve;
+            s.onerror = function () { rzp = null; reject(new Error('Razorpay failed to load')); };
+          });
+          return rzp;
+        }
+        window.__loadRazorpay = loadRazorpay;
+        if (!window.Razorpay) {
+          var Standin = function (options) { this.options = options; };
+          Standin.prototype.open = function () {
+            var options = this.options;
+            loadRazorpay().then(function () {
+              if (window.Razorpay === Standin) throw new Error('Razorpay did not initialise');
+              new window.Razorpay(options).open();
+            }).catch(function () {
+              alert('The payment window could not open. Please check your internet connection and try again.');
+            });
+          };
+          window.Razorpay = Standin;
+        }
+        if (navigator.webdriver || /HeadlessChrome|ReactSnap|Prerender/i.test(navigator.userAgent)) return;
+        var started = false, events = ['scroll', 'pointerdown', 'keydown', 'touchstart'];
+        function start() {
+          if (started) return;
+          started = true;
+          events.forEach(function (e) { removeEventListener(e, start, true); });
+          add('https://www.googletagmanager.com/gtag/js?id=AW-18258760142');
+          add('https://connect.facebook.net/en_US/fbevents.js');
+          add('https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9093773137987991', true);
+          setTimeout(function () { loadRazorpay().catch(function () {}); }, 4000);
+        }
+        events.forEach(function (e) { addEventListener(e, start, { capture: true, passive: true }); });
+        addEventListener('load', function () { setTimeout(start, 3500); });
+      })();
     </script>
-    <!-- End Google tag (Google Ads) -->
-    <!-- Meta Pixel Code -->
-    <script>
-    !function(f,b,e,v,n,t,s)
-    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '1742856090043814');
-    fbq('track', 'PageView');
-    </script>
-    <!-- End Meta Pixel Code -->
-    <!--
-      Google AdSense. public/ads.txt has declared pub-9093773137987991 as an
-      authorised seller for a while, but this snippet was never on the site —
-      and AdSense cannot review (or serve on) a site where it does not find the
-      code. Loaded async so it never blocks render.
-    -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9093773137987991" crossorigin="anonymous"></script>
+    <!-- AdSense account ownership (the ad script itself loads after first interaction). -->
+    <meta name="google-adsense-account" content="ca-pub-9093773137987991" />
     <link rel="icon" type="image/x-icon" href="/favicon.png" />
     <!-- Preconnect to speed up Google Fonts and other external resources -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://checkout.razorpay.com" />
     <!-- Warm the connection for counsellor avatar fallbacks (first-fold LCP on mobile) -->
     <link rel="preconnect" href="https://ui-avatars.com" crossorigin />
     <!-- Combine both font families into ONE request; load non-render-blocking (media=print swap applies it after load) -->
@@ -49,7 +89,6 @@
       every route renders its own Helmet, so a static default would produce a
       duplicate tag in the prerendered HTML. Keep this head to non-SEO essentials.
     -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
   </head>
   <body>
     <!-- Meta Pixel fallback belongs in body; noscript content is invalid in head. -->

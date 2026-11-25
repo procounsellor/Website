@@ -76,7 +76,7 @@ export default function ProBuddies() {
         keywords="probuddy, college senior mentors, peer mentorship india, campus life guidance, admission peer help"
       />
     <div className="">
-        <div className="w-full bg-[url('/probuddiesbg.webp')] bg-cover bg-center">
+        <div className="w-full bg-[url('/probuddiesbg-1024.webp')] md:bg-[url('/probuddiesbg.webp')] bg-cover bg-center">
       <div className="w-full bg-[#0E1629A6]">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-center gap-5 px-4 py-10 text-center md:gap-6 md:px-8 md:py-14">
           <div className="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/90 backdrop-blur-sm">

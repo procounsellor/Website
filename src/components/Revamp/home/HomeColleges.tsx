@@ -92,7 +92,7 @@ export default function HomeColleges() {
               >
                 <div className="flex items-start gap-3">
                   <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[12px] border border-[#EEF0F5] bg-white p-1.5">
-                    <img src={c.logo} alt="" loading="lazy" decoding="async" className="max-h-full max-w-full object-contain" />
+                    <CollegeLogo src={c.logo} name={c.name} />
                   </span>
                   <div className="min-w-0">
                     <h3 className="font-[Poppins] text-[15px] font-semibold leading-snug text-[#0E1629] line-clamp-2 group-hover:text-[#2F43F2]">{c.name}</h3>
@@ -127,5 +127,27 @@ export default function HomeColleges() {
         </div>
       </div>
     </section>
+  );
+}
+
+/** College logo, or the college's initials if the image can't be loaded (e.g. a 403 from storage). */
+function CollegeLogo({ src, name }: { src: string; name: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    const initials = name
+      .split(/[s.]+/)
+      .filter((w) => w && !/^(of|and|the|for|&)$/i.test(w))
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 4)
+      .toUpperCase();
+    return (
+      <span aria-hidden="true" className="font-[Poppins] text-[13px] font-bold tracking-wide text-[#13097D]">
+        {initials}
+      </span>
+    );
+  }
+  return (
+    <img src={src} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} className="max-h-full max-w-full object-contain" />
   );
 }

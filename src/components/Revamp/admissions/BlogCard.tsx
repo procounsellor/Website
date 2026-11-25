@@ -17,7 +17,9 @@ export default function BlogCard({ id, slug, title, author, readTime, imageUrl }
   const blogHref = slug?.trim()
     ? `/admissions/blogs/slug/${encodeURIComponent(slug.trim())}`
     : `/admissions/blogs/${id}`;
-  const hasImage = Boolean(imageUrl?.trim());
+  const [imageFailed, setImageFailed] = useState(false);
+  // A missing/forbidden image (e.g. a 403 from storage) shows the placeholder, not a broken icon.
+  const hasImage = Boolean(imageUrl?.trim()) && !imageFailed;
   const [isImageLoading, setIsImageLoading] = useState(hasImage);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const authorProfile = getAuthorProfileByName(author);
@@ -80,7 +82,10 @@ export default function BlogCard({ id, slug, title, author, readTime, imageUrl }
               alt={title}
               onLoadStart={() => setIsImageLoading(true)}
               onLoad={() => setIsImageLoading(false)}
-              onError={() => setIsImageLoading(false)}
+              onError={() => {
+                setIsImageLoading(false);
+                setImageFailed(true);
+              }}
               className={`w-full h-[120px] md:h-[167px] rounded-[8px] object-cover transition-opacity duration-300 ${
                 isImageLoading ? "opacity-0" : "opacity-100"
               }`}
@@ -88,7 +93,7 @@ export default function BlogCard({ id, slug, title, author, readTime, imageUrl }
           </div>
         ) : (
           <div className="w-full h-[120px] md:h-[167px] shrink-0 rounded-[8px] border border-dashed border-[#C7D3E5] bg-[#EEF3FB] flex items-center justify-center">
-            <span className="text-[11px] md:text-[12px] text-[#5D6B82] font-medium">No image available</span>
+            <img src="/logo.svg" alt="" aria-hidden="true" className="h-10 w-10 opacity-60" />
           </div>
         )}
         <h3 className={`font-[Poppins] font-medium text-[14px] md:text-[1rem] text-[#0E1629] md:text-(--text-main) line-clamp-2 leading-[1.3] md:leading-normal ${hasImage ? "mt-2.5" : "mt-0"}`}>

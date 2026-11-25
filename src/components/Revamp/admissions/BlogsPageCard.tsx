@@ -23,7 +23,9 @@ export default function BlogsPageCard({
 }: BlogsPageCardProps) {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
-  const hasImage = Boolean(imageUrl?.trim());
+  const [imageFailed, setImageFailed] = useState(false);
+  // A missing/forbidden image (e.g. a 403 from storage) shows the placeholder, not a broken icon.
+  const hasImage = Boolean(imageUrl?.trim()) && !imageFailed;
   const [isImageLoading, setIsImageLoading] = useState(hasImage);
   const canNavigate = Boolean(id);
   const authorProfile = getAuthorProfileByName(author);
@@ -106,7 +108,10 @@ export default function BlogsPageCard({
             alt={title}
             onLoadStart={() => setIsImageLoading(true)}
             onLoad={() => setIsImageLoading(false)}
-            onError={() => setIsImageLoading(false)}
+            onError={() => {
+                setIsImageLoading(false);
+                setImageFailed(true);
+              }}
             className={`w-full h-[136px] rounded-[10px] object-cover transition-opacity duration-300 ${
               isImageLoading ? "opacity-0" : "opacity-100"
             }`}
@@ -114,7 +119,7 @@ export default function BlogsPageCard({
         </>
       ) : (
         <div className="w-full h-[136px] rounded-[10px] border border-dashed border-[#C7D3E5] bg-[#EEF3FB] flex items-center justify-center text-center px-2">
-          <span className="text-[10px] text-[#5D6B82] font-medium">No image available</span>
+          <img src="/logo.svg" alt="" aria-hidden="true" className="h-10 w-10 opacity-60" />
         </div>
       )}
       <span className="absolute top-1 left-1 inline-flex items-center px-1.5 py-0.5 rounded-[999px] bg-[#A2AECA] text-[10px] font-normal text-[#0E1629] max-w-[calc(100%-8px)] truncate">
@@ -239,7 +244,10 @@ export default function BlogsPageCard({
                   alt={title}
                   onLoadStart={() => setIsImageLoading(true)}
                   onLoad={() => setIsImageLoading(false)}
-                  onError={() => setIsImageLoading(false)}
+                  onError={() => {
+                setIsImageLoading(false);
+                setImageFailed(true);
+              }}
                   className={`w-full h-[167px] rounded-[8px] object-cover transition-opacity duration-300 ${
                     isImageLoading ? "opacity-0" : "opacity-100"
                   }`}
@@ -247,7 +255,7 @@ export default function BlogsPageCard({
               </>
             ) : (
               <div className="w-full h-[167px] rounded-[8px] border border-dashed border-[#C7D3E5] bg-[#EEF3FB] flex items-center justify-center">
-                <span className="text-[12px] text-[#5D6B82] font-medium">No image available</span>
+                <img src="/logo.svg" alt="" aria-hidden="true" className="h-10 w-10 opacity-60" />
               </div>
             )}
           </div>
