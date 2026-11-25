@@ -5,6 +5,7 @@ import RevampHeader from "@/components/Revamp/RevampHeader";
 import RevampBreadcrumbs from "@/components/Revamp/RevampBreadcrumbs";
 import { Navigate, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Bot } from "lucide-react";
 import { useAuthStore } from "@/store/AuthStore";
 import { useChatStore } from "@/store/ChatStore";
 import EnquiryPopup from "@/components/Revamp/shared/EnquiryPopup";
@@ -66,24 +67,39 @@ export default function RevampLayout() {
         location.pathname === '/cancellation-refund' ||
         location.pathname === '/shipping-exchange';
 
+    // The robot animation (chatbot.json + lottie-web, ~85 KB compressed) is
+    // decoration: fetch it once the page has loaded and the browser is idle,
+    // so it never competes with the page itself on a slow phone. Visitors who
+    // ask for reduced motion keep the static icon.
     useEffect(() => {
         let isMounted = true;
-
-        fetch("/chatbot.json")
-            .then((response) => response.json())
-            .then((data) => {
-                if (isMounted) {
-                    setChatbotAnimation(data);
-                }
-            })
-            .catch(() => {
-                if (isMounted) {
-                    setChatbotAnimation(null);
-                }
-            });
+        if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+        let timer = 0;
+        let idleId = 0;
+        const load = () => {
+            fetch("/chatbot.json")
+                .then((response) => response.json())
+                .then((data) => {
+                    if (isMounted) setChatbotAnimation(data);
+                })
+                .catch(() => {
+                    if (isMounted) setChatbotAnimation(null);
+                });
+        };
+        const whenIdle = () => {
+            timer = window.setTimeout(() => {
+                if ('requestIdleCallback' in window) idleId = window.requestIdleCallback(load, { timeout: 4000 });
+                else load();
+            }, 2500);
+        };
+        if (document.readyState === 'complete') whenIdle();
+        else window.addEventListener('load', whenIdle, { once: true });
 
         return () => {
             isMounted = false;
+            window.removeEventListener('load', whenIdle);
+            window.clearTimeout(timer);
+            if (idleId && 'cancelIdleCallback' in window) window.cancelIdleCallback(idleId);
         };
     }, []);
 
@@ -304,11 +320,14 @@ export default function RevampLayout() {
                 aria-label="Toggle Chatbot"
             >
                 {chatbotAnimation ? (
-                    <Suspense fallback={<div className="h-16 w-16 rounded-full bg-[#0E1629]" />}>
-                        <Lottie animationData={chatbotAnimation} loop autoplay className="pointer-events-none h-full w-full scale-[2]" />
+                    <Suspense fallback={<ChatbotIcon />}>
+                        {/* A few loops to draw the eye, then it rests: an endless
+                            animation keeps the phone repainting for as long as the
+                            page is open. */}
+                        <Lottie animationData={chatbotAnimation} loop={3} autoplay className="pointer-events-none h-full w-full scale-[2]" />
                     </Suspense>
                 ) : (
-                    <div className="h-16 w-16 rounded-full bg-[#0E1629]" />
+                    <ChatbotIcon />
                 )}
             </button>
         )}
@@ -318,4 +337,13 @@ export default function RevampLayout() {
         {isStreamActive && <LiveStreamView />}
         </Suspense>
     </div>
+}
+
+/** Shown until (or instead of) the robot animation. */
+function ChatbotIcon() {
+    return (
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#0E1629] text-white shadow-lg ring-4 ring-[#FA660F]/30">
+            <Bot className="h-7 w-7" aria-hidden="true" />
+        </span>
+    );
 }

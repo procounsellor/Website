@@ -87,7 +87,7 @@ export default function Banner() {
       {/* phone design */}
       <div className="block relative md:hidden">
 
-        <div className="w-full h-[210px] bg-[url('/probuddiesbg.webp')] bg-cover bg-center">
+        <div className="w-full h-[210px] bg-[url('/probuddiesbg-1024.webp')] md:bg-[url('/probuddiesbg.webp')] bg-cover bg-center">
           <div className="w-full h-full bg-[#0E1629A6]/95 px-5 pt-6 text-white">
             <div className="flex flex-col gap-3">
               <h1 className="text-[1.625rem] font-bold leading-tight">Courses</h1>
@@ -153,7 +153,7 @@ export default function Banner() {
 
       {/* laptops and desktops view */}
       <div className="hidden md:block">
-      <div className="w-full h-[520px] bg-[url('/probuddiesbg.webp')] bg-cover bg-center">
+      <div className="w-full h-[520px] bg-[url('/probuddiesbg-1024.webp')] md:bg-[url('/probuddiesbg.webp')] bg-cover bg-center">
         <div className="flex flex-col gap-8 items-center justify-center w-full h-full bg-[#0E1629A6]/95">
           <div className="flex flex-col gap-6 items-center justify-center">
             <h2 className="text-white font-bold text-[3.75rem]">Courses</h2>

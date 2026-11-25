@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { revealProps } from "./reveal";
 import { Link } from "react-router-dom";
@@ -433,7 +434,9 @@ function ReadinessCheck({ onClose }: { onClose: () => void }) {
         ? "Take 2–3 more mocks before the exam and review each one properly — that's where the marks are."
         : "Don't panic — there's still time to improve. Take a free mock today and talk to a counsellor for a day-by-day plan.";
 
-  return (
+  // Portalled to <body>: the home section around it uses content-visibility,
+  // whose paint containment would otherwise clip a full-screen overlay.
+  return createPortal(
     <div className="fixed inset-0 z-[1000] bg-black/50 flex items-end md:items-center justify-center p-0 md:p-4" onClick={onClose}>
       <div
         ref={dialogRef}
@@ -508,7 +511,8 @@ function ReadinessCheck({ onClose }: { onClose: () => void }) {
         )}
         <p className="font-[Poppins] text-[11px] text-[#6B7280] mt-5">Your answers stay on this device. Nothing is sent or saved.</p>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

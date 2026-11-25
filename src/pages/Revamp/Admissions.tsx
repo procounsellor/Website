@@ -201,20 +201,24 @@ export default function Admissions() {
       <HomeHero />
       
       <ExamTools exam={exam} onExamChange={changeExam} />
-      <HomeColleges />
+      {/* Below the first screen: .cv-auto (content-visibility: auto) lets the
+          browser skip layout and paint for these until they come near the
+          viewport. Everything stays in the HTML for search engines, anchors and
+          find-in-page; on a mid-range phone this was seconds of layout work. */}
+      <div className="cv-auto"><HomeColleges /></div>
       <Suspense fallback={<div className="min-h-[560px]" />}>
-        <DailyBoost exam={exam} />
+        <div className="cv-auto"><DailyBoost exam={exam} /></div>
       </Suspense>
-      <CounsellorSection priorityImage={false} />
+      <div className="cv-auto"><CounsellorSection priorityImage={false} /></div>
       <Suspense fallback={<div className="min-h-[400px]" />}>
-        <ConnectRow />
-        <RevampBannerSection />
-        <ExamDates />
-        <Deadlines />
-        <Stories stories={admissionsStories} />
-        <Blogs />
-        <SeoArticle {...homeContent} />
-        <Faq />
+        <div className="cv-auto"><ConnectRow /></div>
+        <div className="cv-auto"><RevampBannerSection /></div>
+        <div className="cv-auto"><ExamDates /></div>
+        <div className="cv-auto"><Deadlines /></div>
+        <div className="cv-auto"><Stories stories={admissionsStories} /></div>
+        <div className="cv-auto"><Blogs /></div>
+        <div className="cv-auto"><SeoArticle {...homeContent} /></div>
+        <div className="cv-auto"><Faq /></div>
       </Suspense>
     </div>
     </>

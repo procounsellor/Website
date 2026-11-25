@@ -481,3 +481,11 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .home-burst { display: none; }
 }
+
+/* Off-screen home sections: skip their layout/paint until they are near the
+   viewport. "auto 720px" reserves a placeholder height, then remembers the real
+   one once rendered, so the scrollbar does not jump. */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 720px;
+}

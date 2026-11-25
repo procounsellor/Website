@@ -100,11 +100,26 @@ export default function RevampHeader() {
         // asset server drop in-flight modules and fail an otherwise valid build.
         if (navigator.userAgent === 'ReactSnap') return;
 
-        const timeoutId = window.setTimeout(() => {
-            visibleTabs.forEach((tab) => preloadRoute(tab.path));
-        }, 0);
+        // Warm the next pages only once this one has loaded and the browser is
+        // idle. Doing it straight away made a slow phone download three other
+        // pages while still building the one the student opened.
+        let timeoutId = 0;
+        let idleId = 0;
+        const warm = () => visibleTabs.forEach((tab) => preloadRoute(tab.path));
+        const schedule = () => {
+            timeoutId = window.setTimeout(() => {
+                if ('requestIdleCallback' in window) idleId = window.requestIdleCallback(warm, { timeout: 5000 });
+                else warm();
+            }, 3000);
+        };
+        if (document.readyState === 'complete') schedule();
+        else window.addEventListener('load', schedule, { once: true });
 
-        return () => window.clearTimeout(timeoutId);
+        return () => {
+            window.removeEventListener('load', schedule);
+            window.clearTimeout(timeoutId);
+            if (idleId && 'cancelIdleCallback' in window) window.cancelIdleCallback(idleId);
+        };
     }, [visibleTabs]);
 
     useEffect(() => {

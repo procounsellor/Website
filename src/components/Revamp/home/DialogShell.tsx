@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 /**
@@ -58,7 +59,9 @@ export default function DialogShell({
     };
   }, []);
 
-  return (
+  // Portalled to <body> so no ancestor's containment (content-visibility on the
+  // home sections) or transform can clip or reposition the overlay.
+  return createPortal(
     <div className="fixed inset-0 z-[1000] flex items-end justify-center bg-black/50 p-0 md:items-center md:p-4" onClick={() => onCloseRef.current()}>
       <div
         ref={dialogRef}
@@ -79,6 +82,7 @@ export default function DialogShell({
         </button>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
