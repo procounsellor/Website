@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { IS_PRERENDER } from "@/lib/clientReady";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Select,
@@ -67,11 +68,16 @@ export default function NEETCutoffAnalyzer() {
   const reqId = useRef(0);
 
   useEffect(() => {
+    if (IS_PRERENDER) return;
     getNEETOptions().then(setOptions).catch(() => {});
   }, []);
 
   // Run the query whenever a filter changes (college handled via its own effect debounce).
   useEffect(() => {
+    // Not during the prerender: the API is blocked there, so the page was saved
+    // as "0 colleges" (for Google too) while the browser's first render says
+    // "Loading cutoffs…", and hydration failed. Both now start loading.
+    if (IS_PRERENDER) return;
     const id = ++reqId.current;
     setLoading(true);
     setError(null);

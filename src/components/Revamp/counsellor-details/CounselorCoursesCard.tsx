@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { IS_PRERENDER } from '@/lib/clientReady';
 import { getCoursesForCounsellorByCounsellorId, getCoursesForUserByCounsellorId, getPublicCoursesForCounsellorId } from '@/api/course';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, ChevronRight, ChevronUp, Users, Star } from 'lucide-react';
@@ -20,7 +21,10 @@ export default function RevampCounselorCoursesCard({ counsellorId, userRole = "u
   const isCounselor = userRole === 'counselor';
   const isUserOrStudent = userRole === 'user' || userRole === 'student';
 
-  const { data, isLoading, error } = useQuery({
+  // Not fetched during the prerender (the API is blocked there: the card was
+  // saved empty while the browser's first render shows its loading box, so
+  // every counsellor profile failed to hydrate). Both start from "pending".
+  const { data, isPending, error } = useQuery({
     queryKey: ['counsellorCourses', counsellorId, userId, userRole],
     queryFn: () => {
       if (isCounselor) {
@@ -32,8 +36,9 @@ export default function RevampCounselorCoursesCard({ counsellorId, userRole = "u
       }
       throw new Error('Unauthorized access');
     },
-    enabled: !!counsellorId,
+    enabled: !!counsellorId && !IS_PRERENDER,
   });
+  const isLoading = isPending && !!counsellorId;
 
   const courses = data?.data || [];
   const displayedCourses = courses.slice(0, visibleCount);
