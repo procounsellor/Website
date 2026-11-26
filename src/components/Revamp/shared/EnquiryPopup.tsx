@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import toast from "react-hot-toast";
+import { useLocation } from "react-router-dom";
+import { API_CONFIG } from "@/api/config";
+import { captureLead } from "@/api/leads";
+import { trackEvent } from "@/lib/analytics";
+import { getTrackedSource, markLeadCaptured } from "@/lib/leadSource";
+import { getPredictorSearch } from "@/lib/predictorIntent";
+import { buildQuickLeadPayload, normalizeIndianMobile } from "@/lib/quickLead";
+import { canonicalPath } from "@/lib/siteUrl.mjs";
+import { useAuthStore } from "@/store/AuthStore";
 
 const ENQUIRY_AUTO_SHOWN_KEY = "revamp-enquiry-auto-shown";
 const SHOW_DELAY_MS = 14000;
@@ -11,12 +20,18 @@ export default function EnquiryPopup() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { pathname } = useLocation();
 
   useEffect(() => {
     const hasAutoShown = sessionStorage.getItem(ENQUIRY_AUTO_SHOWN_KEY) === "true";
     if (hasAutoShown) return;
 
     const timerId = window.setTimeout(() => {
+      // Never on top of the login dialog, and not for someone signed in: they
+      // are already a known lead. Checked when the timer fires, so logging in
+      // during the wait also counts. (The side "Enquiry" tab still works.)
+      const { isAuthenticated, isLoginToggle } = useAuthStore.getState();
+      if (isAuthenticated || isLoginToggle) return;
       setIsVisible(true);
       sessionStorage.setItem(ENQUIRY_AUTO_SHOWN_KEY, "true");
     }, SHOW_DELAY_MS);
@@ -33,44 +48,50 @@ export default function EnquiryPopup() {
 
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
-    const digitsOnlyPhone = phone.replace(/\D/g, "");
+    const mobile = normalizeIndianMobile(phone);
 
-    if (!trimmedName || !trimmedEmail || digitsOnlyPhone.length < 10) {
+    if (!trimmedName || !trimmedEmail || !mobile) {
       toast.error("Please enter valid name, number, and email.");
       return;
     }
 
+    // Two places, so neither depends on the other: the enquiry list this
+    // popup always wrote to, and the CRM lead every other form on the site
+    // files (with page, source and exam, retried and kept if the backend is
+    // down). Before, a desktop enquiry reached the team with none of that.
+    const { source, landingPage } = getTrackedSource();
+    const pagePath = canonicalPath(pathname);
+    const exam = getPredictorSearch()?.exam;
+    const lead = buildQuickLeadPayload(
+      { name: trimmedName, phone: mobile },
+      { pagePath, intent: "Desktop enquiry popup", source, landingPage, exam },
+    );
+    lead.email = trimmedEmail;
+
     setIsSubmitting(true);
-    try {
-      const response = await fetch(
-        "https://procounsellor-backend-1000407154647.asia-south1.run.app//api/shared/submitEnquiry",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({
-            name: trimmedName,
-            email: trimmedEmail,
-            contact: phone.trim(),
-          }),
-        }
-      );
+    const [enquiry, crm] = await Promise.allSettled([
+      fetch(`${API_CONFIG.baseUrl}/api/shared/submitEnquiry`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ name: trimmedName, email: trimmedEmail, contact: mobile }),
+      }).then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      }),
+      captureLead(lead),
+    ]);
+    setIsSubmitting(false);
 
-      if (!response.ok) {
-        throw new Error("Failed to submit enquiry");
-      }
-
+    if (enquiry.status === "fulfilled" || crm.status === "fulfilled") {
+      if (crm.status === "fulfilled") markLeadCaptured(mobile);
+      trackEvent("generate_lead", { form_id: "enquiry_popup", page_path: pagePath, exam, lead_source: source || "direct" });
       toast.success("Thanks for your enquiry. We will contact you soon.");
       setIsVisible(false);
       setName("");
       setPhone("");
       setEmail("");
-    } catch {
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      // The CRM lead is kept on this device and re-sent on the next visit.
+      toast.error("Our server didn't respond. We've saved your details; for a call back now, phone +91 70047 89484.", { duration: 8000 });
     }
   };
 

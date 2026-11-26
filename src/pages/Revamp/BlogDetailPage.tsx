@@ -233,7 +233,7 @@ export default function BlogDetailPage() {
             {"<"}
           </button>
           <span className="text-[16px] font-semibold text-(--text-main) truncate">
-            {isLoading ? "Loading…" : mobileTitle}
+            {isLoading && !blog ? "Loading…" : mobileTitle}
           </span>
         </div>
       </div>
@@ -255,10 +255,16 @@ export default function BlogDetailPage() {
       </div>
 
       <div className="max-w-[1440px] mx-auto px-4 sm:px-[60px] py-6 sm:py-8">
-        {isLoading && (
+        {/* Loading and error only when there is no article to show. The bundled
+            snapshot gives one immediately; a failed background refresh (always,
+            during the prerender, where the API is blocked) used to print
+            "Failed to fetch" + "Try again" above the article: into the HTML
+            Google indexes, and unlike the browser's first render, so hydration
+            failed on every blog post. */}
+        {isLoading && !blog && (
           <p className="text-(--text-muted) text-[0.875rem]">Loading article…</p>
         )}
-        {isError && (
+        {isError && !blog && (
           <div className="space-y-3">
             <p className="text-red-600 text-[0.875rem]">
               {(error as Error)?.message ?? "Could not load this blog."}

@@ -5,6 +5,7 @@ import ProBuddiesSection from "@/components/Revamp/probuddies/ProBuddiesSection"
 import Stories from "@/components/Revamp/probuddies/Stories";
 import { useAuthStore } from "@/store/AuthStore";
 import { useQuery } from "@tanstack/react-query";
+import { IS_PRERENDER } from "@/lib/clientReady";
 import PageSEO from "@/components/SEO/PageSEO";
 import SeoArticle from "@/components/SEO/SeoArticle";
 import { probuddiesContent } from "@/components/SEO/seoContent";
@@ -50,18 +51,24 @@ const proBuddyStories = [
 
 export default function ProBuddies() {
   const {userId} = useAuthStore()
-  const { data: probuddies = [], isLoading: isProbuddiesLoading } = useQuery({
+  // Not fetched during the prerender: the API is blocked there, so the saved
+  // page said "No ProBuddies available right now" (to Google too) while the
+  // browser's first render showed loading cards, and hydration failed. Both now
+  // start from the loading state ("pending"), which the browser then fills in.
+  const { data: probuddies = [], isPending: isProbuddiesLoading } = useQuery({
     queryKey: ['revamp-probuddies', userId],
     queryFn: () => probuddiesApi.listing(userId as string),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
+    enabled: !IS_PRERENDER,
   });
 
-  const { data: colleges = [], isLoading: isCollegesLoading } = useQuery({
+  const { data: colleges = [], isPending: isCollegesLoading } = useQuery({
     queryKey: ['revamp-probuddies-colleges', userId],
     queryFn: () => probuddiesApi.getColleges(),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
+    enabled: !IS_PRERENDER,
   });
 
 

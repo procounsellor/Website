@@ -162,8 +162,18 @@ export function restoreSelectBubbleInputs(container: Element): number {
       ) {
         const nodes = hostNodes(f.child);
         const last = nodes[nodes.length - 1];
-        // Already there when the Select sits inside a <form>.
-        if (last && last.nodeName !== "SELECT" && last.parentNode) {
+        // Inside a <form> the <select> stays, but by now it holds an <option>
+        // per item, added after mount. Its first render had none.
+        if (last && last.nodeName === "SELECT") {
+          const select = last as HTMLSelectElement;
+          select.replaceChildren();
+          if (props.value === undefined) {
+            const option = document.createElement("option");
+            option.value = "";
+            select.appendChild(option);
+          }
+          count++;
+        } else if (last && last.parentNode) {
           let rootProps: { name?: string; autoComplete?: string } = {};
           for (let p = f.return; p; p = p.return) {
             const t = (p as Fiber & { type?: unknown }).type as ((() => unknown) & { displayName?: string }) | null;

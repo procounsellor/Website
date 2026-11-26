@@ -1,6 +1,21 @@
 import { useState, useEffect } from 'react';
 import { X, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { captureLeadFromUser } from '@/api/leads';
+
+const OTP_FAILED_MESSAGE =
+  "We couldn't send the OTP right now. Please try again in a minute, or call +91 70047 89484.";
+
+/**
+ * Someone who tried to log in is someone to call back. If the OTP can't be sent
+ * (backend down), keep their number as a lead (retried, and saved on the device
+ * if it can't be sent either), marked unverified since no OTP confirmed it.
+ */
+function keepLoginAttemptAsLead(phone: string) {
+  captureLeadFromUser(null, phone, {
+    extra: { remarks: 'Tried to log in, but the OTP could not be sent (number not verified)' },
+  });
+}
 import CustomOTP from '../ui/custom-otp';
 import { useAuthStore } from '@/store/AuthStore';
 
@@ -63,7 +78,8 @@ const LoginCard: React.FC = () => {
       setResendTimer(60);
       toast.success('OTP sent successfully!', { duration: 2000 });
     } catch {
-      toast.error('Failed to send OTP', { duration: 2000 });
+      toast.error(OTP_FAILED_MESSAGE, { duration: 8000 });
+      keepLoginAttemptAsLead(phone);
     } finally {
       setIsLoading(false);
     }
@@ -98,7 +114,7 @@ const LoginCard: React.FC = () => {
       setHasError(false);
       toast.success('OTP resent successfully!', { duration: 2000 });
     } catch {
-      toast.error('Failed to resend OTP', { duration: 2000 });
+      toast.error(OTP_FAILED_MESSAGE, { duration: 8000 });
     } finally {
       setIsLoading(false);
     }
