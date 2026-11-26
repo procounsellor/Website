@@ -156,14 +156,18 @@ const CounsellorsPage: React.FC = () => {
     );
 
     // Only the untouched listing is safe to seed from the build-time snapshot.
+    // The price range starts at its full 100–10000 span (not ""), so that
+    // default counts as unfiltered; before, the seed never applied and the
+    // prerendered page (what Google sees) said "No Counsellor found".
     const isUnfilteredView =
         !commonFilters.city &&
         !commonFilters.languagesKnow &&
         !commonFilters.workingDays &&
         !commonFilters.experience &&
-        commonFilters.minPrice === "" &&
-        commonFilters.maxPrice === "" &&
-        !commonFilters.search;
+        (commonFilters.minPrice === "" || commonFilters.minPrice === "100") &&
+        (commonFilters.maxPrice === "" || commonFilters.maxPrice === "10000") &&
+        !commonFilters.search &&
+        commonFilters.sortBy === "priority";
 
     const {
         data,

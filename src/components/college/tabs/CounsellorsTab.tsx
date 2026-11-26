@@ -1,12 +1,15 @@
-import { Link } from 'react-router-dom';
 import { useAllCounselors } from '@/hooks/useCounselors';
-import { encodeCounselorId } from '@/lib/utils';
 import FancyCard from '@/components/Revamp/admissions/counsellor/counsellorCard';
 
 const CounsellorsTab = () => {
   const { data: counsellors, loading, error } = useAllCounselors(4);
+  // Counsellors we already have (the build-time snapshot, or a previous fetch)
+  // are shown even while a refresh is loading or after it failed. The prerender
+  // can't reach the API, so it otherwise saved "Unable to load counsellors."
+  // while the browser first rendered "Loading…", and the page failed to hydrate.
+  const hasCounsellors = Boolean(counsellors?.length);
 
-  if (loading) {
+  if (loading && !hasCounsellors) {
     return (
       <div className="w-full flex justify-center items-center min-h-[150px] md:min-h-[300px]">
         <p className="text-[#8C8CA1] font-medium font-['Poppins'] text-sm md:text-base">Loading counsellors...</p>
@@ -14,7 +17,7 @@ const CounsellorsTab = () => {
     );
   }
 
-  if (error) {
+  if (error && !hasCounsellors) {
     return (
       <div className="w-full flex justify-center items-center min-h-[150px] md:min-h-[300px]">
         <p className="text-red-500 font-medium font-['Poppins'] text-sm md:text-base">Unable to load counsellors.</p>
@@ -35,8 +38,10 @@ const CounsellorsTab = () => {
       <div className="grid grid-cols-2 gap-3 gap-y-6 md:flex md:flex-wrap md:gap-8 md:justify-center lg:justify-start">
         {counsellors.map((counselor) => (
           <div key={counselor.counsellorId} className="shrink-0 flex justify-center">
-             <Link to={`/counsellor-details/${encodeCounselorId(counselor.counsellorId)}`} className="block hover:no-underline">
-               <FancyCard
+             {/* FancyCard links to the profile itself (card click + name link); an
+                 outer <Link> nested its <a> inside another, which browsers split
+                 apart when reading the prerendered HTML, failing hydration. */}
+             <FancyCard
                 counsellorId={counselor.counsellorId}
                 name={counselor.firstName + counselor.lastName} 
                 imageUrl={counselor.photoUrlSmall || ""} 
@@ -45,7 +50,6 @@ const CounsellorsTab = () => {
                 city={counselor.city || 'NA'}
                 proCoins={counselor.plusAmount}
                />
-             </Link>
           </div>
         ))}
       </div>

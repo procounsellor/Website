@@ -1,5 +1,6 @@
 import { Bookmark, Star, Briefcase, MapPin, User2 } from "lucide-react";
 import { useState } from "react";
+import { IS_PRERENDER } from "@/lib/clientReady";
 import { Link, useNavigate } from "react-router-dom";
 import { encodeCounselorId } from "@/lib/utils";
 
@@ -95,7 +96,11 @@ export default function FancyCard({
             src={imageUrl}
             alt={name}
             className="w-full md:w-55 h-33.75 md:h-52 rounded-[10px] object-cover shrink-0"
-            onError={() => setImgError(true)}
+            // The prerender blocks third-party images: keep the <img> in the saved
+            // HTML (the browser loads it fine) so it matches the first render.
+            onError={() => {
+              if (!IS_PRERENDER) setImgError(true);
+            }}
           />
         ) : (
           <div className="w-full md:w-55 h-33.75 md:h-52 rounded-[10px] shrink-0 bg-[#F0F3FF] flex items-center justify-center">

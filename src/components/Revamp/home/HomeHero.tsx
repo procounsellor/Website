@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { IS_PRERENDER } from "@/lib/clientReady";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -56,6 +57,8 @@ export default function HomeHero() {
   // Past exams drop off after mount, so the prerendered HTML is stable.
   const [upcoming, setUpcoming] = useState(UPCOMING_MBA_EXAMS.slice(0, 4));
   useEffect(() => {
+    // Prerender keeps the date-independent first render (see lib/clientReady).
+    if (IS_PRERENDER) return;
     setUpcoming(UPCOMING_MBA_EXAMS.filter((e) => !e.date || daysUntil(e.date) >= 0).slice(0, 4));
   }, []);
 

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { IS_PRERENDER } from "@/lib/clientReady";
 import { Link, useNavigate } from "react-router-dom";
 import { getAuthorImageWithFallback, getAuthorProfileByName } from "@/lib/blogAuthors";
 
@@ -20,7 +21,10 @@ export default function BlogCard({ id, slug, title, author, readTime, imageUrl }
   const [imageFailed, setImageFailed] = useState(false);
   // A missing/forbidden image (e.g. a 403 from storage) shows the placeholder, not a broken icon.
   const hasImage = Boolean(imageUrl?.trim()) && !imageFailed;
-  const [isImageLoading, setIsImageLoading] = useState(hasImage);
+  // Starts shown (no shimmer) so the first render matches the prerendered HTML,
+  // where the image had already loaded; in the browser the shimmer only appears
+  // if the image is still on its way.
+  const [isImageLoading, setIsImageLoading] = useState(false);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const authorProfile = getAuthorProfileByName(author);
   const [authorImage, setAuthorImage] = useState(
@@ -32,10 +36,8 @@ export default function BlogCard({ id, slug, title, author, readTime, imageUrl }
   }, [authorProfile.imageUrl]);
 
   useEffect(() => {
-    setIsImageLoading(hasImage);
-    if (hasImage && imageRef.current?.complete) {
-      setIsImageLoading(false);
-    }
+    if (IS_PRERENDER) return;
+    setIsImageLoading(hasImage && !imageRef.current?.complete);
   }, [imageUrl, hasImage]);
 
   const handleAuthorNavigate = (event: React.MouseEvent) => {
@@ -84,7 +86,7 @@ export default function BlogCard({ id, slug, title, author, readTime, imageUrl }
               onLoad={() => setIsImageLoading(false)}
               onError={() => {
                 setIsImageLoading(false);
-                setImageFailed(true);
+                if (!IS_PRERENDER) setImageFailed(true);
               }}
               className={`w-full h-[120px] md:h-[167px] rounded-[8px] object-cover transition-opacity duration-300 ${
                 isImageLoading ? "opacity-0" : "opacity-100"
