@@ -76,7 +76,7 @@ describe("exam counselling pages — content is real, not a stub", () => {
        * These titles are the SEO team's own, supplied verbatim, and every one
        * of them runs past 65 characters. Google truncates the visible title at
        * roughly 55-60 anyway, so the front of the string is what matters and
-       * each of these leads with its exam name and "Counselling 2026". The cap
+       * each of these leads with its exam name and "Counselling <year>". The cap
        * is here to catch a runaway title, not to relitigate the copy.
        */
       expect(c.title.length).toBeLessThanOrEqual(80);

@@ -1,5 +1,6 @@
 import { Mail, Phone, MapPin, Instagram, Linkedin, Sparkles, MessageCircle } from 'lucide-react';
 import PageSEO from "@/components/SEO/PageSEO";
+import QuickLeadForm from "@/components/leads/QuickLeadForm";
 
 export default function ContactPage() {
   return (
@@ -20,6 +21,16 @@ export default function ContactPage() {
           </p>
         </div>
 
+        {/* Call-back request: the contact page had only phone, email and social links. */}
+        <div className="max-w-[560px] mx-auto mb-12">
+          <QuickLeadForm
+            formId="contact_page"
+            intent="Contact page"
+            heading="Request a call back"
+            subheading="Leave your number and a ProCounsel counsellor will call you back. Free, no login needed."
+          />
+        </div>
+
         {/* Contact Cards Grid - Simple & Clean */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           {/* Phone Contact */}
@@ -30,13 +41,13 @@ export default function ContactPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Call Us</h3>
             <div className="space-y-1 mb-4">
               <a 
-                href="tel:7004789484" 
+                href="tel:+917004789484" 
                 className="block text-green-600 hover:text-green-700 font-medium transition-colors cursor-pointer"
               >
                 +91 7004789484
               </a>
               <a 
-                href="tel:9470988669" 
+                href="tel:+919470988669" 
                 className="block text-green-600 hover:text-green-700 font-medium transition-colors cursor-pointer"
               >
                 +91 9470988669
@@ -136,7 +147,7 @@ export default function ContactPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a 
-              href="tel:7004789484"
+              href="tel:+917004789484"
               className="bg-white text-blue-600 font-semibold py-3 px-8 rounded-lg hover:bg-gray-100 transition-colors inline-flex items-center justify-center gap-2 cursor-pointer"
             >
               <Phone className="w-5 h-5" />

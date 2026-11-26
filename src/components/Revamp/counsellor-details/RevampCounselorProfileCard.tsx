@@ -80,7 +80,7 @@ export function RevampCounselorProfileCard({
 
         <div className="flex flex-col gap-2 mt-1 sm:mt-2 flex-1 min-w-0">
           <div className="flex justify-between items-start">
-            <h1 className="text-[20px] sm:text-[24px] font-semibold text-[#0E1629] leading-[125%] truncate">
+            <h1 className="text-[20px] sm:text-[24px] font-semibold text-[#0E1629] leading-[125%] line-clamp-2 break-words">
               {fullName}
             </h1>
             {/* Action Buttons: Share, Bookmark */}

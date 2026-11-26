@@ -48,6 +48,8 @@ export default function JEECollegePredictor() {
   const [prediction, setPrediction] =
     useState<JEECollegePredictionResponse | null>(null);
   const [search, setSearch] = useState<PredictorSearch | null>(null);
+  // A failed prediction still offers the call-back form (see the rank predictor).
+  const [predictionFailed, setPredictionFailed] = useState(false);
 
   // Filter and sort states
   const [instituteFilter, setInstituteFilter] =
@@ -143,13 +145,14 @@ export default function JEECollegePredictor() {
 
       const response = await predictJEEColleges(requestData);
       setPrediction(response);
+      setPredictionFailed(false);
       setCurrentPage(1);
       lastParamsRef.current = currentParams;
       toast.success("Colleges predicted successfully!");
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to predict colleges";
-      toast.error(errorMessage);
+      console.error("[ProCounsel] JEE college prediction failed:", error);
+      setPredictionFailed(true);
+      toast.error("Our prediction service isn't responding right now. Please try again in a minute, or call +91 70047 89484 for help.", { duration: 7000 });
       setPrediction(null);
     } finally {
       setIsLoading(false);
@@ -934,6 +937,15 @@ export default function JEECollegePredictor() {
                 </div>
               </form>
             </div>
+            {predictionFailed && search && (
+              <PredictorLeadPrompt
+                search={search}
+                course="Engineering (B.Tech)"
+                formId="jee_college_predictor"
+                heading="Our predictor is busy. A counsellor can shortlist colleges for you."
+                className="mt-6"
+              />
+            )}
           </div>
         )}
 

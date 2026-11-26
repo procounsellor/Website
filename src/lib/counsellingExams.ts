@@ -54,10 +54,10 @@ export const COUNSELLING_EXAMS: CounsellingCategory[] = [
     ],
     cities: ["mumbai", "pune", "nagpur", "nashik"],
     priority: "core",
-    title: "MHT CET Counselling 2026 – CAP Process, Dates & Admission Guide | ProCounsel",
+    title: "MHT CET Counselling 2027 – CAP Process, Dates & Admission Guide | ProCounsel",
     description:
-      "Get complete MHT CET Counselling 2026 guidance covering CAP rounds, counselling process, college selection, choice filling, important dates and engineering admissions in Maharashtra.",
-    h1: "MHT CET Counselling 2026 – CAP Process, Dates & Admission Guide",
+      "Get complete MHT CET Counselling 2027 guidance covering CAP rounds, counselling process, college selection, choice filling, important dates and engineering admissions in Maharashtra.",
+    h1: "MHT CET Counselling 2027 – CAP Process, Dates & Admission Guide",
     intro:
       "You have your MHT CET result. Great. But then comes the question almost every student asks: “Now what?” Getting your percentile is only the first part. You still have to figure out which colleges you can apply to, which engineering branches make sense for you, how the CAP process works, and most importantly, how to fill your choices without making a decision you may regret later. You may hear one thing from a friend, something different from a relative, and find another answer online. That is why understanding MHT CET counselling before filling your choices can make the whole process much easier.",
     sections: [
@@ -73,7 +73,7 @@ export const COUNSELLING_EXAMS: CounsellingCategory[] = [
         heading: "What happens after the result?",
         paragraphs: [
           "Once the entrance exam result is available, students generally move towards the admission process. The broad journey looks like this: result, CAP registration, document verification, merit list, option or choice filling, seat allotment, seat acceptance and reporting, then further CAP rounds if applicable. That is the basic flow of MHT CET engineering admission.",
-          "The exact process, dates, eligibility rules and instructions can change from year to year. For 2026 admissions, always check the latest notification issued by the Maharashtra CET Cell before taking any important step. Do not rely on an old video or a screenshot someone forwarded on WhatsApp.",
+          "The exact process, dates, eligibility rules and instructions can change from year to year. For 2027 admissions, always check the latest notification issued by the Maharashtra CET Cell before taking any important step. Do not rely on an old video or a screenshot someone forwarded on WhatsApp.",
         ],
       },
       {
@@ -106,7 +106,7 @@ export const COUNSELLING_EXAMS: CounsellingCategory[] = [
           "Take part in later CAP rounds if you are eligible and want to explore more options.",
         ],
         paragraphs: [
-          "The important thing is not to treat every year's process as identical. Dates and rules can change, so follow the official 2026 instructions.",
+          "The important thing is not to treat every year's process as identical. Dates and rules can change, so follow the official 2027 instructions.",
         ],
       },
       {
@@ -139,10 +139,10 @@ export const COUNSELLING_EXAMS: CounsellingCategory[] = [
         ],
       },
       {
-        heading: "Important dates for 2026",
+        heading: "Important dates for 2027",
         paragraphs: [
-          "The exact 2026 CAP schedule should be followed from the official Maharashtra CET Cell notification. CAP registration, document verification, the provisional and final merit lists, option form filling, each CAP round and reporting to the institute are all announced there.",
-          "Do not use dates from an older admission cycle as though they apply to 2026.",
+          "The exact 2027 CAP schedule should be followed from the official Maharashtra CET Cell notification. CAP registration, document verification, the provisional and final merit lists, option form filling, each CAP round and reporting to the institute are all announced there.",
+          "Do not use dates from an older admission cycle as though they apply to 2027.",
         ],
       },
     ],
@@ -209,10 +209,10 @@ export const COUNSELLING_EXAMS: CounsellingCategory[] = [
     tools: [],
     cities: ["bangalore", "mysore", "mangalore"],
     priority: "growth",
-    title: "COMEDK Counselling 2026 \u2013 College Selection & Admission Guide | ProCounsel",
+    title: "COMEDK Counselling 2027 \u2013 College Selection & Admission Guide | ProCounsel",
     description:
-      "Get complete COMEDK counselling 2026 guidance for college selection, choice filling, counselling process, fees, cutoffs and engineering admissions through COMEDK.",
-    h1: "COMEDK Counselling 2026 \u2013 College Selection & Admission Guide",
+      "Get complete COMEDK counselling 2027 guidance for college selection, choice filling, counselling process, fees, cutoffs and engineering admissions through COMEDK.",
+    h1: "COMEDK Counselling 2027 \u2013 College Selection & Admission Guide",
     intro:
       "You have your COMEDK rank. Finally, one big part is over. But then the questions start. Which college can I get? Should I choose Computer Science or take another branch at a better college? How many colleges should I put in my list? You may open five different websites and find five different opinions. Your friend may say “put this college first”. Someone may send you last year\u2019s cut-off list and tell you that you have a sure chance. But your COMEDK rank, preferred branch, budget, location and career plans are your own, which is why counselling should not be treated as simply filling a form and waiting for a seat.",
     sections: [
@@ -233,7 +233,7 @@ export const COUNSELLING_EXAMS: CounsellingCategory[] = [
       {
         heading: "The COMEDK counselling process",
         paragraphs: [
-          "The exact procedure can change from one admission year to another, so always check the official COMEDK notification for 2026.",
+          "The exact procedure can change from one admission year to another, so always check the official COMEDK notification for 2027.",
           "Broadly, the process involves the counselling notification, registration, document or candidate verification requirements, choice filling, submission or locking of choices where applicable, seat allotment, seat acceptance or fee payment as applicable, reporting and admission formalities, and further rounds if applicable.",
           "Think of it this way: your rank tells you where you stand, but your choices tell the counselling system what you want. That is why choice filling deserves careful attention.",
         ],
@@ -289,7 +289,7 @@ export const COUNSELLING_EXAMS: CounsellingCategory[] = [
       {
         question: "When does COMEDK counselling registration start?",
         answer:
-          "The dates change each year. Check the official COMEDK counselling notification for the 2026 schedule rather than relying on old dates.",
+          "The dates change each year. Check the official COMEDK counselling notification for the 2027 schedule rather than relying on old dates.",
       },
       {
         question: "What does the COMEDK counselling process involve?",
@@ -344,10 +344,10 @@ export const COUNSELLING_EXAMS: CounsellingCategory[] = [
     ],
     cities: ["delhi", "mumbai", "pune", "bangalore", "kota"],
     priority: "core",
-    title: "JEE Counselling 2026 – College Selection & Admission Guide | ProCounsel",
+    title: "JEE Counselling 2027 – College Selection & Admission Guide | ProCounsel",
     description:
-      "Get expert JEE counselling 2026 guidance for college selection, JoSAA counselling, choice filling, cutoffs, branch selection and engineering admissions based on your JEE rank.",
-    h1: "JEE Counselling 2026 – College Selection & Admission Guide",
+      "Get expert JEE counselling 2027 guidance for college selection, JoSAA counselling, choice filling, cutoffs, branch selection and engineering admissions based on your JEE rank.",
+    h1: "JEE Counselling 2027 – College Selection & Admission Guide",
     intro:
       "Your JEE Main result is finally out. You check your percentile, then your rank, and for a little while you feel relieved. Then someone asks: “So, which college are you getting?” And suddenly you are confused again. You know your rank, but not what it actually means for your options. Should you go through JoSAA? Is there state counselling too? Which branch should you choose? If those questions are running around in your head, you are not alone — the period after JEE Main can be almost as confusing as the preparation itself.",
     sections: [
@@ -479,10 +479,10 @@ export const COUNSELLING_EXAMS: CounsellingCategory[] = [
     tools: [],
     cities: ["kolkata"],
     priority: "growth",
-    title: "WBJEE Counselling 2026 – College Selection & Admission Guide | ProCounsel",
+    title: "WBJEE Counselling 2027 – College Selection & Admission Guide | ProCounsel",
     description:
-      "Get expert WBJEE counselling 2026 guidance for college selection, choice filling, counselling process, cutoffs, seat allotment and engineering admissions in West Bengal.",
-    h1: "WBJEE Counselling 2026 – College Selection & Admission Guide",
+      "Get expert WBJEE counselling 2027 guidance for college selection, choice filling, counselling process, cutoffs, seat allotment and engineering admissions in West Bengal.",
+    h1: "WBJEE Counselling 2027 – College Selection & Admission Guide",
     intro:
       "Your WBJEE result is out. You have your rank in front of you, maybe you have already checked a few cut-off lists, and now the questions have started. Which college can I get? Should I choose CSE at a different college or my preferred branch at a better-known one? What if I do not get my first choice? Honestly, this is where things can get more confusing than the exam itself. A WBJEE rank is an important milestone, but it is only the starting point — now you have to turn it into actual college and branch choices.",
     sections: [
@@ -526,7 +526,7 @@ export const COUNSELLING_EXAMS: CounsellingCategory[] = [
         heading: "Choice filling and seat allotment",
         paragraphs: [
           "During counseling for WBJEE, choice filling deserves serious attention. Do not simply arrange colleges by popularity — think about the combination of college, branch, fees, location, rank and career interests.",
-          "You may have a dream option at the top, followed by realistic choices and then options you would genuinely be comfortable accepting. Previous-year cut-offs can help you understand trends, but they are not promises for 2026: demand, preferences, seat availability and other factors all affect the outcome.",
+          "You may have a dream option at the top, followed by realistic choices and then options you would genuinely be comfortable accepting. Previous-year cut-offs can help you understand trends, but they are not promises for 2027: demand, preferences, seat availability and other factors all affect the outcome.",
         ],
       },
       {
@@ -607,10 +607,10 @@ export const COUNSELLING_EXAMS: CounsellingCategory[] = [
     tools: [],
     cities: ["chennai", "delhi"],
     priority: "growth",
-    title: "SRMJEEE Counselling 2026 – SRM Admission & College Guide | ProCounsel",
+    title: "SRMJEEE Counselling 2027 – SRM Admission & College Guide | ProCounsel",
     description:
-      "Get expert SRMJEEE counselling 2026 guidance for SRM BTech admission, rank-based course selection, counselling process, choice filling and admission guidance.",
-    h1: "SRMJEEE Counselling 2026 – SRM Admission & College Guide",
+      "Get expert SRMJEEE counselling 2027 guidance for SRM BTech admission, rank-based course selection, counselling process, choice filling and admission guidance.",
+    h1: "SRMJEEE Counselling 2027 – SRM Admission & College Guide",
     intro:
       "You finally have your SRMJEEE result. Maybe you are happy with it, maybe you are still working out what the rank means, or maybe you are already comparing SRM campuses and B.Tech courses on your phone. Then the questions start. Which campus should I choose? Which branch makes sense for me? What should I put first? This is where many students realise that writing the exam was the easier part — the difficult part is deciding what to do with the result.",
     sections: [
@@ -634,7 +634,7 @@ export const COUNSELLING_EXAMS: CounsellingCategory[] = [
         paragraphs: [
           "Once your result is available, the focus shifts from preparing for an exam to making an admission decision. This is where SRMJEE counselling matters: registration, course or campus preferences, choice filling, allotment or offer-related steps, fee considerations and admission formalities all need attention.",
           "The broad journey looks like this: SRMJEEE, result or rank, check eligibility, admission or counselling steps, course and campus preferences, choice filling or selection, allotment or offer, fee or confirmation, then admission formalities.",
-          "The process can change from one admission year to another. If you find an old video explaining last year’s procedure, do not assume the same steps apply in 2026 — check the latest official SRM instructions before submitting anything.",
+          "The process can change from one admission year to another. If you find an old video explaining last year’s procedure, do not assume the same steps apply in 2027 — check the latest official SRM instructions before submitting anything.",
         ],
       },
       {
@@ -671,7 +671,7 @@ export const COUNSELLING_EXAMS: CounsellingCategory[] = [
         heading: "Common mistakes",
         paragraphs: [
           "Most admission mistakes are not complicated — they usually happen because students rush. Some choose a branch because everyone is taking it. Others copy a friend’s list without considering their own interests. Some focus only on the most popular campus and ignore course fit, fees or location.",
-          "Another common mistake is assuming last year’s process will be identical in 2026. And then there is family pressure — take advice from people you trust, but make sure you understand and are comfortable with the final choice.",
+          "Another common mistake is assuming last year’s process will be identical in 2027. And then there is family pressure — take advice from people you trust, but make sure you understand and are comfortable with the final choice.",
         ],
       },
     ],
@@ -734,10 +734,10 @@ export const COUNSELLING_EXAMS: CounsellingCategory[] = [
     tools: [],
     cities: ["bangalore", "mangalore"],
     priority: "growth",
-    title: "MET Counselling 2026 – Manipal Admission & Choice Filling Guide | ProCounsel",
+    title: "MET Counselling 2027 – Manipal Admission & Choice Filling Guide | ProCounsel",
     description:
-      "Get expert MET Counselling 2026 guidance for Manipal admission, rank-based course selection, counselling process, choice filling and BTech admission guidance.",
-    h1: "MET Counselling 2026 – Manipal Admission & Choice Filling Guide",
+      "Get expert MET Counselling 2027 guidance for Manipal admission, rank-based course selection, counselling process, choice filling and BTech admission guidance.",
+    h1: "MET Counselling 2027 – Manipal Admission & Choice Filling Guide",
     intro:
       "You have finished MET, your result or rank is in front of you, and now comes the part many students find surprisingly confusing. “Okay, I got my rank. What do I do now?” That question usually turns into ten more: which B.Tech course should I choose, which campus should I prefer, how does counselling work, what happens during choice filling, and if my first preference is not available, what then? The goal here is not simply to find a seat. It is to understand your options and make a sensible decision about your course, campus and admission.",
     sections: [
@@ -760,7 +760,7 @@ export const COUNSELLING_EXAMS: CounsellingCategory[] = [
         heading: "The MET counselling process",
         paragraphs: [
           "The broad journey is easier to follow than the instructions suggest: MET, result or rank, eligibility, counselling or admission participation, course and campus preferences, choice filling or selection, allotment or offer, fee confirmation, then admission formalities.",
-          "The exact stages, dates, choice rules and allotment procedures can vary, so do not assume that something followed in an earlier admission year will be identical in 2026. Always refer to the latest official Manipal instructions for your programme.",
+          "The exact stages, dates, choice rules and allotment procedures can vary, so do not assume that something followed in an earlier admission year will be identical in 2027. Always refer to the latest official Manipal instructions for your programme.",
         ],
       },
       {
@@ -768,7 +768,7 @@ export const COUNSELLING_EXAMS: CounsellingCategory[] = [
         paragraphs: [
           "The Manipal BTech admission journey involves several connected decisions — from meeting the applicable entrance and academic requirements to completing the application, understanding your result, selecting a course and taking part in the relevant admission process. Your eligibility affects your options, your options affect your preference list, and your preference list should reflect the course and college experience you actually want.",
           "Students frequently search for the Manipal University eligibility criteria for B Tech because they want to know whether they qualify for a particular programme. The answer can depend on the qualifying examination, required subjects, academic performance, entrance examination requirements and programme-specific conditions.",
-          "Rather than relying on an old blog or a forwarded message, check the current 2026 eligibility requirements for the specific B.Tech programme you are considering. Requirements change, and not every programme has identical conditions.",
+          "Rather than relying on an old blog or a forwarded message, check the current 2027 eligibility requirements for the specific B.Tech programme you are considering. Requirements change, and not every programme has identical conditions.",
         ],
       },
       {
@@ -802,7 +802,7 @@ export const COUNSELLING_EXAMS: CounsellingCategory[] = [
         heading: "Common mistakes during MET counselling",
         paragraphs: [
           "Students sometimes choose a course because everyone else is choosing it, ignore campus preferences, copy another student’s list or fail to understand the actual curriculum. Others overlook fees, do not check eligibility or enter incorrect information during the application.",
-          "Then there are the avoidable ones: missing deadlines, not reading official instructions and assuming last year’s process will be the same in 2026. Family pressure can make all of this harder — listen to your parents, but make sure you understand the choice you finally make.",
+          "Then there are the avoidable ones: missing deadlines, not reading official instructions and assuming last year’s process will be the same in 2027. Family pressure can make all of this harder — listen to your parents, but make sure you understand the choice you finally make.",
         ],
       },
     ],
@@ -1022,10 +1022,10 @@ export const COUNSELLING_EXAMS: CounsellingCategory[] = [
     ],
     cities: ["mumbai", "delhi", "bangalore", "pune"],
     priority: "growth",
-    title: "XAT Counselling 2026 – MBA College & Admission Guidance | ProCounsel",
+    title: "XAT Counselling 2027 – MBA College & Admission Guidance | ProCounsel",
     description:
-      "Get expert XAT counselling 2026 guidance for MBA college selection, percentile-based shortlisting, XLRI admissions and the XAT admission process.",
-    h1: "XAT Counselling 2026 – MBA College & Admission Guidance",
+      "Get expert XAT counselling 2027 guidance for MBA college selection, percentile-based shortlisting, XLRI admissions and the XAT admission process.",
+    h1: "XAT Counselling 2027 – MBA College & Admission Guidance",
     intro:
       "You spent months preparing. The exam is done, the result is out, and instead of feeling relieved you are staring at your score thinking: “so… which colleges should I apply to now?” Within an hour you have a dozen tabs open — cut-off lists, rankings, a YouTube video, a forum thread. One says one thing, another says the opposite. A friend tells you to apply somewhere. A parent asks about XLRI. This page is for that moment. Not to explain what XAT is, but to help you work out what to do with the score you have.",
     sections: [

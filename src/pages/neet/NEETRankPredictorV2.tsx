@@ -86,10 +86,10 @@ export default function NEETRankPredictorV2() {
   return (
     <>
       <PageSEO
-        title="NEET Rank Predictor 2026 – Predict Your NEET UG Rank from Marks"
+        title="NEET Rank Predictor 2027 – Predict Your NEET UG Rank from Marks"
         description="Free NEET Rank Predictor: estimate your NEET UG All India Rank from your expected marks, built on real 2025 marks-vs-rank cutoff data. Then check the MBBS colleges you can get."
         canonical="/neet-rank-predictor"
-        keywords="NEET rank predictor, NEET 2026 rank, NEET marks vs rank, NEET UG rank calculator, NEET AIR predictor"
+        keywords="NEET rank predictor, NEET 2027 rank, NEET marks vs rank, NEET UG rank calculator, NEET AIR predictor"
       />
 
       <div className="min-h-screen bg-[#F4FBF8] pb-12">
@@ -111,7 +111,7 @@ export default function NEETRankPredictorV2() {
           <div className="relative max-w-[1100px] mx-auto px-4 sm:px-8 pt-10 pb-16 text-center">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-4 py-1.5 text-xs font-semibold text-emerald-50 ring-1 ring-white/25">
               <Stethoscope className="h-3.5 w-3.5" />
-              NEET UG 2026 · Real Cutoff Data
+              NEET UG 2027 · Built on 2025 data
             </span>
             <h1 className="mt-5 text-3xl md:text-[42px] font-bold text-white leading-tight">
               NEET Rank Predictor

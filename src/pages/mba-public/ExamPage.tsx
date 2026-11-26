@@ -113,7 +113,7 @@ function Page({ e }: { e: ExamInfo }) {
   const answer = (
     <p>
       {e.shortName} ({e.name.replace(/ \(.*\)$/, "")}) is conducted by {e.conductingBody ?? overview?.conductedBy ?? "its exam body"}
-      {overview ? ` and is used for ${overview.usedFor.charAt(0).toLowerCase()}${overview.usedFor.slice(1)}` : ""}.{" "}
+      {overview ? ` and is used for ${lowerFirstWord(overview.usedFor)}` : ""}.{" "}
       {examDay ? `${examDay.label}: ${examDay.value}${examDay.tentative ? " (tentative)" : ""}. ` : ""}
       {e.sections.length ? `It has ${e.sections.length} sections${e.totalDurationMinutes ? ` in ${e.totalDurationMinutes} minutes` : ""}. ` : ""}
       Every detail below links to the official notice it comes from.
@@ -296,6 +296,11 @@ function Page({ e }: { e: ExamInfo }) {
       </PageShell>
     </>
   );
+}
+
+/** "Admission to MBA" → "admission to MBA", but leave "MBA…", "XLRI's", "NMIMS" alone. */
+function lowerFirstWord(text: string): string {
+  return /^[A-Z][a-z]/.test(text) ? text.charAt(0).toLowerCase() + text.slice(1) : text;
 }
 
 export default function ExamPage() {

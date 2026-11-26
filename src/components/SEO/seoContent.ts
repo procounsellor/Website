@@ -181,7 +181,7 @@ export const neetCutoffContent: {
   sections: SeoSection[];
   faqs: SeoFaqItem[];
 } = {
-  title: "NEET 2026 Cutoff: Round-wise Closing Ranks for Every MBBS College in India",
+  title: "NEET Cutoff 2025: Round-wise Closing Ranks for Every MBBS College in India",
   intro:
     "Every year, lakhs of NEET aspirants ask the same question — 'With my rank, which MBBS college can I actually get, and in which counselling round?' The answer lives in the round-wise closing ranks. This free tool lets you look up the real NEET closing rank and closing score for any medical or dental college across all counselling rounds, for both All India Quota (AIQ) and state quota. It uses the latest completed NEET 2025 counselling data (plus 2024, 2023 and 2022) so you can plan your NEET 2026 MCC and state choice-filling with confidence instead of guesswork — and we update it as NEET 2026 rounds are announced.",
   sections: [
@@ -323,7 +323,7 @@ export const neetCounsellingContent: {
   sections: SeoSection[];
   faqs: SeoFaqItem[];
 } = {
-  title: "NEET UG 2026 Counselling: State-wise Authorities, Dates & Official Registration Links",
+  title: "NEET UG 2027 Counselling: State-wise Authorities, Dates & Official Registration Links",
   intro:
     "After the NEET UG result, admission to MBBS and BDS seats happens through counselling — not directly through the exam. There are two parallel systems: the All India Quota (15% of government seats) run centrally by the Medical Counselling Committee (MCC), and the State Quota (85%) run by each state's own counselling authority. This page lists the official counselling authority and the direct registration website for the All India Quota and for every state and union territory, so you register on the right portal, on time, and never on a look-alike site.",
   sections: [
@@ -371,9 +371,9 @@ export const neetCounsellingContent: {
         "Use only the official links listed here. Genuine counselling portals are on government (.nic.in / .gov.in) or recognised university domains. Never pay an agent, and never share your NEET credentials outside the official portal.",
     },
     {
-      question: "When does NEET UG 2026 counselling start?",
+      question: "When does NEET UG 2027 counselling start?",
       answer:
-        "Counselling begins a few weeks after the NEET UG 2026 result is declared. MCC publishes the AIQ schedule on mcc.nic.in and each state announces its own dates. Bookmark this page — we update the authorities and links as the 2026 schedule is released.",
+        "Counselling begins a few weeks after the NEET UG 2027 result is declared. MCC publishes the AIQ schedule on mcc.nic.in and each state announces its own dates. Bookmark this page — we update the authorities and links as the 2026 schedule is released.",
     },
   ],
 };
@@ -384,7 +384,7 @@ export const mbbsCollegesContent: {
   sections: SeoSection[];
   faqs: SeoFaqItem[];
 } = {
-  title: "MBBS Colleges in India 2026: State-wise List of Medical Colleges, Seats & Fees",
+  title: "MBBS Colleges in India 2027: State-wise List of Medical Colleges, Seats & Fees",
   intro:
     "India has more than 820 recognised MBBS colleges offering over 1.29 lakh seats across 34 states and union territories — government, central (AIIMS/JIPMER/ESIC), state, deemed and private. This directory lets you browse every medical college by state, with its affiliating university, management type, year of establishment and MBBS seat count, so you can research where you can realistically study before you fill your NEET counselling choices. Filter by state and college type, or search any college by name.",
   sections: [

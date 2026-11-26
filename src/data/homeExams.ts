@@ -52,7 +52,9 @@ export const EXAM_DATES: ExamDate[] = [
   { name: "SNAP 2026", stream: "mba", short: "13, 19 & 26 Dec", long: "13, 19 and 26 December 2026", start: "2026-12-13", end: "2026-12-26", body: "Symbiosis International University", site: "https://www.snaptest.org/", to: "/mba-entrance-exams/snap" },
   { name: "XAT 2027", stream: "mba", short: "Sun, 3 Jan", long: "Sunday, 3 January 2027", start: "2027-01-03", end: "2027-01-03", body: "XLRI Jamshedpur", site: "https://xatonline.in/", to: "/mba-entrance-exams/xat" },
   { name: "CMAT 2027", stream: "mba", short: "Dates awaited", long: "Not announced yet", start: null, end: null, body: "National Testing Agency (NTA)", site: "https://cmat.nta.nic.in/", to: "/mba-entrance-exams/cmat" },
-  { name: "JEE Main 2027", stream: "jee", short: "Dates awaited", long: "Not announced yet", start: null, end: null, body: "National Testing Agency (NTA)", site: "https://jeemain.nta.nic.in/", to: "/jee-rank-predictor" },
+  // NTA public notice of 24.10.2026: Session 1 on 20, 21, 22, 23, 24 and 28
+  // January 2027 (city slip 30 Dec 2026, admit card 13 Jan 2027); Session 2 in April 2027.
+  { name: "JEE Main 2027", stream: "jee", short: "20–24 & 28 Jan", long: "Session 1: 20, 21, 22, 23, 24 and 28 January 2027", start: "2027-01-20", end: "2027-01-28", body: "National Testing Agency (NTA)", site: "https://jeemain.nta.nic.in/", to: "/jee-rank-predictor" },
   { name: "NEET UG 2027", stream: "neet", short: "Dates awaited", long: "Not announced yet", start: null, end: null, body: "National Testing Agency (NTA)", site: "https://neet.nta.nic.in/", to: "/neet-counselling" },
 ];
 

@@ -6,6 +6,13 @@ import { visualizer } from 'rollup-plugin-visualizer'
 
 export default defineConfig({
   base: '/',
+  // The day this bundle was built (YYYY-MM-DD). The prerender and a visitor's
+  // first render both use it as "today", so date-dependent labels match and
+  // hydrate; the page switches to the visitor's real date after mount
+  // (useToday in lib/clientReady).
+  define: {
+    __BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)),
+  },
   plugins: [
     react(),
     tailwindcss(),

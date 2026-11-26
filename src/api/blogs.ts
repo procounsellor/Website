@@ -1,3 +1,4 @@
+import { repairText } from "@/lib/textRepair.mjs";
 import { API_CONFIG } from "./config";
 
 const baseUrl = API_CONFIG.baseUrl;
@@ -399,7 +400,8 @@ export async function fetchBlogsList(): Promise<BlogListItem[]> {
   if (!res.ok) {
     throw new Error(`Failed to load blogs (${res.status})`);
   }
-  const json: unknown = await res.json();
+  // Some blog text is double-encoded in the backend; repairText fixes it.
+  const json: unknown = repairText(await res.json());
   const rows = parseListPayload(json);
   return rows
     .map((r) => normalizeBlog(r))
@@ -414,7 +416,7 @@ export async function fetchBlogById(id: string): Promise<BlogListItem | null> {
   if (!res.ok) {
     throw new Error(`Failed to load blog (${res.status})`);
   }
-  const json: unknown = await res.json();
+  const json: unknown = repairText(await res.json());
   const raw = extractDetailRaw(json);
   if (!raw) return null;
   return normalizeBlog(raw, id);

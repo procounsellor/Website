@@ -1,3 +1,4 @@
+import QuickLeadForm from "@/components/leads/QuickLeadForm";
 import { useMemo } from "react";
 import { Link, useNavigate, useParams, Navigate } from "react-router-dom";
 import { MapPin, Star, ArrowRight, GraduationCap, Users, Stethoscope } from "lucide-react";
@@ -127,8 +128,20 @@ export default function CounsellingCityPage() {
           </div>
         </div>
 
+        {/* Call-back request: the most likely next step for someone searching
+            "counselling in <city>". These 28 pages had no login-free lead form;
+            every CTA led to the counsellor listing and an OTP login. */}
+        <div className="max-w-[560px] mx-auto px-4 -mt-8 relative z-10">
+          <QuickLeadForm
+            formId="counselling_city"
+            intent={`Counselling in ${cityData.city} page`}
+            heading={`Free counselling call in ${cityData.city}`}
+            subheading="Tell us what you need help with (college, exam or career) and a ProCounsel counsellor will call you back. Free, no login needed."
+          />
+        </div>
+
         {/* Local counsellors */}
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 -mt-8 relative z-10">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 mt-8 relative z-10">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8">
             <div className="flex items-center gap-2 mb-5">
               <span className="h-5 w-1 rounded-full" style={{ backgroundColor: ACCENT }} />

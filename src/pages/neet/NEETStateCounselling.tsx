@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import QuickLeadForm from "@/components/leads/QuickLeadForm";
 import {
   MapPin,
   ExternalLink,
@@ -60,7 +61,7 @@ export default function NEETStateCounselling() {
       {
         "@context": "https://schema.org",
         "@type": "WebPage",
-        name: "NEET UG 2026 State-wise Counselling Authorities & Registration Links",
+        name: "NEET UG 2027 State-wise Counselling Authorities & Registration Links",
         description:
           "Official NEET UG counselling authorities and registration websites for the All India Quota (MCC) and every state and union territory.",
         url: absoluteUrl("/neet-counselling"),
@@ -101,10 +102,10 @@ export default function NEETStateCounselling() {
   return (
     <>
       <PageSEO
-        title="NEET UG 2026 Counselling — State-wise Authorities & Official Registration Links"
-        description="State-wise NEET UG 2026 counselling authorities with official registration links for the All India Quota (MCC) and every state — Karnataka KEA, Maharashtra CETCELL, Bihar BCECEB, Telangana KNRUHS and more. Register on the right portal, on time."
+        title="NEET UG 2027 Counselling — State-wise Authorities & Official Registration Links"
+        description="State-wise NEET UG 2027 counselling authorities with official registration links for the All India Quota (MCC) and every state — Karnataka KEA, Maharashtra CETCELL, Bihar BCECEB, Telangana KNRUHS and more. Register on the right portal, on time."
         canonical="/neet-counselling"
-        keywords="NEET counselling 2026, NEET UG counselling, state wise NEET counselling, MCC counselling, NEET counselling registration link, AIQ counselling, state quota MBBS counselling, NEET counselling authority, MCC nic in, KEA Karnataka, CETCELL Maharashtra, BCECEB, KNRUHS, medical counselling committee"
+        keywords="NEET counselling 2027, NEET UG counselling, state wise NEET counselling, MCC counselling, NEET counselling registration link, AIQ counselling, state quota MBBS counselling, NEET counselling authority, MCC nic in, KEA Karnataka, CETCELL Maharashtra, BCECEB, KNRUHS, medical counselling committee"
         jsonLd={jsonLd}
       />
 
@@ -129,10 +130,10 @@ export default function NEETStateCounselling() {
           <div className="relative max-w-[1100px] mx-auto px-4 sm:px-8 pt-10 pb-14 text-center">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-4 py-1.5 text-xs font-semibold text-emerald-50 ring-1 ring-white/25">
               <Landmark className="h-3.5 w-3.5" />
-              NEET UG 2026 · Counselling Authorities
+              NEET UG 2027 · Counselling Authorities
             </span>
             <h1 className="mt-5 text-3xl md:text-[42px] font-bold text-white leading-tight">
-              NEET UG 2026 Counselling — State-wise Authorities &amp; Links
+              NEET UG 2027 Counselling — State-wise Authorities &amp; Links
             </h1>
             <p className="mt-3 text-emerald-50/90 text-sm md:text-base max-w-2xl mx-auto">
               The official counselling authority and direct registration website for the All
@@ -142,8 +143,20 @@ export default function NEETStateCounselling() {
           </div>
         </div>
 
+        {/* Call-back request: NEET counselling had no login-free lead form. */}
+        <div className="max-w-[560px] mx-auto px-4 -mt-8 relative z-10">
+          <QuickLeadForm
+            formId="neet_counselling"
+            intent="NEET counselling page"
+            course="Medical (MBBS/BDS)"
+            exam="NEET UG"
+            heading="Free NEET counselling call"
+            subheading="Choice filling, AIQ vs state quota, and which colleges your rank can reach: a ProCounsel counsellor will call you back. Free, no login needed."
+          />
+        </div>
+
         {/* AIQ highlight + search */}
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 -mt-8 relative z-10">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 mt-8 relative z-10">
           <div className="bg-white rounded-2xl shadow-xl ring-1 ring-emerald-900/5 p-5 sm:p-6">
             {aiq && (
               <a

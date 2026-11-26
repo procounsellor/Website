@@ -94,7 +94,8 @@ export default function Footer() {
                   className="h-5 w-5 sm:h-6 sm:w-6 shrink-0"
                 />
                 <p className="font-montserrat font-normal text-sm sm:text-base leading-none text-white">
-                  7004789484, 9470988669
+                  <a href="tel:+917004789484" className="hover:text-[#FA660F]">7004789484</a>,{" "}
+                  <a href="tel:+919470988669" className="hover:text-[#FA660F]">9470988669</a>
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -176,7 +177,7 @@ export default function Footer() {
                   <Link to="/neet-counselling" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors">NEET Counselling</Link>
                 </li>
                 <li>
-                  <Link to="/neet-cutoffs" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors">NEET Cutoffs 2026</Link>
+                  <Link to="/neet-cutoffs" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors">NEET Cutoffs</Link>
                 </li>
                 <li>
                   <Link to="/counselling" className="block font-montserrat font-normal text-sm sm:text-base leading-none text-white hover:text-[#FA660F] transition-colors">Admission Counselling</Link>

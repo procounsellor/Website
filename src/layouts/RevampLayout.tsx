@@ -320,7 +320,9 @@ export default function RevampLayout() {
                 // 128px box whose invisible edges caught taps meant for buttons
                 // behind it (e.g. "Check my colleges" on small phones). The
                 // animation is scaled up visually and ignores the pointer.
-                className="fixed right-2 md:right-10 bottom-3 md:bottom-10 z-50 flex h-16 w-16 cursor-pointer items-center justify-center rounded-full transition-transform duration-300 hover:scale-110"
+                // College pages have a sticky "Get a call back" bar on phones;
+                // sit above it instead of covering its button.
+                className={`fixed right-2 md:right-10 ${location.pathname.startsWith('/college-details/') ? 'bottom-20' : 'bottom-3'} md:bottom-10 z-50 flex h-16 w-16 cursor-pointer items-center justify-center rounded-full transition-transform duration-300 hover:scale-110`}
                 aria-label="Toggle Chatbot"
             >
                 {chatbotAnimation ? (

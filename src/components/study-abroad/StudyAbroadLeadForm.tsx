@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { createForeignStudent } from "@/api/foreignStudent";
 import { getTrackedSource } from "@/lib/leadSource";
 import { getLoggedInPhone } from "@/lib/phone";
+import { normalizeIndianMobile } from "@/lib/quickLead";
 import { useAuthStore } from "@/store/AuthStore";
 import {
   BUDGETS,
@@ -88,7 +89,7 @@ export default function StudyAbroadLeadForm({ selected, onToggle, onBooked, id, 
   const validate = (): Errors => {
     const next: Errors = {};
     if (name.trim().length < 2) next.name = "Enter your full name";
-    if (phone.replace(/\D/g, "").length < 10) next.phone = "Enter a 10-digit mobile number";
+    if (!normalizeIndianMobile(phone)) next.phone = "Enter a valid 10-digit mobile number";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) next.email = "Enter a valid email address";
     if (selected.length === 0) next.countries = "Pick at least one country";
     return next;
@@ -103,7 +104,7 @@ export default function StudyAbroadLeadForm({ selected, onToggle, onBooked, id, 
       return;
     }
 
-    const digits = phone.replace(/\D/g, "").slice(-10);
+    const digits = normalizeIndianMobile(phone) ?? phone.replace(/\D/g, "").slice(-10);
     const { source, landingPage } = getTrackedSource();
 
     setSubmitting(true);
@@ -266,7 +267,8 @@ export default function StudyAbroadLeadForm({ selected, onToggle, onBooked, id, 
                 inputMode="numeric"
                 autoComplete="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                // Normalised on submit: "+91 98765 43210" used to be cut to "9198765432".
+                onChange={(e) => setPhone(e.target.value.slice(0, 16))}
                 aria-invalid={Boolean(errors.phone)}
                 placeholder="10-digit number"
                 className={fieldClass}

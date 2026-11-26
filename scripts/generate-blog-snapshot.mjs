@@ -13,6 +13,7 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { repairText } from "../src/lib/textRepair.mjs";
 
 const ROOT = process.cwd();
 const JSON_PATH = path.resolve(ROOT, "scripts/blog-snapshot.json");
@@ -165,7 +166,8 @@ async function getJson(url, timeoutMs = 30000) {
   try {
     const res = await fetch(url, { headers: { Accept: "application/json" }, signal: ctrl.signal });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
+    // Some backend text is double-encoded ("â" for "—"); repair it here so the snapshot ships readable text.
+    return repairText(await res.json());
   } finally {
     clearTimeout(t);
   }

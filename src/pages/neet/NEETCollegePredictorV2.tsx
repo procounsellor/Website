@@ -175,7 +175,7 @@ export default function NEETCollegePredictorV2() {
   return (
     <>
       <PageSEO
-        title="NEET College Predictor 2026 – MBBS Colleges by Rank, Category & Quota"
+        title="NEET College Predictor 2027 – MBBS Colleges by Rank, Category & Quota"
         description="Predict the MBBS & BDS colleges you can get with your NEET rank, category, quota and state — with an admission-probability score and safe/moderate/ambitious breakdown for each. Free NEET UG college predictor by ProCounsel."
         canonical="/neet-college-predictor"
         keywords="NEET college predictor, MBBS college predictor, NEET rank college list, admission probability NEET, AIQ state quota MBBS, NEET counselling college predictor"
@@ -201,7 +201,7 @@ export default function NEETCollegePredictorV2() {
           <div className="relative max-w-[1100px] mx-auto px-4 sm:px-8 pt-10 pb-12 text-center">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-4 py-1.5 text-xs font-semibold text-emerald-50 ring-1 ring-white/25">
               <Stethoscope className="h-3.5 w-3.5" />
-              NEET UG 2026 · College Predictor + Admission Probability
+              NEET UG 2027 · College Predictor + Admission Probability
             </span>
             <h1 className="mt-5 text-3xl md:text-[42px] font-bold text-white leading-tight">
               NEET College Predictor

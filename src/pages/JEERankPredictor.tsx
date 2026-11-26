@@ -29,6 +29,9 @@ export default function JEERankPredictor() {
   const [isLoading, setIsLoading] = useState(false);
   const [prediction, setPrediction] = useState<JEERankPredictionResponse | null>(null);
   const [search, setSearch] = useState<PredictorSearch | null>(null);
+  // The prediction service was down for hours (Nov 2026); a failed prediction
+  // still shows the call-back form, so the visitor isn't left at a dead end.
+  const [predictionFailed, setPredictionFailed] = useState(false);
 
   // Helper function to fetch actual API data
   // Track last submitted values to avoid unnecessary API calls
@@ -79,11 +82,14 @@ export default function JEERankPredictor() {
         shift_level: shiftLevel,
       });
       setPrediction(response);
+      setPredictionFailed(false);
       lastParamsRef.current = currentParams;
       toast.success("Rank predicted successfully!");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to predict rank";
-      toast.error(errorMessage);
+      // A raw "Network Error" told the student nothing (the service was down).
+      console.error("[ProCounsel] JEE rank prediction failed:", error);
+      setPredictionFailed(true);
+      toast.error("Our prediction service isn't responding right now. Please try again in a minute, or call +91 70047 89484 for help.", { duration: 7000 });
       setPrediction(null);
     } finally {
       setIsLoading(false);
@@ -275,12 +281,16 @@ export default function JEERankPredictor() {
           )}
           </div>
 
-          {prediction && search && (
+          {(prediction || predictionFailed) && search && (
             <PredictorLeadPrompt
               search={search}
               course="Engineering (B.Tech)"
               formId="jee_rank_predictor"
-              heading="Want a counsellor to review your rank with you?"
+              heading={
+                prediction
+                  ? "Want a counsellor to review your rank with you?"
+                  : "Our predictor is busy. A counsellor can work out your rank with you."
+              }
               className="mt-6"
             />
           )}

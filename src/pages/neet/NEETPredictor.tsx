@@ -386,7 +386,7 @@ export default function NEETPredictor() {
   return (
     <>
       <PageSEO
-        title="NEET College Predictor 2026 — Medical Colleges by Rank & State | ProCounsel"
+        title="NEET College Predictor 2027 — Medical Colleges by Rank & State | ProCounsel"
         description="Predict the MBBS colleges you can get with your NEET rank or score, and browse every medical college state by state with cutoffs, seats and fees."
         canonical="/neet-college-predictor"
         keywords="neet college predictor, neet rank predictor, mbbs college predictor, neet counselling, medical colleges by state, neet cutoff"
@@ -398,7 +398,7 @@ export default function NEETPredictor() {
         <section className={`${SHELL} pt-8 md:pt-12`}>
           <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-[12px] font-semibold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-200">
             <Stethoscope className="h-3.5 w-3.5" aria-hidden />
-            NEET 2026
+            NEET 2027
           </span>
           <h1 className="mt-4 max-w-3xl font-[Poppins] text-[26px] font-semibold leading-tight text-[#0E1629] md:text-[38px]">
             NEET College Predictor and Medical College Directory

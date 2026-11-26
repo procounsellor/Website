@@ -7,8 +7,9 @@ interface CollegeBannerProps {
 }
 
 const CollegeBannerCard: React.FC<CollegeBannerProps> = ({
-  name = "IIT Delhi",
-  location = "New Delhi, Delhi",
+  // No made-up defaults: a missing name used to show "IIT Delhi".
+  name = "",
+  location = "",
   imageUrl = "https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=2866&auto=format&fit=crop"
 }) => {
   return (

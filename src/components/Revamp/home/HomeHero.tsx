@@ -42,10 +42,11 @@ const POPULAR = [
   { label: "MBA without CAT", to: "/mba-without-cat" },
 ];
 
-/** NEET and JEE dates are not announced yet; shown as such rather than guessed. */
+/** NEET UG 2027 is not announced yet (shown as such rather than guessed); JEE
+ *  Main 2027 Session 1 is from NTA's public notice of 24.10.2026. */
 const OTHER_UPDATES = [
   { name: "NEET UG 2027", when: "Dates awaited", to: "/neet-counselling" },
-  { name: "JEE Main 2027", when: "Dates awaited", to: "/jee-college-predictor" },
+  { name: "JEE Main 2027", when: "20–24 & 28 Jan", to: "/jee-college-predictor" },
 ];
 
 export default function HomeHero() {

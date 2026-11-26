@@ -26,15 +26,24 @@ export default function EnquiryPopup() {
     const hasAutoShown = sessionStorage.getItem(ENQUIRY_AUTO_SHOWN_KEY) === "true";
     if (hasAutoShown) return;
 
-    const timerId = window.setTimeout(() => {
+    let timerId = 0;
+    const show = () => {
       // Never on top of the login dialog, and not for someone signed in: they
       // are already a known lead. Checked when the timer fires, so logging in
       // during the wait also counts. (The side "Enquiry" tab still works.)
       const { isAuthenticated, isLoginToggle } = useAuthStore.getState();
       if (isAuthenticated || isLoginToggle) return;
+      // Not while they are typing into a calculator or form: it stole the
+      // click on "Calculate my score". Try again a little later instead.
+      const active = document.activeElement;
+      if ((active && /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName)) || document.querySelector("[data-login-prompt]")) {
+        timerId = window.setTimeout(show, 10000);
+        return;
+      }
       setIsVisible(true);
       sessionStorage.setItem(ENQUIRY_AUTO_SHOWN_KEY, "true");
-    }, SHOW_DELAY_MS);
+    };
+    timerId = window.setTimeout(show, SHOW_DELAY_MS);
 
     return () => window.clearTimeout(timerId);
   }, []);
@@ -106,7 +115,7 @@ export default function EnquiryPopup() {
       </button>
 
       {isVisible && (
-        <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center bg-[#0E1629]/35 backdrop-blur-[2px]">
+        <div data-enquiry-popup="" className="hidden md:flex fixed inset-0 z-50 items-center justify-center bg-[#0E1629]/35 backdrop-blur-[2px]">
           <div className="w-107.5 rounded-2xl border border-[#DDE3F0] bg-white shadow-[0_24px_54px_rgba(14,22,41,0.25)] overflow-hidden">
             <div className="flex items-center justify-between bg-[#0E1629] px-5 py-4">
               <h3 className="font-poppins text-[17px] font-semibold text-white">

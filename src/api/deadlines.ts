@@ -1,3 +1,4 @@
+import { repairText } from "@/lib/textRepair.mjs";
 import { API_CONFIG } from "./config";
 
 // Type definition matching the JSON response
@@ -20,6 +21,7 @@ export interface EventItem {
   updatedAt: { seconds: number; nanos: number };
 }
 
+// Some event text is double-encoded in the backend ("SRMâs"); repairText fixes it.
 export const getDeadlines = async (): Promise<EventItem[]> => {
   // Update this endpoint to whatever route your backend actually uses
   const response = await fetch(`${API_CONFIG.baseUrl.replace(/\/$/, '')}/api/shared/getAllEventDeadlines`, {
@@ -36,7 +38,7 @@ export const getDeadlines = async (): Promise<EventItem[]> => {
     throw new Error(data.message || data.error || "Failed to fetch deadlines");
   }
 
-  return data; 
+  return repairText(data);
 };
 
 export const getEventById = async (eventId: string): Promise<EventItem> => {
@@ -64,5 +66,5 @@ export const getEventById = async (eventId: string): Promise<EventItem> => {
     throw new Error(data.message || data.error || "Failed to fetch event details");
   }
 
-  return data;
+  return repairText(data);
 };

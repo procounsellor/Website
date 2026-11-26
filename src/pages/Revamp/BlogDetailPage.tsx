@@ -64,8 +64,10 @@ function normalizeDescriptionToHtml(text: string, title = ""): string {
 function stripHtmlToText(html: string): string {
   if (!html.trim()) return "";
   if (typeof window === "undefined") return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  // A space for every tag: textContent glued block elements together
+  // ("…After 12th BoardsJust finished") in every blog's meta description.
   const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
+  const doc = parser.parseFromString(html.replace(/<[^>]*>/g, " "), "text/html");
   return (doc.body.textContent ?? "").replace(/\s+/g, " ").trim();
 }
 

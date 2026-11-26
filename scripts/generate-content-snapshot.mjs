@@ -24,6 +24,7 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { repairText } from "../src/lib/textRepair.mjs";
 
 const ROOT = process.cwd();
 const CACHE_PATH = path.resolve(ROOT, "scripts/content-snapshot.json");
@@ -76,7 +77,8 @@ async function getJson(url, timeoutMs = REQUEST_TIMEOUT_MS) {
       signal: controller.signal,
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
+    // Some backend text is double-encoded ("â" for "—"); repair it here so the snapshot ships readable text.
+    return repairText(await res.json());
   } finally {
     clearTimeout(timer);
   }
