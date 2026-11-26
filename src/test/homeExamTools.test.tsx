@@ -139,8 +139,11 @@ describe("home exam data", () => {
     for (const e of UPCOMING_MBA_EXAMS) expect(e.to).toMatch(/^\/mba-entrance-exams\/[a-z-]+$/);
   });
 
-  it("keeps WhatsApp buttons on the channel until a chat number is configured", () => {
-    expect(whatsappHref("mba")).toBe(WHATSAPP_CHANNEL);
+  it("opens a direct chat with the counselling desk, with the exam in the message", () => {
+    const href = whatsappHref("mba");
+    expect(href).not.toBe(WHATSAPP_CHANNEL);
+    expect(href).toMatch(/^https:\/\/wa\.me\/917417364154\?text=/);
+    expect(decodeURIComponent(href.split("text=")[1])).toContain("CAT / MBA");
   });
 
   it("picks the same daily item all day", () => {

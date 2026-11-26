@@ -7,6 +7,8 @@ import NoInternet from "./components/common/NoInternet";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { persistVisitSource } from "./lib/leadSource";
+import { flushPendingLeads } from "./api/leads";
+import { IS_PRERENDER } from "./lib/clientReady";
 
 // Dev-only: loaded as a separate chunk in dev, never bundled into production.
 const ReactQueryDevtools = import.meta.env.DEV
@@ -81,6 +83,12 @@ function useVisitorTracking() {
     // Persist first-touch source so captureLead can use it after login.
     // Local-only, so it runs on every environment.
     persistVisitSource(source, utms["utm_source"] || "", window.location.pathname);
+
+    // A lead that failed on an earlier visit (backend down) gets another try.
+    // Delayed so it never competes with the page's own first requests.
+    if (!IS_PRERENDER) {
+      window.setTimeout(() => void flushPendingLeads(), 5000);
+    }
 
     if (!isRealVisit()) {
       if (import.meta.env.DEV) {

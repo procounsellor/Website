@@ -110,7 +110,9 @@ export default function QuickLeadForm({
       await captureLead(payload);
     } catch (error) {
       console.error("[ProCounsel] Quick lead failed:", error);
-      setSubmitError("That did not go through. Check your connection and try again.");
+      // captureLead already retried and kept the lead on this device; it is
+      // re-sent on the next visit. Give them a way to reach us right now.
+      setSubmitError("Our server didn't respond, so we've saved your details and will send them again. For a call back right away, phone us:");
       setSubmitting(false);
       return;
     }
@@ -260,7 +262,10 @@ export default function QuickLeadForm({
 
         {submitError && (
           <p className="text-[12.5px] text-red-600" role="alert">
-            {submitError}
+            {submitError}{" "}
+            <a href="tel:+917004789484" className="font-semibold underline">
+              +91 70047 89484
+            </a>
           </p>
         )}
 

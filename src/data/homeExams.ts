@@ -285,12 +285,15 @@ export function formatExamDay(iso: string): string {
 export const WHATSAPP_CHANNEL = "https://whatsapp.com/channel/0029Vb7l9UmJ93wNDFVyaa0B";
 
 /**
- * Direct WhatsApp chat with the counselling desk. Set VITE_WHATSAPP_NUMBER
- * (digits with country code, e.g. 91XXXXXXXXXX) to turn it on: every chat then
- * arrives with the student's number, which the anonymous channel never gives.
- * Unset, the WhatsApp buttons keep pointing at the channel.
+ * Direct WhatsApp chat with the counselling desk: every chat arrives with the
+ * student's number, which the anonymous channel never gives. The desk's number
+ * is public (it is in every chat link), so it lives here; VITE_WHATSAPP_NUMBER
+ * (digits with country code) overrides it, e.g. for a test build.
  */
-const WHATSAPP_NUMBER = ((import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined) ?? "").replace(/\D/g, "");
+const COUNSELLING_DESK_WHATSAPP = "917417364154";
+const WHATSAPP_NUMBER = (
+  (import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined) || COUNSELLING_DESK_WHATSAPP
+).replace(/\D/g, "");
 
 export const WHATSAPP_CHAT_ENABLED = WHATSAPP_NUMBER.length >= 10;
 
