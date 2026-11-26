@@ -106,7 +106,7 @@ export default function NEETMedicalColleges() {
       {
         "@context": "https://schema.org",
         "@type": "WebPage",
-        name: "MBBS Colleges in India 2026 — State-wise List, Seats & Fees",
+        name: "MBBS Colleges in India 2027 — State-wise List, Seats & Fees",
         description:
           "Directory of 820+ MBBS medical colleges in India with 1.29 lakh+ seats across 34 states — university, management type, year established and seat count.",
         url: absoluteUrl("/mbbs-colleges"),
@@ -146,8 +146,8 @@ export default function NEETMedicalColleges() {
   return (
     <>
       <PageSEO
-        title="MBBS Colleges in India 2026 — State-wise List, Seats & Fees"
-        description="Complete list of MBBS medical colleges in India 2026: 820+ colleges and 1.29 lakh+ seats across 34 states. Browse by state and college type with affiliating university, management, year established and MBBS seats for your NEET counselling choices."
+        title="MBBS Colleges in India 2027 — State-wise List, Seats & Fees"
+        description="Complete list of MBBS medical colleges in India: 820+ colleges and 1.29 lakh+ seats across 34 states. Browse by state and college type with affiliating university, management, year established and MBBS seats for your NEET counselling choices."
         canonical="/mbbs-colleges"
         keywords="MBBS colleges in India, medical colleges in India, MBBS colleges list, state wise MBBS colleges, MBBS seats in India, government medical colleges, private medical colleges, deemed medical universities, MBBS college directory, NEET colleges, medical college seats, MBBS fees India"
         jsonLd={jsonLd}
@@ -174,7 +174,7 @@ export default function NEETMedicalColleges() {
           <div className="relative max-w-[1100px] mx-auto px-4 sm:px-8 pt-10 pb-16 text-center">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-4 py-1.5 text-xs font-semibold text-emerald-50 ring-1 ring-white/25">
               <GraduationCap className="h-3.5 w-3.5" />
-              NEET UG 2026 · MBBS College Directory
+              NEET UG 2027 · MBBS College Directory
             </span>
             <h1 className="mt-5 text-3xl md:text-[42px] font-bold text-white leading-tight">
               MBBS Colleges in India — State-wise List &amp; Seats
@@ -287,7 +287,7 @@ export default function NEETMedicalColleges() {
                   <span className="font-bold text-gray-800">
                     {filtered.length.toLocaleString("en-IN")}
                   </span>{" "}
-                  colleges
+                  {filtered.length === 1 ? "college" : "colleges"}
                   {state !== "All" ? ` in ${state}` : ""} ·{" "}
                   <span className="font-bold text-gray-800">
                     {filteredSeats.toLocaleString("en-IN")}

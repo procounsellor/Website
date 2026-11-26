@@ -3,10 +3,12 @@ import { SeeAllButton } from "../components/LeftRightButton";
 import { type EventItem } from "@/api/deadlines";
 import { useDeadlinesList } from "@/hooks/useDeadlines";
 import { useNavigate } from "react-router-dom";
+import { useToday } from "@/lib/clientReady";
 
 export default function CollegeSection() {
   const navigate = useNavigate();
   const { data: allEvents = [], isLoading } = useDeadlinesList();
+  const today = useToday();
 
   // Dedup by id, then filter active, then sort by soonest end date first
   const activeEvents = (() => {
@@ -14,6 +16,8 @@ export default function CollegeSection() {
     return allEvents
       .filter((event: EventItem) => {
         if (event.isDeleted) return false;
+        // Past deadlines are not "upcoming" (the band listed April exams in November).
+        if (event.endDate && event.endDate.slice(0, 10) < today) return false;
         const key = event.id ?? event.title;
         if (!key || seen.has(key)) return false;
         seen.add(key);

@@ -148,12 +148,12 @@ export default function NEETCutoffAnalyzer() {
       {
         "@context": "https://schema.org",
         "@type": "WebApplication",
-        name: "NEET 2026 Round-wise Cutoff Analyzer",
+        name: "NEET Round-wise Cutoff Analyzer",
         applicationCategory: "EducationApplication",
         operatingSystem: "Web",
         offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
         description:
-          "Free tool to look up round-wise NEET UG closing ranks and closing scores for every MBBS/BDS college in India across AIQ and state quota, to plan NEET 2026 admissions.",
+          "Free tool to look up round-wise NEET UG closing ranks and closing scores for every MBBS/BDS college in India across AIQ and state quota, to plan NEET 2027 admissions.",
       },
       {
         "@context": "https://schema.org",
@@ -169,7 +169,7 @@ export default function NEETCutoffAnalyzer() {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
-          { "@type": "ListItem", position: 2, name: "NEET 2026 Cutoff", item: absoluteUrl("/neet-cutoffs") },
+          { "@type": "ListItem", position: 2, name: "NEET Cutoff", item: absoluteUrl("/neet-cutoffs") },
         ],
       },
     ],
@@ -179,8 +179,8 @@ export default function NEETCutoffAnalyzer() {
   return (
     <>
       <PageSEO
-        title="NEET 2026 Cutoff – Round-wise Closing Ranks for All MBBS Colleges"
-        description="Free NEET 2026 cutoff analyzer: round-wise closing ranks and scores for every MBBS & BDS college in India, for AIQ and state quota, across all categories. Based on NEET 2025, 2024, 2023 & 2022 counselling data — plan your NEET 2026 college choices."
+        title="NEET Cutoff 2025 – Round-wise Closing Ranks for All MBBS Colleges"
+        description="Free NEET cutoff analyzer: round-wise closing ranks and scores for every MBBS & BDS college in India, for AIQ and state quota, across all categories. Based on NEET 2025, 2024, 2023 & 2022 counselling data — plan your NEET 2027 college choices."
         canonical="/neet-cutoffs"
         keywords="NEET 2026 cutoff, NEET cutoff 2026, NEET round wise cutoff, NEET closing rank 2026, MBBS cutoff 2026, NEET college cutoff, NEET cutoff analyzer, AIQ cutoff, state quota MBBS cutoff, NEET closing rank government colleges, MBBS admission cutoff, NEET 2025 cutoff, medical college cutoff India"
         jsonLd={jsonLd}
@@ -207,15 +207,15 @@ export default function NEETCutoffAnalyzer() {
           <div className="relative max-w-[1100px] mx-auto px-4 sm:px-8 pt-10 pb-14 text-center">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-4 py-1.5 text-xs font-semibold text-emerald-50 ring-1 ring-white/25">
               <TableProperties className="h-3.5 w-3.5" />
-              NEET UG 2026 · Round-wise Cutoff Analyzer
+              NEET UG 2025 data · Round-wise Cutoff Analyzer
             </span>
             <h1 className="mt-5 text-3xl md:text-[42px] font-bold text-white leading-tight">
-              NEET 2026 Cutoff — Round-wise Closing Ranks
+              NEET Cutoff 2025 — Round-wise Closing Ranks
             </h1>
             <p className="mt-3 text-emerald-50/90 text-sm md:text-base max-w-2xl mx-auto">
               See the last rank that got a seat in each MBBS/BDS college, in every counselling
               round — for All India Quota and state quota, in every category. Based on the latest
-              NEET 2025 counselling data to help you plan your NEET 2026 college choices.
+              NEET 2025 counselling data to help you plan your NEET 2027 college choices.
             </p>
             <Link
               to="/neet-college-predictor"

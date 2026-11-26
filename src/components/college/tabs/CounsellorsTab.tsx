@@ -43,7 +43,7 @@ const CounsellorsTab = () => {
                  apart when reading the prerendered HTML, failing hydration. */}
              <FancyCard
                 counsellorId={counselor.counsellorId}
-                name={counselor.firstName + counselor.lastName} 
+                name={[counselor.firstName, counselor.lastName].filter(Boolean).join(" ")}
                 imageUrl={counselor.photoUrlSmall || ""} 
                 rating={Number(counselor.rating?.toFixed(1)) || 0} 
                 experience={counselor.experience ||  'NA'} 

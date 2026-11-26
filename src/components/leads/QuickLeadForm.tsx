@@ -252,7 +252,9 @@ export default function QuickLeadForm({
             />
             <span>
               {QUICK_LEAD_CONSENT_TEXT}.{" "}
-              <Link to="/privacy-policy" className="underline hover:text-gray-800">
+              {/* New tab: a tap on the consent text often landed on this link and
+                  navigated away from a half-filled form. */}
+              <Link to="/privacy-policy" target="_blank" rel="noopener" className="underline hover:text-gray-800">
                 Privacy policy
               </Link>
             </span>

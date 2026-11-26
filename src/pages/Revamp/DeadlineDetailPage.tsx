@@ -8,6 +8,7 @@ import PageSEO from "@/components/SEO/PageSEO";
 import { DEADLINES_SNAPSHOT } from "@/data/contentSnapshot";
 import { deadlineStaticPath, withStaticFallback } from "@/lib/staticContent";
 import { absoluteUrl } from "@/lib/siteUrl.mjs";
+import { useToday } from "@/lib/clientReady";
 
 const DEADLINES_SEED = DEADLINES_SNAPSHOT as unknown as EventItem[];
 
@@ -18,6 +19,7 @@ export default function DeadlineDetailPage() {
   // Live API first, then the build-time static copy. Retries cover Cloud Run
   // cold starts — an API hiccup used to render a bare "Could not load this
   // deadline" with no content at all.
+  const today = useToday();
   const { data: event, isLoading, isFetched } = useQuery({
     queryKey: ['revamp-deadline-detail', id],
     queryFn: () =>
@@ -136,7 +138,9 @@ export default function DeadlineDetailPage() {
       <PageSEO
         title={`${event.title} — Dates, Eligibility & How to Apply`}
         description={
-          (event.description || '').trim().slice(0, 155) ||
+          // A real description, or the generated one: some events' description
+          // is just "." or a few words, which shipped as the meta description.
+          ((event.description || '').trim().length >= 50 ? (event.description || '').trim().slice(0, 155) : '') ||
           `${event.title}: important dates${startSchedule.datePart ? ` from ${startSchedule.datePart}` : ''}${endSchedule.datePart ? ` to ${endSchedule.datePart}` : ''}, application link and eligibility. Track every admission deadline on ProCounsel.`
         }
         canonical={`/admissions/deadlines/${event.id}`}
@@ -296,9 +300,16 @@ export default function DeadlineDetailPage() {
               <p className="text-[10px] md:text-[20px] font-medium text-[#6B7280] font-[Poppins] leading-none capitalize">
                 Status
               </p>
-              <p className={`text-[12px] md:text-[20px] font-medium font-[Poppins] leading-none capitalize ${!event.isDeleted ? 'text-[#00B54B]' : 'text-red-500'}`}>
-                {!event.isDeleted ? 'Active' : 'Inactive'}
-              </p>
+              {(() => {
+                // "Active" only while the deadline is still ahead: every event
+                // from April-September said "Active" in November.
+                const closed = event.isDeleted || (!!event.endDate && event.endDate.slice(0, 10) < today);
+                return (
+                  <p className={`text-[12px] md:text-[20px] font-medium font-[Poppins] leading-none capitalize ${closed ? 'text-red-500' : 'text-[#00B54B]'}`}>
+                    {closed ? 'Closed' : 'Open'}
+                  </p>
+                );
+              })()}
             </div>
           </div>
         </div>

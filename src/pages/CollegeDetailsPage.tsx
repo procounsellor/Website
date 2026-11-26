@@ -157,7 +157,9 @@ const CollegeDetailsPageNew = () => {
 
   // Genuinely unknown college: a real page with navigation, marked noindex so
   // it never gets indexed as a soft 404.
-  if (!collegeData) {
+  // The API answers an unknown ID with 200 and {}: treat a college without a
+  // name as not found (it rendered a blank "undefined" page with stock defaults).
+  if (!collegeData?.collegeName) {
     return (
       <div className="min-h-screen bg-white px-4 py-20">
         <PageSEO
@@ -282,7 +284,7 @@ const CollegeDetailsPageNew = () => {
           </div>
 
           <div className="w-full lg:w-[30%] max-w-[400px] shrink-0 flex flex-col gap-6 sticky top-24 self-start h-fit">
-             <AdmissionCard />
+             <AdmissionCard collegeName={collegeData.collegeName} />
              {/* <CollegeMapCard address={collegeData.collegeFullAddress} /> */}
           </div>
         </div>

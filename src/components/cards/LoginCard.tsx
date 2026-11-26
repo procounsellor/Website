@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { X, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { captureLeadFromUser } from '@/api/leads';
+import { normalizeIndianMobile } from '@/lib/quickLead';
+
+/** An Indian mobile: 10 digits starting 6-9 (a "0987654321" used to pass). */
+const isValidMobile = (phone: string) => /^[6-9][0-9]{9}$/.test(phone);
 
 const OTP_FAILED_MESSAGE =
   "We couldn't send the OTP right now. Please try again in a minute, or call +91 70047 89484.";
@@ -66,7 +70,7 @@ const LoginCard: React.FC = () => {
   }, [resendTimer]);
 
   const handleSendOtp = async () => {
-    if (phone.length !== 10) {
+    if (!isValidMobile(phone)) {
       toast.error('Please enter a valid 10-digit phone number', { duration: 2000 });
       return;
     }
@@ -157,24 +161,25 @@ const LoginCard: React.FC = () => {
                     placeholder="Enter your phone number"
                     className="flex-1 min-w-0 pl-2 md:pl-3 border-none focus:ring-0 focus:outline-none text-gray-800 text-sm md:text-base"
                     value={phone}
+                    inputMode="numeric"
+                    autoComplete="tel-national"
                     onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '');
-                      if (value.length <= 10) {
-                        setPhone(value);
-                      }
+                      // Accept "98765 43210", "+91 98765 43210" and "09876543210"
+                      // (a maxLength of 10 used to cut pasted numbers short).
+                      const digits = e.target.value.replace(/\D/g, '');
+                      setPhone(normalizeIndianMobile(e.target.value) ?? digits.slice(0, 10));
                     }}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !isLoading && phone.length === 10) {
+                      if (e.key === 'Enter' && !isLoading && isValidMobile(phone)) {
                         handleSendOtp();
                       }
                     }}
-                    maxLength={10}
                   />
                 </div>
                 
                 <button 
                   onClick={handleSendOtp}
-                  disabled={isLoading || phone.length !== 10}
+                  disabled={isLoading || !isValidMobile(phone)}
                   className="w-full md:max-w-[444px] h-11 bg-(--text-main) text-white rounded-xl font-semibold hover:bg-(--text-main)/80 hover:cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Sending...' : 'Continue'}
@@ -238,7 +243,7 @@ const LoginCard: React.FC = () => {
                 </button>
                 
                 <p className="text-[10px] md:text-xs text-gray-500 mt-4 text-center">
-                  By continuing, you agree to Procounsel's <a href="#" className="underline text-black">Terms & Condition</a> and <a href="#" className="underline text-black">Privacy Policy</a>
+                  By continuing, you agree to Procounsel's <a href="/terms" target="_blank" rel="noopener" className="underline text-black">Terms & Condition</a> and <a href="/privacy-policy" target="_blank" rel="noopener" className="underline text-black">Privacy Policy</a>
                 </p>
               </>
             )}

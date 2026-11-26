@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { IS_PRERENDER } from '@/lib/clientReady';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, ChevronUp, Loader2, Star, Users } from 'lucide-react';
 import {
@@ -75,7 +76,9 @@ export default function RevampCounselorTestsCard({ counsellorId, userRole = 'use
   const isCounselor = userRole === 'counselor';
   const isUserOrStudent = userRole === 'user' || userRole === 'student';
 
-  const { data, isLoading, error } = useQuery({
+  // Same as the courses card: not fetched during the prerender, so the saved
+  // page and the browser's first render both show the loading state.
+  const { data, isPending, error } = useQuery({
     queryKey: ['counsellorTestGroups', counsellorId, userId, userRole],
     queryFn: async () => {
       if (isCounselor) {
@@ -86,8 +89,9 @@ export default function RevampCounselorTestsCard({ counsellorId, userRole = 'use
       }
       return getAllTestGroupsForGuest();
     },
-    enabled: !!counsellorId,
+    enabled: !!counsellorId && !IS_PRERENDER,
   });
+  const isLoading = isPending && !!counsellorId;
 
   const testGroups = normalizeTestGroups(data, counsellorId);
   const displayedTestGroups = testGroups.slice(0, visibleCount);

@@ -19,7 +19,7 @@ export default function CutoffBanner({ className = "" }: { className?: string })
       </span>
       <span className="flex-1 min-w-0">
         <span className="block font-bold text-gray-800 leading-snug">
-          Check round-wise NEET 2026 cutoffs
+          Check round-wise NEET cutoffs
         </span>
         <span className="mt-0.5 block text-sm text-gray-500">
           See the closing rank of any MBBS/BDS college in every counselling round — AIQ & state quota.

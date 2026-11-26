@@ -15,9 +15,22 @@ export default function LoginPromptPopup() {
     const hasShown = sessionStorage.getItem(LOGIN_PROMPT_SHOWN_KEY) === "true";
     if (hasShown) return;
 
-    const timerId = window.setTimeout(() => {
+    let timerId = 0;
+    const show = () => {
+      // Not over the enquiry popup or the login dialog, and not while the
+      // visitor is typing into a form (it covered half-filled call-back forms).
+      // Try again a little later instead.
+      const active = document.activeElement;
+      const typing = !!active && /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName);
+      if (typing || document.querySelector("[data-enquiry-popup]") || useAuthStore.getState().isLoginToggle) {
+        timerId = window.setTimeout(show, 10000);
+        return;
+      }
       setIsVisible(true);
       sessionStorage.setItem(LOGIN_PROMPT_SHOWN_KEY, "true");
+    };
+    timerId = window.setTimeout(() => {
+      show();
     }, SHOW_DELAY_MS);
 
     return () => window.clearTimeout(timerId);
@@ -34,7 +47,7 @@ export default function LoginPromptPopup() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0E1629]/35 backdrop-blur-[2px] p-4">
+    <div data-login-prompt="" className="fixed inset-0 z-50 flex items-center justify-center bg-[#0E1629]/35 backdrop-blur-[2px] p-4">
       <div className="w-full max-w-[430px] rounded-2xl border border-[#DDE3F0] bg-white shadow-[0_24px_54px_rgba(14,22,41,0.25)] overflow-hidden">
         <div className="flex items-center justify-between bg-[#0E1629] px-5 py-4">
           <h3 className="font-poppins text-[17px] font-semibold text-white">

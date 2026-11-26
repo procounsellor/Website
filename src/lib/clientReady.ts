@@ -21,3 +21,20 @@ export function useClientReady(): boolean {
   }, []);
   return ready;
 }
+
+/** The day this bundle was built (YYYY-MM-DD). */
+export const BUILD_DATE: string =
+  typeof __BUILD_DATE__ === "string" ? __BUILD_DATE__ : new Date().toISOString().slice(0, 10);
+
+/**
+ * "Today" as YYYY-MM-DD for date-dependent UI (open/closed, upcoming/past).
+ * First render: the build day, identical in the prerender and the browser, so
+ * the saved HTML hydrates. After mount, in a real browser: the visitor's date.
+ */
+export function useToday(): string {
+  const [today, setToday] = useState(BUILD_DATE);
+  useEffect(() => {
+    if (!IS_PRERENDER) setToday(new Date().toISOString().slice(0, 10));
+  }, []);
+  return today;
+}

@@ -15,6 +15,20 @@ if (pathname.length > 1 && pathname.endsWith('/')) {
   window.history.replaceState(window.history.state, '', pathname.replace(/\/+$/, '') + search + hash)
 }
 
+// After a deploy, a tab opened on the previous version asks for code chunks
+// that no longer exist (each build renames them) and the page went blank
+// ("Failed to fetch dynamically imported module"). Reload once to pick up the
+// new version; the flag stops a reload loop if the chunk is genuinely broken.
+window.addEventListener('vite:preloadError', (event) => {
+  const KEY = 'pc-chunk-reload-at'
+  let last = 0
+  try { last = Number(sessionStorage.getItem(KEY)) || 0 } catch { /* storage blocked */ }
+  if (Date.now() - last < 60_000) return
+  try { sessionStorage.setItem(KEY, String(Date.now())) } catch { /* storage blocked */ }
+  event.preventDefault()
+  window.location.reload()
+})
+
 // react-snap only: just before a page is saved, make its HTML match what the
 // browser's first render produces, so hydrateRoot keeps it (see lib/prerenderSnapshot).
 installPrerenderSnapshotHook()

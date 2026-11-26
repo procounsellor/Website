@@ -40,9 +40,9 @@ describe("home structured data", () => {
 
   it("emits Events only for confirmed, not-yet-past exams", () => {
     const before = examEventSchemas(new Date(2026, 10, 20)).map((e) => e.name);
-    expect(before).toEqual(["CAT 2026", "SNAP 2026", "XAT 2027"]);
+    expect(before).toEqual(["CAT 2026", "SNAP 2026", "XAT 2027", "JEE Main 2027"]);
     const after = examEventSchemas(new Date(2026, 11, 1)).map((e) => e.name);
-    expect(after).toEqual(["SNAP 2026", "XAT 2027"]);
+    expect(after).toEqual(["SNAP 2026", "XAT 2027", "JEE Main 2027"]);
   });
 
   it("lists free public tools once each, without the signed-in app", () => {
