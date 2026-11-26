@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { IS_PRERENDER } from "@/lib/clientReady";
 import { Link } from "react-router-dom";
 import { NEXT_EXAM, daysUntil, formatExamDay, type ExamKey } from "@/data/homeExams";
 
@@ -74,6 +75,8 @@ export default function ExamSeasonStrip({ exam = "mba" }: { exam?: ExamKey }) {
   const [catContent, setCatContent] = useState<StripContent | null>(CAT_ISO ? BEFORE : null);
 
   useEffect(() => {
+    // Prerender keeps the date-independent first render (see lib/clientReady).
+    if (IS_PRERENDER) return;
     setCatContent(catStrip(new Date()));
   }, []);
 

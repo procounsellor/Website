@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { IS_PRERENDER } from "@/lib/clientReady";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { revealProps } from "./reveal";
@@ -87,6 +88,8 @@ function QuestionOfTheDay({ exam }: { exam: ExamKey }) {
   const [streak, setStreak] = useState(0);
 
   useEffect(() => {
+    // Prerender keeps the date-independent first render (see lib/clientReady).
+    if (IS_PRERENDER) return;
     setMounted(true);
     setAnswers(readJson<Record<string, number>>(ANSWER_KEY, {}));
     // A streak only counts if the last answer was today or yesterday.
@@ -191,6 +194,8 @@ function SeasonCard({ exam, onReadiness }: { exam: ExamKey; onReadiness: () => v
   const [ticked, setTicked] = useState<number[]>([]);
   const [remind, setRemind] = useState(false);
   useEffect(() => {
+    // Prerender keeps the date-independent first render (see lib/clientReady).
+    if (IS_PRERENDER) return;
     const iso = NEXT_EXAM.mba.date;
     setDays(iso ? daysUntil(iso) : null);
   }, []);
@@ -304,7 +309,11 @@ function SeasonCard({ exam, onReadiness }: { exam: ExamKey; onReadiness: () => v
 function MythCard({ exam }: { exam: ExamKey }) {
   const list = MYTHS[exam];
   const [i, setI] = useState(0);
-  useEffect(() => setI(dayIndex(list.length)), [exam, list.length]);
+  useEffect(() => {
+    // Prerender keeps the date-independent first render (see lib/clientReady).
+    if (IS_PRERENDER) return;
+    setI(dayIndex(list.length));
+  }, [exam, list.length]);
   const m = list[i % list.length];
   return (
     <div className={card}>

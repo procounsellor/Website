@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { IS_PRERENDER } from "@/lib/clientReady";
 import { Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 import { EXAM_DATES, EXAM_DATES_CHECKED, EXAM_LABEL, daysUntil } from "@/data/homeExams";
@@ -17,7 +18,11 @@ const hostOf = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "").replace(
  */
 export default function ExamDates() {
   const [now, setNow] = useState<Date | null>(null);
-  useEffect(() => setNow(new Date()), []);
+  useEffect(() => {
+    // Prerender keeps the date-independent first render (see lib/clientReady).
+    if (IS_PRERENDER) return;
+    setNow(new Date());
+  }, []);
 
   const isOver = (end: string | null) => (now && end ? daysUntil(end, now) < 0 : false);
 

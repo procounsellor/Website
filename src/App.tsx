@@ -4,7 +4,8 @@ import { useEffect, lazy, Suspense } from "react";
 import AppRoutes from "./routes/AppRoutes";
 import ScrollToTop from "./components/ui/ScrollToTop";
 import NoInternet from "./components/common/NoInternet";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./lib/queryClient";
 import { persistVisitSource } from "./lib/leadSource";
 
 // Dev-only: loaded as a separate chunk in dev, never bundled into production.
@@ -13,16 +14,6 @@ const ReactQueryDevtools = import.meta.env.DEV
       import("@tanstack/react-query-devtools").then((m) => ({ default: m.ReactQueryDevtools }))
     )
   : () => null;
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,  // prevents re-fetch flash when switching tabs
-      retry: 1,                     // one retry on failure (not 3)
-      staleTime: 60_000,            // 1-min default stale time
-    },
-  },
-});
 
 const ANALYTICS_API = "https://college-search-api.vercel.app";
 

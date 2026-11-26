@@ -111,6 +111,23 @@ async function main() {
       // would silently ship a home page without prerendered content.
       skipThirdPartyRequests: true,
       waitFor: 2000,
+      // react-snap's default minifier with collapseWhitespace OFF: React's
+      // {" "} spaces are real text nodes, and collapsing them changed the text
+      // ("collegefor") and broke hydration. Comments are kept: the Suspense and
+      // text-separator markers that let hydrateRoot adopt the page are comments.
+      // Desktop-width viewport (react-snap defaults to 480 px). Components that
+      // pick a layout from window.innerWidth after mount default to desktop; at
+      // 480 px they switched to mobile during the prerender, so the saved HTML no
+      // longer matched the browser's first render and hydration failed. CSS
+      // breakpoints still follow the visitor's real screen.
+      viewport: { width: 1280, height: 900 },
+      minifyHtml: {
+        collapseBooleanAttributes: true,
+        decodeEntities: true,
+        keepClosingSlash: true,
+        sortAttributes: true,
+        sortClassName: false,
+      },
       // A single crawler keeps react-snap's tiny local server from dropping
       // shared lazy chunks when many profile pages request them at once.
       concurrency: 1,

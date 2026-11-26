@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { IS_PRERENDER } from "@/lib/clientReady";
 import { Link } from "react-router-dom";
 import { ArrowRight, MapPin } from "lucide-react";
 import { COLLEGES_SNAPSHOT } from "@/data/contentSnapshot";
@@ -148,6 +149,6 @@ function CollegeLogo({ src, name }: { src: string; name: string }) {
     );
   }
   return (
-    <img src={src} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} className="max-h-full max-w-full object-contain" />
+    <img src={src} alt="" loading="lazy" decoding="async" onError={() => { if (!IS_PRERENDER) setFailed(true); }} className="max-h-full max-w-full object-contain" />
   );
 }

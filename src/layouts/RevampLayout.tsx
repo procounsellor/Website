@@ -6,6 +6,7 @@ import RevampBreadcrumbs from "@/components/Revamp/RevampBreadcrumbs";
 import { Navigate, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Bot } from "lucide-react";
+import { IS_PRERENDER } from "@/lib/clientReady";
 import { useAuthStore } from "@/store/AuthStore";
 import { useChatStore } from "@/store/ChatStore";
 import EnquiryPopup from "@/components/Revamp/shared/EnquiryPopup";
@@ -73,6 +74,9 @@ export default function RevampLayout() {
     // ask for reduced motion keep the static icon.
     useEffect(() => {
         let isMounted = true;
+        // Never during prerender: the saved HTML must show the static icon the
+        // browser renders first (see lib/clientReady).
+        if (IS_PRERENDER) return;
         if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
         let timer = 0;
         let idleId = 0;

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { IS_PRERENDER } from "@/lib/clientReady";
 import { Link, useNavigate } from "react-router-dom";
 import { getAuthorImageWithFallback, getAuthorProfileByName } from "@/lib/blogAuthors";
 
@@ -26,7 +27,11 @@ export default function BlogsPageCard({
   const [imageFailed, setImageFailed] = useState(false);
   // A missing/forbidden image (e.g. a 403 from storage) shows the placeholder, not a broken icon.
   const hasImage = Boolean(imageUrl?.trim()) && !imageFailed;
-  const [isImageLoading, setIsImageLoading] = useState(hasImage);
+  // Starts shown (no shimmer) so the first render matches the prerendered HTML,
+  // where the image had already loaded; in the browser the shimmer only appears
+  // if the image is still on its way.
+  const [isImageLoading, setIsImageLoading] = useState(false);
+  const imageNode = useRef<HTMLImageElement | null>(null);
   const canNavigate = Boolean(id);
   const authorProfile = getAuthorProfileByName(author);
   const [authorImage, setAuthorImage] = useState(
@@ -38,13 +43,12 @@ export default function BlogsPageCard({
   }, [authorProfile.imageUrl]);
 
   useEffect(() => {
-    setIsImageLoading(hasImage);
+    if (IS_PRERENDER) return;
+    setIsImageLoading(hasImage && !imageNode.current?.complete);
   }, [imageUrl, hasImage]);
 
   const handleImageRef = (node: HTMLImageElement | null) => {
-    if (node?.complete) {
-      setIsImageLoading(false);
-    }
+    imageNode.current = node;
   };
 
   const blogHref = slug?.trim()
@@ -110,7 +114,7 @@ export default function BlogsPageCard({
             onLoad={() => setIsImageLoading(false)}
             onError={() => {
                 setIsImageLoading(false);
-                setImageFailed(true);
+                if (!IS_PRERENDER) setImageFailed(true);
               }}
             className={`w-full h-[136px] rounded-[10px] object-cover transition-opacity duration-300 ${
               isImageLoading ? "opacity-0" : "opacity-100"
@@ -246,7 +250,7 @@ export default function BlogsPageCard({
                   onLoad={() => setIsImageLoading(false)}
                   onError={() => {
                 setIsImageLoading(false);
-                setImageFailed(true);
+                if (!IS_PRERENDER) setImageFailed(true);
               }}
                   className={`w-full h-[167px] rounded-[8px] object-cover transition-opacity duration-300 ${
                     isImageLoading ? "opacity-0" : "opacity-100"
