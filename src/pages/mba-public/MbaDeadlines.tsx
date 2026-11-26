@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from "react";
+import { IS_PRERENDER } from "@/lib/clientReady";
 import { Link, Navigate } from "react-router-dom";
 import { ArrowDownUp, CalendarPlus } from "lucide-react";
 import PageSEO from "@/components/SEO/PageSEO";
@@ -165,6 +166,10 @@ function Page() {
   const [mounted, setMounted] = useState(false);
   const { isAuthenticated, role } = useAuthStore();
   useEffect(() => {
+    // Not during the prerender: react-snap runs effects before saving, so the
+    // build day's "Passed" labels were saved and the browser's first render
+    // (no "today" yet) no longer matched; hydration failed.
+    if (IS_PRERENDER) return;
     setToday(new Date().toISOString().slice(0, 10));
     setMounted(true);
   }, []);

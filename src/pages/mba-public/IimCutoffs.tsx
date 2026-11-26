@@ -58,6 +58,9 @@ const PERCENTILE_LINKS = MBA_PERCENTILES.filter((p) => isPublished(percentilePat
 }));
 
 const YEAR = CAT_LATEST.year;
+/** The batch CAT {YEAR} scores are used for; rows from any older policy are last year's. */
+const CURRENT_BATCH = [...POLICY_BATCHES].sort().at(-1) ?? "";
+const ON_CURRENT = INSTITUTES_ON_LATEST_BATCH.length;
 
 const FAQS: Faq[] = [
   {
@@ -113,15 +116,17 @@ export default function IimCutoffs() {
   return (
     <>
       <PageSEO
-        title={`IIM Cut-off ${YEAR}: CAT Minimum Percentiles`}
-        description={`IIM cut-offs for CAT ${YEAR}: official minimum percentiles of all ${COUNT} IIMs for General, EWS, NC-OBC, SC and ST, overall and sectional, with batch.`}
+        // Not "IIM cut-off ${YEAR}": most IIMs haven't published for CAT ${YEAR}
+        // yet, so most rows are last year's policy. Say so, in search results too.
+        title="IIM CAT Cut-offs: Latest Official Minimums"
+        description={`Official minimum CAT percentiles of all ${COUNT} IIMs by category. CAT ${YEAR} cut-offs: ${ON_CURRENT} of ${COUNT} out so far; other rows are last year's, updated as IIMs publish.`}
         canonical={IIM_CUTOFFS_PATH}
         jsonLd={jsonLd}
       />
       <PageShell>
         <Hero
           crumbs={CRUMBS}
-          eyebrow={`Official data · ${POLICY_BATCHES.join(" / ")} policies`}
+          eyebrow="Official data · latest published policies"
           title="IIM CAT Cut-offs: Minimum Percentiles by Category"
           answer={
             <p>
@@ -132,6 +137,26 @@ export default function IimCutoffs() {
             </p>
           }
         />
+
+        {ON_CURRENT < COUNT && (
+          <Container className="mt-6">
+            <div
+              role="note"
+              className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-[14px] leading-relaxed text-amber-950"
+            >
+              <strong className="font-semibold">
+                Most IIMs have not released their CAT {YEAR} cut-offs yet.
+              </strong>{" "}
+              {ON_CURRENT > 0 ? (
+                <>
+                  Only {LATEST} {ON_CURRENT === 1 ? "has" : "have"} published minimums for the {CURRENT_BATCH} batch.{" "}
+                </>
+              ) : null}
+              The other rows show each IIM&rsquo;s previous policy (CAT {YEAR - 1}), marked &ldquo;last year&rdquo;: use
+              them as a guide, not as this year&rsquo;s cut-off. We update each row as its IIM publishes.
+            </div>
+          </Container>
+        )}
 
         <Container className="mt-8 space-y-12">
           <Section
@@ -198,7 +223,12 @@ export default function IimCutoffs() {
                             </a>
                           )}
                         </Td>
-                        <Td>{first.policyBatch}</Td>
+                        <Td>
+                          {first.policyBatch}
+                          {first.policyBatch !== CURRENT_BATCH && (
+                            <span className="mt-0.5 block text-[11.5px] font-medium text-amber-700">last year</span>
+                          )}
+                        </Td>
                         {byCategory.map((row, ci) => (
                           <Td key={MBA_CATEGORIES[ci].id}>
                             <ThresholdCell records={row.records} />

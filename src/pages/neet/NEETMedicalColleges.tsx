@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { IS_PRERENDER } from "@/lib/clientReady";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Select,
@@ -45,6 +46,10 @@ export default function NEETMedicalColleges() {
   const directoryRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Not during the prerender: the API is blocked there, so the page was saved
+    // as "0 colleges · 0 MBBS seats" (for Google too) while the browser's first
+    // render says "Loading…", and hydration failed. Both now start loading.
+    if (IS_PRERENDER) return;
     getInstitutes()
       .then((res) => {
         if (res) {
