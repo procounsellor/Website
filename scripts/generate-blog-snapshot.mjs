@@ -42,7 +42,8 @@ async function readApiBaseUrl() {
 
 async function readJson(file) {
   try {
-    return JSON.parse(await fs.readFile(file, "utf8"));
+    // The cached copy (used when the API is down) predates the repair, so repair it too.
+    return repairText(JSON.parse(await fs.readFile(file, "utf8")));
   } catch {
     return null;
   }

@@ -608,7 +608,7 @@ export interface DeadlineSnapshotItem {
 
 async function readCache() {
   try {
-    return JSON.parse(await fs.readFile(CACHE_PATH, "utf8"));
+    return repairText(JSON.parse(await fs.readFile(CACHE_PATH, "utf8")));
   } catch {
     return null;
   }
