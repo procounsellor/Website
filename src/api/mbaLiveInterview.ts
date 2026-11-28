@@ -85,7 +85,7 @@ export const liveInterviewApi = {
     procounselApi.get<{ interviews: LiveInterviewSummary[] }>(`${MBA}/me/live-interviews`).then((r) => r.data),
   get: (id: string) => procounselApi.get<LiveInterview>(path(id)).then((r) => r.data),
   answer: (id: string, answerText: string) =>
-    procounselApi.post<LiveTurnResponse>(`${path(id)}/answers`, { answerText }, { timeout: 60_000 }).then((r) => r.data),
+    procounselApi.post<LiveTurnResponse>(`${path(id)}/answers`, { answerText }, { timeout: 90_000 }).then((r) => r.data),
   /** Raw recording as the body; the server transcribes it and discards the audio. */
   answerVoice: (id: string, audio: Blob, durationSeconds: number) =>
     procounselApi
@@ -95,7 +95,8 @@ export const liveInterviewApi = {
         timeout: 120_000,
       })
       .then((r) => r.data),
-  finish: (id: string) => procounselApi.post<LiveTurnResponse>(`${path(id)}/finish`).then((r) => r.data),
+  // The final report is an AI call too: 90 s, not the 30 s default.
+  finish: (id: string) => procounselApi.post<LiveTurnResponse>(`${path(id)}/finish`, undefined, { timeout: 90_000 }).then((r) => r.data),
 };
 
 export const liveKeys = {

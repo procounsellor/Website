@@ -174,7 +174,10 @@ export const gdpiApi = {
     procounselApi.get<GdpiSession>(`${MBA}/me/gdpi/sessions/${encodeURIComponent(id)}`).then((r) => r.data),
   submitAnswer: (id: string, body: { questionId: string; answerText: string }) =>
     procounselApi
-      .post<AnswerResponse>(`${MBA}/me/gdpi/sessions/${encodeURIComponent(id)}/answers`, body)
+      // The server's AI call can take up to ~60 s (30 s timeout + 1 retry); at the
+      // default 30 s the browser gave up while the server still saved feedback and
+      // spent the student's credit, and a retry then failed with 409.
+      .post<AnswerResponse>(`${MBA}/me/gdpi/sessions/${encodeURIComponent(id)}/answers`, body, { timeout: 90_000 })
       .then((r) => r.data),
   /** Raw recording as the body; the server transcribes it and discards the audio. */
   submitVoiceAnswer: (id: string, questionId: string, audio: Blob, durationSeconds: number) =>
@@ -230,6 +233,11 @@ export const useSubmitGdpiVoiceAnswer = () => {
   return useMutation({
     mutationFn: ({ sessionId, questionId, audio, durationSeconds }: { sessionId: string; questionId: string; audio: Blob; durationSeconds: number }) =>
       gdpiApi.submitVoiceAnswer(sessionId, questionId, audio, durationSeconds),
+    // A timeout or 409 can mean the server saved the feedback anyway: reload the
+    // session so it shows, instead of leaving the student stuck on the question.
+    onError: (_err, vars) => {
+      void qc.invalidateQueries({ queryKey: gdpiKeys.session(vars.sessionId) });
+    },
     onSuccess: (res) => {
       qc.setQueryData(gdpiKeys.session(res.session.id), res.session);
       void qc.invalidateQueries({ queryKey: gdpiKeys.sessions });
@@ -259,7 +267,12 @@ export function gdpiErrorMessage(err: unknown, fallback: string): string {
       return "You've used today's AI feedback limit (shared with practice hints). It resets at midnight IST.";
     case 503:
       return "AI feedback isn't available right now. Please try again later.";
+    case 409:
+      return "This answer already has feedback. Loading it now…";
     default: {
+      if ((err as { code?: string })?.code === "ECONNABORTED") {
+        return "This is taking longer than usual. Your answer may already be saved: wait a moment and refresh the page.";
+      }
       const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
       return typeof detail === "string" && detail.trim() ? detail : fallback;
     }
