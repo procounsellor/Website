@@ -16,26 +16,65 @@ const MBA = "/mba";
 
 export type LiveBand = "ready" | "almost" | "needs_work";
 
+/** Camera on: one answer's body-language numbers, measured on this device (no video is sent). */
+export interface Presence {
+  durationSeconds: number;
+  samples: number;
+  faceVisiblePct: number;
+  eyeContactPct: number;
+  lookAwayCount: number;
+  smilePct: number;
+  steadiness: number;
+}
+
+/** The panel seat that asks a question: the chair, the academic or the industry member. */
+export type Panelist = "chair" | "academic" | "industry";
+
 export interface LiveTurn {
   number: number;
   question: string;
   questionType: string;
+  /** Older interviews may not have it. */
+  askedBy?: Panelist;
   askedAt: string;
   answerText: string | null;
   mode: "text" | "voice" | null;
   delivery: Delivery | null;
+  presence?: Presence | null;
   scores: FeedbackScores | null;
   note: string | null;
   answeredAt: string | null;
 }
 
+export interface ReportSection {
+  score: number | null;
+  notes: string[];
+}
+
 export interface LiveReport {
   overall: number | null;
+  /** Every 1-5 score in the report, averaged, on a 100-point scale. */
+  score100?: number | null;
   scores: FeedbackScores | null;
   band: LiveBand | null;
   summary: string;
   strengths: string[];
   improvements: string[];
+  mistakes?: string[];
+  communication?: ReportSection | null;
+  knowledge?: ReportSection | null;
+  /** Only when the camera was on. */
+  bodyLanguage?: ReportSection | null;
+  nextSteps?: string[];
+  voice?: { answers: number; wordsPerMinute: number; fillerCount: number } | null;
+  camera?: {
+    answers: number;
+    faceVisiblePct: number;
+    eyeContactPct: number;
+    lookAwaysPerMinute: number;
+    smilePct: number;
+    steadiness: number;
+  } | null;
   fallback: boolean;
 }
 
@@ -84,13 +123,18 @@ export const liveInterviewApi = {
   list: () =>
     procounselApi.get<{ interviews: LiveInterviewSummary[] }>(`${MBA}/me/live-interviews`).then((r) => r.data),
   get: (id: string) => procounselApi.get<LiveInterview>(path(id)).then((r) => r.data),
-  answer: (id: string, answerText: string) =>
-    procounselApi.post<LiveTurnResponse>(`${path(id)}/answers`, { answerText }, { timeout: 90_000 }).then((r) => r.data),
+  answer: (id: string, answerText: string, presence?: Presence | null) =>
+    procounselApi
+      .post<LiveTurnResponse>(`${path(id)}/answers`, presence ? { answerText, presence } : { answerText }, { timeout: 90_000 })
+      .then((r) => r.data),
   /** Raw recording as the body; the server transcribes it and discards the audio. */
-  answerVoice: (id: string, audio: Blob, durationSeconds: number) =>
+  answerVoice: (id: string, audio: Blob, durationSeconds: number, presence?: Presence | null) =>
     procounselApi
       .post<LiveTurnResponse>(`${path(id)}/answers/voice`, audio, {
-        params: { durationSeconds: Math.round(durationSeconds * 10) / 10 },
+        params: {
+          durationSeconds: Math.round(durationSeconds * 10) / 10,
+          ...(presence ? { presence: JSON.stringify(presence) } : {}),
+        },
         headers: { "Content-Type": audio.type || "audio/webm" },
         timeout: 120_000,
       })
@@ -138,7 +182,8 @@ export const useCreateLiveInterview = () => {
 export const useLiveAnswer = () => {
   const store = useStore();
   return useMutation({
-    mutationFn: ({ id, answerText }: { id: string; answerText: string }) => liveInterviewApi.answer(id, answerText),
+    mutationFn: ({ id, answerText, presence }: { id: string; answerText: string; presence?: Presence | null }) =>
+      liveInterviewApi.answer(id, answerText, presence),
     onSuccess: (res) => store(res.interview),
   });
 };
@@ -146,8 +191,8 @@ export const useLiveAnswer = () => {
 export const useLiveVoiceAnswer = () => {
   const store = useStore();
   return useMutation({
-    mutationFn: ({ id, audio, durationSeconds }: { id: string; audio: Blob; durationSeconds: number }) =>
-      liveInterviewApi.answerVoice(id, audio, durationSeconds),
+    mutationFn: ({ id, audio, durationSeconds, presence }: { id: string; audio: Blob; durationSeconds: number; presence?: Presence | null }) =>
+      liveInterviewApi.answerVoice(id, audio, durationSeconds, presence),
     onSuccess: (res) => store(res.interview),
   });
 };
