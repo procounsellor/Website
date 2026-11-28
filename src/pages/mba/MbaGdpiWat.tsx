@@ -175,7 +175,15 @@ function Writer({ session, fetchedAt }: { session: GdpiSession; fetchedAt: numbe
       <h2 className="ss-display text-[19px] leading-snug text-[var(--ink)] md:text-[22px]">{topic.prompt}</h2>
       {timeUp && (
         <p role="status" className="rounded-xl bg-[var(--neutral-50)] p-3 font-[Poppins] text-[12px] text-[var(--neutral-600)]">
-          Time's up. {trimmed.length >= MIN_ANSWER_CHARS ? 'Your essay has been handed in.' : 'You can still submit — it will be marked as over time.'}
+          {/* From the real submit result: it said "handed in" even when the auto-submit failed. */}
+          Time's up.{' '}
+          {trimmed.length < MIN_ANSWER_CHARS
+            ? 'You can still submit — it will be marked as over time.'
+            : submit.isPending
+              ? 'Handing in your essay…'
+              : submit.isError
+                ? "We couldn't hand it in. Press Submit essay below to try again."
+                : 'Your essay has been handed in.'}
         </p>
       )}
       <label className="block font-[Poppins] text-[12px] font-semibold text-[var(--neutral-600)]">

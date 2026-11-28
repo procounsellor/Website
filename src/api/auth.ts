@@ -1,5 +1,6 @@
 import type { PatchUser } from '@/types'
 import {API_CONFIG} from './config'
+import { getToken } from '@/lib/tokenManager'
 
 const baseUrl = API_CONFIG.baseUrl
 
@@ -283,11 +284,15 @@ export async function schoolStudentSignup(
   payload: SchoolStudentSignupPayload
 ): Promise<SchoolStudentSignupResponse> {
   try {
+    // The backend requires the token from OTP verification for this phone
+    // (cached in memory by setTempJwt), so nobody can sign up as someone else.
+    const token = getToken();
     const response = await fetch(`${baseUrl}/api/auth/schoolStudentSignup`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify(payload),
     });
