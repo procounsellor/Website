@@ -65,7 +65,7 @@ export default function ContactPage() {
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Email Us</h3>
             <a 
-              href="mailto:hr@procounsel.co.in" 
+              href="mailto:support@procounsel.co.in" 
               className="text-blue-600 hover:text-blue-700 font-medium transition-colors block mb-4 cursor-pointer"
             >
               support@procounsel.co.in
@@ -154,7 +154,7 @@ export default function ContactPage() {
               Call Now: +91 7004789484
             </a>
             <a 
-              href="mailto:hr@procounsel.co.in"
+              href="mailto:support@procounsel.co.in"
               className="bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg hover:bg-blue-800 transition-colors inline-flex items-center justify-center gap-2 cursor-pointer"
             >
               <Mail className="w-5 h-5" />
