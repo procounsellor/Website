@@ -40,7 +40,7 @@ const MONTHS: Record<string, string> = { jan: "01", feb: "02", mar: "03", apr: "
 
 /** The last "12 Dec 2026"-style date in a value, as YYYY-MM-DD (null if none). */
 function lastDateIn(value: string): string | null {
-  const all = [...value.matchAll(/(d{1,2})s+([A-Za-z]{3})[a-z]*.?s+(d{4})/g)];
+  const all = [...value.matchAll(/(\d{1,2})\s+([A-Za-z]{3})[a-z]*\.?\s+(\d{4})/g)];
   const m = all[all.length - 1];
   const month = m && MONTHS[m[2].toLowerCase()];
   return m && month ? `${m[3]}-${month}-${m[1].padStart(2, "0")}` : null;
@@ -55,7 +55,7 @@ function examDay(id: string): string | null {
   if (id === "cat") return CAT_2026_KEY_DATES.find((d) => d.label === "Exam date")?.value.split(",").slice(0, 2).join(",") ?? null;
   const e = examInfo(id);
   const candidates = (e?.dates ?? []).filter(
-    (x) => /exam|test date|test window|slot|SNAP 0d|CBT/i.test(x.label) && !/admit|registration|result/i.test(x.label),
+    (x) => /exam|test date|test window|slot|SNAP 0\d|CBT/i.test(x.label) && !/admit|registration|result/i.test(x.label),
   );
   const next = candidates.find((x) => {
     const end = lastDateIn(x.value);
