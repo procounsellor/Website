@@ -110,7 +110,8 @@ describe("/mba/gdpi/live", () => {
     await user.type(screen.getByLabelText("Your answer"), ANSWER);
     await user.click(send);
 
-    expect(answer).toHaveBeenCalledWith("iv1", ANSWER);
+    // Camera off: no body-language numbers go with the answer.
+    expect(answer).toHaveBeenCalledWith("iv1", ANSWER, null);
     expect(await screen.findByRole("heading", { name: /Follow-up 2/ })).toBeInTheDocument();
     expect(screen.getByText(/Question 2 of 3/)).toBeInTheDocument();
     // Like a real panel: the coaching note waits for the report.
@@ -152,6 +153,61 @@ describe("/mba/gdpi/live", () => {
     expect(screen.getByText("Quantify your impact")).toBeInTheDocument();
     expect(screen.getByText("Lead with your point.")).toBeInTheDocument();
     expect(screen.getByText(/does not predict shortlisting or admission/)).toBeInTheDocument();
+  });
+
+  it("shows the detailed report: score out of 100, mistakes, communication, knowledge, body language, next steps", async () => {
+    const cam = { durationSeconds: 60, samples: 240, faceVisiblePct: 96, eyeContactPct: 72, lookAwayCount: 3, smilePct: 18, steadiness: 81 };
+    vi.spyOn(liveInterviewApi, "get").mockResolvedValue(
+      interview({
+        status: "completed",
+        totalQuestions: 1,
+        turns: [turn(1, { answerText: ANSWER, mode: "text", presence: cam })],
+        completedAt: "2026-11-28T10:00:00.000Z",
+        report: {
+          overall: 3.5,
+          score100: 71,
+          scores: { structure: 4, clarity: 3, relevance: 4, completeness: 3 },
+          band: "almost",
+          summary: "Solid base.",
+          strengths: ["Specific numbers"],
+          mistakes: ["You said 'many things' without one example."],
+          improvements: ["Quantify your impact"],
+          communication: { score: 4, notes: ["Steady and clear."] },
+          knowledge: { score: 3, notes: ["Thin on finance basics."] },
+          bodyLanguage: { score: 4, notes: ["Good eye contact overall."] },
+          nextSteps: ["Record two answers a day and replay them."],
+          voice: null,
+          camera: { answers: 1, faceVisiblePct: 96, eyeContactPct: 72, lookAwaysPerMinute: 3, smilePct: 18, steadiness: 81 },
+          fallback: false,
+        },
+      }),
+    );
+    renderAt("/mba/gdpi/live?interview=iv1");
+
+    expect(await screen.findByRole("heading", { name: "71 / 100 overall" })).toBeInTheDocument();
+    expect(screen.getByText("Mistakes the panel would notice")).toBeInTheDocument();
+    expect(screen.getByText("You said 'many things' without one example.")).toBeInTheDocument();
+    expect(screen.getByText("Communication & confidence")).toBeInTheDocument();
+    expect(screen.getByText("Thin on finance basics.")).toBeInTheDocument();
+    expect(screen.getByText("Body language & eye contact")).toBeInTheDocument();
+    expect(screen.getByText(/Eye contact 72% · in frame 96%/)).toBeInTheDocument();
+    expect(screen.getByText("Record two answers a day and replay them.")).toBeInTheDocument();
+  });
+
+  it("asks for the camera next time when the interview had no camera numbers", async () => {
+    vi.spyOn(liveInterviewApi, "get").mockResolvedValue(
+      interview({
+        status: "completed",
+        totalQuestions: 1,
+        turns: [turn(1, { answerText: ANSWER, mode: "text" })],
+        report: {
+          overall: 3, score100: 60, scores: { structure: 3, clarity: 3, relevance: 3, completeness: 3 }, band: "almost",
+          summary: "s", strengths: [], improvements: ["x"], bodyLanguage: null, camera: null, fallback: false,
+        },
+      }),
+    );
+    renderAt("/mba/gdpi/live?interview=iv1");
+    expect(await screen.findByText(/Turn on your camera next time/)).toBeInTheDocument();
   });
 
   it("explains the daily AI limit when the backend says 429", async () => {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Camera, CameraOff, Mic, Keyboard, Volume2, VolumeX, RotateCcw, Users } from 'lucide-react';
+import { ArrowLeft, Camera, CameraOff, Mic, Keyboard, Volume2, VolumeX, RotateCcw } from 'lucide-react';
 import SkyBanner from '@/components/school-student/SkyBanner';
 import { Skeleton, StateBlock } from '@/components/mba/ui';
 import { Pill, ScoreBars } from '@/components/mba/GdpiFeedback';
@@ -18,7 +18,21 @@ import {
   useLiveVoiceAnswer,
   type LiveBand,
   type LiveInterview,
+  type Panelist,
+  type ReportSection,
 } from '@/api/mbaLiveInterview';
+import { usePresenceTracker, type TrackerStatus } from '@/lib/presenceTracker';
+
+/* ------------------------------------------------------------------ */
+/* The panel: three seats, as at a real B-school PI                    */
+/* ------------------------------------------------------------------ */
+
+const PANEL: { id: Panelist; initial: string; label: string }[] = [
+  { id: 'chair', initial: 'C', label: 'Panel chair' },
+  { id: 'academic', initial: 'A', label: 'Faculty member' },
+  { id: 'industry', initial: 'I', label: 'Industry member' },
+];
+const panelSeat = (id: Panelist | undefined) => PANEL.find((p) => p.id === id) ?? PANEL[0];
 
 /* ------------------------------------------------------------------ */
 /* Preferences (read aloud / camera), remembered for this browser tab */
@@ -89,7 +103,18 @@ function useSpeech() {
 /* Camera self-view (local only, never recorded or sent)              */
 /* ------------------------------------------------------------------ */
 
-function SelfView({ on }: { on: boolean }) {
+function SelfView({
+  on,
+  onVideo,
+  tracking,
+  lookingAtScreen,
+}: {
+  on: boolean;
+  /** Gets the playing <video> (or null) so the room can track body language on this device. */
+  onVideo?: (video: HTMLVideoElement | null) => void;
+  tracking?: TrackerStatus;
+  lookingAtScreen?: boolean | null;
+}) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState('');
 
@@ -110,13 +135,19 @@ function SelfView({ on }: { on: boolean }) {
         }
         stream = s;
         setError('');
-        if (videoRef.current) videoRef.current.srcObject = s;
+        if (videoRef.current) {
+          videoRef.current.srcObject = s;
+          onVideo?.(videoRef.current);
+        }
       })
       .catch(() => setError('Camera blocked. You can still do the interview without it.'));
     return () => {
       cancelled = true;
+      onVideo?.(null);
       stream?.getTracks().forEach((t) => t.stop());
     };
+    // onVideo is a state setter from the room (stable).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [on]);
 
   if (!on) return null;
@@ -128,6 +159,19 @@ function SelfView({ on }: { on: boolean }) {
         <video ref={videoRef} autoPlay muted playsInline className="aspect-[4/3] w-full -scale-x-100 object-cover" aria-label="Your camera (only you can see it)" />
       )}
       <span className="absolute bottom-1.5 left-2 rounded-full bg-black/55 px-2 py-0.5 font-[Poppins] text-[10px] text-white">You · not recorded</span>
+      {!error && tracking === 'loading' && (
+        <span className="absolute right-2 top-1.5 rounded-full bg-black/55 px-2 py-0.5 font-[Poppins] text-[10px] text-white">Setting up…</span>
+      )}
+      {!error && tracking === 'tracking' && lookingAtScreen != null && (
+        <span
+          className={`absolute right-2 top-1.5 rounded-full px-2 py-0.5 font-[Poppins] text-[10px] font-semibold ${lookingAtScreen ? 'bg-emerald-500/85 text-white' : 'bg-amber-400/90 text-[#1f1300]'}`}
+        >
+          {lookingAtScreen ? 'Eye contact' : 'Look at the panel'}
+        </span>
+      )}
+      {!error && tracking === 'unavailable' && (
+        <span className="absolute right-2 top-1.5 rounded-full bg-black/55 px-2 py-0.5 font-[Poppins] text-[10px] text-white">Body language off</span>
+      )}
     </div>
   );
 }
@@ -249,9 +293,15 @@ function Setup({ onStarted }: { onStarted: (id: string, prefs: Prefs) => void })
           <input type="checkbox" checked={prefs.readAloud} onChange={(e) => setPrefs((p) => ({ ...p, readAloud: e.target.checked }))} className="h-4 w-4" />
           Read questions aloud
         </label>
-        <label className="inline-flex cursor-pointer items-center gap-2 font-[Poppins] text-[13px] text-[var(--ink)]">
-          <input type="checkbox" checked={prefs.camera} onChange={(e) => setPrefs((p) => ({ ...p, camera: e.target.checked }))} className="h-4 w-4" />
-          Show my camera (only to me, never recorded)
+        <label className="inline-flex cursor-pointer items-start gap-2 font-[Poppins] text-[13px] text-[var(--ink)]">
+          <input type="checkbox" checked={prefs.camera} onChange={(e) => setPrefs((p) => ({ ...p, camera: e.target.checked }))} className="mt-0.5 h-4 w-4" />
+          <span>
+            Turn on my camera, like a real panel would see me
+            <span className="block text-[12px] text-[var(--neutral-500)]">
+              Your report then covers eye contact and body language. Your face is analysed on this device only:
+              no video or photo is recorded or sent.
+            </span>
+          </span>
         </label>
       </div>
 
@@ -298,11 +348,17 @@ function Room({ interview, prefs, onPrefs }: { interview: LiveInterview; prefs: 
   const pending = answer.isPending || voice.isPending || finish.isPending;
   const error = answer.error ?? voice.error ?? finish.error;
   const questionRef = useRef<HTMLHeadingElement>(null);
+  // Body language: face tracking on this device while the camera is on.
+  const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
+  const presence = usePresenceTracker(videoEl, prefs.camera);
+  const seat = panelSeat(current.askedBy);
 
-  // New question: read it aloud (if on), reset the answer clock and the text box, move focus to it.
+  // New question: read it aloud (if on), reset the answer clock, the text box and
+  // the body-language totals, move focus to it.
   useEffect(() => {
     setElapsed(0);
     setText('');
+    presence.reset();
     questionRef.current?.focus();
     if (prefs.readAloud) speak(current.question);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the question changes
@@ -361,17 +417,34 @@ function Room({ interview, prefs, onPrefs }: { interview: LiveInterview; prefs: 
 
       <div className="grid gap-5 p-4 md:grid-cols-[1fr_200px] md:p-6">
         <div className="space-y-5">
-          {/* The panel */}
+          {/* The panel: three seats; the one asking is lit */}
+          <ul className="flex flex-wrap gap-2" aria-label="Interview panel">
+            {PANEL.map((p) => {
+              const asking = p.id === seat.id;
+              return (
+                <li
+                  key={p.id}
+                  className={`flex items-center gap-2 rounded-full py-1 pl-1 pr-3 font-[Poppins] text-[12px] transition-colors ${asking ? 'bg-white/15 text-white' : 'bg-white/5 text-white/55'}`}
+                  aria-current={asking ? 'true' : undefined}
+                >
+                  <span
+                    className={`relative flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-semibold ${asking ? 'bg-gradient-to-br from-[#2F43F2] to-[#6D28D9] text-white' : 'bg-white/10'}`}
+                    aria-hidden
+                  >
+                    {p.initial}
+                    {asking && (speaking || pending) && (
+                      <span className="absolute -inset-1 rounded-full ring-2 ring-[#FDBA74]/70 motion-safe:animate-pulse" />
+                    )}
+                  </span>
+                  {p.label}
+                </li>
+              );
+            })}
+          </ul>
           <div className="flex items-start gap-3">
-            <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#2F43F2] to-[#6D28D9]">
-              <Users className="h-6 w-6" aria-hidden />
-              {(speaking || pending) && (
-                <span className="absolute -inset-1 rounded-full ring-2 ring-[#FDBA74]/70 motion-safe:animate-pulse" aria-hidden />
-              )}
-            </span>
             <div className="min-w-0 flex-1">
               <p className="font-[Poppins] text-[12px] font-semibold uppercase tracking-wider text-[#AFC2FF]">
-                The panel {speaking ? '· speaking' : pending ? '· noting your answer…' : ''}
+                {pending ? 'The panel · noting your answer…' : `${seat.label} asks${speaking ? ' · speaking' : ''}`}
               </p>
               <div aria-live="polite">
                 {pending ? (
@@ -416,7 +489,7 @@ function Room({ interview, prefs, onPrefs }: { interview: LiveInterview; prefs: 
                   disabled={mbaStatus(voice.error) === 429}
                   onSend={(audio, seconds) => {
                     stop();
-                    voice.mutate({ id: interview.id, audio, durationSeconds: seconds });
+                    voice.mutate({ id: interview.id, audio, durationSeconds: seconds, presence: presence.snapshot() });
                   }}
                   sendLabel="Send answer"
                   pendingLabel="The panel is listening…"
@@ -439,7 +512,7 @@ function Room({ interview, prefs, onPrefs }: { interview: LiveInterview; prefs: 
                       disabled={!canSendText}
                       onClick={() => {
                         stop();
-                        answer.mutate({ id: interview.id, answerText: text.trim() });
+                        answer.mutate({ id: interview.id, answerText: text.trim(), presence: presence.snapshot() });
                       }}
                       className="btn-primary cursor-pointer px-5 py-2.5 font-[Poppins] text-[13px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
                     >
@@ -459,7 +532,7 @@ function Room({ interview, prefs, onPrefs }: { interview: LiveInterview; prefs: 
         </div>
 
         <aside className="space-y-3">
-          <SelfView on={prefs.camera} />
+          <SelfView on={prefs.camera} onVideo={setVideoEl} tracking={presence.status} lookingAtScreen={presence.lookingAtScreen} />
           <div className="rounded-2xl bg-white/5 p-3 font-[Poppins] text-[12px] leading-relaxed text-white/75">
             <p className="font-semibold text-white">Tips from real panels</p>
             <ul className="mt-1.5 list-disc space-y-1 pl-4">
@@ -497,6 +570,34 @@ const BAND: Record<LiveBand, { label: string; tone: string }> = {
   needs_work: { label: 'Needs work', tone: 'bg-[#FFF1E6] text-[#C2410C]' },
 };
 
+function ListBlock({ title, tone, items }: { title: string; tone: string; items: string[] }) {
+  return (
+    <div>
+      <h3 className={`font-[Poppins] text-[13px] font-bold ${tone}`}>{title}</h3>
+      <ul className="mt-1.5 list-disc space-y-1 pl-5 font-[Poppins] text-[13px] text-[var(--ink)]">
+        {items.map((s) => <li key={s}>{s}</li>)}
+      </ul>
+    </div>
+  );
+}
+
+function SectionCard({ title, section, children }: { title: string; section: ReportSection; children?: React.ReactNode }) {
+  return (
+    <div className="space-y-1.5 rounded-2xl bg-[var(--neutral-50)] p-3.5 font-[Poppins] text-[12.5px] text-[var(--ink)]">
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="font-semibold">{title}</p>
+        {section.score != null && <span className="shrink-0 text-[13px] font-semibold text-[#2F43F2]">{section.score} / 5</span>}
+      </div>
+      {section.notes.length > 0 && (
+        <ul className="list-disc space-y-1 pl-4">
+          {section.notes.map((n) => <li key={n}>{n}</li>)}
+        </ul>
+      )}
+      {children && <div className="text-[11.5px] text-[var(--neutral-500)]">{children}</div>}
+    </div>
+  );
+}
+
 function Report({ interview, onRestart }: { interview: LiveInterview; onRestart: () => void }) {
   const report = interview.report;
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -508,8 +609,17 @@ function Report({ interview, onRestart }: { interview: LiveInterview; onRestart:
           <div>
             <p className="font-[Poppins] text-[12px] font-semibold uppercase tracking-wider text-[var(--neutral-500)]">Your interview report</p>
             <h2 ref={headingRef} tabIndex={-1} className="ss-display mt-1 text-[22px] text-[var(--ink)] outline-none">
-              {report?.overall != null ? `${report.overall.toFixed(1)} / 5 overall` : 'Interview complete'}
+              {report?.score100 != null
+                ? `${report.score100} / 100 overall`
+                : report?.overall != null
+                  ? `${report.overall.toFixed(1)} / 5 overall`
+                  : 'Interview complete'}
             </h2>
+            {report?.score100 != null && report.overall != null && (
+              <p className="mt-0.5 font-[Poppins] text-[12px] text-[var(--neutral-500)]">
+                Answers {report.overall.toFixed(1)} / 5, plus communication, knowledge{report.bodyLanguage ? ' and body language' : ''}
+              </p>
+            )}
           </div>
           {report?.band && <span className={`rounded-full px-3 py-1 font-[Poppins] text-[13px] font-semibold ${BAND[report.band].tone}`}>{BAND[report.band].label}</span>}
         </div>
@@ -517,20 +627,52 @@ function Report({ interview, onRestart }: { interview: LiveInterview; onRestart:
         {report?.scores && <ScoreBars scores={report.scores} />}
         <div className="grid gap-4 md:grid-cols-2">
           {report && report.strengths.length > 0 && (
-            <div>
-              <h3 className="font-[Poppins] text-[13px] font-bold text-[#146C43]">What went well</h3>
-              <ul className="mt-1.5 list-disc space-y-1 pl-5 font-[Poppins] text-[13px] text-[var(--ink)]">
-                {report.strengths.map((s) => <li key={s}>{s}</li>)}
-              </ul>
-            </div>
+            <ListBlock title="What you did well" tone="text-[#146C43]" items={report.strengths} />
           )}
+          {report && (report.mistakes?.length ?? 0) > 0 && (
+            <ListBlock title="Mistakes the panel would notice" tone="text-[#B42318]" items={report.mistakes ?? []} />
+          )}
+        </div>
+
+        {report && (report.communication || report.knowledge || report.bodyLanguage || !report.fallback) && (
+          <div className="grid gap-3 md:grid-cols-3">
+            {report.communication && (
+              <SectionCard title="Communication & confidence" section={report.communication}>
+                {report.voice && (
+                  <p>
+                    Spoken answers: {report.voice.wordsPerMinute} words/min · {report.voice.fillerCount} filler word
+                    {report.voice.fillerCount === 1 ? '' : 's'}
+                  </p>
+                )}
+              </SectionCard>
+            )}
+            {report.knowledge && <SectionCard title="Knowledge & accuracy" section={report.knowledge} />}
+            {report.bodyLanguage ? (
+              <SectionCard title="Body language & eye contact" section={report.bodyLanguage}>
+                {report.camera && (
+                  <p>
+                    Eye contact {report.camera.eyeContactPct}% · in frame {report.camera.faceVisiblePct}% ·{' '}
+                    {report.camera.lookAwaysPerMinute} glances away/min · steadiness {report.camera.steadiness}/100
+                  </p>
+                )}
+              </SectionCard>
+            ) : (
+              !report.fallback && (
+                <div className="rounded-2xl border border-dashed border-[var(--borders-default)] p-3.5 font-[Poppins] text-[12.5px] text-[var(--neutral-600)]">
+                  <p className="font-semibold text-[var(--ink)]">Body language & eye contact</p>
+                  <p className="mt-1">Turn on your camera next time to get feedback on eye contact and body language. It is analysed on your device only.</p>
+                </div>
+              )
+            )}
+          </div>
+        )}
+
+        <div className="grid gap-4 md:grid-cols-2">
           {report && report.improvements.length > 0 && (
-            <div>
-              <h3 className="font-[Poppins] text-[13px] font-bold text-[#C2410C]">Work on next</h3>
-              <ul className="mt-1.5 list-disc space-y-1 pl-5 font-[Poppins] text-[13px] text-[var(--ink)]">
-                {report.improvements.map((s) => <li key={s}>{s}</li>)}
-              </ul>
-            </div>
+            <ListBlock title="Work on next" tone="text-[#C2410C]" items={report.improvements} />
+          )}
+          {report && (report.nextSteps?.length ?? 0) > 0 && (
+            <ListBlock title="Practise before your next interview" tone="text-[#2F43F2]" items={report.nextSteps ?? []} />
           )}
         </div>
         <div className="flex flex-wrap gap-2 pt-1">
@@ -563,6 +705,12 @@ function Report({ interview, onRestart }: { interview: LiveInterview; onRestart:
                 </p>
                 {t.scores && <ScoreBars scores={t.scores} />}
                 {t.delivery && <DeliveryCard delivery={t.delivery} />}
+                {t.presence && t.presence.samples > 0 && (
+                  <p className="font-[Poppins] text-[12px] text-[var(--neutral-600)]">
+                    Camera: eye contact {t.presence.eyeContactPct}% · in frame {t.presence.faceVisiblePct}% ·{' '}
+                    {t.presence.lookAwayCount} glance{t.presence.lookAwayCount === 1 ? '' : 's'} away · steadiness {t.presence.steadiness}/100
+                  </p>
+                )}
               </div>
             </details>
           ))}
