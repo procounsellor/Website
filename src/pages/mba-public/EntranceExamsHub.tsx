@@ -28,6 +28,7 @@ import {
   type Faq,
 } from "@/lib/mbaPublic";
 import { MBA_EXAMS, MBA_PATHS, examPath } from "@/lib/mbaRoutes.mjs";
+import { BUILD_DATE } from "@/lib/clientReady";
 
 const PATH = MBA_PATHS.exams;
 const CRUMBS = mbaCrumbs({ name: "Entrance exams" });
@@ -35,12 +36,33 @@ const TITLE = "MBA Entrance Exams 2027: CAT, XAT, SNAP, NMAT and More";
 const DESCRIPTION =
   "MBA entrance exams for 2027 admission: CAT, XAT, SNAP, NMAT, CMAT, MAH-CET, MAT and GMAT — who conducts each, exam dates and which colleges use them.";
 
-/** "Exam date" or the first date that looks like the test itself. */
+const MONTHS: Record<string, string> = { jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06", jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12" };
+
+/** The last "12 Dec 2026"-style date in a value, as YYYY-MM-DD (null if none). */
+function lastDateIn(value: string): string | null {
+  const all = [...value.matchAll(/(d{1,2})s+([A-Za-z]{3})[a-z]*.?s+(d{4})/g)];
+  const m = all[all.length - 1];
+  const month = m && MONTHS[m[2].toLowerCase()];
+  return m && month ? `${m[3]}-${month}-${m[1].padStart(2, "0")}` : null;
+}
+
+/**
+ * The next test date: the first exam-like date that hasn't passed. "Passed" is
+ * judged against the build day, so the saved page and the browser agree (the
+ * column showed CMAT 25 Jan 2026 and MAH-CET April 2026 in November 2026).
+ */
 function examDay(id: string): string | null {
   if (id === "cat") return CAT_2026_KEY_DATES.find((d) => d.label === "Exam date")?.value.split(",").slice(0, 2).join(",") ?? null;
   const e = examInfo(id);
-  const d = e?.dates.find((x) => /exam|test date|test window|slot/i.test(x.label) && !/admit|registration/i.test(x.label));
-  return d ? `${d.value}${d.tentative ? " (tentative)" : ""}` : null;
+  const candidates = (e?.dates ?? []).filter(
+    (x) => /exam|test date|test window|slot|SNAP 0d|CBT/i.test(x.label) && !/admit|registration|result/i.test(x.label),
+  );
+  const next = candidates.find((x) => {
+    const end = lastDateIn(x.value);
+    return !end || end >= BUILD_DATE;
+  });
+  if (next) return `${next.value}${next.tentative ? " (tentative)" : ""}`;
+  return candidates.length ? "Next dates not announced yet" : null;
 }
 
 const FAQS: Faq[] = [

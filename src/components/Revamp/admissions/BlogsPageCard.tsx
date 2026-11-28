@@ -44,7 +44,11 @@ export default function BlogsPageCard({
 
   useEffect(() => {
     if (IS_PRERENDER) return;
-    setIsImageLoading(hasImage && !imageNode.current?.complete);
+    // The card renders a phone and a desktop <img>; the ref holds whichever
+    // mounted last. Only a visible, still-loading image gets the shimmer: on
+    // phones the hidden desktop copy never loads, which hid every thumbnail.
+    const node = imageNode.current;
+    setIsImageLoading(hasImage && !!node && node.offsetParent !== null && !node.complete);
   }, [imageUrl, hasImage]);
 
   const handleImageRef = (node: HTMLImageElement | null) => {

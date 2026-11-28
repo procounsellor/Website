@@ -59,7 +59,8 @@ function ResultRow({
               {pct(r.thresholds.dilr)} · QA {pct(r.thresholds.qa)}
             </p>
           )}
-          {r.notes && <p className="mt-2 text-[12.5px] leading-5 text-slate-500">{r.notes}</p>}
+          {/* wrap-anywhere: one note carries a long unbroken PDF URL that made the page scroll sideways on phones. */}
+          {r.notes && <p className="mt-2 text-[12.5px] leading-5 text-slate-500 wrap-anywhere">{r.notes}</p>}
           {r.source && (
             <p className="mt-2 text-[12px] text-slate-500">
               Source:{" "}
