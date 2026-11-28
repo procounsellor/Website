@@ -86,6 +86,26 @@ export const useSearchStore = create<SearchState>()(
             });
           }
 
+          // MBA institutes (IIMs etc.) aren't in the backend's college list, so
+          // "IIM Ahmedabad" found nothing. They come from the bundled MBA snapshot,
+          // loaded only when someone searches (it is too big for the main bundle).
+          try {
+            const { MBA_INSTITUTES, institutePath, isPublished } = await import("@/lib/mbaPublic");
+            for (const inst of MBA_INSTITUTES) {
+              const url = institutePath(inst.slug);
+              if (!isPublished(url)) continue;
+              results.push({
+                id: inst.slug,
+                name: inst.shortName || inst.name,
+                type: "college",
+                subtitle: [inst.name, [inst.city, inst.state].filter(Boolean).join(", ")].filter(Boolean).join(" • "),
+                url,
+              });
+            }
+          } catch (err) {
+            console.error("MBA institutes unavailable for search:", err);
+          }
+
           const searchLower = query.toLowerCase();
           const dedupedResults = results.filter((result, index, array) => {
             return array.findIndex((candidate) => candidate.type === result.type && candidate.id === result.id) === index;

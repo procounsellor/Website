@@ -284,6 +284,10 @@ export default function CatScoreCalculator() {
           {score && (
             <div ref={resultRef} className="scroll-mt-24 space-y-8">
               <Section title="Your CAT raw score">
+                {/* The table is wider than a phone, so its total column was off-screen: lead with it. */}
+                <p className="mb-3 font-[Poppins] text-[15px] text-[#0E1629]">
+                  Total raw score: <span className="text-[22px] font-semibold">{score.total}</span>
+                </p>
                 <TableWrap caption={`Your CAT ${YEAR} raw score by section`}>
                   <thead>
                     <tr>

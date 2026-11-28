@@ -74,6 +74,24 @@ const firstNameOf = (name: string | null | undefined) => {
   return trimmed ? trimmed : null;
 };
 
+/**
+ * A signed-out visitor following an MBA link (an email, a bookmark, "Free CAT
+ * prep") used to land on the home page with no explanation. Remember where they
+ * were going and open the login dialog; once an MBA student signs in,
+ * RevampLayout takes them on to returnToPath.
+ */
+function LoginThenReturn({ to }: { to: string }) {
+  const setReturnToPath = useAuthStore((s) => s.setReturnToPath);
+  const toggleLogin = useAuthStore((s) => s.toggleLogin);
+  useEffect(() => {
+    setReturnToPath(to);
+    if (!useAuthStore.getState().isLoginToggle) toggleLogin();
+    // Once, for the path they arrived on.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return <Navigate to="/" replace />;
+}
+
 export default function MbaStudentLayout() {
   const { role, isAuthenticated, user, userId, logout, returnToPath, setReturnToPath } = useAuthStore();
   const location = useLocation();
@@ -100,7 +118,7 @@ export default function MbaStudentLayout() {
   }, [allowed, returnToPath, setReturnToPath]);
 
   // After every hook, so hook order never changes between renders.
-  if (!isAuthenticated) return <Navigate to="/" replace />;
+  if (!isAuthenticated) return <LoginThenReturn to={location.pathname + location.search} />;
   if (!allowed) return <Navigate to="/" replace />;
 
   const onOnboarding = location.pathname === '/mba/onboarding';
